@@ -202,7 +202,7 @@ export default function Carousel<T>({
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-2">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex flex-col w-full">
           <div className="flex items-center gap-1">
             {icon && (

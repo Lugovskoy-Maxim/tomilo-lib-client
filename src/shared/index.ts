@@ -8,3 +8,4 @@ export {default as AuthModal} from './auth-modal/auth-modal';
 export {default as CarouselCard} from './carousel-card/carousel-card';
 export {default as ReadingCard} from './reading-card/reading-card';
 export {default as CollectionCard} from './collection-card/collection-card';
+export {default as LastUpdates} from './last-updates/last-updates';

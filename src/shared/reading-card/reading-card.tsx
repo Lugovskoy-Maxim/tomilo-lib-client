@@ -34,7 +34,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
           />
 
           {/* тип на картинке */}
-          <div className="absolute bottom-2 left-2 bg-[var(--primary)] text-[var(--secondary)] px-1 py-0 rounded-sm flex items-center gap-1 text-xs sm:text-sm font-normal">
+          <div className="absolute bottom-2 left-2 bg-[var(--muted)] text-[var(--primary)] px-1 py-0 rounded-sm flex items-center gap-1 text-xs sm:text-sm font-normal">
             {data.type}
           </div>
         </div>
@@ -42,7 +42,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
         {/* Контент справа */}
         <div className="relative flex-1 p-3 sm:p-4 min-w-0">
           {/* Название */}
-          <h3 className="font-semibold text-[var(--foreground)] line-clamp-2 leading-tight text-sm sm:text-base mb-2 group-hover:text-[var(--primary)] transition-colors active:cursor-grabbing cursor-pointer">
+          <h3 className="font-semibold text-[var(--foreground)] line-clamp-2 leading-tight text-sm sm:text-base mb-2 group-hover:text-[var(--primary)] transition-colors cursor-pointer">
             {data.title}
           </h3>
 
