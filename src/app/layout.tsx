@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Exo_2, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
-import { ThemeProvider } from 'next-themes'
-import { Header } from "@/widgets";
+
 const exo_2 = Exo_2({
   variable: "--font-exo_2",
   weight: ["200", "400", "700"],
@@ -24,16 +24,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={`${exo_2.variable} ${geistMono.variable} antialiased w-full justify-center items-center`}>
-        <ThemeProvider>
-          <Header />
-          {children}
-        </ThemeProvider>
+      <body
+        className={`${exo_2.variable} ${geistMono.variable} antialiased w-full justify-center items-center`}
+      >
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
-
 }
