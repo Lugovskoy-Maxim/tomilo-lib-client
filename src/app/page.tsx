@@ -22,7 +22,7 @@ export default function Home() {
       <main className="flex flex-col items-center justify-center gap-6">
         <Carousel
           title="Популярные тайтлы"
-          type="reading"
+          type="browse"
           icon={<Trophy className="w-6 h-6" />}
           data={cardData}
           cardComponent={CarouselCard}
@@ -47,7 +47,7 @@ export default function Home() {
         <Carousel
           title="Продолжить чтение"
           description="Это главы, которые вы ещё не прочитали. Данный список генерируется на основании ваших закладок."
-          type="reading"
+          type="browse"
           icon={<BookOpen className="w-6 h-6" />}
           data={readingData}
           cardComponent={ReadingCard}
@@ -63,7 +63,7 @@ export default function Home() {
         <GridSection
           title="Последние обновления"
           description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."
-          type="updates"
+          type="browse"
           href="/updates"
           icon={<Clock className="w-6 h-6" />}
           data={latestUpdatesData}
