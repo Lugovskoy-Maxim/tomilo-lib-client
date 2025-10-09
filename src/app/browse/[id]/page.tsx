@@ -1,10 +1,9 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
 import { Title, getTitleById, mockTitle } from "@/constants/mokeReadPage";
 import { TitlePageSkeleton } from "@/shared/browse";
-import TitlePageContent from "@/shared/browse/title-page-component/title-page-component";
+import TitlePageContent from "@/shared/browse/title-page-components/title-page-components";
 import NotFound from "@/app/not-found";
 
 // Улучшенная функция для поиска тайтла по ID

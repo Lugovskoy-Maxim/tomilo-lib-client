@@ -9,8 +9,6 @@ import {
   Clock,
   MessageSquare,
   ExternalLink,
-  Eye, // Добавлено
-  ThumbsUp, // Добавлено
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,7 +23,7 @@ import {
   InfoCard,
   StatusBadge,
   TabButton,
-} from "../ui-comonents/ui-components";
+} from "../ui-components/ui-components";
 
 interface TitlePageContentProps {
   title: Title;
