@@ -1,504 +1,523 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Footer, Header } from "@/widgets";
 import {
   Star,
   Calendar,
-  User,
   Tag,
-  Play,
-  Bookmark,
-  Heart,
-  Clock,
-  ChevronLeft,
-  ExternalLink,
-  MessageSquare,
   Search,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  Check,
 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { mockTitle, Title } from "@/constants/mokeReadPage";
-import Image from "next/image";
+import CarouselCard, { CardProps } from "../../shared/carousel-card/carousel-card"// Импортируем типы
 
-// Переисполняемые компоненты
-const StatusBadge = ({ status }: { status: Title["status"] }) => {
-  const getStatusConfig = (status: Title["status"]) => {
-    switch (status) {
-      case "Онгоинг":
-        return { text: "Онгоинг", color: "bg-green-500" };
-      case "Завершен":
-        return { text: "Завершено", color: "bg-blue-500" };
-      case "Приостановлен":
-        return { text: "Перерыв", color: "bg-yellow-500" };
-      default:
-        return { text: status, color: "bg-gray-500" };
-    }
-  };
-
-  const { text, color } = getStatusConfig(status);
+// Компонент фильтра
+const FilterSection = ({ 
+  title, 
+  children,
+  isOpen = true 
+}: { 
+  title: string; 
+  children: React.ReactNode;
+  isOpen?: boolean;
+}) => {
+  const [open, setOpen] = useState(isOpen);
 
   return (
-    <div
-      className={`${color} text-white px-3 py-1 rounded-full text-sm font-medium`}
-    >
-      {text}
+    <div className="border-b border-[var(--border)] pb-4">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between w-full text-left font-medium text-[var(--foreground)] mb-2"
+      >
+        {title}
+        {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+      </button>
+      {open && <div className="space-y-2">{children}</div>}
     </div>
   );
 };
 
-const InfoCard = ({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ComponentType<any>;
-  label: string;
-  value: string | number;
-}) => (
-  <div className="flex items-center gap-3 p-3 bg-[var(--card)] rounded-lg border border-[var(--border)]">
-    <Icon className="w-5 h-5 text-[var(--muted-foreground)]" />
-    <div>
-      <div className="text-sm text-[var(--muted-foreground)]">{label}</div>
-      <div className="font-medium">{value}</div>
-    </div>
-  </div>
-);
+// Типы для фильтров
+type SortBy = "rating" | "year" | "views" | "chapters";
+type SortOrder = "asc" | "desc";
 
-const ChapterItem = ({
-  chapter,
-  onClick,
-}: {
-  chapter: any;
-  titleId: number;
-  onClick: (chapterId: number) => void;
-}) => (
-  <div
-    className="flex items-center justify-between p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:border-[var(--primary)] transition-colors group cursor-pointer"
-    onClick={() => onClick(chapter.number)}
-  >
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-3 mb-1">
-        <span className="font-semibold text-[var(--foreground)]">
-          Глава {chapter.number}
-        </span>
-        {chapter.title && (
-          <span className="text-[var(--foreground)] truncate">
-            {chapter.title}
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
-        <span>{chapter.date}</span>
-        <span>{chapter.views.toLocaleString()} просмотров</span>
-      </div>
-    </div>
-    <Play className="w-5 h-5 text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors" />
-  </div>
-);
+interface Filters {
+  search: string;
+  genres: string[];
+  types: string[];
+  status: string[];
+  sortBy: SortBy;
+  sortOrder: SortOrder;
+}
 
-const CommentItem = ({
-  author,
-  time,
-  content,
-  likes,
-  avatarColor = "bg-[var(--primary)]",
-}: {
-  author: string;
-  time: string;
-  content: string;
-  likes: number;
-  avatarColor?: string;
-}) => (
-  <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-    <div className="flex items-start gap-3">
-      <div
-        className={`w-10 h-10 ${avatarColor} rounded-full flex items-center justify-center text-[var(--primary-foreground)] font-semibold`}
-      >
-        {author.charAt(0)}
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="font-semibold text-[var(--foreground)]">
-            {author}
-          </span>
-          <span className="text-sm text-[var(--muted-foreground)]">{time}</span>
-        </div>
-        <p className="text-[var(--foreground)]">{content}</p>
-        <div className="flex items-center gap-4 mt-2">
-          <button className="flex items-center gap-1 text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
-            <Heart className="w-4 h-4" />
-            <span>{likes}</span>
-          </button>
-          <button className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
-            Ответить
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+// Функция для преобразования Title в CardProps
+const titleToCardProps = (title: Title): CardProps => ({
+  id: title.id,
+  title: title.title,
+  type: title.type,
+  year: title.year,
+  rating: title.rating,
+  image: title.image,
+  genres: title.genres
+});
 
-const TabButton = ({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) => (
-  <button
-    onClick={onClick}
-    className={`pb-4 px-1 font-medium border-b-2 transition-colors ${
-      active
-        ? "border-[var(--primary)] text-[var(--primary)]"
-        : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-    }`}
-  >
-    {children}
-  </button>
-);
-
-// Основной компонент
-export default function TitlePage() {
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "chapters" | "comments">(
-    "chapters"
-  );
-  const [chapterSearch, setChapterSearch] = useState("");
+// Основной компонент страницы каталога
+export default function BrowsePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Состояния для формы фильтров (не применяются сразу)
+  const [formFilters, setFormFilters] = useState<Filters>({
+    search: "",
+    genres: [],
+    types: [],
+    status: [],
+    sortBy: "rating",
+    sortOrder: "desc",
+  });
 
-  // Фильтрация глав по поиску
-  const filteredChapters = useMemo(() => {
-    if (!chapterSearch.trim()) return mockTitle.chapters;
+  // Примененные фильтры (используются для фактической фильтрации)
+  const [appliedFilters, setAppliedFilters] = useState<Filters>(formFilters);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12);
 
-    const searchLower = chapterSearch.toLowerCase();
-    return mockTitle.chapters.filter(
-      (chapter) =>
-        chapter.number.toString().includes(chapterSearch) ||
-        chapter.title?.toLowerCase().includes(searchLower)
-    );
-  }, [chapterSearch]);
+  // Инициализация фильтров из URL параметров
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    // Валидация значений sortBy
+    const sortByParam = params.get('sortBy');
+    const validSortBy: SortBy = 
+      sortByParam === "rating" || sortByParam === "year" || 
+      sortByParam === "views" || sortByParam === "chapters" 
+        ? sortByParam 
+        : "rating";
 
-  const handleStartReading = () => {
-    router.push(
-      `/read/${mockTitle.id}/chapter/${mockTitle.chapters[0].number}`
-    );
+    // Валидация значений sortOrder
+    const sortOrderParam = params.get('sortOrder');
+    const validSortOrder: SortOrder = 
+      sortOrderParam === "asc" || sortOrderParam === "desc" 
+        ? sortOrderParam 
+        : "desc";
+
+    const initialFilters: Filters = {
+      search: params.get('search') || "",
+      genres: params.get('genres')?.split(',').filter(Boolean) || [],
+      types: params.get('types')?.split(',').filter(Boolean) || [],
+      status: params.get('status')?.split(',').filter(Boolean) || [],
+      sortBy: validSortBy,
+      sortOrder: validSortOrder,
+    };
+
+    setFormFilters(initialFilters);
+    setAppliedFilters(initialFilters);
+  }, [searchParams]);
+
+  // Обновление URL параметров при изменении примененных фильтров
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    if (appliedFilters.search) params.set('search', appliedFilters.search);
+    if (appliedFilters.genres.length > 0) params.set('genres', appliedFilters.genres.join(','));
+    if (appliedFilters.types.length > 0) params.set('types', appliedFilters.types.join(','));
+    if (appliedFilters.status.length > 0) params.set('status', appliedFilters.status.join(','));
+    if (appliedFilters.sortBy !== 'rating') params.set('sortBy', appliedFilters.sortBy);
+    if (appliedFilters.sortOrder !== 'desc') params.set('sortOrder', appliedFilters.sortOrder);
+
+    const newUrl = params.toString() ? `/browse?${params.toString()}` : '/browse';
+    router.replace(newUrl, { scroll: false });
+  }, [appliedFilters, router]);
+
+  // Получаем все уникальные жанры, типы и статусы
+  const allGenres = useMemo(() => {
+    const genres = new Set<string>();
+    mockTitle.forEach(title => title.genres.forEach(genre => genres.add(genre)));
+    return Array.from(genres).sort();
+  }, []);
+
+  const allTypes = useMemo(() => {
+    const types = new Set<string>();
+    mockTitle.forEach(title => types.add(title.type));
+    return Array.from(types).sort();
+  }, []);
+
+  const allStatus = useMemo(() => {
+    const status = new Set<string>();
+    mockTitle.forEach(title => status.add(title.status));
+    return Array.from(status).sort();
+  }, []);
+
+  // Функция применения фильтров
+  const applyFilters = () => {
+    setAppliedFilters(formFilters);
+    setCurrentPage(1); // Сбрасываем на первую страницу при применении фильтров
   };
 
-  const handleChapterClick = (chapterNumber: number) => {
-    router.push(`/read/${mockTitle.id}/chapter/${chapterNumber}`);
+  // Функция сброса фильтров
+  const resetFilters = () => {
+    const defaultFilters: Filters = {
+      search: "",
+      genres: [],
+      types: [],
+      status: [],
+      sortBy: "rating",
+      sortOrder: "desc",
+    };
+    setFormFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
+    setCurrentPage(1);
   };
 
-  // Боковая панель
-  const Sidebar = () => (
-    <div className="sticky top-20 space-y-6">
-      {/* Постер и кнопки */}
-      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)]">
-        <Image
-          src={mockTitle.image}
-          alt={mockTitle.title}
-          className="w-full h-full object-cover"
-          priority={true}
-          width={280}
-          height={400}
-        />
-        <div className="absolute top-3 left-3">
-          <StatusBadge status={mockTitle.status} />
-        </div>
-      </div>
+  // Фильтрация и сортировка тайтлов на основе примененных фильтров
+  const filteredAndSortedTitles = useMemo(() => {
+    const filtered = mockTitle.filter(title => {
+      // Поиск по названию
+      const matchesSearch = appliedFilters.search === "" ||
+        title.title.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
+        (title.originalTitle && title.originalTitle.toLowerCase().includes(appliedFilters.search.toLowerCase()));
 
-      {/* Кнопки действий */}
-      <div className="flex gap-2">
-        <button
-          onClick={handleStartReading}
-          className="flex-1 bg-[var(--primary)] text-[var(--primary-foreground)] py-3 px-4 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2"
-        >
-          <Play className="w-5 h-5" />
-          Начать чтение
-        </button>
-        <button
-          onClick={() => setIsBookmarked(!isBookmarked)}
-          className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)] transition-colors"
-        >
-          <Bookmark
-            className={`w-5 h-5 ${isBookmarked ? "fill-current" : ""}`}
-          />
-        </button>
-      </div>
+      // Фильтрация по жанрам
+      const matchesGenres = appliedFilters.genres.length === 0 || 
+        appliedFilters.genres.some(genre => title.genres.includes(genre));
 
-      {/* Информационный блок */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col items-center text-center p-3 bg-[var(--accent)] rounded-lg">
-            <div className="text-sm font-medium text-[var(--foreground)]">
-              {mockTitle.totalChapters}
-            </div>
-            <div className="text-xs text-[var(--muted-foreground)]">глав</div>
-          </div>
-          <div className="flex flex-col items-center text-center p-3 bg-[var(--accent)] rounded-lg">
-            <div className="text-sm font-medium text-[var(--foreground)]">
-              {(mockTitle.views / 1000).toFixed(1)}k
-            </div>
-            <div className="text-xs text-[var(--muted-foreground)]">
-              просмотров
-            </div>
-          </div>
-        </div>
-      </div>
+      // Фильтрация по типам
+      const matchesTypes = appliedFilters.types.length === 0 || 
+        appliedFilters.types.includes(title.type);
 
-      {/* Альтернативные названия */}
-      {(mockTitle.alternativeTitles || mockTitle.originalTitle) && (
-        <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-          <h3 className="text-sm font-medium text-[var(--muted-foreground)] mb-3">
-            Альтернативные названия
-          </h3>
-          <div className="space-y-2">
-            {mockTitle.alternativeTitles?.map((title, index) => (
-              <div key={index} className="text-sm text-[var(--foreground)]">
-                {title}
-              </div>
-            ))}
-            {mockTitle.originalTitle && !mockTitle.alternativeTitles && (
-              <div className="text-sm text-[var(--foreground)]">
-                {mockTitle.originalTitle}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      // Фильтрация по статусу
+      const matchesStatus = appliedFilters.status.length === 0 || 
+        appliedFilters.status.includes(title.status);
 
-      {/* Источники */}
-      {mockTitle.sources && mockTitle.sources.length > 0 && (
-        <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-          <h3 className="text-sm font-medium text-[var(--muted-foreground)] mb-3">
-            Источники
-          </h3>
-          <div className="space-y-2">
-            {mockTitle.sources.map((source, index) => (
-              <a
-                key={index}
-                href={source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-2 rounded hover:bg-[var(--accent)] transition-colors group"
-              >
-                <span className="text-sm text-[var(--foreground)]">
-                  {source.name}
-                </span>
-                <ExternalLink className="w-4 h-4 text-[var(--muted-foreground)] group-hover:text-[var(--primary)]" />
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+      return matchesSearch && matchesGenres && matchesTypes && matchesStatus;
+    });
 
-  // Контент табов
-  const TabContent = () => {
-    switch (activeTab) {
-      case "info":
-        return (
-          <div className="flex flex-col prose prose-invert max-w-none gap-4">
-            <p className="text-[var(--foreground)] leading-relaxed">
-              {mockTitle.description}
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InfoCard icon={User} label="Автор" value={mockTitle.author} />
-              <InfoCard icon={Tag} label="Художник" value={mockTitle.artist} />
-            </div>
-          </div>
-        );
+    // Сортировка
+    filtered.sort((a, b) => {
+      let aValue: number, bValue: number;
+      
+      switch (appliedFilters.sortBy) {
+        case "rating":
+          aValue = a.rating;
+          bValue = b.rating;
+          break;
+        case "year":
+          aValue = a.year;
+          bValue = b.year;
+          break;
+        case "views":
+          aValue = a.views;
+          bValue = b.views;
+          break;
+        case "chapters":
+          aValue = a.totalChapters;
+          bValue = b.totalChapters;
+          break;
+        default:
+          aValue = a.rating;
+          bValue = b.rating;
+      }
 
-      case "chapters":
-        return (
-          <div className="space-y-4">
-            {/* Поиск глав */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
-              <input
-                type="text"
-                placeholder="Поиск по номеру или названию главы..."
-                value={chapterSearch}
-                onChange={(e) => setChapterSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
-              />
-            </div>
+      return appliedFilters.sortOrder === "desc" ? bValue - aValue : aValue - bValue;
+    });
 
-            {/* Список глав */}
-            <div className="space-y-2">
-              {filteredChapters.length > 0 ? (
-                filteredChapters.map((chapter) => (
-                  <ChapterItem
-                    key={chapter.id}
-                    chapter={chapter}
-                    titleId={mockTitle.id}
-                    onClick={handleChapterClick}
-                  />
-                ))
-              ) : (
-                <div className="text-center py-8 text-[var(--muted-foreground)]">
-                  Главы не найдены
-                </div>
-              )}
-            </div>
-          </div>
-        );
+    return filtered;
+  }, [appliedFilters]);
 
-      case "comments":
-        return (
-          <div className="space-y-6">
-            {/* Форма добавления комментария */}
-            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4">
-              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
-                Оставить комментарий
-              </h3>
-              <textarea
-                placeholder="Поделитесь вашим мнением о тайтле..."
-                className="w-full h-32 p-3 bg-[var(--background)] border border-[var(--border)] rounded-lg resize-none focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
-              />
-              <div className="flex justify-between items-center mt-3">
-                <div className="text-sm text-[var(--muted-foreground)]">
-                  Максимум 1000 символов
-                </div>
-                <button className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-lg hover:bg-[var(--primary)]/90 transition-colors">
-                  Отправить
-                </button>
-              </div>
-            </div>
+  // Пагинация
+  const paginatedTitles = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAndSortedTitles.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAndSortedTitles, currentPage, itemsPerPage]);
 
-            {/* Список комментариев */}
-            <div className="space-y-4">
-              <CommentItem
-                author="Алексей"
-                time="2 часа назад"
-                content="Отличный тайтл! Сюжет затягивает с первых глав, а арты просто шикарные. Жду не дождусь продолжения."
-                likes={24}
-              />
-              <CommentItem
-                author="Мария"
-                time="5 часов назад"
-                content="Главная героиня просто прекрасна! Её развитие на протяжении сюжета впечатляет. Рекомендую всем любителям фэнтези."
-                likes={18}
-                avatarColor="bg-green-500"
-              />
-            </div>
-          </div>
-        );
+  const totalPages = Math.ceil(filteredAndSortedTitles.length / itemsPerPage);
 
-      default:
-        return null;
-    }
+  // Обработчики для формы фильтров
+  const handleGenreChange = (genre: string) => {
+    setFormFilters(prev => ({
+      ...prev,
+      genres: prev.genres.includes(genre) 
+        ? prev.genres.filter(g => g !== genre) 
+        : [...prev.genres, genre]
+    }));
+  };
+
+  const handleTypeChange = (type: string) => {
+    setFormFilters(prev => ({
+      ...prev,
+      types: prev.types.includes(type) 
+        ? prev.types.filter(t => t !== type) 
+        : [...prev.types, type]
+    }));
+  };
+
+  const handleStatusChange = (status: string) => {
+    setFormFilters(prev => ({
+      ...prev,
+      status: prev.status.includes(status) 
+        ? prev.status.filter(s => s !== status) 
+        : [...prev.status, status]
+    }));
+  };
+
+  // Обработчик изменения сортировки
+  const handleSortByChange = (value: string) => {
+    const sortBy: SortBy = 
+      value === "rating" || value === "year" || value === "views" || value === "chapters" 
+        ? value 
+        : "rating";
+    
+    setFormFilters(prev => ({
+      ...prev,
+      sortBy
+    }));
+  };
+
+  // Обработчик клика по карточке
+  const handleCardClick = (id: number) => {
+    router.push(`/browse/${id}`);
   };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
 
-      {/* Заголовок страницы */}
-      <div className="sticky top-0 z-40 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="p-2 hover:bg-[var(--accent)] rounded-lg transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Link>
-            <h1 className="text-lg font-semibold truncate flex-1">
-              {mockTitle.title}
-            </h1>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          {/* Левая колонка */}
-          <div className="lg:col-span-1">
-            <Sidebar />
-          </div>
-
-          {/* Правая колонка */}
-          <div className="lg:col-span-3">
-            <div className="space-y-6">
-              {/* Заголовок и рейтинг */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Основной контент */}
+          <div className="lg:w-3/4">
+            {/* Заголовок и управление */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
-                <h1 className="text-3xl lg:text-4xl font-bold text-[var(--foreground)] mb-2">
-                  {mockTitle.title}
+                <h1 className="text-2xl lg:text-3xl font-bold text-[var(--foreground)] mb-2">
+                  Каталог тайтлов
                 </h1>
-
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-1 bg-[var(--card)] px-3 py-1 rounded-full border border-[var(--border)]">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{mockTitle.rating}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{mockTitle.year}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{mockTitle.lastUpdate}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Tag className="w-4 h-4" />
-                      <span>{mockTitle.type}</span>
-                    </div>
-                  </div>
-                </div>
+                <p className="text-[var(--muted-foreground)]">
+                  Найдено {filteredAndSortedTitles.length} тайтлов
+                </p>
               </div>
 
-              {/* Жанры */}
-              <div>
-                <h3 className="text-sm font-medium text-[var(--muted-foreground)] mb-2">
-                  Жанры
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {mockTitle.genres.map((genre, index) => (
-                    <Link
-                      key={index}
-                      href={`/browse?genres=${encodeURIComponent(genre)}`}
-                      className="px-3 py-1 bg-[var(--accent)] text-[var(--foreground)] rounded-full text-sm border border-[var(--border)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)] transition-colors"
-                    >
-                      {genre}
-                    </Link>
+              {/* Сортировка */}
+              <div className="flex flex-wrap gap-2">
+                <select
+                  value={formFilters.sortBy}
+                  onChange={(e) => handleSortByChange(e.target.value)}
+                  className="bg-[var(--card)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
+                >
+                  <option value="rating">По рейтингу</option>
+                  <option value="year">По году</option>
+                  <option value="views">По просмотрам</option>
+                  <option value="chapters">По количеству глав</option>
+                </select>
+
+                <button
+                  onClick={() => setFormFilters(prev => ({
+                    ...prev,
+                    sortOrder: prev.sortOrder === "desc" ? "asc" : "desc"
+                  }))}
+                  className="bg-[var(--card)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+                >
+                  {formFilters.sortOrder === "desc" ? " ↓ по убыванию" : " ↑ по возрастанию"}
+                </button>
+              </div>
+            </div>
+
+            {/* Поиск */}
+            <div className="relative mb-6">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--muted-foreground)] w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Поиск по названию..."
+                value={formFilters.search}
+                onSubmit={applyFilters}
+                onChange={(e) => setFormFilters(prev => ({
+                  ...prev,
+                  search: e.target.value
+                }))}
+                className="w-full pl-10 pr-4 py-3 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] placeholder-[var(--muted-foreground)]"
+              />
+            </div>
+
+            {/* Сетка тайтлов */}
+            {paginatedTitles.length > 0 ? (
+              <>
+                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+                  {paginatedTitles.map((title) => (
+                    <CarouselCard 
+                      key={title.id} 
+                      data={titleToCardProps(title)}
+                      onCardClick={handleCardClick}
+                    />
                   ))}
                 </div>
-              </div>
 
-              {/* Табы */}
-              <div className="border-b border-[var(--border)] mb-6">
-                <div className="flex gap-8">
-                  <TabButton
-                    active={activeTab === "info"}
-                    onClick={() => setActiveTab("info")}
-                  >
-                    Описание
-                  </TabButton>
-                  <TabButton
-                    active={activeTab === "chapters"}
-                    onClick={() => setActiveTab("chapters")}
-                  >
-                    Главы ({mockTitle.chapters.length})
-                  </TabButton>
-                  <TabButton
-                    active={activeTab === "comments"}
-                    onClick={() => setActiveTab("comments")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4" />
-                      Комментарии
+                {/* Пагинация */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--accent)] transition-colors"
+                    >
+                      Назад
+                    </button>
+                    
+                    <div className="flex gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        const page = currentPage <= 3 
+                          ? i + 1 
+                          : currentPage >= totalPages - 2 
+                            ? totalPages - 4 + i 
+                            : currentPage - 2 + i;
+                        
+                        if (page < 1 || page > totalPages) return null;
+                        
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-10 h-10 rounded-lg border ${
+                              currentPage === page
+                                ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
+                                : "bg-[var(--card)] border-[var(--border)] hover:bg-[var(--accent)]"
+                            } transition-colors`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
                     </div>
-                  </TabButton>
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--accent)] transition-colors"
+                    >
+                      Вперед
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-[var(--muted-foreground)] mb-4">
+                  Ничего не найдено
                 </div>
+                <button
+                  onClick={resetFilters}
+                  className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+                >
+                  Сбросить фильтры
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Боковая панель с фильтрами */}
+          <div className="lg:w-1/4">
+            <div className="sticky top-20 bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+                  <Filter className="w-4 h-4" />
+                  Фильтры
+                </h2>
+                <button
+                  onClick={resetFilters}
+                  className="text-sm text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors"
+                >
+                  Сбросить все
+                </button>
               </div>
 
-              {/* Контент табов */}
-              <div className="mb-8">
-                <TabContent />
+              <div className="space-y-4">
+                {/* Фильтр по жанрам */}
+                <FilterSection title="Жанры" isOpen={true}>
+                  {allGenres.map((genre) => (
+                    <label key={genre} className="flex items-center gap-2 cursor-pointer">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          checked={formFilters.genres.includes(genre)}
+                          onChange={() => handleGenreChange(genre)}
+                          className="sr-only"
+                        />
+                        <div className={`w-4 h-4 border rounded flex items-center justify-center ${
+                          formFilters.genres.includes(genre)
+                            ? "bg-[var(--primary)] border-[var(--primary)]"
+                            : "border-[var(--border)] bg-[var(--background)]"
+                        }`}>
+                          {formFilters.genres.includes(genre) && (
+                            <Check className="w-3 h-3 text-white" />
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-sm text-[var(--foreground)]">{genre}</span>
+                    </label>
+                  ))}
+                </FilterSection>
+
+                {/* Фильтр по типам */}
+                <FilterSection title="Тип" isOpen={false}>
+                  {allTypes.map((type) => (
+                    <label key={type} className="flex items-center gap-2 cursor-pointer">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          checked={formFilters.types.includes(type)}
+                          onChange={() => handleTypeChange(type)}
+                          className="sr-only"
+                        />
+                        <div className={`w-4 h-4 border rounded flex items-center justify-center ${
+                          formFilters.types.includes(type)
+                            ? "bg-[var(--primary)] border-[var(--primary)]"
+                            : "border-[var(--border)] bg-[var(--background)]"
+                        }`}>
+                          {formFilters.types.includes(type) && (
+                            <Check className="w-3 h-3 text-white" />
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-sm text-[var(--foreground)]">{type}</span>
+                    </label>
+                  ))}
+                </FilterSection>
+
+                {/* Фильтр по статусу */}
+                <FilterSection title="Статус" isOpen={false}>
+                  {allStatus.map((status) => (
+                    <label key={status} className="flex items-center gap-2 cursor-pointer">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          checked={formFilters.status.includes(status)}
+                          onChange={() => handleStatusChange(status)}
+                          className="sr-only"
+                        />
+                        <div className={`w-4 h-4 border rounded flex items-center justify-center ${
+                          formFilters.status.includes(status)
+                            ? "bg-[var(--primary)] border-[var(--primary)]"
+                            : "border-[var(--border)] bg-[var(--background)]"
+                        }`}>
+                          {formFilters.status.includes(status) && (
+                            <Check className="w-3 h-3 text-white" />
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-sm text-[var(--foreground)]">{status}</span>
+                    </label>
+                  ))}
+                </FilterSection>
+
+                {/* Кнопка применения фильтров */}
+                <button
+                  onClick={applyFilters}
+                  className="w-full bg-[var(--primary)] text-[var(--primary-foreground)] py-2 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+                >
+                  Применить фильтры
+                </button>
               </div>
             </div>
           </div>

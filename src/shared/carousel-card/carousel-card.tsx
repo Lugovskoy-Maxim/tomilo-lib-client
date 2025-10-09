@@ -1,7 +1,7 @@
 "use client";
 import { Star } from "lucide-react";
 
-interface CardProps {
+export interface CardProps {
   id: number;
   title: string;
   type: string;
@@ -11,7 +11,7 @@ interface CardProps {
   genres: string[];
 }
 
-interface CarouselCardProps {
+export interface CarouselCardProps {
   data: CardProps;
   onCardClick?: (id: number) => void;
 }

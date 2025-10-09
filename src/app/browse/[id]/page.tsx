@@ -9,7 +9,7 @@ import NotFound from "@/app/not-found";
 // Улучшенная функция для поиска тайтла по ID
 const findTitleById = async (id: string): Promise<Title | null> => {
   // Имитация задержки сети
-  await new Promise((resolve) => setTimeout(resolve, 10000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
   
   // Пытаемся преобразовать ID в число
   const titleId = parseInt(id, 10);
