@@ -127,7 +127,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
 
   const handleChapterClick = (chapterNumber: number) => {
     saveLastReadChapter(chapterNumber);
-    router.push(`/read/${title.id}/chapter/${chapterNumber}`);
+    router.push(`/browse/${title.id}/chapter/${chapterNumber}`);
   };
 
   // Боковая панель

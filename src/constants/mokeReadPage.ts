@@ -24,15 +24,29 @@ export interface Title {
   }[];
 }
 
-
 export interface Chapter {
   id: number;
   number: number;
   title: string;
   date: string;
   views: number;
+  images: string[];
 }
 
+const generateChapterImages = (
+  titleId: number,
+  chapterId: number,
+  count: number = 15
+): string[] => {
+  const images = [];
+  for (let i = 1; i <= count; i++) {
+    // Используем внешний сервис для разнообразия изображений
+    images.push(
+      `https://picsum.photos/800/1200?random=${titleId}_${chapterId}_${i}`
+    );
+  }
+  return images;
+};
 
 export const mockTitle: Title[] = [
   {
@@ -61,6 +75,7 @@ export const mockTitle: Title[] = [
         title: "Финал арки: Откровение",
         date: "2 часа назад",
         views: 15400,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 2,
@@ -68,6 +83,7 @@ export const mockTitle: Title[] = [
         title: "Битва с древним злом",
         date: "1 день назад",
         views: 18200,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 3,
@@ -75,6 +91,7 @@ export const mockTitle: Title[] = [
         title: "Пробуждение силы",
         date: "3 дня назад",
         views: 19500,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 4,
@@ -82,6 +99,7 @@ export const mockTitle: Title[] = [
         title: "Встреча с союзником",
         date: "5 дней назад",
         views: 21000,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 5,
@@ -89,6 +107,7 @@ export const mockTitle: Title[] = [
         title: "Заговор при дворе",
         date: "1 неделю назад",
         views: 22300,
+        images: generateChapterImages(1, 233, 18),
       },
     ],
     alternativeTitles: [
@@ -130,6 +149,7 @@ export const mockTitle: Title[] = [
         title: "Решающий выбор",
         date: "5 часов назад",
         views: 19800,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 2,
@@ -137,6 +157,7 @@ export const mockTitle: Title[] = [
         title: "Испытание верности",
         date: "1 день назад",
         views: 21500,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 3,
@@ -144,6 +165,7 @@ export const mockTitle: Title[] = [
         title: "Тайна темного принца",
         date: "2 дня назад",
         views: 23100,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 4,
@@ -151,6 +173,7 @@ export const mockTitle: Title[] = [
         title: "Бал маскарад",
         date: "4 дня назад",
         views: 24500,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 5,
@@ -158,6 +181,7 @@ export const mockTitle: Title[] = [
         title: "Юбилейная глава",
         date: "1 неделю назад",
         views: 26700,
+        images: generateChapterImages(1, 233, 18),
       },
     ],
     alternativeTitles: ["Choose Me!", "私を選んで！"],
@@ -192,6 +216,7 @@ export const mockTitle: Title[] = [
         title: "Эпилог: Новое начало",
         date: "2 дня назад",
         views: 32400,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 2,
@@ -199,6 +224,7 @@ export const mockTitle: Title[] = [
         title: "Финальное решение",
         date: "1 неделю назад",
         views: 35600,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 3,
@@ -206,6 +232,7 @@ export const mockTitle: Title[] = [
         title: "Прощание с прошлым",
         date: "2 недели назад",
         views: 37800,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 4,
@@ -213,6 +240,7 @@ export const mockTitle: Title[] = [
         title: "Исповедь",
         date: "3 недели назад",
         views: 39200,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 5,
@@ -220,6 +248,7 @@ export const mockTitle: Title[] = [
         title: "Момент истины",
         date: "1 месяц назад",
         views: 41500,
+        images: generateChapterImages(1, 233, 18),
       },
     ],
     alternativeTitles: ["Gates of Solitude", "孤独の門"],
@@ -254,6 +283,7 @@ export const mockTitle: Title[] = [
         title: "Техника тысячелетнего меча",
         date: "1 день назад",
         views: 28700,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 2,
@@ -261,6 +291,7 @@ export const mockTitle: Title[] = [
         title: "Схватка с королем демонов",
         date: "3 дня назад",
         views: 31200,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 3,
@@ -268,6 +299,7 @@ export const mockTitle: Title[] = [
         title: "Пробуждение крови",
         date: "5 дней назад",
         views: 33400,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 4,
@@ -275,6 +307,7 @@ export const mockTitle: Title[] = [
         title: "Наследие предков",
         date: "1 неделю назад",
         views: 35600,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 5,
@@ -282,6 +315,7 @@ export const mockTitle: Title[] = [
         title: "Тренировка в святилище",
         date: "2 недели назад",
         views: 37800,
+        images: generateChapterImages(1, 233, 18),
       },
     ],
     alternativeTitles: ["Swordmaster's Path", "剣豪の道"],
@@ -316,6 +350,7 @@ export const mockTitle: Title[] = [
         title: "Заговор раскрыт",
         date: "3 дня назад",
         views: 15600,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 2,
@@ -323,6 +358,7 @@ export const mockTitle: Title[] = [
         title: "Ночной визит",
         date: "6 дней назад",
         views: 17200,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 3,
@@ -330,6 +366,7 @@ export const mockTitle: Title[] = [
         title: "Свидетель из прошлого",
         date: "1 неделю назад",
         views: 18900,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 4,
@@ -337,6 +374,7 @@ export const mockTitle: Title[] = [
         title: "Тайная встреча",
         date: "2 недели назад",
         views: 20100,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 5,
@@ -344,6 +382,7 @@ export const mockTitle: Title[] = [
         title: "Письмо с фронта",
         date: "3 недели назад",
         views: 21500,
+        images: generateChapterImages(1, 233, 18),
       },
     ],
     alternativeTitles: ["Shadow of the Empire", "帝国の影"],
@@ -378,6 +417,7 @@ export const mockTitle: Title[] = [
         title: "За пределами туманности",
         date: "6 часов назад",
         views: 19800,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 2,
@@ -385,6 +425,7 @@ export const mockTitle: Title[] = [
         title: "Сигнал из глубин",
         date: "2 дня назад",
         views: 21500,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 3,
@@ -392,6 +433,7 @@ export const mockTitle: Title[] = [
         title: "Первая встреча",
         date: "4 дня назад",
         views: 23100,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 4,
@@ -399,6 +441,7 @@ export const mockTitle: Title[] = [
         title: "Загадка черной дыры",
         date: "1 неделю назад",
         views: 24500,
+        images: generateChapterImages(1, 233, 18),
       },
       {
         id: 5,
@@ -406,6 +449,7 @@ export const mockTitle: Title[] = [
         title: "Космическая буря",
         date: "2 недели назад",
         views: 25600,
+        images: generateChapterImages(1, 233, 18),
       },
     ],
     alternativeTitles: ["Star Hunter", "スター·ハンター"],
@@ -440,6 +484,8 @@ export const mockTitle: Title[] = [
         title: "Экзамен мастера",
         date: "12 часов назад",
         views: 22300,
+        images: generateChapterImages(1, 233, 18)
+
       },
       {
         id: 2,
@@ -447,6 +493,8 @@ export const mockTitle: Title[] = [
         title: "Дуэль с профессором",
         date: "2 дня назад",
         views: 24500,
+        images: generateChapterImages(1, 233, 18)
+
       },
       {
         id: 3,
@@ -454,6 +502,8 @@ export const mockTitle: Title[] = [
         title: "Запретное заклинание",
         date: "4 дня назад",
         views: 26700,
+        images: generateChapterImages(1, 233, 18)
+
       },
       {
         id: 4,
@@ -461,6 +511,8 @@ export const mockTitle: Title[] = [
         title: "Тайная организация",
         date: "1 неделю назад",
         views: 27800,
+        images: generateChapterImages(1, 233, 18)
+
       },
       {
         id: 5,
@@ -468,6 +520,8 @@ export const mockTitle: Title[] = [
         title: "Пробуждение таланта",
         date: "2 недели назад",
         views: 28900,
+        images: generateChapterImages(1, 233, 18)
+
       },
     ],
     alternativeTitles: ["Magic Master", "魔法大師"],
@@ -502,6 +556,8 @@ export const mockTitle: Title[] = [
         title: "Пробуждение дракона",
         date: "4 дня назад",
         views: 14500,
+        images: generateChapterImages(1, 233, 18)
+
       },
       {
         id: 2,
@@ -509,6 +565,8 @@ export const mockTitle: Title[] = [
         title: "Древний договор",
         date: "1 неделю назад",
         views: 16200,
+        images: generateChapterImages(1, 233, 18)
+
       },
       {
         id: 3,
@@ -516,6 +574,8 @@ export const mockTitle: Title[] = [
         title: "Битва за гнездо",
         date: "2 недели назад",
         views: 17800,
+        images: generateChapterImages(1, 233, 18)
+
       },
       {
         id: 4,
@@ -523,6 +583,8 @@ export const mockTitle: Title[] = [
         title: "Слёзы феникса",
         date: "3 недели назад",
         views: 18900,
+        images: generateChapterImages(1, 233, 18)
+
       },
       {
         id: 5,
@@ -530,6 +592,8 @@ export const mockTitle: Title[] = [
         title: "Путь к вершине",
         date: "1 месяц назад",
         views: 19500,
+        images: generateChapterImages(1, 233, 18)
+
       },
     ],
     alternativeTitles: ["Dragon Legend", "ドラゴン·レジェンド"],
@@ -540,21 +604,39 @@ export const mockTitle: Title[] = [
   },
 ];
 
-
 // Функция для получения тайтла по ID
 export const getTitleById = (id: number): Title | undefined => {
-  return mockTitle.find(title => title.id === id);
+  return mockTitle.find((title) => title.id === id);
 };
 
 // Функция для получения похожих тайтлов по жанрам - ИСПРАВЛЕННАЯ
-export const getSimilarTitles = (currentTitle: Title, limit: number = 4): Title[] => {
+export const getSimilarTitles = (
+  currentTitle: Title,
+  limit: number = 4
+): Title[] => {
   const similarTitles = mockTitle
-    .filter(title => 
-      title.id !== currentTitle.id && // Здесь title - элемент массива, а не массив
-      title.genres.some(genre => currentTitle.genres.includes(genre))
+    .filter(
+      (title) =>
+        title.id !== currentTitle.id && // Здесь title - элемент массива, а не массив
+        title.genres.some((genre) => currentTitle.genres.includes(genre))
     )
     .sort((a, b) => b.rating - a.rating)
     .slice(0, limit);
-  
+
   return similarTitles;
+};
+
+// Функция для получения главы по ID тайтла и номеру главы
+export const getChapterByNumber = (
+  titleId: number,
+  chapterNumber: number
+): Chapter | undefined => {
+  const title = getTitleById(titleId);
+  return title?.chapters.find((chapter) => chapter.number === chapterNumber);
+};
+
+// Функция для получения всех глав тайтла
+export const getChaptersByTitleId = (titleId: number): Chapter[] => {
+  const title = getTitleById(titleId);
+  return title?.chapters || [];
 };
