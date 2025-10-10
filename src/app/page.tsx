@@ -1,3 +1,4 @@
+"use client";
 import cardData from "@/constants/mokeCarousel";
 import collectionsWithImages from "@/constants/mokeCollections";
 import latestUpdatesData from "@/constants/mokeLastUpdates";
@@ -6,6 +7,7 @@ import readingData from "@/constants/mokeReadingData";
 import { CarouselCard, CollectionCard, ReadingCard } from "@/shared";
 import LatestUpdateCard from "@/shared/last-updates/last-updates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
+import { pageTitle } from "@/lib/page-title";
 
 import {
   BookOpen,
@@ -14,8 +16,13 @@ import {
   SquareArrowOutUpRight,
   Trophy,
 } from "lucide-react";
+import { useEffect } from "react";
 
 export default function Home() {
+  useEffect(() => {
+    pageTitle.setTitlePage("Tomilo-lib.ru - Платформа маньхуя и комиксов");
+  }, []);
+
   return (
     <>
       <Header />
@@ -68,10 +75,6 @@ export default function Home() {
           icon={<Clock className="w-6 h-6" />}
           data={latestUpdatesData}
           cardComponent={LatestUpdateCard}
-          // descriptionLink={{
-          //   text: "все обновления",
-          //   href: "/updates"
-          // }}
         />
       </main>
       <Footer />

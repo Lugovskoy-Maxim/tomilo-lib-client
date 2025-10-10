@@ -108,8 +108,8 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
       }
     }
 
-    // ИСПРАВЛЕНИЕ: первая глава - это первая в массиве, а не последняя
-    const firstChapter = title.chapters[0];
+    // первая глава - это последняя в массиве
+    const firstChapter = title.chapters[title.chapters.length - 1];
     return {
       text: "Начать чтение",
       chapterNumber: firstChapter.number,

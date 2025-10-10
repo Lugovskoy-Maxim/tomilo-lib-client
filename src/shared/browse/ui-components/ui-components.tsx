@@ -108,15 +108,20 @@ function ChapterItem({ chapter, onClick }: ChapterItemProps) {
   return (
     <button
       onClick={() => onClick(chapter.number)}
-      className="w-full flex items-center justify-between p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:border-[var(--primary)] transition-colors group"
+      className="w-full flex items-center justify-between p-3 cursor-pointer bg-[var(--card)] rounded-lg border border-[var(--border)] hover:border-[var(--primary)] transition-colors group"
     >
       <div className="flex items-center gap-4">
-        <div className="flex flex-col items-start">
+        <div className="flex items-start gap-4 ">
+          {/* {chapter.volume && (
+            <span className="text-sm text-[var(--muted-foreground)]">
+              Том {chapter.title}
+            </span>
+          )} */}
           <span className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
             Глава {chapter.number}
           </span>
           {chapter.title && (
-            <span className="text-sm text-[var(--muted-foreground)] mt-1">
+            <span className="text-sm text-[var(--muted-foreground)]">
               {chapter.title}
             </span>
           )}

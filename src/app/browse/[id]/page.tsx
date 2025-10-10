@@ -5,8 +5,9 @@ import { Title, getTitleById, mockTitle } from "@/constants/mokeReadPage";
 import { TitlePageSkeleton } from "@/shared/browse";
 import TitlePageContent from "@/shared/browse/title-page-components/title-page-components";
 import NotFound from "@/app/not-found";
+import { pageTitle } from "@/lib/page-title"; 
 
-// Улучшенная функция для поиска тайтла по ID
+// Функция для поиска тайтла по ID
 const findTitleById = async (id: string): Promise<Title | null> => {
   // Имитация задержки сети
   await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -20,7 +21,8 @@ const findTitleById = async (id: string): Promise<Title | null> => {
   }
   
   // Если ID не число, ищем по slug/названию (опционально)
-  const foundBySlug = mockTitle.find((title: { title: string; }) => 
+  const { mockTitle } = await import("@/constants/mokeReadPage");
+  const foundBySlug = mockTitle.find(title => 
     title.title.toLowerCase().replace(/\s+/g, '-') === id.toLowerCase()
   );
   
@@ -33,6 +35,17 @@ export default function BrowseTitlePage() {
   const [title, setTitle] = useState<Title | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Устанавливаем заголовок при загрузке и изменении title
+    if (title) {
+      pageTitle.setTitlePage(title.title);
+    } else if (loading) {
+      pageTitle.setTitle("Загрузка тайтла...");
+    } else if (error) {
+      pageTitle.setTitle("Тайтл не найден");
+    }
+  }, [title, loading, error]);
 
   useEffect(() => {
     const loadTitle = async () => {
