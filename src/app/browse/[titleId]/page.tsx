@@ -31,7 +31,7 @@ const findTitleById = async (id: string): Promise<Title | null> => {
 
 export default function BrowseTitlePage() {
   const params = useParams();
-  const id = params.id as string;
+  const id = params.titleId as string;
   const [title, setTitle] = useState<Title | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

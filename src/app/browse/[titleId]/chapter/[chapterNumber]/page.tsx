@@ -1,5 +1,6 @@
 import { getTitleById, getChapterByNumber, getChaptersByTitleId } from '@/constants/mokeReadPage';
 import { ReadChapterPage } from '@/shared';
+import * as React from 'react'
 
 interface PageProps {
   params: {
@@ -8,13 +9,15 @@ interface PageProps {
   };
 }
 
-export default function ChapterPage({ params }: PageProps) {
-  const titleId = parseInt(params.titleId);
-  const chapterNumber = parseInt(params.chapterNumber);
+export default async function ChapterPage({ params }: PageProps) {
+  // Деструктурируем после await
+  const { titleId, chapterNumber } = await params;
+  const titleIdNum = parseInt(titleId);
+  const chapterNumberNum = parseInt(chapterNumber);
 
-  const title = getTitleById(titleId);
-  const chapter = getChapterByNumber(titleId, chapterNumber);
-  const chapters = getChaptersByTitleId(titleId);
+  const title = getTitleById(titleIdNum);
+  const chapter = getChapterByNumber(titleIdNum, chapterNumberNum);
+  const chapters = getChaptersByTitleId(titleIdNum);
 
   if (!title || !chapter) {
     return (

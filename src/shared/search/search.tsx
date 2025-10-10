@@ -26,7 +26,7 @@ export default function Search() {
 
     switch (e.key) {
       case "Enter":
-        e.preventDefault(); 
+        e.preventDefault();
         performSearch(searchTerm);
         break;
       case "Escape":
@@ -45,6 +45,8 @@ export default function Search() {
 
         <input
           type="text"
+          id="search-input"
+          name="search"
           placeholder="Что ищем..."
           className="w-full pl-10 pr-10 py-2 rounded-full bg-secondary text-foreground 
                    border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-ring 
@@ -52,6 +54,7 @@ export default function Search() {
           value={searchTerm}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
+          autoComplete="off"
         />
 
         {/* Индикатор загрузки */}

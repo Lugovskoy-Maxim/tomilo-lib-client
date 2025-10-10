@@ -42,11 +42,12 @@ const generateChapterImages = (
   for (let i = 1; i <= count; i++) {
     // Используем внешний сервис для разнообразия изображений
     images.push(
-      `https://picsum.photos/800/1200?random=${titleId}_${chapterId}_${i}`
+      `https://baconmockup.com/1280/720?random=${titleId}_${chapterId}_${i}`
     );
   }
   return images;
 };
+
 
 export const mockTitle: Title[] = [
   {
