@@ -42,16 +42,16 @@ export default function Footer() {
           {/* Левая часть - навигационные ссылки */}
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6">
             <Link 
-              href="/dmca" 
+              href="/terms-of-use" 
               className="hover:text-[var(--foreground)] transition-colors"
             >
-              DMCA
+              Пользовательское соглашение
             </Link>
             <Link 
               href="/copyright" 
               className="hover:text-[var(--foreground)] transition-colors"
             >
-              Авторское право
+              Авторское право (DMCA)
             </Link>
             <Link 
               href="/updates" 

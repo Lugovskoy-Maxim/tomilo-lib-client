@@ -14,3 +14,4 @@ export { default as ControlsPanel } from "./reader/controls-panel";
 export { default as NavigationFooter } from "./reader/navigation-footer";
 export { default as SinglePageView } from "./reader/single-page-view";
 export { default as ContinuousScrollView } from "./reader/continuous-scroll-view";
+export { default as BackButton} from './back-button/back-button';
