@@ -14,16 +14,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Title } from "@/constants/mokeReadPage";
 import Image from "next/image";
-import TitleActions from "../title-actions/title-actions";
-import ChapterSearchInput from "../chapter-search-input/chapter-search-input";
-import TitleHeader from "../title-header/title-header";
+import TitleActions from "./title-actions";
+import ChapterSearchInput from "./chapter-search-input";
+import TitleHeader from "./title-header";
 import {
   ChapterItem,
   CommentItem,
   InfoCard,
   StatusBadge,
   TabButton,
-} from "../ui-components/ui-components";
+} from "./ui-components";
 
 interface TitlePageContentProps {
   title: Title;

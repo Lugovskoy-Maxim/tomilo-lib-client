@@ -15,3 +15,8 @@ export { default as NavigationFooter } from "./reader/navigation-footer";
 export { default as SinglePageView } from "./reader/single-page-view";
 export { default as ContinuousScrollView } from "./reader/continuous-scroll-view";
 export { default as BackButton} from './back-button/back-button';
+export { default as FilterSidebar } from "./browse/filter-sidebar";
+export { default as SortAndSearch } from "./browse/sort-and-search";
+export { default as TitleGrid } from "./browse/titles-grid";
+export { default as Pagination } from "./browse/pagination";
+export { default as MobileFilterButton } from "./browse/mobile-filter-button";

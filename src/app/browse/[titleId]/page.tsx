@@ -3,7 +3,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Title, getTitleById, mockTitle } from "@/constants/mokeReadPage";
 import { TitlePageSkeleton } from "@/shared/browse";
-import TitlePageContent from "@/shared/browse/title-page-components/title-page-components";
+import TitlePageContent from "@/shared/browse/title-page-components";
 import NotFound from "@/app/not-found";
 import { pageTitle } from "@/lib/page-title"; 
 
