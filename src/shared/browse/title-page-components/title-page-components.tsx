@@ -92,7 +92,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
     return SearchTitleChapters(title.chapters, chapterSearch);
   }, [SearchTitleChapters, chapterSearch, title.chapters]);
 
-  // Логика для кнопки чтения - ИСПРАВЛЕНО: первая глава должна быть первой в массиве
+  // Логика для кнопки чтения
   const getReadingButtonConfig = () => {
     if (lastReadChapter) {
       const lastChapterExists = title.chapters.some(
@@ -121,7 +121,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
 
   const handleReadingButtonClick = () => {
     router.push(
-      `/read/${title.id}/chapter/${readingButtonConfig.chapterNumber}`
+      `/browse/${title.id}/chapter/${readingButtonConfig.chapterNumber}`
     );
   };
 

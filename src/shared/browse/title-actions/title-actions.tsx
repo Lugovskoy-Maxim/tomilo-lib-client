@@ -19,7 +19,7 @@ export default function TitleActions({
     <div className="flex flex-col gap-2">
       <button
         onClick={onReadingClick}
-        className="flex-1 bg-[var(--primary)] text-[var(--primary-foreground)] py-3 px-4 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2"
+        className="flex-1 bg-[var(--chart-1)] cursor-pointer text-[var(--primary)] py-3 px-4 rounded-lg font-medium hover:bg-[var(--chart-1)]/90 transition-colors flex items-center justify-center gap-2"
       >
         <Play className="w-5 h-5" />
         {buttonText}

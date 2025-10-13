@@ -1,5 +1,5 @@
 import { getTitleById, getChapterByNumber, getChaptersByTitleId } from '@/constants/mokeReadPage';
-import { ReadChapterPage } from '@/shared';
+import { ReadChapterPage } from '@/widgets';
 import * as React from 'react'
 
 interface PageProps {

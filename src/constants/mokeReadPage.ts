@@ -42,7 +42,7 @@ const generateChapterImages = (
   for (let i = 1; i <= count; i++) {
     // Используем внешний сервис для разнообразия изображений
     images.push(
-      `https://baconmockup.com/1280/720?random=${titleId}_${chapterId}_${i}`
+      `https://baconmockup.com/720/1280?random=${titleId}_${chapterId}_${i}`
     );
   }
   return images;
