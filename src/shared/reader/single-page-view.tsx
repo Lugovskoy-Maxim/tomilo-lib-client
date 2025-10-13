@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, List } from "lucide-react";
 import { Chapter, Title } from "@/constants/mokeReadPage";
 
 interface SinglePageViewProps {
@@ -14,6 +14,7 @@ interface SinglePageViewProps {
   onNextImage: () => void;
   onImageError: (index: number) => void;
   onImageLoad: () => void;
+  onReadingModeChange: (mode: "single" | "continuous") => void;
 }
 
 export default function SinglePageView({
@@ -27,9 +28,19 @@ export default function SinglePageView({
   onNextImage,
   onImageError,
   onImageLoad,
+  onReadingModeChange,
 }: SinglePageViewProps) {
   return (
-    <div className="flex items-center justify-center min-h-screen py-20">
+    <div className="flex items-center justify-center min-h-screen">
+      {/* Кнопка переключения в режим прокрутки */}
+      <button
+        onClick={() => onReadingModeChange("continuous")}
+        className="fixed top-4 right-4 p-3 rounded-full bg-[var(--background)]/80 backdrop-blur-sm border border-[var(--border)] hover:bg-[var(--accent)] transition-colors z-30"
+        title="Режим прокрутки"
+      >
+        <List className="w-5 h-5" />
+      </button>
+
       <div className="relative max-w-4xl mx-auto">
         <button
           onClick={onPrevImage}
@@ -68,6 +79,11 @@ export default function SinglePageView({
               </button>
             </div>
           )}
+        </div>
+
+        {/* Индикатор прогресса */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[var(--background)]/80 backdrop-blur-sm px-3 py-1 rounded-full border border-[var(--border)] text-sm text-[var(--foreground)]">
+          {currentImageIndex + 1} / {chapter.images.length}
         </div>
 
         <button
