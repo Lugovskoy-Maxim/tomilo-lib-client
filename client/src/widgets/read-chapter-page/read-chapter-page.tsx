@@ -286,9 +286,8 @@ export default function ReadChapterPage({
             onPrevImage={goToPrevImage}
             onNextImage={goToNextImage}
             onImageError={handleImageError}
-            onImageLoad={handleImageLoad} onReadingModeChange={function (): void {
-              throw new Error("Function not implemented.");
-            } }          />
+            onImageLoad={handleImageLoad}
+          />
         ) : (
           <ContinuousScrollView
             chapter={chapter}
