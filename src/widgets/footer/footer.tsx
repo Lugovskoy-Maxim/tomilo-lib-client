@@ -73,10 +73,10 @@ export default function Footer() {
                         md:space-x-6 md:flex-nowrap">
             <div className="flex items-center gap-1 text-xs sm:text-sm md:text-base">
               <Copyright className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>{currentYear} «Tomilo-lib»</span>
+              <span>{currentYear} «Tomilo-lib.ru»</span>
             </div>
             <div className="text-xs bg-[var(--accent)] px-2 py-1 rounded border border-[var(--border)] whitespace-nowrap">
-              Версия 0.1
+              Версия 231025
             </div>
           </div>
         </div>

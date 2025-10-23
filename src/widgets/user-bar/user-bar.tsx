@@ -4,18 +4,28 @@ import {
   UserAvatar,
   UserDropdown,
   ThemeToggle,
-  AuthModal,
+  LoginModal,
+  RegisterModal,
 } from "@/shared";
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthResponse } from "@/types/auth";
+
+interface UserDropdownUser {
+  id?: string;
+  name?: string;
+  email?: string;
+  username?: string;
+}
 
 export default function UserBar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  const [user, setUser] = useState<{ name?: string }>({});
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const { user, isAuthenticated, login, logout, isLoading } = useAuth();
 
   // Закрытие dropdown при клике вне области
   useEffect(() => {
@@ -34,46 +44,77 @@ export default function UserBar() {
     };
   }, []);
 
-  const handleAuthModalOpen = (authMode: "login" | "register") => {
-    setAuthMode(authMode);
-    setAuthModalOpen(true);
+  const handleLoginModalOpen = () => {
+    setLoginModalOpen(true);
   };
 
-  const handleAuthModalClose = () => {
-    setAuthModalOpen(false);
+  const handleRegisterModalOpen = () => {
+    setRegisterModalOpen(true);
   };
 
-  const handleSwitchAuthMode = () => {
-    setAuthMode(authMode === "login" ? "register" : "login");
+  const handleLoginModalClose = () => {
+    setLoginModalOpen(false);
   };
-  // Обработка логина
-  // const handleLogin = () => {
-  //   setIsAuthenticated(true);
-  //   setUser({ name: "User" });
-  //   setAuthModalOpen(false);
-  // };
+
+  const handleRegisterModalClose = () => {
+    setRegisterModalOpen(false);
+  };
+
+  const handleSwitchToRegister = () => {
+    setLoginModalOpen(false);
+    setRegisterModalOpen(true);
+  };
+
+  const handleSwitchToLogin = () => {
+    setRegisterModalOpen(false);
+    setLoginModalOpen(true);
+  };
+
+  // Обработка успешной авторизации
+  const handleAuthSuccess = (authResponse: AuthResponse) => {
+    login(authResponse);
+    setLoginModalOpen(false);
+    setRegisterModalOpen(false);
+  };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUser({});
+    logout();
     setDropdownOpen(false);
   };
+
+  // Преобразование пользователя для UserDropdown
+  const getUserForDropdown = (): UserDropdownUser => {
+    if (!user) return {};
+    
+    return {
+      id: user.id,
+      name: user.username,
+      email: user.email,
+      username: user.username
+    };
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-4">
+        <ThemeToggle />
+        <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <>
       <div className="flex items-center gap-4">
-        {/* Кнопка смены темы */}
         <ThemeToggle />
 
-        {/* Кнопка уведомлений (только для авторизованных пользователей) */}
         {isAuthenticated && <NotificationButton />}
 
-        {/* Кнопки авторизации или аватар */}
         {!isAuthenticated ? (
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => handleAuthModalOpen("login")}
+              onClick={handleLoginModalOpen}
               className="flex items-center px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] bg-transparent border border-[var(--border)] rounded-full hover:bg-[var(--popover)] transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               <LogInIcon className="w-4 h-4 mr-2" />
@@ -95,19 +136,24 @@ export default function UserBar() {
               isOpen={dropdownOpen}
               onClose={() => setDropdownOpen(false)}
               onLogout={handleLogout}
-              user={user}
+              user={getUserForDropdown()}
             />
           </div>
         )}
       </div>
 
-      {/* Модальное окно авторизации */}
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={handleLoginModalClose}
+        onSwitchToRegister={handleSwitchToRegister}
+        onAuthSuccess={handleAuthSuccess}
+      />
 
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={handleAuthModalClose}
-        onSwitchMode={handleSwitchAuthMode}
-        mode={authMode}
+      <RegisterModal
+        isOpen={registerModalOpen}
+        onClose={handleRegisterModalClose}
+        onSwitchToLogin={handleSwitchToLogin}
+        onAuthSuccess={handleAuthSuccess}
       />
     </>
   );
