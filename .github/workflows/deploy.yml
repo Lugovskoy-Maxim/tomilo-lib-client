@@ -1,0 +1,35 @@
+name: Build Client on Server
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone and build
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_SSH_PORT || 22 }}
+          script: |
+            # Переходим в домашнюю директорию и клонируем
+            cd /home/${{ secrets.VM_USERNAME }}
+
+            # Если папка существует - обновляем, иначе клонируем
+            if [ -d "tomilo-lib-client" ]; then
+              echo "Updating existing repository..."
+              cd tomilo-lib-client
+              git pull origin main
+            else
+              echo "Cloning repository..."
+              git clone https://github.com/${{ github.repository }}.git tomilo-lib-client
+              cd tomilo-lib-client
+            fi
+
+            # Собираем приложение
+            npm run build
+            echo "✅ Build completed successfully!"
