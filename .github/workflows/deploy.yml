@@ -30,6 +30,9 @@ jobs:
               cd tomilo-lib-client
             fi
 
+            # устанавливаем зависимости
+            npm i
+
             # Собираем приложение
             npm run build
             echo "✅ Build completed successfully!"
