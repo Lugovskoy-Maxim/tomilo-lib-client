@@ -17,7 +17,8 @@ jobs:
           port: ${{ secrets.VM_SSH_PORT || 22 }}
           script: |
             # Переходим в домашнюю директорию и клонируем
-            cd /home/${{ secrets.VM_USERNAME }}
+            cd ~ 
+            cd ${{ secrets.VM_USERNAME }}
 
             # Если папка существует - обновляем, иначе клонируем
             if [ -d "tomilo-lib-client" ]; then
