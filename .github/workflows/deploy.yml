@@ -30,6 +30,8 @@ jobs:
               cd tomilo-lib-client
             fi
 
+            npm i
+
             # Собираем приложение
             npm run build
             echo "✅ Build completed successfully!"
