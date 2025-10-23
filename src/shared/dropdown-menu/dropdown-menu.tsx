@@ -2,16 +2,13 @@
 import { useState } from "react";
 import { 
   User, 
-  Settings, 
-  HelpCircle, 
+  Settings,  
   Bookmark, 
   History, 
-  Moon, 
   LogOut,
-  ChevronRight,
-  Bell
 } from "lucide-react";
-
+import { useRouter } from 'next/navigation'
+ 
 interface UserDropdownProps {
   isOpen: boolean;
   onClose: () => void;
@@ -26,6 +23,7 @@ interface UserDropdownProps {
 
 export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDropdownProps) {
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const router = useRouter();
 
   if (!isOpen) return null;
 
@@ -34,7 +32,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       id: 'profile',
       icon: User,
       label: 'Профиль',
-      onClick: () => console.log('Переход в профиль'),
+      onClick: () => router.push('/profile'),
     },
     {
       id: 'bookmarks',
