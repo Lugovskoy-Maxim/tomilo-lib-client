@@ -1,73 +1,71 @@
-import { useState, useEffect } from "react";
-import { AuthResponse, StoredUser } from "@/types/auth";
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useGetProfileQuery } from '@/store/api/authApi'; // Изменили импорт
+import { login, logout, setLoading } from '@/store/slices/authSlice';
+import { RootState } from '@/store';
+import { AuthResponse, StoredUser } from '@/types/auth';
 
-// Ключи для localStorage
+// Сохраняем ваши существующие ключи
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
 
 export const useAuth = () => {
-  const [user, setUser] = useState<StoredUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
+  const auth = useSelector((state: RootState) => state.auth);
+  
+  // Получаем токен для проверки
+  const token = typeof window !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
 
-  // Функции для работы с localStorage
-  const authStorage = {
-    saveUser: (authResponse: AuthResponse): void => {
-      const userData: StoredUser = {
-        id: authResponse.user.id,
-        email: authResponse.user.email,
-        username: authResponse.user.username,
-        token: authResponse.access_token,
-      };
+  // Автоматически проверяем авторизацию при монтировании, если есть токен
+  const { data: user, isLoading, error } = useGetProfileQuery(undefined, { // Используем новый хук
+    skip: !token, // Пропускаем если нет токена
+  });
 
-      localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
-      localStorage.setItem(AUTH_TOKEN_KEY, authResponse.access_token);
-    },
-
-    getUser: (): StoredUser | null => {
-      try {
-        const userData = localStorage.getItem(USER_DATA_KEY);
-        return userData ? JSON.parse(userData) : null;
-      } catch (error) {
-        console.error("Error parsing user data from localStorage:", error);
-        return null;
-      }
-    },
-
-    getToken: (): string | null => {
-      return localStorage.getItem(AUTH_TOKEN_KEY);
-    },
-
-    clear: (): void => {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      localStorage.removeItem(USER_DATA_KEY);
-    },
-  };
-
-  // Загрузка пользователя при монтировании
   useEffect(() => {
-    const savedUser = authStorage.getUser();
-    if (savedUser) {
-      setUser(savedUser);
-    }
-    setIsLoading(false);
-  }, []);
+    dispatch(setLoading(isLoading));
+  }, [isLoading, dispatch]);
 
-  const login = (authResponse: AuthResponse) => {
-    authStorage.saveUser(authResponse);
-    const userData = authStorage.getUser();
-    setUser(userData);
+  // При успешной проверке авторизации обновляем состояние
+  useEffect(() => {
+    if (user && token) {
+      const authResponse: AuthResponse = {
+        access_token: token,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+        },
+      };
+      dispatch(login(authResponse));
+    }
+  }, [user, token, dispatch]);
+
+  // При ошибке проверки авторизации разлогиниваемся
+  useEffect(() => {
+    if (error && token) {
+      console.error('Auth check failed:', error);
+      
+      // Проверяем, что это именно ошибка авторизации (404 или 401), а не сетевые проблемы
+      if ('status' in error && (error.status === 401 || error.status === 404)) {
+        dispatch(logout());
+      }
+    }
+  }, [error, token, dispatch]);
+
+  // Ваши существующие функции (адаптированные для Redux)
+  const loginUser = (authResponse: AuthResponse) => {
+    dispatch(login(authResponse));
   };
 
-  const logout = () => {
-    authStorage.clear();
-    setUser(null);
+  const logoutUser = () => {
+    dispatch(logout());
   };
 
   return {
-    user,
-    isLoading,
-    login,
-    logout,
-    isAuthenticated: !!user,
+    user: auth.user,
+    isLoading: auth.isLoading,
+    login: loginUser,
+    logout: logoutUser,
+    isAuthenticated: auth.isAuthenticated,
   };
 };

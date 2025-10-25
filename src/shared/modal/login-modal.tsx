@@ -1,11 +1,30 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Mail, Lock } from "lucide-react";
-import { authApi } from "../../api/auth";
+import { useLoginMutation } from "@/store/api/authApi";
+import { useAuth } from "@/hooks/useAuth";
 import { LoginForm, FormErrors, FormTouched } from "../../types/form";
 import { useModal } from "../../hooks/useModal";
 import { Input, Modal } from "..";
 import { AuthResponse } from "@/types/auth";
+
+// Типы для обработки ошибок RTK Query
+interface ServerError {
+  message: string;
+}
+
+interface SerializedError {
+  message?: string;
+  code?: string;
+  name?: string;
+}
+
+interface FetchBaseQueryError {
+  status: number;
+  data?: unknown;
+}
+
+type RTKQueryError = FetchBaseQueryError | SerializedError | undefined;
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -22,11 +41,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
 }) => {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [touched, setTouched] = useState<FormTouched<LoginForm>>({
     email: false,
     password: false,
   });
+
+  // Используем RTK Query для логина
+  const [loginMutation, { isLoading, error }] = useLoginMutation();
+  const { login: authLogin } = useAuth();
 
   const modalRef = useModal(isOpen, onClose);
 
@@ -61,22 +83,66 @@ const LoginModal: React.FC<LoginModalProps> = ({
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
+  // Безопасное извлечение сообщения об ошибке
+  const getErrorMessage = (): string | null => {
+    if (!error) return null;
+
+    // Проверяем тип ошибки и извлекаем сообщение безопасно
+    if (typeof error === "object") {
+      // Ошибка с данными от сервера (FetchBaseQueryError)
+      if ("data" in error && error.data && typeof error.data === "object") {
+        const serverError = error.data as ServerError;
+        return serverError.message || "Произошла ошибка при входе";
+      }
+
+      // Сериализованная ошибка (SerializedError)
+      if ("message" in error && error.message) {
+        return error.message;
+      }
+
+      // Ошибка с статусом (сетевая ошибка)
+      if ("status" in error) {
+        switch (error.status) {
+          case 404:
+            return "Сервер не найден или endpoint недоступен";
+          case 401:
+            return "Неверные учетные данные";
+          case 500:
+            return "Ошибка на сервере";
+          default:
+            return "Ошибка соединения с сервером";
+        }
+      }
+    }
+
+    // Строковая ошибка
+    if (typeof error === "string") {
+      return error;
+    }
+
+    return "Произошла неизвестная ошибка";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({ email: true, password: true });
     if (!isFormValid()) return;
 
-    setIsLoading(true);
     try {
-      const response = await authApi.login({
+      // Используем RTK Query мутацию для логина
+      const response = await loginMutation({
         email: form.email,
         password: form.password,
-      });
+      }).unwrap();
+
+      // Сохраняем в Redux store и localStorage через useAuth хук
+      authLogin(response);
+
+      // Вызываем колбэк успешной авторизации
       onAuthSuccess(response);
-    } catch (error) {
-      console.error("Ошибка входа:", error);
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      // Ошибка уже обработана в RTK Query
+      console.error("Ошибка входа:", err);
     }
   };
 
@@ -87,9 +153,18 @@ const LoginModal: React.FC<LoginModalProps> = ({
     }
   }, [isOpen]);
 
+  const errorMessage = getErrorMessage();
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Вход в аккаунт">
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Показываем ошибку от сервера */}
+        {errorMessage && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700 text-sm text-center">{errorMessage}</p>
+          </div>
+        )}
+
         <Input
           icon={Mail}
           type="email"

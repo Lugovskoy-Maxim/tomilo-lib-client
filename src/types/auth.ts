@@ -24,3 +24,16 @@ export interface StoredUser {
   username: string;
   token: string;
 }
+
+// RTK Query
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+}
+
+export interface AuthState {
+  user: StoredUser | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
