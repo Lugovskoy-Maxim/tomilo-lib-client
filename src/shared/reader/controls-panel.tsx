@@ -1,3 +1,4 @@
+'use client';
 import { useRouter } from "next/navigation";
 import { BookOpen, ChevronLeft, ChevronRight, List, Maximize, Minimize, RotateCcw } from "lucide-react";
 import { Chapter, Title } from "@/constants/mokeReadPage";

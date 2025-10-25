@@ -1,12 +1,12 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
-import { BookmarksList, ProfileHeader, ProfileStats, ReadingHistory } from "@/shared";
-import { Footer, Header } from "@/widgets";
+import { EditAvatarButton, ProfileStats } from "@/shared";
+import { BookmarksSection, Footer, Header, ReadingHistorySection } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
+import Image from "next/image";
 
-// Mock данные на основе вашей схемы
+// import { auth } from "@/lib/auth"; // Предполагается, что у вас есть серверная auth функция
+
+// Mock данные
 const mockUserProfile: UserProfile = {
   _id: "507f1f77bcf86cd799439011",
   username: "mangalover",
@@ -51,84 +51,24 @@ const mockUserProfile: UserProfile = {
   updatedAt: "2024-03-15T14:30:00Z"
 };
 
-export default function ProfilePage() {
-  const { user, isAuthenticated } = useAuth();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+// Серверная функция для получения данных пользователя
+async function getUserProfile(): Promise<UserProfile> {
+  // В реальном приложении здесь будет запрос к вашему API или базе данных
+  // const session = await auth();
+  // if (!session) throw new Error("Not authenticated");
+  // const userProfile = await fetchUserProfile(session.user.id);
+  return mockUserProfile;
+}
 
-  useEffect(() => {
-    // В реальном приложении здесь будет запрос к API
-    // fetchUserProfile(user.id).then(setUserProfile);
-    setUserProfile(mockUserProfile);
-  }, []);
+export default async function ProfilePage() {
+  const userProfile = await getUserProfile();
+  
+  // Устанавливаем заголовок страницы
+  pageTitle.setTitlePage(
+    userProfile ? `Профиль ${userProfile.username}` : "Профиль пользователя"
+  );
 
-  useEffect(() => {
-    pageTitle.setTitlePage(
-      userProfile ? `Профиль ${userProfile.username}` : "Профиль пользователя"
-    );
-  }, [userProfile]);
-
-  const handleRemoveBookmark = (bookmarkId: string) => {
-    if (userProfile) {
-      const updatedBookmarks = userProfile.bookmarks.filter(id => id !== bookmarkId);
-      setUserProfile({
-        ...userProfile,
-        bookmarks: updatedBookmarks
-      });
-      // Здесь будет вызов API для удаления закладки
-      console.log("Удаление закладки:", bookmarkId);
-    }
-  };
-
-  const calculateStats = () => {
-    if (!userProfile) return null;
-
-    const uniqueMangaTitles = new Set(userProfile.readingHistory.map(item => item.title));
-    
-    return {
-      totalMangaRead: uniqueMangaTitles.size,
-      totalChaptersRead: userProfile.readingHistory.length,
-      readingTime: userProfile.readingHistory.length * 15, // Пример: 15 минут на главу
-      favoriteGenres: ["Сёнен", "Приключения", "Фэнтези"] // В реальном приложении будет расчет по жанрам
-    };
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-        <Header />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-              Необходима авторизация
-            </h1>
-            <p className="text-[var(--muted-foreground)]">
-              Пожалуйста, войдите в систему чтобы просмотреть профиль
-            </p>
-          </div>
-        </div>
-        <Footer />
-      </main>
-    );
-  }
-
-  if (!userProfile) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-        <Header />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="animate-pulse text-center">
-            <div className="w-24 h-24 bg-[var(--border)] rounded-full mx-auto mb-4"></div>
-            <div className="h-6 bg-[var(--border)] rounded w-48 mx-auto mb-2"></div>
-            <div className="h-4 bg-[var(--border)] rounded w-32 mx-auto"></div>
-          </div>
-        </div>
-        <Footer />
-      </main>
-    );
-  }
-
-  const stats = calculateStats();
+  const stats = calculateStats(userProfile);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
@@ -153,24 +93,19 @@ export default function ProfilePage() {
             <div className="absolute left-8 -bottom-8">
               <div className="relative">
                 {userProfile.avatar ? (
-                  <img
+                  <Image
                     src={userProfile.avatar}
                     alt={userProfile.username}
                     className="w-24 h-24 rounded-full object-cover border-4 border-[var(--background)] shadow-lg"
+                    height={96}
+                    width={96}
                   />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-2xl font-bold border-4 border-[var(--background)] shadow-lg">
                     {userProfile.username[0].toUpperCase()}
                   </div>
                 )}
-                <button
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="absolute -bottom-1 -right-1 p-1.5 bg-[var(--primary)] text-white rounded-full hover:bg-[var(--primary)]/90 transition-colors border-2 border-[var(--background)]"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
+                <EditAvatarButton />
               </div>
             </div>
           </div>
@@ -228,126 +163,32 @@ export default function ProfilePage() {
 
         {/* Сетка с карточками */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {/* История чтения в виде карточек */}
-          <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] flex items-center space-x-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <span>История чтения</span>
-              </h2>
-              <span className="text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
-                {userProfile.readingHistory.length} записей
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {userProfile.readingHistory.slice(0, 4).map((item, index) => (
-                <div
-                  key={index}
-                  className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer group"
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className="w-12 h-16 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 rounded flex items-center justify-center flex-shrink-0">
-                      <svg className="w-6 h-6 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-[var(--foreground)] text-sm mb-1 truncate">
-                        {item.title}
-                      </h3>
-                      <p className="text-xs text-[var(--muted-foreground)] mb-2">
-                        {item.chapter}
-                      </p>
-                      <div className="flex items-center space-x-2 text-xs text-[var(--muted-foreground)]">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>{new Date(item.date).toLocaleDateString('ru-RU')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {userProfile.readingHistory.length > 4 && (
-              <div className="text-center mt-4">
-                <button className="text-xs text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors">
-                  Показать все {userProfile.readingHistory.length} записей
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Закладки в виде карточек */}
-          <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] flex items-center space-x-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                <span>Закладки</span>
-              </h2>
-              <span className="text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
-                {userProfile.bookmarks.length} манги
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {userProfile.bookmarks.slice(0, 4).map((bookmarkId, index) => (
-                <div
-                  key={bookmarkId}
-                  className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors group"
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className="w-12 h-16 bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 rounded flex items-center justify-center flex-shrink-0">
-                      <svg className="w-6 h-6 text-[var(--chart-1)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                      </svg>
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-[var(--foreground)] text-sm mb-1">
-                        Манга #{bookmarkId.slice(-6)}
-                      </h3>
-                      <p className="text-xs text-[var(--muted-foreground)] mb-2">
-                        ID: {bookmarkId}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-[var(--muted-foreground)]">
-                          Добавлено недавно
-                        </span>
-                        <button
-                          onClick={() => handleRemoveBookmark(bookmarkId)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-500/10 rounded transition-all"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {userProfile.bookmarks.length > 4 && (
-              <div className="text-center mt-4">
-                <button className="text-xs text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors">
-                  Показать все {userProfile.bookmarks.length} закладок
-                </button>
-              </div>
-            )}
-          </div>
+          {/* История чтения */}
+          <ReadingHistorySection readingHistory={userProfile.readingHistory} />
+          
+          {/* Закладки */}
+          <BookmarksSection 
+            bookmarks={userProfile.bookmarks} 
+            initialBookmarks={userProfile.bookmarks}
+          />
         </div>
       </div>
 
       <Footer />
     </main>
   );
+}
+
+// Вспомогательные функции
+function calculateStats(userProfile: UserProfile) {
+  if (!userProfile) return null;
+
+  const uniqueMangaTitles = new Set(userProfile.readingHistory.map(item => item.title));
+  
+  return {
+    totalMangaRead: uniqueMangaTitles.size,
+    totalChaptersRead: userProfile.readingHistory.length,
+    readingTime: userProfile.readingHistory.length * 15, // Пример: 15 минут на главу
+    favoriteGenres: ["Сёнен", "Приключения", "Фэнтези"] // В реальном приложении будет расчет по жанрам
+  };
 }

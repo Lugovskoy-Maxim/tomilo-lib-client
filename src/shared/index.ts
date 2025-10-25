@@ -27,3 +27,4 @@ export { default as ProfileHeader } from './profile/profile-header';
 export { default as ReadingHistory } from './profile/profile-reading';
 export { default as BookmarksList } from './profile/profile-bookmarks';
 export { default as ProfileStats } from  './profile/profile-stats';
+export { default as EditAvatarButton} from './profile/profile-edit-avatar-button'; 

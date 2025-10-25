@@ -31,7 +31,7 @@ const USER_DATA_KEY = 'tomilo-lib_user';
 
 export const authApi = {
   login: async (data: LoginData): Promise<AuthResponse> => {
-    const response = await fetch(`http://tomilo-lib.ru/api/auth/login`, {
+    const response = await fetch(`https://tomilo-lib.ru/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -41,7 +41,7 @@ export const authApi = {
   },
 
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await fetch(`http://tomilo-lib.ru/api/auth/register`, {
+    const response = await fetch(`https://tomilo-lib.ru/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
