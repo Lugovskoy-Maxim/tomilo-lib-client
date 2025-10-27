@@ -4,7 +4,7 @@
 
 ## Технологии
 
-- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
+- **Frontend:** Next.js 15.5.2+, React, TypeScript, Tailwind CSS
 - **State Management:** Redux Toolkit, RTK Query
 - **Authentication:** JWT, localStorage
 - **UI Components:** Lucide React, кастомные компоненты
