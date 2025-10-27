@@ -30,6 +30,13 @@ export interface User {
   id: string;
   email: string;
   username: string;
+  avatar?: string;
+  role: string;
+    readingHistory: {
+    title: string;
+    chapter: string;
+    date: Date;
+  }[];
 }
 
 export interface AuthState {

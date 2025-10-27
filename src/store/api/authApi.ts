@@ -8,7 +8,7 @@ const USER_DATA_KEY = "tomilo_lib_user";
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'https://tomilo-lib.ru/api',
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
     prepareHeaders: (headers) => {
       // Используем ваши существующие ключи localStorage
       if (typeof window !== 'undefined') {
