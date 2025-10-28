@@ -1,3 +1,4 @@
+// components/UserDropdown.tsx
 "use client";
 import { useState } from "react";
 import { 
@@ -7,7 +8,8 @@ import {
   History, 
   LogOut,
 } from "lucide-react";
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
+import { UserAvatar } from "..";
  
 interface UserDropdownProps {
   isOpen: boolean;
@@ -18,6 +20,7 @@ interface UserDropdownProps {
     name?: string; 
     email?: string; 
     username?: string;
+    avatar?: string;
   };
 }
 
@@ -38,32 +41,21 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       id: 'bookmarks',
       icon: Bookmark,
       label: 'Закладки',
-      onClick: () => console.log('Переход в закладки'),
+      onClick: () => router.push('/profile?tab=bookmarks'),
     },
     {
       id: 'history',
       icon: History,
       label: 'История чтения',
-      onClick: () => console.log('Переход в историю'),
+      onClick: () => router.push('/profile?tab=history'),
     },
     {
       id: 'settings',
       icon: Settings,
       label: 'Настройки',
-      onClick: () => console.log('Переход в настройки'),
+      onClick: () => router.push('/settings'),
     },
-    // {
-    //   id: 'help',
-    //   icon: HelpCircle,
-    //   label: 'Помощь',
-    //   onClick: () => console.log('Переход в помощь'),
-    // }
   ];
-
-  const handleSubmenuAction = (itemId: string, action: unknown) => {
-    console.log(`${itemId}:`, action);
-    // Здесь будет логика для разных действий
-  };
 
   const handleLogout = () => {
     onLogout();
@@ -78,9 +70,12 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       {/* Заголовок с информацией о пользователе */}
       <div className="p-4 border-b border-[var(--border)] bg-[var(--secondary)]">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-semibold text-sm">
-            {user?.name?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || 'U'}
-          </div>
+          <UserAvatar 
+            avatarUrl={user?.avatar}
+            username={user?.username || user?.name}
+            size={40}
+            className="border-2 border-[var(--background)]"
+          />
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-[var(--foreground)] truncate">
               {user?.name || user?.username || 'Пользователь'}
@@ -113,7 +108,6 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
                   </span>
                 </div>
               </button>
-
             </div>
           ))}
         </div>
@@ -137,7 +131,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       {/* Футер с версией */}
       <div className="px-4 py-2 border-t border-[var(--border)] bg-[var(--secondary)]">
         <p className="text-xs text-[var(--muted-foreground)] text-center">
-          id пользователя: {user?.id}
+          {user?.id ? `ID: ${user.id}` : 'Неавторизован'}
         </p>
       </div>
     </div>

@@ -1,79 +1,85 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AuthState, StoredUser, AuthResponse } from '@/types/auth';
+import { AuthState, StoredUser } from '@/types/auth';
 
-// Ваши существующие ключи
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
 
-// Функция для загрузки состояния из localStorage (сохраняем вашу логику)
-const loadAuthState = (): Partial<AuthState> => {
+// Функция для получения начального состояния из localStorage
+const getInitialState = (): AuthState => {
   if (typeof window === 'undefined') {
-    return { user: null, isAuthenticated: false };
+    return {
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    };
   }
 
   try {
-    const userData = localStorage.getItem(USER_DATA_KEY);
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const userData = localStorage.getItem(USER_DATA_KEY);
     
-    if (userData && token) {
+    if (token && userData) {
       const user = JSON.parse(userData);
       return {
         user,
         isAuthenticated: true,
+        isLoading: false,
       };
     }
   } catch (error) {
-    console.error('Error parsing user data from localStorage:', error);
+    console.error('Error reading auth data from localStorage:', error);
   }
-  
-  return { user: null, isAuthenticated: false };
+
+  return {
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+  };
 };
 
-const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
-  isLoading: true, // Начинаем с загрузки
-  ...loadAuthState(),
-};
+const initialState: AuthState = getInitialState();
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<AuthResponse>) => {
-      const { user, access_token } = action.payload;
-      
-      const storedUser: StoredUser = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        token: access_token,
-      };
-
-      state.user = storedUser;
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    login: (state, action: PayloadAction<{ access_token: string; user: StoredUser }>) => {
+      state.user = action.payload.user;
       state.isAuthenticated = true;
+      state.isLoading = false;
 
-      // Сохраняем в localStorage (ваша существующая логика)
+      // Сохраняем в localStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem(USER_DATA_KEY, JSON.stringify(storedUser));
-        localStorage.setItem(AUTH_TOKEN_KEY, access_token);
+        localStorage.setItem(AUTH_TOKEN_KEY, action.payload.access_token);
+        localStorage.setItem(USER_DATA_KEY, JSON.stringify(action.payload.user));
       }
     },
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      state.isLoading = false;
 
-      // Очищаем localStorage (ваша существующая логика)
+      // Очищаем localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem(AUTH_TOKEN_KEY);
         localStorage.removeItem(USER_DATA_KEY);
       }
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
+    updateUser: (state, action: PayloadAction<Partial<StoredUser>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+        
+        // Обновляем в localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(USER_DATA_KEY, JSON.stringify(state.user));
+        }
+      }
     },
   },
 });
 
-export const { login, logout, setLoading } = authSlice.actions;
+export const { setLoading, login, logout, updateUser } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,6 +1,7 @@
 "use client";
 import { Edit3, Calendar, Mail, User, Bookmark } from "lucide-react";
 import { UserProfile } from "@/types/user";
+import Image from "next/image";
 
 interface ProfileHeaderProps {
   userProfile: UserProfile;
@@ -24,17 +25,19 @@ export default function ProfileHeader({
     return username[0].toUpperCase();
   };
 
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3001';
+
   return (
     <div className="bg-[var(--secondary)] rounded-xl p-8 border border-[var(--border)] mb-8">
       <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-6 lg:space-y-0 lg:space-x-6">
         {/* Аватар */}
         <div className="relative">
           {userProfile.avatar ? (
-            <img
-              src={userProfile.avatar}
+            <Image
+              src={`${baseUrl}${userProfile.avatar}`}
               alt={userProfile.username}
               className="w-24 h-24 rounded-full object-cover"
-            />
+            ></Image>
           ) : (
             <div className="w-24 h-24 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-2xl font-bold">
               {getInitials(userProfile.username)}

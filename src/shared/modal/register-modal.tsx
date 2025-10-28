@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Mail, Lock, User } from "lucide-react";
-import { authApi } from "../../api/auth";
+import { useRegisterMutation } from "@/store/api/authApi";
 import { RegisterForm, FormErrors, FormTouched } from "../../types/form";
 import { useModal } from "../../hooks/useModal";
 import { Input, Modal } from "..";
@@ -27,14 +27,16 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [touched, setTouched] = useState<FormTouched<RegisterForm>>({
     email: false,
     password: false,
     username: false,
     confirmPassword: false,
   });
-
+  
+  // Используем хук мутации из RTK Query
+  const [register, { isLoading, error: apiError }] = useRegisterMutation();
+  
   const modalRef = useModal(isOpen, onClose);
 
   const validate = {
@@ -96,18 +98,19 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     });
     if (!isFormValid()) return;
 
-    setIsLoading(true);
     try {
-      const response = await authApi.register({
+      // Вызываем мутацию и разворачиваем результат
+      const response = await register({
         email: form.email,
         password: form.password,
         username: form.username,
-      });
+      }).unwrap(); // unwrap() для получения данных или ошибки
+      
+      // Передаем данные в родительский компонент
       onAuthSuccess(response);
     } catch (error) {
+      // Ошибка уже будет в apiError, но можно обработать и здесь
       console.error("Ошибка регистрации:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -120,12 +123,25 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         username: false,
         confirmPassword: false,
       });
+      setShowPassword(false);
     }
   }, [isOpen]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Создание аккаунта">
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Показываем ошибку API если есть */}
+        {apiError && (
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <p className="text-red-600 text-sm">
+              {"data" in apiError 
+                ? (apiError.data as { message?: string })?.message || "Ошибка регистрации"
+                : "Ошибка регистрации"
+              }
+            </p>
+          </div>
+        )}
+
         <Input
           icon={User}
           type="text"
@@ -135,6 +151,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           onBlur={handleBlur("username")}
           error={errors.username}
           required
+          name="username"
+          disabled={isLoading}
         />
 
         <Input
@@ -146,11 +164,13 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           onBlur={handleBlur("email")}
           error={errors.email}
           required
+          name="email"
+          disabled={isLoading}
         />
 
         <Input
           icon={Lock}
-          type={showPassword ? "text" : "password"}
+          type="password"
           placeholder="Введите пароль"
           value={form.password}
           onChange={handleChange("password")}
@@ -160,23 +180,30 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           isPasswordVisible={showPassword}
           onTogglePassword={() => setShowPassword(!showPassword)}
           required
+          name="password"
+          disabled={isLoading}
         />
 
         <Input
           icon={Lock}
-          type={showPassword ? "text" : "password"}
+          type="password"
           placeholder="Повторите пароль"
           value={form.confirmPassword}
           onChange={handleChange("confirmPassword")}
           onBlur={handleBlur("confirmPassword")}
           error={errors.confirmPassword}
+          showPasswordToggle
+          isPasswordVisible={showPassword}
+          onTogglePassword={() => setShowPassword(!showPassword)}
           required
+          name="confirmPassword"
+          disabled={isLoading}
         />
 
         <button
           type="submit"
           disabled={!isFormValid() || isLoading}
-          className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-colors disabled:opacity-50 disabled:bg-[var(--muted)]"
+          className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-colors disabled:opacity-50 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
         >
           {isLoading ? "Загрузка..." : "Зарегистрироваться"}
         </button>
@@ -188,7 +215,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           <button
             type="button"
             onClick={onSwitchToLogin}
-            className="text-[var(--primary)] hover:underline font-medium"
+            className="text-[var(--primary)] hover:underline font-medium disabled:opacity-50"
+            disabled={isLoading}
           >
             Войти
           </button>

@@ -14,11 +14,17 @@ import { AuthGuard } from "@/guard/auth-guard";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 
+const API_CONFIG = {
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+  basePublicUrl: process.env.NEXT_PUBLIC_URL || 'http://localhost:3001',
+};
+
 // Адаптируем тип UserProfile к данным с бэкенда
 interface BackendUserProfile {
   _id: string;
   username: string;
   email: string;
+  avatar?: string;
   role: string;
   bookmarks: string[];
   readingHistory: Array<{
@@ -41,7 +47,7 @@ function transformBackendProfile(
     _id: backendProfile._id,
     username: backendProfile.username,
     email: backendProfile.email,
-    avatar: "", // В текущем ответе бэкенда нет аватара
+    avatar: backendProfile.avatar || "",
     role: backendProfile.role,
     bookmarks: backendProfile.bookmarks || [],
     readingHistory: backendProfile.readingHistory || [],
@@ -51,25 +57,52 @@ function transformBackendProfile(
 }
 
 export default function ProfilePage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading: authLoading, updateUser } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Преобразуем данные пользователя в формат UserProfile
+  // Загрузка данных профиля
   useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_CONFIG.baseUrl}/users/profile`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('tomilo_lib_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          const backendProfile: BackendUserProfile = await response.json();
+          setUserProfile(transformBackendProfile(backendProfile));
+        } else {
+          console.error('Failed to load user profile');
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (user) {
-      const backendProfile: BackendUserProfile = {
-        _id: user.id,
-        username: user.username,
-        email: user.email,
-        role: "user", // По умолчанию, можно получить из API если есть
-        bookmarks: [], // Можно получить отдельным запросом если нужно
-        readingHistory: [], // Можно получить отдельным запросом если нужно
-        createdAt: new Date().toISOString(), // Можно получить из API если есть
-        updatedAt: new Date().toISOString(), // Можно получить из API если есть
-      };
-      setUserProfile(transformBackendProfile(backendProfile));
+      loadUserProfile();
     }
   }, [user]);
+
+  // Обработчик обновления аватара
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    setUserProfile(prev => prev ? { ...prev, avatar: newAvatarUrl } : null);
+    
+    // Также обновляем аватар в контексте аутентификации
+    if (user) {
+      updateUser({ ...user, avatar: newAvatarUrl });
+    }
+  };
 
   // Устанавливаем заголовок страницы
   useEffect(() => {
@@ -80,7 +113,7 @@ export default function ProfilePage() {
     }
   }, [userProfile]);
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
@@ -117,6 +150,8 @@ export default function ProfilePage() {
 
   const stats = calculateStats(userProfile);
 
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3001';
+
   return (
     <AuthGuard>
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
@@ -142,7 +177,8 @@ export default function ProfilePage() {
                 <div className="relative">
                   {userProfile.avatar ? (
                     <Image
-                      src={userProfile.avatar}
+                      loader={() => `${API_CONFIG.basePublicUrl}${userProfile.avatar}`}
+                      src={`${baseUrl}${userProfile.avatar}`}
                       alt={userProfile.username}
                       className="w-24 h-24 rounded-full object-cover border-4 border-[var(--background)] shadow-lg"
                       height={96}
@@ -153,7 +189,7 @@ export default function ProfilePage() {
                       {userProfile.username[0].toUpperCase()}
                     </div>
                   )}
-                  <EditAvatarButton />
+                  <EditAvatarButton onAvatarUpdate={handleAvatarUpdate} />
                 </div>
               </div>
             </div>

@@ -150,6 +150,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
     if (!isOpen) {
       setForm({ email: "", password: "" });
       setTouched({ email: false, password: false });
+      setShowPassword(false);
     }
   }, [isOpen]);
 
@@ -174,11 +175,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
           onBlur={handleBlur("email")}
           error={errors.email}
           required
+          name="email"
+          disabled={isLoading}
         />
 
         <Input
           icon={Lock}
-          type={showPassword ? "text" : "password"}
+          type="password"
           placeholder="Введите пароль"
           value={form.password}
           onChange={handleChange("password")}
@@ -188,12 +191,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
           isPasswordVisible={showPassword}
           onTogglePassword={() => setShowPassword(!showPassword)}
           required
+          name="password"
+          disabled={isLoading}
         />
 
         <button
           type="submit"
           disabled={!isFormValid() || isLoading}
-          className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-colors disabled:opacity-50 disabled:bg-[var(--muted)]"
+          className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-colors disabled:opacity-50 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
         >
           {isLoading ? "Загрузка..." : "Войти"}
         </button>
@@ -205,7 +210,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
           <button
             type="button"
             onClick={onSwitchToRegister}
-            className="text-[var(--primary)] hover:underline font-medium"
+            className="text-[var(--primary)] hover:underline font-medium disabled:opacity-50"
+            disabled={isLoading}
           >
             Зарегистрироваться
           </button>

@@ -1,61 +1,46 @@
+// src/shared/notification-button/notification-button.tsx
 "use client";
-import { Bell } from "lucide-react";
-import { useState } from "react";
 
-// Компонент для отображения количества уведомлений
-const NotificationBadge = ({ count }: { count: number }) => {
-  if (count === 0) return null;
+import { useState, useEffect } from 'react';
+import { Bell } from 'lucide-react';
 
-  return (
-    <span className="absolute -top-1 -right-1 bg-[var(--destructive)] text-white text-xs rounded-full h-4 min-w-4 w-max p-1 flex items-center justify-center font-medium">
-      {count > 99 ? "99+" : count}
-    </span>
-  );
-};
+export function NotificationButton() {
+  const [notificationCount, setNotificationCount] = useState(0);
 
-interface NotificationButtonProps {
-  initialCount?: number;
-  onNotificationsClick?: (count: number) => void;
-}
+  useEffect(() => {
+    // Логика загрузки уведомлений
+    const loadNotifications = async () => {
+      try {
+        const mockCount = 1;
+        setNotificationCount(mockCount);
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      }
+    };
 
-export default function NotificationButton({
-  initialCount = 1,
-  onNotificationsClick,
-}: NotificationButtonProps) {
-  const [notificationCount, setNotificationCount] = useState(initialCount);
-
-  // Функция для обработки клика по уведомлениям
-  const handleClick = () => {
-    if (onNotificationsClick) {
-      onNotificationsClick(notificationCount);
-    }
-    // Сброс счетчика при клике
-    setNotificationCount(0);
-  };
-
-  // // Функция для добавления уведомлений (можно вызывать извне)
-  // const addNotification = (count: number = 1) => {
-  //   setNotificationCount(prev => prev + count);
-  // };
-
-  // // Функция для сброса уведомлений
-  // const resetNotifications = () => {
-  //   setNotificationCount(0);
-  // };
+    loadNotifications();
+  }, []);
 
   return (
-    <div className="relative items-end">
-      <button
-        type="button"
-        className={`relative p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1`}
-        onClick={handleClick}
-        aria-label={`Уведомления (${notificationCount} новых)`}
+    <button
+      type="button"
+      className="relative flex items-center justify-center p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-lg transition-colors"
+      aria-label={notificationCount > 0 ? `Уведомления (${notificationCount} новых)` : 'Уведомления'}
+    >
+      <Bell className="w-5 h-5" />
+      
+      {/* Бейдж с анимацией появления */}
+      <span 
+        className={`absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 bg-red-500 text-white text-xs rounded-full transition-all duration-300 ${
+          notificationCount > 0 
+            ? 'px-1 opacity-100 scale-100' 
+            : 'w-0 opacity-0 scale-50'
+        }`}
       >
-        <Bell
-          className="w-5 h-5"
-        />
-        <NotificationBadge count={notificationCount} />
-      </button>
-    </div>
+        {notificationCount > 99 ? '99+' : notificationCount}
+      </span>
+    </button>
   );
 }
+
+export default NotificationButton;

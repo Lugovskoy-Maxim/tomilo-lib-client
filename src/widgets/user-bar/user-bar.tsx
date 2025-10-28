@@ -1,12 +1,12 @@
 "use client";
 import {
   NotificationButton,
-  UserAvatar,
   UserDropdown,
   ThemeToggle,
   LoginModal,
   RegisterModal,
 } from "@/shared";
+import { UserAvatar } from "@/shared"; // Добавляем импорт UserAvatar
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,15 +17,22 @@ interface UserDropdownUser {
   name?: string;
   email?: string;
   username?: string;
+  avatar?: string; // Добавляем поле avatar
 }
 
 export default function UserBar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); // Добавляем состояние для гидратации
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   const { user, isAuthenticated, login, logout, isLoading } = useAuth();
+
+  // Отслеживаем монтирование компонента
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Закрытие dropdown при клике вне области
   useEffect(() => {
@@ -46,10 +53,6 @@ export default function UserBar() {
 
   const handleLoginModalOpen = () => {
     setLoginModalOpen(true);
-  };
-
-  const handleRegisterModalOpen = () => {
-    setRegisterModalOpen(true);
   };
 
   const handleLoginModalClose = () => {
@@ -90,15 +93,19 @@ export default function UserBar() {
       id: user.id,
       name: user.username,
       email: user.email,
-      username: user.username
+      username: user.username,
+      avatar: user.avatar // Добавляем аватар
     };
   };
 
-  if (isLoading) {
+  // Показываем скелетон во время загрузки или до монтирования
+  if (isLoading || !isMounted) {
     return (
       <div className="flex items-center gap-4">
         <ThemeToggle />
-        <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-full bg-[var(--border)] animate-pulse" />
+        </div>
       </div>
     );
   }
@@ -122,14 +129,19 @@ export default function UserBar() {
             </button>
           </div>
         ) : (
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative flex items-center justify-center" ref={dropdownRef}>
             <button
               type="button"
-              className="w-10 h-10 rounded-full cursor-pointer focus:outline-none hover:ring-2 hover:ring-gray-300 transition-all"
+              className="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer focus:outline-none hover:ring-2 hover:ring-[var(--border)] transition-all"
               onClick={() => setDropdownOpen(!dropdownOpen)}
               aria-label="Открыть меню пользователя"
             >
-              <UserAvatar />
+              <UserAvatar 
+                avatarUrl={user?.avatar}
+                username={user?.username}
+                size={40}
+                className="border-2 border-[var(--background)]"
+              />
             </button>
 
             <UserDropdown

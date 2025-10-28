@@ -1,42 +1,31 @@
+"use client";
+
 import { Footer, Header } from "@/widgets";
-import {
-  Plus,
-  Upload,
-  BookOpen,
-  User,
-  Tag,
-  Calendar,
-  FileText,
-  Edit,
-  Save,
-} from "lucide-react";
+import { Plus, BookOpen, Tag, Edit, Save } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import {
+  useCreateTitleMutation,
+  useGetTitleByIdQuery,
+  useUpdateTitleMutation,
+} from "@/store/api/titlesApi";
+import { TitleStatus } from "@/types/title";
+import { useRouter } from "next/navigation";
+import { CreateTitleDto } from "@/types/title";
 
 interface TitleFormData {
-  id?: number;
-  title: string;
-  originalTitle: string;
+  name: string;
+  altNames: string[];
   author: string;
   artist: string;
-  type: string;
-  year: number;
-  status: "Онгоинг" | "Завершен" | "Приостановлен";
-  genres: string[];
   description: string;
-  image: File | string | null;
-  chaptersCount?: number;
+  genres: string[];
+  tags: string[];
+  releaseYear: number;
+  status: TitleStatus;
+  coverImage?: string;
 }
 
-interface TitleEditorPageProps {
-  params: {
-    id?: string;
-  };
-  searchParams: {
-    [key: string]: string | string[] | undefined;
-  };
-}
-
-// Предопределенные жанры
 const availableGenres = [
   "Фэнтези",
   "Романтика",
@@ -60,60 +49,187 @@ const availableGenres = [
   "Сейнен",
 ];
 
-// Серверная функция для загрузки данных тайтла
-async function loadTitleData(
-  id: string
-): Promise<{ title: TitleFormData; chaptersCount: number } | null> {
-  // В реальном приложении здесь будет запрос к API
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  // Пример данных для редактирования
-  return {
-    title: {
-      id: parseInt(id),
-      title: "Существующий тайтл",
-      originalTitle: "Existing Title",
-      author: "Автор",
-      artist: "Художник",
-      type: "Манга",
-      year: 2023,
-      status: "Онгоинг",
-      genres: ["Фэнтези", "Приключения"],
-      description: "Описание существующего тайтла...",
-      image: "/images/existing-title.jpg",
-    },
-    chaptersCount: 15, // Пример количества глав
-  };
-}
-
-export default async function TitleEditorPage({
+export default function TitleEditorPage({
   params,
-}: TitleEditorPageProps) {
+}: {
+  params: { id?: string };
+}) {
+  const router = useRouter();
   const titleId = params.id;
-  const isEditMode = !!titleId;
+  const isEditMode = Boolean(titleId);
 
-  let titleData: TitleFormData | null = null;
-  let chaptersCount = 0;
+  // API hooks
+  const { data: existingTitle } = useGetTitleByIdQuery(titleId!, {
+    skip: !isEditMode,
+  });
+  const [createTitle, { isLoading: isCreating }] = useCreateTitleMutation();
+  const [updateTitle, { isLoading: isUpdating }] = useUpdateTitleMutation();
 
-  if (isEditMode) {
-    const data = await loadTitleData(titleId);
-    if (data) {
-      titleData = data.title;
-      chaptersCount = data.chaptersCount;
-    }
-  }
-
-  const initialFormData: TitleFormData = titleData || {
-    title: "",
-    originalTitle: "",
+  // local form state
+  const [formData, setFormData] = useState<TitleFormData>({
+    name: "",
+    altNames: [],
     author: "",
     artist: "",
-    type: "Манга",
-    year: new Date().getFullYear(),
-    status: "Онгоинг",
-    genres: [],
     description: "",
-    image: null,
+    genres: [],
+    tags: [],
+    releaseYear: new Date().getFullYear(),
+    status: TitleStatus.ONGOING,
+    coverImage: "",
+  });
+
+  const [altNameInput, setAltNameInput] = useState("");
+  const [tagInput, setTagInput] = useState("");
+
+  useEffect(() => {
+    if (existingTitle) {
+      setFormData({
+        name: existingTitle.name || "",
+        altNames: existingTitle.altNames || [],
+        author: existingTitle.author || "",
+        artist: existingTitle.artist || "",
+        description: existingTitle.description || "",
+        genres: existingTitle.genres || [],
+        tags: existingTitle.tags || [],
+        releaseYear: existingTitle.releaseYear || new Date().getFullYear(),
+        status: existingTitle.status || TitleStatus.ONGOING,
+        coverImage: existingTitle.coverImage || "",
+      });
+    }
+  }, [existingTitle]);
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "releaseYear" ? parseInt(value, 10) || 0 : value,
+    }));
+  };
+
+  const handleGenreToggle = (genre: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      genres: prev.genres.includes(genre)
+        ? prev.genres.filter((g) => g !== genre)
+        : [...prev.genres, genre],
+    }));
+  };
+
+  const addAltName = () => {
+    if (altNameInput.trim() && !formData.altNames.includes(altNameInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        altNames: [...prev.altNames, altNameInput.trim()]
+      }));
+      setAltNameInput("");
+    }
+  };
+
+  const removeAltName = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      altNames: prev.altNames.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tagInput.trim()]
+      }));
+      setTagInput("");
+    }
+  };
+
+  const removeTag = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Функция для подготовки данных к отправке
+  const prepareSubmitData = (): Partial<CreateTitleDto> => {
+    const data: Partial<CreateTitleDto> = {
+      name: formData.name.trim(),
+      altNames: formData.altNames.filter(name => name.trim() !== ''),
+      author: formData.author.trim(),
+      description: formData.description.trim(),
+      genres: formData.genres,
+      tags: formData.tags.filter(tag => tag.trim() !== ''),
+      releaseYear: formData.releaseYear,
+      status: formData.status,
+    };
+
+    // Добавляем необязательные поля только если они не пустые
+    if (formData.artist.trim()) {
+      data.artist = formData.artist.trim();
+    }
+
+    if (formData.coverImage?.trim()) {
+      data.coverImage = formData.coverImage.trim();
+    }
+
+    return data;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Валидация обязательных полей
+    if (!formData.name.trim()) {
+      alert("Название обязательно для заполнения");
+      return;
+    }
+
+    if (!formData.author.trim()) {
+      alert("Автор обязателен для заполнения");
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      alert("Описание обязательно для заполнения");
+      return;
+    }
+
+    if (formData.genres.length === 0) {
+      alert("Выберите хотя бы один жанр");
+      return;
+    }
+
+    // Валидация releaseYear
+    const currentYear = new Date().getFullYear();
+    if (formData.releaseYear < 1900 || formData.releaseYear > currentYear) {
+      alert(`Год выпуска должен быть между 1900 и ${currentYear}`);
+      return;
+    }
+
+    try {
+      const dataToSend = prepareSubmitData();
+
+      console.log("Отправляемые данные:", dataToSend);
+
+      if (isEditMode && titleId) {
+        await updateTitle({ id: titleId, data: dataToSend }).unwrap();
+      } else {
+        await createTitle(dataToSend).unwrap();
+      }
+
+      router.push("/admin");
+    } catch (err: any) {
+      console.error("Ошибка при сохранении:", err);
+      if (err.data?.message) {
+        alert(`Ошибка: ${Array.isArray(err.data.message) ? err.data.message.join(', ') : err.data.message}`);
+      } else {
+        alert("Произошла ошибка при сохранении. Проверьте консоль для подробностей.");
+      }
+    }
   };
 
   return (
@@ -137,7 +253,7 @@ export default async function TitleEditorPage({
           </p>
         </div>
 
-        <form className="space-y-8">
+        <form className="space-y-8" onSubmit={handleSubmit}>
           {/* Основная информация */}
           <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-6 flex items-center gap-2">
@@ -147,211 +263,230 @@ export default async function TitleEditorPage({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                <label className="block text-sm font-medium mb-2">
                   Название *
                 </label>
                 <input
                   type="text"
-                  name="title"
-                  defaultValue={initialFormData.title}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
-                  placeholder="Введите название тайтла"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
                   required
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                  Оригинальное название
-                </label>
-                <input
-                  type="text"
-                  name="originalTitle"
-                  defaultValue={initialFormData.originalTitle}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
-                  placeholder="Оригинальное название"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
-                  <User className="w-4 h-4" />
+                <label className="block text-sm font-medium mb-2">
                   Автор *
                 </label>
                 <input
                   type="text"
                   name="author"
-                  defaultValue={initialFormData.author}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
-                  placeholder="Автор произведения"
+                  value={formData.author}
+                  onChange={handleChange}
                   required
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                <label className="block text-sm font-medium mb-2">
                   Художник
                 </label>
                 <input
                   type="text"
                   name="artist"
-                  defaultValue={initialFormData.artist}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
-                  placeholder="Художник"
+                  value={formData.artist}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                  Тип *
-                </label>
-                <select
-                  name="type"
-                  defaultValue={initialFormData.type}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
-                >
-                  <option value="Манга">Манга</option>
-                  <option value="Манхва">Манхва</option>
-                  <option value="Маньхуа">Маньхуа</option>
-                  <option value="Комикс">Комикс</option>
-                  <option value="Ранобэ">Ранобэ</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
+                <label className="block text-sm font-medium mb-2">
                   Год выпуска *
                 </label>
                 <input
                   type="number"
-                  name="year"
-                  defaultValue={initialFormData.year}
+                  name="releaseYear"
+                  value={formData.releaseYear}
+                  onChange={handleChange}
                   min="1900"
-                  max={new Date().getFullYear() + 1}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+                  max={new Date().getFullYear()}
                   required
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
                 />
+                <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                  Должен быть между 1900 и {new Date().getFullYear()}
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                  Статус *
-                </label>
+                <label className="block text-sm font-medium mb-2">Статус *</label>
                 <select
                   name="status"
-                  defaultValue={initialFormData.status}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+                  value={formData.status}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
                 >
-                  <option value="Онгоинг">Онгоинг</option>
-                  <option value="Завершен">Завершен</option>
-                  <option value="Приостановлен">Приостановлен</option>
+                  <option value={TitleStatus.ONGOING}>Онгоинг</option>
+                  <option value={TitleStatus.COMPLETED}>Завершен</option>
+                  <option value={TitleStatus.PAUSE}>Приостановлен</option>
+                  <option value={TitleStatus.CANCELLED}>Отменен</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                  Обложка
+                <label className="block text-sm font-medium mb-2">
+                  Обложка (URL)
                 </label>
-                <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-4 text-center">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    name="image"
-                    className="hidden"
-                    id="image-upload"
-                  />
-                  <label
-                    htmlFor="image-upload"
-                    className="cursor-pointer flex flex-col items-center gap-2"
-                  >
-                    <Upload className="w-8 h-8 text-[var(--muted-foreground)]" />
-                    <span className="text-sm text-[var(--muted-foreground)]">
-                      {typeof initialFormData.image === "string"
-                        ? "Текущая обложка (загрузите новую для замены)"
-                        : "Загрузить обложку"}
-                    </span>
-                  </label>
-                </div>
+                <input
+                  type="url"
+                  name="coverImage"
+                  value={formData.coverImage || ''}
+                  onChange={handleChange}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                />
               </div>
             </div>
 
+            {/* Альтернативные названия */}
             <div className="mt-6">
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium mb-2">
+                Альтернативные названия
+              </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={altNameInput}
+                  onChange={(e) => setAltNameInput(e.target.value)}
+                  placeholder="Введите альтернативное название"
+                  className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addAltName();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={addAltName}
+                  className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90"
+                >
+                  Добавить
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.altNames.map((name, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[var(--secondary)] border border-[var(--border)]"
+                  >
+                    {name}
+                    <button
+                      type="button"
+                      onClick={() => removeAltName(index)}
+                      className="ml-2 text-red-500 hover:text-red-700"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Жанры */}
+            <div className="mt-6">
+              <label className="text-sm font-medium mb-2 flex items-center gap-2">
                 <Tag className="w-4 h-4" />
-                Жанры
+                Жанры *
               </label>
               <div className="flex flex-wrap gap-2">
                 {availableGenres.map((genre) => (
                   <label key={genre} className="inline-flex items-center">
                     <input
                       type="checkbox"
-                      name="genres"
-                      value={genre}
-                      defaultChecked={initialFormData.genres.includes(genre)}
+                      checked={formData.genres.includes(genre)}
+                      onChange={() => handleGenreToggle(genre)}
                       className="hidden peer"
                     />
-                    <span className="px-3 py-1 rounded-full text-sm border border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)] hover:border-[var(--primary)] transition-colors peer-checked:bg-[var(--primary)] peer-checked:text-[var(--primary-foreground)] peer-checked:border-[var(--primary)] cursor-pointer">
+                    <span className="px-3 py-1 rounded-full text-sm border border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)] hover:border-[var(--primary)] transition-colors peer-checked:bg-[var(--primary)] peer-checked:text-[var(--primary-foreground)] cursor-pointer">
                       {genre}
                     </span>
                   </label>
                 ))}
               </div>
+              {formData.genres.length > 0 && (
+                <p className="text-xs text-[var(--muted-foreground)] mt-2">
+                  Выбрано: {formData.genres.join(', ')}
+                </p>
+              )}
+            </div>
+
+            {/* Теги */}
+            <div className="mt-6">
+              <label className="block text-sm font-medium mb-2">
+                Теги
+              </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  placeholder="Введите тег"
+                  className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={addTag}
+                  className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90"
+                >
+                  Добавить
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[var(--secondary)] border border-[var(--border)]"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(index)}
+                      className="ml-2 text-red-500 hover:text-red-700"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
             </div>
 
             <div className="mt-6">
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                Описание
-              </label>
+              <label className="block text-sm font-medium mb-2">Описание *</label>
               <textarea
                 name="description"
-                defaultValue={initialFormData.description}
+                value={formData.description}
+                onChange={handleChange}
                 rows={4}
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] resize-none"
-                placeholder="Описание тайтла..."
+                required
+                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] resize-none"
+                placeholder="Подробное описание тайтла..."
               />
             </div>
           </div>
 
-          {/* Информация о главах (только в режиме редактирования) */}
-          {isEditMode && (
-            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-[var(--foreground)] flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Главы
-                </h2>
-                <span className="text-lg font-bold text-[var(--primary)]">
-                  {chaptersCount} глав
-                </span>
-              </div>
-
-              <div className="flex gap-4">
-                <Link
-                  href={`/admin/titles/${titleId}/chapters/add`}
-                  className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2"
-                >
-                  <Plus className="w-5 h-5" />
-                  Добавить главы
-                </Link>
-
-                <Link
-                  href={`/admin/titles/${titleId}/chapters`}
-                  className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors flex items-center gap-2"
-                >
-                  <Edit className="w-5 h-5" />
-                  Управление главами
-                </Link>
-              </div>
-
-              <p className="text-sm text-[var(--muted-foreground)] mt-3">
-                Добавляйте новые главы вручную или используйте парсинг из
-                внешних источников
-              </p>
-            </div>
-          )}
-
-          {/* Кнопка отправки */}
           <div className="flex justify-end gap-4">
             <Link
               href="/admin"
@@ -361,14 +496,21 @@ export default async function TitleEditorPage({
             </Link>
             <button
               type="submit"
-              className="px-8 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2"
+              disabled={isCreating || isUpdating}
+              className="px-8 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               {isEditMode ? (
                 <Save className="w-5 h-5" />
               ) : (
                 <Plus className="w-5 h-5" />
               )}
-              {isEditMode ? "Сохранить изменения" : "Добавить тайтл"}
+              {isEditMode
+                ? isUpdating
+                  ? "Сохраняем..."
+                  : "Сохранить изменения"
+                : isCreating
+                ? "Добавляем..."
+                : "Добавить тайтл"}
             </button>
           </div>
         </form>
