@@ -24,7 +24,12 @@ export { default as Modal } from "./modal/modal";
 export { default as LoginModal } from "./modal/login-modal";
 export { default as RegisterModal } from "./modal/register-modal";
 export { default as ProfileHeader } from './profile/profile-header';
-export { default as ReadingHistory } from './profile/profile-reading';
-export { default as BookmarksList } from './profile/profile-bookmarks';
 export { default as ProfileStats } from  './profile/profile-stats';
 export { default as EditAvatarButton} from './profile/profile-edit-avatar-button'; 
+export { default as UserInfo} from './profile/profile-info'; 
+export { default as ErrorState} from "./profile/profile-error";
+export { default as LoadingState} from "./profile/profile-loading";
+export { default as ProfileBanner } from "./profile/profile-banner";
+export { default as ProfileContent } from "./profile/profile-content";
+export { default as ProfileAvatar } from "./profile/profile-avatar";
+
