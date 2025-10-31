@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from "next/navigation";
 import { BookOpen, ChevronLeft, ChevronRight, List, Maximize, Minimize, RotateCcw } from "lucide-react";
-import { Chapter, Title } from "@/constants/mokeReadPage";
+import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
 
 interface ControlsPanelProps {
   title: Title;

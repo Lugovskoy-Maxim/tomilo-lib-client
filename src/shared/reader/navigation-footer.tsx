@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Home } from "lucide-react";
-import { Chapter, Title } from "@/constants/mokeReadPage";
+import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
 
 interface NavigationFooterProps {
   title: Title;

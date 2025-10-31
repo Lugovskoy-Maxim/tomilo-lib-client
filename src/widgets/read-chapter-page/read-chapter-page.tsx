@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Chapter, Title } from "@/constants/mokeReadPage";
+import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
 import {
   NavigationHeader,
   SinglePageView,
@@ -66,7 +66,8 @@ export default function ReadChapterPage({
     [title.id, chapter.images.length]
   );
 
-  // Навигация по изображениям
+
+   // Навигация по изображениям
   const goToNextImage = useCallback(() => {
     if (currentImageIndex < chapter.images.length - 1) {
       setCurrentImageIndex((prev) => {

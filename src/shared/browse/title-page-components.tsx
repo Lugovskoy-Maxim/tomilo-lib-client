@@ -29,6 +29,12 @@ interface TitlePageContentProps {
   title: Title;
 }
 
+interface ReadingButtonConfig {
+  text: string;
+  chapterNumber: number;
+  subText: string;
+}
+
 export default function TitlePageContent({ title }: TitlePageContentProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState<"info" | "chapters" | "comments">(
@@ -92,24 +98,43 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
     return SearchTitleChapters(title.chapters, chapterSearch);
   }, [SearchTitleChapters, chapterSearch, title.chapters]);
 
-  // Логика для кнопки чтения
-  const getReadingButtonConfig = () => {
-    if (lastReadChapter) {
-      const lastChapterExists = title.chapters.some(
-        (chapter) => chapter.number === lastReadChapter
-      );
+  // Логика для кнопки чтения - исправленная версия
+  const getReadingButtonConfig = (): ReadingButtonConfig => {
+    // Защита от неитерируемого chapters
+    if (!title.chapters || !Array.isArray(title.chapters)) {
+      return {
+        text: "Главы не найдены",
+        chapterNumber: 0,
+        subText: "Попробуйте позже",
+      };
+    }
 
-      if (lastChapterExists) {
+    // Сортируем главы по номеру (от меньшего к большему)
+    const sortedChapters = [...title.chapters].sort((a, b) => a.number - b.number);
+    const firstChapter = sortedChapters[0];
+
+    // Защита от пустого массива глав
+    if (!firstChapter) {
+      return {
+        text: "Главы не найдены",
+        chapterNumber: 0,
+        subText: "Попробуйте позже",
+      };
+    }
+
+    // Если есть последняя прочитанная глава, продолжаем с нее
+    if (lastReadChapter) {
+      const lastRead = sortedChapters.find(ch => ch.number === lastReadChapter);
+      if (lastRead) {
         return {
           text: "Продолжить чтение",
-          chapterNumber: lastReadChapter,
-          subText: `Глава ${lastReadChapter}`,
+          chapterNumber: lastRead.number,
+          subText: `Глава ${lastRead.number}`,
         };
       }
     }
 
-    // первая глава - это последняя в массиве
-    const firstChapter = title.chapters[title.chapters.length - 1];
+    // Иначе начинаем с первой главы
     return {
       text: "Начать чтение",
       chapterNumber: firstChapter.number,
@@ -120,9 +145,11 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
   const readingButtonConfig = getReadingButtonConfig();
 
   const handleReadingButtonClick = () => {
-    router.push(
-      `/browse/${title.id}/chapter/${readingButtonConfig.chapterNumber}`
-    );
+    if (readingButtonConfig.chapterNumber > 0) {
+      router.push(
+        `/browse/${title.id}/chapter/${readingButtonConfig.chapterNumber}`
+      );
+    }
   };
 
   const handleChapterClick = (chapterNumber: number) => {
@@ -155,6 +182,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
         isBookmarked={isBookmarked}
         buttonText={readingButtonConfig.text}
         buttonSubText={readingButtonConfig.subText}
+        // disabled={readingButtonConfig.chapterNumber === 0}
       />
 
       {/* Информационный блок */}
@@ -244,14 +272,13 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
       case "chapters":
         return (
           <div className="space-y-4">
-            {/* Поиск глав - теперь контролируемый */}
+            {/* Поиск глав */}
             <ChapterSearchInput
-              value={chapterSearch} // Передаем текущее значение
-              onSearch={setChapterSearch} // Обновляем состояние
+              value={chapterSearch}
+              onSearch={setChapterSearch}
               placeholder="Поиск по номеру или названию главы..."
             />
 
-            {/* Остальной код без изменений */}
             <div className="space-y-2">
               {filteredChapters.length > 0 ? (
                 filteredChapters.map((chapter) => (

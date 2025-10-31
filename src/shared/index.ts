@@ -32,4 +32,5 @@ export { default as LoadingState} from "./profile/profile-loading";
 export { default as ProfileBanner } from "./profile/profile-banner";
 export { default as ProfileContent } from "./profile/profile-content";
 export { default as ProfileAvatar } from "./profile/profile-avatar";
+export { default as LatestUpdateCard } from "./last-updates/last-updates";
 

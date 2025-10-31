@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Chapter, Title } from "@/constants/mokeReadPage";
+import { ReaderChapter as Chapter } from "@/shared/reader/types";
 
 interface SinglePageViewProps {
   chapter: Chapter;
@@ -9,7 +9,7 @@ interface SinglePageViewProps {
   imageLoadErrors: Set<number>;
   prevChapter: Chapter | null;
   nextChapter: Chapter | null;
-  title: Title;
+  title: { id: number };
   onPrevImage: () => void;
   onNextImage: () => void;
   onImageError: (index: number) => void;

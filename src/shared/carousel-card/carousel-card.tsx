@@ -1,5 +1,9 @@
 "use client";
+import { baseUrl } from "@/api/config";
 import { Star } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
 export interface CardProps {
   id: number;
@@ -17,8 +21,13 @@ export interface CarouselCardProps {
 }
 
 export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
+  const router = useRouter();
   const handleClick = () => {
-    onCardClick?.(data.id);
+    if (onCardClick) {
+      onCardClick(data.id);
+    } else {
+      router.push(`/browse/${data.id}`);
+    }
   };
 
   return (
@@ -27,10 +36,23 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
       onClick={handleClick}
     >
       <div className="relative">
-        {data.image && (
-          <div
+        {data.image ? (
+          <Image
             className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
-            style={{ backgroundImage: `url(${data.image})` }}
+            loader={() => `${baseUrl}${data.image}`}
+            src={`${baseUrl}${data.image}`}
+            alt={data.title}
+            width={160}
+            height={220}
+            unoptimized
+          />
+        ) : (
+          <Image
+            className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
+            src={IMAGE_HOLDER}
+            alt={data.title}
+            width={160}
+            height={220}
           />
         )}
         <div className="absolute top-1 left-1 bg-black/80 text-white px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[10px] sm:text-xs font-semibold">

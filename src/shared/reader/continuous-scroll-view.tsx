@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Chapter } from "@/constants/mokeReadPage";
+import { ReaderChapter as Chapter } from "@/shared/reader/types";
 
 interface ContinuousScrollViewProps {
   chapter: Chapter;
@@ -16,6 +16,7 @@ export default function ContinuousScrollView({
   onImageError,
   onImageLoad,
 }: ContinuousScrollViewProps) {
+
   return (
     <div className="pb-2">
       <div className="max-w-4xl mx-auto">
@@ -23,10 +24,12 @@ export default function ContinuousScrollView({
           <div key={index} className="flex justify-center">
             {!imageLoadErrors.has(index) ? (
               <Image
-                src={image}
+                loader={() => `${image}`}
+                src={`${image}`}
                 alt={`Страница ${index + 1}`}
-                width={800}
-                height={1200}
+                unoptimized
+                width={1000}
+                height={4000}
                 className={`max-w-full h-auto ${
                   imageWidth === "fit"
                     ? "w-full"
