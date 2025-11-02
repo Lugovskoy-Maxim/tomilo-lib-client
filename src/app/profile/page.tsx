@@ -30,7 +30,7 @@ export default function ProfilePage() {
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
 
-        <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <ProfileHeader />
           <ProfileBanner
             userProfile={userProfile}

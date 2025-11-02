@@ -60,7 +60,7 @@ function SharedProfileStats({
   favoriteGenres 
 }: SharedProfileStatsProps) {
   return (
-    <div className="profile-stats grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
+    <div className="profile-stats grid grid-cols-2 md:grid-cols-4 gap-4 py-4">
       <StatCard 
         title="Прочитано манги" 
         value={totalMangaRead} 
@@ -77,7 +77,7 @@ function SharedProfileStats({
         unit="часов" 
       />
       <div className="favorite-genres col-span-2 md:col-span-1">
-        <h3 className="text-sm font-medium text-gray-500 mb-2">Любимые жанры</h3>
+        <h3 className="text-sm font-medium text-[var(--muted-foreground)] mb-2">Любимые жанры</h3>
         <div className="flex flex-wrap gap-1">
           {favoriteGenres.slice(0, 3).map((genre, index) => (
             <span 
@@ -96,11 +96,11 @@ function SharedProfileStats({
 // Компонент карточки статистики
 function StatCard({ title, value, unit }: StatCardProps) {
   return (
-    <div className="stat-card bg-white p-4 rounded-lg shadow-sm border">
-      <h3 className="text-sm font-medium text-gray-500 mb-1">{title}</h3>
+    <div className="stat-card p-4 rounded-lg shadow-sm border border-[var(--border)]">
+      <h3 className="text-sm font-medium text-[var(--muted-foreground)] mb-1">{title}</h3>
       <div className="flex items-baseline">
-        <span className="text-2xl font-bold text-gray-900">{value}</span>
-        <span className="text-sm text-gray-500 ml-1">{unit}</span>
+        <span className="text-2xl font-bold text-[var(--muted-foreground)]">{value}</span>
+        <span className="text-sm text-[var(--muted-foreground)] ml-1">{unit}</span>
       </div>
     </div>
   );

@@ -35,7 +35,6 @@ export default function CollectionCard({ data }: CollectionCardProps) {
   };
 
   const getImageUrl = () => {
-    console.log(data);
     if (!image) return IMAGE_HOLDER;
 
     // Если изображение уже полный URL, используем как есть

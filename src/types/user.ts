@@ -4,6 +4,7 @@ export interface UserProfile {
   email: string;
   avatar?: string;
   role: string;
+  level?: number;
   bookmarks: string[];
   readingHistory: {
     title: string;

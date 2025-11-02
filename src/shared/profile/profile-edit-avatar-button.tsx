@@ -87,7 +87,7 @@ function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
       <button
         onClick={handleClick}
         disabled={isLoading}
-        className="absolute -bottom-1 -right-1 w-8 h-8 bg-[var(--primary)] text-white rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--background)] hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute -bottom-1 -right-1 w-8 h-8 bg-[var(--primary-foreground)] text-[var(--primary)] rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--background)] hover:bg-[var(--chart-5)]/60 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10"
         title="Изменить аватар"
       >
         {isLoading ? (

@@ -6,7 +6,7 @@ import {
   LoginModal,
   RegisterModal,
 } from "@/shared";
-import { UserAvatar } from "@/shared"; // Добавляем импорт UserAvatar
+import { UserAvatar } from "@/shared";
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,19 +17,19 @@ interface UserDropdownUser {
   name?: string;
   email?: string;
   username?: string;
-  avatar?: string; // Добавляем поле avatar
+  avatar?: string; 
 }
 
 export default function UserBar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false); // Добавляем состояние для гидратации
+  const [isMounted, setIsMounted] = useState(false); 
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   const { user, isAuthenticated, login, logout, isLoading } = useAuth();
 
-  // Отслеживаем монтирование компонента
+
   useEffect(() => {
     setIsMounted(true);
   }, []);

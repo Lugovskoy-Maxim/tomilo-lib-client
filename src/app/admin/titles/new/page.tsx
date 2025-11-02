@@ -13,11 +13,13 @@ import { TitleStatus } from "@/types/title";
 import { useRouter } from "next/navigation";
 import { CreateTitleDto } from "@/types/title";
 
+
 interface TitleFormData {
   name: string;
   altNames: string[];
   author: string;
   artist: string;
+  ageLimits: number;
   description: string;
   genres: string[];
   tags: string[];
@@ -74,6 +76,7 @@ export default function TitleEditorPage({
     description: "",
     genres: [],
     tags: [],
+    ageLimits: 0,
     releaseYear: new Date().getFullYear(),
     status: TitleStatus.ONGOING,
     coverImage: "",
@@ -92,6 +95,7 @@ export default function TitleEditorPage({
         description: existingTitle.description || "",
         genres: existingTitle.genres || [],
         tags: existingTitle.tags || [],
+        ageLimits: existingTitle.ageLimit || 0,
         releaseYear: existingTitle.releaseYear || new Date().getFullYear(),
         status: existingTitle.status || TitleStatus.ONGOING,
         coverImage: existingTitle.coverImage || "",
@@ -162,6 +166,7 @@ export default function TitleEditorPage({
       author: formData.author.trim(),
       description: formData.description.trim(),
       genres: formData.genres,
+      ageLimit: formData.ageLimits,
       tags: formData.tags.filter(tag => tag.trim() !== ''),
       releaseYear: formData.releaseYear,
       status: formData.status,
@@ -222,6 +227,7 @@ export default function TitleEditorPage({
       }
 
       router.push("/admin");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Ошибка при сохранении:", err);
       if (err.data?.message) {
@@ -238,7 +244,7 @@ export default function TitleEditorPage({
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
             {isEditMode ? (
               <Edit className="w-8 h-8" />
             ) : (
@@ -256,7 +262,7 @@ export default function TitleEditorPage({
         <form className="space-y-8" onSubmit={handleSubmit}>
           {/* Основная информация */}
           <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-[var(--muted-foreground)] mb-6 flex items-center gap-2">
               <BookOpen className="w-5 h-5" />
               Основная информация
             </h2>
@@ -338,6 +344,23 @@ export default function TitleEditorPage({
                 </select>
               </div>
 
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Статус *</label>
+                <select
+                  name="ageLimit"
+                  value={formData.ageLimits}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
+                >
+                  <option value={0}>{"0+ Для всех возрастов"}</option>
+                  <option value={12}>{"12+ Для детей старше 12"}</option>
+                  <option value={16}>{"16+ Для детей старше 16"}</option>
+                  <option value={18}>{"18+ Только для взрослых"}</option>
+                </select>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Обложка (URL)
@@ -375,7 +398,7 @@ export default function TitleEditorPage({
                 <button
                   type="button"
                   onClick={addAltName}
-                  className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90"
+                  className="px-4 py-2 cursor-pointer bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg hover:bg-[var(--secondary)]/90"
                 >
                   Добавить
                 </button>
@@ -414,7 +437,7 @@ export default function TitleEditorPage({
                       onChange={() => handleGenreToggle(genre)}
                       className="hidden peer"
                     />
-                    <span className="px-3 py-1 rounded-full text-sm border border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)] hover:border-[var(--primary)] transition-colors peer-checked:bg-[var(--primary)] peer-checked:text-[var(--primary-foreground)] cursor-pointer">
+                    <span className="px-3 py-1 rounded-full text-sm border border-[var(--border)] bg-[var(--accent)] text-[var(--muted-foreground)] hover:border-[var(--primary)] transition-colors peer-checked:bg-[var(--secondary)] peer-checked:text-[var(--primary-foreground)] cursor-pointer">
                       {genre}
                     </span>
                   </label>
@@ -449,7 +472,7 @@ export default function TitleEditorPage({
                 <button
                   type="button"
                   onClick={addTag}
-                  className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90"
+                  className="px-4 py-2 bg-[var(--secondary)] cursor-pointer text-[var(--muted-foreground)] rounded-lg hover:bg-[var(--secondary)]/90"
                 >
                   Добавить
                 </button>
@@ -490,14 +513,14 @@ export default function TitleEditorPage({
           <div className="flex justify-end gap-4">
             <Link
               href="/admin"
-              className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
+              className="px-6 py-3 bg-[var(--accent)] text-[var(--muted-foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
             >
               Отмена
             </Link>
             <button
               type="submit"
               disabled={isCreating || isUpdating}
-              className="px-8 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="px-8 py-3 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--secondary-foreground)]/10 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               {isEditMode ? (
                 <Save className="w-5 h-5" />

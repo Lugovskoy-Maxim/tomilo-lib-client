@@ -22,7 +22,7 @@ function BookmarksSection({
   return (
     <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-[var(--foreground)] flex items-center space-x-2">
+        <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
           <svg
             className="w-5 h-5"
             fill="none"
@@ -67,7 +67,7 @@ function BookmarksSection({
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-[var(--foreground)] text-sm mb-1">
+                <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1">
                   Манга #{bookmarkId.slice(-6)}
                 </h3>
                 <p className="text-xs text-[var(--muted-foreground)] mb-2">
@@ -104,7 +104,7 @@ function BookmarksSection({
 
       {currentBookmarks.length > 4 && (
         <div className="text-center mt-4">
-          <button className="text-xs text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors">
+          <button className="text-xs text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]/80 transition-colors">
             Показать все {currentBookmarks.length} закладок
           </button>
         </div>
