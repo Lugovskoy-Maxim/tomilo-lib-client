@@ -70,7 +70,7 @@ export default function SearchResults({
         {results.map((result) => (
           <Link
             key={result.id}
-            href={`/item/${result.id}`}
+            href={`/browse/${result.id}`}
             className="block px-4 py-3 hover:bg-accent hover:text-accent-foreground 
                         transition-colors border-b border-border last:border-b-0"
             onClick={() => {

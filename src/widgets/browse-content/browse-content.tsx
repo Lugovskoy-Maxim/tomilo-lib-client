@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   MobileFilterButton,
   SortAndSearch,
@@ -9,32 +9,80 @@ import {
   FilterSidebar,
 } from "@/shared";
 import { Filters } from "@/types/browse-page";
-import { mockTitle } from "@/constants/mokeReadPage";
+import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
 
-interface BrowseContentProps {
-  initialFilters: Filters;
-  filterOptions: {
-    genres: string[];
-    types: string[];
-    status: string[];
-  };
-  paginatedTitles: typeof mockTitle;
-  totalTitles: number;
-  currentPage: number;
-  totalPages: number;
-}
-
-function BrowseContent({
-  initialFilters,
-  filterOptions,
-  paginatedTitles,
-  totalTitles,
-  currentPage,
-  totalPages,
-}: BrowseContentProps) {
+function BrowseContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<Filters>(initialFilters);
+  const [appliedFilters, setAppliedFilters] = useState<Filters>(() => {
+    const urlSearch = searchParams.get("search") || "";
+    const urlGenres = searchParams.get("genres")?.split(",").filter(Boolean) || [];
+    const urlTypes = searchParams.get("types")?.split(",").filter(Boolean) || [];
+    const urlStatus = searchParams.get("status")?.split(",").filter(Boolean) || [];
+    const urlSortBy = (searchParams.get("sortBy") || "rating") as Filters["sortBy"];
+    const urlSortOrder = (searchParams.get("sortOrder") || "desc") as Filters["sortOrder"];
+    return {
+      search: urlSearch,
+      genres: urlGenres,
+      types: urlTypes,
+      status: urlStatus,
+      sortBy: urlSortBy,
+      sortOrder: urlSortOrder,
+    };
+  });
+
+  // Debounce for search input (1s)
+  const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(appliedFilters.search);
+    }, 1000);
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, [appliedFilters.search]);
+
+  const page = useMemo(() => {
+    const p = Number(searchParams.get("page") || "1");
+    return Number.isFinite(p) && p > 0 ? p : 1;
+  }, [searchParams]);
+
+  // Опции фильтров
+  const { data: filterOptions } = useGetFilterOptionsQuery();
+
+  // Запрос тайтлов с параметрами
+  const { data: titlesData } = useSearchTitlesQuery({
+    search: debouncedSearch || undefined,
+    genre: appliedFilters.genres[0],
+    // types не поддерживаются сервером, пропускаем
+    status: appliedFilters.status[0],
+    sortBy: appliedFilters.sortBy,
+    sortOrder: appliedFilters.sortOrder,
+    page,
+    limit: 12,
+  });
+
+  const paginatedTitles = useMemo(() => titlesData?.data ?? [], [titlesData]);
+  const adaptedTitles = useMemo(
+    () =>
+      paginatedTitles.map((t: any) => ({
+        id: (t._id || t.id || "").toString(),
+        title: t.name || t.title || "",
+        type: t.type || "Манга",
+        year: t.releaseYear || t.year || new Date().getFullYear(),
+        rating: t.rating || 0,
+        image: t.coverImage || t.cover || undefined,
+        genres: t.genres || [],
+      })),
+    [paginatedTitles]
+  );
+  const totalTitles = titlesData?.total ?? 0;
+  const currentPage = titlesData?.page ?? page;
+  const totalPages = (titlesData?.totalPages ?? Math.ceil(totalTitles / 12)) || 1;
 
   // Функция сброса фильтров
   const resetFilters = () => {
@@ -81,7 +129,7 @@ function BrowseContent({
   };
 
   // Обработчик клика по карточке
-  const handleCardClick = (id: number) => {
+  const handleCardClick = (id: string) => {
     router.push(`/browse/${id}`);
   };
 
@@ -111,9 +159,9 @@ function BrowseContent({
 
         {/* Сетка тайтлов */}
         <TitleGrid
-          titles={paginatedTitles}
+          titles={adaptedTitles as any}
           onCardClick={handleCardClick}
-          isEmpty={paginatedTitles.length === 0}
+          isEmpty={adaptedTitles.length === 0}
           onResetFilters={resetFilters}
         />
 
@@ -132,7 +180,11 @@ function BrowseContent({
         <FilterSidebar
           filters={appliedFilters}
           onFiltersChange={handleFiltersChange}
-          filterOptions={filterOptions}
+          filterOptions={{
+            genres: filterOptions?.genres || [],
+            types: [],
+            status: filterOptions?.status || [],
+          }}
           onReset={resetFilters}
         />
       </div>
@@ -141,7 +193,11 @@ function BrowseContent({
       <FilterSidebar
         filters={appliedFilters}
         onFiltersChange={handleFiltersChange}
-        filterOptions={filterOptions}
+        filterOptions={{
+          genres: filterOptions?.genres || [],
+          types: [],
+          status: filterOptions?.status || [],
+        }}
         onReset={resetFilters}
         isMobile={true}
         isOpen={isMobileFilterOpen}

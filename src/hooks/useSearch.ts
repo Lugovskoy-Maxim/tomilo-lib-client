@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { searchApi, SearchResult } from '../api/searchApi';
 
 export function useSearch() {
@@ -9,6 +9,7 @@ export function useSearch() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const performSearch = useCallback(async (term: string) => {
     if (!term.trim()) {
@@ -21,10 +22,21 @@ export function useSearch() {
     setError(null);
 
     try {
-      const results = await searchApi(term);
+      // отменяем предыдущий запрос, если он ещё в полёте
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      const results = await searchApi(term, controller.signal);
       setSearchResults(results);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Произошла ошибка при поиске');
+      if ((err as any)?.name === 'AbortError') {
+        // игнорируем отменённые запросы
+      } else {
+        setError(err instanceof Error ? err.message : 'Произошла ошибка при поиске');
+      }
       setSearchResults([]);
     } finally {
       setIsLoading(false);
@@ -51,6 +63,20 @@ export function useSearch() {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+    };
   }, []);
 
   return {

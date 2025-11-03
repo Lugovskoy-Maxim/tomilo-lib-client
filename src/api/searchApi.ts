@@ -1,5 +1,5 @@
 export interface SearchResult {
-  id: number;
+  id: string;
   title: string;
   image?: string;
   description?: string;
@@ -8,13 +8,13 @@ export interface SearchResult {
   rating?: number;
 }
 
-export async function searchApi(term: string): Promise<SearchResult[]> {
+export async function searchApi(term: string, signal?: AbortSignal): Promise<SearchResult[]> {
   if (!term.trim()) {
     return [];
   }
 
   try {
-    const response = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+    const response = await fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal });
     
     if (!response.ok) {
       throw new Error(`Ошибка поиска: ${response.status}`);

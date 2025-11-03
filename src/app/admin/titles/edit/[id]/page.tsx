@@ -3,6 +3,7 @@
 import { Footer, Header } from "@/widgets";
 import { Upload, BookOpen, User, Tag, Calendar, FileText, Edit, Save, AlertCircle, Eye, Star, Users, AlertTriangle, Globe, LucideIcon } from "lucide-react";
 import Link from "next/link";
+// removed preview page; keep a link button to open public title page
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/index";
@@ -130,6 +131,7 @@ export default function TitleEditorPage() {
   const [error, setError] = useState<string | null>(null);
   const [chaptersCount, setChaptersCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  // preview tab removed
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Загрузка данных
@@ -289,21 +291,36 @@ export default function TitleEditorPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         <HeaderSection />
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <BasicInfoSection 
-            formData={formData} 
-            handleInputChange={handleInputChange}
-            handleArrayFieldChange={handleArrayFieldChange}
-            handleAltNamesChange={handleAltNamesChange}
-            handleImageChange={handleImageChange}
-            selectedFile={selectedFile}
-          />
-          <StatsSection formData={formData} />
-          <ChaptersSection titleId={titleId} chaptersCount={chaptersCount} />
-          <FormActions isSaving={isSaving} />
-        </form>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
+              <BasicInfoSection 
+                formData={formData} 
+                handleInputChange={handleInputChange}
+                handleArrayFieldChange={handleArrayFieldChange}
+                handleAltNamesChange={handleAltNamesChange}
+                handleImageChange={handleImageChange}
+                selectedFile={selectedFile}
+              />
+              <TextareaField 
+                label="Описание *" 
+                value={formData.description} 
+                onChange={handleInputChange("description")} 
+                placeholder="Описание тайтла..." 
+                rows={8}
+                required
+              />
+              <div className="flex items-center justify-between gap-3">
+                <Link href={`/browse/${titleId}`} className="px-4 py-2 rounded border">Открыть страницу тайтла</Link>
+                <FormActions isSaving={isSaving} />
+              </div>
+            </form>
+            <div className="space-y-6 lg:col-span-1">
+              <StatsSection formData={formData} />
+              <ChaptersSection titleId={titleId} chaptersCount={chaptersCount} />
+            </div>
+        </div>
       </div>
       <Footer />
     </main>
@@ -529,12 +546,12 @@ function ChaptersSection({ titleId, chaptersCount }: ChaptersSectionProps) {
       </div>
 
       <div className="flex gap-3 flex-wrap">
-        <Link href={`/admin/titles/${titleId}/chapters/add`} className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 text-sm">
+        <Link href={`/admin/titles/edit/${titleId}/chapters/new`} className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 text-sm">
           <Edit className="w-4 h-4" />
           Добавить главы
         </Link>
 
-        <Link href={`/admin/titles/${titleId}/chapters`} className="px-4 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors flex items-center gap-2 text-sm">
+        <Link href={`/admin/titles/edit/${titleId}/chapters`} className="px-4 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors flex items-center gap-2 text-sm">
           <FileText className="w-4 h-4" />
           Управление главами
         </Link>
@@ -677,11 +694,22 @@ function ImageUploadField({ label, image, onChange, selectedFile }: ImageUploadF
         </label>
         {(image || selectedFile) && (
           <div className="mt-2">
-            <img 
-              src={`${process.env.NEXT_PUBLIC_URL}${image}`} 
-              alt="Current cover" 
-              className="max-w-[200px] mx-auto rounded" 
-            />
+            {
+              (() => {
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+                const isAbsolute = typeof image === "string" && (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("data:"));
+                const resolvedSrc = image
+                  ? (isAbsolute ? image : `${apiBase}${image?.startsWith("/") ? "" : "/"}${image}`)
+                  : "";
+                return (
+                  <img
+                    src={resolvedSrc}
+                    alt="Current cover"
+                    className="max-w-[200px] mx-auto rounded"
+                  />
+                );
+              })()
+            }
             {selectedFile && (
               <p className="text-xs text-green-600 mt-1">Новое изображение будет загружено при сохранении</p>
             )}

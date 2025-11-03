@@ -26,14 +26,51 @@ function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormDa
 export const titlesApi = createApi({
   reducerPath: "titlesApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
   }),
   tagTypes: [TITLES_TAG],
   endpoints: (builder) => ({
-    // Получить все тайтлы
+    // Получить все тайтлы (простой список)
     getTitles: builder.query<{ titles: Title[] }, void>({
       query: () => "/titles",
       providesTags: [TITLES_TAG],
+    }),
+
+    // Поиск/список тайтлов с фильтрами и пагинацией
+    searchTitles: builder.query<
+      { data: Title[]; total: number; page: number; totalPages: number },
+      {
+        search?: string;
+        genre?: string;
+        status?: string;
+        sortBy?: string;
+        sortOrder?: "asc" | "desc";
+        page?: number;
+        limit?: number;
+      }
+    >({
+      query: (params) => ({
+        url: "/titles",
+        params,
+      }),
+      transformResponse: (response: any) => {
+        // Нормализуем серверный ответ { titles, pagination }
+        const data: Title[] = response?.titles ?? response?.data ?? [];
+        const total: number = response?.pagination?.total ?? response?.total ?? data.length ?? 0;
+        const page: number = response?.pagination?.page ?? response?.page ?? 1;
+        const totalPages: number = response?.pagination?.pages ?? response?.totalPages ?? Math.ceil(total / (response?.pagination?.limit ?? 12)) ?? 1;
+        return { data, total, page, totalPages };
+      },
+      providesTags: [TITLES_TAG],
+    }),
+
+    // Опции фильтров
+    getFilterOptions: builder.query<{
+      genres: string[];
+      // types?: string[]; // сервер пока не возвращает types
+      status: string[];
+    }, void>({
+      query: () => "/titles/filters/options",
     }),
 
     // Получить тайтл по ID
@@ -67,6 +104,8 @@ export const titlesApi = createApi({
 
 export const {
   useGetTitlesQuery,
+  useSearchTitlesQuery,
+  useGetFilterOptionsQuery,
   useGetTitleByIdQuery,
   useCreateTitleMutation,
   useUpdateTitleMutation,

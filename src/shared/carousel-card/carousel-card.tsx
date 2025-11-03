@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
 export interface CardProps {
-  id: number;
+  id: string;
   title: string;
   type: string;
   year: number;
@@ -17,7 +17,7 @@ export interface CardProps {
 
 export interface CarouselCardProps {
   data: CardProps;
-  onCardClick?: (id: number) => void;
+  onCardClick?: (id: string) => void;
 }
 
 export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {

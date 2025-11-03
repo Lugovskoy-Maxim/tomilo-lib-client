@@ -4,6 +4,30 @@ import { ReaderTitle as ReadTitle, ReaderChapter as ReadChapter } from '@/shared
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+function getApiOrigin(): string {
+  const env = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  try {
+    const u = new URL(env);
+    // strip trailing /api if present
+    return u.pathname.endsWith('/api') ? `${u.origin}` : `${u.origin}${u.pathname}`.replace(/\/$/, '');
+  } catch {
+    return 'http://localhost:3001';
+  }
+}
+
+function normalizeAssetUrl(p: string): string {
+  if (!p) return '';
+  // ensure leading slash
+  let path = p.startsWith('/') ? p : `/${p}`;
+  // if server returned /browse/... assets, they actually live under /uploads/browse/...
+  if (path.startsWith('/browse/')) {
+    path = `/uploads${path}`;
+  }
+  // already correct when starts with /uploads
+  const origin = getApiOrigin();
+  return `${origin}${path}`;
+}
+
 function toNumericId(id: string): number {
   // simple stable numeric surrogate id from hex string
   try {
@@ -38,7 +62,7 @@ export default async function ChapterPage({ params }: PageProps) {
   }
 
   const serverTitle = await res.json();
-  const base = process.env.NEXT_PUBLIC_URL || '';
+  const base = getApiOrigin();
 
   const mappedChapters: ReadChapter[] = (serverTitle.chapters || []).map((ch: any) => ({
     id: typeof ch.chapterNumber === 'number' ? ch.chapterNumber : toNumericId(ch._id || `${ch.chapterNumber}`),
@@ -46,7 +70,7 @@ export default async function ChapterPage({ params }: PageProps) {
     title: ch.title || ch.name || '',
     date: ch.releaseDate || '',
     views: Number(ch.views) || 0,
-    images: (ch.pages || []).map((p: string) => `${base}${p}`),
+    images: (ch.pages || []).map((p: string) => normalizeAssetUrl(p)),
   }));
 
   const mappedTitle: ReadTitle = {
@@ -56,7 +80,7 @@ export default async function ChapterPage({ params }: PageProps) {
     type: serverTitle.type || 'Манга',
     year: Number(serverTitle.releaseYear) || new Date().getFullYear(),
     rating: Number(serverTitle.rating) || 0,
-    image: `${base}${serverTitle.coverImage || ''}`,
+    image: normalizeAssetUrl(serverTitle.coverImage || ''),
     genres: serverTitle.genres || [],
     description: serverTitle.description || '',
     status: serverTitle.status || 'ongoing',

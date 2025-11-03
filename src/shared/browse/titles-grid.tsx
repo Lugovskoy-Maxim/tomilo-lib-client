@@ -1,16 +1,25 @@
 "use client";
 import CarouselCard, { CardProps } from "@/shared/carousel-card/carousel-card";
-import { Title } from "@/constants/mokeReadPage";
+
+interface GridTitle {
+  id: string;
+  title: string;
+  type: string;
+  year: number;
+  rating: number;
+  image?: string;
+  genres: string[];
+}
 
 interface TitleGridProps {
-  titles: Title[];
-  onCardClick: (id: number) => void;
+  titles: GridTitle[];
+  onCardClick: (id: string) => void;
   isEmpty: boolean;
   onResetFilters: () => void;
 }
 
 // Функция для преобразования Title в CardProps
-const titleToCardProps = (title: Title): CardProps => ({
+const titleToCardProps = (title: GridTitle): CardProps => ({
   id: title.id,
   title: title.title,
   type: title.type,
