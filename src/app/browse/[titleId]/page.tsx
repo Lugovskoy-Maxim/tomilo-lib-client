@@ -94,7 +94,7 @@ export default function TitleViewPage() {
   // Состояния UI
   const [activeTab, setActiveTab] = useState<
     "description" | "chapters" | "comments" | "statistics"
-  >("description");
+  >("chapters");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isAdmin, ] = useState(true);
 

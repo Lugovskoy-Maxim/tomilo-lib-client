@@ -22,7 +22,7 @@ export function useSearch() {
     setError(null);
 
     try {
-      // отменяем предыдущий запрос, если он ещё в полёте
+      // отменяем предыдущий запрос, если он ещё не завершился
       if (abortRef.current) {
         abortRef.current.abort();
       }
@@ -32,7 +32,7 @@ export function useSearch() {
       const results = await searchApi(term, controller.signal);
       setSearchResults(results);
     } catch (err) {
-      if ((err as any)?.name === 'AbortError') {
+      if (err instanceof Error && err.name === 'AbortError') {
         // игнорируем отменённые запросы
       } else {
         setError(err instanceof Error ? err.message : 'Произошла ошибка при поиске');
