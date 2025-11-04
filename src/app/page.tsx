@@ -12,6 +12,7 @@ import { CarouselCard, CollectionCard, ReadingCard } from "@/shared";
 import LatestUpdateCard from "@/shared/last-updates/last-updates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
+import { ContinueReadingButton } from "@/shared/continue-reading-button";
 
 // Базовые типы данных из API
 interface Title {
@@ -272,6 +273,11 @@ export default function Home() {
     <>
       <Header />
       <main className="flex flex-col items-center justify-center gap-6">
+        {/* Кнопка продолжения чтения */}
+        <div className="w-full max-w-6xl px-4 py-4">
+          <ContinueReadingButton className="max-w-xs" />
+        </div>
+        
         {/* Популярные тайтлы */}
         {renderCarousel(
           "Популярные тайтлы",

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useGetProfileQuery } from "@/store/api/authApi";
+import { useGetProfileQuery, useAddBookmarkMutation, useRemoveBookmarkMutation, useGetContinueReadingQuery } from "@/store/api/authApi";
+import { useUpdateChapterMutation } from "@/store/api/chaptersApi"; // Импортируем useUpdateChapterMutation
 import {
   login,
   logout,
@@ -8,7 +9,7 @@ import {
   updateUser,
 } from "@/store/slices/authSlice";
 import { RootState } from "@/store";
-import { AuthResponse, StoredUser } from "@/types/auth";
+import { AuthResponse, StoredUser, ApiResponseDto, User } from "@/types/auth";
 
 // Сохраняем ваши существующие ключи
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
@@ -26,11 +27,18 @@ export const useAuth = () => {
 
 
   const {
-    data: user,
+    data: profileResponse,
     isLoading: profileLoading,
     error,
     refetch: refetchProfile,
   } = useGetProfileQuery(undefined, {
+    skip: !token,
+  });
+
+  const [addBookmark] = useAddBookmarkMutation();
+  const [removeBookmark] = useRemoveBookmarkMutation();
+  const [updateChapter] = useUpdateChapterMutation(); // Добавляем useUpdateChapterMutation
+  const { data: continueReadingData, isLoading: continueReadingLoading, error: continueReadingError } = useGetContinueReadingQuery(undefined, {
     skip: !token,
   });
 
@@ -41,22 +49,26 @@ export const useAuth = () => {
 
   // При успешной проверке авторизации обновляем состояние
   useEffect(() => {
-    if (user && token) {
+    if (profileResponse && profileResponse.success && profileResponse.data && token) {
+      const user: User = profileResponse.data;
       const authResponse: AuthResponse = {
         access_token: token,
         user: {
+          _id: user._id,
           id: user.id || user._id,
           email: user.email,
           username: user.username,
           avatar: user.avatar,
           role: user.role,
+          bookmarks: user.bookmarks,
+          readingHistory: user.readingHistory,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         },
       };
       dispatch(login(authResponse));
     }
-  }, [user, token, dispatch]);
+  }, [profileResponse, token, dispatch]);
 
   // При ошибке проверки авторизации разлогиниваемся
   useEffect(() => {
@@ -110,12 +122,16 @@ export const useAuth = () => {
         throw new Error(errorData.message || "Ошибка при обновлении аватара");
       }
 
-      const updatedUser = await response.json();
+      const result: ApiResponseDto<User> = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || "Ошибка при обновлении аватара");
+      }
 
       // Обновляем пользователя в состоянии
       updateUserData({
-        avatar: updatedUser.avatar,
-        updatedAt: updatedUser.updatedAt,
+        avatar: result.data?.avatar,
+        updatedAt: result.data?.updatedAt,
       });
 
       // Перезапрашиваем профиль для получения актуальных данных
@@ -152,13 +168,17 @@ export const useAuth = () => {
         throw new Error(errorData.message || "Ошибка при обновлении профиля");
       }
 
-      const updatedUser = await response.json();
+      const result: ApiResponseDto<User> = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || "Ошибка при обновлении профиля");
+      }
 
       // Обновляем пользователя в состоянии
       updateUserData({
-        username: updatedUser.username,
-        email: updatedUser.email,
-        updatedAt: updatedUser.updatedAt,
+        username: result.data?.username,
+        email: result.data?.email,
+        updatedAt: result.data?.updatedAt,
       });
 
       // Перезапрашиваем профиль для получения актуальных данных
@@ -167,6 +187,81 @@ export const useAuth = () => {
       return { success: true };
     } catch (error) {
       console.error("Error updating profile:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Неизвестная ошибка",
+      };
+    }
+  };
+
+  // Функция для добавления закладки
+  const addBookmarkToUser = async (titleId: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await addBookmark(titleId).unwrap();
+      
+      if (!result.success) {
+        throw new Error(result.message || "Ошибка при добавлении в закладки");
+      }
+
+      // Обновляем пользователя в состоянии
+      updateUserData({
+        bookmarks: result.data?.bookmarks,
+        updatedAt: result.data?.updatedAt,
+      });
+
+      // Перезапрашиваем профиль для получения актуальных данных
+      refetchProfile();
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error adding bookmark:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Неизвестная ошибка",
+      };
+    }
+  };
+
+  // Функция для удаления закладки
+  const removeBookmarkFromUser = async (titleId: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await removeBookmark(titleId).unwrap();
+      
+      if (!result.success) {
+        throw new Error(result.message || "Ошибка при удалении из закладок");
+      }
+
+      // Обновляем пользователя в состоянии
+      updateUserData({
+        bookmarks: result.data?.bookmarks,
+        updatedAt: result.data?.updatedAt,
+      });
+
+      // Перезапрашиваем профиль для получения актуальных данных
+      refetchProfile();
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error removing bookmark:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Неизвестная ошибка",
+      };
+    }
+  };
+
+  // Функция для обновления счетчиков просмотров
+  const updateChapterViewsCount = async (chapterId: string, currentViews: number): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Используем updateChapter для обновления просмотров
+      const result = await updateChapter({
+        id: chapterId,
+        data: { views: currentViews + 1 }
+      }).unwrap();
+      
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating chapter views:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Неизвестная ошибка",
@@ -203,6 +298,12 @@ export const useAuth = () => {
     updateUser: updateUserData,
     updateAvatar,
     updateProfile,
+    addBookmark: addBookmarkToUser,
+    removeBookmark: removeBookmarkFromUser,
+    updateChapterViews: updateChapterViewsCount,
+    continueReading: continueReadingData?.data,
+    continueReadingLoading,
+    continueReadingError,
     refetchProfile,
     isAuthenticated: auth.isAuthenticated,
   };

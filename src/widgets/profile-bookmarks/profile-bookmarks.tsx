@@ -1,22 +1,47 @@
 "use client";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { UserProfile } from "@/types/user";
 
 interface BookmarksSectionProps {
-  bookmarks: string[];
-  initialBookmarks: string[];
+  bookmarks: UserProfile["bookmarks"];
+  initialBookmarks: UserProfile["bookmarks"];
 }
 
 function BookmarksSection({
   bookmarks,
   initialBookmarks,
 }: BookmarksSectionProps) {
+  const { removeBookmark } = useAuth();
   const [currentBookmarks, setCurrentBookmarks] = useState(initialBookmarks);
+  const [loadingBookmarks, setLoadingBookmarks] = useState<Record<string, boolean>>({});
 
-  const handleRemoveBookmark = (bookmarkId: string) => {
-    const updatedBookmarks = currentBookmarks.filter((id) => id !== bookmarkId);
-    setCurrentBookmarks(updatedBookmarks);
-    // Здесь будет вызов API для удаления закладки
-    console.log("Удаление закладки:", bookmarkId);
+  const handleRemoveBookmark = async (bookmarkId: string) => {
+    // Устанавливаем состояние загрузки для этой закладки
+    setLoadingBookmarks(prev => ({ ...prev, [bookmarkId]: true }));
+    
+    try {
+      const result = await removeBookmark(bookmarkId);
+      
+      if (result.success) {
+        // Обновляем локальное состояние
+        const updatedBookmarks = currentBookmarks.filter((id) => id !== bookmarkId);
+        setCurrentBookmarks(updatedBookmarks);
+      } else {
+        console.error("Ошибка при удалении закладки:", result.error);
+        alert(`Ошибка при удалении закладки: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Ошибка при удалении закладки:", error);
+      alert("Произошла ошибка при удалении закладки");
+    } finally {
+      // Сбрасываем состояние загрузки
+      setLoadingBookmarks(prev => {
+        const newLoading = { ...prev };
+        delete newLoading[bookmarkId];
+        return newLoading;
+      });
+    }
   };
 
   return (
@@ -79,21 +104,29 @@ function BookmarksSection({
                   </span>
                   <button
                     onClick={() => handleRemoveBookmark(bookmarkId)}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-500/10 rounded transition-all"
+                    disabled={loadingBookmarks[bookmarkId]}
+                    className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-500/10 rounded transition-all disabled:opacity-50"
                   >
-                    <svg
-                      className="w-3 h-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
+                    {loadingBookmarks[bookmarkId] ? (
+                      <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>

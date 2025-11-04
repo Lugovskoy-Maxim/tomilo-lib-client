@@ -1,15 +1,10 @@
 "use client";
 
 import { BookOpen } from "lucide-react";
-
-interface ReadingHistoryItem {
-  title: string;
-  chapter: string;
-  date: string;
-}
+import { UserProfile } from "@/types/user";
 
 interface ReadingHistorySectionProps {
-  readingHistory: ReadingHistoryItem[];
+  readingHistory: UserProfile["readingHistory"];
 }
 function ReadingHistorySection({
   readingHistory,
@@ -51,10 +46,10 @@ function ReadingHistorySection({
 
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1 truncate">
-                  {item.title}
+                  Манга #{item.titleId.slice(-6)}
                 </h3>
                 <p className="text-xs text-[var(--muted-foreground)] mb-2">
-                  {item.chapter}
+                  Глава #{item.chapterId.slice(-6)}
                 </p>
                 <div className="flex items-center space-x-2 text-xs text-[var(--muted-foreground)]">
                   <svg

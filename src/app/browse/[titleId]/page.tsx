@@ -12,6 +12,7 @@ import {
   LeftSidebar,
   RightContent,
 } from "@/shared/browse/title-view";
+import { ContinueReadingButton } from "@/shared/continue-reading-button";
 
 // Конфигурация API
 const API_CONFIG = {
@@ -218,6 +219,7 @@ export default function TitleViewPage() {
           <div className="sm:col-span-1">
             <LeftSidebar
               titleData={titleData}
+              chapters={chapters}
               onBookmark={handleBookmark}
               onShare={handleShare}
               isAdmin={isAdmin}
@@ -225,6 +227,9 @@ export default function TitleViewPage() {
           </div>
 
           <div className="sm:col-span-3">
+            <div className="mb-4">
+              <ContinueReadingButton />
+            </div>
             <RightContent
               titleData={titleData}
               activeTab={activeTab}

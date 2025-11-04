@@ -1,11 +1,11 @@
+import React from "react";
 import { UserProfile } from "@/types/user";
 
 // Определяем интерфейсы для всех типов данных
 interface ReadingHistoryItem {
-  title: string;
-  chapter: string;
+  titleId: string;
+  chapterId: string;
   date: string;
-  genres?: string[];
 }
 
 interface Stats {
@@ -53,34 +53,34 @@ export default function ProfileStats({ userProfile, isLoading = false }: Profile
 }
 
 // Компонент отображения статистики
-function SharedProfileStats({ 
-  totalMangaRead, 
-  totalChaptersRead, 
-  readingTime, 
-  favoriteGenres 
+function SharedProfileStats({
+  totalMangaRead,
+  totalChaptersRead,
+  readingTime,
+  favoriteGenres
 }: SharedProfileStatsProps) {
   return (
     <div className="profile-stats grid grid-cols-2 md:grid-cols-4 gap-4 py-4">
-      <StatCard 
-        title="Прочитано манги" 
-        value={totalMangaRead} 
-        unit="шт" 
+      <StatCard
+        title="Прочитано манги"
+        value={totalMangaRead}
+        unit="шт"
       />
-      <StatCard 
-        title="Прочитано глав" 
-        value={totalChaptersRead} 
-        unit="глав" 
+      <StatCard
+        title="Прочитано глав"
+        value={totalChaptersRead}
+        unit="глав"
       />
-      <StatCard 
-        title="Время чтения" 
-        value={Math.round(readingTime / 60)} 
-        unit="часов" 
+      <StatCard
+        title="Время чтения"
+        value={Math.round(readingTime / 60)}
+        unit="часов"
       />
       <div className="favorite-genres col-span-2 md:col-span-1">
         <h3 className="text-sm font-medium text-[var(--muted-foreground)] mb-2">Любимые жанры</h3>
         <div className="flex flex-wrap gap-1">
           {favoriteGenres.slice(0, 3).map((genre, index) => (
-            <span 
+            <span
               key={index}
               className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
             >
@@ -137,29 +137,24 @@ function calculateStats(userProfile?: UserProfile | null): Stats | null {
     return getEmptyStats();
   }
 
-  // Используем type guard для фильтрации элементов с title
-  const itemsWithTitle = readingHistory.filter((item): item is ReadingHistoryItem & { title: string } => 
-    Boolean(item && typeof item === 'object' && 'title' in item && typeof item.title === 'string')
-  );
-
-  const uniqueMangaTitles = new Set(itemsWithTitle.map(item => item.title));
-  const favoriteGenres = extractFavoriteGenres(readingHistory);
-
+  // Создаем Set для подсчета уникальных тайтлов
+  const uniqueMangaTitles = new Set(readingHistory.map(item => item.titleId));
+  
   return {
     totalMangaRead: uniqueMangaTitles.size,
     totalChaptersRead: readingHistory.length,
     readingTime: Math.round(readingHistory.length * 15),
-    favoriteGenres: favoriteGenres,
+    favoriteGenres: ["Популярное", "Новинки", "Рекомендуемое"], // Пока используем заглушку
   };
 }
 
 // Type guard для проверки readingHistory
 function isValidReadingHistory(history: unknown): history is ReadingHistoryItem[] {
-  return Array.isArray(history) && history.every(item => 
-    typeof item === 'object' && 
-    item !== null && 
-    'title' in item && 
-    'chapter' in item && 
+  return Array.isArray(history) && history.every(item =>
+    typeof item === 'object' &&
+    item !== null &&
+    'titleId' in item &&
+    'chapterId' in item &&
     'date' in item
   );
 }
@@ -171,28 +166,6 @@ function getEmptyStats(): Stats {
     readingTime: 0,
     favoriteGenres: [],
   };
-}
-
-// Функция для извлечения жанров с правильной типизацией
-function extractFavoriteGenres(readingHistory: ReadingHistoryItem[]): string[] {
-  const genreMap = new Map<string, number>();
-  
-  readingHistory.forEach(item => {
-    if (item.genres && Array.isArray(item.genres)) {
-      item.genres.forEach((genre: unknown) => {
-        if (typeof genre === 'string') {
-          genreMap.set(genre, (genreMap.get(genre) || 0) + 1);
-        }
-      });
-    }
-  });
-
-  const topGenres = Array.from(genreMap.entries())
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
-    .map(([genre]) => genre);
-
-  return topGenres.length > 0 ? topGenres : ["Популярное", "Новинки", "Рекомендуемое"];
 }
 
 // Хук для использования статистики

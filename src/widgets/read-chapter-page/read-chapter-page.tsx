@@ -9,6 +9,7 @@ import {
   NavigationFooter,
   ControlsPanel,
 } from "@/shared";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ReadChapterPageProps {
   title: Title;
@@ -21,11 +22,13 @@ export default function ReadChapterPage({
   chapter,
   chapters,
 }: ReadChapterPageProps) {
+  const { updateChapterViews } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(
     new Set()
   );
+  const [viewsUpdated, setViewsUpdated] = useState(false); // Флаг для отслеживания обновления просмотров
   const [readingMode, setReadingMode] = useState<"single" | "continuous">(
     "continuous"
   );
@@ -232,6 +235,40 @@ export default function ReadChapterPage({
       }
     };
   }, []);
+
+  // Обновление счетчиков просмотров при загрузке компонента
+  useEffect(() => {
+    let isCancelled = false;
+    
+    const updateViews = async () => {
+      // Проверяем, что запрос еще не был отправлен и есть необходимые данные
+      if (!viewsUpdated && title.id && chapter.id && chapter._id) {
+        // Передаем _id главы и текущее значение просмотров
+        if (chapter._id) {
+          try {
+            const result = await updateChapterViews(chapter._id, chapter.views);
+            if (result.error) {
+              console.error("Failed to update chapter views:", result.error);
+              // Не повторяем запрос при ошибке
+              return;
+            }
+            // Устанавливаем флаг, что запрос был отправлен
+            setViewsUpdated(true);
+          } catch (error) {
+            console.error("Error updating chapter views:", error);
+            // Не повторяем запрос при ошибке
+            return;
+          }
+        }
+      }
+    };
+
+    updateViews();
+    
+    return () => {
+      isCancelled = true;
+    };
+  }, [title.id, chapter.id, viewsUpdated]); // Добавляем viewsUpdated в зависимости
 
   // Обработка ошибок загрузки изображений
   const handleImageError = (index: number) => {

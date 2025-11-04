@@ -1,7 +1,7 @@
 import { ReadChapterPage } from '@/widgets';
 import * as React from 'react'
 import { ReaderTitle as ReadTitle, ReaderChapter as ReadChapter } from '@/shared/reader/types';
-
+import { Chapter } from '@/types/title';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 function getApiOrigin(): string {
@@ -64,13 +64,14 @@ export default async function ChapterPage({ params }: PageProps) {
   const serverTitle = await res.json();
   const base = getApiOrigin();
 
-  const mappedChapters: ReadChapter[] = (serverTitle.chapters || []).map((ch: any) => ({
+  const mappedChapters: ReadChapter[] = (serverTitle.chapters || []).map((ch: Chapter) => ({
     id: typeof ch.chapterNumber === 'number' ? ch.chapterNumber : toNumericId(ch._id || `${ch.chapterNumber}`),
+    _id: ch._id, // Добавляем _id главы
     number: Number(ch.chapterNumber) || 0,
     title: ch.title || ch.name || '',
     date: ch.releaseDate || '',
     views: Number(ch.views) || 0,
-    images: (ch.pages || []).map((p: string) => normalizeAssetUrl(p)),
+    images: (ch.pages || []).map((p) => normalizeAssetUrl(p)),
   }));
 
   const mappedTitle: ReadTitle = {

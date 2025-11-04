@@ -130,9 +130,13 @@ export interface ChapterNavigation {
 // Типы для DTO (Data Transfer Objects)
 export type CreateTitleDto = Omit<Title, '_id' | 'views' | 'rating' | 'totalChapters' | 'createdAt' | 'updatedAt'>;
 export type UpdateTitleDto = Partial<CreateTitleDto>;
-
 export type CreateChapterDto = Omit<Chapter, '_id' | 'views' | 'createdAt' | 'updatedAt' | 'titleInfo'>;
 export type UpdateChapterDto = Partial<CreateChapterDto>;
+
+// Тип для обновления просмотров главы
+export type UpdateChapterViewsDto = {
+  views: number;
+};
 
 // Типы для запросов с пагинацией и фильтрацией
 export interface ChaptersQuery {

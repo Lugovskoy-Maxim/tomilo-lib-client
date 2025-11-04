@@ -1,5 +1,6 @@
 export interface ReaderChapter {
   id: number; // stable numeric id for UI
+  _id?: string; // original chapter ID from database
   number: number; // chapter number
   title: string;
   date: string | Date;

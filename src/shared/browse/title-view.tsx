@@ -20,6 +20,7 @@ import {
 import { Title, TitleStatus, Chapter } from "@/types/title";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { ReadButton } from "@/shared/browse/read-button";
 
 // Shared UI
 export function TabButton({
@@ -82,11 +83,13 @@ export function InfoField({
 // Left Sidebar
 export function LeftSidebar({
   titleData,
+  chapters,
   onBookmark,
   onShare,
   isAdmin,
 }: {
   titleData: Title;
+  chapters: Chapter[];
   onBookmark: () => void;
   onShare: () => void;
   isAdmin: boolean;
@@ -113,10 +116,13 @@ export function LeftSidebar({
           />
         )}
 
-        <button className="w-full bg-[var(--primary)] text-[var(--primary-foreground)] py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2 mb-3">
-          <Play className="w-5 h-5" />
-          Читать
-        </button>
+        <div className="mb-3">
+          <ReadButton 
+            titleData={titleData} 
+            chapters={chapters} 
+            className="w-full"
+          />
+        </div>
 
         <div className="grid grid-cols-2 gap-2">
           <button

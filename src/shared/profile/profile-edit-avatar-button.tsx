@@ -5,16 +5,12 @@ import { useRef, useState } from 'react';
 import { Edit, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
-};
-
 interface EditAvatarButtonProps {
   onAvatarUpdate?: (newAvatarUrl: string) => void;
 }
 
 function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
-  const { user, updateUser } = useAuth();
+  const { updateAvatar, refetchProfile } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,35 +37,17 @@ function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-
-      const response = await fetch(`${API_CONFIG.baseUrl}/users/profile/avatar`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('tomilo_lib_token')}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Ошибка при загрузке аватара');
-      }
-
-      const updatedUser = await response.json();
+      // Используем хук useAuth для обновления аватара
+      const result = await updateAvatar(file);
       
-      // Обновляем пользователя в контексте аутентификации
-      if (updateUser) {
-        updateUser(updatedUser);
+      if (result.success) {
+        // Перезапрашиваем профиль для получения актуальных данных
+        await refetchProfile();
+        
+        alert('Аватар успешно обновлен!');
+      } else {
+        throw new Error(result.error || 'Ошибка при обновлении аватара');
       }
-
-      // Вызываем callback если передан
-      if (onAvatarUpdate) {
-        onAvatarUpdate(updatedUser.avatar);
-      }
-
-      alert('Аватар успешно обновлен!');
     } catch (error) {
       console.error('Error updating avatar:', error);
       alert(`Ошибка при обновлении аватара: ${error instanceof Error ? error.message : 'Unknown error'}`);

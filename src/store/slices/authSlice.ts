@@ -19,7 +19,7 @@ const getInitialState = (): AuthState => {
     const userData = localStorage.getItem(USER_DATA_KEY);
     
     if (token && userData) {
-      const user = JSON.parse(userData);
+      const user: StoredUser = JSON.parse(userData);
       return {
         user,
         isAuthenticated: true,

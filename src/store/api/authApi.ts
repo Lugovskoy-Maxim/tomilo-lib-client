@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { AuthResponse, LoginData, RegisterData, User } from '@/types/auth';
+import { AuthResponse, LoginData, RegisterData, User, ApiResponseDto } from '@/types/auth';
 
 // Ключи для localStorage (сохраняем ваши существующие)
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
@@ -39,14 +39,36 @@ export const authApi = createApi({
       }),
       invalidatesTags: ['Auth'],
     }),
-    getProfile: builder.query<User, void>({
+    getProfile: builder.query<ApiResponseDto<User>, void>({
       query: () => '/users/profile',
       providesTags: ['Auth'],
+      transformResponse: (response: ApiResponseDto<User>) => response,
     }),
-  }),
+    addBookmark: builder.mutation<ApiResponseDto<User>, string>({
+      query: (titleId) => ({
+        url: `/users/bookmarks/${titleId}`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Auth'],
+    }),
+    removeBookmark: builder.mutation<ApiResponseDto<User>, string>({
+      query: (titleId) => ({
+        url: `/users/bookmarks/${titleId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Auth'],
+    }),
+   getContinueReading: builder.query<ApiResponseDto<{ titleId: string; chapterId: string; chapterNumber: number }>, void>({
+     query: () => '/users/continue-reading',
+     providesTags: ['Auth'],
+   }),
+ }),
 });
 export const {
-  useLoginMutation,
-  useRegisterMutation,
-  useGetProfileQuery, 
+ useLoginMutation,
+ useRegisterMutation,
+ useGetProfileQuery,
+ useAddBookmarkMutation,
+ useRemoveBookmarkMutation,
+ useGetContinueReadingQuery,
 } = authApi;

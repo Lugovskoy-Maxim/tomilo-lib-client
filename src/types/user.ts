@@ -7,8 +7,8 @@ export interface UserProfile {
   level?: number;
   bookmarks: string[];
   readingHistory: {
-    title: string;
-    chapter: string;
+    titleId: string;
+    chapterId: string;
     date: string;
   }[];
   createdAt: string;
