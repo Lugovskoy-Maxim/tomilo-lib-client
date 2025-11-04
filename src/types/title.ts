@@ -1,3 +1,14 @@
+// ApiResponseDto - стандартный формат ответа API
+export interface ApiResponseDto<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  errors?: string[];
+  timestamp: string;
+  path: string;
+  method?: string;
+}
+
 export enum TitleStatus {
   ONGOING = 'ongoing',
   COMPLETED = 'completed',

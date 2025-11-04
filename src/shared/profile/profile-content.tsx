@@ -1,6 +1,7 @@
 import { UserProfile } from "@/types/user";
 import { BookmarksSection, ReadingHistorySection } from "@/widgets";
 import { ContinueReadingButton } from "@/shared/continue-reading-button";
+import { BookmarkCard } from "@/shared";
 
 interface ProfileContentProps {
   userProfile: UserProfile;
@@ -15,7 +16,6 @@ export default function ProfileContent({ userProfile }: ProfileContentProps) {
       </div>
       <BookmarksSection
         bookmarks={userProfile.bookmarks}
-        initialBookmarks={userProfile.bookmarks}
       />
     </div>
   );

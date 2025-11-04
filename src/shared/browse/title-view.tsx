@@ -19,10 +19,12 @@ import {
   X,
 } from "lucide-react";
 import { Title, TitleStatus, Chapter } from "@/types/title";
+import { UserProfile } from "@/types/user";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
+import { useAuth } from "@/hooks/useAuth";
 
 // Shared UI
 export function TabButton({
@@ -105,8 +107,8 @@ export function LeftSidebar({
           <Image
             width={320}
             height={480}
-            src={`${process.env.NEXT_PUBLIC__URL}${titleData.coverImage}`}
-            loader={() => `${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`}
+            src={`${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${titleData.coverImage}`}
+            loader={() => `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${titleData.coverImage}`}
             alt={titleData.name}
             className="w-full max-w-[320px] mx-auto lg:max-w-none rounded-lg shadow-lg mb-4 object-cover"
           />
@@ -175,6 +177,7 @@ export function ChaptersTab({
   searchQuery,
   onSearchChange,
   loading,
+  user,
 }: {
   titleId: string;
   chapters: Chapter[];
@@ -183,6 +186,15 @@ export function ChaptersTab({
   searchQuery: string;
   onSearchChange: (q: string) => void;
   loading: boolean;
+  user: {
+    readingHistory?: {
+      titleId: string;
+      chapters: {
+        chapterId: string;
+        readAt: string;
+      }[];
+    }[] | null;
+  } | null;
 }) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -216,6 +228,7 @@ export function ChaptersTab({
             chapter={chapter}
             titleId={titleId}
             index={index}
+            user={user}
           />
         ))}
 
@@ -241,24 +254,52 @@ export function ChapterItem({
   chapter,
   titleId,
   index,
+  user,
 }: {
   chapter: Chapter;
   titleId: string;
   index: number;
+  user: {
+    readingHistory?: {
+      titleId: string;
+      chapters: {
+        chapterId: string;
+        readAt: string;
+      }[];
+    }[] | null;
+  } | null;
 }) {
+  // Проверяем, прочитана ли глава
+  const isRead = user?.readingHistory?.some((historyItem: { titleId: string; chapters: { chapterId: string; readAt: string; }[] }) =>
+    historyItem.titleId === titleId &&
+    historyItem.chapters &&
+    historyItem.chapters.some((ch: { chapterId: string; readAt: string }) => ch.chapterId === chapter._id)
+  );
+
   return (
     <Link
       href={`/browse/${titleId}/chapter/${chapter._id}`}
-      className="flex items-center justify-between p-3 bg-[var(--background)] rounded-lg hover:ring-1 hover:ring-[var(--primary)] transition-colors group"
+      className={`flex items-center justify-between p-3 rounded-lg hover:ring-1 hover:ring-[var(--primary)] transition-colors group ${
+        isRead ? "bg-green-500/10 hover:bg-green-500/20" : "bg-[var(--background)]"
+      }`}
     >
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-full flex items-center justify-center text-xs sm:text-sm font-medium">
+        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
+          isRead
+            ? "bg-green-500 text-white"
+            : "bg-[var(--primary)] text-[var(--primary-foreground)]"
+        }`}>
           {index + 1}
         </div>
         <div>
           <div className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors text-sm sm:text-base">
             Глава {chapter.chapterNumber}
             {chapter.title && `: ${chapter.title}`}
+            {isRead && (
+              <span className="ml-2 text-xs px-1.5 py-0.5 bg-green-500 text-white rounded">
+                Прочитано
+              </span>
+            )}
           </div>
           {chapter.releaseDate && (
             <div className="text-xs text-[var(--muted-foreground)]">
@@ -325,6 +366,7 @@ export function RightContent({
   onSearchChange: (query: string) => void;
   titleId: string;
 }) {
+  const { user } = useAuth();
   const statusLabels: Record<TitleStatus, string> = {
     [TitleStatus.ONGOING]: "Онгоинг",
     [TitleStatus.COMPLETED]: "Завершен",
@@ -555,6 +597,7 @@ export function RightContent({
               searchQuery={searchQuery}
               onSearchChange={onSearchChange}
               loading={chaptersLoading}
+              user={user ? { readingHistory: user.readingHistory } : null}
             />
           )}
           {activeTab === "comments" && <CommentsTab />}

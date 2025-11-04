@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useGetProfileQuery, useAddBookmarkMutation, useRemoveBookmarkMutation, useGetContinueReadingQuery, useAddToReadingHistoryMutation } from "@/store/api/authApi";
+import { useGetProfileQuery, useAddBookmarkMutation, useRemoveBookmarkMutation, useGetContinueReadingQuery, useAddToReadingHistoryMutation, useRemoveFromReadingHistoryMutation } from "@/store/api/authApi";
 import { useUpdateChapterMutation } from "@/store/api/chaptersApi"; // Импортируем useUpdateChapterMutation
 import {
   login,
@@ -41,6 +41,7 @@ export const useAuth = () => {
   const [removeBookmark] = useRemoveBookmarkMutation();
   const [updateChapter] = useUpdateChapterMutation(); // Добавляем useUpdateChapterMutation
   const [addToReadingHistory] = useAddToReadingHistoryMutation(); // Добавляем useAddToReadingHistoryMutation
+  const [removeFromReadingHistory] = useRemoveFromReadingHistoryMutation(); // Добавляем useRemoveFromReadingHistoryMutation
   const { data: continueReadingData, isLoading: continueReadingLoading, error: continueReadingError } = useGetContinueReadingQuery(undefined, {
     skip: !getToken(),
   });
@@ -295,6 +296,28 @@ export const useAuth = () => {
     }
   };
 
+  // Функция для удаления записи из истории чтения
+  const removeFromReadingHistoryFunc = async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await removeFromReadingHistory({ titleId, chapterId }).unwrap();
+      
+      if (!result.success) {
+        throw new Error(result.message || "Ошибка при удалении из истории чтения");
+      }
+
+      // Перезапрашиваем профиль для получения актуальных данных
+      refetchProfile();
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error removing from reading history:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Неизвестная ошибка",
+      };
+    }
+  };
+
   // Ваши существующие функции (адаптированные для Redux)
   const loginUser = (authResponse: ApiResponseDto<AuthResponse>) => {
     // Извлекаем токен из правильного поля
@@ -340,5 +363,6 @@ export const useAuth = () => {
     continueReadingError,
     refetchProfile,
     isAuthenticated: auth.isAuthenticated,
+    removeFromReadingHistory: removeFromReadingHistoryFunc,
   };
 };

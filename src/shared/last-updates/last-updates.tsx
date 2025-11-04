@@ -6,12 +6,13 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
 interface LatestUpdateCardProps {
   data: {
-    id: string; // Изменено на string
+    id: string;
     title: string;
+    chapter: string;
     chapterNumber: number;
     timeAgo: string;
     newChapters?: number;
-    cover: string; // Изменено с image на cover
+    cover: string;
     type?: string;
   };
 }
@@ -24,7 +25,6 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   };
 
   const getImageUrl = () => {
-    console.log(data);
     if (!data.cover) return IMAGE_HOLDER;
 
     // Если изображение уже полный URL, используем как есть
@@ -91,7 +91,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
             <div className="flex items-center gap-2">
               {/* Номер главы */}
               <span className="text-foreground font-medium text-sm">
-                Глава {data.chapterNumber}
+                {data.chapter}
               </span>
 
               {/* Количество новых глав (если есть) */}

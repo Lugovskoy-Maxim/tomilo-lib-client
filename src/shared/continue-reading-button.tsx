@@ -8,19 +8,47 @@ interface ContinueReadingButtonProps {
 }
 
 export function ContinueReadingButton({ className }: ContinueReadingButtonProps) {
-  const { continueReading, continueReadingLoading, continueReadingError } = useAuth();
+  const { continueReading, continueReadingLoading, continueReadingError } = useAuth() as {
+    continueReading: {
+      titleId: string;
+      chapters: {
+        chapterId: string;
+        readAt: string;
+      }[];
+    }[] | undefined;
+    continueReadingLoading: boolean;
+    continueReadingError: unknown;
+  };
   const router = useRouter();
 
+  // Получаем последнюю прочитанную главу из последнего тайтла
+  const getLastReadChapter = () => {
+    if (!continueReading || continueReading.length === 0) return null;
+    
+    // Берем последний тайтл из истории
+    const lastTitle = continueReading[continueReading.length - 1];
+    if (!lastTitle.chapters || lastTitle.chapters.length === 0) return null;
+    
+    // Берем последнюю главу из этого тайтла
+    const lastChapter = lastTitle.chapters[lastTitle.chapters.length - 1];
+    return {
+      titleId: lastTitle.titleId,
+      chapterId: lastChapter.chapterId
+    };
+  };
+
+  const lastReadChapter = getLastReadChapter();
+
   const handleClick = () => {
-    if (continueReading?.titleId && continueReading?.chapterId) {
-      router.push(`/browse/${continueReading.titleId}/chapter/${continueReading.chapterNumber}`);
+    if (lastReadChapter?.titleId && lastReadChapter?.chapterId) {
+      router.push(`/browse/${lastReadChapter.titleId}/chapter/${lastReadChapter.chapterId}`);
     }
   };
 
   if (continueReadingLoading) {
     return (
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         className={`w-full justify-start ${className}`}
         disabled
       >
@@ -30,13 +58,13 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
     );
   }
 
-  if (continueReadingError || !continueReading) {
+  if (continueReadingError || !lastReadChapter) {
     return null;
   }
 
   return (
-    <Button 
-      variant="outline" 
+    <Button
+      variant="outline"
       className={`w-full justify-start ${className}`}
       onClick={handleClick}
     >

@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Title, CreateTitleDto, UpdateTitleDto } from "@/types/title";
+import { Title, CreateTitleDto, UpdateTitleDto, ApiResponseDto } from "@/types/title";
 
 const TITLES_TAG = "Titles";
 
@@ -31,14 +31,15 @@ export const titlesApi = createApi({
   tagTypes: [TITLES_TAG],
   endpoints: (builder) => ({
     // Получить все тайтлы (простой список)
-    getTitles: builder.query<{ titles: Title[] }, void>({
+    getTitles: builder.query<ApiResponseDto<{ titles: Title[] }>, void>({
       query: () => "/titles",
       providesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<{ titles: Title[] }>) => response,
     }),
 
     // Поиск/список тайтлов с фильтрами и пагинацией
     searchTitles: builder.query<
-      { data: Title[]; total: number; page: number; totalPages: number },
+      ApiResponseDto<{ data: Title[]; total: number; page: number; totalPages: number }>,
       {
         search?: string;
         genre?: string;
@@ -53,34 +54,39 @@ export const titlesApi = createApi({
         url: "/titles",
         params,
       }),
-      transformResponse: (response: any) => {
+      transformResponse: (response: ApiResponseDto<{ titles?: Title[]; data?: Title[]; pagination?: { total: number; page: number; pages: number; limit: number }; total?: number; page?: number; totalPages?: number }>) => {
         // Нормализуем серверный ответ { titles, pagination }
-        const data: Title[] = response?.titles ?? response?.data ?? [];
-        const total: number = response?.pagination?.total ?? response?.total ?? data.length ?? 0;
-        const page: number = response?.pagination?.page ?? response?.page ?? 1;
-        const totalPages: number = response?.pagination?.pages ?? response?.totalPages ?? Math.ceil(total / (response?.pagination?.limit ?? 12)) ?? 1;
-        return { data, total, page, totalPages };
+        const data: Title[] = response?.data?.titles ?? response?.data?.data ?? [];
+        const total: number = response?.data?.pagination?.total ?? response?.data?.total ?? data.length ?? 0;
+        const page: number = response?.data?.pagination?.page ?? response?.data?.page ?? 1;
+        const totalPages: number = response?.data?.pagination?.pages ?? response?.data?.totalPages ?? Math.ceil(total / (response?.data?.pagination?.limit ?? 12)) ?? 1;
+        return {
+          ...response,
+          data: { data, total, page, totalPages }
+        };
       },
       providesTags: [TITLES_TAG],
     }),
 
     // Опции фильтров
-    getFilterOptions: builder.query<{
+    getFilterOptions: builder.query<ApiResponseDto<{
       genres: string[];
       // types?: string[]; // сервер пока не возвращает types
       status: string[];
-    }, void>({
+    }>, void>({
       query: () => "/titles/filters/options",
+      transformResponse: (response: ApiResponseDto<{ genres: string[]; status: string[] }>) => response,
     }),
 
     // Получить тайтл по ID
-    getTitleById: builder.query<Title, string>({
+    getTitleById: builder.query<ApiResponseDto<Title>, string>({
       query: (id) => `/titles/${id}`,
       providesTags: (result, error, id) => [{ type: TITLES_TAG, id }],
+      transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
     // Создание тайтла
-    createTitle: builder.mutation<Title, Partial<CreateTitleDto>>({
+    createTitle: builder.mutation<ApiResponseDto<Title>, Partial<CreateTitleDto>>({
       query: (data) => ({
         url: "/titles",
         method: "POST",
@@ -88,35 +94,39 @@ export const titlesApi = createApi({
         // body: toFormData<CreateTitleDto>(data),
       }),
       invalidatesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
     // Обновление тайтла
-    updateTitle: builder.mutation<Title, { id: string; data: Partial<UpdateTitleDto> }>({
+    updateTitle: builder.mutation<ApiResponseDto<Title>, { id: string; data: Partial<UpdateTitleDto> }>({
       query: ({ id, data }) => ({
         url: `/titles/${id}`,
         method: "PATCH",
         body: toFormData<UpdateTitleDto>(data),
       }),
       invalidatesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
     // Обновление рейтинга тайтла
-    updateRating: builder.mutation<Title, { id: string; rating: number }>({
+    updateRating: builder.mutation<ApiResponseDto<Title>, { id: string; rating: number }>({
       query: ({ id, rating }) => ({
         url: `/titles/${id}/rating`,
         method: "POST",
         body: { rating },
       }),
       invalidatesTags: (result, error, { id }) => [{ type: TITLES_TAG, id }],
+      transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
     // Увеличение счётчика просмотров тайтла
-    incrementViews: builder.mutation<Title, string>({
+    incrementViews: builder.mutation<ApiResponseDto<Title>, string>({
       query: (id) => ({
         url: `/titles/${id}/views`,
         method: "POST",
       }),
       invalidatesTags: (result, error, id) => [{ type: TITLES_TAG, id }],
+      transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
   }),
 });

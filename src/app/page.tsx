@@ -23,7 +23,7 @@ interface ServerTitle {
   title: string;
   cover?: string;
   description?: string;
-  rating: number;
+  rating?: number; // Сделаем рейтинг необязательным, так как сервер его не возвращает
 }
 
 interface AdaptedTitle {
@@ -122,9 +122,9 @@ const getTitleTypeString = (type: TitleType): string => {
 };
 
 const adaptTitleToCarouselCard = (title: AdaptedTitle, index: number): CarouselCardData => ({
-  id: title.id || `title-${index}`, // Используем ID из данных или создаем уникальный
+  id: title.id, // Используем ID из данных или создаем уникальный
   title: title.title,
-  type: title.type ? getTitleTypeString(title.type) : "Манга",
+  type: title.type ? getTitleTypeString(title.type) : "Неизвестный",
   year: title.releaseYear,
   rating: title.rating,
   image: title.cover,
@@ -209,11 +209,34 @@ function useApiData<T>(endpoint: string) {
         
         const result = await response.json();
         console.log(`Data fetched from ${endpoint}:`, result);
-        setData(result);
+        // Проверяем, есть ли у ответа обертка ApiResponseDto
+        if (result && typeof result === 'object' && 'data' in result) {
+          // Если это массив, используем его напрямую
+          if (Array.isArray(result.data)) {
+            setData(result.data);
+          }
+          // Если это объект с массивом внутри, используем этот массив
+          else if (result.data && typeof result.data === 'object' && 'data' in result.data && Array.isArray(result.data.data)) {
+            setData(result.data.data);
+          }
+          // В других случаях используем пустой массив
+          else {
+            setData([]);
+          }
+        }
+        // Если нет обертки ApiResponseDto, используем результат напрямую (если это массив)
+        else if (Array.isArray(result)) {
+          setData(result);
+        }
+        // В других случаях используем пустой массив
+        else {
+          setData([]);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Неизвестная ошибка";
         setError(errorMessage);
         console.error(`Error fetching ${endpoint}:`, err);
+        setData([]); // Устанавливаем пустой массив в случае ошибки
       } finally {
         setLoading(false);
       }
@@ -299,7 +322,7 @@ export default function Home() {
     title: serverTitle.title,
     cover: serverTitle.cover || "",
     description: serverTitle.description,
-    rating: serverTitle.rating,
+    rating: serverTitle.rating ?? 0, // Используем 0 как значение по умолчанию, если рейтинг отсутствует
     releaseYear: new Date().getFullYear(), // Заглушка, так как сервер не возвращает год
     genres: [], // Заглушка, так как сервер не возвращает жанры
     type: undefined, // Заглушка, так как сервер не возвращает тип

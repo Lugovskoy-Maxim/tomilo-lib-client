@@ -10,7 +10,7 @@ export interface CardProps {
   title: string;
   type: string;
   year: number;
-  rating: number;
+  rating?: number; // Сделаем рейтинг необязательным
   image?: string;
   genres: string[];
 }
@@ -55,10 +55,12 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
             height={220}
           />
         )}
-        <div className="absolute top-1 left-1 bg-black/80 text-white px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[10px] sm:text-xs font-semibold">
-          <Star className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
-          {data.rating}
-        </div>
+        {data.rating !== undefined && (
+          <div className="absolute top-1 left-1 bg-black/80 text-white px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[10px] sm:text-xs font-semibold">
+            <Star className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
+            {data.rating}
+          </div>
+        )}
       </div>
 
       <div className="p-1 sm:p-1.5">

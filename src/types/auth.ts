@@ -32,8 +32,10 @@ export interface StoredUser {
   bookmarks?: string[];
   readingHistory?: {
     titleId: string;
-    chapterId: string;
-    date: string;
+    chapters: {
+      chapterId: string;
+      readAt: string;
+    }[];
   }[];
 }
 
@@ -61,8 +63,10 @@ export interface User {
   bookmarks?: string[];
   readingHistory: {
     titleId: string;
-    chapterId: string;
-    date: string;
+    chapters: {
+      chapterId: string;
+      readAt: string;
+    }[];
   }[];
 }
   

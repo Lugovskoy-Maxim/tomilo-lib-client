@@ -47,11 +47,11 @@ export default function ReadChapterPage({
   // Навигация по главам
   const currentChapterIndex = chapters.findIndex((ch) => ch.id === chapter.id);
   const prevChapter =
+    currentChapterIndex > 0 ? chapters[currentChapterIndex - 1] : null;
+  const nextChapter =
     currentChapterIndex < chapters.length - 1
       ? chapters[currentChapterIndex + 1]
       : null;
-  const nextChapter =
-    currentChapterIndex > 0 ? chapters[currentChapterIndex - 1] : null;
 
   // Сохранение прогресса
   const saveProgress = useCallback(
@@ -78,8 +78,8 @@ export default function ReadChapterPage({
         saveProgress(chapter.id, newIndex);
         return newIndex;
       });
-    } else if (nextChapter) {
-      router.push(`/browse/${title.id}/chapter/${nextChapter.number}`);
+    } else if (nextChapter && nextChapter._id) {
+      router.push(`/browse/${title.id}/chapter/${nextChapter._id}`);
     }
   }, [
     currentImageIndex,
@@ -98,8 +98,8 @@ export default function ReadChapterPage({
         saveProgress(chapter.id, newIndex);
         return newIndex;
       });
-    } else if (prevChapter) {
-      router.push(`/browse/${title.id}/chapter/${prevChapter.number}`);
+    } else if (prevChapter && prevChapter._id) {
+      router.push(`/browse/${title.id}/chapter/${prevChapter._id}`);
     }
   }, [
     currentImageIndex,
@@ -244,9 +244,11 @@ export default function ReadChapterPage({
       // Проверяем, что запрос еще не был отправлен и есть необходимые данные
       if (!viewsUpdated && title.id && chapter.id && chapter._id) {
         // Передаем _id главы и текущее значение просмотров
-        if (chapter._id) {
+        // Дополнительная проверка для удовлетворения TypeScript
+        const chapterId = chapter._id;
+        if (chapterId) {
           try {
-            const result = await updateChapterViews(chapter._id, chapter.views);
+            const result = await updateChapterViews(chapterId, chapter.views);
             if (result.error) {
               console.error("Failed to update chapter views:", result.error);
               // Не повторяем запрос при ошибке
@@ -265,11 +267,14 @@ export default function ReadChapterPage({
 
     const updateReadingHistory = async () => {
       // Добавляем запись в историю чтения
-      if (title.id && chapter.id) {
+      if (title.id && chapter.id && chapter._id) {
         try {
-          const result = await addToReadingHistory(title.id.toString(), chapter.id.toString());
-          if (result.error) {
-            console.error("Failed to add to reading history:", result.error);
+          // Дополнительная проверка для удовлетворения TypeScript
+          if (chapter._id) {
+            const result = await addToReadingHistory(title.id.toString(), chapter._id.toString());
+            if (result.error) {
+              console.error("Failed to add to reading history:", result.error);
+            }
           }
         } catch (error) {
           console.error("Error adding to reading history:", error);

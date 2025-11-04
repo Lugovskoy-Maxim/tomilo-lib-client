@@ -48,7 +48,7 @@ export default function ControlsPanel({
         {/* Навигация по главам */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => prevChapter && router.push(`/browse/${title.id}/chapter/${prevChapter.number}`)}
+            onClick={() => prevChapter && router.push(`/browse/${title.id}/chapter/${prevChapter._id || prevChapter.number}`)}
             disabled={!prevChapter}
             className="p-2 rounded-lg bg-[var(--card)] border border-[var(--border)] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[var(--accent)] transition-colors"
           >
@@ -56,19 +56,19 @@ export default function ControlsPanel({
           </button>
 
           <select
-            value={chapter.number}
+            value={chapter._id || chapter.number}
             onChange={(e) => router.push(`/browse/${title.id}/chapter/${e.target.value}`)}
             className="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] min-w-[120px]"
           >
             {chapters.map((ch) => (
-              <option key={ch.id} value={ch.number}>
+              <option key={ch.id} value={ch._id || ch.number}>
                 Глава {ch.number} {ch.title && `- ${ch.title}`}
               </option>
             ))}
           </select>
 
           <button
-            onClick={() => nextChapter && router.push(`/browse/${title.id}/chapter/${nextChapter.number}`)}
+            onClick={() => nextChapter && router.push(`/browse/${title.id}/chapter/${nextChapter._id || nextChapter.number}`)}
             disabled={!nextChapter}
             className="p-2 rounded-lg bg-[var(--card)] border border-[var(--border)] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[var(--accent)] transition-colors"
           >

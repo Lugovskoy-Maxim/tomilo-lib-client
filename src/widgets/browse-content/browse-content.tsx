@@ -66,23 +66,23 @@ function BrowseContent() {
     limit: 12,
   });
 
-  const paginatedTitles = useMemo(() => titlesData?.data ?? [], [titlesData]);
+  const paginatedTitles = useMemo(() => titlesData?.data?.data ?? [], [titlesData]);
   const adaptedTitles = useMemo(
     () =>
-      paginatedTitles.map((t: any) => ({
-        id: (t._id || t.id || "").toString(),
-        title: t.name || t.title || "",
+      paginatedTitles.map((t) => ({
+        id: (t._id || "").toString(),
+        title: t.name || "",
         type: t.type || "Манга",
-        year: t.releaseYear || t.year || new Date().getFullYear(),
+        year: t.releaseYear || new Date().getFullYear(),
         rating: t.rating || 0,
-        image: t.coverImage || t.cover || undefined,
+        image: t.coverImage || undefined,
         genres: t.genres || [],
       })),
     [paginatedTitles]
   );
-  const totalTitles = titlesData?.total ?? 0;
-  const currentPage = titlesData?.page ?? page;
-  const totalPages = (titlesData?.totalPages ?? Math.ceil(totalTitles / 12)) || 1;
+  const totalTitles = titlesData?.data?.total ?? 0;
+  const currentPage = titlesData?.data?.page ?? page;
+  const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / 12)) || 1;
 
   // Функция сброса фильтров
   const resetFilters = () => {
@@ -159,7 +159,7 @@ function BrowseContent() {
 
         {/* Сетка тайтлов */}
         <TitleGrid
-          titles={adaptedTitles as any}
+          titles={adaptedTitles}
           onCardClick={handleCardClick}
           isEmpty={adaptedTitles.length === 0}
           onResetFilters={resetFilters}
@@ -181,9 +181,9 @@ function BrowseContent() {
           filters={appliedFilters}
           onFiltersChange={handleFiltersChange}
           filterOptions={{
-            genres: filterOptions?.genres || [],
+            genres: filterOptions?.data?.genres || [],
             types: [],
-            status: filterOptions?.status || [],
+            status: filterOptions?.data?.status || [],
           }}
           onReset={resetFilters}
         />
@@ -194,9 +194,9 @@ function BrowseContent() {
         filters={appliedFilters}
         onFiltersChange={handleFiltersChange}
         filterOptions={{
-          genres: filterOptions?.genres || [],
+          genres: filterOptions?.data?.genres || [],
           types: [],
-          status: filterOptions?.status || [],
+          status: filterOptions?.data?.status || [],
         }}
         onReset={resetFilters}
         isMobile={true}

@@ -32,8 +32,19 @@ async function loadTitleData(id: string): Promise<Title | null> {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    const result = await response.json();
+    // Проверяем, есть ли у ответа обертка ApiResponseDto
+    if (result && typeof result === 'object' && 'success' in result) {
+      // Если это объект ApiResponseDto, извлекаем данные
+      if (result.success && result.data) {
+        return result.data;
+      }
+    } else if (result && typeof result === 'object' && '_id' in result) {
+      // Если это объект Title без обертки ApiResponseDto
+      return result;
+    }
+    // В других случаях возвращаем null
+    return null;
   } catch (error) {
     console.error("❌ Error loading title:", error);
     return null;
