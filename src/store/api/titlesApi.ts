@@ -99,6 +99,25 @@ export const titlesApi = createApi({
       }),
       invalidatesTags: [TITLES_TAG],
     }),
+
+    // Обновление рейтинга тайтла
+    updateRating: builder.mutation<Title, { id: string; rating: number }>({
+      query: ({ id, rating }) => ({
+        url: `/titles/${id}/rating`,
+        method: "POST",
+        body: { rating },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: TITLES_TAG, id }],
+    }),
+
+    // Увеличение счётчика просмотров тайтла
+    incrementViews: builder.mutation<Title, string>({
+      query: (id) => ({
+        url: `/titles/${id}/views`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, id) => [{ type: TITLES_TAG, id }],
+    }),
   }),
 });
 
@@ -109,4 +128,6 @@ export const {
   useGetTitleByIdQuery,
   useCreateTitleMutation,
   useUpdateTitleMutation,
+  useUpdateRatingMutation,
+  useIncrementViewsMutation,
 } = titlesApi;

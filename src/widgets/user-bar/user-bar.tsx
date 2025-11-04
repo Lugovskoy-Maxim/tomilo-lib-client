@@ -10,7 +10,7 @@ import { UserAvatar } from "@/shared";
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { AuthResponse } from "@/types/auth";
+import { AuthResponse, ApiResponseDto } from "@/types/auth";
 
 interface UserDropdownUser {
   id?: string;
@@ -74,7 +74,7 @@ export default function UserBar() {
   };
 
   // Обработка успешной авторизации
-  const handleAuthSuccess = (authResponse: AuthResponse) => {
+  const handleAuthSuccess = (authResponse: ApiResponseDto<AuthResponse>) => {
     login(authResponse);
     setLoginModalOpen(false);
     setRegisterModalOpen(false);

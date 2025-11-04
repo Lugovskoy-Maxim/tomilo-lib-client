@@ -15,7 +15,8 @@ export const authApi = createApi({
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (token) {
-          headers.set('authorization', `Bearer ${token}`);
+          const authHeader = `Bearer ${token}`;
+          headers.set('authorization', authHeader);
         }
       }
       return headers;
@@ -23,7 +24,7 @@ export const authApi = createApi({
   }),
   tagTypes: ['Auth'],
   endpoints: (builder) => ({
-    login: builder.mutation<AuthResponse, LoginData>({
+    login: builder.mutation<ApiResponseDto<AuthResponse>, LoginData>({
       query: (credentials) => ({
         url: '/auth/login',
         method: 'POST',
@@ -31,7 +32,7 @@ export const authApi = createApi({
       }),
       invalidatesTags: ['Auth'],
     }),
-    register: builder.mutation<AuthResponse, RegisterData>({
+    register: builder.mutation<ApiResponseDto<AuthResponse>, RegisterData>({
       query: (userData) => ({
         url: '/auth/register',
         method: 'POST',
@@ -46,14 +47,14 @@ export const authApi = createApi({
     }),
     addBookmark: builder.mutation<ApiResponseDto<User>, string>({
       query: (titleId) => ({
-        url: `/users/bookmarks/${titleId}`,
+        url: `/users/profile/bookmarks/${titleId}`,
         method: 'POST',
       }),
       invalidatesTags: ['Auth'],
     }),
     removeBookmark: builder.mutation<ApiResponseDto<User>, string>({
       query: (titleId) => ({
-        url: `/users/bookmarks/${titleId}`,
+        url: `/users/profile/bookmarks/${titleId}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Auth'],
@@ -61,6 +62,13 @@ export const authApi = createApi({
    getContinueReading: builder.query<ApiResponseDto<{ titleId: string; chapterId: string; chapterNumber: number }>, void>({
      query: () => '/users/continue-reading',
      providesTags: ['Auth'],
+   }),
+   addToReadingHistory: builder.mutation<ApiResponseDto<{ message: string }>, { titleId: string; chapterId: string }>({
+     query: ({ titleId, chapterId }) => ({
+       url: `/users/profile/history/${titleId}/${chapterId}`,
+       method: 'POST',
+     }),
+     invalidatesTags: ['Auth'],
    }),
  }),
 });
@@ -71,4 +79,5 @@ export const {
  useAddBookmarkMutation,
  useRemoveBookmarkMutation,
  useGetContinueReadingQuery,
+  useAddToReadingHistoryMutation,
 } = authApi;

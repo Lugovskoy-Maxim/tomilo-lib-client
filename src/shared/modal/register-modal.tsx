@@ -5,13 +5,13 @@ import { useRegisterMutation } from "@/store/api/authApi";
 import { RegisterForm, FormErrors, FormTouched } from "../../types/form";
 import { useModal } from "../../hooks/useModal";
 import { Input, Modal } from "..";
-import { AuthResponse } from "@/types/auth";
+import { AuthResponse, ApiResponseDto } from "@/types/auth";
 
 interface RegisterModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToLogin: () => void;
-  onAuthSuccess: (authResponse: AuthResponse) => void;
+  onAuthSuccess: (authResponse: ApiResponseDto<AuthResponse>) => void;
 }
 
 const RegisterModal: React.FC<RegisterModalProps> = ({

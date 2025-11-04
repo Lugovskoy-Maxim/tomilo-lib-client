@@ -15,11 +15,26 @@ import { pageTitle } from "@/lib/page-title";
 import { ContinueReadingButton } from "@/shared/continue-reading-button";
 
 // Базовые типы данных из API
-interface Title {
+import { Title as ApiTitle, TitleType } from "@/types/title";
+
+// Тип данных, который возвращает сервер для популярных тайтлов
+interface ServerTitle {
+  id: string;
+  title: string;
+  cover?: string;
+  description?: string;
+  rating: number;
+}
+
+interface AdaptedTitle {
   id: string;
   title: string;
   cover: string;
   description?: string;
+  rating: number;
+  releaseYear: number;
+  genres: string[];
+  type?: TitleType;
 }
 
 interface Collection {
@@ -84,14 +99,36 @@ interface LatestUpdateCardData {
 }
 
 // Адаптеры для преобразования данных API в данные компонентов
-const adaptTitleToCarouselCard = (title: Title, index: number): CarouselCardData => ({
+// Вспомогательная функция для преобразования типа TitleType в строку
+const getTitleTypeString = (type: TitleType): string => {
+  switch (type) {
+    case TitleType.MANGA:
+      return "Манга";
+    case TitleType.MANHWA:
+      return "Манхва";
+    case TitleType.MANHUA:
+      return "Маньхуа";
+    case TitleType.NOVEL:
+      return "Ранобэ";
+    case TitleType.LIGHT_NOVEL:
+      return "Лайт-новелла";
+    case TitleType.COMIC:
+      return "Комикс";
+    case TitleType.OTHER:
+      return "Другое";
+    default:
+      return "Манга";
+  }
+};
+
+const adaptTitleToCarouselCard = (title: AdaptedTitle, index: number): CarouselCardData => ({
   id: title.id || `title-${index}`, // Используем ID из данных или создаем уникальный
   title: title.title,
-  type: "Манга",
-  year: new Date().getFullYear(),
-  rating: 4.5,
+  type: title.type ? getTitleTypeString(title.type) : "Манга",
+  year: title.releaseYear,
+  rating: title.rating,
   image: title.cover,
-  genres: ["Фэнтези", "Приключения"],
+  genres: title.genres,
 });
 
 const adaptCollectionToCollectionCard = (
@@ -165,12 +202,13 @@ function useApiData<T>(endpoint: string) {
       try {
         setLoading(true);
         const response = await fetch(`${baseUrl}${endpoint}`);
-
+        
         if (!response.ok) {
           throw new Error(`Ошибка загрузки: ${response.status}`);
         }
-
+        
         const result = await response.json();
+        console.log(`Data fetched from ${endpoint}:`, result);
         setData(result);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Неизвестная ошибка";
@@ -246,7 +284,7 @@ function renderCarousel<T>(
 
 // Главный компонент
 export default function Home() {
-  const popularTitles = useApiData<Title>("/titles/popular");
+  const popularTitles = useApiData<ServerTitle>("/titles/popular");
   const collections = useApiData<Collection>("/collections");
   const readingProgress = useApiData<ReadingProgress>("/user/reading-progress");
   const latestUpdates = useApiData<LatestUpdate>("/titles/latest-updates");
@@ -255,9 +293,21 @@ export default function Home() {
     pageTitle.setTitlePage("Tomilo-lib.ru - Платформа манги и комиксов");
   }, []);
 
+  // Адаптер для преобразования данных API тайтлов в формат, ожидаемый компонентом
+  const adaptApiTitleToTitle = (serverTitle: ServerTitle, index: number): AdaptedTitle => ({
+    id: serverTitle.id,
+    title: serverTitle.title,
+    cover: serverTitle.cover || "",
+    description: serverTitle.description,
+    rating: serverTitle.rating,
+    releaseYear: new Date().getFullYear(), // Заглушка, так как сервер не возвращает год
+    genres: [], // Заглушка, так как сервер не возвращает жанры
+    type: undefined, // Заглушка, так как сервер не возвращает тип
+  });
+
   // Преобразуем данные API в формат, ожидаемый компонентами
-  const adaptedPopularTitles = popularTitles.data.map((title, index) => 
-    adaptTitleToCarouselCard(title, index)
+  const adaptedPopularTitles = popularTitles.data.map((apiTitle, index) =>
+    adaptTitleToCarouselCard(adaptApiTitleToTitle(apiTitle, index), index)
   );
   const adaptedCollections = collections.data.map((collection, index) =>
     adaptCollectionToCollectionCard(collection, index)

@@ -701,6 +701,10 @@ function ImageUploadField({ label, image, onChange, selectedFile }: ImageUploadF
                 const resolvedSrc = image
                   ? (isAbsolute ? image : `${apiBase}${image?.startsWith("/") ? "" : "/"}${image}`)
                   : "";
+                // Не отображаем изображение, если resolvedSrc пустой
+                if (!resolvedSrc) {
+                  return null;
+                }
                 return (
                   <img
                     src={resolvedSrc}

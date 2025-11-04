@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { LoginForm, FormErrors, FormTouched } from "../../types/form";
 import { useModal } from "../../hooks/useModal";
 import { Input, Modal } from "..";
-import { AuthResponse } from "@/types/auth";
+import { AuthResponse, ApiResponseDto } from "@/types/auth";
 
 // Типы для обработки ошибок RTK Query
 interface ServerError {
@@ -30,7 +30,7 @@ interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToRegister: () => void;
-  onAuthSuccess: (authResponse: AuthResponse) => void;
+  onAuthSuccess: (authResponse: ApiResponseDto<AuthResponse>) => void;
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({

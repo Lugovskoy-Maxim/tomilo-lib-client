@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useGetProfileQuery, useAddBookmarkMutation, useRemoveBookmarkMutation, useGetContinueReadingQuery } from "@/store/api/authApi";
+import { useGetProfileQuery, useAddBookmarkMutation, useRemoveBookmarkMutation, useGetContinueReadingQuery, useAddToReadingHistoryMutation } from "@/store/api/authApi";
 import { useUpdateChapterMutation } from "@/store/api/chaptersApi"; // Импортируем useUpdateChapterMutation
 import {
   login,
@@ -22,8 +22,10 @@ export const useAuth = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state: RootState) => state.auth);
 
-  const token =
+  // Получаем токен напрямую из localStorage при каждом рендере
+  const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
+  const token = getToken();
 
 
   const {
@@ -32,14 +34,15 @@ export const useAuth = () => {
     error,
     refetch: refetchProfile,
   } = useGetProfileQuery(undefined, {
-    skip: !token,
+    skip: !getToken(),
   });
 
   const [addBookmark] = useAddBookmarkMutation();
   const [removeBookmark] = useRemoveBookmarkMutation();
   const [updateChapter] = useUpdateChapterMutation(); // Добавляем useUpdateChapterMutation
+  const [addToReadingHistory] = useAddToReadingHistoryMutation(); // Добавляем useAddToReadingHistoryMutation
   const { data: continueReadingData, isLoading: continueReadingLoading, error: continueReadingError } = useGetContinueReadingQuery(undefined, {
-    skip: !token,
+    skip: !getToken(),
   });
 
   // Синхронизируем состояние загрузки
@@ -49,10 +52,11 @@ export const useAuth = () => {
 
   // При успешной проверке авторизации обновляем состояние
   useEffect(() => {
-    if (profileResponse && profileResponse.success && profileResponse.data && token) {
+    const currentToken = getToken();
+    if (profileResponse && profileResponse.success && profileResponse.data && currentToken) {
       const user: User = profileResponse.data;
       const authResponse: AuthResponse = {
-        access_token: token,
+        access_token: currentToken,
         user: {
           _id: user._id,
           id: user.id || user._id,
@@ -72,7 +76,7 @@ export const useAuth = () => {
 
   // При ошибке проверки авторизации разлогиниваемся
   useEffect(() => {
-    if (error && token) {
+    if (error && getToken()) {
       console.error("Auth check failed:", error);
 
       // Проверяем, что это именно ошибка авторизации (404 или 401), а не сетевые проблемы
@@ -112,7 +116,7 @@ export const useAuth = () => {
       const response = await fetch(`${API_BASE_URL}/users/profile/avatar`, {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken()}`,
         },
         body: formData,
       });
@@ -158,7 +162,7 @@ export const useAuth = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify(profileData),
       });
@@ -256,7 +260,7 @@ export const useAuth = () => {
       // Используем updateChapter для обновления просмотров
       const result = await updateChapter({
         id: chapterId,
-        data: { views: currentViews + 1 }
+        data: { views: currentViews + 1 } as Partial<any> // eslint-disable-line @typescript-eslint/no-explicit-any
       }).unwrap();
       
       return { success: true };
@@ -269,15 +273,44 @@ export const useAuth = () => {
     }
   };
 
-  // Ваши существующие функции (адаптированные для Redux)
-  const loginUser = (authResponse: AuthResponse) => {
-    // Сохраняем токен в localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem(AUTH_TOKEN_KEY, authResponse.access_token);
-      localStorage.setItem(USER_DATA_KEY, JSON.stringify(authResponse.user));
-    }
+  // Функция для добавления записи в историю чтения
+  const addToReadingHistoryFunc = async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await addToReadingHistory({ titleId, chapterId }).unwrap();
+      
+      if (!result.success) {
+        throw new Error(result.message || "Ошибка при добавлении в историю чтения");
+      }
 
-    dispatch(login(authResponse));
+      // Перезапрашиваем профиль для получения актуальных данных
+      refetchProfile();
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error adding to reading history:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Неизвестная ошибка",
+      };
+    }
+  };
+
+  // Ваши существующие функции (адаптированные для Redux)
+  const loginUser = (authResponse: ApiResponseDto<AuthResponse>) => {
+    // Извлекаем токен из правильного поля
+    const token = authResponse.data?.access_token;
+    const user = authResponse.data?.user;
+    
+    if (typeof window !== "undefined" && token && user) {
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+      
+      // Вызываем dispatch с правильной структурой
+      dispatch(login({
+        access_token: token,
+        user: user
+      }));
+    }
   };
 
   const logoutUser = () => {
@@ -301,6 +334,7 @@ export const useAuth = () => {
     addBookmark: addBookmarkToUser,
     removeBookmark: removeBookmarkFromUser,
     updateChapterViews: updateChapterViewsCount,
+    addToReadingHistory: addToReadingHistoryFunc,
     continueReading: continueReadingData?.data,
     continueReadingLoading,
     continueReadingError,

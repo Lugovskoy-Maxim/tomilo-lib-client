@@ -8,6 +8,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/index";
 import { Title, Chapter } from "@/types/title";
 import { useParams } from "next/navigation";
+import { useIncrementViewsMutation } from "@/store/api/titlesApi";
 import {
   LeftSidebar,
   RightContent,
@@ -84,6 +85,7 @@ export default function TitleViewPage() {
   const [titleData, setTitleData] = useState<Title | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [incrementViews] = useIncrementViewsMutation();
 
   // Состояния для глав
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -127,6 +129,8 @@ export default function TitleViewPage() {
             rating: Number(loadedTitleData.rating) || 0,
           };
           setTitleData(processedData);
+          // Увеличиваем счётчик просмотров
+          incrementViews(titleId);
         } else {
           const errorMsg = "Тайтл не найден";
           console.error("❌", errorMsg);
@@ -190,7 +194,9 @@ export default function TitleViewPage() {
   };
 
   const handleBookmark = () => {
-    console.log("Add to bookmarks");
+    // BookmarkButton теперь сам управляет добавлением/удалением закладок
+    // Эта функция может использоваться для дополнительной логики, например аналитики
+    console.log("Bookmark button clicked");
   };
 
   const handleShare = () => {

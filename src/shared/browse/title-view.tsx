@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useUpdateRatingMutation } from "@/store/api/titlesApi";
 import {
   BookOpen,
   Calendar,
@@ -21,6 +22,7 @@ import { Title, TitleStatus, Chapter } from "@/types/title";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ReadButton } from "@/shared/browse/read-button";
+import { BookmarkButton } from "@/shared/bookmark-button";
 
 // Shared UI
 export function TabButton({
@@ -94,13 +96,7 @@ export function LeftSidebar({
   onShare: () => void;
   isAdmin: boolean;
 }) {
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const router = useRouter();
-
-  const handleBookmarkClick = () => {
-    setIsBookmarked(!isBookmarked);
-    onBookmark();
-  };
 
   return (
     <div className="space-y-4">
@@ -109,7 +105,7 @@ export function LeftSidebar({
           <Image
             width={320}
             height={480}
-            src={`${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`}
+            src={`${process.env.NEXT_PUBLIC__URL}${titleData.coverImage}`}
             loader={() => `${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`}
             alt={titleData.name}
             className="w-full max-w-[320px] mx-auto lg:max-w-none rounded-lg shadow-lg mb-4 object-cover"
@@ -125,16 +121,11 @@ export function LeftSidebar({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={handleBookmarkClick}
-            className={`py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isBookmarked
-              ? "bg-yellow-500 text-white"
-              : "bg-[var(--accent)] text-[var(--foreground)] hover:bg-[var(--accent)]/80"
-              }`}
-          >
-            <BookmarkIcon className="w-4 h-4" />
-            {isBookmarked ? "В закладках" : "В закладки"}
-          </button>
+          <BookmarkButton
+            titleId={titleData._id}
+            initialBookmarked={false}
+            className="py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+          />
 
           <button
             onClick={onShare}
@@ -350,6 +341,9 @@ export function RightContent({
     return fixed.replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
   };
 
+  // Хук для обновления рейтинга
+  const [updateRating] = useUpdateRatingMutation();
+
   return (
     <div className="space-y-6">
       <div className="bg-[var(--card)] rounded-xl p-4 sm:p-5 md:p-6">
@@ -442,7 +436,8 @@ export function RightContent({
                   onClick={() => {
                     setPendingRating(n);
                     setIsRatingOpen(false);
-                    console.log("Rate title", titleData._id, n);
+                    // Отправляем рейтинг на сервер
+                    updateRating({ id: titleData._id, rating: n });
                   }}
                   className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium ${
                     pendingRating === n

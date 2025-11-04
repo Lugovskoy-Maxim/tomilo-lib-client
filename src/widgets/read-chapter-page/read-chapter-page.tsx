@@ -22,7 +22,7 @@ export default function ReadChapterPage({
   chapter,
   chapters,
 }: ReadChapterPageProps) {
-  const { updateChapterViews } = useAuth();
+  const { updateChapterViews, addToReadingHistory } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(
@@ -263,7 +263,22 @@ export default function ReadChapterPage({
       }
     };
 
+    const updateReadingHistory = async () => {
+      // Добавляем запись в историю чтения
+      if (title.id && chapter.id) {
+        try {
+          const result = await addToReadingHistory(title.id.toString(), chapter.id.toString());
+          if (result.error) {
+            console.error("Failed to add to reading history:", result.error);
+          }
+        } catch (error) {
+          console.error("Error adding to reading history:", error);
+        }
+      }
+    };
+
     updateViews();
+    updateReadingHistory();
     
     return () => {
       isCancelled = true;
@@ -272,7 +287,8 @@ export default function ReadChapterPage({
 
   // Обработка ошибок загрузки изображений
   const handleImageError = (index: number) => {
-    console.error(`Error loading image ${index}:`, chapter.images[index]);
+    const imageUrl = chapter.images?.[index] || 'undefined';
+    console.error(`Error loading image ${index}:`, imageUrl);
     setImageLoadErrors((prev) => new Set(prev).add(index));
   };
 

@@ -51,11 +51,6 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.isLoading = false;
 
-      // Сохраняем в localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(AUTH_TOKEN_KEY, action.payload.access_token);
-        localStorage.setItem(USER_DATA_KEY, JSON.stringify(action.payload.user));
-      }
     },
     logout: (state) => {
       state.user = null;

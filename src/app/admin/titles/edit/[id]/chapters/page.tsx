@@ -15,6 +15,10 @@ export default function ChaptersManagementPage() {
   const [deleteChapter] = useDeleteChapterMutation();
 
   const sorted = useMemo(() => {
+    // Проверяем, что chapters является массивом перед применением spread syntax
+    if (!Array.isArray(chapters)) {
+      return [];
+    }
     return [...chapters].sort((a, b) => (b.chapterNumber ?? 0) - (a.chapterNumber ?? 0));
   }, [chapters]);
 
@@ -22,8 +26,9 @@ export default function ChaptersManagementPage() {
     if (!confirm("Удалить главу?")) return;
     try {
       await deleteChapter(id).unwrap();
-    } catch (e: any) {
-      alert(e?.data?.message || e.message || "Ошибка удаления");
+    } catch (e) {
+      const error = e as Error;
+      alert(error?.message || "Ошибка удаления");
     }
   };
 

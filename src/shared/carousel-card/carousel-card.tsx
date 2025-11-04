@@ -74,14 +74,20 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
         </h3>
 
         <div className="hidden xs:flex flex-wrap gap-0.5 mt-1">
-          {data.genres.slice(0, 1).map((genre, index) => (
-            <span
-              key={index}
-              className="text-[9px] sm:text-[10px] bg-[var(--accent)] text-[var(--accent-foreground)] px-1 py-0.5 rounded"
-            >
-              {genre}
+          {data.genres && data.genres.length > 0 ? (
+            data.genres.slice(0, 1).map((genre, index) => (
+              <span
+                key={index}
+                className="text-[9px] sm:text-[10px] bg-[var(--accent)] text-[var(--accent-foreground)] px-1 py-0.5 rounded"
+              >
+                {genre}
+              </span>
+            ))
+          ) : (
+            <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)]">
+              Без жанра
             </span>
-          ))}
+          )}
         </div>
       </div>
     </div>
