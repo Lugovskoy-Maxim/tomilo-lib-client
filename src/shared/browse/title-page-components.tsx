@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Title } from "@/constants/mokeReadPage";
+import { Title, Chapter } from "@/types/title";
 import Image from "next/image";
 import TitleActions from "./title-actions";
 import ChapterSearchInput from "./chapter-search-input";
@@ -26,7 +26,17 @@ import {
 } from "./ui-components";
 
 interface TitlePageContentProps {
-  title: Title;
+  title: Title & {
+    image?: string;
+    title?: string;
+    year?: number;
+    lastUpdate?: string;
+    type?: string;
+    alternativeTitles?: string[];
+    originalTitle?: string;
+    sources?: { name: string; url: string }[];
+    chapters?: Chapter[];
+  };
 }
 
 interface ReadingButtonConfig {
@@ -45,14 +55,14 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
 
   // Функция поиска с useCallback для стабильной ссылки
   const SearchTitleChapters = useCallback(
-    (chapters: typeof title.chapters, query: string) => {
+    (chapters: Chapter[], query: string) => {
       if (!query.trim()) return chapters;
 
       const searchLower = query.toLowerCase().trim();
 
       return chapters.filter((chapter) => {
         // Поиск по номеру
-        if (chapter.number.toString().includes(query)) {
+        if (chapter.chapterNumber.toString().includes(query)) {
           return true;
         }
 
@@ -62,7 +72,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
         }
 
         // Поиск по комбинированной строке
-        const combinedString = `глава ${chapter.number} ${
+        const combinedString = `глава ${chapter.chapterNumber} ${
           chapter.title || ""
         }`.toLowerCase();
         if (combinedString.includes(searchLower)) {
@@ -72,13 +82,13 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
         return false;
       });
     },
-    [title]
+    []
   );
 
   // Логика последней прочитанной главы
   const getLastReadChapter = (): number | null => {
     if (typeof window === "undefined") return null;
-    const lastRead = localStorage.getItem(`lastRead_${title.id}`);
+    const lastRead = localStorage.getItem(`lastRead_${title._id}`);
     return lastRead ? parseInt(lastRead, 10) : null;
   };
 
@@ -88,14 +98,14 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
 
   const saveLastReadChapter = (chapterNumber: number) => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(`lastRead_${title.id}`, chapterNumber.toString());
+      localStorage.setItem(`lastRead_${title._id}`, chapterNumber.toString());
     }
     setLastReadChapter(chapterNumber);
   };
 
   // Фильтрация глав с использованием useMemo
   const filteredChapters = useMemo(() => {
-    return SearchTitleChapters(title.chapters, chapterSearch);
+    return SearchTitleChapters(title.chapters || [], chapterSearch);
   }, [SearchTitleChapters, chapterSearch, title.chapters]);
 
   // Логика для кнопки чтения - исправленная версия
@@ -110,7 +120,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
     }
 
     // Сортируем главы по номеру (от меньшего к большему)
-    const sortedChapters = [...title.chapters].sort((a, b) => a.number - b.number);
+    const sortedChapters = [...title.chapters].sort((a, b) => a.chapterNumber - b.chapterNumber);
     const firstChapter = sortedChapters[0];
 
     // Защита от пустого массива глав
@@ -124,12 +134,12 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
 
     // Если есть последняя прочитанная глава, продолжаем с нее
     if (lastReadChapter) {
-      const lastRead = sortedChapters.find(ch => ch.number === lastReadChapter);
+      const lastRead = sortedChapters.find(ch => ch.chapterNumber === lastReadChapter);
       if (lastRead) {
         return {
           text: "Продолжить чтение",
-          chapterNumber: lastRead.number,
-          subText: `Глава ${lastRead.number}`,
+          chapterNumber: lastRead.chapterNumber,
+          subText: `Глава ${lastRead.chapterNumber}`,
         };
       }
     }
@@ -137,7 +147,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
     // Иначе начинаем с первой главы
     return {
       text: "Начать чтение",
-      chapterNumber: firstChapter.number,
+      chapterNumber: firstChapter.chapterNumber,
       subText: "С первой главы",
     };
   };
@@ -147,14 +157,15 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
   const handleReadingButtonClick = () => {
     if (readingButtonConfig.chapterNumber > 0) {
       router.push(
-        `/browse/${title.id}/chapter/${readingButtonConfig.chapterNumber}`
+        `/browse/${title._id}/chapter/${readingButtonConfig.chapterNumber}`
       );
     }
   };
 
   const handleChapterClick = (chapterNumber: number) => {
     saveLastReadChapter(chapterNumber);
-    router.push(`/browse/${title.id}/chapter/${chapterNumber}`);
+    // Не добавляем в историю чтения здесь, так как это делается на странице чтения главы
+    router.push(`/browse/${title._id}/chapter/${chapterNumber}`);
   };
 
   // Боковая панель
@@ -163,8 +174,8 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
       {/* Постер */}
       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)]">
         <Image
-          src={title.image}
-          alt={title.title}
+          src={title.image || title.coverImage || ""}
+          alt={title.title || title.name || ""}
           className="w-full h-full object-cover"
           priority={true}
           width={280}
@@ -362,7 +373,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
               {/* Заголовок и рейтинг */}
               <div>
                 <h1 className="text-3xl lg:text-4xl font-bold text-[var(--foreground)] mb-2">
-                  {title.title}
+                  {title.title || title.name}
                 </h1>
 
                 <div className="flex items-center gap-4 flex-wrap">
@@ -373,11 +384,11 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
                   <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      <span>{title.year}</span>
+                      <span>{title.year || title.releaseYear}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      <span>{title.lastUpdate}</span>
+                      <span>{title.lastUpdate || title.updatedAt}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Tag className="w-4 h-4" />
@@ -418,7 +429,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
                     active={activeTab === "chapters"}
                     onClick={() => setActiveTab("chapters")}
                   >
-                    Главы ({title.chapters.length})
+                    Главы ({title.chapters?.length || 0})
                   </TabButton>
                   <TabButton
                     active={activeTab === "comments"}

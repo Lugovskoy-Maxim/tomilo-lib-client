@@ -212,63 +212,25 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
     }))
   );
 
-  // Группируем главы по titleId и находим самую свежую для каждого тайтла
-  const titleGroups = allChapters.reduce((acc, chapter) => {
-    if (!acc[chapter.titleId]) {
-      acc[chapter.titleId] = [];
-    }
-    acc[chapter.titleId].push(chapter);
-    return acc;
-  }, {} as Record<string, typeof allChapters>);
-
-  // Получаем последние 10 тайтлов по времени последнего чтения
-  const recentTitles = Object.entries(titleGroups)
-    .map(([titleId, chapters]) => {
-      // Сортируем главы по времени чтения (самая свежая первая)
-      const sortedChapters = chapters.sort(
-        (a, b) => new Date(b.readAt).getTime() - new Date(a.readAt).getTime()
-      );
-      const lastChapter = sortedChapters[0];
-
-      return {
-        titleId,
-        lastReadAt: lastChapter.readAt,
-        chapterNumber: lastChapter.chapterNumber,
-        chapterTitle: lastChapter.chapterTitle,
-        lastChapterId: lastChapter.chapterId,
-        allChapters: sortedChapters, // Сохраняем все главы для возможности удаления
-      };
-    })
-    .sort(
-      (a, b) =>
-        new Date(b.lastReadAt).getTime() - new Date(a.lastReadAt).getTime()
-    )
-    .slice(0, 10); // Берем только первые 10
-
-  // Формируем данные для отображения
-  const lastChapters = recentTitles.map((item) => ({
-    titleId: item.titleId,
-    chapterId: item.lastChapterId,
-    chapterNumber: item.chapterNumber,
-    chapterTitle: item.chapterTitle,
-    readAt: item.lastReadAt,
-    allChapters: item.allChapters,
-  }));
+  // Сортируем все главы по времени чтения (самая свежая первая) и берем первые 10
+  const recentChapters = allChapters
+    .sort((a, b) => new Date(b.readAt).getTime() - new Date(a.readAt).getTime())
+    .slice(0, 10);
 
   return (
-    <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-[var(--secondary)] rounded-xl p-2 border border-[var(--border)]">
+      <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
           <BookOpen className="h-5 w-5" />
           <span>История чтения</span>
         </h2>
         <span className="text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
-          {recentTitles.length} тайтлов
+          {recentChapters.length} историй чтения
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {lastChapters.map((item, index) => {
+      <div className="grid grid-cols-1 gap-2">
+        {recentChapters.map((item, index) => {
           // Дополнительная проверка на null
           if (!item) return null;
 
@@ -281,8 +243,8 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
 
           return (
             <div
-              key={index}
-              className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer group"
+              key={`${item.titleId}-${item.chapterId}-${index}`}
+              className="bg-[var(--background)] rounded-lg p-2 border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer group"
               onClick={() =>
                 router.push(
                   `/browse/${item.titleId}/chapter/${item.chapterId}`
@@ -342,35 +304,6 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
                       {new Date(item.readAt).toLocaleDateString("ru-RU")}
                     </span>
                   </div>
-                  {item.allChapters && item.allChapters.length > 1 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {item.allChapters.slice(0, 3).map((chapter, idx) => (
-                        <button
-                          key={chapter.chapterId}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveFromHistory(item.titleId, chapter.chapterId);
-                          }}
-                          disabled={loadingItems[`${item.titleId}-${chapter.chapterId}`]}
-                          className="text-xs px-2 py-1 bg-[var(--background)] hover:bg-red-500/10 text-red-500 rounded transition-all disabled:opacity-50"
-                        >
-                          {loadingItems[`${item.titleId}-${chapter.chapterId}`] ? (
-                            <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                          ) : (
-                            `Гл.${chapter.chapterNumber}`
-                          )}
-                        </button>
-                      ))}
-                      {item.allChapters.length > 3 && (
-                        <span className="text-xs text-[var(--muted-foreground)] px-2 py-1">
-                          +{item.allChapters.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  )}
                 </div>
                 <button
                   onClick={(e) => {
@@ -410,13 +343,13 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
         })}
       </div>
 
-      {transformedReadingHistory.length > 10 && (
+      {allChapters.length > 10 && (
         <div className="text-center mt-4">
           <button
             className="text-xs text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]/80 transition-colors"
             onClick={() => router.push("/history")}
           >
-            Показать все {transformedReadingHistory.length} тайтлов
+            Показать все {allChapters.length} историй чтения
           </button>
         </div>
       )}

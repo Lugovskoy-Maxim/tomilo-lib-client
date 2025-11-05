@@ -28,7 +28,8 @@ export default function ReadChapterPage({
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(
     new Set()
   );
-  const [viewsUpdated, setViewsUpdated] = useState(false); // Флаг для отслеживания обновления просмотров
+  const viewsUpdatedRef = useRef(false); // Ref для отслеживания обновления просмотров
+  const readingHistoryAddedRef = useRef(false); // Ref для отслеживания добавления в историю чтения
   const [readingMode, setReadingMode] = useState<"single" | "continuous">(
     "continuous"
   );
@@ -63,7 +64,7 @@ export default function ReadChapterPage({
           timestamp: Date.now(),
           totalImages: chapter.images.length,
         };
-        localStorage.setItem(`progress_${title._id}`, JSON.stringify(progress));
+        localStorage.setItem(`progress_${title._id || ''}`, JSON.stringify(progress));
       }
     },
     [title._id, chapter.images.length]
@@ -99,7 +100,7 @@ export default function ReadChapterPage({
         return newIndex;
       });
     } else if (prevChapter && prevChapter._id) {
-      router.push(`/browse/${title._id}/chapter/${prevChapter._id}`);
+      router.push(`/browse/${title._id || ''}/chapter/${prevChapter._id || ''}`);
     }
   }, [
     currentImageIndex,
@@ -242,7 +243,7 @@ export default function ReadChapterPage({
 
     const updateViews = async () => {
       // Проверяем, что запрос еще не был отправлен и есть необходимые данные
-      if (!viewsUpdated && title._id && chapter._id) {
+      if (!viewsUpdatedRef.current && title._id && chapter._id) {
         // Передаем _id главы и текущее значение просмотров
         // Дополнительная проверка для удовлетворения TypeScript
         const chapterId = chapter._id;
@@ -255,7 +256,7 @@ export default function ReadChapterPage({
               return;
             }
             // Устанавливаем флаг, что запрос был отправлен
-            setViewsUpdated(true);
+            viewsUpdatedRef.current = true;
           } catch (error) {
             console.error("Error updating chapter views:", error);
             // Не повторяем запрос при ошибке
@@ -266,12 +267,13 @@ export default function ReadChapterPage({
     };
 
     const updateReadingHistory = async () => {
-      // Добавляем запись в историю чтения
-      if (title._id && chapter._id) {
+      // Добавляем запись в историю чтения только один раз
+      if (!readingHistoryAddedRef.current && title._id && chapter._id) {
         try {
           // Дополнительная проверка для удовлетворения TypeScript
           if (chapter._id) {
             await addToReadingHistory(title._id.toString(), chapter._id.toString());
+            readingHistoryAddedRef.current = true; // Устанавливаем флаг после успешного добавления
           }
         } catch (error) {
           console.error("Error adding to reading history:", error);
@@ -285,7 +287,7 @@ export default function ReadChapterPage({
     return () => {
       isCancelled = true;
     };
-  }, [title._id, chapter._id, viewsUpdated]); // Добавляем viewsUpdated в зависимости
+  }, [title._id, chapter._id]); // Убираем зависимости от refs, так как они не должны вызывать повторные рендеры
 
   // Обработка ошибок загрузки изображений
   const handleImageError = (index: number) => {
@@ -319,7 +321,7 @@ export default function ReadChapterPage({
         showControls={showControls || isNearTop} // Всегда показываем хедер в верхней части
         onImageIndexChange={(newIndex) => {
           setCurrentImageIndex(newIndex);
-          saveProgress(chapter._id, newIndex);
+          saveProgress(chapter._id || '', newIndex);
         }}
         imagesCount={chapter.images.length}
       />
@@ -342,7 +344,7 @@ export default function ReadChapterPage({
             onPrevImage={goToPrevImage}
             onNextImage={goToNextImage}
             onImageError={handleImageError}
-            onImageLoad={handleImageLoad}
+            onImageLoad={handleImageLoa 
           />
         ) : (
           <ContinuousScrollView

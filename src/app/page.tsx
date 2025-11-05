@@ -206,7 +206,7 @@ function useApiData<T>(endpoint: string) {
         }
 
         const result = await response.json();
-        console.log(`Data fetched from ${endpoint}:`, result);
+
         // Проверяем, есть ли у ответа обертка ApiResponseDto
         if (result && typeof result === "object" && "data" in result) {
           // Если это массив, используем его напрямую
@@ -318,7 +318,7 @@ export default function Home() {
     isLoading: popularTitlesLoading,
     error: popularTitlesError,
   } = useGetPopularTitlesQuery();
-  const popularTitlesErrorMessage = popularTitlesError?.message || null;
+  const popularTitlesErrorMessage = popularTitlesError && 'message' in popularTitlesError ? (popularTitlesError.message || null) : null;
   const collections = useApiData<Collection>("/collections");
   const { continueReading, continueReadingLoading, continueReadingError } = useAuth();
   const continueReadingArray = continueReading || [];
@@ -557,7 +557,7 @@ export default function Home() {
             cardWidth: "w-68 sm:w-72 md:w-80 lg:w-96",
           },
           continueReadingLoading,
-          continueReadingError?.message || null,
+          continueReadingError && 'message' in continueReadingError ? (continueReadingError.message || null) : null,
           mounted
         )}
 
