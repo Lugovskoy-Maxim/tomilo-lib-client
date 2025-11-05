@@ -14,7 +14,8 @@ import { Footer, Header } from "@/widgets";
 export default function ChapterEditPage() {
   const params = useParams();
   const router = useRouter();
-  const chapterId = (params?.chatperId as string) || ""; // маршрут содержит chatperId
+  const chapterId = (params?.chatperId as string) || ""; // маршрут содержит chapterId
+  const titleId = (params?.id as string) || ""; // маршрут содержит id
 
   const { data, isLoading, isError } = useGetChapterByIdQuery(chapterId, {
     skip: !chapterId,
@@ -24,7 +25,7 @@ export default function ChapterEditPage() {
   const [addPagesToChapter, { isLoading: isUploading }] = useAddPagesToChapterMutation();
 
   const [form, setForm] = useState<Partial<Chapter>>({});
-  const apiBase = useMemo(() => process.env.NEXT_PUBLIC_UPLOADS_URL || "http://localhost:3001/uploads", []);
+  const apiBase = useMemo(() => process.env.NEXT_PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads", []);
 
   useEffect(() => {
     if (data) {
@@ -66,8 +67,8 @@ export default function ChapterEditPage() {
       const updated = await updateChapter({ id: chapterId, data: dto }).unwrap();
       alert(`Глава #${updated.chapterNumber} обновлена`);
       router.back();
-    } catch (err: any) {
-      alert(`Ошибка: ${err?.data?.message || err.message || "Unknown"}`);
+    } catch (err) {
+      alert(`Ошибка: ${(err as { data?: { message?: string } })?.data?.message || (err as Error).message || "Unknown"}`);
     }
   };
 
@@ -78,8 +79,8 @@ export default function ChapterEditPage() {
       await deleteChapter(chapterId).unwrap();
       alert("Глава удалена");
       router.back();
-    } catch (err: any) {
-      alert(`Ошибка удаления: ${err?.data?.message || err.message || "Unknown"}`);
+    } catch (err) {
+      alert(`Ошибка удаления: ${(err as { data?: { message?: string } })?.data?.message || (err as Error).message || "Unknown"}`);
     }
   };
 
@@ -90,8 +91,8 @@ export default function ChapterEditPage() {
     try {
       await addPagesToChapter({ id: chapterId, pages: files }).unwrap();
       alert("Страницы добавлены");
-    } catch (err: any) {
-      alert(`Ошибка загрузки страниц: ${err?.data?.message || err.message || "Unknown"}`);
+    } catch (err) {
+      alert(`Ошибка загрузки страниц: ${(err as { data?: { message?: string } })?.data?.message || (err as Error).message || "Unknown"}`);
     } finally {
       e.currentTarget.value = "";
     }
@@ -110,7 +111,7 @@ export default function ChapterEditPage() {
         <button
           type="button"
           className="px-3 py-2 rounded border"
-          onClick={() => router.push(`/admin/titles/edit/${data.titleId}`)}
+          onClick={() => router.push(`/admin/titles/edit/${titleId}`)}
         >
           Назад к тайтлу
         </button>
@@ -254,9 +255,9 @@ export default function ChapterEditPage() {
               {isUploading ? "Загрузка..." : "Добавить страницы"}
             </label>
           </div>
-          {Array.isArray((data as any).pages) && (data as any).pages.length > 0 ? (
+          {Array.isArray(data.pages) && data.pages.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {(data as any).pages.map((p: string, idx: number) => {
+              {data.pages.map((p: string, idx: number) => {
                 const isAbsolute = p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:");
                 let path = p;
                 // normalize wrong api prefix to uploads

@@ -4,6 +4,7 @@ import {
   ChaptersResponse,
   CreateChapterDto,
   UpdateChapterDto,
+  ApiResponseDto,
 } from "@/types/title";
 
 const CHAPTERS_TAG = "Chapters";
@@ -26,12 +27,13 @@ function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormDa
 export const chaptersApi = createApi({
   reducerPath: "chaptersApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
   }),
   tagTypes: [CHAPTERS_TAG],
   endpoints: (builder) => ({
     getChapterById: builder.query<Chapter, string>({
       query: (id) => `/chapters/${id}`,
+      transformResponse: (response: ApiResponseDto<Chapter>) => response.data!,
       providesTags: (result, error, id) => [{ type: CHAPTERS_TAG, id }],
     }),
 
@@ -41,22 +43,26 @@ export const chaptersApi = createApi({
         params: { sortOrder },
       }),
       providesTags: (result, error, { titleId }) => [{ type: CHAPTERS_TAG, id: `title-${titleId}` }],
-      transformResponse: (response: Chapter[] | { data: Chapter[] }) => {
+      transformResponse: (response: ApiResponseDto<Chapter[]> | Chapter[]): Chapter[] => {
         if (Array.isArray(response)) return response;
-        return (response as { data: Chapter[] })?.data ?? [];
+        return (response as ApiResponseDto<Chapter[]>)?.data ?? [];
       },
     }),
 
     searchChapters: builder.query<ChaptersResponse, { titleId?: string; page?: number; limit?: number; sortBy?: string; sortOrder?: "asc" | "desc" }>({
       query: (params) => ({ url: "/chapters", params }),
-      transformResponse: (response: unknown): ChaptersResponse => {
+      transformResponse: (response: ApiResponseDto<ChaptersResponse> | ChaptersResponse): ChaptersResponse => {
         // Normalize various possible server shapes
-        const chapters: Chapter[] = (response as any)?.chapters ?? (response as any)?.data ?? [];
-        const total: number = (response as any)?.pagination?.total ?? (response as any)?.total ?? chapters.length ?? 0;
-        const page: number = (response as any)?.pagination?.page ?? (response as any)?.page ?? 1;
-        const limit: number = (response as any)?.pagination?.limit ?? (response as any)?.limit ?? 50;
-        const totalPages: number = (response as any)?.pagination?.pages ?? (response as any)?.totalPages ?? Math.max(1, Math.ceil(total / (limit || 1)));
-        const hasMore: boolean = (response as any)?.pagination?.hasMore ?? page < totalPages;
+        if ('data' in response && response.data) {
+          return response.data;
+        }
+        const resp = response as Record<string, unknown>;
+        const chapters: Chapter[] = (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
+        const total: number = (resp.pagination as Record<string, unknown>)?.total as number ?? resp.total as number ?? chapters.length ?? 0;
+        const page: number = (resp.pagination as Record<string, unknown>)?.page as number ?? resp.page as number ?? 1;
+        const limit: number = (resp.pagination as Record<string, unknown>)?.limit as number ?? resp.limit as number ?? 50;
+        const totalPages: number = (resp.pagination as Record<string, unknown>)?.pages as number ?? resp.totalPages as number ?? Math.max(1, Math.ceil(total / (limit || 1)));
+        const hasMore: boolean = (resp.pagination as Record<string, unknown>)?.hasMore as boolean ?? page < totalPages;
         return { chapters, total, page, limit, totalPages, hasMore };
       },
       providesTags: [CHAPTERS_TAG],

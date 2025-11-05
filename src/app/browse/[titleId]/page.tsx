@@ -21,37 +21,6 @@ const API_CONFIG = {
   baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
 };
 
-// Улучшенная загрузка данных с отладкой
-async function loadTitleData(id: string): Promise<Title | null> {
-  try {
-    const url = `${API_CONFIG.baseUrl}/titles/${id}`;
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      console.error("❌ HTTP Error:", response.status, response.statusText);
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    // Проверяем, есть ли у ответа обертка ApiResponseDto
-    if (result && typeof result === 'object' && 'success' in result) {
-      // Если это объект ApiResponseDto, извлекаем данные
-      if (result.success && result.data) {
-        return result.data;
-      }
-    } else if (result && typeof result === 'object' && '_id' in result) {
-      // Если это объект Title без обертки ApiResponseDto
-      return result;
-    }
-    // В других случаях возвращаем null
-    return null;
-  } catch (error) {
-    console.error("❌ Error loading title:", error);
-    return null;
-  }
-}
-
 // Клиентская фильтрация и пагинация глав из titleData
 function filterAndPaginateChapters(
   allChapters: Chapter[] = [],
@@ -114,6 +83,9 @@ export default function TitleViewPage() {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isAdmin, ] = useState(true);
 
+  // Флаг для предотвращения множественных инкрементов просмотров
+  const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
+
   // Обработка данных из RTK Query
   const processedTitleData = titleData?.data || null;
   const processedChaptersData = chaptersData || [];
@@ -123,11 +95,17 @@ export default function TitleViewPage() {
 
   // Загрузка данных тайтла
   useEffect(() => {
-    if (processedTitleData) {
-      // Увеличиваем счётчик просмотров
+    if (processedTitleData && !hasIncrementedViews) {
+      // Увеличиваем счётчик просмотров только один раз
       incrementViews(titleId);
+      setHasIncrementedViews(true);
     }
-  }, [processedTitleData, incrementViews, titleId]);
+  }, [processedTitleData, incrementViews, titleId, hasIncrementedViews]);
+
+  // Сброс флага при изменении titleId
+  useEffect(() => {
+    setHasIncrementedViews(false);
+  }, [titleId]);
 
   // Загрузка глав
   const loadChapters = useCallback(

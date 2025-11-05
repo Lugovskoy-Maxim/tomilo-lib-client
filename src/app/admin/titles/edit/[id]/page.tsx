@@ -27,11 +27,12 @@ import { Title, TitleStatus } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import Image from "next/image";
 
 // Конфигурация API
 const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
   genres: [
     "Фэнтези",
     "Романтика",
@@ -182,6 +183,12 @@ export default function TitleEditorPage() {
     skip: !titleId,
   });
 
+  // Получаем главы тайтла для подсчета количества
+  const { data: chaptersData } = useGetChaptersByTitleQuery(
+    { titleId },
+    { skip: !titleId }
+  );
+
   const [formData, setFormData] = useState<Title>({
     _id: "",
     name: "",
@@ -204,11 +211,13 @@ export default function TitleEditorPage() {
     updatedAt: "",
   });
 
-  const [chaptersCount, setChaptersCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   // preview tab removed
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Вычисляем количество глав из данных
+  const chaptersCount = chaptersData?.length || 0;
 
   // Обработка данных тайтла из API
   useEffect(() => {
@@ -229,28 +238,11 @@ export default function TitleEditorPage() {
 
       setFormData(processedData);
 
-      // Загрузка количества глав
-      const loadChaptersCount = async () => {
-        try {
-          const chaptersResponse = await fetch(
-            `${API_CONFIG.baseUrl}/titles/${titleId}/chapters/count`
-          );
-          if (chaptersResponse.ok) {
-            const countData = await chaptersResponse.json();
-            setChaptersCount(countData.count || 0);
-          } else {
-            setChaptersCount(processedData.totalChapters || 0);
-          }
-        } catch (err) {
-          setChaptersCount(processedData.totalChapters || 0);
-        }
-      };
 
-      loadChaptersCount();
     } else if (apiError) {
       setError("Ошибка при загрузке данных тайтла");
     }
-  }, [titleResponse, apiError, titleId]);
+  }, [titleResponse, apiError, titleId, chaptersData]);
 
   // Обработчики
   const handleInputChange =
@@ -323,7 +315,7 @@ export default function TitleEditorPage() {
         ageLimit: Number(formData.ageLimit),
         releaseYear: Number(formData.releaseYear),
         views: Number(formData.views),
-        totalChapters: Number(chaptersCount),
+        totalChapters: chaptersCount,
         rating: Number(formData.rating),
         updatedAt: new Date().toISOString(),
       };
@@ -890,7 +882,7 @@ function ImageUploadField({
           <div className="mt-2">
             {(() => {
               const apiBase =
-                process.env.NEXT_PUBLIC_URL || "http://localhost:3001/";
+                process.env.NEXT_PUBLIC_URL || "http://localhost:3000/";
               const isAbsolute =
                 typeof image === "string" &&
                 (image.startsWith("http://") ||
