@@ -46,6 +46,8 @@ export const useAuth = () => {
     skip: !getToken(),
   });
 
+  const continueReading = continueReadingData?.data;
+
   // Синхронизируем состояние загрузки
   useEffect(() => {
     dispatch(setLoading(profileLoading));
@@ -355,7 +357,7 @@ export const useAuth = () => {
     removeBookmark: removeBookmarkFromUser,
     updateChapterViews: updateChapterViewsCount,
     addToReadingHistory: addToReadingHistoryFunc,
-    continueReading: continueReadingData?.data,
+    continueReading,
     continueReadingLoading,
     continueReadingError,
     refetchProfile,

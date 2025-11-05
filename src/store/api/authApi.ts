@@ -69,7 +69,7 @@ export const authApi = createApi({
         titleId: string;
         chapterId: string;
         chapterNumber: number;
-      }>,
+      }[]>,
       void
     >({
       query: () => "/users/profile/history",

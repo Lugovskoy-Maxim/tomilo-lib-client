@@ -321,7 +321,7 @@ export default function Home() {
   const popularTitlesErrorMessage = popularTitlesError?.message || null;
   const collections = useApiData<Collection>("/collections");
   const { continueReading, continueReadingLoading, continueReadingError } = useAuth();
-  const continueReadingArray = continueReading ? [continueReading] : [];
+  const continueReadingArray = continueReading || [];
   const latestUpdates = useApiData<LatestUpdate>("/titles/latest-updates");
   const [fullTitlesData, setFullTitlesData] = useState<Record<string, Title>>(
     {}

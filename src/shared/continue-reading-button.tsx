@@ -8,32 +8,18 @@ interface ContinueReadingButtonProps {
 }
 
 export function ContinueReadingButton({ className }: ContinueReadingButtonProps) {
-  const { continueReading, continueReadingLoading, continueReadingError } = useAuth() as {
-    continueReading: {
-      titleId: string;
-      chapters: {
-        chapterId: string;
-        readAt: string;
-      }[];
-    }[] | undefined;
-    continueReadingLoading: boolean;
-    continueReadingError: unknown;
-  };
+  const { continueReading, continueReadingLoading, continueReadingError } = useAuth();
   const router = useRouter();
 
   // Получаем последнюю прочитанную главу из последнего тайтла
   const getLastReadChapter = () => {
     if (!continueReading || continueReading.length === 0) return null;
-    
-    // Берем последний тайтл из истории
-    const lastTitle = continueReading[continueReading.length - 1];
-    if (!lastTitle.chapters || lastTitle.chapters.length === 0) return null;
-    
-    // Берем последнюю главу из этого тайтла
-    const lastChapter = lastTitle.chapters[lastTitle.chapters.length - 1];
+
+    // Берем последний элемент из массива continueReading
+    const lastItem = continueReading[continueReading.length - 1];
     return {
-      titleId: lastTitle.titleId,
-      chapterId: lastChapter.chapterId
+      titleId: lastItem.titleId,
+      chapterId: lastItem.chapterId
     };
   };
 
