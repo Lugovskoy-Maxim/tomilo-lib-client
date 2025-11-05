@@ -278,7 +278,7 @@ export const useAuth = () => {
   const addToReadingHistoryFunc = async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await addToReadingHistory({ titleId, chapterId }).unwrap();
-      
+
       if (!result.success) {
         throw new Error(result.message || "Ошибка при добавлении в историю чтения");
       }
@@ -289,10 +289,7 @@ export const useAuth = () => {
       return { success: true };
     } catch (error) {
       console.error("Error adding to reading history:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Неизвестная ошибка",
-      };
+      throw error; // Перебрасываем ошибку, чтобы она была обработана в компоненте
     }
   };
 

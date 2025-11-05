@@ -271,10 +271,7 @@ export default function ReadChapterPage({
         try {
           // Дополнительная проверка для удовлетворения TypeScript
           if (chapter._id) {
-            const result = await addToReadingHistory(title._id.toString(), chapter._id.toString());
-            if (result.error) {
-              console.error("Failed to add to reading history:", result.error);
-            }
+            await addToReadingHistory(title._id.toString(), chapter._id.toString());
           }
         } catch (error) {
           console.error("Error adding to reading history:", error);
