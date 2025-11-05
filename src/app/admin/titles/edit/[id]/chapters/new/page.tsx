@@ -60,8 +60,9 @@ export default function ChapterCreatePage() {
       const created = await createWithPages({ data, pages }).unwrap();
       alert(`Глава #${created.chapterNumber} создана`);
       router.push(`/admin/titles/edit/${titleId}`);
-    } catch (err: any) {
-      alert(`Ошибка создания: ${err?.data?.message || err.message || "Unknown"}`);
+    } catch (err: unknown) {
+      const error = err as { data?: { message?: string }; message?: string };
+      alert(`Ошибка создания: ${error?.data?.message || (error as Error)?.message || "Unknown"}`);
     }
   };
 

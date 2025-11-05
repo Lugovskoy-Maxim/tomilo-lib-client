@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     const data = await res.json();
     const titles = Array.isArray(data?.titles) ? data.titles : (data?.data || []);
 
-    const results = titles.map((t: any) => ({
+    const results = titles.map((t: { _id?: string; id?: string; name?: string; title?: string; coverImage?: string; image?: string; description?: string; type?: string; releaseYear?: number; year?: number; rating?: number }) => ({
       id: String(t._id ?? t.id ?? ""),
       title: String(t.name ?? t.title ?? ""),
       image: t.coverImage ?? t.image ?? undefined,
@@ -31,10 +31,10 @@ export async function GET(req: NextRequest) {
       type: t.type ?? undefined,
       year: t.releaseYear ?? t.year ?? undefined,
       rating: t.rating ?? undefined,
-    })).filter((r: any) => r.id && r.title);
+    })).filter((r: { id: string; title: string }) => r.id && r.title);
 
     return NextResponse.json(results, { status: 200 });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ message: "Search proxy error" }, { status: 500 });
   }
 }

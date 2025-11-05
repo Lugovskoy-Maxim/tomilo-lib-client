@@ -84,33 +84,33 @@ const mockTitles: Title[] = [
   },
 ];
 
-const mockReadingHistory = [
-  { 
-    titleId: "1", 
+const mockReadingHistory: Array<{ titleId: string; chapters: Array<{ chapterId: string; readAt: string }> }> = [
+  {
+    titleId: "1",
     chapters: [
       { chapterId: "101", readAt: new Date().toISOString() }
     ]
   },
-  { 
-    titleId: "2", 
+  {
+    titleId: "2",
     chapters: [
       { chapterId: "201", readAt: new Date().toISOString() }
     ]
   },
-  { 
-    titleId: "3", 
+  {
+    titleId: "3",
     chapters: [
       { chapterId: "301", readAt: new Date().toISOString() }
     ]
   },
-  { 
-    titleId: "4", 
+  {
+    titleId: "4",
     chapters: [
       { chapterId: "401", readAt: new Date().toISOString() }
     ]
   },
-  { 
-    titleId: "5", 
+  {
+    titleId: "5",
     chapters: [
       { chapterId: "501", readAt: new Date().toISOString() }
     ]
@@ -119,7 +119,7 @@ const mockReadingHistory = [
 
 export default function TestProfileData() {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
-  const [readingHistory, setReadingHistory] = useState<any[]>([]);
+  const [readingHistory, setReadingHistory] = useState<Array<{ titleId: string; chapters: Array<{ chapterId: string; readAt: string }> }>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

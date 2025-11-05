@@ -3,7 +3,6 @@ import { AuthResponse, LoginData, RegisterData, User } from '@/types/auth';
 
 // Ключи для localStorage (сохраняем ваши существующие)
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
-const USER_DATA_KEY = "tomilo_lib_user";
 
 export const authApi = createApi({
   reducerPath: 'authApi',
