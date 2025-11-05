@@ -4,90 +4,122 @@ import { BookOpen, Trash2 } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import { Title } from "@/types/title";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
 interface ReadingHistorySectionProps {
-  readingHistory: {
-    titleId: string;
-    chapters: {
-      chapterId: string;
-      readAt: string;
-    }[];
-  }[] | undefined;
+  readingHistory:
+    | {
+        titleId: string;
+        chapters: {
+          chapterId: string;
+          chapterNumber: number;
+          chapterTitle: string | null;
+        }[];
+        readAt: string;
+      }[]
+    | undefined;
 }
 
-function ReadingHistorySection({
-  readingHistory,
-}: ReadingHistorySectionProps) {
+function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
   const [titleData, setTitleData] = useState<Record<string, Title>>({});
   const [errorItems, setErrorItems] = useState<Record<string, boolean>>({});
   const router = useRouter();
 
+  // Преобразуем новый формат данных в старый для совместимости
+  const transformedReadingHistory = useMemo(
+    () =>
+      readingHistory?.map((item) => ({
+        titleId: item.titleId,
+        chapters: item.chapters?.map((chapter) => ({
+          chapterId: chapter.chapterId,
+          chapterNumber: chapter.chapterNumber,
+          chapterTitle: chapter.chapterTitle,
+          readAt: item.readAt,
+        })) || [],
+      })) || [],
+    [readingHistory]
+  );
+
   // Получаем данные о манге для каждой записи в истории чтения
   useEffect(() => {
-    if (!readingHistory) return;
-    
+    if (!transformedReadingHistory) return;
+
     // Получаем все тайтлы из истории чтения
-    const lastTitles = readingHistory;
-    
+    const lastTitles = transformedReadingHistory;
+
     lastTitles.forEach((item) => {
       if (!titleData[item.titleId] && !errorItems[item.titleId]) {
         // Здесь мы не можем использовать useGetTitleByIdQuery напрямую,
         // так как это хук и мы не можем вызывать его внутри цикла
         // Вместо этого мы можем использовать fetch напрямую, но с учетом нового формата ответа API
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/titles/${item.titleId}`)
-          .then(response => response.json())
+        fetch(
+          `${
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+          }/titles/${item.titleId}`
+        )
+          .then((response) => response.json())
           .then((response: { success: boolean; data?: Title } | Title) => {
             // Проверяем, есть ли у ответа обертка ApiResponseDto
-            if (response && typeof response === 'object' && 'success' in response) {
+            if (
+              response &&
+              typeof response === "object" &&
+              "success" in response
+            ) {
               // Если это объект ApiResponseDto, извлекаем данные
               if (response.success && response.data) {
-                setTitleData(prev => ({
+                setTitleData((prev) => ({
                   ...prev,
-                  [item.titleId]: response.data!
+                  [item.titleId]: response.data!,
                 }));
               } else {
                 // Помечаем элемент как ошибочный, если данные не получены
-                setErrorItems(prev => ({
+                setErrorItems((prev) => ({
                   ...prev,
-                  [item.titleId]: true
+                  [item.titleId]: true,
                 }));
               }
-            } else if (response && typeof response === 'object' && '_id' in response) {
+            } else if (
+              response &&
+              typeof response === "object" &&
+              "_id" in response
+            ) {
               // Если это объект Title без обертки ApiResponseDto
-              setTitleData(prev => ({
+              setTitleData((prev) => ({
                 ...prev,
-                [item.titleId]: response
+                [item.titleId]: response,
               }));
             } else {
               // В других случаях помечаем элемент как ошибочный
-              setErrorItems(prev => ({
+              setErrorItems((prev) => ({
                 ...prev,
-                [item.titleId]: true
+                [item.titleId]: true,
               }));
             }
           })
-          .catch(error => {
+          .catch((error) => {
             console.error("Ошибка при получении данных о манге:", error);
             // Помечаем элемент как ошибочный при сетевой ошибке
-            setErrorItems(prev => ({
+            setErrorItems((prev) => ({
               ...prev,
-              [item.titleId]: true
+              [item.titleId]: true,
             }));
           });
       }
     });
-  }, [readingHistory, titleData, errorItems]);
+  }, [transformedReadingHistory, titleData, errorItems]);
 
-  const handleRemoveFromHistory = async (titleId: string, chapterId: string) => {
+  const handleRemoveFromHistory = async (
+    titleId: string,
+    chapterId: string
+  ) => {
     const key = `${titleId}-${chapterId}`;
-    setLoadingItems(prev => ({ ...prev, [key]: true }));
-    
+    setLoadingItems((prev) => ({ ...prev, [key]: true }));
+
     try {
       const result = await removeFromReadingHistory(titleId, chapterId);
       if (!result.success) {
@@ -98,7 +130,7 @@ function ReadingHistorySection({
       console.error("Ошибка при удалении из истории чтения:", error);
       alert("Произошла ошибка при удалении из истории чтения");
     } finally {
-      setLoadingItems(prev => {
+      setLoadingItems((prev) => {
         const newLoading = { ...prev };
         delete newLoading[key];
         return newLoading;
@@ -109,14 +141,16 @@ function ReadingHistorySection({
   // Формируем корректный URL для изображения
   const getImageUrl = (coverImage: string | undefined) => {
     if (!coverImage) return IMAGE_HOLDER;
-    
+
     // Если изображение уже полный URL, используем как есть
-    if (coverImage.startsWith('http')) {
+    if (coverImage.startsWith("http")) {
       return coverImage;
     }
-    
+
     // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}${coverImage}`;
+    return `${
+      process.env.NEXT_PUBLIC_URL || "http://localhost:3001"
+    }${coverImage}`;
   };
 
   // Компонент для отображения состояния загрузки
@@ -144,21 +178,19 @@ function ReadingHistorySection({
           <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1">
             Манга #{titleId.slice(-6)}
           </h3>
-          <p className="text-xs text-red-500 mb-2">
-            Ошибка загрузки данных
-          </p>
+          <p className="text-xs text-red-500 mb-2">Ошибка загрузки данных</p>
         </div>
       </div>
     </div>
   );
 
   // Если история чтения не определена или пуста, показываем сообщение
-  if (!readingHistory || readingHistory.length === 0) {
+  if (!transformedReadingHistory || transformedReadingHistory.length === 0) {
     return (
       <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
-            <BookOpen className="h-5 w-5"/>
+            <BookOpen className="h-5 w-5" />
             <span>История чтения</span>
           </h2>
         </div>
@@ -169,34 +201,69 @@ function ReadingHistorySection({
     );
   }
 
-  // Получаем все записи из истории чтения (последние главы из всех тайтлов)
-  const lastChapters = readingHistory
-    .map(item => {
-      // Для каждого тайтла берем последнюю главу
-      const lastChapter = item.chapters && item.chapters.length > 0
-        ? item.chapters[item.chapters.length - 1]
-        : null;
-      
-      // Если нет глав, пропускаем этот элемент
-      if (!lastChapter) return null;
-      
+  // Собираем все главы из всех записей истории чтения
+  const allChapters = transformedReadingHistory.flatMap((item) =>
+    item.chapters.map((chapter) => ({
+      titleId: item.titleId,
+      chapterId: chapter.chapterId,
+      chapterNumber: chapter.chapterNumber,
+      chapterTitle: chapter.chapterTitle,
+      readAt: chapter.readAt,
+    }))
+  );
+
+  // Группируем главы по titleId и находим самую свежую для каждого тайтла
+  const titleGroups = allChapters.reduce((acc, chapter) => {
+    if (!acc[chapter.titleId]) {
+      acc[chapter.titleId] = [];
+    }
+    acc[chapter.titleId].push(chapter);
+    return acc;
+  }, {} as Record<string, typeof allChapters>);
+
+  // Получаем последние 10 тайтлов по времени последнего чтения
+  const recentTitles = Object.entries(titleGroups)
+    .map(([titleId, chapters]) => {
+      // Сортируем главы по времени чтения (самая свежая первая)
+      const sortedChapters = chapters.sort(
+        (a, b) => new Date(b.readAt).getTime() - new Date(a.readAt).getTime()
+      );
+      const lastChapter = sortedChapters[0];
+
       return {
-        titleId: item.titleId,
-        chapterId: lastChapter.chapterId,
-        readAt: lastChapter.readAt
+        titleId,
+        lastReadAt: lastChapter.readAt,
+        chapterNumber: lastChapter.chapterNumber,
+        chapterTitle: lastChapter.chapterTitle,
+        lastChapterId: lastChapter.chapterId,
+        allChapters: sortedChapters, // Сохраняем все главы для возможности удаления
       };
     })
-    .filter(Boolean); // Убираем null значения
+    .sort(
+      (a, b) =>
+        new Date(b.lastReadAt).getTime() - new Date(a.lastReadAt).getTime()
+    )
+    .slice(0, 10); // Берем только первые 10
+
+  // Формируем данные для отображения
+  const lastChapters = recentTitles.map((item) => ({
+    titleId: item.titleId,
+    chapterId: item.lastChapterId,
+    chapterNumber: item.chapterNumber,
+    chapterTitle: item.chapterTitle,
+    readAt: item.lastReadAt,
+    allChapters: item.allChapters,
+  }));
 
   return (
     <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
-          <BookOpen className="h-5 w-5"/>
+          <BookOpen className="h-5 w-5" />
           <span>История чтения</span>
         </h2>
         <span className="text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
-          {readingHistory.length} тайтлов
+          {recentTitles.length} тайтлов
         </span>
       </div>
 
@@ -204,112 +271,152 @@ function ReadingHistorySection({
         {lastChapters.map((item, index) => {
           // Дополнительная проверка на null
           if (!item) return null;
-          
+
           // Проверяем состояние загрузки
           const loadingKey = `${item.titleId}-${item.chapterId}`;
-          if (loadingItems[loadingKey]) {
-            return <LoadingCard key={loadingKey} />;
-          }
-          
-          // Проверяем ошибки загрузки
-          if (errorItems[item.titleId]) {
-            return <ErrorCard key={item.titleId} titleId={item.titleId} />;
-          }
-          
-          // Показываем карточку с данными, если они есть
-          const title = titleData[item.titleId];
-          if (title) {
-            return (
-              <div
-                key={index}
-                className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer group"
-                onClick={() => router.push(`/browse/${item.titleId}/chapter/${item.chapterId}`)}
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="w-12 h-16 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {title.coverImage ? (
-                      <Image
-                        src={getImageUrl(title.coverImage)}
-                        alt={title.name || `Манга #${item.titleId.slice(-6)}`}
-                        width={48}
-                        height={64}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                        onError={(e) => {
-                          // Если изображение не загружается, показываем заглушку
-                          const target = e.target as HTMLImageElement;
-                          target.src = IMAGE_HOLDER.src;
-                        }}
-                      />
-                    ) : (
-                      <Image
-                        src={IMAGE_HOLDER}
-                        alt="Заглушка"
-                        width={48}
-                        height={64}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
 
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1 truncate">
-                      {title.name || `Манга #${item.titleId.slice(-6)}`}
-                    </h3>
-                    <p className="text-xs text-[var(--muted-foreground)] mb-2">
-                      Глава #{item.chapterId.slice(-6)}
-                    </p>
-                    <div className="flex items-center space-x-2 text-xs text-[var(--muted-foreground)]">
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span>{new Date(item.readAt).toLocaleDateString("ru-RU")}</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveFromHistory(item.titleId, item.chapterId);
-                    }}
-                    disabled={loadingItems[loadingKey]}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-500/10 rounded transition-all disabled:opacity-50"
-                  >
-                    {loadingItems[loadingKey] ? (
-                      <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    ) : (
-                      <Trash2 className="w-3 h-3" />
-                    )}
-                  </button>
+          // Показываем карточку сразу, данные обновятся когда загрузятся
+          const title = titleData[item.titleId];
+          const isError = errorItems[item.titleId];
+
+          return (
+            <div
+              key={index}
+              className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer group"
+              onClick={() =>
+                router.push(
+                  `/browse/${item.titleId}/chapter/${item.chapterId}`
+                )
+              }
+            >
+              <div className="flex items-start space-x-3">
+                <div className="w-12 h-16 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {title?.coverImage ? (
+                    <Image
+                      src={getImageUrl(title.coverImage)}
+                      alt={title.name || `Манга #${item.titleId.slice(-6)}`}
+                      width={48}
+                      height={64}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                      onError={(e) => {
+                        // Если изображение не загружается, показываем заглушку
+                        const target = e.target as HTMLImageElement;
+                        target.src = IMAGE_HOLDER.src;
+                      }}
+                    />
+                  ) : (
+                    <Image
+                      src={IMAGE_HOLDER}
+                      alt="Заглушка"
+                      width={48}
+                      height={64}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                 </div>
+
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1 truncate">
+                    {isError ? `Манга #${item.titleId.slice(-6)}` : (title?.name || `Манга #${item.titleId.slice(-6)}`)}
+                  </h3>
+                  <p className="text-xs text-[var(--muted-foreground)] mb-2">
+                    Глава {item.chapterNumber}
+                    {item.chapterTitle && ` - ${item.chapterTitle}`}
+                  </p>
+                  <div className="flex items-center space-x-2 text-xs text-[var(--muted-foreground)]">
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span>
+                      {new Date(item.readAt).toLocaleDateString("ru-RU")}
+                    </span>
+                  </div>
+                  {item.allChapters && item.allChapters.length > 1 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {item.allChapters.slice(0, 3).map((chapter, idx) => (
+                        <button
+                          key={chapter.chapterId}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFromHistory(item.titleId, chapter.chapterId);
+                          }}
+                          disabled={loadingItems[`${item.titleId}-${chapter.chapterId}`]}
+                          className="text-xs px-2 py-1 bg-[var(--background)] hover:bg-red-500/10 text-red-500 rounded transition-all disabled:opacity-50"
+                        >
+                          {loadingItems[`${item.titleId}-${chapter.chapterId}`] ? (
+                            <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          ) : (
+                            `Гл.${chapter.chapterNumber}`
+                          )}
+                        </button>
+                      ))}
+                      {item.allChapters.length > 3 && (
+                        <span className="text-xs text-[var(--muted-foreground)] px-2 py-1">
+                          +{item.allChapters.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveFromHistory(item.titleId, item.chapterId);
+                  }}
+                  disabled={loadingItems[loadingKey]}
+                  className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-500/10 rounded transition-all disabled:opacity-50"
+                >
+                  {loadingItems[loadingKey] ? (
+                    <svg
+                      className="w-3 h-3 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  ) : (
+                    <Trash2 className="w-3 h-3" />
+                  )}
+                </button>
               </div>
-            );
-          }
-          
-          // Показываем состояние загрузки по умолчанию
-          return <LoadingCard key={item.titleId} />;
+            </div>
+          );
         })}
       </div>
 
-      {readingHistory.length > 4 && (
+      {transformedReadingHistory.length > 10 && (
         <div className="text-center mt-4">
           <button
             className="text-xs text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]/80 transition-colors"
-            onClick={() => router.push('/history')}
+            onClick={() => router.push("/history")}
           >
-            Показать все {readingHistory.length} тайтлов
+            Показать все {transformedReadingHistory.length} тайтлов
           </button>
         </div>
       )}
