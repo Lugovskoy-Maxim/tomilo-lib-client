@@ -28,9 +28,6 @@ interface PopularTitle {
   rating?: number;
 }
 
-
-
-
 interface Collection {
   id: string;
   name: string;
@@ -113,7 +110,10 @@ const getTitleTypeString = (type: TitleType): string => {
   }
 };
 
-const adaptTitleToCarouselCard = (title: Title, index: number): CarouselCardData => ({
+const adaptTitleToCarouselCard = (
+  title: Title,
+  index: number
+): CarouselCardData => ({
   id: title._id, // Используем _id из Title
   title: title.name,
   type: title.type ? getTitleTypeString(title.type) : "Неизвестный",
@@ -143,7 +143,10 @@ const adaptReadingProgressToReadingCard = (
   cover: titleData?.coverImage || "",
   currentChapter: progress.chapterNumber,
   totalChapters: titleData?.chapters?.length || 0,
-  chaptersRead: Math.max(0, (titleData?.chapters?.length || 0) - progress.chapterNumber),
+  chaptersRead: Math.max(
+    0,
+    (titleData?.chapters?.length || 0) - progress.chapterNumber
+  ),
   type: titleData?.type ? getTitleTypeString(titleData.type) : "Манга",
 });
 
@@ -189,28 +192,34 @@ function useApiData<T>(endpoint: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const response = await fetch(`${baseUrl}${endpoint}`);
-        
+
         if (!response.ok) {
           throw new Error(`Ошибка загрузки: ${response.status}`);
         }
-        
+
         const result = await response.json();
         console.log(`Data fetched from ${endpoint}:`, result);
         // Проверяем, есть ли у ответа обертка ApiResponseDto
-        if (result && typeof result === 'object' && 'data' in result) {
+        if (result && typeof result === "object" && "data" in result) {
           // Если это массив, используем его напрямую
           if (Array.isArray(result.data)) {
             setData(result.data);
           }
           // Если это объект с массивом внутри, используем этот массив
-          else if (result.data && typeof result.data === 'object' && 'data' in result.data && Array.isArray(result.data.data)) {
+          else if (
+            result.data &&
+            typeof result.data === "object" &&
+            "data" in result.data &&
+            Array.isArray(result.data.data)
+          ) {
             setData(result.data.data);
           }
           // В других случаях используем пустой массив
@@ -227,7 +236,8 @@ function useApiData<T>(endpoint: string) {
           setData([]);
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Неизвестная ошибка";
+        const errorMessage =
+          err instanceof Error ? err.message : "Неизвестная ошибка";
         setError(errorMessage);
         console.error(`Error fetching ${endpoint}:`, err);
         setData([]); // Устанавливаем пустой массив в случае ошибки
@@ -301,11 +311,18 @@ function renderCarousel<T>(
 
 // Главный компонент
 export default function Home() {
-  const { data: popularTitlesData, isLoading: popularTitlesLoading, error: popularTitlesError } = useGetPopularTitlesQuery();
+  const {
+    data: popularTitlesData,
+    isLoading: popularTitlesLoading,
+    error: popularTitlesError,
+  } = useGetPopularTitlesQuery();
   const collections = useApiData<Collection>("/collections");
-  const { continueReading, continueReadingLoading, continueReadingError } = useAuth();
+  const { continueReading, continueReadingLoading, continueReadingError } =
+    useAuth();
   const latestUpdates = useApiData<LatestUpdate>("/titles/latest-updates");
-  const [fullTitlesData, setFullTitlesData] = useState<Record<string, Title>>({});
+  const [fullTitlesData, setFullTitlesData] = useState<Record<string, Title>>(
+    {}
+  );
   const [titleData, setTitleData] = useState<Record<string, Title>>({});
   const [errorItems, setErrorItems] = useState<Record<string, boolean>>({});
 
@@ -353,7 +370,10 @@ export default function Home() {
             }
           })
           .catch((error) => {
-            console.error("Ошибка при получении данных о популярном тайтле:", error);
+            console.error(
+              "Ошибка при получении данных о популярном тайтле:",
+              error
+            );
           });
       }
     });
@@ -426,29 +446,35 @@ export default function Home() {
   }, [continueReading, titleData, errorItems]);
 
   // Преобразуем данные API в формат, ожидаемый компонентами
-  const adaptedPopularTitles = popularTitlesData?.data?.map((popularTitle, index) => {
-    const fullTitle = fullTitlesData[popularTitle.id];
-    if (fullTitle) {
-      return adaptTitleToCarouselCard(fullTitle, index);
-    } else {
-      // Если полные данные еще не загружены, используем минимальные данные с заглушками
-      return {
-        id: popularTitle.id,
-        title: popularTitle.title,
-        type: "Манга",
-        year: new Date().getFullYear(),
-        rating: popularTitle.rating ?? 0,
-        image: popularTitle.cover,
-        genres: [],
-      };
-    }
-  }) || [];
+  const adaptedPopularTitles =
+    popularTitlesData?.data?.map((popularTitle, index) => {
+      const fullTitle = fullTitlesData[popularTitle.id];
+      if (fullTitle) {
+        return adaptTitleToCarouselCard(fullTitle, index);
+      } else {
+        // Если полные данные еще не загружены, используем минимальные данные с заглушками
+        return {
+          id: popularTitle.id,
+          title: popularTitle.title,
+          type: "Манга",
+          year: new Date().getFullYear(),
+          rating: popularTitle.rating ?? 0,
+          image: popularTitle.cover,
+          genres: [],
+        };
+      }
+    }) || [];
   const adaptedCollections = collections.data.map((collection, index) =>
     adaptCollectionToCollectionCard(collection, index)
   );
-  const adaptedReadingProgress = continueReading?.map((progress, index) =>
-    adaptReadingProgressToReadingCard(progress, titleData[progress.titleId] || null, index)
-  ) || [];
+  const adaptedReadingProgress =
+    continueReading?.map((progress, index) =>
+      adaptReadingProgressToReadingCard(
+        progress,
+        titleData[progress.titleId] || null,
+        index
+      )
+    ) || [];
   const adaptedLatestUpdates = latestUpdates.data.map((update, index) =>
     adaptLatestUpdateToLatestUpdateCard(update, index)
   );
@@ -457,7 +483,6 @@ export default function Home() {
     <>
       <Header />
       <main className="flex flex-col items-center justify-center gap-6">
-        
         {/* Популярные тайтлы */}
         {renderCarousel(
           "Популярные тайтлы",
@@ -479,7 +504,8 @@ export default function Home() {
           adaptedCollections,
           CollectionCard as CollectionCardComponent,
           {
-            description: "Здесь подобраны самые популярные коллекции, которые вы можете прочитать.",
+            description:
+              "Здесь подобраны самые популярные коллекции, которые вы можете прочитать.",
             type: "collection",
             href: "/collections",
             cardWidth: "w-24 sm:w-28 md:w-32 lg:w-36",
@@ -497,7 +523,8 @@ export default function Home() {
           adaptedReadingProgress,
           ReadingCard as unknown as ReadingCardComponent,
           {
-            description: "Это главы, которые вы ещё не прочитали. Данный список генерируется на основании вашей истории чтения.",
+            description:
+              "Это главы, которые вы ещё не прочитали. Данный список генерируется на основании вашей истории чтения.",
             type: "browse",
             icon: <BookOpen className="w-6 h-6" />,
             navigationIcon: <SquareArrowOutUpRight className="w-6 h-6" />,
@@ -512,9 +539,7 @@ export default function Home() {
         {/* Последние обновления */}
         {latestUpdates.loading ? (
           <GridSkeleton />
-        ) : latestUpdates.error ? (
-          null
-        ) : adaptedLatestUpdates.length > 0 ? (
+        ) : latestUpdates.error ? null : adaptedLatestUpdates.length > 0 ? (
           <GridSection
             title="Последние обновления"
             description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."
@@ -522,7 +547,9 @@ export default function Home() {
             href="/updates"
             icon={<Clock className="w-6 h-6" />}
             data={adaptedLatestUpdates}
-            cardComponent={LatestUpdateCard as unknown as  LatestUpdateCardComponent}
+            cardComponent={
+              LatestUpdateCard as unknown as LatestUpdateCardComponent
+            }
           />
         ) : null}
       </main>
