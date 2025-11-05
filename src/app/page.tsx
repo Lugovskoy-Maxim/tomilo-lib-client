@@ -13,29 +13,23 @@ import LatestUpdateCard from "@/shared/last-updates/last-updates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
 import { ContinueReadingButton } from "@/shared/continue-reading-button";
+import { useAuth } from "@/hooks/useAuth";
+import { useGetPopularTitlesQuery } from "@/store/api/titlesApi";
 
 // Базовые типы данных из API
-import { Title as ApiTitle, TitleType } from "@/types/title";
+import { Title as ApiTitle, Title, TitleType } from "@/types/title";
 
 // Тип данных, который возвращает сервер для популярных тайтлов
-interface ServerTitle {
+interface PopularTitle {
   id: string;
   title: string;
   cover?: string;
   description?: string;
-  rating?: number; // Сделаем рейтинг необязательным, так как сервер его не возвращает
+  rating?: number;
 }
 
-interface AdaptedTitle {
-  id: string;
-  title: string;
-  cover: string;
-  description?: string;
-  rating: number;
-  releaseYear: number;
-  genres: string[];
-  type?: TitleType;
-}
+
+
 
 interface Collection {
   id: string;
@@ -45,12 +39,9 @@ interface Collection {
 }
 
 interface ReadingProgress {
-  id: string;
-  title: string;
-  cover: string;
-  currentChapter: string;
+  titleId: string;
+  chapterId: string;
   chapterNumber: number;
-  progress: number;
 }
 
 interface LatestUpdate {
@@ -84,9 +75,10 @@ interface ReadingCardData {
   id: string;
   title: string;
   cover: string;
-  currentChapter: string;
-  chapterNumber: number;
-  progress: number;
+  currentChapter: number;
+  totalChapters: number;
+  chaptersRead: number;
+  type: string;
 }
 
 interface LatestUpdateCardData {
@@ -121,13 +113,13 @@ const getTitleTypeString = (type: TitleType): string => {
   }
 };
 
-const adaptTitleToCarouselCard = (title: AdaptedTitle, index: number): CarouselCardData => ({
-  id: title.id, // Используем ID из данных или создаем уникальный
-  title: title.title,
+const adaptTitleToCarouselCard = (title: Title, index: number): CarouselCardData => ({
+  id: title._id, // Используем _id из Title
+  title: title.name,
   type: title.type ? getTitleTypeString(title.type) : "Неизвестный",
   year: title.releaseYear,
   rating: title.rating,
-  image: title.cover,
+  image: title.coverImage,
   genres: title.genres,
 });
 
@@ -143,14 +135,16 @@ const adaptCollectionToCollectionCard = (
 
 const adaptReadingProgressToReadingCard = (
   progress: ReadingProgress,
+  titleData: Title | null,
   index: number
 ): ReadingCardData => ({
-  id: progress.id || `progress-${index}`,
-  title: progress.title,
-  cover: progress.cover,
-  currentChapter: progress.currentChapter,
-  chapterNumber: progress.chapterNumber,
-  progress: progress.progress,
+  id: progress.titleId || `progress-${index}`,
+  title: titleData?.name || `Манга #${progress.titleId.slice(-6)}`,
+  cover: titleData?.coverImage || "",
+  currentChapter: progress.chapterNumber,
+  totalChapters: titleData?.chapters?.length || 0,
+  chaptersRead: Math.max(0, (titleData?.chapters?.length || 0) - progress.chapterNumber),
+  type: titleData?.type ? getTitleTypeString(titleData.type) : "Манга",
 });
 
 const adaptLatestUpdateToLatestUpdateCard = (
@@ -307,37 +301,154 @@ function renderCarousel<T>(
 
 // Главный компонент
 export default function Home() {
-  const popularTitles = useApiData<ServerTitle>("/titles/popular");
+  const { data: popularTitlesData, isLoading: popularTitlesLoading, error: popularTitlesError } = useGetPopularTitlesQuery();
   const collections = useApiData<Collection>("/collections");
-  const readingProgress = useApiData<ReadingProgress>("/user/reading-progress");
+  const { continueReading, continueReadingLoading, continueReadingError } = useAuth();
   const latestUpdates = useApiData<LatestUpdate>("/titles/latest-updates");
+  const [fullTitlesData, setFullTitlesData] = useState<Record<string, Title>>({});
+  const [titleData, setTitleData] = useState<Record<string, Title>>({});
+  const [errorItems, setErrorItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     pageTitle.setTitlePage("Tomilo-lib.ru - Платформа манги и комиксов");
   }, []);
 
-  // Адаптер для преобразования данных API тайтлов в формат, ожидаемый компонентом
-  const adaptApiTitleToTitle = (serverTitle: ServerTitle, index: number): AdaptedTitle => ({
-    id: serverTitle.id,
-    title: serverTitle.title,
-    cover: serverTitle.cover || "",
-    description: serverTitle.description,
-    rating: serverTitle.rating ?? 0, // Используем 0 как значение по умолчанию, если рейтинг отсутствует
-    releaseYear: new Date().getFullYear(), // Заглушка, так как сервер не возвращает год
-    genres: [], // Заглушка, так как сервер не возвращает жанры
-    type: undefined, // Заглушка, так как сервер не возвращает тип
-  });
+  // Получаем полные данные о популярных тайтлах
+  useEffect(() => {
+    if (!popularTitlesData?.data || popularTitlesData.data.length === 0) return;
+
+    popularTitlesData.data.forEach((popularTitle) => {
+      if (!fullTitlesData[popularTitle.id]) {
+        // Получаем полные данные о тайтле
+        fetch(
+          `${
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+          }/titles/${popularTitle.id}`
+        )
+          .then((response) => response.json())
+          .then((response: { success: boolean; data?: Title } | Title) => {
+            // Проверяем, есть ли у ответа обертка ApiResponseDto
+            if (
+              response &&
+              typeof response === "object" &&
+              "success" in response
+            ) {
+              // Если это объект ApiResponseDto, извлекаем данные
+              if (response.success && response.data) {
+                setFullTitlesData((prev) => ({
+                  ...prev,
+                  [popularTitle.id]: response.data!,
+                }));
+              }
+            } else if (
+              response &&
+              typeof response === "object" &&
+              "_id" in response
+            ) {
+              // Если это объект Title без обертки ApiResponseDto
+              setFullTitlesData((prev) => ({
+                ...prev,
+                [popularTitle.id]: response,
+              }));
+            }
+          })
+          .catch((error) => {
+            console.error("Ошибка при получении данных о популярном тайтле:", error);
+          });
+      }
+    });
+  }, [popularTitlesData, fullTitlesData]);
+
+  // Получаем данные о манге для каждого тайтла из истории чтения
+  useEffect(() => {
+    if (!continueReading || continueReading.length === 0) return;
+
+    // Получаем все тайтлы из истории чтения
+    const lastTitles = continueReading;
+
+    lastTitles.forEach((item) => {
+      if (!titleData[item.titleId] && !errorItems[item.titleId]) {
+        // Получаем данные о тайтле
+        fetch(
+          `${
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+          }/titles/${item.titleId}`
+        )
+          .then((response) => response.json())
+          .then((response: { success: boolean; data?: Title } | Title) => {
+            // Проверяем, есть ли у ответа обертка ApiResponseDto
+            if (
+              response &&
+              typeof response === "object" &&
+              "success" in response
+            ) {
+              // Если это объект ApiResponseDto, извлекаем данные
+              if (response.success && response.data) {
+                setTitleData((prev) => ({
+                  ...prev,
+                  [item.titleId]: response.data!,
+                }));
+              } else {
+                // Помечаем элемент как ошибочный, если данные не получены
+                setErrorItems((prev) => ({
+                  ...prev,
+                  [item.titleId]: true,
+                }));
+              }
+            } else if (
+              response &&
+              typeof response === "object" &&
+              "_id" in response
+            ) {
+              // Если это объект Title без обертки ApiResponseDto
+              setTitleData((prev) => ({
+                ...prev,
+                [item.titleId]: response,
+              }));
+            } else {
+              // В других случаях помечаем элемент как ошибочный
+              setErrorItems((prev) => ({
+                ...prev,
+                [item.titleId]: true,
+              }));
+            }
+          })
+          .catch((error) => {
+            console.error("Ошибка при получении данных о манге:", error);
+            // Помечаем элемент как ошибочный при сетевой ошибке
+            setErrorItems((prev) => ({
+              ...prev,
+              [item.titleId]: true,
+            }));
+          });
+      }
+    });
+  }, [continueReading, titleData, errorItems]);
 
   // Преобразуем данные API в формат, ожидаемый компонентами
-  const adaptedPopularTitles = popularTitles.data.map((apiTitle, index) =>
-    adaptTitleToCarouselCard(adaptApiTitleToTitle(apiTitle, index), index)
-  );
+  const adaptedPopularTitles = popularTitlesData?.data?.map((popularTitle, index) => {
+    const fullTitle = fullTitlesData[popularTitle.id];
+    if (fullTitle) {
+      return adaptTitleToCarouselCard(fullTitle, index);
+    } else {
+      // Если полные данные еще не загружены, используем минимальные данные с заглушками
+      return {
+        id: popularTitle.id,
+        title: popularTitle.title,
+        type: "Манга",
+        year: new Date().getFullYear(),
+        rating: popularTitle.rating ?? 0,
+        image: popularTitle.cover,
+        genres: [],
+      };
+    }
+  }) || [];
   const adaptedCollections = collections.data.map((collection, index) =>
     adaptCollectionToCollectionCard(collection, index)
   );
-  const adaptedReadingProgress = readingProgress.data.map((progress, index) =>
-    adaptReadingProgressToReadingCard(progress, index)
-  );
+  const adaptedReadingProgress = continueReading?.map((progress, index) =>
+    adaptReadingProgressToReadingCard(progress, titleData[progress.titleId] || null, index)
+  ) || [];
   const adaptedLatestUpdates = latestUpdates.data.map((update, index) =>
     adaptLatestUpdateToLatestUpdateCard(update, index)
   );
@@ -346,10 +457,6 @@ export default function Home() {
     <>
       <Header />
       <main className="flex flex-col items-center justify-center gap-6">
-        {/* Кнопка продолжения чтения */}
-        <div className="w-full max-w-6xl px-4 py-4">
-          <ContinueReadingButton className="max-w-xs" />
-        </div>
         
         {/* Популярные тайтлы */}
         {renderCarousel(
@@ -362,8 +469,8 @@ export default function Home() {
             navigationIcon: <SquareArrowOutUpRight className="w-6 h-6" />,
             cardWidth: "w-30 sm:w-30 md:w-35 lg:w-40",
           },
-          popularTitles.loading,
-          popularTitles.error
+          popularTitlesLoading,
+          popularTitlesError
         )}
 
         {/* Коллекции */}
@@ -390,16 +497,16 @@ export default function Home() {
           adaptedReadingProgress,
           ReadingCard as unknown as ReadingCardComponent,
           {
-            description: "Это главы, которые вы ещё не прочитали. Данный список генерируется на основании ваших закладок.",
+            description: "Это главы, которые вы ещё не прочитали. Данный список генерируется на основании вашей истории чтения.",
             type: "browse",
             icon: <BookOpen className="w-6 h-6" />,
             navigationIcon: <SquareArrowOutUpRight className="w-6 h-6" />,
-            descriptionLink: { text: "закладок", href: "/bookmarks" },
+            descriptionLink: { text: "истории чтения", href: "/profile" },
             showNavigation: false,
             cardWidth: "w-68 sm:w-72 md:w-80 lg:w-96",
           },
-          readingProgress.loading,
-          readingProgress.error
+          continueReadingLoading,
+          continueReadingError
         )}
 
         {/* Последние обновления */}

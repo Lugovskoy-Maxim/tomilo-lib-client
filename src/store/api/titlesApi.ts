@@ -128,6 +128,13 @@ export const titlesApi = createApi({
       invalidatesTags: (result, error, id) => [{ type: TITLES_TAG, id }],
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
+
+    // Получить популярные тайтлы
+    getPopularTitles: builder.query<ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number }[]>, void>({
+      query: () => "/titles/popular",
+      providesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number }[]>) => response,
+    }),
   }),
 });
 
@@ -140,4 +147,5 @@ export const {
   useUpdateTitleMutation,
   useUpdateRatingMutation,
   useIncrementViewsMutation,
+  useGetPopularTitlesQuery,
 } = titlesApi;
