@@ -78,8 +78,8 @@ export interface Chapter {
   volumeNumber?: number;
   title?: string;
   content?: string;
+  pages?: string[];
   images?: string[];
-  pages?: number;
   releaseDate?: string;
   views: number;
   likes?: number;

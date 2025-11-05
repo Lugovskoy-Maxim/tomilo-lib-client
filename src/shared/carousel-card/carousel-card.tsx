@@ -26,7 +26,7 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
     if (onCardClick) {
       onCardClick(data.id);
     } else {
-      router.push(`/browse/${data.id}`);
+      router.push(`/browse/${data.id}/`);
     }
   };
 

@@ -26,7 +26,7 @@ function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormDa
 export const titlesApi = createApi({
   reducerPath: "titlesApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
   }),
   tagTypes: [TITLES_TAG],
   endpoints: (builder) => ({

@@ -45,7 +45,7 @@ export default function ReadChapterPage({
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Навигация по главам
-  const currentChapterIndex = chapters.findIndex((ch) => ch.id === chapter.id);
+  const currentChapterIndex = chapters.findIndex((ch) => ch._id === chapter._id);
   const prevChapter =
     currentChapterIndex > 0 ? chapters[currentChapterIndex - 1] : null;
   const nextChapter =
@@ -55,7 +55,7 @@ export default function ReadChapterPage({
 
   // Сохранение прогресса
   const saveProgress = useCallback(
-    (chapterId: number, imageIndex: number) => {
+    (chapterId: string, imageIndex: number) => {
       if (typeof window !== "undefined") {
         const progress = {
           chapterId,
@@ -63,10 +63,10 @@ export default function ReadChapterPage({
           timestamp: Date.now(),
           totalImages: chapter.images.length,
         };
-        localStorage.setItem(`progress_${title.id}`, JSON.stringify(progress));
+        localStorage.setItem(`progress_${title._id}`, JSON.stringify(progress));
       }
     },
-    [title.id, chapter.images.length]
+    [title._id, chapter.images.length]
   );
 
 
@@ -75,18 +75,18 @@ export default function ReadChapterPage({
     if (currentImageIndex < chapter.images.length - 1) {
       setCurrentImageIndex((prev) => {
         const newIndex = prev + 1;
-        saveProgress(chapter.id, newIndex);
+        saveProgress(chapter._id, newIndex);
         return newIndex;
       });
     } else if (nextChapter && nextChapter._id) {
-      router.push(`/browse/${title.id}/chapter/${nextChapter._id}`);
+      router.push(`/browse/${title._id}/chapter/${nextChapter._id}`);
     }
   }, [
     currentImageIndex,
     chapter.images.length,
-    chapter.id,
+    chapter._id,
     nextChapter,
-    title.id,
+    title._id,
     router,
     saveProgress,
   ]);
@@ -95,17 +95,17 @@ export default function ReadChapterPage({
     if (currentImageIndex > 0) {
       setCurrentImageIndex((prev) => {
         const newIndex = prev - 1;
-        saveProgress(chapter.id, newIndex);
+        saveProgress(chapter._id, newIndex);
         return newIndex;
       });
     } else if (prevChapter && prevChapter._id) {
-      router.push(`/browse/${title.id}/chapter/${prevChapter._id}`);
+      router.push(`/browse/${title._id}/chapter/${prevChapter._id}`);
     }
   }, [
     currentImageIndex,
-    chapter.id,
+    chapter._id,
     prevChapter,
-    title.id,
+    title._id,
     router,
     saveProgress,
   ]);
@@ -239,10 +239,10 @@ export default function ReadChapterPage({
   // Обновление счетчиков просмотров при загрузке компонента
   useEffect(() => {
     let isCancelled = false;
-    
+
     const updateViews = async () => {
       // Проверяем, что запрос еще не был отправлен и есть необходимые данные
-      if (!viewsUpdated && title.id && chapter.id && chapter._id) {
+      if (!viewsUpdated && title._id && chapter._id) {
         // Передаем _id главы и текущее значение просмотров
         // Дополнительная проверка для удовлетворения TypeScript
         const chapterId = chapter._id;
@@ -267,11 +267,11 @@ export default function ReadChapterPage({
 
     const updateReadingHistory = async () => {
       // Добавляем запись в историю чтения
-      if (title.id && chapter.id && chapter._id) {
+      if (title._id && chapter._id) {
         try {
           // Дополнительная проверка для удовлетворения TypeScript
           if (chapter._id) {
-            const result = await addToReadingHistory(title.id.toString(), chapter._id.toString());
+            const result = await addToReadingHistory(title._id.toString(), chapter._id.toString());
             if (result.error) {
               console.error("Failed to add to reading history:", result.error);
             }
@@ -284,11 +284,11 @@ export default function ReadChapterPage({
 
     updateViews();
     updateReadingHistory();
-    
+
     return () => {
       isCancelled = true;
     };
-  }, [title.id, chapter.id, viewsUpdated]); // Добавляем viewsUpdated в зависимости
+  }, [title._id, chapter._id, viewsUpdated]); // Добавляем viewsUpdated в зависимости
 
   // Обработка ошибок загрузки изображений
   const handleImageError = (index: number) => {
@@ -322,7 +322,7 @@ export default function ReadChapterPage({
         showControls={showControls || isNearTop} // Всегда показываем хедер в верхней части
         onImageIndexChange={(newIndex) => {
           setCurrentImageIndex(newIndex);
-          saveProgress(chapter.id, newIndex);
+          saveProgress(chapter._id, newIndex);
         }}
         imagesCount={chapter.images.length}
       />

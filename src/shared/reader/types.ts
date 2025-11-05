@@ -1,6 +1,6 @@
 export interface ReaderChapter {
-  id: number; // stable numeric id for UI
   _id?: string; // original chapter ID from database
+  id?: number; // legacy numeric ID for compatibility
   number: number; // chapter number
   title: string;
   date: string | Date;
@@ -9,7 +9,8 @@ export interface ReaderChapter {
 }
 
 export interface ReaderTitle {
-  id: number; // for routes back to /browse/:id
+  _id: string;
+  id?: number; // legacy numeric ID for compatibility
   title: string;
   originalTitle?: string;
   type: string;
@@ -27,5 +28,3 @@ export interface ReaderTitle {
   chapters?: ReaderChapter[];
   alternativeTitles?: string[];
 }
-
-

@@ -26,7 +26,7 @@ function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormDa
 export const chaptersApi = createApi({
   reducerPath: "chaptersApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
   }),
   tagTypes: [CHAPTERS_TAG],
   endpoints: (builder) => ({
@@ -43,20 +43,20 @@ export const chaptersApi = createApi({
       providesTags: (result, error, { titleId }) => [{ type: CHAPTERS_TAG, id: `title-${titleId}` }],
       transformResponse: (response: Chapter[] | { data: Chapter[] }) => {
         if (Array.isArray(response)) return response;
-        return (response as any)?.data ?? [];
+        return (response as { data: Chapter[] })?.data ?? [];
       },
     }),
 
     searchChapters: builder.query<ChaptersResponse, { titleId?: string; page?: number; limit?: number; sortBy?: string; sortOrder?: "asc" | "desc" }>({
       query: (params) => ({ url: "/chapters", params }),
-      transformResponse: (response: any): ChaptersResponse => {
+      transformResponse: (response: unknown): ChaptersResponse => {
         // Normalize various possible server shapes
-        const chapters: Chapter[] = response?.chapters ?? response?.data ?? [];
-        const total: number = response?.pagination?.total ?? response?.total ?? chapters.length ?? 0;
-        const page: number = response?.pagination?.page ?? response?.page ?? 1;
-        const limit: number = response?.pagination?.limit ?? response?.limit ?? 50;
-        const totalPages: number = response?.pagination?.pages ?? response?.totalPages ?? Math.max(1, Math.ceil(total / (limit || 1)));
-        const hasMore: boolean = response?.pagination?.hasMore ?? page < totalPages;
+        const chapters: Chapter[] = (response as any)?.chapters ?? (response as any)?.data ?? [];
+        const total: number = (response as any)?.pagination?.total ?? (response as any)?.total ?? chapters.length ?? 0;
+        const page: number = (response as any)?.pagination?.page ?? (response as any)?.page ?? 1;
+        const limit: number = (response as any)?.pagination?.limit ?? (response as any)?.limit ?? 50;
+        const totalPages: number = (response as any)?.pagination?.pages ?? (response as any)?.totalPages ?? Math.max(1, Math.ceil(total / (limit || 1)));
+        const hasMore: boolean = (response as any)?.pagination?.hasMore ?? page < totalPages;
         return { chapters, total, page, limit, totalPages, hasMore };
       },
       providesTags: [CHAPTERS_TAG],
@@ -126,5 +126,3 @@ export const {
   useUpdateChapterMutation,
   useDeleteChapterMutation,
 } = chaptersApi;
-
-

@@ -8,7 +8,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/index";
 import { Title, Chapter } from "@/types/title";
 import { useParams } from "next/navigation";
-import { useIncrementViewsMutation } from "@/store/api/titlesApi";
+import { useIncrementViewsMutation, useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import {
   LeftSidebar,
   RightContent,
@@ -93,16 +94,17 @@ export default function TitleViewPage() {
   const titlesState = useSelector((state: RootState) => state.titles);
   const existingTitle = titlesState.titles?.find((t) => t._id === titleId);
 
-  const [titleData, setTitleData] = useState<Title | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // RTK Query hooks
+  const { data: titleData, isLoading: titleLoading, error: titleError } = useGetTitleByIdQuery(titleId);
+  const { data: chaptersData, isLoading: chaptersLoading } = useGetChaptersByTitleQuery({ titleId });
+
   const [incrementViews] = useIncrementViewsMutation();
 
   // Состояния для глав
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [chaptersPage, setChaptersPage] = useState(1);
   const [hasMoreChapters, setHasMoreChapters] = useState(true);
-  const [chaptersLoading, setChaptersLoading] = useState(false);
+  const [chaptersLoadingState, setChaptersLoadingState] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Состояния UI
@@ -112,60 +114,28 @@ export default function TitleViewPage() {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isAdmin, ] = useState(true);
 
+  // Обработка данных из RTK Query
+  const processedTitleData = titleData?.data || null;
+  const processedChaptersData = chaptersData || [];
+
+  const isLoading = titleLoading || chaptersLoading;
+  const error = titleError ? "Ошибка загрузки данных" : null;
+
   // Загрузка данных тайтла
   useEffect(() => {
-    const loadData = async () => {
-      if (!titleId) {
-        const errorMsg = "ID тайтла не указан";
-        console.error("❌", errorMsg);
-        setError(errorMsg);
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const loadedTitleData = existingTitle || (await loadTitleData(titleId));
-
-        if (loadedTitleData) {
-          const processedData = {
-            ...loadedTitleData,
-            ageLimit: Number(loadedTitleData.ageLimit) || 0,
-            releaseYear:
-              Number(loadedTitleData.releaseYear) || new Date().getFullYear(),
-            views: Number(loadedTitleData.views) || 0,
-            totalChapters: Number(loadedTitleData.totalChapters) || 0,
-            rating: Number(loadedTitleData.rating) || 0,
-          };
-          setTitleData(processedData);
-          // Увеличиваем счётчик просмотров
-          incrementViews(titleId);
-        } else {
-          const errorMsg = "Тайтл не найден";
-          console.error("❌", errorMsg);
-          setError(errorMsg);
-        }
-      } catch (err) {
-        const errorMsg = "Ошибка при загрузке данных тайтла";
-        console.error("❌ Error in loadData:", err);
-        setError(errorMsg);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
-  }, [titleId, existingTitle]);
+    if (processedTitleData) {
+      // Увеличиваем счётчик просмотров
+      incrementViews(titleId);
+    }
+  }, [processedTitleData, incrementViews, titleId]);
 
   // Загрузка глав
   const loadChapters = useCallback(
     (page: number, search: string = "", append: boolean = false) => {
-      if (chaptersLoading) return;
-      setChaptersLoading(true);
+      if (chaptersLoadingState) return;
+      setChaptersLoadingState(true);
       try {
-        const source = (titleData?.chapters as unknown as Chapter[]) || [];
+        const source = processedChaptersData;
         const result = filterAndPaginateChapters(source, page, 25, search);
 
         if (append) {
@@ -175,24 +145,24 @@ export default function TitleViewPage() {
         }
         setHasMoreChapters(result.hasMore);
       } finally {
-        setChaptersLoading(false);
+        setChaptersLoadingState(false);
       }
     },
-    [chaptersLoading, titleData]
+    [chaptersLoadingState, processedChaptersData]
   );
 
   // Первоначальная загрузка глав
   useEffect(() => {
-    if (activeTab === "chapters") {
+    if (activeTab === "chapters" && processedChaptersData.length > 0) {
       setChapters([]);
       setChaptersPage(1);
       loadChapters(1, searchQuery, false);
     }
-  }, [activeTab, searchQuery, loadChapters, titleData]);
+  }, [activeTab, searchQuery, loadChapters, processedChaptersData]);
 
   // Обработчики
   const handleLoadMoreChapters = () => {
-    if (hasMoreChapters && !chaptersLoading) {
+    if (hasMoreChapters && !chaptersLoadingState) {
       const nextPage = chaptersPage + 1;
       setChaptersPage(nextPage);
       loadChapters(nextPage, searchQuery, true);
@@ -213,8 +183,8 @@ export default function TitleViewPage() {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: titleData?.name,
-        text: titleData?.description,
+        title: processedTitleData?.name,
+        text: processedTitleData?.description,
         url: window.location.href,
       });
     } else {
@@ -225,7 +195,7 @@ export default function TitleViewPage() {
 
   // Состояния загрузки и ошибок
   if (isLoading) return <LoadingState />;
-  if (error || !titleData)
+  if (error || !processedTitleData)
     return <ErrorState error={error || "Тайтл не найден"} titleId={titleId} />;
 
   return (
@@ -235,7 +205,7 @@ export default function TitleViewPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="sm:col-span-1">
             <LeftSidebar
-              titleData={titleData}
+              titleData={processedTitleData}
               chapters={chapters}
               onBookmark={handleBookmark}
               onShare={handleShare}
@@ -248,7 +218,7 @@ export default function TitleViewPage() {
               <ContinueReadingButton />
             </div>
             <RightContent
-              titleData={titleData}
+              titleData={processedTitleData}
               activeTab={activeTab}
               onTabChange={setActiveTab}
               isDescriptionExpanded={isDescriptionExpanded}
@@ -257,7 +227,7 @@ export default function TitleViewPage() {
               }
               chapters={chapters}
               hasMoreChapters={hasMoreChapters}
-              chaptersLoading={chaptersLoading}
+              chaptersLoading={chaptersLoadingState}
               onLoadMoreChapters={handleLoadMoreChapters}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}

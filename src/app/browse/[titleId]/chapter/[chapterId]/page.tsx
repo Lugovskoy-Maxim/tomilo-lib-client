@@ -1,14 +1,16 @@
+'use client';
+
 import { ReadChapterPage } from '@/widgets';
-import * as React from 'react'
+import { useParams } from 'next/navigation';
 import { ReaderTitle as ReadTitle, ReaderChapter as ReadChapter } from '@/shared/reader/types';
+import { useGetTitleByIdQuery } from '@/store/api/titlesApi';
+import { useGetChaptersByTitleQuery } from '@/store/api/chaptersApi';
 import { Chapter } from '@/types/title';
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 function getApiOrigin(): string {
   const env = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   try {
     const u = new URL(env);
-    // strip trailing /api if present
     return u.pathname.endsWith('/api') ? `${u.origin}` : `${u.origin}${u.pathname}`.replace(/\/$/, '');
   } catch {
     return 'http://localhost:3001';
@@ -17,65 +19,65 @@ function getApiOrigin(): string {
 
 function normalizeAssetUrl(p: string): string {
   if (!p) return '';
-  // ensure leading slash
   let path = p.startsWith('/') ? p : `/${p}`;
-  // if server returned /browse/... assets, they actually live under /uploads/browse/...
   if (path.startsWith('/browse/')) {
     path = `/uploads${path}`;
   }
-  // already correct when starts with /uploads
   const origin = getApiOrigin();
   return `${origin}${path}`;
 }
 
-function toNumericId(id: string): number {
-  // simple stable numeric surrogate id from hex string
-  try {
-    const chunk = id.slice(-7);
-    return parseInt(chunk, 16) || 0;
-  } catch {
-    return 0;
-  }
-}
+export default function ChapterPage() {
+  const params = useParams();
+  const titleId = params.titleId as string;
+  const chapterId = params.chapterId as string;
 
-interface PageProps {
-  params: {
-    titleId: string;
-    chapterNumber: string;
-  };
-}
+  // Load title and chapters using RTK Query
+  const { data: titleData, isLoading: titleLoading, error: titleError } = useGetTitleByIdQuery(titleId);
+  const { data: chaptersData, isLoading: chaptersLoading, error: chaptersError } = useGetChaptersByTitleQuery({ titleId, sortOrder: "asc" });
 
-export default async function ChapterPage({ params }: PageProps) {
-  const { titleId, chapterNumber } = await params;
+  const isLoading = titleLoading || chaptersLoading;
+  const error = titleError || chaptersError;
 
-  // Load title with embedded chapters from API
-  const res = await fetch(`${API_BASE}/titles/${titleId}`, { cache: 'no-store' });
-  if (!res.ok) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">Глава не найдена</h1>
-          <p className="text-[var(--muted-foreground)]">Не удалось загрузить тайтл.</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+          <div className="text-[var(--foreground)]">Загрузка данных...</div>
         </div>
       </div>
     );
   }
 
-  const serverTitle = await res.json();
-  const base = getApiOrigin();
+  if (error || !titleData?.data || !chaptersData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">Глава не найдена</h1>
+          <p className="text-[var(--muted-foreground)]">Не удалось загрузить данные.</p>
+          <div className="mt-4 text-sm">
+            <p>Title ID: {titleId}</p>
+            <p>Chapter ID: {chapterId}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const mappedChapters: ReadChapter[] = (serverTitle.chapters || []).map((ch: Chapter) => ({
-    id: typeof ch.chapterNumber === 'number' ? ch.chapterNumber : toNumericId(ch._id || `${ch.chapterNumber}`),
-    _id: ch._id, // Добавляем _id главы
+  const serverTitle = titleData.data;
+
+  const mappedChapters: ReadChapter[] = chaptersData.map((ch: Chapter) => ({
+    _id: ch._id,
     number: Number(ch.chapterNumber) || 0,
-    title: ch.title || ch.name || '',
+    title: ch.title || '',
     date: ch.releaseDate || '',
     views: Number(ch.views) || 0,
-    images: (ch.pages || []).map((p) => normalizeAssetUrl(p)),
+    images: Array.isArray(ch.pages) ? ch.pages.map((p: string) => normalizeAssetUrl(p)) : [],
   }));
 
   const mappedTitle: ReadTitle = {
-    id: (serverTitle._id || titleId),
+    _id: serverTitle._id,
     title: serverTitle.name,
     originalTitle: serverTitle.altNames?.[0],
     type: serverTitle.type || 'Манга',
@@ -94,19 +96,10 @@ export default async function ChapterPage({ params }: PageProps) {
     alternativeTitles: serverTitle.altNames || [],
   };
 
-  console.log(mappedTitle)
-  // Select chapter by number or by id
-  const chapterIdOrNum = chapterNumber;
-  const numeric = Number(chapterIdOrNum);
-  const isNumeric = !Number.isNaN(numeric) && `${numeric}` === chapterIdOrNum;
-  const selected = isNumeric
-    ? mappedChapters.find((c) => c.number === numeric)
-    : mappedChapters.find((c, idx) => (serverTitle.chapters?.[idx]?._id || '') === chapterIdOrNum);
+  // Find chapter by _id
+  const chapter = mappedChapters.find((c) => c._id === chapterId);
 
-  const chapter = selected;
-  const chapters = mappedChapters;
-
-  if (!mappedTitle || !chapter) {
+  if (!chapter) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -116,6 +109,12 @@ export default async function ChapterPage({ params }: PageProps) {
           <p className="text-[var(--muted-foreground)]">
             Запрошенная глава не существует или была удалена.
           </p>
+          <div className="mt-4 text-sm">
+            <p>Title ID: {titleId}</p>
+            <p>Chapter ID: {chapterId}</p>
+            <p>Available chapters: {mappedChapters.length}</p>
+            <p>Available chapter IDs: {mappedChapters.map(c => c._id).join(', ')}</p>
+          </div>
         </div>
       </div>
     );
@@ -125,7 +124,7 @@ export default async function ChapterPage({ params }: PageProps) {
     <ReadChapterPage
       title={mappedTitle}
       chapter={chapter}
-      chapters={chapters}
+      chapters={mappedChapters}
     />
   );
 }

@@ -16,7 +16,7 @@ export default function NavigationFooter({ title, prevChapter, nextChapter }: Na
           <div className="flex-1">
             {prevChapter ? (
               <Link
-                href={`/browse/${title.id}/chapter/${prevChapter.number}`}
+                href={`/browse/${title._id}/chapter/${prevChapter._id || prevChapter.number}`}
                 className="flex items-center gap-2 text-[var(--foreground)] hover:text-[var(--primary)] transition-colors group"
               >
                 <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -35,7 +35,7 @@ export default function NavigationFooter({ title, prevChapter, nextChapter }: Na
 
           <div className="flex-1 flex justify-center">
             <Link
-              href={`/browse/${title.id}`}
+              href={`/browse/${title._id}`}
               className="flex items-center gap-2 text-[var(--foreground)] hover:text-[var(--primary)] transition-colors px-4 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)]"
             >
               <Home className="w-4 h-4" />
@@ -46,7 +46,7 @@ export default function NavigationFooter({ title, prevChapter, nextChapter }: Na
           <div className="flex-1 flex justify-end">
             {nextChapter ? (
               <Link
-                href={`/browse/${title.id}/chapter/${nextChapter.number}`}
+                href={`/browse/${title._id}/chapter/${nextChapter._id || nextChapter.number}`}
                 className="flex items-center gap-2 text-[var(--foreground)] hover:text-[var(--primary)] transition-colors group ml-auto"
               >
                 <div className="text-right">
@@ -57,7 +57,7 @@ export default function NavigationFooter({ title, prevChapter, nextChapter }: Na
               </Link>
             ) : (
               <Link
-                href={`/browse/${title.id}`}
+                href={`/browse/${title._id}`}
                 className="flex items-center gap-2 text-[var(--foreground)] hover:text-[var(--primary)] transition-colors group ml-auto"
               >
                 <div className="text-right">
