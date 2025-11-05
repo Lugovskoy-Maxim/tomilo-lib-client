@@ -21,15 +21,15 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
-    const titles = Array.isArray(data?.titles) ? data.titles : (data?.data || []);
+    const titles = Array.isArray(data?.data) ? data.data : (Array.isArray(data?.titles) ? data.titles : (Array.isArray(data) ? data : []));
 
     const results = titles.map((t: { _id?: string; id?: string; name?: string; title?: string; coverImage?: string; image?: string; description?: string; type?: string; releaseYear?: number; year?: number; rating?: number }) => ({
       id: String(t._id ?? t.id ?? ""),
       title: String(t.name ?? t.title ?? ""),
-      image: t.coverImage ?? t.image ?? undefined,
+      cover: t.coverImage ?? t.image ?? undefined,
       description: t.description ?? undefined,
       type: t.type ?? undefined,
-      year: t.releaseYear ?? t.year ?? undefined,
+      releaseYear: t.releaseYear ?? t.year ?? undefined,
       rating: t.rating ?? undefined,
     })).filter((r: { id: string; title: string }) => r.id && r.title);
 

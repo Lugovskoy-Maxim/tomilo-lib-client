@@ -135,11 +135,11 @@ const adaptCollectionToCollectionCard = (
 
 const adaptReadingProgressToReadingCard = (
   progress: ReadingProgress,
-  titleData: Title | null,
+  titleData: Title | null, 
   index: number
 ): ReadingCardData => ({
   id: progress.titleId || `progress-${index}`,
-  title: titleData?.name || `Манга #${progress.titleId.slice(-6)}`,
+  title: titleData?.name || `Манга #${progress.titleId}`,
   cover: titleData?.coverImage || "",
   currentChapter: progress.chapterNumber,
   totalChapters: titleData?.chapters?.length || 0,
@@ -255,13 +255,13 @@ function useApiData<T>(endpoint: string) {
 // Компоненты скелетонов
 function CarouselSkeleton() {
   return (
-    <div className="carousel-skeleton animate-pulse">
-      <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
-      <div className="flex gap-4 overflow-hidden">
+    <div className="carousel-skeleton animate-pulse" suppressHydrationWarning>
+      <div className="h-8 bg-gray-200 rounded w-48 mb-4" suppressHydrationWarning></div>
+      <div className="flex gap-4 overflow-hidden" suppressHydrationWarning>
         {[...Array(6)].map((_, i) => (
-          <div key={`carousel-skeleton-${i}`} className="flex-shrink-0">
-            <div className="w-30 h-40 bg-gray-200 rounded-lg mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-24"></div>
+          <div key={`carousel-skeleton-${i}`} className="flex-shrink-0" suppressHydrationWarning>
+            <div className="w-30 h-40 bg-gray-200 rounded-lg mb-2" suppressHydrationWarning></div>
+            <div className="h-4 bg-gray-200 rounded w-24" suppressHydrationWarning></div>
           </div>
         ))}
       </div>
@@ -271,12 +271,12 @@ function CarouselSkeleton() {
 
 function GridSkeleton() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-pulse">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-pulse" suppressHydrationWarning>
       {[...Array(12)].map((_, i) => (
-        <div key={`grid-skeleton-${i}`}>
-          <div className="w-full h-48 bg-gray-200 rounded-lg mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+        <div key={`grid-skeleton-${i}`} suppressHydrationWarning>
+          <div className="w-full h-48 bg-gray-200 rounded-lg mb-2" suppressHydrationWarning></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" suppressHydrationWarning></div>
+          <div className="h-3 bg-gray-200 rounded w-1/2" suppressHydrationWarning></div>
         </div>
       ))}
     </div>
@@ -290,9 +290,10 @@ function renderCarousel<T>(
   cardComponent: ComponentType<{ data: T }>,
   props: Omit<CarouselProps<T>, "title" | "data" | "cardComponent">,
   isLoading: boolean,
-  error: string | null
+  error: string | null,
+  mounted: boolean
 ): React.ReactNode {
-  if (isLoading) return <CarouselSkeleton />;
+  if (!mounted || isLoading) return <CarouselSkeleton />;
   if (error) {
     console.error(`Ошибка загрузки ${title}:`, error);
     return null;
@@ -311,20 +312,26 @@ function renderCarousel<T>(
 
 // Главный компонент
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
   const {
     data: popularTitlesData,
     isLoading: popularTitlesLoading,
     error: popularTitlesError,
   } = useGetPopularTitlesQuery();
+  const popularTitlesErrorMessage = popularTitlesError?.message || null;
   const collections = useApiData<Collection>("/collections");
-  const { continueReading, continueReadingLoading, continueReadingError } =
-    useAuth();
+  const { continueReading, continueReadingLoading, continueReadingError } = useAuth();
+  const continueReadingArray = continueReading ? [continueReading] : [];
   const latestUpdates = useApiData<LatestUpdate>("/titles/latest-updates");
   const [fullTitlesData, setFullTitlesData] = useState<Record<string, Title>>(
     {}
   );
   const [titleData, setTitleData] = useState<Record<string, Title>>({});
   const [errorItems, setErrorItems] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     pageTitle.setTitlePage("Tomilo-lib.ru - Платформа манги и комиксов");
@@ -381,10 +388,10 @@ export default function Home() {
 
   // Получаем данные о манге для каждого тайтла из истории чтения
   useEffect(() => {
-    if (!continueReading || continueReading.length === 0) return;
+    if (!continueReadingArray || continueReadingArray.length === 0) return;
 
     // Получаем все тайтлы из истории чтения
-    const lastTitles = continueReading;
+    const lastTitles = continueReadingArray;
 
     lastTitles.forEach((item) => {
       if (!titleData[item.titleId] && !errorItems[item.titleId]) {
@@ -468,7 +475,7 @@ export default function Home() {
     adaptCollectionToCollectionCard(collection, index)
   );
   const adaptedReadingProgress =
-    continueReading?.map((progress, index) =>
+    continueReadingArray?.map((progress, index) =>
       adaptReadingProgressToReadingCard(
         progress,
         titleData[progress.titleId] || null,
@@ -478,6 +485,21 @@ export default function Home() {
   const adaptedLatestUpdates = latestUpdates.data.map((update, index) =>
     adaptLatestUpdateToLatestUpdateCard(update, index)
   );
+
+  if (!mounted) {
+    return (
+      <>
+        <Header />
+        <main className="flex flex-col items-center justify-center gap-6">
+          <CarouselSkeleton />
+          <CarouselSkeleton />
+          <CarouselSkeleton />
+          <GridSkeleton />
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -495,7 +517,8 @@ export default function Home() {
             cardWidth: "w-30 sm:w-30 md:w-35 lg:w-40",
           },
           popularTitlesLoading,
-          popularTitlesError
+          popularTitlesErrorMessage,
+          mounted
         )}
 
         {/* Коллекции */}
@@ -514,7 +537,8 @@ export default function Home() {
             navigationIcon: <SquareArrowOutUpRight className="w-6 h-6" />,
           },
           collections.loading,
-          collections.error
+          collections.error,
+          mounted
         )}
 
         {/* Продолжить чтение */}
@@ -533,11 +557,12 @@ export default function Home() {
             cardWidth: "w-68 sm:w-72 md:w-80 lg:w-96",
           },
           continueReadingLoading,
-          continueReadingError
+          continueReadingError?.message || null,
+          mounted
         )}
 
         {/* Последние обновления */}
-        {latestUpdates.loading ? (
+        {!mounted || latestUpdates.loading ? (
           <GridSkeleton />
         ) : latestUpdates.error ? null : adaptedLatestUpdates.length > 0 ? (
           <GridSection

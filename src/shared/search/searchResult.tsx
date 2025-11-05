@@ -61,7 +61,7 @@ export default function SearchResults({
     );
   }
 
-  if (results.length === 0 && normalizedSearchTerm) {
+  if (!Array.isArray(results) || (results.length === 0 && normalizedSearchTerm)) {
     return (
       <Container>
         <div className="text-sm text-muted-foreground text-center">
@@ -78,7 +78,7 @@ export default function SearchResults({
           <Link
             key={result.id}
             href={`/browse/${result.id}`}
-            className="block px-4 py-3 hover:bg-accent hover:text-accent-foreground 
+            className="block px-4 py-3 hover:bg-accent hover:text-accent-foreground
                         transition-colors border-b border-border last:border-b-0"
             onClick={() => {
               // Опционально: логика закрытия попапа после выбора
@@ -94,7 +94,7 @@ export default function SearchResults({
                     width={48}
                     height={64}
                     className="object-cover rounded"
-                    
+
                   />
                 </div>
               )}

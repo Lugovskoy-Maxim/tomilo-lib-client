@@ -18,12 +18,13 @@ export async function searchApi(term: string, signal?: AbortSignal): Promise<Sea
 
   try {
     const response = await fetch(`${baseUrl}/search?q=${encodeURIComponent(term)}`, { signal });
-    
+
     if (!response.ok) {
       throw new Error(`Ошибка поиска: ${response.status}`);
     }
-    
-    const results = await response.json();
+
+    const data = await response.json();
+    const results = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
     return results as SearchResult[];
   } catch (error) {
     console.error('Ошибка при выполнении поиска:', error);
