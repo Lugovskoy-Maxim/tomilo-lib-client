@@ -10,8 +10,12 @@ interface ReadButtonProps {
   chapters: Chapter[];
 }
 
-export function ReadButton({ titleData, className, chapters }: ReadButtonProps) {
-  const { user, continueReading, continueReadingLoading, continueReadingError } = useAuth() as {
+export function ReadButton({
+  titleData,
+  className,
+  chapters,
+}: ReadButtonProps) {
+  const { user, continueReadingLoading } = useAuth() as {
     user: {
       readingHistory?: {
         titleId: string;
@@ -30,18 +34,31 @@ export function ReadButton({ titleData, className, chapters }: ReadButtonProps) 
   // Находим следующую главу для чтения
   const getNextChapter = () => {
     // Если есть продолжение чтения и оно относится к текущему тайтлу
-    const readingHistoryItem = user?.readingHistory?.find(item => item.titleId === titleData._id);
-    if (readingHistoryItem && readingHistoryItem.chapters && readingHistoryItem.chapters.length > 0) {
+    const readingHistoryItem = user?.readingHistory?.find(
+      (item) => item.titleId === titleData._id
+    );
+    if (
+      readingHistoryItem &&
+      readingHistoryItem.chapters &&
+      readingHistoryItem.chapters.length > 0
+    ) {
       // Получаем последнюю прочитанную главу
-      const lastReadChapter = readingHistoryItem.chapters[readingHistoryItem.chapters.length - 1];
+      const lastReadChapter =
+        readingHistoryItem.chapters[readingHistoryItem.chapters.length - 1];
       // Находим главу по chapterId
-      const currentChapter = chapters.find(ch => ch._id === lastReadChapter.chapterId);
+      const currentChapter = chapters.find(
+        (ch) => ch._id === lastReadChapter.chapterId
+      );
       if (currentChapter) {
         // Ищем следующую главу по номеру
-        const nextChapters = chapters.filter(ch => ch.chapterNumber > currentChapter.chapterNumber);
+        const nextChapters = chapters.filter(
+          (ch) => ch.chapterNumber > currentChapter.chapterNumber
+        );
         if (nextChapters.length > 0) {
           // Сортируем по номеру и берем первую
-          const sortedNextChapters = nextChapters.sort((a, b) => a.chapterNumber - b.chapterNumber);
+          const sortedNextChapters = nextChapters.sort(
+            (a, b) => a.chapterNumber - b.chapterNumber
+          );
           return sortedNextChapters[0];
         }
         // Если следующих глав нет, возвращаем текущую
@@ -50,7 +67,9 @@ export function ReadButton({ titleData, className, chapters }: ReadButtonProps) 
     }
     // Если нет продолжения чтения, возвращаем первую главу
     if (chapters && chapters.length > 0) {
-      const sortedChapters = [...chapters].sort((a, b) => a.chapterNumber - b.chapterNumber);
+      const sortedChapters = [...chapters].sort(
+        (a, b) => a.chapterNumber - b.chapterNumber
+      );
       return sortedChapters[0];
     }
     return null;
@@ -82,8 +101,14 @@ export function ReadButton({ titleData, className, chapters }: ReadButtonProps) 
   let showIcon = true;
 
   // Если есть продолжение чтения для этого тайтла
-  const readingHistoryItem = user?.readingHistory?.find(item => item.titleId === titleData._id);
-  if (readingHistoryItem && readingHistoryItem.chapters && readingHistoryItem.chapters.length > 0) {
+  const readingHistoryItem = user?.readingHistory?.find(
+    (item) => item.titleId === titleData._id
+  );
+  if (
+    readingHistoryItem &&
+    readingHistoryItem.chapters &&
+    readingHistoryItem.chapters.length > 0
+  ) {
     if (nextChapter) {
       buttonText = `Продолжить с главы ${nextChapter.chapterNumber}`;
     } else {
@@ -98,7 +123,7 @@ export function ReadButton({ titleData, className, chapters }: ReadButtonProps) 
   return (
     <Button
       variant="primary"
-      className={`w-full justify-center ${className}`}
+      className={`w-full cursor-pointer hover:bg-[var(--accent)]/80] justify-center bg-[var(--accent)] text-[var(--foreground)] ${className}`}
       onClick={handleClick}
       disabled={isDisabled}
     >

@@ -21,12 +21,17 @@ function BookmarksSection({
 
   // Получаем данные о манге для каждой закладки
   useEffect(() => {
+    const token = localStorage.getItem('tomilo_lib_token');
     currentBookmarks.forEach((bookmarkId: string) => {
       if (!titleData[bookmarkId] && !errorBookmarks[bookmarkId]) {
         // Здесь мы не можем использовать useGetTitleByIdQuery напрямую,
         // так как это хук и мы не можем вызывать его внутри цикла
         // Вместо этого мы можем использовать fetch напрямую, но с учетом нового формата ответа API
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/titles/${bookmarkId}`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/titles/${bookmarkId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
           .then(response => response.json())
           .then((response: { success: boolean; data?: Title } | Title) => {
             // Проверяем, есть ли у ответа обертка ApiResponseDto

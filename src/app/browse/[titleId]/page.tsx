@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/index";
-import { Title, Chapter } from "@/types/title";
+import {  Chapter } from "@/types/title";
 import { useParams } from "next/navigation";
 import { useIncrementViewsMutation, useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
@@ -16,10 +16,6 @@ import {
 } from "@/shared/browse/title-view";
 import { ContinueReadingButton } from "@/shared/continue-reading-button";
 
-// Конфигурация API
-const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-};
 
 // Клиентская фильтрация и пагинация глав из titleData
 function filterAndPaginateChapters(
@@ -180,7 +176,7 @@ export default function TitleViewPage() {
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4">
           <div className="sm:col-span-1">
             <LeftSidebar
               titleData={processedTitleData}
@@ -191,10 +187,7 @@ export default function TitleViewPage() {
             />
           </div>
 
-          <div className="sm:col-span-3">
-            <div className="mb-4">
-              <ContinueReadingButton />
-            </div>
+          <div className="sm:col-span-3 ">
             <RightContent
               titleData={processedTitleData}
               activeTab={activeTab}

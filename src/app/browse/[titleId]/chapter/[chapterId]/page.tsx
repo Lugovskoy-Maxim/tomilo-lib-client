@@ -19,9 +19,13 @@ function getApiOrigin(): string {
 
 function normalizeAssetUrl(p: string): string {
   if (!p) return '';
+  if (p.startsWith('http')) {
+    // If it's a full URL, replace /api/browse/ with /uploads/browse/
+    return p.replace('/api/browse/', '/uploads/browse/');
+  }
   let path = p.startsWith('/') ? p : `/${p}`;
-  if (path.startsWith('/browse/')) {
-    path = `/uploads${path}`;
+  if (path.includes('/api/browse/')) {
+    path = path.replace('/api/browse/', '/uploads/browse/');
   }
   const origin = getApiOrigin();
   return `${origin}${path}`;

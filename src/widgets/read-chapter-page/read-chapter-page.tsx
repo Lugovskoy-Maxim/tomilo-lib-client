@@ -1,155 +1,173 @@
 "use client";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
-import {
-  NavigationHeader,
-  SinglePageView,
-  ContinuousScrollView,
-  NavigationFooter,
-  ControlsPanel,
-} from "@/shared";
+
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { useAuth } from "@/hooks/useAuth";
+import { Chapter, ReaderTitle, Title } from "@/types/title";
+import { ApiResponse } from "@/types/api";
+import { ReaderChapter } from "@/types/chapter";
 
-interface ReadChapterPageProps {
-  title: Title;
-  chapter: Chapter;
-  chapters: Chapter[];
-}
+// Вспомогательная функция нормализации URL
+const normalizeAssetUrl = (url: string): string => {
+  if (!url) return "";
+  if (url.startsWith("http")) {
+    return url.replace("/api/browse/", "/uploads/browse/");
+  }
+  let path = url.startsWith("/") ? url : `/${url}`;
 
-export default function ReadChapterPage({
-  title,
-  chapter,
-  chapters,
-}: ReadChapterPageProps) {
-  const { updateChapterViews, addToReadingHistory } = useAuth();
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  if (url.includes("uploads")) {
+    path = path.replace("/uploads/", "/");
+  }
+  if (path.includes("/api/browse/")) {
+    path = path.replace("/api/browse/", "/uploads/browse/");
+  }
+  const origin =
+    process.env.NEXT_PUBLIC_UPLOADS_URL || "http://localhost:3001/uploads";
+  return `${origin}${path}`;
+};
+
+export default function ChapterReader() {
+  const params = useParams();
+  const router = useRouter();
+  const { user, updateChapterViews, addToReadingHistory } = useAuth();
+
+  const titleId = params.titleId as string;
+  const chapterId = params.chapterId as string;
+
+  // Загрузка данных с правильной типизацией
+  const { data: titleData, isLoading: titleLoading } =
+    useGetTitleByIdQuery(titleId);
+  const { data: chaptersData, isLoading: chaptersLoading } =
+    useGetChaptersByTitleQuery({
+      titleId,
+      sortOrder: "asc",
+    });
+
+  // Типизированные данные
+  const typedTitleData = titleData as ApiResponse<Title> | undefined;
+  const typedChaptersData = chaptersData as Chapter[] | undefined;
+
+  // Мемоизация преобразованных данных
+  const chapters = useMemo((): ReaderChapter[] => {
+    if (!typedChaptersData) return [];
+    return typedChaptersData.map((ch: Chapter) => ({
+      _id: ch._id,
+      number: Number(ch.chapterNumber) || 0,
+      title: ch.name || "",
+      date: ch.releaseDate || "",
+      views: Number(ch.views) || 0,
+      images: Array.isArray(ch.pages) ? ch.pages.map(normalizeAssetUrl) : [],
+    }));
+  }, [typedChaptersData]);
+
+  const title = useMemo((): ReaderTitle | null => {
+    if (!typedTitleData?.data) return null;
+    const data = typedTitleData.data;
+    return {
+      _id: data._id,
+      title: data.name,
+      originalTitle: data.altNames?.[0] || "",
+      type: data.type || "Неизвестно",
+      year: Number(data.releaseYear) || new Date().getFullYear(),
+      rating: Number(data.rating) || 0,
+      image: normalizeAssetUrl(data.coverImage || ""),
+      genres: data.genres || [],
+      description: data.description || "",
+      status: data.status || "ongoing",
+      author: data.author || "",
+      artist: data.artist || "",
+      totalChapters: Number(data.totalChapters) || 0,
+      views: Number(data.views) || 0,
+      lastUpdate: data.updatedAt || "",
+      chapters: [],
+      alternativeTitles: data.altNames || [],
+    };
+  }, [typedTitleData]);
+
+  // Находим текущую главу и её индекс
+  const { currentChapter, currentChapterIndex } = useMemo(() => {
+    const foundChapter =
+      chapters.find((ch) => ch._id === chapterId) || chapters[0];
+    const foundIndex = chapters.findIndex((ch) => ch._id === chapterId);
+    return {
+      currentChapter: foundChapter,
+      currentChapterIndex: foundIndex !== -1 ? foundIndex : 0,
+    };
+  }, [chapters, chapterId]);
+
+  // Состояния
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(
     new Set()
   );
-  const viewsUpdatedRef = useRef(false); // Ref для отслеживания обновления просмотров
-  const readingHistoryAddedRef = useRef(false); // Ref для отслеживания добавления в историю чтения
-  const [readingMode, setReadingMode] = useState<"single" | "continuous">(
-    "continuous"
-  );
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showControls, setShowControls] = useState(false);
-  const [imageWidth, setImageWidth] = useState<"auto" | "fit" | "original">(
-    "auto"
-  );
-  const [isNearBottom, setIsNearBottom] = useState(false);
-  const [isNearTop, setIsNearTop] = useState(false);
 
-  const router = useRouter();
+  // Refs для предотвращения повторных вызовов
   const containerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const historyAddedRef = useRef<Set<string>>(new Set());
+  const viewsUpdatedRef = useRef<Set<string>>(new Set());
 
-  // Навигация по главам
-  const currentChapterIndex = chapters.findIndex((ch) => ch._id === chapter._id);
-  const prevChapter =
-    currentChapterIndex > 0 ? chapters[currentChapterIndex - 1] : null;
-  const nextChapter =
-    currentChapterIndex < chapters.length - 1
-      ? chapters[currentChapterIndex + 1]
-      : null;
-
-  // Сохранение прогресса
-  const saveProgress = useCallback(
-    (chapterId: string, imageIndex: number) => {
-      if (typeof window !== "undefined") {
-        const progress = {
-          chapterId,
-          imageIndex,
-          timestamp: Date.now(),
-          totalImages: chapter.images.length,
-        };
-        localStorage.setItem(`progress_${title._id || ''}`, JSON.stringify(progress));
-      }
-    },
-    [title._id, chapter.images.length]
-  );
-
-
-   // Навигация по изображениям
-  const goToNextImage = useCallback(() => {
-    if (currentImageIndex < chapter.images.length - 1) {
-      setCurrentImageIndex((prev) => {
-        const newIndex = prev + 1;
-        saveProgress(chapter._id, newIndex);
-        return newIndex;
-      });
-    } else if (nextChapter && nextChapter._id) {
-      router.push(`/browse/${title._id}/chapter/${nextChapter._id}`);
-    }
-  }, [
-    currentImageIndex,
-    chapter.images.length,
-    chapter._id,
-    nextChapter,
-    title._id,
-    router,
-    saveProgress,
-  ]);
-
-  const goToPrevImage = useCallback(() => {
-    if (currentImageIndex > 0) {
-      setCurrentImageIndex((prev) => {
-        const newIndex = prev - 1;
-        saveProgress(chapter._id, newIndex);
-        return newIndex;
-      });
-    } else if (prevChapter && prevChapter._id) {
-      router.push(`/browse/${title._id || ''}/chapter/${prevChapter._id || ''}`);
-    }
-  }, [
-    currentImageIndex,
-    chapter._id,
-    prevChapter,
-    title._id,
-    router,
-    saveProgress,
-  ]);
-
-  // Обработчики клавиатуры
+  // Обновление просмотров и истории чтения (без бесконечного цикла)
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case "ArrowRight":
-        case " ":
-          e.preventDefault();
-          goToNextImage();
-          break;
-        case "ArrowLeft":
-          e.preventDefault();
-          goToPrevImage();
-          break;
-        case "f":
-        case "F":
-          e.preventDefault();
-          setIsFullscreen((prev) => !prev);
-          break;
-        case "Escape":
-          setIsFullscreen(false);
-          break;
-      }
-    };
+    if (!currentChapter?._id || !title?._id) return;
 
-    document.addEventListener("keydown", handleKeyPress);
-    return () => document.removeEventListener("keydown", handleKeyPress);
-  }, [goToNextImage, goToPrevImage]);
+    const chapterKey = `${title._id}-${currentChapter._id}`;
 
-  // Полноэкранный режим
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
+    // Обновляем просмотры только один раз
+    if (!viewsUpdatedRef.current.has(chapterKey)) {
+      updateChapterViews(currentChapter._id, currentChapter.views)
+        .then(() => {
+          viewsUpdatedRef.current.add(chapterKey);
+        })
+        .catch(console.error);
+    }
 
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () =>
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    // Добавляем в историю чтения только один раз
+    if (!historyAddedRef.current.has(chapterKey)) {
+      addToReadingHistory(title._id.toString(), currentChapter._id.toString())
+        .then(() => {
+          historyAddedRef.current.add(chapterKey);
+        })
+        .catch(console.error);
+    }
+  }, [currentChapter, title, updateChapterViews, addToReadingHistory]);
+
+  // Обработчик ошибок загрузки изображений
+  const handleImageError = useCallback((imageIndex: number) => {
+    setImageLoadErrors((prev) => new Set(prev).add(imageIndex));
   }, []);
 
+  // Навигация по клавиатуре
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case "ArrowLeft":
+          if (currentChapterIndex > 0) {
+            const prevChapter = chapters[currentChapterIndex - 1];
+            router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
+          }
+          break;
+        case "ArrowRight":
+          if (currentChapterIndex < chapters.length - 1) {
+            const nextChapter = chapters[currentChapterIndex + 1];
+            router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
+          }
+          break;
+        case "Escape":
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          }
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [currentChapterIndex, chapters, titleId, router]);
+
+  // Полноэкранный режим
   const toggleFullscreen = async () => {
     if (!containerRef.current) return;
 
@@ -162,221 +180,285 @@ export default function ReadChapterPage({
     }
   };
 
-  // Управление контролами
-  const showControlsTemporarily = useCallback(() => {
-    setShowControls(true);
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
-    }
-    controlsTimeoutRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, 3000);
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      const isMouseNearTop = e.clientY < 100; // Верхняя зона 100px
-      const isMouseNearBottom = e.clientY > window.innerHeight - 150; // Нижняя зона 150px
+  const loading = titleLoading || chaptersLoading || !currentChapter;
 
-      // Показываем контролы если мышь в верхней или нижней зоне
-      if ((isMouseNearTop || isMouseNearBottom) && !isNearBottom) {
-        showControlsTemporarily();
-      }
-    },
-    [showControlsTemporarily, isNearBottom]
-  );
-
-  const handleClick = useCallback(() => {
-    showControlsTemporarily();
-  }, [showControlsTemporarily]);
-
-  // Определение близости к верхней и нижней части страницы
-  useEffect(() => {
-    const checkScrollPosition = () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const scrollHeight = document.documentElement.scrollHeight;
-      const clientHeight = window.innerHeight;
-
-      // Считаем, что мы внизу, если до конца страницы меньше 300px
-      const atBottom = scrollHeight - scrollTop - clientHeight < 300;
-      setIsNearBottom(atBottom);
-
-      // Считаем, что мы вверху, если прокрутка меньше 100px
-      const atTop = scrollTop < 100;
-      setIsNearTop(atTop);
-    };
-
-    window.addEventListener("scroll", checkScrollPosition);
-    checkScrollPosition();
-
-    return () => window.removeEventListener("scroll", checkScrollPosition);
-  }, []);
-
-  // Автоматически скрываем контролы при приближении к нижней части
-  useEffect(() => {
-    if (isNearBottom) {
-      setShowControls(false);
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current);
-      }
-    }
-  }, [isNearBottom]);
-
-  // Автоматически показываем контролы при приближении к верхней части
-  useEffect(() => {
-    if (isNearTop) {
-      showControlsTemporarily();
-    }
-  }, [isNearTop, showControlsTemporarily]);
-
-  useEffect(() => {
-    return () => {
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Обновление счетчиков просмотров при загрузке компонента
-  useEffect(() => {
-    let isCancelled = false;
-
-    const updateViews = async () => {
-      // Проверяем, что запрос еще не был отправлен и есть необходимые данные
-      if (!viewsUpdatedRef.current && title._id && chapter._id) {
-        // Передаем _id главы и текущее значение просмотров
-        // Дополнительная проверка для удовлетворения TypeScript
-        const chapterId = chapter._id;
-        if (chapterId) {
-          try {
-            const result = await updateChapterViews(chapterId, chapter.views);
-            if (result.error) {
-              console.error("Failed to update chapter views:", result.error);
-              // Не повторяем запрос при ошибке
-              return;
-            }
-            // Устанавливаем флаг, что запрос был отправлен
-            viewsUpdatedRef.current = true;
-          } catch (error) {
-            console.error("Error updating chapter views:", error);
-            // Не повторяем запрос при ошибке
-            return;
-          }
-        }
-      }
-    };
-
-    const updateReadingHistory = async () => {
-      // Добавляем запись в историю чтения только один раз
-      if (!readingHistoryAddedRef.current && title._id && chapter._id) {
-        try {
-          // Дополнительная проверка для удовлетворения TypeScript
-          if (chapter._id) {
-            await addToReadingHistory(title._id.toString(), chapter._id.toString());
-            readingHistoryAddedRef.current = true; // Устанавливаем флаг после успешного добавления
-          }
-        } catch (error) {
-          console.error("Error adding to reading history:", error);
-        }
-      }
-    };
-
-    updateViews();
-    updateReadingHistory();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [title._id, chapter._id]); // Убираем зависимости от refs, так как они не должны вызывать повторные рендеры
-
-  // Обработка ошибок загрузки изображений
-  const handleImageError = (index: number) => {
-    const imageUrl = chapter.images?.[index] || 'undefined';
-    console.error(`Error loading image ${index}:`, imageUrl);
-    setImageLoadErrors((prev) => new Set(prev).add(index));
-  };
-
-  const handleImageLoad = () => {
-    setIsLoading(false);
-  };
-
-  // Если данные не загружены
-  if (!chapter || !chapter.images) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-          <div className="text-[var(--foreground)]">Загрузка данных...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-white">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!title || !currentChapter) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">
+            Глава не найдена
+          </h1>
+          <p className="text-gray-400">
+            Попробуйте обновить страницу или выбрать другую главу
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] flex flex-col">
-      <NavigationHeader
-        title={title}
-        chapter={chapter}
-        currentImageIndex={currentImageIndex}
-        showControls={showControls || isNearTop} // Всегда показываем хедер в верхней части
-        onImageIndexChange={(newIndex) => {
-          setCurrentImageIndex(newIndex);
-          saveProgress(chapter._id || '', newIndex);
-        }}
-        imagesCount={chapter.images.length}
-      />
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* Хедер */}
+      <header className="fixed top-0 left-0 right-0 bg-gray-800/90 backdrop-blur-sm z-50 border-b border-gray-700">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.push(`/browse/${titleId}`)}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                ← Назад
+              </button>
 
-      <main
-        className="flex-1 overflow-auto"
-        ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onClick={handleClick}
-      >
-        {readingMode === "single" ? (
-          <SinglePageView
-            chapter={chapter}
-            currentImageIndex={currentImageIndex}
-            imageWidth={imageWidth}
-            imageLoadErrors={imageLoadErrors}
-            prevChapter={prevChapter}
-            nextChapter={nextChapter}
-            title={title}
-            onPrevImage={goToPrevImage}
-            onNextImage={goToNextImage}
-            onImageError={handleImageError}
-            onImageLoad={handleImageLoa 
-          />
-        ) : (
-          <ContinuousScrollView
-            chapter={chapter}
-            imageWidth={imageWidth}
-            imageLoadErrors={imageLoadErrors}
-            onImageError={handleImageError}
-            onImageLoad={handleImageLoad}
-          />
-        )}
+              {/* Изображение тайтла */}
+              {title.image && (
+                <div className="relative w-10 h-12 flex-shrink-0">
+                  <Image
+                    src={title.image}
+                    alt={title.title}
+                    fill
+                    className="object-cover rounded-md"
+                  />
+                </div>
+              )}
+
+              <div className="min-w-0 flex-1">
+                <h1
+                  className="font-semibold text-lg truncate"
+                  title={title.title}
+                >
+                  {title.title}
+                </h1>
+                <p className="text-gray-400 text-sm truncate">
+                  Глава {currentChapter.number}{" "}
+                  {currentChapter.title && `- ${currentChapter.title}`}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={toggleFullscreen}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                title={
+                  isFullscreen
+                    ? "Выйти из полноэкранного режима"
+                    : "Полноэкранный режим"
+                }
+              >
+                {isFullscreen ? "⤵️" : "⤴️"}
+              </button>
+
+              <select
+                value={currentChapter._id}
+                onChange={(e) =>
+                  router.push(`/browse/${titleId}/chapter/${e.target.value}`)
+                }
+                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+              >
+                {chapters.map((chapter) => (
+                  <option key={chapter._id} value={chapter._id}>
+                    Глава {chapter.number}{" "}
+                    {chapter.title && `- ${chapter.title}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Основной контент */}
+      <main ref={containerRef} className="pt-16 pb-8">
+        {/* Навигация в начале главы */}
+        <div className="flex justify-between items-center p-6 container mx-auto">
+          {currentChapterIndex > 0 ? (
+            <button
+              onClick={() => {
+                const prevChapter = chapters[currentChapterIndex - 1];
+                router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
+              }}
+              className="flex items-center space-x-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <span>←</span>
+              <div className="text-left">
+                <div className="text-sm text-gray-400">Предыдущая</div>
+                <div className="font-semibold">
+                  Глава {chapters[currentChapterIndex - 1].number}
+                </div>
+              </div>
+            </button>
+          ) : (
+            <div></div>
+          )}
+
+          <div className="flex items-center space-x-4">
+            {/* Кнопка возврата к тайтлу */}
+            <button
+              onClick={() => router.push(`/browse/${titleId}`)}
+              className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+            >
+              <span>📚</span>
+              <div className="text-center">
+                <div className="text-sm text-green-200">К тайтлу</div>
+                <div className="font-semibold">{title.title}</div>
+              </div>
+            </button>
+
+            {currentChapterIndex < chapters.length - 1 ? (
+              <button
+                onClick={() => {
+                  const nextChapter = chapters[currentChapterIndex + 1];
+                  router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
+                }}
+                className="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                <div className="text-right">
+                  <div className="text-sm text-blue-200">Следующая</div>
+                  <div className="font-semibold">
+                    Глава {chapters[currentChapterIndex + 1].number}
+                  </div>
+                </div>
+                <span>→</span>
+              </button>
+            ) : (
+              <div className="text-center px-6 py-3 bg-purple-600 rounded-lg">
+                <div className="text-sm text-purple-200">Поздравляем!</div>
+                <div className="font-semibold">Вы прочитали все главы</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Изображения текущей главы */}
+        <div className="space-y-4 container mx-auto px-4">
+          {currentChapter.images.map((src, imageIndex) => (
+            <div key={imageIndex} className="flex justify-center">
+              <div className="relative max-w-4xl w-full">
+                {!imageLoadErrors.has(imageIndex) ? (
+                  <Image
+                    src={src}
+                    alt={`Страница ${imageIndex + 1}`}
+                    width={1200}
+                    height={1600}
+                    className="w-full h-auto shadow-2xl"
+                    quality={85}
+                    loading={imageIndex < 3 ? "eager" : "lazy"}
+                    onError={() => handleImageError(imageIndex)}
+                  />
+                ) : (
+                  <div className="w-full h-64 bg-gray-800 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-red-400">Ошибка загрузки</div>
+                      <button
+                        onClick={() => {
+                          setImageLoadErrors((prev) => {
+                            const newSet = new Set(prev);
+                            newSet.delete(imageIndex);
+                            return newSet;
+                          });
+                        }}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                      >
+                        Повторить
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Навигация в конце главы */}
+        <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-700 container mx-auto px-4">
+          {currentChapterIndex > 0 ? (
+            <button
+              onClick={() => {
+                const prevChapter = chapters[currentChapterIndex - 1];
+                router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
+              }}
+              className="flex items-center space-x-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <span>←</span>
+              <div className="text-left">
+                <div className="text-sm text-gray-400">Предыдущая</div>
+                <div className="font-semibold">
+                  Глава {chapters[currentChapterIndex - 1].number}
+                </div>
+              </div>
+            </button>
+          ) : (
+            <div></div>
+          )}
+
+          <div className="flex items-center space-x-4">
+            {/* Кнопка возврата к тайтлу */}
+            <button
+              onClick={() => router.push(`/browse/${titleId}`)}
+              className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+            >
+              <span>📚</span>
+              <div className="text-center">
+                <div className="text-sm text-green-200">К тайтлу</div>
+                <div className="font-semibold">{title.title}</div>
+              </div>
+            </button>
+
+            {currentChapterIndex < chapters.length - 1 ? (
+              <button
+                onClick={() => {
+                  const nextChapter = chapters[currentChapterIndex + 1];
+                  router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
+                }}
+                className="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                <div className="text-right">
+                  <div className="text-sm text-blue-200">Следующая</div>
+                  <div className="font-semibold">
+                    Глава {chapters[currentChapterIndex + 1].number}
+                  </div>
+                </div>
+                <span>→</span>
+              </button>
+            ) : (
+              <div className="text-center px-6 py-3 bg-purple-600 rounded-lg">
+                <div className="text-sm text-purple-200">Поздравляем!</div>
+                <div className="font-semibold">Вы прочитали все главы</div>
+              </div>
+            )}
+          </div>
+        </div>
       </main>
 
-      <NavigationFooter
-        title={title}
-        prevChapter={prevChapter}
-        nextChapter={nextChapter}
-      />
-
-      <ControlsPanel
-        title={title}
-        chapter={chapter}
-        chapters={chapters}
-        readingMode={readingMode}
-        imageWidth={imageWidth}
-        isFullscreen={isFullscreen}
-        showControls={showControls}
-        isNearBottom={isNearBottom}
-        onReadingModeChange={setReadingMode}
-        onImageWidthChange={setImageWidth}
-        onToggleFullscreen={toggleFullscreen}
-        onResetImageIndex={() => setCurrentImageIndex(0)}
-      />
+      {/* Футер */}
+      <footer className="bg-gray-800 border-t border-gray-700 py-4">
+        <div className="container mx-auto px-4 text-center text-gray-400 text-sm">
+          <p>Используйте ← → для навигации между главами</p>
+        </div>
+      </footer>
     </div>
   );
 }

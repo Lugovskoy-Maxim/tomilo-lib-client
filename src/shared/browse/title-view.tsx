@@ -17,6 +17,9 @@ import {
   Edit,
   Search,
   X,
+  Trash2,
+  CheckCircle,
+  EyeOff,
 } from "lucide-react";
 import { Title, TitleStatus, Chapter } from "@/types/title";
 import { UserProfile } from "@/types/user";
@@ -41,10 +44,11 @@ export function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 font-medium transition-colors border-b-2 ${active
-        ? "border-[var(--primary)] text-[var(--primary)]"
-        : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-        }`}
+      className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 font-medium transition-colors border-b-2 ${
+        active
+          ? "border-[var(--primary)] text-[var(--primary)]"
+          : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+      }`}
     >
       <Icon className="w-4 h-4" />
       {children}
@@ -107,46 +111,50 @@ export function LeftSidebar({
           <Image
             width={320}
             height={480}
-            src={`${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${titleData.coverImage}`}
-            loader={() => `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${titleData.coverImage}`}
+            src={`${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${
+              titleData.coverImage
+            }`}
+            loader={() =>
+              `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${
+                titleData.coverImage
+              }`
+            }
             alt={titleData.name}
-            className="w-full max-w-[320px] mx-auto lg:max-w-none rounded-lg shadow-lg mb-4 object-cover"
+            unoptimized={true}
+            className="w-full max-w-[320px] mx-auto lg:max-w-none h-auto rounded-lg shadow-lg mb-4 object-cover"
           />
         )}
 
         <div className="mb-3">
-          <ReadButton 
-            titleData={titleData} 
-            chapters={chapters} 
+          <ReadButton
+            titleData={titleData}
+            chapters={chapters}
             className="w-full"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex gap-2">
           <BookmarkButton
             titleId={titleData._id}
             initialBookmarked={false}
-            className="py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+            className="py-2 w-full h-10 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
           />
 
           <button
             onClick={onShare}
-            className="py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors flex items-center justify-center gap-2"
+            className="py-2 w-full h-10 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors flex items-center justify-center gap-2"
           >
             <ShareIcon className="w-4 h-4" />
-            Поделиться
           </button>
+          {isAdmin && (
+            <Link
+              href={`/admin/titles/edit/${titleData._id}`}
+              className="w-full h-10 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <Edit className="w-4 h-4" />
+            </Link>
+          )}
         </div>
-
-        {isAdmin && (
-          <Link
-            href={`/admin/titles/edit/${titleData._id}`}
-            className="w-full mt-3 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <Edit className="w-4 h-4" />
-            Редактировать
-          </Link>
-        )}
       </div>
 
       {titleData.altNames && titleData.altNames.length > 0 && (
@@ -186,15 +194,8 @@ export function ChaptersTab({
   searchQuery: string;
   onSearchChange: (q: string) => void;
   loading: boolean;
-  user: {
-    readingHistory?: {
-      titleId: string;
-      chapters: {
-        chapterId: string;
-        readAt: string;
-      }[];
-    }[] | null;
-  } | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user: any; // Более простой тип
 }) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -259,47 +260,81 @@ export function ChapterItem({
   chapter: Chapter;
   titleId: string;
   index: number;
-  user: {
-    readingHistory?: {
-      titleId: string;
-      chapters: {
-        chapterId: string;
-        readAt: string;
-      }[];
-    }[] | null;
-  } | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user: any;
 }) {
+  const { removeFromReadingHistory } = useAuth();
+  const [isHovered, setIsHovered] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+
   // Проверяем, прочитана ли глава
-  const isRead = user?.readingHistory?.some((historyItem: { titleId: string; chapters: { chapterId: string; readAt: string; }[] }) =>
-    historyItem.titleId === titleId &&
-    historyItem.chapters &&
-    historyItem.chapters.some((ch: { chapterId: string; readAt: string }) => ch.chapterId === chapter._id)
+  const isRead = user?.readingHistory?.some(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (historyItem: any) =>
+      historyItem.titleId === titleId &&
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+      historyItem.chapters?.some((ch: any) => ch.chapterId === chapter._id)
   );
+
+  // Функция для удаления из истории чтения
+  const handleRemoveFromHistory = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isRemoving) return;
+
+    setIsRemoving(true);
+    try {
+      // TODO: Заменить на реальный вызов API
+      await removeFromReadingHistory(titleId, chapter._id);
+      console.log(`Removed chapter ${chapter._id} from reading history`);
+
+      // Обновление данных пользователя должно происходить в useAuth
+    } catch (error) {
+      console.error("Failed to remove from reading history:", error);
+    } finally {
+      setIsRemoving(false);
+    }
+  };
 
   return (
     <Link
       href={`/browse/${titleId}/chapter/${chapter._id}`}
-      className={`flex items-center justify-between p-3 rounded-lg hover:ring-1 hover:ring-[var(--primary)] transition-colors group ${
-        isRead ? "bg-green-500/10 hover:bg-green-500/20" : "bg-[var(--background)]"
-      }`}
+      className="flex items-center justify-between px-3 py-1  rounded-lg transition-colors bg-[var(--muted)]/20 hover:bg-[var(--muted)]/50"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
-          isRead
-            ? "bg-green-500 text-white"
-            : "bg-[var(--primary)] text-[var(--primary-foreground)]"
-        }`}>
-          {index + 1}
-        </div>
+        {/* Иконка статуса прочтения */}
+        {(isRead && (
+          <div className="relative flex items-center">
+            {isHovered ? (
+              <button
+                onClick={handleRemoveFromHistory}
+                disabled={isRemoving}
+                className={`p-1.5 w-5 h-5  flex justify-center items-center rounded-full transition-colors ${
+                  isRemoving
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-600 text-white"
+                }`}
+                title="Удалить из истории чтения"
+              >
+                {isRemoving ? (
+                  <div className="w-4 h-4" />
+                ) : (
+                  <EyeOff className="w-4 h-4" />
+                )}
+              </button>
+            ) : (
+              <Eye className="w-5 h-5 text-green-500" />
+            )}
+          </div>
+        )) || <Eye className="w-5 h-5" />}
         <div>
           <div className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors text-sm sm:text-base">
             Глава {chapter.chapterNumber}
             {chapter.title && `: ${chapter.title}`}
-            {isRead && (
-              <span className="ml-2 text-xs px-1.5 py-0.5 bg-green-500 text-white rounded">
-                Прочитано
-              </span>
-            )}
           </div>
           {chapter.releaseDate && (
             <div className="text-xs text-[var(--muted-foreground)]">
@@ -309,13 +344,14 @@ export function ChapterItem({
         </div>
       </div>
 
-      <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
+      <div className="flex items-center gap-3 text-sm text-[var(--muted-foreground)]">
         {chapter.views && (
           <span className="flex items-center gap-1">
             <Eye className="w-4 h-4" />
             {chapter.views}
           </span>
         )}
+
         <ChevronDown className="w-4 h-4 -rotate-90" />
       </div>
     </Link>
@@ -411,7 +447,9 @@ export function RightContent({
             <div className="flex items-center gap-3">
               <span className="text-lg font-semibold text-[var(--foreground)]">
                 {formatRating(
-                  typeof pendingRating === "number" ? pendingRating : titleData.rating
+                  typeof pendingRating === "number"
+                    ? pendingRating
+                    : titleData.rating
                 )}
               </span>
               <button
@@ -427,9 +465,14 @@ export function RightContent({
 
         <div className="mt-2">
           <div className="flex flex-wrap gap-2">
-            <span className="px-2.5 py-1 cursor-pointer text-red-800 rounded-full text-xs font-semibold" onClick={() => {
-              router.push(`/browse?ageLimit=${encodeURIComponent(titleData.ageLimit)}`);
-            }}>
+            <span
+              className="px-2.5 py-1 cursor-pointer text-red-800 rounded-full text-xs font-semibold"
+              onClick={() => {
+                router.push(
+                  `/browse?ageLimit=${encodeURIComponent(titleData.ageLimit)}`
+                );
+              }}
+            >
               {titleData.ageLimit}+
             </span>
             {titleData.genres?.map((genre, index) => (
@@ -460,7 +503,9 @@ export function RightContent({
         {isRatingOpen && (
           <div className="mt-3 p-3 bg-[var(--background)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--muted-foreground)]">Ваша оценка</span>
+              <span className="text-sm text-[var(--muted-foreground)]">
+                Ваша оценка
+              </span>
               <button
                 type="button"
                 onClick={() => setIsRatingOpen(false)}
@@ -496,13 +541,17 @@ export function RightContent({
 
         {titleData.description && (
           <div className="mt-5">
-            <div className={`relative ${!isDescriptionExpanded ? "max-h-20 overflow-hidden" : ""}`}>
+            <div
+              className={`relative ${
+                !isDescriptionExpanded ? "max-h-30 overflow-hidden" : ""
+              }`}
+            >
               <p className="text-[var(--muted-foreground)] leading-relaxed whitespace-pre-wrap">
                 {titleData.description}
               </p>
               {!isDescriptionExpanded && (
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[var(--card)] to-transparent" />)
-              }
+                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[var(--card)] to-transparent" />
+              )}
             </div>
             {titleData.description.length > 100 && (
               <button
@@ -526,10 +575,19 @@ export function RightContent({
         )}
 
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-3 sm:pt-4 text-md border border-dashed border-[var(--border)] rounded-md pb-4">
-          <StatItem label="Статус тайтла" value={statusLabels[titleData.status]} />
-          <StatItem label="Глав" value={titleData.totalChapters?.toLocaleString() || "0"} />
+          <StatItem
+            label="Статус тайтла"
+            value={statusLabels[titleData.status]}
+          />
+          <StatItem
+            label="Глав"
+            value={titleData.totalChapters?.toLocaleString() || "0"}
+          />
           <StatItem label="Формат" value="В цвете, Вебтун, Веб" />
-          <StatItem label="Просмотры" value={titleData.views?.toLocaleString() || "0"} />
+          <StatItem
+            label="Просмотры"
+            value={titleData.views?.toLocaleString() || "0"}
+          />
         </div>
       </div>
 
@@ -603,10 +661,22 @@ export function RightContent({
           {activeTab === "comments" && <CommentsTab />}
           {activeTab === "statistics" && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <StatItem label="Просмотры" value={titleData.views?.toLocaleString() || "0"} />
-              <StatItem label="Оценка" value={titleData.rating?.toFixed(2) || "0.00"} />
-              <StatItem label="Год релиза" value={String(titleData.releaseYear)} />
-              <StatItem label="Глав" value={titleData.totalChapters?.toLocaleString() || "0"} />
+              <StatItem
+                label="Просмотры"
+                value={titleData.views?.toLocaleString() || "0"}
+              />
+              <StatItem
+                label="Оценка"
+                value={titleData.rating?.toFixed(2) || "0.00"}
+              />
+              <StatItem
+                label="Год релиза"
+                value={String(titleData.releaseYear)}
+              />
+              <StatItem
+                label="Глав"
+                value={titleData.totalChapters?.toLocaleString() || "0"}
+              />
             </div>
           )}
         </div>

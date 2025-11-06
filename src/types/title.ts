@@ -1,3 +1,5 @@
+import { ReaderChapter } from "./chapter";
+
 // ApiResponseDto - стандартный формат ответа API
 export interface ApiResponseDto<T> {
   success: boolean;
@@ -72,6 +74,7 @@ export interface Title {
 }
 
 export interface Chapter {
+  name: string;
   _id: string;
   titleId: string;
   chapterNumber: number;
@@ -227,4 +230,24 @@ export interface ChapterListState {
   query: ChaptersQuery;
   hasMore: boolean;
   selectedChapter: Chapter | null;
+}
+
+export interface ReaderTitle {
+  _id: string;
+  title: string;
+  originalTitle: string;
+  type: string;
+  year: number;
+  rating: number;
+  image: string;
+  genres: string[];
+  description: string;
+  status: string;
+  author: string;
+  artist: string;
+  totalChapters: number;
+  views: number;
+  lastUpdate: string;
+  chapters: ReaderChapter[];
+  alternativeTitles: string[];
 }
