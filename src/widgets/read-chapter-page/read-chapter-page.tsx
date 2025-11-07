@@ -9,6 +9,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Chapter, ReaderTitle, Title } from "@/types/title";
 import { ApiResponse } from "@/types/api";
 import { ReaderChapter } from "@/types/chapter";
+import { Home } from "lucide-react";
+import ReaderControls from "@/shared/reader-controls";
 
 // Вспомогательная функция нормализации URL
 const normalizeAssetUrl = (url: string): string => {
@@ -103,11 +105,17 @@ export default function ChapterReader() {
     new Set()
   );
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
+  const [hasTapped, setHasTapped] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   // Refs для предотвращения повторных вызовов
   const containerRef = useRef<HTMLDivElement>(null);
   const historyAddedRef = useRef<Set<string>>(new Set());
   const viewsUpdatedRef = useRef<Set<string>>(new Set());
+  const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mobileControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Обновление просмотров и истории чтения (без бесконечного цикла)
   useEffect(() => {
@@ -167,18 +175,18 @@ export default function ChapterReader() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [currentChapterIndex, chapters, titleId, router]);
 
-  // Полноэкранный режим
-  const toggleFullscreen = async () => {
-    if (!containerRef.current) return;
+  // // Полноэкранный режим
+  // const toggleFullscreen = async () => {
+  //   if (!containerRef.current) return;
 
-    if (!document.fullscreenElement) {
-      await containerRef.current.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      await document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
+  //   if (!document.fullscreenElement) {
+  //     await containerRef.current.requestFullscreen();
+  //     setIsFullscreen(true);
+  //   } else {
+  //     await document.exitFullscreen();
+  //     setIsFullscreen(false);
+  //   }
+  // };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -190,14 +198,86 @@ export default function ChapterReader() {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
+  // Обработчики для хедера
+  const handleHeaderMouseEnter = () => {
+    if (headerTimeoutRef.current) {
+      clearTimeout(headerTimeoutRef.current);
+    }
+    setIsHeaderVisible(true);
+  };
+
+  const handleHeaderMouseLeave = () => {
+    headerTimeoutRef.current = setTimeout(() => {
+      setIsHeaderVisible(false);
+    }, 1000); // Скрываем через 1 секунду
+  };
+
+  // Обработчик скролла для авто-скрытия хедера
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+
+    if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      // Скролл вниз - скрываем хедер
+      setIsHeaderVisible(false);
+    } else if (currentScrollY < lastScrollY) {
+      // Скролл вверх - показываем хедер
+      setIsHeaderVisible(true);
+    }
+
+    setLastScrollY(currentScrollY);
+  };
+
+  // Обработчики для мобильных контролов
+  const handleMobileTap = () => {
+    setHasTapped(true);
+    setIsMobileControlsVisible(true);
+    if (mobileControlsTimeoutRef.current) {
+      clearTimeout(mobileControlsTimeoutRef.current);
+    }
+    mobileControlsTimeoutRef.current = setTimeout(() => {
+      setIsMobileControlsVisible(false);
+    }, 3000); // Скрываем через 3 секунды
+  };
+
+  // Проверка достижения низа страницы и скролл для хедера
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      const isNearBottom = scrollTop + windowHeight >= documentHeight - 100; // 100px от низа
+
+      if (isNearBottom) {
+        setIsMobileControlsVisible(true);
+      }
+
+      // Обработка скролла для хедера
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Скролл вниз - скрываем хедер
+        setIsHeaderVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Скролл вверх - показываем хедер
+        setIsHeaderVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
   const loading = titleLoading || chaptersLoading || !currentChapter;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-white">Загрузка...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+          <p className="text-[var(--foreground)]">Загрузка...</p>
         </div>
       </div>
     );
@@ -205,12 +285,12 @@ export default function ChapterReader() {
 
   if (!title || !currentChapter) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">
+          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
             Глава не найдена
           </h1>
-          <p className="text-gray-400">
+          <p className="text-[var(--muted-foreground)]">
             Попробуйте обновить страницу или выбрать другую главу
           </p>
         </div>
@@ -219,15 +299,45 @@ export default function ChapterReader() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      {/* Меню управления */}
+      <ReaderControls
+        currentChapter={currentChapter}
+        chapters={chapters}
+        onChapterSelect={(chapterId) =>
+          router.push(`/browse/${titleId}/chapter/${chapterId}`)
+        }
+        onPrev={() => {
+          if (currentChapterIndex > 0) {
+            const prevChapter = chapters[currentChapterIndex - 1];
+            router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
+          }
+        }}
+        onNext={() => {
+          if (currentChapterIndex < chapters.length - 1) {
+            const nextChapter = chapters[currentChapterIndex + 1];
+            router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
+          }
+        }}
+        canGoPrev={currentChapterIndex > 0}
+        canGoNext={currentChapterIndex < chapters.length - 1}
+        isMobileControlsVisible={isMobileControlsVisible}
+      />
+
       {/* Хедер */}
-      <header className="fixed top-0 left-0 right-0 bg-gray-800/90 backdrop-blur-sm z-50 border-b border-gray-700">
+      <header
+        className={`fixed top-0 left-0 right-0 bg-[var(--card)]/90 backdrop-blur-sm z-50 border-b border-[var(--border)] transition-transform duration-300 ${
+          isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+        onMouseEnter={handleHeaderMouseEnter}
+        onMouseLeave={handleHeaderMouseLeave}
+      >
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+            <div className="flex items-center space-x-4 w-full sm:w-auto">
               <button
                 onClick={() => router.push(`/browse/${titleId}`)}
-                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors flex-shrink-0"
               >
                 ← Назад
               </button>
@@ -251,32 +361,21 @@ export default function ChapterReader() {
                 >
                   {title.title}
                 </h1>
-                <p className="text-gray-400 text-sm truncate">
+                <p className="text-[var(--muted-foreground)] text-sm truncate">
                   Глава {currentChapter.number}{" "}
                   {currentChapter.title && `- ${currentChapter.title}`}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={toggleFullscreen}
-                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-                title={
-                  isFullscreen
-                    ? "Выйти из полноэкранного режима"
-                    : "Полноэкранный режим"
-                }
-              >
-                {isFullscreen ? "⤵️" : "⤴️"}
-              </button>
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
 
               <select
                 value={currentChapter._id}
                 onChange={(e) =>
                   router.push(`/browse/${titleId}/chapter/${e.target.value}`)
                 }
-                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+                className="bg-[var(--muted)] border border-[var(--border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] w-full sm:min-w-[200px]"
               >
                 {chapters.map((chapter) => (
                   <option key={chapter._id} value={chapter._id}>
@@ -291,69 +390,13 @@ export default function ChapterReader() {
       </header>
 
       {/* Основной контент */}
-      <main ref={containerRef} className="pt-16 pb-8">
-        {/* Навигация в начале главы */}
-        <div className="flex justify-between items-center p-6 container mx-auto">
-          {currentChapterIndex > 0 ? (
-            <button
-              onClick={() => {
-                const prevChapter = chapters[currentChapterIndex - 1];
-                router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
-              }}
-              className="flex items-center space-x-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              <span>←</span>
-              <div className="text-left">
-                <div className="text-sm text-gray-400">Предыдущая</div>
-                <div className="font-semibold">
-                  Глава {chapters[currentChapterIndex - 1].number}
-                </div>
-              </div>
-            </button>
-          ) : (
-            <div></div>
-          )}
-
-          <div className="flex items-center space-x-4">
-            {/* Кнопка возврата к тайтлу */}
-            <button
-              onClick={() => router.push(`/browse/${titleId}`)}
-              className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-            >
-              <span>📚</span>
-              <div className="text-center">
-                <div className="text-sm text-green-200">К тайтлу</div>
-                <div className="font-semibold">{title.title}</div>
-              </div>
-            </button>
-
-            {currentChapterIndex < chapters.length - 1 ? (
-              <button
-                onClick={() => {
-                  const nextChapter = chapters[currentChapterIndex + 1];
-                  router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
-                }}
-                className="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-              >
-                <div className="text-right">
-                  <div className="text-sm text-blue-200">Следующая</div>
-                  <div className="font-semibold">
-                    Глава {chapters[currentChapterIndex + 1].number}
-                  </div>
-                </div>
-                <span>→</span>
-              </button>
-            ) : (
-              <div className="text-center px-6 py-3 bg-purple-600 rounded-lg">
-                <div className="text-sm text-purple-200">Поздравляем!</div>
-                <div className="font-semibold">Вы прочитали все главы</div>
-              </div>
-            )}
-          </div>
-        </div>
-
+      <main
+        ref={containerRef}
+        className="pt-20 sm:pt-16 pb-8"
+        onClick={handleMobileTap}
+      >
         {/* Изображения текущей главы */}
-        <div className="space-y-4 container mx-auto px-4">
+        <div className="container mx-auto px-2 sm:px-4">
           {currentChapter.images.map((src, imageIndex) => (
             <div key={imageIndex} className="flex justify-center">
               <div className="relative max-w-4xl w-full">
@@ -369,9 +412,11 @@ export default function ChapterReader() {
                     onError={() => handleImageError(imageIndex)}
                   />
                 ) : (
-                  <div className="w-full h-64 bg-gray-800 flex items-center justify-center">
+                  <div className="w-full h-64 bg-[var(--card)] flex items-center justify-center">
                     <div className="text-center">
-                      <div className="text-red-400">Ошибка загрузки</div>
+                      <div className="text-[var(--destructive)]">
+                        Ошибка загрузки
+                      </div>
                       <button
                         onClick={() => {
                           setImageLoadErrors((prev) => {
@@ -380,7 +425,7 @@ export default function ChapterReader() {
                             return newSet;
                           });
                         }}
-                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                        className="px-3 py-1 bg-[var(--primary)] hover:bg-[var(--primary)]/80 rounded transition-colors"
                       >
                         Повторить
                       </button>
@@ -393,50 +438,60 @@ export default function ChapterReader() {
         </div>
 
         {/* Навигация в конце главы */}
-        <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-700 container mx-auto px-4">
-          {currentChapterIndex > 0 ? (
-            <button
-              onClick={() => {
-                const prevChapter = chapters[currentChapterIndex - 1];
-                router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
-              }}
-              className="flex items-center space-x-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              <span>←</span>
-              <div className="text-left">
-                <div className="text-sm text-gray-400">Предыдущая</div>
-                <div className="font-semibold">
-                  Глава {chapters[currentChapterIndex - 1].number}
+        <div className="flex flex-col space-y-4 mt-8 container mx-auto px-2 sm:px-4">
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center w-full space-y-2 sm:space-y-0 sm:space-x-2">
+            {/* Левая кнопка - предыдущая глава */}
+            {currentChapterIndex > 0 ? (
+              <button
+                onClick={() => {
+                  const prevChapter = chapters[currentChapterIndex - 1];
+                  router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
+                }}
+                className={`flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--muted)] hover:bg-[var(--muted)]/80 rounded-lg transition-colors w-full ${
+                  typeof window !== 'undefined' && window.innerWidth < 640 ? 'hidden' : ''
+                }`}
+              >
+                <span>←</span>
+                <div className="text-center">
+                  <div className="text-sm text-[var(--muted-foreground)]">
+                    Предыдущая
+                  </div>
+                  <div className="font-semibold">
+                    Глава {chapters[currentChapterIndex - 1].number}
+                  </div>
                 </div>
-              </div>
-            </button>
-          ) : (
-            <div></div>
-          )}
+              </button>
+            ) : (
+              <div className={`w-full ${typeof window !== 'undefined' && window.innerWidth < 640 ? 'hidden' : ''}`}></div>
+            )}
 
-          <div className="flex items-center space-x-4">
-            {/* Кнопка возврата к тайтлу */}
-            <button
-              onClick={() => router.push(`/browse/${titleId}`)}
-              className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-            >
-              <span>📚</span>
-              <div className="text-center">
-                <div className="text-sm text-green-200">К тайтлу</div>
-                <div className="font-semibold">{title.title}</div>
-              </div>
-            </button>
+            {/* Центральная кнопка - к тайтлу
+    <button
+      onClick={() => router.push(`/browse/${titleId}`)}
+      className="flex items-center justify-center space-x-2 px-6 py-3 border border-[var(--border)] cursor-pointer rounded-lg transition-colors w-full mx-2"
+    >
+      <Home className="w-6 h-6" />
+      <div className="text-center">
+        <div className="text-sm text-green-200">К тайтлу</div>
+        <div className="font-semibold">{title.title}</div>
+      </div>
+    </button> */}
 
+            {/* Правая кнопка - следующая глава или завершение */}
             {currentChapterIndex < chapters.length - 1 ? (
               <button
                 onClick={() => {
                   const nextChapter = chapters[currentChapterIndex + 1];
                   router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
                 }}
-                className="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                className={`flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary)]/80 rounded-lg transition-colors w-full ${
+                  typeof window !== 'undefined' && window.innerWidth < 640 ? 'hidden' : ''
+                }`}
               >
-                <div className="text-right">
-                  <div className="text-sm text-blue-200">Следующая</div>
+                <div className="text-center">
+                  <div className="text-sm text-[var(--primary-foreground)]">
+                    Следующая
+                  </div>
                   <div className="font-semibold">
                     Глава {chapters[currentChapterIndex + 1].number}
                   </div>
@@ -444,18 +499,25 @@ export default function ChapterReader() {
                 <span>→</span>
               </button>
             ) : (
-              <div className="text-center px-6 py-3 bg-purple-600 rounded-lg">
-                <div className="text-sm text-purple-200">Поздравляем!</div>
-                <div className="font-semibold">Вы прочитали все главы</div>
-              </div>
+              <button
+                onClick={() => router.push(`/browse/${titleId}`)}
+                className="flex items-center justify-center px-6 py-3 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-lg transition-colors w-full"
+              >
+                <div className="text-center">
+                  <div className="text-sm text-[var(--accent-foreground)]">
+                    Завершить чтение
+                  </div>
+                  <div className="font-semibold">Вернуться к тайтлу</div>
+                </div>
+              </button>
             )}
           </div>
         </div>
       </main>
 
       {/* Футер */}
-      <footer className="bg-gray-800 border-t border-gray-700 py-4">
-        <div className="container mx-auto px-4 text-center text-gray-400 text-sm">
+      <footer className="bg-[var(--card)] border-t border-[var(--border)] py-4">
+        <div className="container mx-auto px-4 text-center text-[var(--muted-foreground)] text-sm">
           <p>Используйте ← → для навигации между главами</p>
         </div>
       </footer>

@@ -34,4 +34,5 @@ export { default as ProfileContent } from "./profile/profile-content";
 export { default as ProfileAvatar } from "./profile/profile-avatar";
 export { default as LatestUpdateCard } from "./last-updates/last-updates";
 export { default as BookmarkCard } from "./bookmark-card/bookmark-card";
+export { default as ReaderControls } from "./reader-controls";
 
