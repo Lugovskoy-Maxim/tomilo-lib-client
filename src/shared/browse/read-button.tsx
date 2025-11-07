@@ -15,20 +15,7 @@ export function ReadButton({
   className,
   chapters,
 }: ReadButtonProps) {
-  const { user, continueReadingLoading } = useAuth() as {
-    user: {
-      readingHistory?: {
-        titleId: string;
-        chapters: {
-          chapterId: string;
-          readAt: string;
-        }[];
-      }[];
-    } | null;
-    continueReading: unknown;
-    continueReadingLoading: boolean;
-    continueReadingError: unknown;
-  };
+  const { user, readingHistoryLoading } = useAuth();
   const router = useRouter();
 
   // Находим следующую главу для чтения
@@ -83,7 +70,7 @@ export function ReadButton({
     }
   };
 
-  if (continueReadingLoading) {
+  if (readingHistoryLoading) {
     return (
       <Button
         variant="primary"

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
 interface TitleHeaderProps {
-  title: string;
+  title: string | undefined;
 }
 
 export default function TitleHeader({ title }: TitleHeaderProps) {

@@ -1,4 +1,3 @@
-// lib/page-title.ts
 class PageTitleHelper {
   private defaultTitle = 'Tomilo-lib.ru - Современная платформа для чтения маньхуя и комиксов';
   private separator = ' | ';

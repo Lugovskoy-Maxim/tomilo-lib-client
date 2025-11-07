@@ -14,7 +14,7 @@ import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetPopularTitlesQuery } from "@/store/api/titlesApi";
-import { useGetReadingHistoryQuery } from "@/store/api/authApi";
+import { useGetReadingHistoryQuery, ReadingHistoryChapter } from "@/store/api/authApi";
 
 
 import { Title, TitleType } from "@/types/title";

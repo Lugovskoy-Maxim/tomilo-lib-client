@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetProfileQuery, useAddBookmarkMutation, useRemoveBookmarkMutation, useGetReadingHistoryQuery, useAddToReadingHistoryMutation, useRemoveFromReadingHistoryMutation } from "@/store/api/authApi";
 import { useUpdateChapterMutation } from "@/store/api/chaptersApi";
+import { UpdateChapterDto } from "@/types/title";
 import {
   login,
   logout,

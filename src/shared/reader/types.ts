@@ -1,9 +1,9 @@
 export interface ReaderChapter {
-  _id?: string; // original chapter ID from database
+  _id: string; // original chapter ID from database
   id?: number; // legacy numeric ID for compatibility
   number: number; // chapter number
   title: string;
-  date: string | Date;
+  date: string;
   views: number;
   images: string[]; // absolute URLs
 }
@@ -12,7 +12,7 @@ export interface ReaderTitle {
   _id: string;
   id?: number; // legacy numeric ID for compatibility
   title: string;
-  originalTitle?: string;
+  originalTitle: string;
   type: string;
   year: number;
   rating: number;
@@ -24,7 +24,7 @@ export interface ReaderTitle {
   artist: string;
   totalChapters: number;
   views: number;
-  lastUpdate?: string | Date;
-  chapters?: ReaderChapter[];
-  alternativeTitles?: string[];
+  lastUpdate: string;
+  chapters: ReaderChapter[];
+  alternativeTitles: string[];
 }

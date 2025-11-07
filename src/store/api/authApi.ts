@@ -12,14 +12,14 @@ const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
 
 // Типы для истории чтения
-interface ReadingHistoryChapter {
+export interface ReadingHistoryChapter {
   chapterId: string;
   chapterNumber: number;
   chapterTitle?: string;
   readAt: string;
 }
 
-interface ReadingHistoryEntry {
+export interface ReadingHistoryEntry {
   titleId: string;
   chapters: ReadingHistoryChapter[];
   readAt: string;

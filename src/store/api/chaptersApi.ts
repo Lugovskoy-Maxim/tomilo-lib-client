@@ -56,7 +56,7 @@ export const chaptersApi = createApi({
         if ('data' in response && response.data) {
           return response.data;
         }
-        const resp = response as Record<string, unknown>;
+        const resp = response as unknown as Record<string, unknown>;
         const chapters: Chapter[] = (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
         const total: number = (resp.pagination as Record<string, unknown>)?.total as number ?? resp.total as number ?? chapters.length ?? 0;
         const page: number = (resp.pagination as Record<string, unknown>)?.page as number ?? resp.page as number ?? 1;

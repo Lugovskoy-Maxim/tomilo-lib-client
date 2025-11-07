@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png"; 
 
 interface ReadingItem {
-  id: string; // Изменено на string
+  id: string;
   title: string;
   type: string;
   currentChapter: number;
@@ -25,7 +25,6 @@ interface ReadingCardProps {
 }
 
 export default function ReadingCard({ data }: ReadingCardProps) {
-  console.log(data);
   const router = useRouter();
 
   const getProgressPercentage = (current: number, total: number) => {

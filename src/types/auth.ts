@@ -34,8 +34,11 @@ export interface StoredUser {
     titleId: string;
     chapters: {
       chapterId: string;
+      chapterNumber: number;
+      chapterTitle: string | null;
       readAt: string;
     }[];
+    readAt: string;
   }[];
 }
 
@@ -65,8 +68,11 @@ export interface User {
     titleId: string;
     chapters: {
       chapterId: string;
+      chapterNumber: number;
+      chapterTitle: string | null;
       readAt: string;
     }[];
+    readAt: string;
   }[];
 }
   

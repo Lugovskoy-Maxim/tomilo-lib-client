@@ -72,7 +72,7 @@ export default function ChapterPage() {
   const serverTitle = titleData.data;
 
   const mappedChapters: ReadChapter[] = chaptersData.map((ch: Chapter) => ({
-    _id: ch._id,
+    _id: ch._id || '',
     number: Number(ch.chapterNumber) || 0,
     title: ch.title || '',
     date: ch.releaseDate || '',
@@ -83,7 +83,7 @@ export default function ChapterPage() {
   const mappedTitle: ReadTitle = {
     _id: serverTitle._id,
     title: serverTitle.name,
-    originalTitle: serverTitle.altNames?.[0],
+    originalTitle: serverTitle.altNames?.[0] || '',
     type: serverTitle.type || 'Манга',
     year: Number(serverTitle.releaseYear) || new Date().getFullYear(),
     rating: Number(serverTitle.rating) || 0,

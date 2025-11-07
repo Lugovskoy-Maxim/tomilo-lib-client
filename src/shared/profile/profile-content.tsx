@@ -1,6 +1,5 @@
 import { UserProfile } from "@/types/user";
 import { BookmarksSection, ReadingHistorySection } from "@/widgets";
-import { BookmarkCard } from "@/shared";
 
 interface ProfileContentProps {
   userProfile: UserProfile;

@@ -8,19 +8,35 @@ interface ContinueReadingButtonProps {
 }
 
 export function ContinueReadingButton({ className }: ContinueReadingButtonProps) {
-  const { continueReading, continueReadingLoading, continueReadingError } = useAuth();
+  const { user, readingHistoryLoading } = useAuth();
   const router = useRouter();
 
-  // Получаем последнюю прочитанную главу из последнего тайтла
+  // Получаем последнюю прочитанную главу из истории чтения
   const getLastReadChapter = () => {
-    if (!continueReading || continueReading.length === 0) return null;
+    if (!user?.readingHistory || user.readingHistory.length === 0) return null;
 
-    // Берем последний элемент из массива continueReading
-    const lastItem = continueReading[continueReading.length - 1];
-    return {
-      titleId: lastItem.titleId,
-      chapterId: lastItem.chapterId
-    };
+    // Находим тайтл с самой поздней датой чтения
+    const latestTitle = user.readingHistory.reduce((latest, current) => {
+      const latestTime = new Date(latest.readAt).getTime();
+      const currentTime = new Date(current.readAt).getTime();
+      return currentTime > latestTime ? current : latest;
+    });
+
+    // Находим последнюю прочитанную главу в этом тайтле
+    if (latestTitle.chapters && latestTitle.chapters.length > 0) {
+      const lastChapter = latestTitle.chapters.reduce((latest, current) => {
+        const latestTime = new Date(latest.readAt).getTime();
+        const currentTime = new Date(current.readAt).getTime();
+        return currentTime > latestTime ? current : latest;
+      });
+
+      return {
+        titleId: latestTitle.titleId,
+        chapterId: lastChapter.chapterId
+      };
+    }
+
+    return null;
   };
 
   const lastReadChapter = getLastReadChapter();
@@ -31,7 +47,7 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
     }
   };
 
-  if (continueReadingLoading) {
+  if (readingHistoryLoading) {
     return (
       <Button
         variant="outline"
@@ -44,7 +60,7 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
     );
   }
 
-  if (continueReadingError || !lastReadChapter) {
+  if (!lastReadChapter) {
     return null;
   }
 

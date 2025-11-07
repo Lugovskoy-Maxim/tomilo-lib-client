@@ -12,6 +12,7 @@ export interface UserProfile {
       chapterId: string;
       chapterNumber: number;
       chapterTitle: string | null;
+      readAt: string;
     }[];
     readAt: string;
   }[];

@@ -92,11 +92,17 @@ function InfoCard({ icon: Icon, label, value }: InfoCardProps) {
 
 // Компонент элемента главы
 interface Chapter {
-  id: number;
-  number: number;
-  title?: string;
-  date: string;
-  views: number;
+  _id: string;
+  chapterNumber: number | string;
+  name?: string;
+  releaseDate?: string;
+  views: number | string;
+  pages?: string[];
+  isPublished?: boolean;
+  translator?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
 }
 
 interface ChapterItemProps {
@@ -105,34 +111,32 @@ interface ChapterItemProps {
 }
 
 function ChapterItem({ chapter, onClick }: ChapterItemProps) {
+  const chapterNumber = typeof chapter.chapterNumber === 'string' ? parseFloat(chapter.chapterNumber) : chapter.chapterNumber;
+  const views = typeof chapter.views === 'string' ? parseFloat(chapter.views) : chapter.views;
+
   return (
     <button
-      onClick={() => onClick(chapter.number)}
+      onClick={() => onClick(chapterNumber)}
       className="w-full flex items-center justify-between p-3 cursor-pointer bg-[var(--card)] rounded-lg border border-[var(--border)] hover:border-[var(--primary)] transition-colors group"
     >
       <div className="flex items-center gap-4">
         <div className="flex items-start gap-4 ">
-          {/* {chapter.volume && (
-            <span className="text-sm text-[var(--muted-foreground)]">
-              Том {chapter.title}
-            </span>
-          )} */}
           <span className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
-            Глава {chapter.number}
+            Глава {chapterNumber}
           </span>
-          {chapter.title && (
+          {chapter.name && (
             <span className="text-sm text-[var(--muted-foreground)]">
-              {chapter.title}
+              {chapter.name}
             </span>
           )}
         </div>
       </div>
 
       <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
-        <span>{chapter.date}</span>
+        <span>{chapter.releaseDate || chapter.createdAt || 'Неизвестно'}</span>
         <div className="flex items-center gap-1">
           <Eye className="w-4 h-4" />
-          <span>{(chapter.views / 1000).toFixed(1)}k</span>
+          <span>{(views / 1000).toFixed(1)}k</span>
         </div>
       </div>
     </button>

@@ -274,8 +274,8 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
               {title.description}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InfoCard icon={User} label="Автор" value={title.author} />
-              <InfoCard icon={Tag} label="Художник" value={title.artist} />
+              <InfoCard icon={User} label="Автор" value={title.author || ''} />
+              <InfoCard icon={Tag} label="Художник" value={title.artist || ''} />
             </div>
           </div>
         );
@@ -294,7 +294,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
               {filteredChapters.length > 0 ? (
                 filteredChapters.map((chapter) => (
                   <ChapterItem
-                    key={chapter.id}
+                    key={chapter._id}
                     chapter={chapter}
                     onClick={handleChapterClick}
                   />
@@ -358,7 +358,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
 
-      <TitleHeader title={title.title} />
+      <TitleHeader title={title.title || title.name || 'Без названия'} />
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
@@ -388,7 +388,7 @@ export default function TitlePageContent({ title }: TitlePageContentProps) {
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      <span>{title.lastUpdate || title.updatedAt}</span>
+                      <span>{title.lastUpdate || title.updatedAt || 'Неизвестно'}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Tag className="w-4 h-4" />
