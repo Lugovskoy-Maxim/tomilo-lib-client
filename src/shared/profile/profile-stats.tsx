@@ -43,7 +43,7 @@ export default function ProfileStats({ userProfile, isLoading = false }: Profile
 
   if (!stats) {
     return (
-      <div className="profile-stats-empty p-6 text-center text-gray-500">
+      <div className="profile-stats-empty p-6 text-center text-[var(--muted-foreground)]">
         <p>Нет данных для отображения статистики</p>
       </div>
     );
@@ -82,7 +82,7 @@ function SharedProfileStats({
           {favoriteGenres.slice(0, 3).map((genre, index) => (
             <span
               key={index}
-              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+              className="px-2 py-1 bg-[var(--primary)]/10 text-[var(--primary)] text-xs rounded-full"
             >
               {genre}
             </span>
@@ -111,9 +111,9 @@ function ProfileStatsSkeleton() {
   return (
     <div className="profile-stats-skeleton grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
       {[...Array(4)].map((_, index) => (
-        <div key={index} className="stat-card bg-gray-200 p-4 rounded-lg animate-pulse">
-          <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
-          <div className="h-6 bg-gray-300 rounded w-1/3"></div>
+        <div key={index} className="stat-card bg-[var(--muted)] p-4 rounded-lg animate-pulse">
+          <div className="h-4 bg-[var(--muted)] rounded w-1/2 mb-2"></div>
+          <div className="h-6 bg-[var(--muted)] rounded w-1/3"></div>
         </div>
       ))}
     </div>

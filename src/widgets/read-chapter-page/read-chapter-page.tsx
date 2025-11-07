@@ -472,7 +472,7 @@ export default function ChapterReader() {
     >
       <Home className="w-6 h-6" />
       <div className="text-center">
-        <div className="text-sm text-green-200">К тайтлу</div>
+        <div className="text-sm text-[var(--primary-foreground)]">К тайтлу</div>
         <div className="font-semibold">{title.title}</div>
       </div>
     </button> */}

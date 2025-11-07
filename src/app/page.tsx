@@ -256,12 +256,12 @@ function useApiData<T>(endpoint: string) {
 function CarouselSkeleton() {
   return (
     <div className="carousel-skeleton animate-pulse" suppressHydrationWarning>
-      <div className="h-8 bg-gray-200 rounded w-48 mb-4" suppressHydrationWarning></div>
+      <div className="h-8 bg-[var(--muted)] rounded w-48 mb-4" suppressHydrationWarning></div>
       <div className="flex gap-4 overflow-hidden" suppressHydrationWarning>
         {[...Array(6)].map((_, i) => (
           <div key={`carousel-skeleton-${i}`} className="flex-shrink-0" suppressHydrationWarning>
-            <div className="w-30 h-40 bg-gray-200 rounded-lg mb-2" suppressHydrationWarning></div>
-            <div className="h-4 bg-gray-200 rounded w-24" suppressHydrationWarning></div>
+            <div className="w-30 h-40 bg-[var(--muted)] rounded-lg mb-2" suppressHydrationWarning></div>
+            <div className="h-4 bg-[var(--muted)] rounded w-24" suppressHydrationWarning></div>
           </div>
         ))}
       </div>
@@ -274,9 +274,9 @@ function GridSkeleton() {
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-pulse" suppressHydrationWarning>
       {[...Array(12)].map((_, i) => (
         <div key={`grid-skeleton-${i}`} suppressHydrationWarning>
-          <div className="w-full h-48 bg-gray-200 rounded-lg mb-2" suppressHydrationWarning></div>
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" suppressHydrationWarning></div>
-          <div className="h-3 bg-gray-200 rounded w-1/2" suppressHydrationWarning></div>
+          <div className="w-full h-48 bg-[var(--muted)] rounded-lg mb-2" suppressHydrationWarning></div>
+          <div className="h-4 bg-[var(--muted)] rounded w-3/4 mb-2" suppressHydrationWarning></div>
+          <div className="h-3 bg-[var(--muted)] rounded w-1/2" suppressHydrationWarning></div>
         </div>
       ))}
     </div>

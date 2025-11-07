@@ -269,7 +269,7 @@ export default function ChapterEditPage() {
             <button
               type="submit"
               disabled={isSaving}
-              className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
+              className="px-4 py-2 rounded bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-50"
             >
               {isSaving ? "Сохранение..." : "Сохранить"}
             </button>
@@ -283,7 +283,7 @@ export default function ChapterEditPage() {
             <button
               type="button"
               disabled={isDeleting}
-              className="px-4 py-2 rounded bg-red-600 text-white disabled:opacity-50 ml-auto"
+              className="px-4 py-2 rounded bg-[var(--destructive)] text-[var(--destructive-foreground)] disabled:opacity-50 ml-auto"
               onClick={handleDelete}
             >
               {isDeleting ? "Удаление..." : "Удалить"}
@@ -335,11 +335,11 @@ export default function ChapterEditPage() {
                 })}
               </div>
             ) : (
-              <div className="text-sm text-neutral-500">
+              <div className="text-sm text-[var(--muted-foreground)]">
                 Пока нет страниц. Добавьте изображения выше.
               </div>
             )}
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-[var(--muted-foreground)]">
               Удаление/перестановка страниц пока не поддерживается на сервере.
             </p>
           </div>

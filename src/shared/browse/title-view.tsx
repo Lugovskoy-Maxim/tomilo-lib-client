@@ -149,7 +149,7 @@ export function LeftSidebar({
           {isAdmin && (
             <Link
               href={`/admin/titles/edit/${titleData._id}`}
-              className="w-full h-10 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full h-10 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/80 transition-colors flex items-center justify-center gap-2"
             >
               <Edit className="w-4 h-4" />
             </Link>
@@ -194,7 +194,7 @@ export function ChaptersTab({
   searchQuery: string;
   onSearchChange: (q: string) => void;
   loading: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   user: any; // Более простой тип
 }) {
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -272,7 +272,7 @@ export function ChapterItem({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (historyItem: any) =>
       historyItem.titleId === titleId &&
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
       historyItem.chapters?.some((ch: any) => ch.chapterId === chapter._id)
   );
@@ -302,35 +302,39 @@ export function ChapterItem({
     <Link
       href={`/browse/${titleId}/chapter/${chapter._id}`}
       className="flex items-center justify-between px-3 py-1  rounded-lg transition-colors bg-[var(--muted)]/20 hover:bg-[var(--muted)]/50"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Иконка статуса прочтения */}
-        {(isRead && (
-          <div className="relative flex items-center">
-            {isHovered ? (
-              <button
-                onClick={handleRemoveFromHistory}
-                disabled={isRemoving}
-                className={`p-1.5 w-5 h-5  flex justify-center items-center rounded-full transition-colors ${
-                  isRemoving
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600 text-white"
-                }`}
-                title="Удалить из истории чтения"
-              >
-                {isRemoving ? (
-                  <div className="w-4 h-4" />
-                ) : (
-                  <EyeOff className="w-4 h-4" />
-                )}
-              </button>
-            ) : (
-              <Eye className="w-5 h-5 text-green-500" />
-            )}
-          </div>
-        )) || <Eye className="w-5 h-5" />}
+        <div
+          className="relative flex items-center w-5 h-5"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {isRead && isHovered ? (
+            <button
+              onClick={handleRemoveFromHistory}
+              disabled={isRemoving}
+              className={`flex items-center justify-center transition-colors hover:text-red-600 ${
+                isRemoving
+                  ? "cursor-not-allowed text-[var(--muted-foreground)]"
+                  : "text-red-500 cursor-pointer"
+              }`}
+              title="Удалить из истории чтения"
+            >
+              {isRemoving ? (
+                <div className="w-5 h-5" />
+              ) : (
+                <EyeOff className="w-5 h-5" />
+              )}
+            </button>
+          ) : (
+            <Eye
+              className={`w-5 h-5 ${
+                isRead ? "text-green-500" : "text-[var(--muted-foreground)]"
+              }`}
+            />
+          )}
+        </div>
         <div>
           <div className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors text-sm sm:text-base">
             Глава {chapter.chapterNumber}

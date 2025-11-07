@@ -632,10 +632,10 @@ function StatsSection({ formData }: StatsSectionProps) {
   ];
 
   const colorClasses = {
-    blue: "bg-blue-100 text-blue-600",
-    green: "bg-green-100 text-green-600",
-    yellow: "bg-yellow-100 text-yellow-600",
-    purple: "bg-purple-100 text-purple-600",
+    blue: "bg-[var(--primary)]/10 text-[var(--primary)]",
+    green: "bg-[var(--primary)]/10 text-[var(--primary)]",
+    yellow: "bg-[var(--primary)]/10 text-[var(--primary)]",
+    purple: "bg-[var(--primary)]/10 text-[var(--primary)]",
   };
 
   return (
@@ -910,7 +910,7 @@ function ImageUploadField({
               );
             })()}
             {selectedFile && (
-              <p className="text-xs text-green-600 mt-1">
+              <p className="text-xs text-[var(--primary)] mt-1">
                 Новое изображение будет загружено при сохранении
               </p>
             )}

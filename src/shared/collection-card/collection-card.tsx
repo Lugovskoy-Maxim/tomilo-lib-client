@@ -21,7 +21,7 @@ export default function CollectionCard({ data }: CollectionCardProps) {
   if (!data) {
     return (
       <div className="flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 group relative select-none bg-card rounded-lg border border-border animate-pulse">
-        <div className="aspect-[3/4] relative rounded-lg overflow-hidden bg-gray-300" />
+        <div className="aspect-[3/4] relative rounded-lg overflow-hidden bg-[var(--muted)]" />
       </div>
     );
   }

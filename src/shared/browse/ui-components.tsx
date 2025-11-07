@@ -31,27 +31,27 @@ function StatusBadge({ status }: StatusBadgeProps) {
     switch (status.toLowerCase()) {
       case "онгоинг":
         return {
-          bg: "bg-green-500/20",
-          text: "text-green-600",
-          border: "border-green-500/30",
+          bg: "bg-[var(--primary)]/20",
+          text: "text-[var(--primary)]",
+          border: "border-[var(--primary)]/30",
         };
       case "завершен":
         return {
-          bg: "bg-blue-500/20",
-          text: "text-blue-600",
-          border: "border-blue-500/30",
+          bg: "bg-[var(--primary)]/20",
+          text: "text-[var(--primary)]",
+          border: "border-[var(--primary)]/30",
         };
       case "анонс":
         return {
-          bg: "bg-purple-500/20",
-          text: "text-purple-600",
-          border: "border-purple-500/30",
+          bg: "bg-[var(--primary)]/20",
+          text: "text-[var(--primary)]",
+          border: "border-[var(--primary)]/30",
         };
       default:
         return {
-          bg: "bg-gray-500/20",
-          text: "text-gray-600",
-          border: "border-gray-500/30",
+          bg: "bg-[var(--muted)]/20",
+          text: "text-[var(--muted-foreground)]",
+          border: "border-[var(--muted)]/30",
         };
     }
   };
