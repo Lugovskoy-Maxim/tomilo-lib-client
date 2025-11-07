@@ -23,6 +23,7 @@ export default function ProfileAvatar({ userProfile }: UserAvatarProps) {
         className="w-34 h-34 rounded-full object-cover border-4 border-[var(--background)] shadow-lg"
         height={136}
         width={136}
+        priority={true}
         unoptimized
       />
     );

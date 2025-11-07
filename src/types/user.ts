@@ -10,8 +10,10 @@ export interface UserProfile {
     titleId: string;
     chapters: {
       chapterId: string;
-      readAt: string;
+      chapterNumber: number;
+      chapterTitle: string | null;
     }[];
+    readAt: string;
   }[];
   createdAt: string;
   updatedAt: string;

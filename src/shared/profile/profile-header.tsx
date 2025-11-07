@@ -9,7 +9,7 @@ function ProfileHeader() {
   const router = useRouter();
 
   return (
-    <div className="mb-4">
+    <div className="mb-2">
       <div className="flex justify-between items-center">
         <div className="flex justify-center">
           <button

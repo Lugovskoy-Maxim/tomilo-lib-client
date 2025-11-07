@@ -60,7 +60,7 @@ function SharedProfileStats({
   favoriteGenres
 }: SharedProfileStatsProps) {
   return (
-    <div className="profile-stats grid grid-cols-2 md:grid-cols-4 gap-4 py-4">
+    <div className="profile-stats grid grid-cols-2 md:grid-cols-4 gap-4 py-2">
       <StatCard
         title="Прочитано манги"
         value={totalMangaRead}

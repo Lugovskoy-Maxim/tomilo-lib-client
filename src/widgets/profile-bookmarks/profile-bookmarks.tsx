@@ -5,6 +5,7 @@ import { UserProfile } from "@/types/user";
 import { Title } from "@/types/title";
 import BookmarkCard from "@/shared/bookmark-card/bookmark-card";
 import { useRouter } from "next/navigation";
+import { Bookmark } from "lucide-react";
 
 interface BookmarksSectionProps {
   bookmarks: UserProfile["bookmarks"];
@@ -155,26 +156,14 @@ function BookmarksSection({
   );
 
   return (
-    <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-[var(--secondary)] rounded-xl p-2 border border-[var(--border)]">
+      <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-            />
-          </svg>
           <span>Закладки</span>
         </h2>
-        <span className="text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
-          {currentBookmarks.length} манги
+        <span className="text-xs flex items-center gap-2 text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
+          <Bookmark className="h-3 w-3" />
+          {currentBookmarks.length}
         </span>
       </div>
 

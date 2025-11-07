@@ -12,7 +12,7 @@ export default function ProfileBanner({
   onAvatarUpdate,
 }: ProfileBannerProps) {
   return (
-    <div className="bg-[var(--secondary)] rounded-xl border border-[var(--border)] overflow-hidden mb-8">
+    <div className="bg-[var(--secondary)] rounded-xl border border-[var(--border)] overflow-hidden mb-2">
       {/* Верхняя часть - баннер */}
       <div className="h-42 bg-gradient-to-r from-[var(--primary)]/20 to-[var(--chart-1)]/20 relative">
         {/* Аватар, перекрывающий обе части */}

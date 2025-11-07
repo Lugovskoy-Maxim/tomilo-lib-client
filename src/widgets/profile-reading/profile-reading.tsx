@@ -221,11 +221,11 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
     <div className="bg-[var(--secondary)] rounded-xl p-2 border border-[var(--border)]">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
-          <BookOpen className="h-5 w-5" />
           <span>История чтения</span>
         </h2>
-        <span className="text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
-          {recentChapters.length} историй чтения
+        <span className="text-xs flex gap-2 items-center text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
+          <BookOpen className="h-3 w-3" />
+          {recentChapters.length} 
         </span>
       </div>
 
