@@ -91,9 +91,24 @@ export const authApi = createApi({
       { titleId: string; chapterId: string }
     >({
       query: ({ titleId, chapterId }) => ({
-        url: `/users/profile/history/${titleId}`,
+        url: `/users/profile/history/${titleId}/${chapterId}`,
         method: "DELETE",
-        params: { chapterId }, // Передаем chapterId как параметр запроса
+      }),
+      invalidatesTags: ["Auth"],
+    }),
+    updateProfile: builder.mutation<ApiResponseDto<User>, Partial<User>>({
+      query: (profileData) => ({
+        url: "/users/profile",
+        method: "PUT",
+        body: profileData,
+      }),
+      invalidatesTags: ["Auth"],
+    }),
+    updateAvatar: builder.mutation<ApiResponseDto<User>, FormData>({
+      query: (formData) => ({
+        url: "/users/profile/avatar",
+        method: "PUT",
+        body: formData,
       }),
       invalidatesTags: ["Auth"],
     }),
@@ -108,4 +123,6 @@ export const {
   useGetContinueReadingQuery,
   useAddToReadingHistoryMutation,
   useRemoveFromReadingHistoryMutation,
+  useUpdateProfileMutation,
+  useUpdateAvatarMutation,
 } = authApi;

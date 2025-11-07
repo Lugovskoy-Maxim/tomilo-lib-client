@@ -1,0 +1,93 @@
+// Тип данных, который возвращает сервер для популярных тайтлов
+export interface PopularTitle {
+  id: string;
+  title: string;
+  cover?: string;
+  description?: string;
+  rating?: number;
+}
+
+export interface Collection {
+  id: string;
+  name: string;
+  image: string;
+  link: string;
+}
+
+export interface ReadingProgress {
+  titleId: string | { _id: string; id?: string; name?: string; coverImage?: string; totalChapters?: number; type?: string };
+  chapterId: string | { _id: string; id?: string };
+  chapterNumber: number;
+}
+
+export interface LatestUpdate {
+  id: string;
+  title: string;
+  cover: string;
+  chapter: string;
+  chapterNumber: number;
+  timeAgo: string;
+}
+
+// Типы для пропсов компонентов карточек
+export interface CarouselCardData {
+  id: string;
+  title: string;
+  type: string;
+  year: number;
+  rating: number;
+  image?: string;
+  genres: string[];
+}
+
+export interface CollectionCardData {
+  id: string;
+  name: string;
+  image: string;
+  link: string;
+}
+
+export interface ReadingCardData {
+  id: string;
+  title: string;
+  cover: string;
+  currentChapter: number;
+  totalChapters: number;
+  chaptersRead: number;
+  type: string;
+}
+
+export interface LatestUpdateCardData {
+  id: string;
+  title: string;
+  cover: string;
+  chapter: string;
+  chapterNumber: number;
+  timeAgo: string;
+}
+
+import { ComponentType } from "react";
+
+// Типы для компонентов
+export type CarouselCardComponent = ComponentType<{ data: CarouselCardData }>;
+export type CollectionCardComponent = ComponentType<{ data: CollectionCardData }>;
+export type ReadingCardComponent = ComponentType<{ data: ReadingCardData }>;
+export type LatestUpdateCardComponent = ComponentType<{ data: LatestUpdateCardData }>;
+
+// Пропсы для карусели
+export interface CarouselProps<T> {
+  title: string;
+  data: T[];
+  cardComponent: ComponentType<{ data: T }>;
+  type: "browse" | "collection";
+  href?: string;
+  description?: string;
+  icon?: React.ReactNode;
+  navigationIcon?: React.ReactNode;
+  cardWidth?: string;
+  showNavigation?: boolean;
+  descriptionLink?: {
+    text: string;
+    href: string;
+  };
+}

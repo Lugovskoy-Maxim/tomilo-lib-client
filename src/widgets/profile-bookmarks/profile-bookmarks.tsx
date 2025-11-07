@@ -6,6 +6,7 @@ import { Title } from "@/types/title";
 import BookmarkCard from "@/shared/bookmark-card/bookmark-card";
 import { useRouter } from "next/navigation";
 import { Bookmark } from "lucide-react";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 
 interface BookmarksSectionProps {
   bookmarks: UserProfile["bookmarks"];
@@ -20,61 +21,42 @@ function BookmarksSection({
   const [errorBookmarks, setErrorBookmarks] = useState<Record<string, boolean>>({});
   const router = useRouter();
 
-  // Получаем данные о манге для каждой закладки
+  // Загружаем данные о тайтлах с помощью RTK Query
+  // Используем отдельные хуки для каждого bookmarkId
+  const bookmarkQuery1 = useGetTitleByIdQuery(currentBookmarks[0] || '', { skip: !currentBookmarks[0] });
+  const bookmarkQuery2 = useGetTitleByIdQuery(currentBookmarks[1] || '', { skip: !currentBookmarks[1] });
+  const bookmarkQuery3 = useGetTitleByIdQuery(currentBookmarks[2] || '', { skip: !currentBookmarks[2] });
+  const bookmarkQuery4 = useGetTitleByIdQuery(currentBookmarks[3] || '', { skip: !currentBookmarks[3] });
+
+  // Обновляем titleData на основе результатов запросов
   useEffect(() => {
-    const token = localStorage.getItem('tomilo_lib_token');
-    currentBookmarks.forEach((bookmarkId: string) => {
-      if (!titleData[bookmarkId] && !errorBookmarks[bookmarkId]) {
-        // Здесь мы не можем использовать useGetTitleByIdQuery напрямую,
-        // так как это хук и мы не можем вызывать его внутри цикла
-        // Вместо этого мы можем использовать fetch напрямую, но с учетом нового формата ответа API
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/titles/${bookmarkId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-          .then(response => response.json())
-          .then((response: { success: boolean; data?: Title } | Title) => {
-            // Проверяем, есть ли у ответа обертка ApiResponseDto
-            if (response && typeof response === 'object' && 'success' in response) {
-              // Если это объект ApiResponseDto, извлекаем данные
-              if (response.success && response.data) {
-                setTitleData(prev => ({
-                  ...prev,
-                  [bookmarkId]: response.data!
-                }));
-              } else {
-                // Помечаем закладку как ошибочную, если данные не получены
-                setErrorBookmarks(prev => ({
-                  ...prev,
-                  [bookmarkId]: true
-                }));
-              }
-            } else if (response && typeof response === 'object' && '_id' in response) {
-              // Если это объект Title без обертки ApiResponseDto
-              setTitleData(prev => ({
-                ...prev,
-                [bookmarkId]: response
-              }));
-            } else {
-              // В других случаях помечаем закладку как ошибочную
-              setErrorBookmarks(prev => ({
-                ...prev,
-                [bookmarkId]: true
-              }));
-            }
-          })
-          .catch(error => {
-            console.error("Ошибка при получении данных о манге:", error);
-            // Помечаем закладку как ошибочную при сетевой ошибке
-            setErrorBookmarks(prev => ({
-              ...prev,
-              [bookmarkId]: true
-            }));
-          });
+    const queries = [bookmarkQuery1, bookmarkQuery2, bookmarkQuery3, bookmarkQuery4];
+    const newTitleData: Record<string, Title> = {};
+    const newErrorBookmarks: Record<string, boolean> = {};
+
+    queries.forEach((query, index) => {
+      const bookmarkId = currentBookmarks[index];
+      if (bookmarkId && query.data && query.data.success && query.data.data) {
+        newTitleData[bookmarkId] = query.data.data;
+      } else if (bookmarkId && query.error) {
+        newErrorBookmarks[bookmarkId] = true;
       }
     });
-  }, [currentBookmarks, titleData, errorBookmarks]);
+
+    if (Object.keys(newTitleData).length > 0) {
+      setTitleData(prev => ({
+        ...prev,
+        ...newTitleData
+      }));
+    }
+
+    if (Object.keys(newErrorBookmarks).length > 0) {
+      setErrorBookmarks(prev => ({
+        ...prev,
+        ...newErrorBookmarks
+      }));
+    }
+  }, [bookmarkQuery1, bookmarkQuery2, bookmarkQuery3, bookmarkQuery4, currentBookmarks]);
 
   const handleRemoveBookmark = (bookmarkId: string) => {
     // Обновляем локальное состояние

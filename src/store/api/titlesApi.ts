@@ -135,6 +135,20 @@ export const titlesApi = createApi({
       providesTags: [TITLES_TAG],
       transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number }[]>) => response,
     }),
+
+    // Получить коллекции
+    getCollections: builder.query<ApiResponseDto<{ id: string; name: string; image: string; link: string }[]>, void>({
+      query: () => "/collections",
+      providesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<{ id: string; name: string; image: string; link: string }[]>) => response,
+    }),
+
+    // Получить последние обновления
+    getLatestUpdates: builder.query<ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string }[]>, void>({
+      query: () => "/titles/latest-updates",
+      providesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string }[]>) => response,
+    }),
   }),
 });
 
@@ -148,4 +162,6 @@ export const {
   useUpdateRatingMutation,
   useIncrementViewsMutation,
   useGetPopularTitlesQuery,
+  useGetCollectionsQuery,
+  useGetLatestUpdatesQuery,
 } = titlesApi;

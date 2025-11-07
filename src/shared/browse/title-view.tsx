@@ -194,8 +194,7 @@ export function ChaptersTab({
   searchQuery: string;
   onSearchChange: (q: string) => void;
   loading: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user: any; // Более простой тип
+  user: { readingHistory?: { titleId: string; chapters?: { chapterId: string }[] }[] } | null;
 }) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -269,12 +268,9 @@ export function ChapterItem({
 
   // Проверяем, прочитана ли глава
   const isRead = user?.readingHistory?.some(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (historyItem: any) =>
+    (historyItem: { titleId: string; chapters?: { chapterId: string }[] }) =>
       historyItem.titleId === titleId &&
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-
-      historyItem.chapters?.some((ch: any) => ch.chapterId === chapter._id)
+      historyItem.chapters?.some((ch) => ch.chapterId === chapter._id)
   );
 
   // Функция для удаления из истории чтения

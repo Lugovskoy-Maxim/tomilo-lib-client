@@ -19,6 +19,7 @@ interface ReadingCardProps {
 }
 
 export default function ReadingCard({ data }: ReadingCardProps) {
+  console.log(data);
   const router = useRouter();
 
   const getProgressPercentage = (current: number, total: number) => {

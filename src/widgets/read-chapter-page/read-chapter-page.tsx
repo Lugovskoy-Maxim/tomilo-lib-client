@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
@@ -30,75 +31,29 @@ const normalizeAssetUrl = (url: string): string => {
     process.env.NEXT_PUBLIC_UPLOADS_URL || "http://localhost:3001/uploads";
   return `${origin}${path}`;
 };
-
-export default function ChapterReader() {
-  const params = useParams();
+export default function ReadChapterPage({
+  title,
+  chapter,
+  chapters,
+}: {
+  title: ReaderTitle;
+  chapter: ReaderChapter;
+  chapters: ReaderChapter[];
+}) {
   const router = useRouter();
   const { user, updateChapterViews, addToReadingHistory } = useAuth();
 
-  const titleId = params.titleId as string;
-  const chapterId = params.chapterId as string;
-
-  // Загрузка данных с правильной типизацией
-  const { data: titleData, isLoading: titleLoading } =
-    useGetTitleByIdQuery(titleId);
-  const { data: chaptersData, isLoading: chaptersLoading } =
-    useGetChaptersByTitleQuery({
-      titleId,
-      sortOrder: "asc",
-    });
-
-  // Типизированные данные
-  const typedTitleData = titleData as ApiResponse<Title> | undefined;
-  const typedChaptersData = chaptersData as Chapter[] | undefined;
-
-  // Мемоизация преобразованных данных
-  const chapters = useMemo((): ReaderChapter[] => {
-    if (!typedChaptersData) return [];
-    return typedChaptersData.map((ch: Chapter) => ({
-      _id: ch._id,
-      number: Number(ch.chapterNumber) || 0,
-      title: ch.name || "",
-      date: ch.releaseDate || "",
-      views: Number(ch.views) || 0,
-      images: Array.isArray(ch.pages) ? ch.pages.map(normalizeAssetUrl) : [],
-    }));
-  }, [typedChaptersData]);
-
-  const title = useMemo((): ReaderTitle | null => {
-    if (!typedTitleData?.data) return null;
-    const data = typedTitleData.data;
-    return {
-      _id: data._id,
-      title: data.name,
-      originalTitle: data.altNames?.[0] || "",
-      type: data.type || "Неизвестно",
-      year: Number(data.releaseYear) || new Date().getFullYear(),
-      rating: Number(data.rating) || 0,
-      image: normalizeAssetUrl(data.coverImage || ""),
-      genres: data.genres || [],
-      description: data.description || "",
-      status: data.status || "ongoing",
-      author: data.author || "",
-      artist: data.artist || "",
-      totalChapters: Number(data.totalChapters) || 0,
-      views: Number(data.views) || 0,
-      lastUpdate: data.updatedAt || "",
-      chapters: [],
-      alternativeTitles: data.altNames || [],
-    };
-  }, [typedTitleData]);
+  const titleId = title._id;
+  const chapterId = chapter._id;
 
   // Находим текущую главу и её индекс
   const { currentChapter, currentChapterIndex } = useMemo(() => {
-    const foundChapter =
-      chapters.find((ch) => ch._id === chapterId) || chapters[0];
     const foundIndex = chapters.findIndex((ch) => ch._id === chapterId);
     return {
-      currentChapter: foundChapter,
+      currentChapter: chapter,
       currentChapterIndex: foundIndex !== -1 ? foundIndex : 0,
     };
-  }, [chapters, chapterId]);
+  }, [chapters, chapterId, chapter]);
 
   // Состояния
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(
@@ -270,7 +225,7 @@ export default function ChapterReader() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  const loading = titleLoading || chaptersLoading || !currentChapter;
+  const loading = !currentChapter;
 
   if (loading) {
     return (
@@ -283,7 +238,7 @@ export default function ChapterReader() {
     );
   }
 
-  if (!title || !currentChapter) {
+  if (!currentChapter) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="text-center">

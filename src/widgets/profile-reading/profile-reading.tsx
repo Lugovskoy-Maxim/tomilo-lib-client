@@ -8,6 +8,7 @@ import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 
 interface ReadingHistorySectionProps {
   readingHistory:
@@ -68,47 +69,48 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
     return [...new Set(allChapters.map(chapter => chapter.titleId))];
   }, [allChapters]);
 
-  // Получаем данные о тайтлах
+  // Загружаем данные о тайтлах с помощью RTK Query
+  // Используем отдельные хуки для каждого titleId
+  const titleQuery1 = useGetTitleByIdQuery(uniqueTitleIds[0] || '', { skip: !uniqueTitleIds[0] });
+  const titleQuery2 = useGetTitleByIdQuery(uniqueTitleIds[1] || '', { skip: !uniqueTitleIds[1] });
+  const titleQuery3 = useGetTitleByIdQuery(uniqueTitleIds[2] || '', { skip: !uniqueTitleIds[2] });
+  const titleQuery4 = useGetTitleByIdQuery(uniqueTitleIds[3] || '', { skip: !uniqueTitleIds[3] });
+  const titleQuery5 = useGetTitleByIdQuery(uniqueTitleIds[4] || '', { skip: !uniqueTitleIds[4] });
+  const titleQuery6 = useGetTitleByIdQuery(uniqueTitleIds[5] || '', { skip: !uniqueTitleIds[5] });
+  const titleQuery7 = useGetTitleByIdQuery(uniqueTitleIds[6] || '', { skip: !uniqueTitleIds[6] });
+  const titleQuery8 = useGetTitleByIdQuery(uniqueTitleIds[7] || '', { skip: !uniqueTitleIds[7] });
+  const titleQuery9 = useGetTitleByIdQuery(uniqueTitleIds[8] || '', { skip: !uniqueTitleIds[8] });
+  const titleQuery10 = useGetTitleByIdQuery(uniqueTitleIds[9] || '', { skip: !uniqueTitleIds[9] });
+
+  // Обновляем titleData на основе результатов запросов
   useEffect(() => {
-    if (uniqueTitleIds.length === 0) return;
+    const queries = [titleQuery1, titleQuery2, titleQuery3, titleQuery4, titleQuery5, titleQuery6, titleQuery7, titleQuery8, titleQuery9, titleQuery10];
+    const newTitleData: Record<string, Title> = {};
+    const newErrorItems: Record<string, boolean> = {};
 
-    uniqueTitleIds.forEach(titleId => {
-      // Пропускаем если уже загружаем или уже есть данные
-      if (titleData[titleId] || errorItems[titleId]) return;
-
-      fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
-        }/titles/${titleId}`
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((response: { success: boolean; data?: Title }) => {
-          if (response.success && response.data) {
-            setTitleData((prev) => ({
-              ...prev,
-              [titleId]: response.data!,
-            }));
-          } else {
-            setErrorItems((prev) => ({
-              ...prev,
-              [titleId]: true,
-            }));
-          }
-        })
-        .catch((error) => {
-          console.error("Ошибка при получении данных о манге:", error);
-          setErrorItems((prev) => ({
-            ...prev,
-            [titleId]: true,
-          }));
-        });
+    queries.forEach((query, index) => {
+      const titleId = uniqueTitleIds[index];
+      if (titleId && query.data && query.data.success && query.data.data) {
+        newTitleData[titleId] = query.data.data;
+      } else if (titleId && query.error) {
+        newErrorItems[titleId] = true;
+      }
     });
-  }, [uniqueTitleIds, titleData, errorItems]);
+
+    if (Object.keys(newTitleData).length > 0) {
+      setTitleData(prev => ({
+        ...prev,
+        ...newTitleData
+      }));
+    }
+
+    if (Object.keys(newErrorItems).length > 0) {
+      setErrorItems(prev => ({
+        ...prev,
+        ...newErrorItems
+      }));
+    }
+  }, [titleQuery1, titleQuery2, titleQuery3, titleQuery4, titleQuery5, titleQuery6, titleQuery7, titleQuery8, titleQuery9, titleQuery10, uniqueTitleIds]);
 
   const handleRemoveFromHistory = async (
     titleId: string,
