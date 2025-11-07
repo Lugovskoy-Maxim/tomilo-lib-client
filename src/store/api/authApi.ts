@@ -6,29 +6,64 @@ import {
   User,
   ApiResponseDto,
 } from "@/types/auth";
+import { Title } from "@/types/title";
 
-// Ключи для localStorage (сохраняем ваши существующие)
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
+
+// Типы для истории чтения
+interface ReadingHistoryChapter {
+  chapterId: string;
+  chapterNumber: number;
+  chapterTitle?: string;
+  readAt: string;
+}
+
+interface ReadingHistoryEntry {
+  titleId: string;
+  chapters: ReadingHistoryChapter[];
+  readAt: string;
+}
+
+// Тип для закладок
+interface BookmarkItem {
+  _id: string;
+  name: string;
+  coverImage?: string;
+  type?: string;
+  releaseYear?: number;
+  rating?: number;
+  genres?: string[];
+}
+
+// Тип для ответа при обновлении аватара
+interface AvatarResponse {
+  message: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    avatar: string;
+  };
+}
 
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
     prepareHeaders: (headers) => {
-      // Используем ваши существующие ключи localStorage
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (token) {
-          const authHeader = `Bearer ${token}`;
-          headers.set("authorization", authHeader);
+          headers.set("authorization", `Bearer ${token}`);
         }
       }
       return headers;
     },
   }),
-  tagTypes: ["Auth"],
+  tagTypes: ["Auth", "ReadingHistory", "Bookmarks"],
   endpoints: (builder) => ({
+    // Аутентификация
     login: builder.mutation<ApiResponseDto<AuthResponse>, LoginData>({
       query: (credentials) => ({
         url: "/auth/login",
@@ -37,6 +72,7 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Auth"],
     }),
+
     register: builder.mutation<ApiResponseDto<AuthResponse>, RegisterData>({
       query: (userData) => ({
         url: "/auth/register",
@@ -45,57 +81,13 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Auth"],
     }),
+
+    // Профиль пользователя
     getProfile: builder.query<ApiResponseDto<User>, void>({
       query: () => "/users/profile",
       providesTags: ["Auth"],
-      transformResponse: (response: ApiResponseDto<User>) => response,
     }),
-    addBookmark: builder.mutation<ApiResponseDto<User>, string>({
-      query: (titleId) => ({
-        url: `/users/profile/bookmarks/${titleId}`,
-        method: "POST",
-      }),
-      invalidatesTags: ["Auth"],
-    }),
-    removeBookmark: builder.mutation<ApiResponseDto<User>, string>({
-      query: (titleId) => ({
-        url: `/users/profile/bookmarks/${titleId}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Auth"],
-    }),
-    getContinueReading: builder.query<
-      ApiResponseDto<{
-        titleId: string;
-        chapterId: string;
-        chapterNumber: number;
-      }[]>,
-      void
-    >({
-      query: () => "/users/profile/history",
-      providesTags: ["Auth"],
-    }),
-    addToReadingHistory: builder.mutation<
-      ApiResponseDto<{ message: string }>,
-      { titleId: string; chapterId: string }
-    >({
-      query: ({ titleId, chapterId }) => ({
-        url: `/users/profile/history/${titleId}/${chapterId}`,
-        method: "POST",
-      }),
-      invalidatesTags: ["Auth"],
-      transformResponse: (response: ApiResponseDto<{ message: string }>) => response,
-    }),
-    removeFromReadingHistory: builder.mutation<
-      ApiResponseDto<User>,
-      { titleId: string; chapterId: string }
-    >({
-      query: ({ titleId, chapterId }) => ({
-        url: `/users/profile/history/${titleId}/${chapterId}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Auth"],
-    }),
+
     updateProfile: builder.mutation<ApiResponseDto<User>, Partial<User>>({
       query: (profileData) => ({
         url: "/users/profile",
@@ -104,7 +96,8 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Auth"],
     }),
-    updateAvatar: builder.mutation<ApiResponseDto<User>, FormData>({
+
+    updateAvatar: builder.mutation<ApiResponseDto<AvatarResponse>, FormData>({
       query: (formData) => ({
         url: "/users/profile/avatar",
         method: "PUT",
@@ -112,17 +105,80 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Auth"],
     }),
+
+    // Закладки
+    addBookmark: builder.mutation<ApiResponseDto<User>, string>({
+      query: (titleId) => ({
+        url: `/users/profile/bookmarks/${titleId}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Bookmarks", "Auth"],
+    }),
+
+    removeBookmark: builder.mutation<ApiResponseDto<User>, string>({
+      query: (titleId) => ({
+        url: `/users/profile/bookmarks/${titleId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Bookmarks", "Auth"],
+    }),
+
+    getBookmarks: builder.query<ApiResponseDto<BookmarkItem[]>, void>({
+      query: () => "/users/profile/bookmarks",
+      providesTags: ["Bookmarks"],
+    }),
+
+    // История чтения
+    getReadingHistory: builder.query<ApiResponseDto<ReadingHistoryEntry[]>, void>({
+      query: () => "/users/profile/history",
+      providesTags: ["ReadingHistory"],
+    }),
+
+    addToReadingHistory: builder.mutation<
+      ApiResponseDto<User>,
+      { titleId: string; chapterId: string }
+    >({
+      query: ({ titleId, chapterId }) => ({
+        url: `/users/profile/history/${titleId}/${chapterId}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["ReadingHistory", "Auth"],
+    }),
+
+    removeFromReadingHistory: builder.mutation<
+      ApiResponseDto<User>,
+      { titleId: string; chapterId?: string }
+    >({
+      query: ({ titleId, chapterId }) => ({
+        url: chapterId 
+          ? `/users/profile/history/${titleId}/${chapterId}`
+          : `/users/profile/history/${titleId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["ReadingHistory", "Auth"],
+    }),
+
+    clearReadingHistory: builder.mutation<ApiResponseDto<User>, void>({
+      query: () => ({
+        url: "/users/profile/history",
+        method: "DELETE",
+      }),
+      invalidatesTags: ["ReadingHistory", "Auth"],
+    }),
   }),
 });
+
 export const {
   useLoginMutation,
   useRegisterMutation,
   useGetProfileQuery,
-  useAddBookmarkMutation,
-  useRemoveBookmarkMutation,
-  useGetContinueReadingQuery,
-  useAddToReadingHistoryMutation,
-  useRemoveFromReadingHistoryMutation,
   useUpdateProfileMutation,
   useUpdateAvatarMutation,
+  useAddBookmarkMutation,
+  useRemoveBookmarkMutation,
+  useGetBookmarksQuery,
+  useGetReadingHistoryQuery,
+  useAddToReadingHistoryMutation,
+  useRemoveFromReadingHistoryMutation,
+  useClearReadingHistoryMutation,
 } = authApi;

@@ -18,6 +18,7 @@ export interface ReadingProgress {
   titleId: string | { _id: string; id?: string; name?: string; coverImage?: string; totalChapters?: number; type?: string };
   chapterId: string | { _id: string; id?: string };
   chapterNumber: number;
+  lastReadDate?: string;
 }
 
 export interface LatestUpdate {
@@ -53,8 +54,14 @@ export interface ReadingCardData {
   cover: string;
   currentChapter: number;
   totalChapters: number;
-  chaptersRead: number;
+  newChaptersSinceLastRead: number;
   type: string;
+  readingHistory?: {
+    titleId: string;
+    chapterId: string;
+    chapterNumber: number;
+    lastReadDate?: string;
+  };
 }
 
 export interface LatestUpdateCardData {

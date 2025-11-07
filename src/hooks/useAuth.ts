@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useGetProfileQuery, useAddBookmarkMutation, useRemoveBookmarkMutation, useGetContinueReadingQuery, useAddToReadingHistoryMutation, useRemoveFromReadingHistoryMutation } from "@/store/api/authApi";
-import { useUpdateChapterMutation } from "@/store/api/chaptersApi"; // Импортируем useUpdateChapterMutation
+import { useGetProfileQuery, useAddBookmarkMutation, useRemoveBookmarkMutation, useGetReadingHistoryQuery, useAddToReadingHistoryMutation, useRemoveFromReadingHistoryMutation } from "@/store/api/authApi";
+import { useUpdateChapterMutation } from "@/store/api/chaptersApi";
 import {
   login,
   logout,
@@ -42,11 +42,11 @@ export const useAuth = () => {
   const [updateChapter] = useUpdateChapterMutation(); // Добавляем useUpdateChapterMutation
   const [addToReadingHistory] = useAddToReadingHistoryMutation(); // Добавляем useAddToReadingHistoryMutation
   const [removeFromReadingHistory] = useRemoveFromReadingHistoryMutation(); // Добавляем useRemoveFromReadingHistoryMutation
-  const { data: continueReadingData, isLoading: continueReadingLoading, error: continueReadingError } = useGetContinueReadingQuery(undefined, {
+  const { data: readingHistoryData, isLoading: readingHistoryLoading, error: readingHistoryError } = useGetReadingHistoryQuery(undefined, {
     skip: !getToken(),
   });
 
-  const continueReading = continueReadingData?.data;
+  const continueReading = readingHistoryData?.data;
 
   // Синхронизируем состояние загрузки
   useEffect(() => {
@@ -263,7 +263,7 @@ export const useAuth = () => {
       // Используем updateChapter для обновления просмотров
       const result = await updateChapter({
         id: chapterId,
-        data: { views: currentViews + 1 } as Partial<any> // eslint-disable-line @typescript-eslint/no-explicit-any
+        data: { views: currentViews + 1 } as Partial<UpdateChapterDto>
       }).unwrap();
       
       return { success: true };
@@ -358,8 +358,8 @@ export const useAuth = () => {
     updateChapterViews: updateChapterViewsCount,
     addToReadingHistory: addToReadingHistoryFunc,
     continueReading,
-    continueReadingLoading,
-    continueReadingError,
+    readingHistoryLoading,
+    readingHistoryError,
     refetchProfile,
     isAuthenticated: auth.isAuthenticated,
     removeFromReadingHistory: removeFromReadingHistoryFunc,

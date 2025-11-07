@@ -10,8 +10,14 @@ interface ReadingItem {
   type: string;
   currentChapter: number;
   totalChapters: number;
-  chaptersRead: number;
+  newChaptersSinceLastRead: number;
   cover: string;
+  readingHistory?: {
+    titleId: string;
+    chapterId: string;
+    chapterNumber: number;
+    lastReadDate?: string;
+  };
 }
 
 interface ReadingCardProps {
@@ -96,21 +102,21 @@ export default function ReadingCard({ data }: ReadingCardProps) {
             <div className="flex items-center gap-2 text-xs sm:text-sm">
               <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-muted/50 flex-shrink-0" />
               <span className="text-muted/50 truncate">
-                +{data.chaptersRead} новых глав
+                +{data.newChaptersSinceLastRead} новых глав
               </span>
             </div>
 
             {/* Прогресс чтения */}
             <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3">
               <div className="text-muted/50 text-xs font-semibold text-center">
-                Глава {data.currentChapter}
+                Глава {data.readingHistory?.chapterNumber || data.currentChapter}
               </div>
               <div className="w-full bg-white/30 rounded-full h-1 mt-1">
                 <div
                   className="bg-primary h-1 rounded-full transition-all"
                   style={{
                     width: `${getProgressPercentage(
-                      data.currentChapter,
+                      data.readingHistory?.chapterNumber || data.currentChapter,
                       data.totalChapters
                     )}%`,
                   }}

@@ -14,6 +14,8 @@ import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetPopularTitlesQuery } from "@/store/api/titlesApi";
+import { useGetReadingHistoryQuery } from "@/store/api/authApi";
+
 
 import { Title, TitleType } from "@/types/title";
 import {
@@ -85,18 +87,38 @@ const adaptReadingProgressToReadingCard = (
   const titleId = typeof progress.titleId === 'object' ? progress.titleId._id || progress.titleId.id || '' : progress.titleId;
   const chapterId = typeof progress.chapterId === 'object' ? progress.chapterId._id || progress.chapterId.id || '' : progress.chapterId;
   const chapterNumber = progress.chapterNumber;
+  const lastReadDate = progress.lastReadDate;
+
+  // Рассчитываем количество новых глав с момента последнего чтения
+  let newChaptersSinceLastRead = 0;
+  const totalChapters = titleData?.chapters?.length || (typeof progress.titleId === 'object' ? progress.titleId.totalChapters : undefined) || 0;
+
+  if (lastReadDate && totalChapters > 0) {
+    // TODO: Получить данные глав с датами публикации для точного подсчета
+    // Пока используем заглушку - считаем все главы после текущей как новые
+    newChaptersSinceLastRead = Math.max(0, totalChapters - chapterNumber);
+  } else {
+    // Fallback на старую логику, если нет даты последнего чтения
+    newChaptersSinceLastRead = Math.max(0, totalChapters - chapterNumber);
+  }
+
+  // Для "Продолжить чтение" currentChapter - это следующая глава для чтения
+  const nextChapterNumber = chapterNumber < totalChapters ? chapterNumber + 1 : chapterNumber;
 
   return {
-    id: `${titleId}-${chapterId}-${index}`,
+    id: titleId,
     title: titleData?.name || (typeof progress.titleId === 'object' ? progress.titleId.name : undefined) || `Манга #${titleId || 'Unknown'}`,
     cover: titleData?.coverImage || (typeof progress.titleId === 'object' ? progress.titleId.coverImage : undefined) || "",
-    currentChapter: chapterNumber,
+    currentChapter: nextChapterNumber, // Следующая глава для чтения
     totalChapters: titleData?.chapters?.length || (typeof progress.titleId === 'object' ? progress.titleId.totalChapters : undefined) || 0,
-    chaptersRead: Math.max(
-      0,
-      ((titleData?.chapters?.length || (typeof progress.titleId === 'object' ? progress.titleId.totalChapters : undefined) || 0) - chapterNumber)
-    ),
+    newChaptersSinceLastRead,
     type: titleData?.type ? getTitleTypeString(titleData.type) : (typeof progress.titleId === 'object' ? (progress.titleId.type ? getTitleTypeString(progress.titleId.type as TitleType) : undefined) : undefined) || "Манга",
+    readingHistory: {
+      titleId: typeof progress.titleId === 'string' ? progress.titleId : (progress.titleId && typeof progress.titleId === 'object' ? progress.titleId._id || progress.titleId.id || '' : ''),
+      chapterId: typeof progress.chapterId === 'string' ? progress.chapterId : (progress.chapterId && typeof progress.chapterId === 'object' ? progress.chapterId._id || progress.chapterId.id || '' : ''),
+      chapterNumber: progress.chapterNumber, // Последняя прочитанная глава
+      lastReadDate: progress.lastReadDate,
+    },
   };
 };
 
@@ -243,13 +265,16 @@ export default function Home() {
       ? popularTitlesError.message || null
       : null;
   const collections = useApiData<Collection>("/collections");
-  const { continueReading, continueReadingLoading, continueReadingError } =
+  const { continueReading, readingHistoryLoading: authReadingHistoryLoading, readingHistoryError: authReadingHistoryError } =
     useAuth();
   const continueReadingArray = continueReading || [];
   const latestUpdates = useApiData<LatestUpdate>("/titles/latest-updates");
   const [fullTitlesData, setFullTitlesData] = useState<Record<string, Title>>({});
   const [titleData, setTitleData] = useState<Record<string, Title>>({});
   const [errorItems, setErrorItems] = useState<Record<string, boolean>>({});
+  const {
+    data: readingHistory,
+  } = useGetReadingHistoryQuery();
 
   useEffect(() => {
     setMounted(true);
@@ -300,10 +325,10 @@ export default function Home() {
 
   // Получаем данные о манге для каждого тайтла из истории чтения
   useEffect(() => {
-    if (!continueReadingArray || continueReadingArray.length === 0) return;
+    if (!readingHistory?.data || readingHistory.data.length === 0) return;
 
-    const fetchTitleData = async (item: ReadingProgress) => {
-      const titleId: string = typeof item.titleId === 'object' ? item.titleId._id || item.titleId.id || '' : item.titleId;
+    const fetchTitleData = async (item: { titleId: string; chapters: ReadingHistoryChapter[] }) => {
+      const titleId: string = item.titleId;
       if (!titleData[titleId] && !errorItems[titleId]) {
         try {
           const response = await fetch(
@@ -349,8 +374,8 @@ export default function Home() {
       }
     };
 
-    continueReadingArray.forEach(fetchTitleData);
-  }, [continueReadingArray, titleData, errorItems]);
+    readingHistory.data.forEach(fetchTitleData);
+  }, [readingHistory, titleData, errorItems]);
 
   // Преобразуем данные API в формат, ожидаемый компонентами
   const adaptedPopularTitles =
@@ -376,14 +401,30 @@ export default function Home() {
   );
 
   const adaptedReadingProgress =
-    continueReadingArray?.map((progress, index) => {
-      const titleId = typeof progress.titleId === 'object' ? progress.titleId._id || progress.titleId.id || '' : progress.titleId;
+    readingHistory?.data?.map((entry, index) => {
+      const titleId = entry.titleId;
+      const titleInfo = titleData[titleId];
+      // Get the latest chapter from the entry
+      const latestChapter = entry.chapters.reduce((latest, current) =>
+        new Date(current.readAt) > new Date(latest.readAt) ? current : latest
+      );
+      const progress: ReadingProgress = {
+        titleId: entry.titleId,
+        chapterId: latestChapter.chapterId,
+        chapterNumber: latestChapter.chapterNumber,
+        lastReadDate: latestChapter.readAt,
+      };
       return adaptReadingProgressToReadingCard(
         progress,
-        titleData[titleId] || null,
+        titleInfo || null,
         index
       );
     }) || [];
+
+  // Фильтруем только те тайтлы, где есть непрочитанные главы
+  const filteredReadingProgress = adaptedReadingProgress.filter(item => {
+    return item.currentChapter <= item.totalChapters && item.totalChapters > 0;
+  });
 
   const adaptedLatestUpdates = latestUpdates.data.map((update, index) =>
     adaptLatestUpdateToLatestUpdateCard(update, index)
@@ -447,7 +488,7 @@ export default function Home() {
         {/* Продолжить чтение */}
         {renderCarousel(
           "Продолжить чтение",
-          adaptedReadingProgress,
+          filteredReadingProgress,
           ReadingCard as unknown as ReadingCardComponent,
           {
             description:
@@ -459,9 +500,9 @@ export default function Home() {
             showNavigation: false,
             cardWidth: "w-68 sm:w-72 md:w-80 lg:w-96",
           },
-          continueReadingLoading,
-          continueReadingError && "message" in continueReadingError
-            ? continueReadingError.message || null
+          authReadingHistoryLoading,
+          authReadingHistoryError && "message" in authReadingHistoryError
+            ? authReadingHistoryError.message || null
             : null,
           mounted
         )}
