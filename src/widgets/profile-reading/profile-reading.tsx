@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Trash2 } from "lucide-react";
+import { BookOpen, Trash2, Clock } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import { Title } from "@/types/title";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,7 @@ interface ReadingHistorySectionProps {
           chapterId: string;
           chapterNumber: number;
           chapterTitle: string | null;
+          readAt: string;
         }[];
         readAt: string;
       }[]
@@ -30,88 +31,84 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
   const [errorItems, setErrorItems] = useState<Record<string, boolean>>({});
   const router = useRouter();
 
-  // Преобразуем новый формат данных в старый для совместимости
-  const transformedReadingHistory = useMemo(
-    () =>
-      readingHistory?.map((item) => ({
-        titleId: item.titleId,
-        chapters: item.chapters?.map((chapter) => ({
-          chapterId: chapter.chapterId,
-          chapterNumber: chapter.chapterNumber,
-          chapterTitle: chapter.chapterTitle,
-          readAt: item.readAt,
-        })) || [],
-      })) || [],
-    [readingHistory]
-  );
+  // Преобразуем данные в плоский список глав с информацией о тайтле
+  const allChapters = useMemo(() => {
+    if (!readingHistory) return [];
 
-  // Получаем данные о манге для каждой записи в истории чтения
+    return readingHistory.flatMap(historyItem =>
+      historyItem.chapters.map(chapter => ({
+        titleId: historyItem.titleId,
+        chapterId: chapter.chapterId,
+        chapterNumber: chapter.chapterNumber,
+        chapterTitle: chapter.chapterTitle,
+        // Используем readAt из главы, если есть, иначе из родительского элемента
+        readAt: chapter.readAt || historyItem.readAt,
+        // Добавляем ключ для уникальной идентификации
+        uniqueKey: `${historyItem.titleId}-${chapter.chapterId}-${chapter.readAt || historyItem.readAt}`
+      }))
+    );
+  }, [readingHistory]);
+
+  // Сортируем по времени чтения главы (самые новые первыми), затем по номеру главы
+  const recentChapters = useMemo(() => {
+    return [...allChapters]
+      .sort((a, b) => {
+        // Сначала сортируем по времени чтения (новые первыми)
+        const timeDiff = new Date(b.readAt).getTime() - new Date(a.readAt).getTime();
+        if (timeDiff !== 0) return timeDiff;
+        
+        // Если время одинаковое, сортируем по номеру главы (более высокие номера первыми)
+        return b.chapterNumber - a.chapterNumber;
+      })
+      .slice(0, 10);
+  }, [allChapters]);
+
+  // Получаем уникальные titleId для загрузки данных
+  const uniqueTitleIds = useMemo(() => {
+    return [...new Set(allChapters.map(chapter => chapter.titleId))];
+  }, [allChapters]);
+
+  // Получаем данные о тайтлах
   useEffect(() => {
-    if (!transformedReadingHistory) return;
+    if (uniqueTitleIds.length === 0) return;
 
-    // Получаем все тайтлы из истории чтения
-    const lastTitles = transformedReadingHistory;
+    uniqueTitleIds.forEach(titleId => {
+      // Пропускаем если уже загружаем или уже есть данные
+      if (titleData[titleId] || errorItems[titleId]) return;
 
-    lastTitles.forEach((item) => {
-      if (!titleData[item.titleId] && !errorItems[item.titleId]) {
-        // Здесь мы не можем использовать useGetTitleByIdQuery напрямую,
-        // так как это хук и мы не можем вызывать его внутри цикла
-        // Вместо этого мы можем использовать fetch напрямую, но с учетом нового формата ответа API
-        fetch(
-          `${
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
-          }/titles/${item.titleId}`
-        )
-          .then((response) => response.json())
-          .then((response: { success: boolean; data?: Title } | Title) => {
-            // Проверяем, есть ли у ответа обертка ApiResponseDto
-            if (
-              response &&
-              typeof response === "object" &&
-              "success" in response
-            ) {
-              // Если это объект ApiResponseDto, извлекаем данные
-              if (response.success && response.data) {
-                setTitleData((prev) => ({
-                  ...prev,
-                  [item.titleId]: response.data!,
-                }));
-              } else {
-                // Помечаем элемент как ошибочный, если данные не получены
-                setErrorItems((prev) => ({
-                  ...prev,
-                  [item.titleId]: true,
-                }));
-              }
-            } else if (
-              response &&
-              typeof response === "object" &&
-              "_id" in response
-            ) {
-              // Если это объект Title без обертки ApiResponseDto
-              setTitleData((prev) => ({
-                ...prev,
-                [item.titleId]: response,
-              }));
-            } else {
-              // В других случаях помечаем элемент как ошибочный
-              setErrorItems((prev) => ({
-                ...prev,
-                [item.titleId]: true,
-              }));
-            }
-          })
-          .catch((error) => {
-            console.error("Ошибка при получении данных о манге:", error);
-            // Помечаем элемент как ошибочный при сетевой ошибке
+      fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+        }/titles/${titleId}`
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((response: { success: boolean; data?: Title }) => {
+          if (response.success && response.data) {
+            setTitleData((prev) => ({
+              ...prev,
+              [titleId]: response.data!,
+            }));
+          } else {
             setErrorItems((prev) => ({
               ...prev,
-              [item.titleId]: true,
+              [titleId]: true,
             }));
-          });
-      }
+          }
+        })
+        .catch((error) => {
+          console.error("Ошибка при получении данных о манге:", error);
+          setErrorItems((prev) => ({
+            ...prev,
+            [titleId]: true,
+          }));
+        });
     });
-  }, [transformedReadingHistory, titleData, errorItems]);
+  }, [uniqueTitleIds, titleData, errorItems]);
 
   const handleRemoveFromHistory = async (
     titleId: string,
@@ -128,7 +125,7 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
       }
     } catch (error) {
       console.error("Ошибка при удалении из истории чтения:", error);
-      alert("Произошла ошибка при удалении из истории чтения");
+      alert("Произошла ошибка при удаления из истории чтения");
     } finally {
       setLoadingItems((prev) => {
         const newLoading = { ...prev };
@@ -142,12 +139,10 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
   const getImageUrl = (coverImage: string | undefined) => {
     if (!coverImage) return IMAGE_HOLDER;
 
-    // Если изображение уже полный URL, используем как есть
     if (coverImage.startsWith("http")) {
       return coverImage;
     }
 
-    // Если относительный путь, добавляем базовый URL
     return `${
       process.env.NEXT_PUBLIC_URL || "http://localhost:3001"
     }${coverImage}`;
@@ -184,8 +179,8 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
     </div>
   );
 
-  // Если история чтения не определена или пуста, показываем сообщение
-  if (!transformedReadingHistory || transformedReadingHistory.length === 0) {
+  // Если история чтения пуста, показываем сообщение
+  if (!readingHistory || readingHistory.length === 0 || allChapters.length === 0) {
     return (
       <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
         <div className="flex items-center justify-between mb-6">
@@ -201,22 +196,6 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
     );
   }
 
-  // Собираем все главы из всех записей истории чтения
-  const allChapters = transformedReadingHistory.flatMap((item) =>
-    item.chapters.map((chapter) => ({
-      titleId: item.titleId,
-      chapterId: chapter.chapterId,
-      chapterNumber: chapter.chapterNumber,
-      chapterTitle: chapter.chapterTitle,
-      readAt: chapter.readAt,
-    }))
-  );
-
-  // Сортируем все главы по времени чтения (самая свежая первая) и берем первые 10
-  const recentChapters = allChapters
-    .sort((a, b) => new Date(b.readAt).getTime() - new Date(a.readAt).getTime())
-    .slice(0, 10);
-
   return (
     <div className="bg-[var(--secondary)] rounded-xl p-2 border border-[var(--border)]">
       <div className="flex items-center justify-between mb-2">
@@ -230,20 +209,23 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-2">
-        {recentChapters.map((item, index) => {
-          // Дополнительная проверка на null
-          if (!item) return null;
-
-          // Проверяем состояние загрузки
+        {recentChapters.map((item) => {
           const loadingKey = `${item.titleId}-${item.chapterId}`;
-
-          // Показываем карточку сразу, данные обновятся когда загрузятся
           const title = titleData[item.titleId];
           const isError = errorItems[item.titleId];
+          const isLoading = !title && !isError;
+
+          if (isLoading) {
+            return <LoadingCard key={item.uniqueKey} />;
+          }
+
+          if (isError) {
+            return <ErrorCard key={item.uniqueKey} titleId={item.titleId} />;
+          }
 
           return (
             <div
-              key={`${item.titleId}-${item.chapterId}-${index}`}
+              key={item.uniqueKey}
               className="bg-[var(--background)] rounded-lg p-2 border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer group"
               onClick={() =>
                 router.push(
@@ -262,7 +244,6 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
                       className="w-full h-full object-cover"
                       unoptimized
                       onError={(e) => {
-                        // Если изображение не загружается, показываем заглушку
                         const target = e.target as HTMLImageElement;
                         target.src = IMAGE_HOLDER.src;
                       }}
@@ -280,28 +261,22 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
 
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1 truncate">
-                    {isError ? `Манга #${item.titleId.slice(-6)}` : (title?.name || `Манга #${item.titleId.slice(-6)}`)}
+                    {title?.name || `Манга #${item.titleId.slice(-6)}`}
                   </h3>
                   <p className="text-xs text-[var(--muted-foreground)] mb-2">
                     Глава {item.chapterNumber}
                     {item.chapterTitle && ` - ${item.chapterTitle}`}
                   </p>
                   <div className="flex items-center space-x-2 text-xs text-[var(--muted-foreground)]">
-                    <svg
-                      className="w-3 h-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                    <Clock className="w-3 h-3" />
                     <span>
                       {new Date(item.readAt).toLocaleDateString("ru-RU")}
+                    </span>
+                    <span className="text-[var(--muted-foreground)]/60">
+                      {new Date(item.readAt).toLocaleTimeString("ru-RU", {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </span>
                   </div>
                 </div>
