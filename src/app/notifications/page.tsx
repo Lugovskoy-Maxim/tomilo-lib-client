@@ -7,29 +7,23 @@ import { useSEO } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
 import NotificationCard from "@/shared/notification-card/notification-card";
 import { Button } from "@/shared/ui/button";
+import { useGetNotificationsQuery, useMarkAllAsReadMutation } from "@/store/api/notificationsApi";
+import { Notification } from "@/types/notifications";
 
 type NotificationFilter = "all" | "updates" | "users" | "system";
-
-interface Notification {
-  id: string;
-  type: "update" | "user" | "system";
-  title: string;
-  message: string;
-  timeAgo: string;
-  isRead: boolean;
-  titleId?: string;
-  chapterNumber?: number;
-  coverImage?: string;
-}
 
 export default function NotificationsPage() {
   const [mounted, setMounted] = useState(false);
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>("all");
   const [showRead, setShowRead] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   const { isAuthenticated } = useAuth();
+  const { data: notificationsResponse, isLoading } = useGetNotificationsQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const [markAllAsRead] = useMarkAllAsReadMutation();
+
+  const notifications = notificationsResponse?.data?.notifications || [];
 
   // SEO для страницы уведомлений
   useSEO({
@@ -44,86 +38,15 @@ export default function NotificationsPage() {
     pageTitle.setTitlePage("Уведомления - Tomilo-lib.ru");
   }, []);
 
-  useEffect(() => {
-    if (mounted && isAuthenticated) {
-      loadNotifications();
-    }
-  }, [mounted, isAuthenticated]);
-
-  const loadNotifications = async () => {
-    setIsLoading(true);
+  const handleMarkAllAsRead = async () => {
     try {
-      // Моковые данные для демонстрации
-      const mockNotifications: Notification[] = [
-        {
-          id: "1",
-          type: "update",
-          title: "Новая глава в закладках",
-          message: "Вышла глава 125 в тайтле 'One Piece'",
-          timeAgo: "2 часа назад",
-          isRead: false,
-          titleId: "one-piece",
-          chapterNumber: 125,
-          coverImage: "/mokeImage/Carousel_1.webp"
-        },
-        {
-          id: "2",
-          type: "update",
-          title: "Новая глава в закладках",
-          message: "Вышла глава 89 в тайтле 'Attack on Titan'",
-          timeAgo: "5 часов назад",
-          isRead: false,
-          titleId: "attack-on-titan",
-          chapterNumber: 89,
-          coverImage: "/mokeImage/Carousel_2.jpg"
-        },
-        {
-          id: "3",
-          type: "system",
-          title: "Системное уведомление",
-          message: "Добро пожаловать в Tomilo-lib! Начните читать любимые тайтлы.",
-          timeAgo: "1 день назад",
-          isRead: true
-        },
-        {
-          id: "4",
-          type: "update",
-          title: "Новая глава в закладках",
-          message: "Вышла глава 45 в тайтле 'Demon Slayer'",
-          timeAgo: "1 день назад",
-          isRead: true,
-          titleId: "demon-slayer",
-          chapterNumber: 45,
-          coverImage: "/mokeImage/Carousel_3.jpg"
-        }
-      ];
-      setNotifications(mockNotifications);
+      await markAllAsRead().unwrap();
     } catch (error) {
-      console.error('Error loading notifications:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error marking all notifications as read:', error);
     }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notification => ({ ...notification, isRead: true }))
-    );
-  };
-
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id ? { ...notification, isRead: true } : notification
-      )
-    );
-  };
-
-  const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-  };
-
-  const filteredNotifications = notifications.filter(notification => {
+  const filteredNotifications = notifications.filter((notification: Notification) => {
     // Фильтр по типу
     if (activeFilter !== "all" && notification.type !== activeFilter) {
       return false;
@@ -137,7 +60,7 @@ export default function NotificationsPage() {
     return true;
   });
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n: Notification) => !n.isRead).length;
 
   if (!mounted) {
     return (
@@ -194,7 +117,7 @@ export default function NotificationsPage() {
             </div>
             {unreadCount > 0 && (
               <Button
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 variant="outline"
                 size="sm"
                 className="flex items-center gap-2"
@@ -256,12 +179,10 @@ export default function NotificationsPage() {
             </div>
           ) : filteredNotifications.length > 0 ? (
             <div className="space-y-2">
-              {filteredNotifications.map((notification) => (
+              {filteredNotifications.map((notification: Notification) => (
                 <NotificationCard
-                  key={notification.id}
+                  key={notification._id}
                   notification={notification}
-                  onMarkAsRead={markAsRead}
-                  onRemove={removeNotification}
                 />
               ))}
             </div>

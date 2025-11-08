@@ -4,50 +4,51 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Check, X, Clock } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
-
-interface Notification {
-  id: string;
-  type: "update" | "user" | "system";
-  title: string;
-  message: string;
-  timeAgo: string;
-  isRead: boolean;
-  titleId?: string;
-  chapterNumber?: number;
-  coverImage?: string;
-}
+import { useMarkAsReadMutation, useDeleteNotificationMutation } from "@/store/api/notificationsApi";
+import { Notification } from "@/types/notifications";
 
 interface NotificationCardProps {
   notification: Notification;
-  onMarkAsRead: (id: string) => void;
-  onRemove: (id: string) => void;
 }
 
 export default function NotificationCard({
-  notification,
-  onMarkAsRead,
-  onRemove
+  notification
 }: NotificationCardProps) {
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
+  const [markAsRead] = useMarkAsReadMutation();
+  const [deleteNotification] = useDeleteNotificationMutation();
 
-  const handleClick = () => {
-    if (notification.titleId) {
-      router.push(`/browse/${notification.titleId}`);
+  const handleClick = async () => {
+    const titleId = typeof notification.titleId === 'object' ? notification.titleId._id : notification.titleId;
+    if (titleId) {
+      router.push(`/browse/${titleId}`);
     }
     if (!notification.isRead) {
-      onMarkAsRead(notification.id);
+      try {
+        await markAsRead(notification._id).unwrap();
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
     }
   };
 
-  const handleMarkAsRead = (e: React.MouseEvent) => {
+  const handleMarkAsRead = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onMarkAsRead(notification.id);
+    try {
+      await markAsRead(notification._id).unwrap();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
+  const handleRemove = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onRemove(notification.id);
+    try {
+      await deleteNotification(notification._id).unwrap();
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
   };
 
   const getImageUrl = (coverImage?: string) => {
@@ -58,6 +59,27 @@ export default function NotificationCard({
     }
 
     return `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}${coverImage}`;
+  };
+
+  const getTitleName = () => {
+    if (typeof notification.titleId === 'object' && notification.titleId?.name) {
+      return notification.titleId.name;
+    }
+    return notification.metadata?.titleName || 'Неизвестный тайтл';
+  };
+
+  const getCoverImage = () => {
+    if (typeof notification.titleId === 'object' && notification.titleId?.coverImage) {
+      return notification.titleId.coverImage;
+    }
+    return undefined;
+  };
+
+  const getChapterNumber = () => {
+    if (typeof notification.chapterId === 'object' && notification.chapterId?.chapterNumber) {
+      return notification.chapterId.chapterNumber;
+    }
+    return notification.metadata?.chapterNumber;
   };
 
   const getTypeColor = (type: string) => {
@@ -84,10 +106,10 @@ export default function NotificationCard({
         {/* Индикатор типа и изображения */}
         <div className="flex flex-col items-center px-3 py-4">
           <div className={`w-2 h-2 rounded-full ${getTypeColor(notification.type)} mb-2`} />
-          {notification.coverImage && !imageError && (
+          {getCoverImage() && !imageError && (
             <div className="relative w-8 h-12 rounded overflow-hidden">
               <Image
-                src={getImageUrl(notification.coverImage)}
+                src={getImageUrl(getCoverImage())}
                 alt=""
                 fill
                 className="object-cover"
@@ -115,7 +137,7 @@ export default function NotificationCard({
               </p>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Clock className="w-3 h-3" />
-                <span>{notification.timeAgo}</span>
+                <span>{new Date(notification.createdAt).toLocaleString('ru-RU')}</span>
               </div>
             </div>
 

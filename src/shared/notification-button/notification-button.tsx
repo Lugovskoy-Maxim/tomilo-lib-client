@@ -1,26 +1,15 @@
-// src/shared/notification-button/notification-button.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import Link from 'next/link';
+import { useGetUnreadCountQuery } from '@/store/api/notificationsApi';
 
 export function NotificationButton() {
-  const [notificationCount, setNotificationCount] = useState(0);
+  const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
+    pollingInterval: 30000, // Обновлять каждые 30 секунд
+  });
 
-  useEffect(() => {
-    // Логика загрузки уведомлений
-    const loadNotifications = async () => {
-      try {
-        const mockCount = 1;
-        setNotificationCount(mockCount);
-      } catch (error) {
-        console.error('Error loading notifications:', error);
-      }
-    };
-
-    loadNotifications();
-  }, []);
+  const notificationCount = typeof unreadCountResponse?.data === 'object' ? unreadCountResponse.data.count : unreadCountResponse?.data || 0;
 
   return (
     <Link href="/notifications">

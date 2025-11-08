@@ -1,14 +1,30 @@
 import { useState, useEffect } from "react";
 
+interface Collection {
+  id: string;
+  name: string;
+  image: string;
+  link: string;
+}
+
+interface LatestUpdate {
+  id: string;
+  title: string;
+  cover: string;
+  chapter: string;
+  chapterNumber: number;
+  timeAgo: string;
+}
+
 export const useStaticData = () => {
   const [collections, setCollections] = useState({
-    data: [] as any[],
+    data: [] as Collection[],
     loading: true,
     error: null as string | null,
   });
 
   const [latestUpdates, setLatestUpdates] = useState({
-    data: [] as any[],
+    data: [] as LatestUpdate[],
     loading: true,
     error: null as string | null,
   });
