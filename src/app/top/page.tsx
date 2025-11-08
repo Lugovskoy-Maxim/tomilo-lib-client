@@ -74,8 +74,8 @@ export default function TopPage() {
     return (
       <>
         <Header />
-        <main className="flex flex-col items-center justify-center gap-6 sm:gap-8">
-          <div className="w-full max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        <main className="flex flex-col items-center justify-center gap-2 sm:gap-2">
+          <div className="w-full max-w-6xl mx-auto">
             <div className="animate-pulse space-y-4 sm:space-y-6">
               {[...Array(10)].map((_, i) => (
                 <div
@@ -109,7 +109,7 @@ export default function TopPage() {
     <>
       <Header />
       <main className="flex flex-col items-center justify-center gap-6 sm:gap-8">
-        <div className="w-full max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        <div className="w-full max-w-6xl mx-auto">
           <div className="text-center mb-2 sm:mb-4">
             <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
               <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-[var(--primary)]" />
@@ -138,7 +138,7 @@ export default function TopPage() {
           </div>
 
           {remainingTitles.length > 0 && (
-            <div className="mb-8 sm:mb-12">
+            <div className="mb-2 sm:mb-2">
               <Carousel
                 title="Остальные в топ-10"
                 data={remainingTitles}
