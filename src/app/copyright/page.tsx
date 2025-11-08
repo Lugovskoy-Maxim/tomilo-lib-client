@@ -4,11 +4,18 @@ import { Footer, Header } from "@/widgets";
 import { useState } from "react";
 import content from "@/constants/copyright";
 import { BackButton } from "@/shared";
+import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
 export default function CopyrightPage() {
   const [language, setLanguage] = useState<"ru" | "en">("ru");
 
   const currentContent = content[language];
+
+  // SEO для страницы авторских прав
+  useSEO(seoConfigs.static(
+    currentContent.title,
+    currentContent.description
+  ));
 
   return (
     <div className="flex flex-col min-h-screen">

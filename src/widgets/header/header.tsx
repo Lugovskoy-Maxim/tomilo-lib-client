@@ -1,8 +1,9 @@
 "use client";
-import { Logo, Search } from "@/shared";
+import { Logo, Search, ThemeToggle } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState } from "react";
-import { Menu, X, Search as SearchIcon } from "lucide-react";
+import { Menu, X, Search as SearchIcon, Home, User, FileText, Shield } from "lucide-react";
+import Link from "next/link";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -90,7 +91,68 @@ export default function Header() {
             </div>
 
             {/* Дополнительные пункты меню для мобильных */}
-            <div className="p-4 space-y-4"></div>
+            <div className="p-4 space-y-6">
+              {/* Секция настроек */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
+                  Настройки
+                </h3>
+                <div className="flex items-center justify-between p-3 bg-[var(--secondary)] rounded-lg border border-[var(--border)]">
+                  <span className="text-sm font-medium text-[var(--foreground)]">Тема</span>
+                  <ThemeToggle />
+                </div>
+              </div>
+
+              {/* Секция аккаунта */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
+                  Аккаунт
+                </h3>
+                <div className="space-y-1">
+                  <Link
+                    href="/updates"
+                    onClick={closeMobileMenu}
+                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
+                  >
+                    <Home className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
+                    Обновления
+                  </Link>
+                  <Link
+                    href="/profile"
+                    onClick={closeMobileMenu}
+                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
+                  >
+                    <User className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
+                    Профиль
+                  </Link>
+                </div>
+              </div>
+
+              {/* Секция информации */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
+                  Информация
+                </h3>
+                <div className="space-y-1">
+                  <Link
+                    href="/copyright"
+                    onClick={closeMobileMenu}
+                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
+                  >
+                    <Shield className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
+                    Авторские права
+                  </Link>
+                  <Link
+                    href="/terms-of-use"
+                    onClick={closeMobileMenu}
+                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
+                  >
+                    <FileText className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
+                    Условия использования
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

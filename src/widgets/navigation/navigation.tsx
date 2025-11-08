@@ -2,6 +2,7 @@
 
 import NavigationLink from "@/shared/navigation-link/navigation-link";
 import { usePathname } from "next/navigation";
+import { BookOpen, Trophy } from "lucide-react";
 
 interface NavigationProps {
   vertical?: boolean;
@@ -13,10 +14,12 @@ const navigationItems = [
   {
     name: "Каталог",
     href: "/browse",
+    icon: BookOpen,
   },
   {
     name: "Топ",
     href: "/top",
+    icon: Trophy,
   },
 ];
 
@@ -55,6 +58,7 @@ export default function Navigation({
               title={item.name}
               onClick={handleItemClick}
               vertical={vertical}
+              icon={item.icon}
             />
           </li>
         ))}

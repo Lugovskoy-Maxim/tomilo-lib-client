@@ -1,6 +1,10 @@
+"use client";
 import { BrowseContent, Footer, Header } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
 import { Filters, SortBy, SortOrder } from "@/types/browse-page";
+import { useSEO, seoConfigs } from "@/hooks/useSEO";
+import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 
 interface BrowsePageProps {
   searchParams: Promise<{
@@ -16,16 +20,11 @@ interface BrowsePageProps {
 
 // Страница каталога рендерится сервером, данные подтягиваются на клиенте через RTK Query
 
-// Основной серверный компонент страницы каталога
-export default async function BrowsePage({ searchParams }: BrowsePageProps) {
-  const resolvedSearchParams = await searchParams;
-  const initialFilters = getInitialFilters(resolvedSearchParams);
-
-  pageTitle.setTitlePage(
-    initialFilters.search
-      ? `Поиск по названию: ${initialFilters.search}`
-      : "Каталог тайтлов"
-  );
+// Компонент-обертка для клиентской части
+function BrowsePageClient({ searchQuery }: { searchQuery?: string }) {
+  // SEO для страницы каталога
+  const seoConfig = useMemo(() => seoConfigs.browse(searchQuery), [searchQuery]);
+  useSEO(seoConfig);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
@@ -38,6 +37,20 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
       <Footer />
     </main>
   );
+}
+
+// Основной серверный компонент страницы каталога
+export default async function BrowsePage({ searchParams }: BrowsePageProps) {
+  const resolvedSearchParams = await searchParams;
+  const initialFilters = getInitialFilters(resolvedSearchParams);
+
+  pageTitle.setTitlePage(
+    initialFilters.search
+      ? `Поиск по названию: ${initialFilters.search}`
+      : "Каталог тайтлов"
+  );
+
+  return <BrowsePageClient searchQuery={initialFilters.search} />;
 }
 
 // Утилита для получения начальных фильтров из URL параметров

@@ -12,10 +12,14 @@ import {
 } from "@/shared";
 
 import { Footer, Header } from "@/widgets";
+import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
 export default function ProfilePage() {
   const { userProfile, isLoading, authLoading, handleAvatarUpdate } =
     useProfile();
+
+  // SEO для страницы профиля
+  useSEO(seoConfigs.profile(userProfile?.username || userProfile?.email));
 
   if (authLoading || isLoading) {
     return <LoadingState />;

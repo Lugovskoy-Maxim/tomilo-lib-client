@@ -14,6 +14,7 @@ import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
 import { useHomeData } from "@/hooks/useHomeData";
 import { useStaticData } from "@/hooks/useStaticData";
+import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
 // Компоненты скелетонов
 const CarouselSkeleton = () => (
@@ -73,6 +74,9 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const { popularTitles, readingProgress } = useHomeData();
   const { collections, latestUpdates } = useStaticData();
+
+  // SEO для главной страницы
+  useSEO(seoConfigs.home);
 
   useEffect(() => {
     setMounted(true);

@@ -4,13 +4,18 @@ import { Footer, Header } from "@/widgets";
 import { useState } from "react";
 import { BackButton } from "@/shared";
 import termsOfUse from "@/constants/terms-of-use";
+import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
 export default function TermsOfServicePage() {
   const [language, setLanguage] = useState<"ru" | "en">("ru");
 
-
-
   const currentContent = termsOfUse[language];
+
+  // SEO для страницы условий использования
+  useSEO(seoConfigs.static(
+    currentContent.title,
+    currentContent.description
+  ));
 
   // Функция для плавной прокрутки к секции
   const scrollToSection = (sectionId: string) => {

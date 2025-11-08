@@ -15,6 +15,7 @@ import {
   RightContent,
 } from "@/shared/browse/title-view";
 import { ContinueReadingButton } from "@/shared/continue-reading-button";
+import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
 
 // Клиентская фильтрация и пагинация глав из titleData
@@ -88,6 +89,9 @@ export default function TitleViewPage() {
 
   const isLoading = titleLoading || chaptersLoading;
   const error = titleError ? "Ошибка загрузки данных" : null;
+
+  // SEO для страницы тайтла
+  useSEO(seoConfigs.title(processedTitleData || {}));
 
   // Загрузка данных тайтла
   useEffect(() => {
