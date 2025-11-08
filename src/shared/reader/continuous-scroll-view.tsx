@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { ReaderChapter as Chapter } from "@/shared/reader/types";
