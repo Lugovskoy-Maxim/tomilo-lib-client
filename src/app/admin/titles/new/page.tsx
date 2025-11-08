@@ -9,7 +9,7 @@ import {
   useGetTitleByIdQuery,
   useUpdateTitleMutation,
 } from "@/store/api/titlesApi";
-import { TitleStatus } from "@/types/title";
+import { TitleStatus, TitleType } from "@/types/title";
 import { useRouter } from "next/navigation";
 import { CreateTitleDto } from "@/types/title";
 
@@ -26,6 +26,11 @@ interface TitleFormData {
   releaseYear: number;
   status: TitleStatus;
   coverImage?: string;
+  type: TitleType;
+  publisher?: string;
+  serialization?: string;
+  relatedTitles?: string[];
+  isPublished: boolean;
 }
 
 const availableGenres = [
@@ -80,6 +85,11 @@ export default function TitleEditorPage({
     releaseYear: new Date().getFullYear(),
     status: TitleStatus.ONGOING,
     coverImage: "",
+    type: TitleType.MANGA,
+    publisher: "",
+    serialization: "",
+    relatedTitles: [],
+    isPublished: false,
   });
 
   const [altNameInput, setAltNameInput] = useState("");
@@ -99,6 +109,11 @@ export default function TitleEditorPage({
         releaseYear: existingTitle.data.releaseYear || new Date().getFullYear(),
         status: existingTitle.data.status || TitleStatus.ONGOING,
         coverImage: existingTitle.data.coverImage || "",
+        type: existingTitle.data.type || TitleType.MANGA,
+        publisher: existingTitle.data.publisher || "",
+        serialization: existingTitle.data.serialization || "",
+        relatedTitles: existingTitle.data.relatedTitles || [],
+        isPublished: existingTitle.data.isPublished || false,
       });
     }
   }, [existingTitle]);
@@ -170,6 +185,8 @@ export default function TitleEditorPage({
       tags: formData.tags.filter(tag => tag.trim() !== ''),
       releaseYear: formData.releaseYear,
       status: formData.status,
+      type: formData.type,
+      isPublished: formData.isPublished,
     };
 
     // Добавляем необязательные поля только если они не пустые
@@ -179,6 +196,18 @@ export default function TitleEditorPage({
 
     if (formData.coverImage?.trim()) {
       data.coverImage = formData.coverImage.trim();
+    }
+
+    if (formData.publisher?.trim()) {
+      data.publisher = formData.publisher.trim();
+    }
+
+    if (formData.serialization?.trim()) {
+      data.serialization = formData.serialization.trim();
+    }
+
+    if (formData.relatedTitles && formData.relatedTitles.length > 0) {
+      data.relatedTitles = formData.relatedTitles.filter(title => title.trim() !== '');
     }
 
     return data;
@@ -373,6 +402,63 @@ export default function TitleEditorPage({
                   placeholder="https://example.com/image.jpg"
                   className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Тип тайтла *</label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
+                >
+                  <option value={TitleType.MANGA}>Манга</option>
+                  <option value={TitleType.MANHWA}>Манхва</option>
+                  <option value={TitleType.MANHUA}>Маньхуа</option>
+                  <option value={TitleType.NOVEL}>Роман</option>
+                  <option value={TitleType.LIGHT_NOVEL}>Лайт-новел</option>
+                  <option value={TitleType.COMIC}>Комикс</option>
+                  <option value={TitleType.OTHER}>Другое</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Издатель
+                </label>
+                <input
+                  type="text"
+                  name="publisher"
+                  value={formData.publisher || ''}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Сериализация
+                </label>
+                <input
+                  type="text"
+                  name="serialization"
+                  value={formData.serialization || ''}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="isPublished"
+                    checked={formData.isPublished}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isPublished: e.target.checked }))}
+                  />
+                  <span>Опубликован</span>
+                </label>
               </div>
             </div>
 

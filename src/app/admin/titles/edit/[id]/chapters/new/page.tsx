@@ -26,6 +26,7 @@ export default function ChapterCreatePage() {
     translator: "",
     proofreader: "",
     qualityCheck: "",
+    releaseDate: undefined,
   });
   const [pages, setPages] = useState<File[]>([]);
 
@@ -174,6 +175,15 @@ export default function ChapterCreatePage() {
               type="text"
               value={form.qualityCheck ?? ""}
               onChange={(e) => handleChange("qualityCheck", e.target.value)}
+              className="border rounded px-3 py-2 bg-transparent"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-sm">Дата релиза</span>
+            <input
+              type="datetime-local"
+              value={form.releaseDate ? new Date(form.releaseDate).toISOString().slice(0, 16) : ""}
+              onChange={(e) => handleChange("releaseDate", e.target.value ? new Date(e.target.value) : undefined)}
               className="border rounded px-3 py-2 bg-transparent"
             />
           </label>

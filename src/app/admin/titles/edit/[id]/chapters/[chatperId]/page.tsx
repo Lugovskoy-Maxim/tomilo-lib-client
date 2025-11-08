@@ -28,7 +28,7 @@ export default function ChapterEditPage() {
   const [form, setForm] = useState<Partial<Chapter>>({});
   const apiBase = useMemo(
     () =>
-      process.env.NEXT_PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads",
+      process.env.NEXT_PUBLIC_UPLOADS_URL || "http://localhost:3001/uploads",
     []
   );
 
