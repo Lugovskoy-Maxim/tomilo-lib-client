@@ -1,0 +1,173 @@
+import { Trophy, Eye, Sparkles } from "lucide-react";
+import Image from "next/image";
+
+interface TopTitleData {
+  id: string;
+  title: string;
+  type: string;
+  year: number;
+  rating: number;
+  image: string;
+  genres: string[];
+  rank: number;
+  views?: number;
+  period: string;
+}
+
+interface TopTitleCardProps {
+  data: TopTitleData;
+  variant?: "top3" | "carousel";
+}
+
+const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
+  if (variant === "top3") {
+    return (
+      <div className="bg-[var(--muted)]/30  rounded-xl border border-[var(--border)] hover:shadow-xl transition-all duration-300 cursor-pointer group p-4 sm:p-6">
+        {/* Мобильная версия - горизонтальная */}
+        <div className="flex gap-4 sm:hidden">
+          <div className="relative flex-shrink-0">
+            <Image
+              src={data.image}
+              alt={data.title}
+              width={120}
+              height={160}
+              className="w-24 h-32 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
+            />
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
+              {data.rank}
+            </div>
+          </div>
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] text-[var(--primary)] rounded-full font-bold text-sm shadow-lg">
+                <Trophy className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-lg text-[var(--foreground)] leading-tight group-hover:text-[var(--primary)] transition-colors line-clamp-2">
+                {data.title}
+              </h3>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)] mb-2">
+              <span className="px-2 py-1 bg-[var(--muted)]/30  rounded-full font-medium">
+                {data.type}
+              </span>
+              <span className="font-medium">{data.year}</span>
+              <div className="flex items-center gap-1 font-medium">
+                <Sparkles className="w-4 h-4 text-[var(--chart-3)]" />
+                <span className="text-lg font-bold text-[var(--chart-3)]">
+                  {data.rating}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1 mb-2">
+              {data.genres.slice(0, 2).map((genre) => (
+                <span
+                  key={genre}
+                  className="px-2 py-1 bg-[var(--accent)] text-[var(--accent-foreground)] text-xs rounded-full font-medium"
+                >
+                  {genre}
+                </span>
+              ))}
+            </div>
+            {data.views && (
+              <div className="flex items-center gap-1 text-sm font-medium text-[var(--primary)]">
+                <Eye className="w-4 h-4" />
+                <span>{data.views.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Десктопная версия - вертикальная */}
+        <div className="hidden sm:flex flex-col items-center gap-3">
+          <div className="relative">
+            <Image
+              src={data.image}
+              alt={data.title}
+              width={120}
+              height={160}
+              className="w-28 h-36 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
+            />
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
+              {data.rank}
+            </div>
+          </div>
+          <div className="text-center w-full">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] text-[var(--primary)] rounded-full font-bold text-sm shadow-lg">
+                <Trophy className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-lg text-[var(--foreground)] leading-tight group-hover:text-[var(--primary)] transition-colors">
+                {data.title}
+              </h3>
+            </div>
+            <div className="flex flex-wrap justify-center items-center gap-2 text-sm text-[var(--muted-foreground)] mb-2">
+              <span className="px-2 py-1 bg-[var(--muted)]/30  rounded-full font-medium">
+                {data.type}
+              </span>
+              <span className="font-medium">{data.year}</span>
+              <div className="flex items-center gap-1 font-medium">
+                <Sparkles className="w-4 h-4 text-[var(--chart-3)]" />
+                <span className="text-lg font-bold text-[var(--chart-3)]">{data.rating}</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap justify-center gap-1 mb-2">
+              {data.genres.slice(0, 2).map((genre) => (
+                <span
+                  key={genre}
+                  className="px-2 py-1 bg-[var(--accent)] text-[var(--accent-foreground)] text-xs rounded-full font-medium"
+                >
+                  {genre}
+                </span>
+              ))}
+            </div>
+            {data.views && (
+              <div className="flex items-center justify-center gap-1 text-sm font-medium text-[var(--primary)]">
+                <Eye className="w-4 h-4" />
+                <span>{data.views.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:bg-[var(--accent)] hover:shadow-md transition-all duration-300 cursor-pointer group h-full">
+      <div className="relative">
+        <Image
+          src={data.image}
+          alt={data.title}
+          width={160}
+          height={128}
+          className="w-full h-24 sm:h-32 object-cover rounded-lg shadow-sm group-hover:shadow-md transition-shadow"
+        />
+        <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
+          {data.rank}
+        </div>
+      </div>
+      <div className="text-center w-full flex-1 flex flex-col justify-between">
+        <h3 className="font-semibold text-xs sm:text-sm text-[var(--foreground)] mb-1 leading-tight group-hover:text-[var(--primary)] transition-colors line-clamp-2">
+          {data.title}
+        </h3>
+        <div className="flex justify-around">
+        <div className="flex items-center justify-center gap-1 text-xs text-[var(--muted-foreground)]">
+          <span className="flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-[var(--chart-4)]" />
+            <span className="text-xs font-bold text-[var(--chart-4)]">
+              {data.rating}
+            </span>
+          </span>
+        </div>
+        {data.views && (
+          <div className="flex items-center justify-center gap-1 text-xs font-medium text-[var(--primary)] mt-1">
+            <Eye className="w-3 h-3" />
+            <span>{(data.views / 1000).toFixed(0)}k</span>
+          </div>
+        )}</div>
+      </div>
+    </div>
+  );
+};
+
+export default TopTitleCard;

@@ -35,4 +35,6 @@ export { default as ProfileAvatar } from "./profile/profile-avatar";
 export { default as LatestUpdateCard } from "./last-updates/last-updates";
 export { default as BookmarkCard } from "./bookmark-card/bookmark-card";
 export { default as ReaderControls } from "./reader-controls";
+export { default as TopTitleCard } from "./top-title-card/top-title-card";
+
 
