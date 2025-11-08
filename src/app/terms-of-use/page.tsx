@@ -1,29 +1,30 @@
-"use client";
 import { FileText, Shield, AlertTriangle, Users, Book, Mail, Languages } from "lucide-react";
 import { Footer, Header } from "@/widgets";
-import { useState } from "react";
 import { BackButton } from "@/shared";
 import termsOfUse from "@/constants/terms-of-use";
-import { useSEO, seoConfigs } from "@/hooks/useSEO";
+import { Metadata } from "next";
 
-export default function TermsOfServicePage() {
-  const [language, setLanguage] = useState<"ru" | "en">("ru");
+interface TermsOfUsePageProps {
+  searchParams: Promise<{ lang?: string }>;
+}
 
+export async function generateMetadata({ searchParams }: TermsOfUsePageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const language = (params.lang === "en" ? "en" : "ru") as "ru" | "en";
   const currentContent = termsOfUse[language];
 
-  // SEO для страницы условий использования
-  useSEO(seoConfigs.static(
-    currentContent.title,
-    currentContent.description
-  ));
-
-  // Функция для плавной прокрутки к секции
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+  return {
+    title: currentContent.title,
+    description: currentContent.description,
   };
+}
+
+export default async function TermsOfServicePage({ searchParams }: TermsOfUsePageProps) {
+  const params = await searchParams;
+  const language = (params.lang === "en" ? "en" : "ru") as "ru" | "en";
+  const currentContent = termsOfUse[language];
+
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -35,13 +36,13 @@ export default function TermsOfServicePage() {
             <div className="text-sm text-[var(--muted-foreground)]">
               {currentContent.lastUpdated}
             </div>
-            <button
-              onClick={() => setLanguage(language === "ru" ? "en" : "ru")}
+            <a
+              href={`?lang=${language === "ru" ? "en" : "ru"}`}
               className="flex items-center gap-2 px-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)] transition-colors"
             >
               <Languages className="w-4 h-4" />
               {currentContent.languageButton}
-            </button>
+            </a>
           </div>
 
           {/* Заголовок */}

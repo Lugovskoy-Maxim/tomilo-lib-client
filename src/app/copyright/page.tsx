@@ -1,21 +1,28 @@
-"use client";
 import { Mail, FileText, Clock, Shield, Languages } from "lucide-react";
 import { Footer, Header } from "@/widgets";
-import { useState } from "react";
 import content from "@/constants/copyright";
 import { BackButton } from "@/shared";
-import { useSEO, seoConfigs } from "@/hooks/useSEO";
+import { Metadata } from "next";
 
-export default function CopyrightPage() {
-  const [language, setLanguage] = useState<"ru" | "en">("ru");
+interface CopyrightPageProps {
+  searchParams: Promise<{ lang?: string }>;
+}
 
+export async function generateMetadata({ searchParams }: CopyrightPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const language = (params.lang === "en" ? "en" : "ru") as "ru" | "en";
   const currentContent = content[language];
 
-  // SEO для страницы авторских прав
-  useSEO(seoConfigs.static(
-    currentContent.title,
-    currentContent.description
-  ));
+  return {
+    title: currentContent.title,
+    description: currentContent.description,
+  };
+}
+
+export default async function CopyrightPage({ searchParams }: CopyrightPageProps) {
+  const params = await searchParams;
+  const language = (params.lang === "en" ? "en" : "ru") as "ru" | "en";
+  const currentContent = content[language];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -24,13 +31,13 @@ export default function CopyrightPage() {
         <div className="container mx-auto px-4 py-12 max-w-4xl">
           {/* Переключатель языка */}
           <div className="flex justify-end mb-6">
-            <button
-              onClick={() => setLanguage(language === "ru" ? "en" : "ru")}
+            <a
+              href={`?lang=${language === "ru" ? "en" : "ru"}`}
               className="flex items-center gap-2 px-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)] transition-colors"
             >
               <Languages className="w-4 h-4" />
               {currentContent.languageButton}
-            </button>
+            </a>
           </div>
 
           {/* Заголовок */}
