@@ -20,16 +20,14 @@ const normalizeAssetUrl = (url: string): string => {
     return url.replace("/api/browse/", "/uploads/browse/");
   }
   let path = url.startsWith("/") ? url : `/${url}`;
-
-  if (url.includes("uploads")) {
-    path = path.replace("/uploads/", "/");
-  }
-  if (path.includes("/api/browse/")) {
-    path = path.replace("/api/browse/", "/uploads/browse/");
-  }
+  // normalize wrong api prefix to uploads
+  if (path.startsWith("/api/"))
+    path = path.replace(/^\/api\//, "/uploads/");
+  if (path.startsWith("api/"))
+    path = path.replace(/^api\//, "uploads/");
   const origin =
     process.env.NEXT_PUBLIC_UPLOADS_URL || "http://localhost:3001/uploads";
-  return `${origin}${path}`;
+  return `${origin}${path.startsWith("/") ? "" : "/"}${path}`;
 };
 export default function ReadChapterPage({
   title,
