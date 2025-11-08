@@ -1,16 +1,4 @@
-interface ReadingProgress {
-  id: number;
-  title: string;
-  type: string;
-  currentChapter: number;
-  totalChapters: number;
-  lastRead: string;
-  chaptersRead: number;
-  image: string;
-  rating: number;
-  year: number;
-  genres: string[];
-}
+import { ReadingProgress } from "@/types/constants";
 
 const readingData: ReadingProgress[] = [
   {

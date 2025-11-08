@@ -1,13 +1,4 @@
-export interface SearchResult {
-  id: string;
-  title: string;
-  cover?: string; 
-  description?: string;
-  type?: string;
-  releaseYear?: number; 
-  rating?: number;
-  totalChapters?: number; 
-}
+import { SearchResult } from "@/types/search";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
 

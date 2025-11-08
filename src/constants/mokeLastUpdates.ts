@@ -1,13 +1,4 @@
-interface LatestUpdate {
-  id: string;
-  title: string;
-  chapter: string;
-  chapterNumber: number;
-  timeAgo: string;
-  newChapters?: number;
-  cover: string;
-  type?: string;
-}
+import { LatestUpdate } from "@/types/constants";
 
 const latestUpdatesData: LatestUpdate[] = [
   {

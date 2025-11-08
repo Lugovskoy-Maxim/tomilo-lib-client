@@ -1,15 +1,4 @@
-interface TopTitle {
-  id: string;
-  title: string;
-  type: string;
-  year: number;
-  rating: number;
-  image: string;
-  genres: string[];
-  rank: number;
-  views?: number;
-  period: 'day' | 'week' | 'month';
-}
+import { TopTitle } from "@/types/constants";
 
 const topTitlesData: TopTitle[] = [
   // Топ за день

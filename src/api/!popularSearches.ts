@@ -1,8 +1,4 @@
-export interface PopularSearchesResult {
-  id: string;
-  term: string;
-  count: number;
-}
+import { PopularSearchesResult } from "@/types/search";
 
 export async function getPopularSearches():Promise<PopularSearchesResult[]> {
   try {

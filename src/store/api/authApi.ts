@@ -7,46 +7,10 @@ import {
   ApiResponseDto,
 } from "@/types/auth";
 import { Title } from "@/types/title";
+import { ReadingHistoryChapter, ReadingHistoryEntry, BookmarkItem, AvatarResponse } from "@/types/store";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
-
-// Типы для истории чтения
-export interface ReadingHistoryChapter {
-  chapterId: string;
-  chapterNumber: number;
-  chapterTitle?: string;
-  readAt: string;
-}
-
-export interface ReadingHistoryEntry {
-  titleId: string | { _id: string; name?: string; coverImage?: string; type?: string; chapters?: { chapterNumber: number }[] };
-  chapters: ReadingHistoryChapter[];
-  readAt: string;
-}
-
-
-// Тип для закладок
-interface BookmarkItem {
-  _id: string;
-  name: string;
-  coverImage?: string;
-  type?: string;
-  releaseYear?: number;
-  rating?: number;
-  genres?: string[];
-}
-
-// Тип для ответа при обновлении аватара
-interface AvatarResponse {
-  message: string;
-  user: {
-    id: string;
-    username: string;
-    email: string;
-    avatar: string;
-  };
-}
 
 export const authApi = createApi({
   reducerPath: "authApi",
