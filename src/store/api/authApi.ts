@@ -20,10 +20,11 @@ export interface ReadingHistoryChapter {
 }
 
 export interface ReadingHistoryEntry {
-  titleId: string;
+  titleId: string | { _id: string; name?: string; coverImage?: string; type?: string; chapters?: { chapterNumber: number }[] };
   chapters: ReadingHistoryChapter[];
   readAt: string;
 }
+
 
 // Тип для закладок
 interface BookmarkItem {

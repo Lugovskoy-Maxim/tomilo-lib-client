@@ -5,6 +5,8 @@ export interface PopularTitle {
   cover?: string;
   description?: string;
   rating?: number;
+  type?: string;
+  releaseYear?: number;
 }
 
 export interface Collection {
@@ -15,7 +17,7 @@ export interface Collection {
 }
 
 export interface ReadingProgress {
-  titleId: string | { _id: string; id?: string; name?: string; coverImage?: string; totalChapters?: number; type?: string };
+  titleId: string | { _id: string; id?: string; name?: string; coverImage?: string; totalChapters?: number; type?: string; chapters?: { chapterNumber: number; readAt: string }[] };
   chapterId: string | { _id: string; id?: string };
   chapterNumber: number;
   lastReadDate?: string;
@@ -97,4 +99,41 @@ export interface CarouselProps<T> {
     text: string;
     href: string;
   };
+}
+
+export interface TitleCard {
+  id: string;
+  title: string;
+  cover: string;
+  description?: string;
+  type?: string;
+  year?: number;
+  rating?: number;
+  genres?: string[];
+}
+
+export interface CollectionCard {
+  id: string;
+  name: string;
+  image: string;
+  link: string;
+}
+
+export interface ReadingCard {
+  id: string;
+  title: string;
+  cover: string;
+  currentChapter: number;
+  totalChapters: number;
+  newChaptersSinceLastRead: number;
+  type: string;
+}
+
+export interface LatestUpdateCard {
+  id: string;
+  title: string;
+  cover: string;
+  chapter: string;
+  chapterNumber: number;
+  timeAgo: string;
 }

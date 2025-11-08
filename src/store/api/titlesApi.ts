@@ -130,10 +130,13 @@ export const titlesApi = createApi({
     }),
 
     // Получить популярные тайтлы
-    getPopularTitles: builder.query<ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number }[]>, void>({
+    getPopularTitles: builder.query<ApiResponseDto<{
+      type: string;
+      releaseYear: number; id: string; title: string; cover?: string; description?: string; rating?: number 
+}[]>, void>({
       query: () => "/titles/popular",
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number }[]>) => response,
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number; type: string; releaseYear: number; }[]>) => response,
     }),
 
     // Получить коллекции

@@ -1,6 +1,6 @@
 "use client";
 import { baseUrl } from "@/api/config";
-import { Star } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -9,9 +9,9 @@ export interface CardProps {
   id: string;
   title: string;
   type: string;
-  year: number;
-  rating?: number; // Сделаем рейтинг необязательным
-  image?: string;
+  releaseYear: number;
+  rating: number;
+  cover: string;
   genres: string[];
 }
 
@@ -36,11 +36,11 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
       onClick={handleClick}
     >
       <div className="relative">
-        {data.image ? (
+        {data.cover ? (
           <Image
             className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
-            loader={() => `${baseUrl}${data.image}`}
-            src={`${baseUrl}${data.image}`}
+            loader={() => `${baseUrl}${data.cover}`}
+            src={`${baseUrl}${data.cover}`}
             alt={data.title}
             width={160}
             height={220}
@@ -55,23 +55,22 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
             height={220}
           />
         )}
-        {data.rating !== undefined && (
-          <div className="absolute top-1 left-1 bg-black/80 text-white px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[10px] sm:text-xs font-semibold">
-            <Star className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
-            {data.rating}
-          </div>
-        )}
+
+        <div className="absolute top-1 left-1 bg-black/80 text-white px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[10px] sm:text-xs font-semibold">
+          <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
+          {data.rating}
+        </div>
       </div>
 
-      <div className="p-1 sm:p-1.5">
+      <div className="pt-1 sm:pt-1.5">
         <div className="flex justify-between items-center text-[10px] sm:text-xs text-[var(--muted-foreground)] mb-1">
           <span className="bg-[var(--secondary)] px-1 py-0.5 rounded text-[9px] sm:text-[10px]">
             {data.type}
           </span>
-          <span className="text-[9px] sm:text-[10px]">{data.year}</span>
+          <span className="text-[9px] sm:text-[10px]">{data.releaseYear}</span>
         </div>
 
-        <h3 className="font-semibold text-[11px] sm:text-xs text-[var(--foreground)] line-clamp-2 leading-tight mb-1">
+        <h3 className="font-semibold text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-2 leading-tight mb-1">
           {data.title}
         </h3>
 
