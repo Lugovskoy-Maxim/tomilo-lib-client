@@ -152,6 +152,15 @@ export const titlesApi = createApi({
       providesTags: [TITLES_TAG],
       transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string }[]>) => response,
     }),
+
+    // Удаление тайтла
+    deleteTitle: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/titles/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [TITLES_TAG],
+    }),
   }),
 });
 
@@ -167,4 +176,5 @@ export const {
   useGetPopularTitlesQuery,
   useGetCollectionsQuery,
   useGetLatestUpdatesQuery,
+  useDeleteTitleMutation,
 } = titlesApi;

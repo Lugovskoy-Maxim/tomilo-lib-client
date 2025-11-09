@@ -1,16 +1,28 @@
 export interface ParseTitleDto {
   url: string;
-  chapterNumbers?: number[];
+  chapterNumbers?: string[];
   customTitle?: string;
   customDescription?: string;
   customGenres?: string[];
 }
 
-export interface ParseChapterDto {
+export interface ParseChaptersDto {
   url: string;
   titleId: string;
-  chapterNumber: number;
+  chapterNumbers: string[];
   customName?: string;
+}
+
+export interface ParseChaptersInfoDto {
+  url: string;
+}
+
+export interface ParseChaptersInfoResponse {
+  chapters: Array<{
+    number: string;
+    name: string;
+    url: string;
+  }>;
 }
 
 export interface SupportedSitesResponse {

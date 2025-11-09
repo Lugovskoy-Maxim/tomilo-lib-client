@@ -2,24 +2,27 @@ import { useState } from "react";
 import { Plus, Search, Edit, Trash2, Eye, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { useGetTitlesQuery } from "@/store/api/titlesApi";
-import { useGetChaptersByTitleQuery, useDeleteChapterMutation } from "@/store/api/chaptersApi";
+import {
+  useGetChaptersByTitleQuery,
+  useDeleteChapterMutation,
+} from "@/store/api/chaptersApi";
 
 interface ChaptersSectionProps {
   titleId: string | null;
   onTitleChange: (titleId: string | null) => void;
 }
 
-export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps) {
+export function ChaptersSection({
+  titleId,
+  onTitleChange,
+}: ChaptersSectionProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteChapter] = useDeleteChapterMutation();
 
   // Get titles for selection
-  const { data: titlesResponse } = useGetTitlesQuery({
-    page: 1,
-    limit: 100, // Get more titles for selection
-  });
+  const { data: titlesResponse } = useGetTitlesQuery();
 
-  const titles = titlesResponse?.data?.data || [];
+  const titles = titlesResponse?.data?.titles || [];
 
   // Get chapters for selected title
   const { data: chaptersResponse, isLoading } = useGetChaptersByTitleQuery(
@@ -29,7 +32,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
 
   const chapters = chaptersResponse || [];
 
-  const selectedTitle = titles.find(t => t._id === titleId);
+  const selectedTitle = titles.find((t) => t._id === titleId);
 
   const handleDelete = async (id: string, chapterNumber: number) => {
     if (!confirm(`Удалить главу #${chapterNumber}?`)) return;
@@ -66,9 +69,12 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
         </div>
         {selectedTitle && (
           <div className="mt-4 p-4 bg-[var(--secondary)] rounded-lg">
-            <h3 className="font-medium text-[var(--foreground)]">{selectedTitle.name}</h3>
+            <h3 className="font-medium text-[var(--foreground)]">
+              {selectedTitle.name}
+            </h3>
             <p className="text-sm text-[var(--muted-foreground)]">
-              Автор: {selectedTitle.author} • Глав: {selectedTitle.totalChapters || 0}
+              Автор: {selectedTitle.author} • Глав:{" "}
+              {selectedTitle.totalChapters || 0}
             </p>
           </div>
         )}
@@ -81,13 +87,22 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
             <h2 className="text-xl font-semibold text-[var(--foreground)]">
               Главы тайтла
             </h2>
-            <Link
-              href={`/admin/titles/edit/${titleId}/chapters/new`}
-              className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Добавить главу
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/admin/titles/edit/${titleId}`}
+                className="px-4 py-2 bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--accent)] transition-colors flex items-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                Редактировать тайтл
+              </Link>
+              <Link
+                href={`/admin/titles/edit/${titleId}/chapters/new`}
+                className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Добавить главу
+              </Link>
+            </div>
           </div>
 
           {/* Chapters list */}
@@ -95,7 +110,9 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
             {isLoading ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-                <p className="text-[var(--muted-foreground)]">Загрузка глав...</p>
+                <p className="text-[var(--muted-foreground)]">
+                  Загрузка глав...
+                </p>
               </div>
             ) : chapters.length === 0 ? (
               <div className="p-8 text-center">
@@ -112,36 +129,65 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
                 <table className="w-full">
                   <thead className="bg-[var(--secondary)]">
                     <tr>
-                      <th className="text-left p-4 font-medium text-[var(--foreground)]">Глава</th>
-                      <th className="text-left p-4 font-medium text-[var(--foreground)]">Название</th>
-                      <th className="text-left p-4 font-medium text-[var(--foreground)]">Статус</th>
-                      <th className="text-left p-4 font-medium text-[var(--foreground)]">Публик.</th>
-                      <th className="text-left p-4 font-medium text-[var(--foreground)]">Просмотры</th>
-                      <th className="text-right p-4 font-medium text-[var(--foreground)]">Действия</th>
+                      <th className="text-left p-4 font-medium text-[var(--foreground)]">
+                        Глава
+                      </th>
+                      <th className="text-left p-4 font-medium text-[var(--foreground)]">
+                        Название
+                      </th>
+                      <th className="text-left p-4 font-medium text-[var(--foreground)]">
+                        Статус
+                      </th>
+                      <th className="text-left p-4 font-medium text-[var(--foreground)]">
+                        Публик.
+                      </th>
+                      <th className="text-left p-4 font-medium text-[var(--foreground)]">
+                        Просмотры
+                      </th>
+                      <th className="text-right p-4 font-medium text-[var(--foreground)]">
+                        Действия
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {chapters.map((chapter) => (
-                      <tr key={chapter._id} className="border-t border-[var(--border)] hover:bg-[var(--accent)]/30">
+                      <tr
+                        key={chapter._id}
+                        className="border-t border-[var(--border)] hover:bg-[var(--accent)]/30"
+                      >
                         <td className="p-4 font-medium text-[var(--foreground)]">
                           #{chapter.chapterNumber}
-                          {chapter.volumeNumber && ` (Том ${chapter.volumeNumber})`}
+                          {chapter.volumeNumber &&
+                            ` (Том ${chapter.volumeNumber})`}
                         </td>
                         <td className="p-4 text-[var(--foreground)]">
                           {chapter.title || "-"}
                         </td>
-                        <td className="p-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            chapter.status === "DRAFT"
-                              ? "bg-gray-100 text-gray-800"
-                              : chapter.status === "PUBLISHED"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}>
-                            {chapter.status === "DRAFT" ? "Черновик" :
-                             chapter.status === "PUBLISHED" ? "Опубликован" : "Архив"}
+                        {/* <td className="p-4">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              chapter.status === "draft"
+                                ? "bg-gray-100 text-gray-800"
+                                : chapter.status === "published"
+                                ? "bg-green-100 text-green-800"
+                                : chapter.status === "scheduled"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : chapter.status === "hidden"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {chapter.status === "draft"
+                              ? "Черновик"
+                              : chapter.status === "published"
+                              ? "Опубликован"
+                              : chapter.status === "scheduled"
+                              ? "Запланирован"
+                              : chapter.status === "hidden"
+                              ? "Скрыт"
+                              : "Удален"}
                           </span>
-                        </td>
+                        </td> */}
                         <td className="p-4 text-[var(--foreground)]">
                           {chapter.isPublished ? "Да" : "Нет"}
                         </td>
@@ -165,7 +211,9 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
                               <Edit className="w-4 h-4" />
                             </Link>
                             <button
-                              onClick={() => handleDelete(chapter._id, chapter.chapterNumber)}
+                              onClick={() =>
+                                handleDelete(chapter._id, chapter.chapterNumber)
+                              }
                               className="p-2 text-red-500 hover:text-red-700 transition-colors"
                               title="Удалить"
                             >

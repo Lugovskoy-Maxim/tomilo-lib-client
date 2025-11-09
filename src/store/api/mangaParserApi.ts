@@ -2,7 +2,9 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseDto } from "@/types/title";
 import {
   ParseTitleDto,
-  ParseChapterDto,
+  ParseChaptersDto,
+  ParseChaptersInfoDto,
+  ParseChaptersInfoResponse,
   SupportedSitesResponse,
   ParseResult,
 } from "@/types/manga-parser";
@@ -36,15 +38,26 @@ export const mangaParserApi = createApi({
       transformResponse: (response: ApiResponseDto<ParseResult>) => response,
     }),
 
-    // Parse and import individual chapter
-    parseChapter: builder.mutation<ApiResponseDto<ParseResult>, ParseChapterDto>({
+    // Parse and import chapters
+    parseChapters: builder.mutation<ApiResponseDto<ParseResult>, ParseChaptersDto>({
       query: (data) => ({
-        url: "/manga-parser/parse-chapter",
+        url: "/manga-parser/parse-chapters",
         method: "POST",
         body: data,
       }),
       invalidatesTags: ["MangaParser"],
       transformResponse: (response: ApiResponseDto<ParseResult>) => response,
+    }),
+
+    // Get chapters info from URL
+    parseChaptersInfo: builder.query<ApiResponseDto<ParseChaptersInfoResponse>, ParseChaptersInfoDto>({
+      query: (data) => ({
+        url: "/manga-parser/parse-chapters-info",
+        method: "POST",
+        body: data,
+      }),
+      providesTags: ["MangaParser"],
+      transformResponse: (response: ApiResponseDto<ParseChaptersInfoResponse>) => response,
     }),
 
     // Get list of supported sites
@@ -58,6 +71,7 @@ export const mangaParserApi = createApi({
 
 export const {
   useParseTitleMutation,
-  useParseChapterMutation,
+  useParseChaptersMutation,
+  useParseChaptersInfoQuery,
   useGetSupportedSitesQuery,
 } = mangaParserApi;

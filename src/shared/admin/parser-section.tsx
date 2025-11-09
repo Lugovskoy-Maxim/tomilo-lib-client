@@ -1,20 +1,27 @@
-import { Download, Globe, BookOpen, FileText, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Download, Globe, BookOpen, FileText, Info, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useState } from "react";
 import {
   useParseTitleMutation,
-  useParseChapterMutation,
+  useParseChaptersMutation,
+  useParseChaptersInfoQuery,
   useGetSupportedSitesQuery,
 } from "@/store/api/mangaParserApi";
-import { ParseTitleDto, ParseChapterDto } from "@/types/manga-parser";
+import { ParseTitleDto, ParseChaptersDto, ParseChaptersInfoDto } from "@/types/manga-parser";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
+import { Title } from "@/types/title";
 
 export function ParserSection() {
-  const [activeTab, setActiveTab] = useState<"title" | "chapter">("title");
+  const [activeTab, setActiveTab] = useState<"title" | "chapter" | "info">("title");
 
   // API hooks
   const { data: supportedSites } = useGetSupportedSitesQuery();
   const [parseTitle, { isLoading: isParsingTitle }] = useParseTitleMutation();
-  const [parseChapter, { isLoading: isParsingChapter }] = useParseChapterMutation();
+  const [parseChapters, { isLoading: isParsingChapter }] = useParseChaptersMutation();
+  const [infoUrl, setInfoUrl] = useState("");
+  const { data: chaptersInfo, isLoading: isLoadingInfo } = useParseChaptersInfoQuery(
+    { url: infoUrl },
+    { skip: !infoUrl.trim() }
+  );
 
   // Form states
   const [titleForm, setTitleForm] = useState<ParseTitleDto>({
@@ -25,10 +32,10 @@ export function ParserSection() {
     customGenres: [],
   });
 
-  const [chapterForm, setChapterForm] = useState<ParseChapterDto>({
+  const [chapterForm, setChapterForm] = useState<ParseChaptersDto>({
     url: "",
     titleId: "",
-    chapterNumber: 1,
+    chapterNumbers: [],
     customName: "",
   });
 
@@ -66,14 +73,14 @@ export function ParserSection() {
     }
   };
 
-  const handleParseChapter = async () => {
+  const handleParseChapters = async () => {
     if (!chapterForm.url.trim() || !chapterForm.titleId.trim()) {
       setLastResult({ success: false, message: "URL и ID тайтла обязательны" });
       return;
     }
 
     try {
-      const result = await parseChapter(chapterForm).unwrap();
+      const result = await parseChapters(chapterForm).unwrap();
       setLastResult({
         success: result.success,
         message: result.message || "Операция завершена",
@@ -90,8 +97,8 @@ export function ParserSection() {
     setChapterNumbersInput(value);
     const numbers = value
       .split(",")
-      .map((n) => parseInt(n.trim(), 10))
-      .filter((n) => !isNaN(n));
+      .map((n) => n.trim())
+      .filter((n) => n);
     setTitleForm((prev) => ({ ...prev, chapterNumbers: numbers }));
   };
 
@@ -101,10 +108,10 @@ export function ParserSection() {
     setTitleForm((prev) => ({ ...prev, customGenres: genres }));
   };
 
-  const selectTitle = (title: { _id?: string; id?: string; name: string; author: string; releaseYear: number }) => {
+  const selectTitle = (title: Title) => {
     setChapterForm((prev) => ({
       ...prev,
-      titleId: title._id || title.id || "",
+      titleId: title._id,
     }));
   };
 
@@ -269,9 +276,9 @@ export function ParserSection() {
               />
               {searchResults?.data?.data && searchResults.data.data.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  {searchResults.data.data.map((title: { _id?: string; id?: string; name: string; author: string; releaseYear: number }) => (
+                  {searchResults.data.data.map((title: Title) => (
                     <div
-                      key={title._id || title.id}
+                      key={title._id}
                       onClick={() => selectTitle(title)}
                       className="px-3 py-2 hover:bg-[var(--accent)] cursor-pointer border-b border-[var(--border)] last:border-b-0"
                     >
@@ -287,13 +294,16 @@ export function ParserSection() {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Номер главы *
+                Номера глав (через запятую) *
               </label>
               <input
-                type="number"
-                value={chapterForm.chapterNumber}
-                onChange={(e) => setChapterForm((prev) => ({ ...prev, chapterNumber: parseInt(e.target.value, 10) || 1 }))}
-                min="1"
+                type="text"
+                value={chapterForm.chapterNumbers.join(", ")}
+                onChange={(e) => setChapterForm((prev) => ({
+                  ...prev,
+                  chapterNumbers: e.target.value.split(",").map(s => s.trim()).filter(s => s)
+                }))}
+                placeholder="1, 2, 3-5, 10"
                 className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
               />
             </div>
@@ -312,7 +322,7 @@ export function ParserSection() {
             </div>
 
             <button
-              onClick={handleParseChapter}
+              onClick={handleParseChapters}
               disabled={isParsingChapter}
               className="w-full px-6 py-3 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--secondary-foreground)]/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
@@ -321,7 +331,7 @@ export function ParserSection() {
               ) : (
                 <Download className="w-5 h-5" />
               )}
-              {isParsingChapter ? "Импортируем..." : "Импортировать главу"}
+              {isParsingChapter ? "Импортируем..." : "Импортировать главы"}
             </button>
           </div>
         )}
