@@ -4,6 +4,7 @@ export interface ParseTitleDto {
   customTitle?: string;
   customDescription?: string;
   customGenres?: string[];
+  customType?: string;
 }
 
 export interface ParseChaptersDto {

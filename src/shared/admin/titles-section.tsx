@@ -6,6 +6,7 @@ import {
   useSearchTitlesQuery,
   useDeleteTitleMutation,
 } from "@/store/api/titlesApi";
+import { useRouter } from "next/navigation";
 
 interface TitlesSectionProps {
   onTitleSelect: (titleId: string) => void;
@@ -19,7 +20,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
     limit: 50,
   } : {});
   const [deleteTitle] = useDeleteTitleMutation();
-
+  const router = useRouter();
   const titles = titlesResponse?.data?.data || [];
 
   const handleDelete = async (id: string, title: string) => {
@@ -53,7 +54,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
           />
         </div>
         <button
-          onClick={() => onTitleSelect("")}
+          onClick={() => router.push("/admin/titles/new")}
           className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />

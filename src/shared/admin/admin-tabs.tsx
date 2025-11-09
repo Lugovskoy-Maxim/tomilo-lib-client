@@ -1,6 +1,6 @@
-import { BarChart3, Download, BookOpen, FileText } from "lucide-react";
+import { BarChart3, Download, BookOpen, FileText, Users } from "lucide-react";
 
-type AdminTab = "overview" | "parser" | "titles" | "chapters";
+type AdminTab = "overview" | "parser" | "titles" | "chapters" | "users";
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -27,6 +27,11 @@ const tabs = [
     id: "chapters" as AdminTab,
     label: "Главы",
     icon: FileText,
+  },
+  {
+    id: "users" as AdminTab,
+    label: "Пользователи",
+    icon: Users,
   },
 ];
 

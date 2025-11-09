@@ -5,10 +5,10 @@ import { Download, Globe, BookOpen, FileText, Loader2, CheckCircle, XCircle } fr
 import { useState } from "react";
 import {
   useParseTitleMutation,
-  useParseChapterMutation,
+  useParseChaptersMutation,
   useGetSupportedSitesQuery,
 } from "@/store/api/mangaParserApi";
-import { ParseTitleDto, ParseChapterDto } from "@/types/manga-parser";
+import { ParseTitleDto, ParseChaptersDto } from "@/types/manga-parser";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 
 export default function MangaParserPage() {
@@ -17,7 +17,7 @@ export default function MangaParserPage() {
   // API hooks
   const { data: supportedSites } = useGetSupportedSitesQuery();
   const [parseTitle, { isLoading: isParsingTitle }] = useParseTitleMutation();
-  const [parseChapter, { isLoading: isParsingChapter }] = useParseChapterMutation();
+  const [parseChapter, { isLoading: isParsingChapter }] = useParseChaptersMutation();
 
   // Form states
   const [titleForm, setTitleForm] = useState<ParseTitleDto>({
@@ -28,14 +28,15 @@ export default function MangaParserPage() {
     customGenres: [],
   });
 
-  const [chapterForm, setChapterForm] = useState<ParseChapterDto>({
+  const [chapterForm, setChapterForm] = useState<ParseChaptersDto>({
     url: "",
     titleId: "",
-    chapterNumber: 1,
+    chapterNumbers: [],
     customName: "",
   });
 
   const [chapterNumbersInput, setChapterNumbersInput] = useState("");
+  const [chapterNumbersInputChapter, setChapterNumbersInputChapter] = useState("");
   const [customGenresInput, setCustomGenresInput] = useState("");
 
   // Search for titles when typing titleId
@@ -64,7 +65,7 @@ export default function MangaParserPage() {
     } catch (error: unknown) {
       setLastResult({
         success: false,
-        message: error.data?.message || "Ошибка при парсинге",
+        message: (error as { data?: { message?: string } }).data?.message || "Ошибка при парсинге",
       });
     }
   };
@@ -84,18 +85,21 @@ export default function MangaParserPage() {
     } catch (error: unknown) {
       setLastResult({
         success: false,
-        message: error.data?.message || "Ошибка при парсинге",
+        message: (error as { data?: { message?: string } }).data?.message || "Ошибка при парсинге",
       });
     }
   };
 
   const handleChapterNumbersChange = (value: string) => {
     setChapterNumbersInput(value);
-    const numbers = value
-      .split(",")
-      .map((n) => parseInt(n.trim(), 10))
-      .filter((n) => !isNaN(n));
+    const numbers = value.split(",").map((n) => n.trim()).filter((n) => n);
     setTitleForm((prev) => ({ ...prev, chapterNumbers: numbers }));
+  };
+
+  const handleChapterNumbersChangeChapter = (value: string) => {
+    setChapterNumbersInputChapter(value);
+    const numbers = value.split(",").map((n) => n.trim()).filter((n) => n);
+    setChapterForm((prev) => ({ ...prev, chapterNumbers: numbers }));
   };
 
   const handleCustomGenresChange = (value: string) => {
@@ -104,7 +108,7 @@ export default function MangaParserPage() {
     setTitleForm((prev) => ({ ...prev, customGenres: genres }));
   };
 
-  const selectTitle = (title: { _id?: string; id?: string; name: string; author: string; releaseYear: number }) => {
+  const selectTitle = (title: { _id?: string; id?: string; name: string; author?: string; releaseYear: number }) => {
     setChapterForm((prev) => ({
       ...prev,
       titleId: title._id || title.id || "",
@@ -169,7 +173,7 @@ export default function MangaParserPage() {
               }`}
             >
               <FileText className="w-4 h-4 inline mr-2" />
-              Импорт главы
+              Импорт глав
             </button>
           </div>
 
@@ -285,7 +289,7 @@ export default function MangaParserPage() {
                 />
                 {searchResults?.data?.data && searchResults.data.data.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                    {searchResults.data.data.map((title: { _id?: string; id?: string; name: string; author: string; releaseYear: number }) => (
+                    {searchResults.data.data.map((title: { _id?: string; id?: string; name: string; author?: string; releaseYear: number }) => (
                       <div
                         key={title._id || title.id}
                         onClick={() => selectTitle(title)}
@@ -293,7 +297,7 @@ export default function MangaParserPage() {
                       >
                         <div className="font-medium">{title.name}</div>
                         <div className="text-sm text-[var(--muted-foreground)]">
-                          {title.author} • {title.releaseYear}
+                          {title.author || 'Unknown'} • {title.releaseYear}
                         </div>
                       </div>
                     ))}
@@ -303,13 +307,13 @@ export default function MangaParserPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Номер главы *
+                  Номера глав (через запятую) *
                 </label>
                 <input
-                  type="number"
-                  value={chapterForm.chapterNumber}
-                  onChange={(e) => setChapterForm((prev) => ({ ...prev, chapterNumber: parseInt(e.target.value, 10) || 1 }))}
-                  min="1"
+                  type="text"
+                  value={chapterNumbersInputChapter}
+                  onChange={(e) => handleChapterNumbersChangeChapter(e.target.value)}
+                  placeholder="1, 2, 3"
                   className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
                 />
               </div>
@@ -337,7 +341,7 @@ export default function MangaParserPage() {
                 ) : (
                   <Download className="w-5 h-5" />
                 )}
-                {isParsingChapter ? "Импортируем..." : "Импортировать главу"}
+                {isParsingChapter ? "Импортируем..." : "Импортировать главы"}
               </button>
             </div>
           )}

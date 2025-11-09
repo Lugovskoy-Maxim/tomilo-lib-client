@@ -30,6 +30,7 @@ export function ParserSection() {
     customTitle: "",
     customDescription: "",
     customGenres: [],
+    customType: "",
   });
 
   const [chapterForm, setChapterForm] = useState<ParseChaptersDto>({
@@ -232,10 +233,30 @@ export function ParserSection() {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Тип тайтла (опционально)
+              </label>
+              <select
+                value={titleForm.customType}
+                onChange={(e) => setTitleForm((prev) => ({ ...prev, customType: e.target.value }))}
+                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+              >
+                <option value="">Оставить пустым для использования оригинального типа</option>
+                <option value="manga">Манга</option>
+                <option value="manhwa">Манхва</option>
+                <option value="manhua">Маньхуа</option>
+                <option value="novel">Новелла</option>
+                <option value="light_novel">Лайт новелла</option>
+                <option value="comic">Комикс</option>
+                <option value="other">Другое</option>
+              </select>
+            </div>
+
             <button
               onClick={handleParseTitle}
               disabled={isParsingTitle}
-              className="w-full px-6 py-3 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--secondary-foreground)]/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isParsingTitle ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

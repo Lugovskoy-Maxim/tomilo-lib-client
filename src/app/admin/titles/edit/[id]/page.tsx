@@ -23,7 +23,7 @@ import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/index";
-import { Title, TitleStatus } from "@/types/title";
+import { Title, TitleStatus, TitleType } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
@@ -551,6 +551,19 @@ function BasicInfoSection({
             value: status,
             label: status,
           }))}
+        />
+
+        <SelectField
+          label="Тип тайтла"
+          value={formData.type || ""}
+          onChange={handleInputChange("type")}
+          options={[
+            { value: "", label: "Не указан" },
+            ...Object.values(TitleType).map((type) => ({
+              value: type as string,
+              label: type as string,
+            })),
+          ]}
         />
 
         <SelectField

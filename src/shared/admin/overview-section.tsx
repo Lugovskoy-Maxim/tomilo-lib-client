@@ -1,5 +1,6 @@
-import { Plus, Download, BookOpen, FileText, Users, Eye, Star, TrendingUp } from "lucide-react";
+import { Plus, Download, BookOpen, FileText, Users, Eye, Star, TrendingUp, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useGetStatsQuery } from "@/store/api/statsApi";
 
 type AdminTab = "overview" | "parser" | "titles" | "chapters";
 
@@ -8,33 +9,50 @@ interface OverviewSectionProps {
 }
 
 export function OverviewSection({ onTabChange }: OverviewSectionProps) {
-  // Mock statistics - in real app these would come from API
-  const stats = [
+  const { data: statsData, isLoading, error } = useGetStatsQuery();
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
+  };
+
+  const stats = statsData?.data ? [
     {
       icon: BookOpen,
-      value: "1,247",
+      value: formatNumber(statsData.data.totalTitles),
       label: "Тайтлов",
       color: "blue",
     },
     {
       icon: FileText,
-      value: "15,632",
+      value: formatNumber(statsData.data.totalChapters),
       label: "Глав",
       color: "green",
     },
     {
       icon: Users,
-      value: "8,459",
+      value: formatNumber(statsData.data.totalUsers),
       label: "Пользователей",
       color: "purple",
     },
     {
       icon: Eye,
-      value: "245K",
+      value: formatNumber(statsData.data.totalViews),
       label: "Просмотров",
       color: "orange",
     },
-  ];
+    {
+      icon: Star,
+      value: formatNumber(statsData.data.totalBookmarks),
+      label: "Закладок",
+      color: "yellow",
+    },
+  ] : [];
 
   const quickActions = [
     {
@@ -68,32 +86,61 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
     green: "bg-green-50 text-green-600 border-green-200",
     purple: "bg-purple-50 text-purple-600 border-purple-200",
     orange: "bg-orange-50 text-orange-600 border-orange-200",
+    yellow: "bg-yellow-50 text-yellow-600 border-yellow-200",
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6">
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6"
-          >
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-[var(--secondary)] rounded-lg">
-                <stat.icon className="w-6 h-6 text-[var(--muted-foreground)]" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[var(--foreground)]">
-                  {stat.value}
-                </p>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                  {stat.label}
-                </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+        {isLoading ? (
+          // Loading skeleton
+          Array.from({ length: 5 }).map((_, index) => (
+            <div
+              key={index}
+              className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-[var(--secondary)] rounded-lg">
+                  <Loader2 className="w-6 h-6 text-[var(--muted-foreground)] animate-spin" />
+                </div>
+                <div className="flex-1">
+                  <div className="h-8 bg-[var(--muted)] rounded animate-pulse mb-2"></div>
+                  <div className="h-4 bg-[var(--muted)] rounded animate-pulse w-2/3"></div>
+                </div>
               </div>
             </div>
+          ))
+        ) : error ? (
+          // Error state
+          <div className="col-span-full bg-red-50 border border-red-200 rounded-xl p-6">
+            <p className="text-red-800 font-medium">Ошибка загрузки статистики</p>
+            <p className="text-red-600 text-sm mt-1">
+              Не удалось получить данные с сервера
+            </p>
           </div>
-        ))}
+        ) : (
+          stats.map((stat, index) => (
+            <div
+              key={index}
+              className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-[var(--secondary)] rounded-lg">
+                  <stat.icon className="w-6 h-6 text-[var(--muted-foreground)]" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-[var(--foreground)]">
+                    {stat.value}
+                  </p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    {stat.label}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Quick Actions */}
@@ -131,7 +178,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
             </div>
             <div className="flex-1">
               <p className="font-medium text-[var(--foreground)]">
-                Добавлен новый тайтл "One Piece"
+                Добавлен новый тайтл &ldquo;One Piece&rdquo;
               </p>
               <p className="text-sm text-[var(--muted-foreground)]">
                 2 часа назад
