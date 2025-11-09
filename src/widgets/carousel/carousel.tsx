@@ -67,6 +67,16 @@ export default function Carousel<T>({
   const [isDragging, setIsDragging] = useState(false);
 
   /**
+   * Флаг для отслеживания, произошел ли реальный drag.
+   */
+  const [hasDragged, setHasDragged] = useState(false);
+
+  /**
+   * Флаг для отслеживания, произошел ли drag в текущем взаимодействии с мышью.
+   */
+  const [dragOccurred, setDragOccurred] = useState(false);
+
+  /**
    * Начальная позиция мыши при начале перетаскивания.
    */
   const [startX, setStartX] = useState(0);
@@ -122,6 +132,8 @@ export default function Carousel<T>({
     if (!scrollContainerRef.current) return;
 
     setIsDragging(true);
+    setHasDragged(false);
+    setDragOccurred(false);
     setStartX(e.pageX);
     setScrollLeft(scrollContainerRef.current.scrollLeft);
     setStartScrollLeft(scrollContainerRef.current.scrollLeft);
@@ -132,6 +144,8 @@ export default function Carousel<T>({
    */
   const handleMouseLeave = () => {
     setIsDragging(false);
+    setHasDragged(false);
+    setDragOccurred(false);
   };
 
   /**
@@ -142,10 +156,8 @@ export default function Carousel<T>({
   const handleMouseUp = (e: React.MouseEvent) => {
     if (!isDragging || !scrollContainerRef.current) return;
 
-    const movedDistance = Math.abs(
-      scrollContainerRef.current.scrollLeft - startScrollLeft
-    );
-    const isClick = movedDistance < 5;
+    const movedDistance = Math.abs(e.pageX - startX);
+    const isClick = movedDistance < 10 && !hasDragged && !dragOccurred;
 
     if (isClick) {
       const cardElement = document.elementFromPoint(e.clientX, e.clientY);
@@ -160,6 +172,8 @@ export default function Carousel<T>({
     }
 
     setIsDragging(false);
+    setHasDragged(false);
+    setDragOccurred(false);
   };
 
   /**
@@ -169,10 +183,19 @@ export default function Carousel<T>({
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !scrollContainerRef.current) return;
 
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = x - startX;
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    const movedDistance = Math.abs(e.pageX - startX);
+    if (movedDistance > 5) {
+      setHasDragged(true);
+      setDragOccurred(true);
+    }
+
+    // Only prevent default and scroll if we've moved enough to be considered a drag
+    if (hasDragged) {
+      e.preventDefault();
+      const x = e.pageX - scrollContainerRef.current.offsetLeft;
+      const walk = x - startX;
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    }
   };
 
   /**

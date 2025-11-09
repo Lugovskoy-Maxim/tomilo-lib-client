@@ -21,7 +21,6 @@ export interface CarouselCardProps {
 }
 
 export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
-  console.log(data, 'caouselCard');
   const router = useRouter();
   const handleClick = () => {
     if (onCardClick) {
@@ -45,6 +44,7 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
             width={160}
             height={220}
             unoptimized
+            onDragStart={(e) => e.preventDefault()}
           />
         ) : (
           <Image
@@ -53,6 +53,7 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
             alt={data.title}
             width={160}
             height={220}
+            onDragStart={(e) => e.preventDefault()}
           />
         )}
 
@@ -74,7 +75,7 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
           {data.title}
         </h3>
 
-        <div className="hidden xs:flex flex-wrap gap-0.5 mt-1">
+        <div className="hidden sm:flex flex-wrap gap-0.5 mt-1">
           {data.genres && data.genres.length > 0 ? (
             data.genres.slice(0, 1).map((genre, index) => (
               <span
