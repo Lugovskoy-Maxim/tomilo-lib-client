@@ -3,11 +3,16 @@ import { useState, useEffect, useMemo } from "react";
 import { Trophy } from "lucide-react";
 
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
-import { CollectionCard, LatestUpdateCard, TopTitleCard } from "@/shared";
+import {
+  CarouselCard,
+  CollectionCard,
+  LatestUpdateCard,
+  TopTitleCard,
+} from "@/shared";
 import { pageTitle } from "@/lib/page-title";
+import { useHomeData } from "@/hooks/useHomeData";
 import { useStaticData } from "@/hooks/useStaticData";
 import { useSEO } from "@/hooks/useSEO";
-import topTitlesData from "@/constants/mokeTopTitles";
 
 type Period = "day" | "week" | "month";
 
@@ -43,6 +48,7 @@ export default function TopPage() {
   const [mounted, setMounted] = useState(false);
   const [activePeriod, setActivePeriod] = useState<Period>("day");
   const { collections, latestUpdates } = useStaticData();
+  const { topTitlesDay, topTitlesWeek, topTitlesMonth } = useHomeData();
 
   useSEO({
     title: `Топ тайтлов ${periodLabels[activePeriod]} - Tomilo-lib.ru`,
@@ -58,13 +64,27 @@ export default function TopPage() {
     );
   }, [activePeriod]);
 
+  const getActiveTopTitles = () => {
+    switch (activePeriod) {
+      case "day":
+        return topTitlesDay;
+      case "week":
+        return topTitlesWeek;
+      case "month":
+        return topTitlesMonth;
+      default:
+        return topTitlesDay;
+    }
+  };
+
+  const activeTopTitles = getActiveTopTitles();
+
   const filteredTopTitles = useMemo(
     () =>
-      topTitlesData
-        .filter((title) => title.period === activePeriod)
+      activeTopTitles.data
         .slice(0, 10)
         .map((title, index) => ({ ...title, rank: index + 1 })),
-    [activePeriod]
+    [activeTopTitles.data]
   );
 
   const top3Titles = filteredTopTitles.slice(0, 3);

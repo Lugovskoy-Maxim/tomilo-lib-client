@@ -132,11 +132,65 @@ export const titlesApi = createApi({
     // Получить популярные тайтлы
     getPopularTitles: builder.query<ApiResponseDto<{
       type: string;
-      releaseYear: number; id: string; title: string; cover?: string; description?: string; rating?: number 
+      releaseYear: number; id: string; title: string; cover?: string; description?: string; rating?: number
 }[]>, void>({
       query: () => "/titles/popular",
       providesTags: [TITLES_TAG],
       transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number; type: string; releaseYear: number; }[]>) => response,
+    }),
+
+    // Получить топ тайтлы за день
+    getTopTitlesDay: builder.query<ApiResponseDto<{
+      id: string;
+      title: string;
+      cover: string;
+      rating: number;
+      type: string;
+      releaseYear: number;
+      description: string;
+    }[]>, { limit?: number }>({
+      query: (params) => ({
+        url: "/titles/top/day",
+        params,
+      }),
+      providesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; }[]>) => response,
+    }),
+
+    // Получить топ тайтлы за неделю
+    getTopTitlesWeek: builder.query<ApiResponseDto<{
+      id: string;
+      title: string;
+      cover: string;
+      rating: number;
+      type: string;
+      releaseYear: number;
+      description: string;
+    }[]>, { limit?: number }>({
+      query: (params) => ({
+        url: "/titles/top/week",
+        params,
+      }),
+      providesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; }[]>) => response,
+    }),
+
+    // Получить топ тайтлы за месяц
+    getTopTitlesMonth: builder.query<ApiResponseDto<{
+      id: string;
+      title: string;
+      cover: string;
+      rating: number;
+      type: string;
+      releaseYear: number;
+      description: string;
+    }[]>, { limit?: number }>({
+      query: (params) => ({
+        url: "/titles/top/month",
+        params,
+      }),
+      providesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; }[]>) => response,
     }),
 
     // Получить коллекции
@@ -174,6 +228,9 @@ export const {
   useUpdateRatingMutation,
   useIncrementViewsMutation,
   useGetPopularTitlesQuery,
+  useGetTopTitlesDayQuery,
+  useGetTopTitlesWeekQuery,
+  useGetTopTitlesMonthQuery,
   useGetCollectionsQuery,
   useGetLatestUpdatesQuery,
   useDeleteTitleMutation,

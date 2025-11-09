@@ -1,4 +1,4 @@
-import { useGetPopularTitlesQuery } from "@/store/api/titlesApi";
+import { useGetPopularTitlesQuery, useGetTopTitlesDayQuery, useGetTopTitlesWeekQuery, useGetTopTitlesMonthQuery } from "@/store/api/titlesApi";
 import { useGetReadingHistoryQuery } from "@/store/api/authApi";
 
 export const useHomeData = () => {
@@ -8,6 +8,27 @@ export const useHomeData = () => {
     isLoading: popularTitlesLoading,
     error: popularTitlesError,
   } = useGetPopularTitlesQuery();
+
+  // Топ тайтлы за день
+  const {
+    data: topTitlesDayData,
+    isLoading: topTitlesDayLoading,
+    error: topTitlesDayError,
+  } = useGetTopTitlesDayQuery({ limit: 10 });
+
+  // Топ тайтлы за неделю
+  const {
+    data: topTitlesWeekData,
+    isLoading: topTitlesWeekLoading,
+    error: topTitlesWeekError,
+  } = useGetTopTitlesWeekQuery({ limit: 10 });
+
+  // Топ тайтлы за месяц
+  const {
+    data: topTitlesMonthData,
+    isLoading: topTitlesMonthLoading,
+    error: topTitlesMonthError,
+  } = useGetTopTitlesMonthQuery({ limit: 10 });
 
   // История чтения
   const {
@@ -25,7 +46,43 @@ export const useHomeData = () => {
     type: item.type || "Неуказан",
     year: item.releaseYear || new Date().getFullYear(),
     rating: item.rating || 0,
-    genres: item.genres || [], // И берем жанры  если есть
+    genres: [], // Сервер не возвращает жанры для популярных тайтлов
+  })) || [];
+
+  // Преобразование топ тайтлов за день
+  const topTitlesDay = topTitlesDayData?.data?.map(item => ({
+    id: item.id,
+    title: item.title,
+    image: item.cover,
+    description: item.description,
+    type: item.type || "Неуказан",
+    year: item.releaseYear || new Date().getFullYear(),
+    rating: item.rating || 0,
+    genres: [], // Сервер не возвращает жанры для топ тайтлов
+  })) || [];
+
+  // Преобразование топ тайтлов за неделю
+  const topTitlesWeek = topTitlesWeekData?.data?.map(item => ({
+    id: item.id,
+    title: item.title,
+    image: item.cover,
+    description: item.description,
+    type: item.type || "Неуказан",
+    year: item.releaseYear || new Date().getFullYear(),
+    rating: item.rating || 0,
+    genres: [], // Сервер не возвращает жанры для топ тайтлов
+  })) || [];
+
+  // Преобразование топ тайтлов за месяц
+  const topTitlesMonth = topTitlesMonthData?.data?.map(item => ({
+    id: item.id,
+    title: item.title,
+    image: item.cover,
+    description: item.description,
+    type: item.type || "Неуказан",
+    year: item.releaseYear || new Date().getFullYear(),
+    rating: item.rating || 0,
+    genres: [], // Сервер не возвращает жанры для топ тайтлов
   })) || [];
 
   // Преобразование прогресса чтения
@@ -61,6 +118,21 @@ export const useHomeData = () => {
       data: popularTitles,
       loading: popularTitlesLoading,
       error: popularTitlesError,
+    },
+    topTitlesDay: {
+      data: topTitlesDay,
+      loading: topTitlesDayLoading,
+      error: topTitlesDayError,
+    },
+    topTitlesWeek: {
+      data: topTitlesWeek,
+      loading: topTitlesWeekLoading,
+      error: topTitlesWeekError,
+    },
+    topTitlesMonth: {
+      data: topTitlesMonth,
+      loading: topTitlesMonthLoading,
+      error: topTitlesMonthError,
     },
     readingProgress: {
       data: readingProgress,
