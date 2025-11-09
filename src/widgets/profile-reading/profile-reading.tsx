@@ -36,8 +36,10 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
   const allChapters = useMemo(() => {
     if (!readingHistory) return [];
 
-    return readingHistory.flatMap(historyItem =>
-      historyItem.chapters.map(chapter => ({
+    return readingHistory.flatMap(historyItem => {
+      if (!historyItem.chapters || !Array.isArray(historyItem.chapters)) return [];
+
+      return historyItem.chapters.map(chapter => ({
         titleId: historyItem.titleId,
         chapterId: chapter.chapterId,
         chapterNumber: chapter.chapterNumber,
@@ -46,8 +48,8 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
         readAt: chapter.readAt || historyItem.readAt,
         // Добавляем ключ для уникальной идентификации
         uniqueKey: `${historyItem.titleId}-${chapter.chapterId}-${chapter.readAt || historyItem.readAt}`
-      }))
-    );
+      }));
+    });
   }, [readingHistory]);
 
   // Сортируем по времени чтения главы (самые новые первыми), затем по номеру главы

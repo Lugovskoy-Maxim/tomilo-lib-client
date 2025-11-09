@@ -22,13 +22,22 @@ function ProfileHeader() {
           </button>
         </div>
         {isAdmin && (
-          <Link
-            href="admin/titles/new"
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Добавить тайтл
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Админ панель
+            </Link>
+            <Link
+              href="/admin/titles/new"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Добавить тайтл
+            </Link>
+          </div>
         )}
       </div>
     </div>

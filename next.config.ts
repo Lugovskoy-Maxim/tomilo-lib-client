@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     // Allow common mock/demo hosts
-    domains: ["picsum.photos", "baconmockup.com", "127.0.0.1", "localhost"],
+    domains: ["picsum.photos", "baconmockup.com", "127.0.0.1", "localhost", "mirai.senkuro.net"],
     remotePatterns: [
       {
         protocol: "http",
@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
         hostname: "127.0.0.1",
         port: "3001",
         pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "mirai.senkuro.net",
+        pathname: "/**",
       },
     ],
   },

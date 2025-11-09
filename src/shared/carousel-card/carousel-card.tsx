@@ -9,9 +9,9 @@ export interface CardProps {
   id: string;
   title: string;
   type: string;
-  releaseYear: number;
+  year: number;
   rating: number;
-  cover: string;
+  image: string;
   genres: string[];
 }
 
@@ -21,6 +21,7 @@ export interface CarouselCardProps {
 }
 
 export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
+  console.log(data, 'caouselCard');
   const router = useRouter();
   const handleClick = () => {
     if (onCardClick) {
@@ -36,11 +37,10 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
       onClick={handleClick}
     >
       <div className="relative">
-        {data.cover ? (
+        {data.image ? (
           <Image
             className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
-            loader={() => `${baseUrl}${data.cover}`}
-            src={`${baseUrl}${data.cover}`}
+            src={data.image}
             alt={data.title}
             width={160}
             height={220}
@@ -67,7 +67,7 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
           <span className="bg-[var(--secondary)] px-1 py-0.5 rounded text-[9px] sm:text-[10px]">
             {data.type}
           </span>
-          <span className="text-[9px] sm:text-[10px]">{data.releaseYear}</span>
+          <span className="text-[9px] sm:text-[10px]">{data.year}</span>
         </div>
 
         <h3 className="font-semibold text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-2 leading-tight mb-1">

@@ -111,14 +111,7 @@ export function LeftSidebar({
           <Image
             width={320}
             height={480}
-            src={`${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${
-              titleData.coverImage
-            }`}
-            loader={() =>
-              `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${
-                titleData.coverImage
-              }`
-            }
+            src={titleData.coverImage}
             alt={titleData.name}
             unoptimized={true}
             className="w-full max-w-[320px] mx-auto lg:max-w-none h-auto rounded-lg shadow-lg mb-4 object-cover"

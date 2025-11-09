@@ -20,12 +20,12 @@ export const useHomeData = () => {
   const popularTitles = popularTitlesData?.data?.map(item => ({
     id: item.id,
     title: item.title,
-    cover: item.cover,
+    image: item.cover,
     description: item.description,
     type: item.type || "Неуказан",
-    releaseYear: item.releaseYear || new Date().getFullYear(), 
+    year: item.releaseYear || new Date().getFullYear(),
     rating: item.rating || 0,
-    // genres: item.genres || [], // И берем жанры  если есть
+    genres: item.genres || [], // И берем жанры  если есть
   })) || [];
 
   // Преобразование прогресса чтения
