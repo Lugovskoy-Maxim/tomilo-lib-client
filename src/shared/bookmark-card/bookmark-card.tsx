@@ -62,7 +62,7 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
 
   return (
     <div
-      className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors group cursor-pointer relative"
+      className="bg-[var(--background)] rounded-lg p-2 border border-[var(--border)] hover:border-[var(--primary)] transition-colors group cursor-pointer relative"
       onClick={handleClick}
     >
       <div className="flex items-start space-x-3">

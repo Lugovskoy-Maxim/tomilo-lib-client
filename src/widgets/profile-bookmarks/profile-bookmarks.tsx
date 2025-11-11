@@ -138,7 +138,7 @@ function BookmarksSection({
   );
 
   return (
-    <div className="bg-[var(--secondary)] rounded-xl p-2 border border-[var(--border)]">
+    <div className="rounded-xl p-2 border border-dotted border-[var(--border)]">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
           <span>Закладки</span>
@@ -149,7 +149,7 @@ function BookmarksSection({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {currentBookmarks.slice(0, 4).map((bookmarkId: string) => {
           // Показываем состояние загрузки
           if (loadingBookmarks[bookmarkId]) {

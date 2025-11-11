@@ -1,19 +1,17 @@
 "use client";
 
+import React from 'react';
 import { BookOpen, Trash2, Clock } from "lucide-react";
-import { UserProfile } from "@/types/user";
-import { Title } from "@/types/title";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
-import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 
 interface ReadingHistorySectionProps {
   readingHistory:
     | {
-        titleId: string;
+        titleId: string | { _id: string; name: string; coverImage?: string };
         chapters: {
           chapterId: string;
           chapterNumber: number;
@@ -28,9 +26,45 @@ interface ReadingHistorySectionProps {
 function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
-  const [titleData, setTitleData] = useState<Record<string, Title>>({});
-  const [errorItems, setErrorItems] = useState<Record<string, boolean>>({});
+  const [titleData, setTitleData] = useState<Record<string, { _id: string; name: string; coverImage?: string }>>({});
   const router = useRouter();
+
+  // Получаем уникальные titleId из истории чтения
+  const uniqueTitleIds = useMemo(() => {
+    if (!readingHistory) return [];
+    const ids = new Set<string>();
+    readingHistory.forEach(item => {
+      const isTitleObject = typeof item.titleId === 'object' && item.titleId !== null;
+      const titleId = isTitleObject ? (item.titleId as { _id: string })._id : item.titleId as string;
+      ids.add(titleId);
+    });
+    return Array.from(ids);
+  }, [readingHistory]);
+
+  // Загружаем данные о тайтлах
+  useEffect(() => {
+    const fetchTitles = async () => {
+      for (const titleId of uniqueTitleIds) {
+        if (!titleData[titleId]) {
+          try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}/api/titles/${titleId}`);
+            if (response.ok) {
+              const result = await response.json();
+              if (result.success && result.data) {
+                setTitleData(prev => ({ ...prev, [titleId]: result.data }));
+              }
+            }
+          } catch (error) {
+            console.error(`Ошибка при загрузке данных о тайтле ${titleId}:`, error);
+          }
+        }
+      }
+    };
+
+    if (uniqueTitleIds.length > 0) {
+      fetchTitles();
+    }
+  }, [uniqueTitleIds, titleData]);
 
   // Преобразуем данные в плоский список глав с информацией о тайтле
   const allChapters = useMemo(() => {
@@ -39,80 +73,42 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
     return readingHistory.flatMap(historyItem => {
       if (!historyItem.chapters || !Array.isArray(historyItem.chapters)) return [];
 
-      return historyItem.chapters.map(chapter => ({
-        titleId: historyItem.titleId,
-        chapterId: chapter.chapterId,
-        chapterNumber: chapter.chapterNumber,
-        chapterTitle: chapter.chapterTitle,
-        // Используем readAt из главы, если есть, иначе из родительского элемента
-        readAt: chapter.readAt || historyItem.readAt,
-        // Добавляем ключ для уникальной идентификации
-        uniqueKey: `${historyItem.titleId}-${chapter.chapterId}-${chapter.readAt || historyItem.readAt}`
-      }));
+      return historyItem.chapters.map(chapter => {
+        const isTitleObject = typeof historyItem.titleId === 'object' && historyItem.titleId !== null;
+        const titleId = isTitleObject ? (historyItem.titleId as { _id: string })._id : historyItem.titleId as string;
+
+        return {
+          titleId,
+          chapterId: chapter.chapterId,
+          chapterNumber: chapter.chapterNumber,
+          chapterTitle: chapter.chapterTitle,
+          // Используем readAt из главы, если есть, иначе из родительского элемента
+          readAt: chapter.readAt || historyItem.readAt,
+          // Добавляем ключ для уникальной идентификации
+          uniqueKey: `${titleId}-${chapter.chapterId}-${chapter.readAt || historyItem.readAt}`,
+          // Если titleId - объект, сохраняем его данные
+          titleData: isTitleObject ? historyItem.titleId as { _id: string; name: string; coverImage?: string } : undefined
+        };
+      });
     });
   }, [readingHistory]);
 
-  // Сортируем по времени чтения главы (самые новые первыми), затем по номеру главы
+  // Фильтруем записи за последний месяц и сортируем по времени чтения главы (самые новые первыми), затем по номеру главы
   const recentChapters = useMemo(() => {
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
     return [...allChapters]
+      .filter(item => new Date(item.readAt) >= oneMonthAgo)
       .sort((a, b) => {
         // Сначала сортируем по времени чтения (новые первыми)
         const timeDiff = new Date(b.readAt).getTime() - new Date(a.readAt).getTime();
         if (timeDiff !== 0) return timeDiff;
-        
+
         // Если время одинаковое, сортируем по номеру главы (более высокие номера первыми)
-        return b.chapterNumber - a.chapterNumber;
-      })
-      .slice(0, 10);
+        return (b.chapterNumber || 0) - (a.chapterNumber || 0);
+      });
   }, [allChapters]);
-
-  // Получаем уникальные titleId для загрузки данных
-  const uniqueTitleIds = useMemo(() => {
-    return [...new Set(allChapters.map(chapter => chapter.titleId))];
-  }, [allChapters]);
-
-  // Загружаем данные о тайтлах с помощью RTK Query
-  // Используем отдельные хуки для каждого titleId
-  const titleQuery1 = useGetTitleByIdQuery(uniqueTitleIds[0] || '', { skip: !uniqueTitleIds[0] });
-  const titleQuery2 = useGetTitleByIdQuery(uniqueTitleIds[1] || '', { skip: !uniqueTitleIds[1] });
-  const titleQuery3 = useGetTitleByIdQuery(uniqueTitleIds[2] || '', { skip: !uniqueTitleIds[2] });
-  const titleQuery4 = useGetTitleByIdQuery(uniqueTitleIds[3] || '', { skip: !uniqueTitleIds[3] });
-  const titleQuery5 = useGetTitleByIdQuery(uniqueTitleIds[4] || '', { skip: !uniqueTitleIds[4] });
-  const titleQuery6 = useGetTitleByIdQuery(uniqueTitleIds[5] || '', { skip: !uniqueTitleIds[5] });
-  const titleQuery7 = useGetTitleByIdQuery(uniqueTitleIds[6] || '', { skip: !uniqueTitleIds[6] });
-  const titleQuery8 = useGetTitleByIdQuery(uniqueTitleIds[7] || '', { skip: !uniqueTitleIds[7] });
-  const titleQuery9 = useGetTitleByIdQuery(uniqueTitleIds[8] || '', { skip: !uniqueTitleIds[8] });
-  const titleQuery10 = useGetTitleByIdQuery(uniqueTitleIds[9] || '', { skip: !uniqueTitleIds[9] });
-
-  // Обновляем titleData на основе результатов запросов
-  useEffect(() => {
-    const queries = [titleQuery1, titleQuery2, titleQuery3, titleQuery4, titleQuery5, titleQuery6, titleQuery7, titleQuery8, titleQuery9, titleQuery10];
-    const newTitleData: Record<string, Title> = {};
-    const newErrorItems: Record<string, boolean> = {};
-
-    queries.forEach((query, index) => {
-      const titleId = uniqueTitleIds[index];
-      if (titleId && query.data && query.data.success && query.data.data) {
-        newTitleData[titleId] = query.data.data;
-      } else if (titleId && query.error) {
-        newErrorItems[titleId] = true;
-      }
-    });
-
-    if (Object.keys(newTitleData).length > 0) {
-      setTitleData(prev => ({
-        ...prev,
-        ...newTitleData
-      }));
-    }
-
-    if (Object.keys(newErrorItems).length > 0) {
-      setErrorItems(prev => ({
-        ...prev,
-        ...newErrorItems
-      }));
-    }
-  }, [titleQuery1, titleQuery2, titleQuery3, titleQuery4, titleQuery5, titleQuery6, titleQuery7, titleQuery8, titleQuery9, titleQuery10, uniqueTitleIds]);
 
   const handleRemoveFromHistory = async (
     titleId: string,
@@ -152,37 +148,6 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
     }${coverImage}`;
   };
 
-  // Компонент для отображения состояния загрузки
-  const LoadingCard = () => (
-    <div className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] animate-pulse">
-      <div className="flex items-start space-x-3">
-        <div className="w-12 h-16 bg-[var(--muted)] rounded flex-shrink-0"></div>
-        <div className="flex-1 min-w-0">
-          <div className="h-4 bg-[var(--muted)] rounded mb-2 w-3/4"></div>
-          <div className="h-3 bg-[var(--muted)] rounded mb-2 w-1/2"></div>
-          <div className="h-3 bg-[var(--muted)] rounded w-1/3"></div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Компонент для отображения ошибки загрузки
-  const ErrorCard = ({ titleId }: { titleId: string }) => (
-    <div className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)]">
-      <div className="flex items-start space-x-3">
-        <div className="w-12 h-16 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 rounded flex items-center justify-center flex-shrink-0">
-          <BookOpen className="w-6 h-6 text-[var(--primary)]" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1">
-            Манга #{titleId.slice(-6)}
-          </h3>
-          <p className="text-xs text-red-500 mb-2">Ошибка загрузки данных</p>
-        </div>
-      </div>
-    </div>
-  );
-
   // Если история чтения пуста, показываем сообщение
   if (!readingHistory || readingHistory.length === 0 || allChapters.length === 0) {
     return (
@@ -201,48 +166,41 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
   }
 
   return (
-    <div className="bg-[var(--secondary)] rounded-xl p-2 border border-[var(--border)]">
+    <div className="rounded-xl p-2 border border-dotted border-[var(--border)]">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
           <span>История чтения</span>
         </h2>
         <span className="text-xs flex gap-2 items-center text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
           <BookOpen className="h-3 w-3" />
-          {recentChapters.length} 
+          {recentChapters.length}
         </span>
       </div>
 
       <div className="grid grid-cols-1 gap-2">
         {recentChapters.map((item) => {
           const loadingKey = `${item.titleId}-${item.chapterId}`;
-          const title = titleData[item.titleId];
-          const isError = errorItems[item.titleId];
-          const isLoading = !title && !isError;
-
-          if (isLoading) {
-            return <LoadingCard key={item.uniqueKey} />;
-          }
-
-          if (isError) {
-            return <ErrorCard key={item.uniqueKey} titleId={item.titleId} />;
-          }
+          // Получаем данные о тайтле из состояния или из item.titleData
+          const title = titleData[item.titleId] || item.titleData;
 
           return (
             <div
-              key={item.uniqueKey}
+              key={`${item.titleId}-${item.chapterId}-${item.readAt}`}
               className="bg-[var(--background)] rounded-lg p-2 border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer group"
-              onClick={() =>
-                router.push(
-                  `/browse/${item.titleId}/chapter/${item.chapterId}`
-                )
-              }
+              onClick={() => {
+                if (item.titleId && item.chapterId) {
+                  router.push(
+                    `/browse/${item.titleId}/chapter/${item.chapterId}`
+                  );
+                }
+              }}
             >
               <div className="flex items-start space-x-3">
                 <div className="w-12 h-16 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {title?.coverImage ? (
                     <Image
                       src={getImageUrl(title.coverImage)}
-                      alt={title.name || `Манга #${item.titleId.slice(-6)}`}
+                      alt={title.name || `Манга #${item.titleId}`}
                       width={48}
                       height={64}
                       className="w-full h-full object-cover"
@@ -265,10 +223,10 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
 
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1 truncate">
-                    {title?.name || `Манга #${item.titleId.slice(-6)}`}
+                    {title?.name || `Манга #${item.titleId}`}
                   </h3>
                   <p className="text-xs text-[var(--muted-foreground)] mb-2">
-                    Глава {item.chapterNumber}
+                    Глава {item.chapterNumber || 'N/A'}
                     {item.chapterTitle && ` - ${item.chapterTitle}`}
                   </p>
                   <div className="flex items-center space-x-2 text-xs text-[var(--muted-foreground)]">
@@ -287,7 +245,9 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleRemoveFromHistory(item.titleId, item.chapterId);
+                    if (item.titleId && item.chapterId) {
+                      handleRemoveFromHistory(item.titleId, item.chapterId);
+                    }
                   }}
                   disabled={loadingItems[loadingKey]}
                   className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-500/10 rounded transition-all disabled:opacity-50"
@@ -322,7 +282,7 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
         })}
       </div>
 
-      {allChapters.length > 10 && (
+      {allChapters.length > 5 && (
         <div className="text-center mt-4">
           <button
             className="text-xs text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]/80 transition-colors"

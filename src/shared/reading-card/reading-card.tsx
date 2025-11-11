@@ -90,14 +90,6 @@ export default function ReadingCard({ data }: ReadingCardProps) {
           </h3>
 
           {/* Информация о чтении */}
-          <div className="space-y-1 sm:space-y-2">
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-[var(--primary)]">
-              <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="truncate">
-                {data.currentChapter} / {data.totalChapters} глав
-              </span>
-            </div>
-
             <div className="flex items-center gap-2 text-xs sm:text-sm">
               <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--chart-1)]/50 flex-shrink-0" />
               <span className="text-[var(--primary)]/50 truncate">
@@ -107,12 +99,20 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
             {/* Прогресс чтения */}
             <div className="absolute bottom-0 left-0 right-0  px-2 py-1 sm:px-2">
-              <div className="text-[var(--primary)]/50 text-xs font-semibold text-center">
-                Глава {data.readingHistory?.chapterNumber || data.currentChapter}
-              </div>
+              {/* <div className="text-[var(--primary)]/50 text-xs font-semibold text-center">
+                Последняя прочитанная глава {data.readingHistory?.chapterNumber || data.currentChapter}
+              </div> */}
+                        <div className="space-y-1 sm:space-y-2">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-[var(--primary)]">
+              <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">
+                Глава {data.currentChapter} из {data.totalChapters} глав
+              </span>
+            </div>
+            
               <div className="w-full bg-[var(--muted-foreground)] rounded-full h-1 mt-1">
                 <div
-                  className="bg-[var(--primary)] h-1 rounded-full transition-all"
+                  className="bg-[var(--chart-1)] h-1 rounded-full transition-all"
                   style={{
                     width: `${getProgressPercentage(
                       data.readingHistory?.chapterNumber || data.currentChapter,
