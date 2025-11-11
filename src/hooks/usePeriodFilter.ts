@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 export type Period = "day" | "week" | "month";

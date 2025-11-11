@@ -2,12 +2,14 @@
 import { Logo, Search, ThemeToggle } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState } from "react";
-import { Menu, X, Search as SearchIcon, Home, User, FileText, Shield } from "lucide-react";
+import { Menu, X, Search as SearchIcon, Home, User, FileText, Shield, MoreVertical, Info, Mail } from "lucide-react";
 import Link from "next/link";
+import ContactForm from "@/widgets/contact-form/contact-form";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -17,8 +19,16 @@ export default function Header() {
     setIsSearchOpen(!isSearchOpen);
   };
 
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const closeDropdown = () => {
+    setIsDropdownOpen(false);
   };
 
   return (
@@ -60,6 +70,49 @@ export default function Header() {
           >
             {isSearchOpen ? null : <SearchIcon className="w-5 h-5" />}
           </button>
+
+          {/* Кнопка "..." с выпадающим меню */}
+          <div className="relative">
+            <button
+              onClick={toggleDropdown}
+              className="p-2 rounded-md hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)]"
+              aria-label="Дополнительное меню"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+
+            {/* Выпадающее меню */}
+            {isDropdownOpen && (
+              <>
+                <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--secondary)] border border-[var(--border)] rounded-lg shadow-lg z-50">
+                  <div className="py-1">
+                    <Link
+                      href="/about"
+                      onClick={closeDropdown}
+                      className="flex items-center px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+                    >
+                      <Info className="w-4 h-4 mr-3" />
+                      О нас
+                    </Link>
+                    <Link
+                      href="/contact"
+                      onClick={closeDropdown}
+                      className="flex items-center px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+                    >
+                      <Mail className="w-4 h-4 mr-3" />
+                      Контакты
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Overlay для закрытия меню */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={closeDropdown}
+                />
+              </>
+            )}
+          </div>
 
           {/* UserBar */}
           <div className="flex items-center gap-2">
@@ -135,6 +188,22 @@ export default function Header() {
                 </h3>
                 <div className="space-y-1">
                   <Link
+                    href="/about"
+                    onClick={closeMobileMenu}
+                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
+                  >
+                    <Info className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
+                    О нас
+                  </Link>
+                  <Link
+                    href="/contact"
+                    onClick={closeMobileMenu}
+                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
+                  >
+                    <Mail className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
+                    Контакты
+                  </Link>
+                  <Link
                     href="/copyright"
                     onClick={closeMobileMenu}
                     className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
@@ -150,6 +219,16 @@ export default function Header() {
                     <FileText className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
                     Условия использования
                   </Link>
+                </div>
+              </div>
+
+              {/* Форма обратной связи в мобильном меню */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
+                  Обратная связь
+                </h3>
+                <div className="bg-[var(--secondary)] p-4 rounded-lg border border-[var(--border)]">
+                  <ContactForm compact />
                 </div>
               </div>
             </div>

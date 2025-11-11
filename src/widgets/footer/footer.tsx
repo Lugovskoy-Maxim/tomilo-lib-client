@@ -10,9 +10,9 @@ export default function Footer() {
     <footer className="w-full bg-[var(--secondary)] border-t border-[var(--border)] mt-auto">
       <div className="w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 md:px-8">
         {/* Основной контент футера */}
-        <div className="flex flex-col items-center text-center space-y-6 mb-6 
+        <div className="flex flex-col items-center text-center space-y-6 mb-6
                       md:flex-row md:items-start md:justify-between md:text-left md:space-y-0 md:space-x-8">
-          
+
           {/* Логотип и описание */}
           <div className="flex flex-col items-center space-y-3 md:items-start md:max-w-sm lg:max-w-xs">
             <Logo />
@@ -28,7 +28,7 @@ export default function Footer() {
                 В случаях нарушения авторских прав - обращайтесь на почту:
               </span>
             </div>
-            <Link 
+            <Link
               href="mailto:lugovskou.myu@ya.ru"
               className="flex items-center gap-2 text-[var(--chart-1)] hover:text-[var(--primary)] transition-colors text-sm break-words px-2 py-1 text-center md:text-right"
             >
@@ -42,25 +42,25 @@ export default function Footer() {
         <div className="border-t border-[var(--border)] my-4 md:my-6" />
 
         {/* Нижняя часть футера */}
-        <div className="flex flex-col items-center space-y-4 text-[var(--muted-foreground)] text-sm 
+        <div className="flex flex-col items-center space-y-4 text-[var(--muted-foreground)] text-sm
                       md:flex-row md:justify-between md:space-y-0 md:items-center">
-          
+
           {/* Навигационные ссылки */}
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 md:justify-start">
-            <Link 
-              href="/terms-of-use" 
+            <Link
+              href="/terms-of-use"
               className="hover:text-[var(--foreground)] transition-colors text-xs sm:text-sm whitespace-nowrap"
             >
               Пользовательское соглашение
             </Link>
-            <Link 
-              href="/copyright" 
+            <Link
+              href="/copyright"
               className="hover:text-[var(--foreground)] transition-colors text-xs sm:text-sm whitespace-nowrap"
             >
               Авторское право
             </Link>
-            <Link 
-              href="/updates" 
+            <Link
+              href="/updates"
               className="hover:text-[var(--foreground)] transition-colors text-xs sm:text-sm whitespace-nowrap"
             >
               Лента новых глав
@@ -68,8 +68,8 @@ export default function Footer() {
           </div>
 
           {/* Копирайт и версия */}
-          <div className="flex flex-col items-center space-y-2 
-                        sm:flex-row sm:space-y-0 sm:space-x-4 
+          <div className="flex flex-col items-center space-y-2
+                        sm:flex-row sm:space-y-0 sm:space-x-4
                         md:space-x-6 md:flex-nowrap">
             <div className="flex items-center gap-1 text-xs sm:text-sm md:text-base">
               <Copyright className="w-3 h-3 sm:w-4 sm:h-4" />
