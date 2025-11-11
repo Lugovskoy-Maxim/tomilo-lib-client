@@ -76,7 +76,7 @@ export default function Footer() {
               <span>{currentYear} «Tomilo-lib.ru»</span>
             </div>
             <div className="text-xs bg-[var(--accent)] px-2 py-1 rounded border border-[var(--border)] whitespace-nowrap">
-              Версия 231025
+              Версия 111125
             </div>
           </div>
         </div>
