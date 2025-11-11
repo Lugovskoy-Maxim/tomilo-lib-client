@@ -215,6 +215,20 @@ export const seoConfigs = {
     author: userName,
   }),
 
+  bookmarks: {
+    title: 'Мои закладки - Tomilo-lib.ru',
+    description: 'Управление закладками. Все сохраненные вами манги и комиксы в одном месте.',
+    keywords: 'закладки, сохраненные тайтлы, манга, маньхуа, комиксы',
+    type: 'website' as const,
+  },
+
+  history: {
+    title: 'История чтения - Tomilo-lib.ru',
+    description: 'История прочитанных глав. Отслеживайте свой прогресс чтения манги и комиксов.',
+    keywords: 'история чтения, прочитанные главы, прогресс, манга, маньхуа',
+    type: 'website' as const,
+  },
+
   static: (pageName: string, description: string) => ({
     title: `${pageName} | Tomilo-lib.ru`,
     description,

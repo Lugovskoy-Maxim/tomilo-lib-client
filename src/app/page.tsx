@@ -59,7 +59,6 @@ any) => {
     return null;
   }
   if (!data?.length) return null;
-  console.log(data);
   return (
     <Carousel
       title={title}
