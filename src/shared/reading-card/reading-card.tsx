@@ -52,7 +52,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
   return (
     <div
-      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 bg-muted rounded-lg overflow-hidden group transition-all cursor-pointer"
+      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 bg-[var(--muted)]/20 rounded-lg overflow-hidden group transition-all cursor-pointer"
       data-card-id={data.id}
       onClick={handleClick}
     >
@@ -77,21 +77,21 @@ export default function ReadingCard({ data }: ReadingCardProps) {
           </div>
 
           {/* тип на картинке */}
-          <div className="absolute bottom-2 left-2 bg-muted text-primary px-1 py-0 rounded-sm flex items-center gap-1 text-xs sm:text-sm font-normal">
+          <div className="absolute bottom-2 left-2 bg-[var(--muted)] text-[var(--primary)] px-1 py-0 rounded-sm flex items-center gap-1 text-xs sm:text-sm font-normal">
             {data.type}
           </div>
         </div>
 
         {/* Контент справа */}
-        <div className="relative flex-1 p-3 sm:p-4 min-w-0">
+        <div className="relative flex-1 px-2 py-1 sm:px-3 min-w-0">
           {/* Название */}
-          <h3 className="font-semibold text-foreground line-clamp-2 leading-tight text-sm sm:text-base mb-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-[var(--primary)] line-clamp-2 leading-tight text-sm sm:text-base mb-2 group-hover:text-primary transition-colors">
             {data.title}
           </h3>
 
           {/* Информация о чтении */}
           <div className="space-y-1 sm:space-y-2">
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-[var(--primary)]">
               <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="truncate">
                 {data.currentChapter} / {data.totalChapters} глав
@@ -99,20 +99,20 @@ export default function ReadingCard({ data }: ReadingCardProps) {
             </div>
 
             <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-muted/50 flex-shrink-0" />
-              <span className="text-muted/50 truncate">
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--chart-1)]/50 flex-shrink-0" />
+              <span className="text-[var(--primary)]/50 truncate">
                 +{data.newChaptersSinceLastRead} новых глав
               </span>
             </div>
 
             {/* Прогресс чтения */}
-            <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3">
-              <div className="text-muted/50 text-xs font-semibold text-center">
+            <div className="absolute bottom-0 left-0 right-0  px-2 py-1 sm:px-2">
+              <div className="text-[var(--primary)]/50 text-xs font-semibold text-center">
                 Глава {data.readingHistory?.chapterNumber || data.currentChapter}
               </div>
-              <div className="w-full bg-white/30 rounded-full h-1 mt-1">
+              <div className="w-full bg-[var(--muted-foreground)] rounded-full h-1 mt-1">
                 <div
-                  className="bg-primary h-1 rounded-full transition-all"
+                  className="bg-[var(--primary)] h-1 rounded-full transition-all"
                   style={{
                     width: `${getProgressPercentage(
                       data.readingHistory?.chapterNumber || data.currentChapter,

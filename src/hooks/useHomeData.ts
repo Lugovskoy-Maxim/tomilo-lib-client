@@ -85,7 +85,7 @@ export const useHomeData = () => {
     genres: [], // Сервер не возвращает жанры для топ тайтлов
   })) || [];
 
-  // Преобразование прогресса чтения
+  // Преобразование прогресса чтения (сортировка по дате последнего чтения, самые свежие сначала)
   const readingProgress = readingHistory?.data?.map(item => {
     // Проверяем, что chapters существует и это массив
     const chaptersArray = item.chapters && Array.isArray(item.chapters) ? item.chapters : [];
@@ -110,8 +110,19 @@ export const useHomeData = () => {
       totalChapters,
       newChaptersSinceLastRead: newChapters,
       type: (titleData as { type?: string }).type || "Неуказан",
+      readingHistory: latestChapter ? {
+        titleId,
+        chapterId: latestChapter.chapterId,
+        chapterNumber: latestChapter.chapterNumber,
+        lastReadDate: latestChapter.readAt,
+      } : undefined,
+      // Добавляем timestamp для сортировки
+      lastReadTimestamp: latestChapter ? new Date(latestChapter.readAt).getTime() : 0,
     };
-  }).filter(item => item.currentChapter <= item.totalChapters && item.totalChapters > 0) || [];
+  })
+  .filter(item => item.currentChapter <= item.totalChapters && item.totalChapters > 0)
+  // Сортировка по дате последнего чтения (свежие сначала)
+  .sort((a, b) => b.lastReadTimestamp - a.lastReadTimestamp) || [];
 
   return {
     popularTitles: {

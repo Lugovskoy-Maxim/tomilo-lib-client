@@ -18,7 +18,7 @@ import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
 // Компоненты скелетонов
 const CarouselSkeleton = () => (
-  <div className="carousel-skeleton animate-pulse">
+  <div className="flex flex-col items-center justify-center carousel-skeleton animate-pulse">
     <div className="h-8 bg-[var(--muted)] rounded w-48 mb-4"></div>
     <div className="flex gap-4 overflow-hidden">
       {[...Array(6)].map((_, i) => (
@@ -32,7 +32,7 @@ const CarouselSkeleton = () => (
 );
 
 const GridSkeleton = () => (
-  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-pulse">
+  <div className="grid items-center justify-center grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-pulse">
     {[...Array(12)].map((_, i) => (
       <div key={i}>
         <div className="w-full h-48 bg-[var(--muted)] rounded-lg mb-2"></div>
