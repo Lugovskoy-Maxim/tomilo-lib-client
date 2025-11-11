@@ -3,6 +3,7 @@ import { Play, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { Title, Chapter } from "@/types/title";
+import { User } from "@/types/auth";
 
 interface ReadButtonProps {
   titleData: Title;
@@ -22,7 +23,7 @@ export function ReadButton({
   const getNextChapter = () => {
     // Если есть продолжение чтения и оно относится к текущему тайтлу
     const readingHistoryItem = user?.readingHistory?.find(
-      (item) => item.titleId === titleData._id
+      (item: User['readingHistory'][0]) => item.titleId._id === titleData._id
     );
     if (
       readingHistoryItem &&
@@ -34,7 +35,7 @@ export function ReadButton({
         readingHistoryItem.chapters[readingHistoryItem.chapters.length - 1];
       // Находим главу по chapterId
       const currentChapter = chapters.find(
-        (ch) => ch._id === lastReadChapter.chapterId
+        (ch) => ch._id === lastReadChapter.chapterId._id
       );
       if (currentChapter) {
         // Ищем следующую главу по номеру
@@ -89,7 +90,7 @@ export function ReadButton({
 
   // Если есть продолжение чтения для этого тайтла
   const readingHistoryItem = user?.readingHistory?.find(
-    (item) => item.titleId === titleData._id
+    (item: User['readingHistory'][0]) => item.titleId._id === titleData._id
   );
   if (
     readingHistoryItem &&

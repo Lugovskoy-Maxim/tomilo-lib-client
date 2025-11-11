@@ -16,6 +16,7 @@ import {
 } from "@/shared/browse/title-view";
 import { ContinueReadingButton } from "@/shared/continue-reading-button";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
+import { useAuth } from "@/hooks/useAuth";
 
 
 // Клиентская фильтрация и пагинация глав из titleData
@@ -56,6 +57,8 @@ function filterAndPaginateChapters(
 export default function TitleViewPage() {
   const params = useParams();
   const titleId = params.titleId as string;
+
+  const { user } = useAuth();
 
   const titlesState = useSelector((state: RootState) => state.titles);
   const existingTitle = titlesState.titles?.find((t) => t._id === titleId);
@@ -207,6 +210,7 @@ export default function TitleViewPage() {
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
               titleId={titleId}
+              user={user}
             />
           </div>
         </div>

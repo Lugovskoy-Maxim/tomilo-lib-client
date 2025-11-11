@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useUpdateRatingMutation } from "@/store/api/titlesApi";
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 import { Title, TitleStatus, Chapter } from "@/types/title";
 import { UserProfile } from "@/types/user";
+import { User } from "@/types/auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ReadButton } from "@/shared/browse/read-button";
@@ -187,7 +189,7 @@ export function ChaptersTab({
   searchQuery: string;
   onSearchChange: (q: string) => void;
   loading: boolean;
-  user: { readingHistory?: { titleId: string; chapters?: { chapterId: string }[] }[] } | null;
+  user: User | null;
 }) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -252,8 +254,7 @@ export function ChapterItem({
   chapter: Chapter;
   titleId: string;
   index: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user: any;
+  user: User | null;
 }) {
   const { removeFromReadingHistory } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
@@ -261,9 +262,9 @@ export function ChapterItem({
 
   // Проверяем, прочитана ли глава
   const isRead = user?.readingHistory?.some(
-    (historyItem: { titleId: string; chapters?: { chapterId: string }[] }) =>
-      historyItem.titleId === titleId &&
-      historyItem.chapters?.some((ch) => ch.chapterId === chapter._id)
+    (historyItem) =>
+      historyItem.titleId._id === titleId &&
+      historyItem.chapters?.some((ch) => ch.chapterId._id === chapter._id)
   );
 
   // Функция для удаления из истории чтения
@@ -379,6 +380,7 @@ export function RightContent({
   searchQuery,
   onSearchChange,
   titleId,
+  user,
 }: {
   titleData: Title;
   activeTab: "description" | "chapters" | "comments" | "statistics";
@@ -394,8 +396,8 @@ export function RightContent({
   searchQuery: string;
   onSearchChange: (query: string) => void;
   titleId: string;
+  user: User | null;
 }) {
-  const { user } = useAuth();
   const statusLabels: Record<TitleStatus, string> = {
     [TitleStatus.ONGOING]: "Онгоинг",
     [TitleStatus.COMPLETED]: "Завершен",
@@ -648,7 +650,7 @@ export function RightContent({
               searchQuery={searchQuery}
               onSearchChange={onSearchChange}
               loading={chaptersLoading}
-              user={user ? { readingHistory: user.readingHistory } : null}
+              user={user}
             />
           )}
           {activeTab === "comments" && <CommentsTab />}
