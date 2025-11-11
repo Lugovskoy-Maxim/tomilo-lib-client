@@ -2,12 +2,6 @@ import React from "react";
 import { UserProfile } from "@/types/user";
 
 // Определяем интерфейсы для всех типов данных
-interface ReadingHistoryItem {
-  titleId: string;
-  chapterId: string;
-  date: string;
-}
-
 interface Stats {
   totalMangaRead: number;
   totalChaptersRead: number;
@@ -35,11 +29,33 @@ interface StatCardProps {
 
 // Компонент статистики профиля
 export default function ProfileStats({ userProfile, isLoading = false }: ProfileStatsProps) {
-  if (isLoading) {
+  const [stats, setStats] = React.useState<Stats | null>(null);
+  const [statsLoading, setStatsLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (userProfile && userProfile.readingHistory) {
+      calculateStatsAsync(userProfile);
+    } else {
+      setStats(getEmptyStats());
+    }
+  }, [userProfile]);
+
+  const calculateStatsAsync = async (userProfile: UserProfile) => {
+    setStatsLoading(true);
+    try {
+      const calculatedStats = await calculateStats(userProfile);
+      setStats(calculatedStats);
+    } catch (error) {
+      console.error('Error calculating stats:', error);
+      setStats(getEmptyStats());
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  if (isLoading || statsLoading) {
     return <ProfileStatsSkeleton />;
   }
-
-  const stats = calculateStats(userProfile);
 
   if (!stats) {
     return (
@@ -121,42 +137,57 @@ function ProfileStatsSkeleton() {
 }
 
 // Вспомогательные функции с правильной типизацией
-function calculateStats(userProfile?: UserProfile | null): Stats | null {
-  if (!userProfile) {
-    return null;
-  }
-
-  // Используем type guard для проверки readingHistory
-  if (!isValidReadingHistory(userProfile.readingHistory)) {
+async function calculateStats(userProfile: UserProfile): Promise<Stats> {
+  if (!userProfile || !userProfile.readingHistory || userProfile.readingHistory.length === 0) {
     return getEmptyStats();
   }
 
   const readingHistory = userProfile.readingHistory;
-  
-  if (readingHistory.length === 0) {
-    return getEmptyStats();
-  }
 
   // Создаем Set для подсчета уникальных тайтлов
-  const uniqueMangaTitles = new Set(readingHistory.map(item => item.titleId));
-  
+  const uniqueMangaTitles = new Set<string>();
+  let totalChaptersRead = 0;
+  const genreCount: Record<string, number> = {};
+
+  // Проходим по истории чтения
+  for (const historyItem of readingHistory) {
+    // Определяем titleId
+    const titleId = typeof historyItem.titleId === 'object' ? (historyItem.titleId as { _id: string })._id : historyItem.titleId;
+    uniqueMangaTitles.add(titleId);
+
+    // Считаем главы
+    if (historyItem.chapters && Array.isArray(historyItem.chapters)) {
+      totalChaptersRead += historyItem.chapters.length;
+    }
+
+    // Получаем жанры для тайтла
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_URL || 'http://localhost:3001'}/api/titles/${titleId}`);
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data && result.data.genres) {
+          result.data.genres.forEach((genre: string) => {
+            genreCount[genre] = (genreCount[genre] || 0) + 1;
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching genres for title ${titleId}:`, error);
+    }
+  }
+
+  // Определяем любимые жанры
+  const favoriteGenres = Object.entries(genreCount)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([genre]) => genre);
+
   return {
     totalMangaRead: uniqueMangaTitles.size,
-    totalChaptersRead: readingHistory.length,
-    readingTime: Math.round(readingHistory.length * 15),
-    favoriteGenres: ["Популярное", "Новинки", "Рекомендуемое"], // Пока используем заглушку
+    totalChaptersRead,
+    readingTime: Math.round(totalChaptersRead * 15), // Предполагаем 15 минут на главу
+    favoriteGenres: favoriteGenres.length > 0 ? favoriteGenres : ["Популярное", "Новинки", "Рекомендуемое"],
   };
-}
-
-// Type guard для проверки readingHistory
-function isValidReadingHistory(history: unknown): history is ReadingHistoryItem[] {
-  return Array.isArray(history) && history.every(item =>
-    typeof item === 'object' &&
-    item !== null &&
-    'titleId' in item &&
-    'chapterId' in item &&
-    'date' in item
-  );
 }
 
 function getEmptyStats(): Stats {
@@ -170,5 +201,15 @@ function getEmptyStats(): Stats {
 
 // Хук для использования статистики
 export function useProfileStats(userProfile?: UserProfile | null) {
-  return calculateStats(userProfile);
+  const [stats, setStats] = React.useState<Stats | null>(null);
+
+  React.useEffect(() => {
+    if (userProfile && userProfile.readingHistory) {
+      calculateStats(userProfile).then(setStats).catch(() => setStats(getEmptyStats()));
+    } else {
+      setStats(getEmptyStats());
+    }
+  }, [userProfile]);
+
+  return stats;
 }
