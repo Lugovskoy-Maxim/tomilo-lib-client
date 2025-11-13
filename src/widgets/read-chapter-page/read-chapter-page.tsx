@@ -10,25 +10,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Chapter, ReaderTitle, Title } from "@/types/title";
 import { ApiResponse } from "@/types/api";
 import { ReaderChapter } from "@/types/chapter";
-import { Home } from "lucide-react";
-import ReaderControls from "@/shared/reader-controls";
+import { ArrowBigLeft, ArrowBigRight, Home } from "lucide-react";
+import ReaderControls from "@/shared/reader/reader-controls";
 
-// Вспомогательная функция нормализации URL
-const normalizeAssetUrl = (url: string): string => {
-  if (!url) return "";
-  if (url.startsWith("http")) {
-    return url.replace("/api/browse/", "/uploads/browse/");
-  }
-  let path = url.startsWith("/") ? url : `/${url}`;
-  // normalize wrong api prefix to uploads
-  if (path.startsWith("/api/"))
-    path = path.replace(/^\/api\//, "/uploads/");
-  if (path.startsWith("api/"))
-    path = path.replace(/^api\//, "uploads/");
-  const origin =
-    process.env.NEXT_PUBLIC_UPLOADS_URL || "http://localhost:3001/uploads";
-  return `${origin}${path.startsWith("/") ? "" : "/"}${path}`;
-};
+
 export default function ReadChapterPage({
   title,
   chapter,
@@ -128,18 +113,6 @@ export default function ReadChapterPage({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [currentChapterIndex, chapters, titleId, router]);
 
-  // // Полноэкранный режим
-  // const toggleFullscreen = async () => {
-  //   if (!containerRef.current) return;
-
-  //   if (!document.fullscreenElement) {
-  //     await containerRef.current.requestFullscreen();
-  //     setIsFullscreen(true);
-  //   } else {
-  //     await document.exitFullscreen();
-  //     setIsFullscreen(false);
-  //   }
-  // };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -298,8 +271,9 @@ export default function ReadChapterPage({
               {/* Изображение тайтла */}
               {title.image && (
                 <div className="relative w-10 h-12 flex-shrink-0">
+
                   <Image
-                    src={title.image}
+                    src={process.env.NEXT_PUBLIC_URL + title.image}
                     alt={title.title}
                     fill
                     className="object-cover rounded-md"
@@ -345,7 +319,7 @@ export default function ReadChapterPage({
       {/* Основной контент */}
       <main
         ref={containerRef}
-        className="pt-20 sm:pt-16 pb-8"
+        className="pt-20 sm:pt-16 "
         onClick={handleMobileTap}
       >
         {/* Изображения текущей главы */}
@@ -391,8 +365,8 @@ export default function ReadChapterPage({
         </div>
 
         {/* Навигация в конце главы */}
-        <div className="flex flex-col space-y-4 mt-8 container mx-auto px-2 sm:px-4">
-          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center w-full space-y-2 sm:space-y-0 sm:space-x-2">
+        <div className="flex flex-col container min-w-screen w-full">
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center w-full space-y-2 sm:space-y-0 ">
             {/* Левая кнопка - предыдущая глава */}
             {currentChapterIndex > 0 ? (
               <button
@@ -400,11 +374,11 @@ export default function ReadChapterPage({
                   const prevChapter = chapters[currentChapterIndex - 1];
                   router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
                 }}
-                className={`flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--muted)] hover:bg-[var(--muted)]/80 rounded-lg transition-colors w-full ${
+                className={`flex items-center justify-center h-20 space-x-2 bg-[var(--muted)] hover:bg-[var(--muted)]/80 transition-colors w-full ${
                   typeof window !== 'undefined' && window.innerWidth < 640 ? 'hidden' : ''
                 }`}
               >
-                <span>←</span>
+                <ArrowBigLeft className="w-6 h-6" />
                 <div className="text-center">
                   <div className="text-sm text-[var(--muted-foreground)]">
                     Предыдущая
@@ -418,18 +392,6 @@ export default function ReadChapterPage({
               <div className={`w-full ${typeof window !== 'undefined' && window.innerWidth < 640 ? 'hidden' : ''}`}></div>
             )}
 
-            {/* Центральная кнопка - к тайтлу
-    <button
-      onClick={() => router.push(`/browse/${titleId}`)}
-      className="flex items-center justify-center space-x-2 px-6 py-3 border border-[var(--border)] cursor-pointer rounded-lg transition-colors w-full mx-2"
-    >
-      <Home className="w-6 h-6" />
-      <div className="text-center">
-        <div className="text-sm text-[var(--primary-foreground)]">К тайтлу</div>
-        <div className="font-semibold">{title.title}</div>
-      </div>
-    </button> */}
-
             {/* Правая кнопка - следующая глава или завершение */}
             {currentChapterIndex < chapters.length - 1 ? (
               <button
@@ -437,19 +399,19 @@ export default function ReadChapterPage({
                   const nextChapter = chapters[currentChapterIndex + 1];
                   router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
                 }}
-                className={`flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary)]/80 rounded-lg transition-colors w-full ${
+                className={`flex items-center justify-center space-x-2 h-20 bg-[var(--muted)] hover:bg-[var(--muted)]/80 w-full transition-colors w-full ${
                   typeof window !== 'undefined' && window.innerWidth < 640 ? 'hidden' : ''
                 }`}
               >
                 <div className="text-center">
-                  <div className="text-sm text-[var(--primary-foreground)]">
+                  <div className="text-sm text-[var(--muted-foreground)]">
                     Следующая
                   </div>
                   <div className="font-semibold">
                     Глава {chapters[currentChapterIndex + 1].number}
                   </div>
                 </div>
-                <span>→</span>
+                <ArrowBigRight className="w-6 h-6" />
               </button>
             ) : (
               <button

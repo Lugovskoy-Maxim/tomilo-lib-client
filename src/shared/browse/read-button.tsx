@@ -111,7 +111,7 @@ export function ReadButton({
   return (
     <Button
       variant="primary"
-      className={`w-full cursor-pointer hover:bg-[var(--accent)]/80] justify-center bg-[var(--accent)] text-[var(--foreground)] ${className}`}
+      className={`w-full cursor-pointer hover:bg-[var(--chart-1)]/80 justify-center bg-[var(--chart-1)] text-[var(--foreground)] ${className}`}
       onClick={handleClick}
       disabled={isDisabled}
     >

@@ -15,12 +15,12 @@ export interface CardProps {
   genres: string[];
 }
 
-export interface CarouselCardProps {
+export interface PopularCardProps {
   data: CardProps;
   onCardClick?: (id: string) => void;
 }
 
-export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
+export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const router = useRouter();
   const handleClick = () => {
     if (onCardClick) {
@@ -29,7 +29,7 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
       router.push(`/browse/${data.id}/`);
     }
   };
-
+  
   return (
     <div
       className="overflow-hidden rounded-lg group cursor-pointer active:cursor-grabbing transition-all w-30 sm:w-30 md:w-35 lg:w-40 select-none"
@@ -39,7 +39,7 @@ export default function CarouselCard({ data, onCardClick }: CarouselCardProps) {
         {data.image ? (
           <Image
             className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
-            src={data.image}
+            src={process.env.NEXT_PUBLIC_URL + data.image}
             alt={data.title}
             width={160}
             height={220}

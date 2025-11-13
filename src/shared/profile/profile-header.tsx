@@ -32,7 +32,7 @@ function ProfileHeader() {
             </Link>
             <Link
               href="/admin/titles/new"
-              className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
             >
               <Plus className="w-4 h-4" />
               Добавить тайтл

@@ -1,12 +1,13 @@
 "use client";
 
 import { Footer, Header } from "@/widgets";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Share as ShareIcon, Edit } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/index";
-import {  Chapter } from "@/types/title";
+import { Chapter, Title } from "@/types/title";
+import { User } from "@/types/auth";
 import { useParams } from "next/navigation";
 import { useIncrementViewsMutation, useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
@@ -17,6 +18,9 @@ import {
 import { ContinueReadingButton } from "@/shared/continue-reading-button";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
+import Image from "next/image";
+import { ReadButton } from "@/shared/browse/read-button";
+import { BookmarkButton } from "@/shared/bookmark-button";
 
 
 // Клиентская фильтрация и пагинация глав из titleData
@@ -180,42 +184,110 @@ export default function TitleViewPage() {
     return <ErrorState error={error || "Тайтл не найден"} titleId={titleId} />;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-      <Header />
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4">
-          <div className="sm:col-span-1">
-            <LeftSidebar
-              titleData={processedTitleData}
-              chapters={chapters}
-              onBookmark={handleBookmark}
-              onShare={handleShare}
-              isAdmin={isAdmin}
-            />
+    <main className="min-h-screen relative">
+      {/* Размытый фон */}
+      {processedTitleData?.coverImage && (
+        <div
+          className="fixed inset-0 z-0"
+          style={{
+            backgroundImage: `url(${process.env.NEXT_PUBLIC_URL + processedTitleData.coverImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        >
+          <div className="absolute inset-0 backdrop-blur-3xl bg-black/30"></div>
+        </div>
+      )}
+      
+      {/* Overlay для улучшения читаемости */}
+      <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40 z-10"></div>
+      
+      {/* Контент */}
+      <div className="relative z-20">
+        <Header />
+        <div className="max-w-7xl mx-auto px-2 py-4">
+          {/* Мобильная версия - обложка сверху */}
+          <div className="lg:hidden mb-6">
+            <div className="relative w-full aspect-[2/3] max-w-md mx-auto rounded-xl overflow-hidden shadow-2xl">
+              {processedTitleData?.coverImage ? (
+                <Image
+                  src={process.env.NEXT_PUBLIC_URL + processedTitleData.coverImage}
+                  alt={processedTitleData.name}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              ) : (
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-full" />
+              )}
+            </div>
+            
+            {/* Мобильные кнопки действий */}
+            <div className="flex justify-center gap-4 mt-4 rounded-full">
+              <ReadButton
+                titleData={processedTitleData}
+                chapters={chapters}
+                className="flex-1"
+              />
+              <BookmarkButton
+                titleId={titleId}
+                initialBookmarked={false}
+              />
+              <button
+                onClick={handleShare}
+                className="p-3 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
+                aria-label="Поделиться"
+              >
+                <ShareIcon className="w-5 h-5 text-[var(--foreground)]" />
+              </button>
+              {isAdmin && (
+                <Link
+                  href={`/admin/titles/${titleId}/edit`}
+                  className="p-3 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
+                  aria-label="Редактировать"
+                >
+                  <Edit className="w-5 h-5 text-[var(--foreground)]" />
+                </Link>
+              )}
+            </div>
           </div>
 
-          <div className="sm:col-span-3 ">
-            <RightContent
-              titleData={processedTitleData}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              isDescriptionExpanded={isDescriptionExpanded}
-              onDescriptionToggle={() =>
-                setIsDescriptionExpanded(!isDescriptionExpanded)
-              }
-              chapters={chapters}
-              hasMoreChapters={hasMoreChapters}
-              chaptersLoading={chaptersLoadingState}
-              onLoadMoreChapters={handleLoadMoreChapters}
-              searchQuery={searchQuery}
-              onSearchChange={handleSearchChange}
-              titleId={titleId}
-              user={user}
-            />
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Десктопная версия - обложка слева */}
+            <div className="hidden lg:block lg:w-1/4">
+              <LeftSidebar
+                titleData={processedTitleData}
+                chapters={chapters}
+                onBookmark={handleBookmark}
+                onShare={handleShare}
+                isAdmin={isAdmin}
+              />
+            </div>
+
+            <div className="lg:w-3/4">
+              <RightContent
+                titleData={processedTitleData}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                isDescriptionExpanded={isDescriptionExpanded}
+                onDescriptionToggle={() =>
+                  setIsDescriptionExpanded(!isDescriptionExpanded)
+                }
+                chapters={chapters}
+                hasMoreChapters={hasMoreChapters}
+                chaptersLoading={chaptersLoadingState}
+                onLoadMoreChapters={handleLoadMoreChapters}
+                searchQuery={searchQuery}
+                onSearchChange={handleSearchChange}
+                titleId={titleId}
+                user={user as unknown as User | null}
+              />
+            </div>
           </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
     </main>
   );
 }
@@ -223,39 +295,48 @@ export default function TitleViewPage() {
 // Улучшенный компонент ошибки с отладочной информацией
 function ErrorState({ error, titleId }: { error: string; titleId?: string }) {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-      <Header />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center">
-            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-              {error}
-            </h1>
-            <p className="text-[var(--muted-foreground)] mb-4">
-              ID тайтла: {titleId || "не указан"}
-            </p>
-            <p className="text-[var(--muted-foreground)] mb-6">
-              Проверьте консоль браузера для подробной информации об ошибке
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Link
-                href="/admin/titles"
-                className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
-              >
-                Вернуться к списку тайтлов
-              </Link>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
-              >
-                Перезагрузить страницу
-              </button>
+    <main className="min-h-screen relative">
+      {/* Размытый фон */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]"></div>
+      
+      {/* Overlay для улучшения читаемости */}
+      <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40 z-10"></div>
+      
+      {/* Контент */}
+      <div className="relative z-20">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="text-center">
+              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
+                {error}
+              </h1>
+              <p className="text-[var(--muted-foreground)] mb-4">
+                ID тайтла: {titleId || "не указан"}
+              </p>
+              <p className="text-[var(--muted-foreground)] mb-6">
+                Проверьте консоль браузера для подробной информации об ошибке
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Link
+                  href="/admin/titles"
+                  className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+                >
+                  Вернуться к списку тайтлов
+                </Link>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
+                >
+                  Перезагрузить страницу
+                </button>
+              </div>
             </div>
           </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
     </main>
   );
 }
@@ -263,19 +344,28 @@ function ErrorState({ error, titleId }: { error: string; titleId?: string }) {
 // Компонент загрузки (без изменений)
 function LoadingState() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-      <Header />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-            <p className="text-[var(--muted-foreground)]">
-              Загрузка данных тайтла...
-            </p>
+    <main className="min-h-screen relative">
+      {/* Размытый фон */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]"></div>
+      
+      {/* Overlay для улучшения читаемости */}
+      <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40 z-10"></div>
+      
+      {/* Контент */}
+      <div className="relative z-20">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+              <p className="text-[var(--muted-foreground)]">
+                Загрузка данных тайтла...
+              </p>
+            </div>
           </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
     </main>
   );
 }

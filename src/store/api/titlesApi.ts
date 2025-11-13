@@ -11,10 +11,19 @@ function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormDa
     if (value === undefined || value === null) return;
 
     if (Array.isArray(value)) {
-      formData.append(key, JSON.stringify(value));
+      // Для массивов добавляем каждый элемент как отдельное поле с тем же именем
+      value.forEach(item => {
+        formData.append(key, String(item));
+      });
     } else if (value instanceof Blob) {
       // File наследуется от Blob — это корректная и безопасная проверка
       formData.append(key, value);
+    } else if (typeof value === 'number') {
+      // Для числовых значений отправляем как числа
+      formData.append(key, value.toString());
+    } else if (typeof value === 'boolean') {
+      // Для булевых значений отправляем как строки "true" или "false"
+      formData.append(key, value.toString());
     } else {
       formData.append(key, String(value));
     }
@@ -26,7 +35,7 @@ function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormDa
 export const titlesApi = createApi({
   reducerPath: "titlesApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
   }),
   tagTypes: [TITLES_TAG],
   endpoints: (builder) => ({
@@ -98,15 +107,15 @@ export const titlesApi = createApi({
     }),
 
     // Обновление тайтла
-    updateTitle: builder.mutation<ApiResponseDto<Title>, { id: string; data: Partial<UpdateTitleDto> }>({
-      query: ({ id, data }) => ({
-        url: `/titles/${id}`,
-        method: "PATCH",
-        body: toFormData<UpdateTitleDto>(data),
-      }),
-      invalidatesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<Title>) => response,
-    }),
+        updateTitle: builder.mutation<ApiResponseDto<Title>, { id: string; data: Partial<UpdateTitleDto>; hasFile?: boolean }>({
+          query: ({ id, data, hasFile = false }) => ({
+            url: `/titles/${id}`,
+            method: "PUT",
+            body: hasFile ? toFormData<UpdateTitleDto>(data) : data,
+          }),
+          invalidatesTags: [TITLES_TAG],
+          transformResponse: (response: ApiResponseDto<Title>) => response,
+        }),
 
     // Обновление рейтинга тайтла
     updateRating: builder.mutation<ApiResponseDto<Title>, { id: string; rating: number }>({

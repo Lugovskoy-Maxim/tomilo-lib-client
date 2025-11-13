@@ -1,119 +1,186 @@
-import { Download, Globe, BookOpen, FileText, Info, Loader2, CheckCircle, XCircle } from "lucide-react";
-import { useState } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { io, Socket } from "socket.io-client";
 import {
-  useParseTitleMutation,
-  useParseChaptersMutation,
-  useParseChaptersInfoQuery,
-  useGetSupportedSitesQuery,
-} from "@/store/api/mangaParserApi";
-import { ParseTitleDto, ParseChaptersDto, ParseChaptersInfoDto } from "@/types/manga-parser";
+  X,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  ExternalLink,
+  Download,
+  BookOpen,
+  Settings,
+  Globe,
+} from "lucide-react";
+import { useGetSupportedSitesQuery } from "@/store/api/mangaParserApi";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
+import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
+
+interface ParsingProgress {
+  type: "chapters_info" | "title_import" | "chapter_import";
+  sessionId: string;
+  status: "started" | "progress" | "completed" | "error";
+  message: string;
+  data?: unknown;
+  progress?: {
+    current: number;
+    total: number;
+    percentage: number;
+  };
+}
+
+interface ChapterInfo {
+  name: string;
+  number: number;
+}
+
+interface ChaptersInfoData {
+  title: string;
+  totalChapters: number;
+  chapters: ChapterInfo[];
+}
 
 export function ParserSection() {
-  const [activeTab, setActiveTab] = useState<"title" | "chapter" | "info">("title");
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [currentProgress, setCurrentProgress] =
+    useState<ParsingProgress | null>(null);
+  const [sessionId] = useState(() => Math.random().toString(36).substring(7));
 
   // API hooks
   const { data: supportedSites } = useGetSupportedSitesQuery();
-  const [parseTitle, { isLoading: isParsingTitle }] = useParseTitleMutation();
-  const [parseChapters, { isLoading: isParsingChapter }] = useParseChaptersMutation();
-  const [infoUrl, setInfoUrl] = useState("");
-  const { data: chaptersInfo, isLoading: isLoadingInfo } = useParseChaptersInfoQuery(
-    { url: infoUrl },
-    { skip: !infoUrl.trim() }
-  );
 
   // Form states
-  const [titleForm, setTitleForm] = useState<ParseTitleDto>({
-    url: "",
-    chapterNumbers: [],
-    customTitle: "",
-    customDescription: "",
-    customGenres: [],
-    customType: "",
-  });
-
-  const [chapterForm, setChapterForm] = useState<ParseChaptersDto>({
-    url: "",
-    titleId: "",
-    chapterNumbers: [],
-    customName: "",
-  });
-
-  const [chapterNumbersInput, setChapterNumbersInput] = useState("");
-  const [customGenresInput, setCustomGenresInput] = useState("");
+  const [parsingMode, setParsingMode] = useState<
+    "chapters_info" | "title_import" | "chapter_import"
+  >("chapters_info");
+  const [url, setUrl] = useState("");
+  const [chapterNumbers, setChapterNumbers] = useState("");
+  const [customTitle, setCustomTitle] = useState("");
+  const [customDescription, setCustomDescription] = useState("");
+  const [customGenres, setCustomGenres] = useState("");
+  const [customType, setCustomType] = useState("");
+  const [titleId, setTitleId] = useState("");
 
   // Search for titles when typing titleId
   const { data: searchResults } = useSearchTitlesQuery(
-    { search: chapterForm.titleId, limit: 5 },
-    { skip: !chapterForm.titleId || chapterForm.titleId.length < 2 }
+    { search: titleId, limit: 5 },
+    { skip: !titleId || titleId.length < 2 }
   );
 
-  const [lastResult, setLastResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  // Результаты парсинга
+  const [chaptersInfo, setChaptersInfo] = useState<ChaptersInfoData | null>(
+    null
+  );
+  const [isParsing, setIsParsing] = useState(false);
 
-  const handleParseTitle = async () => {
-    if (!titleForm.url.trim()) {
-      setLastResult({ success: false, message: "URL обязателен" });
-      return;
-    }
+  // Хук для обновления списка глав
+  const { refetch: refetchChapters } = useGetChaptersByTitleQuery(
+    { titleId },
+    { skip: !titleId }
+  );
 
-    try {
-      const result = await parseTitle(titleForm).unwrap();
-      setLastResult({
-        success: result.success,
-        message: result.message || "Операция завершена",
+  useEffect(() => {
+    const newSocket = io(
+      `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}/parsing`,
+      {
+        transports: ["websocket", "polling"],
+      }
+    );
+
+    newSocket.on("connect", () => {
+      setIsConnected(true);
+    });
+
+    newSocket.on("disconnect", () => {
+      setIsConnected(false);
+    });
+
+    newSocket.on("parsing_progress", (progress: ParsingProgress) => {
+      if (progress.sessionId === sessionId) {
+        setCurrentProgress(progress);
+
+        if (
+          progress.status === "completed" &&
+          progress.type === "chapters_info"
+        ) {
+          setChaptersInfo(progress.data as ChaptersInfoData);
+        }
+
+        if (progress.status === "completed" || progress.status === "error") {
+          setIsParsing(false);
+          // Обновляем список глав после завершения
+          setTimeout(() => refetchChapters(), 1000);
+        }
+      }
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      if (newSocket) {
+        newSocket.disconnect();
+        setSocket(null);
+        setIsConnected(false);
+      }
+    };
+  }, [sessionId, refetchChapters]);
+
+  const handleStartParsing = () => {
+    if (!socket || !isConnected || !url.trim()) return;
+
+    setIsParsing(true);
+    setCurrentProgress(null);
+    setChaptersInfo(null);
+
+    const baseData = {
+      sessionId,
+    };
+
+    if (parsingMode === "chapters_info") {
+      socket.emit("parse_chapters_info", {
+        ...baseData,
+        dto: {
+          url: url.trim(),
+          chapterNumbers: chapterNumbers.trim()
+            ? chapterNumbers.split(",").map((s) => s.trim())
+            : undefined,
+        },
       });
-    } catch (error: unknown) {
-      setLastResult({
-        success: false,
-        message: (error as { data?: { message?: string } })?.data?.message || "Ошибка при парсинге",
+    } else if (parsingMode === "title_import") {
+      socket.emit("parse_title", {
+        ...baseData,
+        dto: {
+          url: url.trim(),
+          chapterNumbers: chapterNumbers.trim()
+            ? chapterNumbers.split(",").map((s) => s.trim())
+            : undefined,
+          customTitle: customTitle.trim() || undefined,
+          customDescription: customDescription.trim() || undefined,
+          customGenres: customGenres.trim()
+            ? customGenres.split(",").map((s) => s.trim())
+            : undefined,
+          customType: customType.trim() || undefined,
+        },
+      });
+    } else if (parsingMode === "chapter_import") {
+      socket.emit("parse_chapters", {
+        ...baseData,
+        dto: {
+          url: url.trim(),
+          titleId,
+          chapterNumbers: chapterNumbers.trim()
+            ? chapterNumbers.split(",").map((s) => s.trim())
+            : undefined,
+        },
       });
     }
-  };
-
-  const handleParseChapters = async () => {
-    if (!chapterForm.url.trim() || !chapterForm.titleId.trim()) {
-      setLastResult({ success: false, message: "URL и ID тайтла обязательны" });
-      return;
-    }
-
-    try {
-      const result = await parseChapters(chapterForm).unwrap();
-      setLastResult({
-        success: result.success,
-        message: result.message || "Операция завершена",
-      });
-    } catch (error: unknown) {
-      setLastResult({
-        success: false,
-        message: (error as { data?: { message?: string } })?.data?.message || "Ошибка при парсинге",
-      });
-    }
-  };
-
-  const handleChapterNumbersChange = (value: string) => {
-    setChapterNumbersInput(value);
-    const numbers = value
-      .split(",")
-      .map((n) => n.trim())
-      .filter((n) => n);
-    setTitleForm((prev) => ({ ...prev, chapterNumbers: numbers }));
-  };
-
-  const handleCustomGenresChange = (value: string) => {
-    setCustomGenresInput(value);
-    const genres = value.split(",").map((g) => g.trim()).filter((g) => g);
-    setTitleForm((prev) => ({ ...prev, customGenres: genres }));
   };
 
   const selectTitle = (title: Title) => {
-    setChapterForm((prev) => ({
-      ...prev,
-      titleId: title._id,
-    }));
+    setTitleId(title._id);
   };
 
   return (
@@ -138,246 +205,315 @@ export function ParserSection() {
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Parsing Section */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => setActiveTab("title")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === "title"
-                ? "bg-[var(--secondary)] text-[var(--muted-foreground)]"
-                : "text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
-            }`}
-          >
-            <BookOpen className="w-4 h-4 inline mr-2" />
-            Импорт тайтла
-          </button>
-          <button
-            onClick={() => setActiveTab("chapter")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === "chapter"
-                ? "bg-[var(--secondary)] text-[var(--muted-foreground)]"
-                : "text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
-            }`}
-          >
-            <FileText className="w-4 h-4 inline mr-2" />
-            Импорт главы
-          </button>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-[var(--foreground)]">
+              Парсинг тайтла
+            </h2>
+            <div className="flex items-center gap-2 mt-1">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isConnected ? "bg-green-500" : "bg-red-500"
+                }`}
+              />
+              <span className="text-sm text-[var(--muted-foreground)]">
+                {isConnected ? "Подключено" : "Отключено"}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Title Import Form */}
-        {activeTab === "title" && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                URL тайтла *
-              </label>
-              <input
-                type="url"
-                value={titleForm.url}
-                onChange={(e) => setTitleForm((prev) => ({ ...prev, url: e.target.value }))}
-                placeholder="https://manga-shi.org/manga/example"
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Номера глав (через запятую, опционально)
-              </label>
-              <input
-                type="text"
-                value={chapterNumbersInput}
-                onChange={(e) => handleChapterNumbersChange(e.target.value)}
-                placeholder="1, 2, 3 или оставьте пустым для всех глав"
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Кастомное название (опционально)
-              </label>
-              <input
-                type="text"
-                value={titleForm.customTitle}
-                onChange={(e) => setTitleForm((prev) => ({ ...prev, customTitle: e.target.value }))}
-                placeholder="Оставить пустым для использования оригинального названия"
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Кастомное описание (опционально)
-              </label>
-              <textarea
-                value={titleForm.customDescription}
-                onChange={(e) => setTitleForm((prev) => ({ ...prev, customDescription: e.target.value }))}
-                placeholder="Оставить пустым для использования оригинального описания"
-                rows={3}
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] resize-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Кастомные жанры (через запятую, опционально)
-              </label>
-              <input
-                type="text"
-                value={customGenresInput}
-                onChange={(e) => handleCustomGenresChange(e.target.value)}
-                placeholder="Фэнтези, Приключения, Драма"
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Тип тайтла (опционально)
-              </label>
-              <select
-                value={titleForm.customType}
-                onChange={(e) => setTitleForm((prev) => ({ ...prev, customType: e.target.value }))}
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+        {/* Mode Selection */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-3">
+            Режим парсинга
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              {
+                value: "chapters_info",
+                label: "Информация о главах",
+                icon: BookOpen,
+              },
+              {
+                value: "title_import",
+                label: "Импорт тайтла",
+                icon: Download,
+              },
+              {
+                value: "chapter_import",
+                label: "Импорт глав",
+                icon: Settings,
+              },
+            ].map((mode) => (
+              <button
+                key={mode.value}
+                onClick={() =>
+                  setParsingMode(
+                    mode.value as
+                      | "chapters_info"
+                      | "title_import"
+                      | "chapter_import"
+                  )
+                }
+                className={`p-4 rounded-lg border transition-colors ${
+                  parsingMode === mode.value
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                    : "border-[var(--border)] hover:border-[var(--primary)]/50"
+                }`}
               >
-                <option value="">Оставить пустым для использования оригинального типа</option>
-                <option value="manga">Манга</option>
-                <option value="manhwa">Манхва</option>
-                <option value="manhua">Маньхуа</option>
-                <option value="novel">Новелла</option>
-                <option value="light_novel">Лайт новелла</option>
-                <option value="comic">Комикс</option>
-                <option value="other">Другое</option>
-              </select>
-            </div>
+                <mode.icon className="w-6 h-6 mx-auto mb-2 text-[var(--foreground)]" />
+                <div className="text-sm font-medium text-[var(--foreground)]">
+                  {mode.label}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
 
+        {/* URL Input */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+            URL источника *
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://example.com/manga/title"
+              className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+              disabled={isParsing}
+            />
             <button
-              onClick={handleParseTitle}
-              disabled={isParsingTitle}
-              className="w-full px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--primary)]/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              onClick={() => window.open(url, "_blank")}
+              disabled={!url.trim()}
+              className="px-3 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg hover:bg-[var(--accent)]/80 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isParsingTitle ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Download className="w-5 h-5" />
-              )}
-              {isParsingTitle ? "Импортируем..." : "Импортировать тайтл"}
+              <ExternalLink className="w-4 h-4" />
             </button>
+          </div>
+          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+            Поддерживаемые источники: manga-shi.org, senkuro.me
+          </p>
+        </div>
+
+        {/* Chapter Numbers */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+            Номера глав (опционально)
+          </label>
+          <input
+            type="text"
+            value={chapterNumbers}
+            onChange={(e) => setChapterNumbers(e.target.value)}
+            placeholder="1,2,3 или 1-5,8,10-15"
+            className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+            disabled={isParsing}
+          />
+          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+            Оставьте пустым для всех глав или укажите через запятую/тире
+          </p>
+        </div>
+
+        {/* Title ID for Chapter Import */}
+        {parsingMode === "chapter_import" && (
+          <div className="mb-4 relative">
+            <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+              ID тайтла *
+            </label>
+            <input
+              type="text"
+              value={titleId}
+              onChange={(e) => setTitleId(e.target.value)}
+              placeholder="Введите ID тайтла или начните поиск..."
+              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+              disabled={isParsing}
+            />
+            {searchResults?.data?.data && searchResults.data.data.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                {searchResults.data.data.map((title: Title) => (
+                  <div
+                    key={title._id}
+                    onClick={() => selectTitle(title)}
+                    className="px-3 py-2 hover:bg-[var(--accent)] cursor-pointer border-b border-[var(--border)] last:border-b-0"
+                  >
+                    <div className="font-medium">{title.name}</div>
+                    <div className="text-sm text-[var(--muted-foreground)]">
+                      {title.author} • {title.releaseYear}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Chapter Import Form */}
-        {activeTab === "chapter" && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                URL главы *
-              </label>
-              <input
-                type="url"
-                value={chapterForm.url}
-                onChange={(e) => setChapterForm((prev) => ({ ...prev, url: e.target.value }))}
-                placeholder="https://senkuro.me/chapter/example-slug"
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-              />
+        {/* Custom Fields for Title Import */}
+        {parsingMode === "title_import" && (
+          <div className="mb-4 space-y-4 p-4 bg-[var(--background)] rounded-lg">
+            <h3 className="font-medium text-[var(--foreground)]">
+              Настройки импорта
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                  Название (опционально)
+                </label>
+                <input
+                  type="text"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  placeholder="Оставить пустым для автоопределения"
+                  className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+                  disabled={isParsing}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                  Тип тайтла
+                </label>
+                <select
+                  value={customType}
+                  onChange={(e) => setCustomType(e.target.value)}
+                  className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+                  disabled={isParsing}
+                >
+                  <option value="">Автоопределение</option>
+                  <option value="Манга">Манга</option>
+                  <option value="Манхва">Манхва</option>
+                  <option value="Комикс">Комикс</option>
+                </select>
+              </div>
             </div>
 
-            <div className="relative">
-              <label className="block text-sm font-medium mb-2">
-                ID тайтла *
+            <div>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                Жанры (через запятую)
               </label>
               <input
                 type="text"
-                value={chapterForm.titleId}
-                onChange={(e) => setChapterForm((prev) => ({ ...prev, titleId: e.target.value }))}
-                placeholder="Введите ID тайтла или начните поиск..."
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                value={customGenres}
+                onChange={(e) => setCustomGenres(e.target.value)}
+                placeholder="Фэнтези, Приключения, Драма"
+                className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+                disabled={isParsing}
               />
-              {searchResults?.data?.data && searchResults.data.data.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  {searchResults.data.data.map((title: Title) => (
-                    <div
-                      key={title._id}
-                      onClick={() => selectTitle(title)}
-                      className="px-3 py-2 hover:bg-[var(--accent)] cursor-pointer border-b border-[var(--border)] last:border-b-0"
-                    >
-                      <div className="font-medium">{title.name}</div>
-                      <div className="text-sm text-[var(--muted-foreground)]">
-                        {title.author} • {title.releaseYear}
-                      </div>
-                    </div>
-                  ))}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                Описание
+              </label>
+              <textarea
+                value={customDescription}
+                onChange={(e) => setCustomDescription(e.target.value)}
+                placeholder="Оставить пустым для автоопределения"
+                rows={3}
+                className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] resize-none"
+                disabled={isParsing}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Progress Display */}
+        {(currentProgress || isParsing) && (
+          <div className="mb-4 p-4 bg-[var(--background)] rounded-lg">
+            <div className="flex items-center gap-3 mb-3">
+              {isParsing && !currentProgress && (
+                <Loader2 className="w-5 h-5 animate-spin text-[var(--chart-2)]" />
+              )}
+              {currentProgress?.status === "started" && (
+                <Loader2 className="w-5 h-5 animate-spin text-[var(--chart-2)]" />
+              )}
+              {currentProgress?.status === "progress" && (
+                <Loader2 className="w-5 h-5 animate-spin text-[var(--chart-2)]" />
+              )}
+              {currentProgress?.status === "completed" && (
+                <CheckCircle className="w-5 h-5 text-[var(--chart-1)]" />
+              )}
+              {currentProgress?.status === "error" && (
+                <AlertCircle className="w-5 h-5 text-[var(--chart-5)]" />
+              )}
+              <div className="flex-1">
+                <div className="font-medium text-[var(--foreground)]">
+                  {currentProgress?.message ||
+                    (isParsing ? "Парсинг запущен..." : "Ожидание...")}
+                </div>
+                {currentProgress?.progress && (
+                  <div className="text-sm text-[var(--muted-foreground)]">
+                    {currentProgress.type === "chapter_import"
+                      ? `Chapter ${currentProgress.progress.current}`
+                      : `${currentProgress.progress.current} / ${currentProgress.progress.total}`
+                    } ({currentProgress.progress.percentage}%)
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {currentProgress?.progress && (
+              <div className="w-full bg-[var(--accent)] rounded-full h-2">
+                <div
+                  className="bg-[var(--primary)] h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${currentProgress.progress.percentage}%` }}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Chapters Info Display */}
+        {chaptersInfo && (
+          <div className="mb-4 p-4 bg-[var(--background)] rounded-lg">
+            <h3 className="font-medium text-[var(--foreground)] mb-3">
+              Найденные главы ({chaptersInfo.totalChapters})
+            </h3>
+            <div className="max-h-40 overflow-y-auto space-y-1">
+              {chaptersInfo.chapters
+                .slice(0, 10)
+                .map((chapter: ChapterInfo, index: number) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span className="text-[var(--foreground)]">
+                      Глава {chapter.number}: {chapter.name}
+                    </span>
+                  </div>
+                ))}
+              {chaptersInfo.chapters.length > 10 && (
+                <div className="text-sm text-[var(--muted-foreground)]">
+                  ... и ещё {chaptersInfo.chapters.length - 10} глав
                 </div>
               )}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Номера глав (через запятую) *
-              </label>
-              <input
-                type="text"
-                value={chapterForm.chapterNumbers.join(", ")}
-                onChange={(e) => setChapterForm((prev) => ({
-                  ...prev,
-                  chapterNumbers: e.target.value.split(",").map(s => s.trim()).filter(s => s)
-                }))}
-                placeholder="1, 2, 3-5, 10"
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Кастомное название главы (опционально)
-              </label>
-              <input
-                type="text"
-                value={chapterForm.customName}
-                onChange={(e) => setChapterForm((prev) => ({ ...prev, customName: e.target.value }))}
-                placeholder="Оставить пустым для использования оригинального названия"
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-              />
-            </div>
-
-            <button
-              onClick={handleParseChapters}
-              disabled={isParsingChapter}
-              className="w-full px-6 py-3 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--secondary-foreground)]/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {isParsingChapter ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Download className="w-5 h-5" />
-              )}
-              {isParsingChapter ? "Импортируем..." : "Импортировать главы"}
-            </button>
           </div>
         )}
-      </div>
 
-      {/* Result */}
-      {lastResult && (
-        <div className={`rounded-xl border p-6 flex items-start gap-3 ${
-          lastResult.success
-            ? "bg-green-50 border-green-200 text-green-800"
-            : "bg-red-50 border-red-200 text-red-800"
-        }`}>
-          {lastResult.success ? (
-            <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-          ) : (
-            <XCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-          )}
-          <div>
-            <p className="font-medium">
-              {lastResult.success ? "Успешно" : "Ошибка"}
-            </p>
-            <p className="text-sm mt-1">{lastResult.message}</p>
-          </div>
+        {/* Start Parsing Button */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleStartParsing}
+            disabled={!isConnected || !url.trim() || isParsing}
+            className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isParsing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Парсинг...
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                Начать парсинг
+              </>
+            )}
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@
 import { useRef, useState } from 'react';
 import { Edit, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 
 interface EditAvatarButtonProps {
   onAvatarUpdate?: (newAvatarUrl: string) => void;
@@ -11,6 +12,7 @@ interface EditAvatarButtonProps {
 
 function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
   const { updateAvatar, refetchProfile } = useAuth();
+  const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,13 +26,13 @@ function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
 
     // Проверка типа файла
     if (!file.type.startsWith('image/')) {
-      alert('Пожалуйста, выберите файл изображения');
+      toast.warning('Пожалуйста, выберите файл изображения');
       return;
     }
 
     // Проверка размера файла (2MB)
     if (file.size > 2 * 1024 * 1024) {
-      alert('Размер файла не должен превышать 2MB');
+      toast.warning('Размер файла не должен превышать 2MB');
       return;
     }
 
@@ -39,18 +41,18 @@ function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
     try {
       // Используем хук useAuth для обновления аватара
       const result = await updateAvatar(file);
-      
+
       if (result.success) {
         // Перезапрашиваем профиль для получения актуальных данных
         await refetchProfile();
-        
-        alert('Аватар успешно обновлен!');
+
+        toast.success('Аватар успешно обновлен!');
       } else {
         throw new Error(result.error || 'Ошибка при обновлении аватара');
       }
     } catch (error) {
       console.error('Error updating avatar:', error);
-      alert(`Ошибка при обновлении аватара: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Ошибка при обновлении аватара: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
       // Сбрасываем значение input чтобы можно было выбрать тот же файл снова

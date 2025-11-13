@@ -7,6 +7,7 @@ import {
   useDeleteTitleMutation,
 } from "@/store/api/titlesApi";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/useToast";
 
 interface TitlesSectionProps {
   onTitleSelect: (titleId: string) => void;
@@ -21,6 +22,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   } : {});
   const [deleteTitle] = useDeleteTitleMutation();
   const router = useRouter();
+  const toast = useToast();
   const titles = titlesResponse?.data?.data || [];
 
   const handleDelete = async (id: string, title: string) => {
@@ -31,10 +33,10 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
     ) {
       try {
         await deleteTitle(id).unwrap();
-        alert("Тайтл успешно удален");
+        toast.success("Тайтл успешно удален");
       } catch (error) {
         console.error("Ошибка при удалении тайтла:", error);
-        alert("Ошибка при удалении тайтла");
+        toast.error("Ошибка при удалении тайтла");
       }
     }
   };

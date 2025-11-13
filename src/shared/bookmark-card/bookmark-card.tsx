@@ -7,6 +7,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { useToast } from "@/hooks/useToast";
 
 interface BookmarkCardProps {
   title: Title;
@@ -19,6 +20,7 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
   const { removeBookmark } = useAuth();
   const [isRemoving, setIsRemoving] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const toast = useToast();
 
   const handleClick = () => {
     router.push(`/browse/${title._id}`);
@@ -34,11 +36,11 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
         onRemove?.(title._id);
       } else {
         console.error("Ошибка при удалении закладки:", result.error);
-        alert(`Ошибка при удалении закладки: ${result.error}`);
+        toast.error(`Ошибка при удалении закладки: ${result.error}`);
       }
     } catch (error) {
       console.error("Ошибка при удалении закладки:", error);
-      alert("Произошла ошибка при удалении закладки");
+      toast.error("Произошла ошибка при удалении закладки");
     } finally {
       setIsRemoving(false);
     }

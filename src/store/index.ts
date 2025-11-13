@@ -6,6 +6,7 @@ import { notificationsApi } from "./api/notificationsApi";
 import { mangaParserApi } from "./api/mangaParserApi";
 import { statsApi } from "./api/statsApi";
 import { usersApi } from "./api/usersApi";
+import { collectionsApi } from "./api/collectionsApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
 
@@ -20,6 +21,7 @@ export const store = configureStore({
     [mangaParserApi.reducerPath]: mangaParserApi.reducer,
     [statsApi.reducerPath]: statsApi.reducer,
     [usersApi.reducerPath]: usersApi.reducer,
+    [collectionsApi.reducerPath]: collectionsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -29,7 +31,8 @@ export const store = configureStore({
       .concat(notificationsApi.middleware)
       .concat(mangaParserApi.middleware)
       .concat(statsApi.middleware)
-      .concat(usersApi.middleware),
+      .concat(usersApi.middleware)
+      .concat(collectionsApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

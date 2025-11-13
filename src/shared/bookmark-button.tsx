@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import { Bookmark } from "lucide-react";
 
 interface BookmarkButtonProps {
@@ -16,6 +17,7 @@ export function BookmarkButton({
   className = "",
 }: BookmarkButtonProps) {
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
+  const toast = useToast();
   const [isBookmarked, setIsBookmarked] = useState(
     initialBookmarked || (user?.bookmarks?.includes(titleId) ?? false)
   );
@@ -24,7 +26,7 @@ export function BookmarkButton({
   const handleBookmarkToggle = async () => {
     // Проверяем, что пользователь авторизован
     if (!isAuthenticated) {
-      alert("Пожалуйста, авторизуйтесь, чтобы добавить в закладки");
+      toast.warning("Пожалуйста, авторизуйтесь, чтобы добавить в закладки");
       return;
     }
 
@@ -38,7 +40,7 @@ export function BookmarkButton({
           setIsBookmarked(false);
         } else {
           console.error("Ошибка при удалении из закладок:", result.error);
-          alert(`Ошибка при удалении из закладок: ${result.error}`);
+          toast.error(`Ошибка при удалении из закладок: ${result.error}`);
         }
       } else {
         // Добавляем в закладки
@@ -47,12 +49,12 @@ export function BookmarkButton({
           setIsBookmarked(true);
         } else {
           console.error("Ошибка при добавлении в закладки:", result.error);
-          alert(`Ошибка при добавлении в закладки: ${result.error}`);
+          toast.error(`Ошибка при добавлении в закладки: ${result.error}`);
         }
       }
     } catch (error) {
       console.error("Ошибка при работе с закладками:", error);
-      alert("Произошла ошибка при работе с закладками");
+      toast.error("Произошла ошибка при работе с закладками");
     } finally {
       setIsLoading(false);
     }

@@ -1,5 +1,5 @@
 "use client";
-import CarouselCard, { CardProps } from "@/shared/carousel-card/carousel-card";
+import PopularCard, { CardProps } from "@/shared/popular-card/popular-card";
 
 interface GridTitle {
   id: string;
@@ -49,7 +49,7 @@ export default function TitleGrid({ titles, onCardClick, isEmpty, onResetFilters
   return (
     <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
       {titles.map((title) => (
-        <CarouselCard
+        <PopularCard
           key={title.id}
           data={titleToCardProps(title)}
           onCardClick={onCardClick}

@@ -5,10 +5,12 @@ import { useParams } from "next/navigation";
 import { useGetChaptersByTitleQuery, useDeleteChapterMutation, useSearchChaptersQuery } from "@/store/api/chaptersApi";
 import { useMemo } from "react";
 import { Header, Footer } from "@/widgets";
+import { useToast } from "@/hooks/useToast";
 
 export default function ChaptersManagementPage() {
   const params = useParams();
   const titleId = (params?.id as string) || "";
+  const toast = useToast();
   const { data: primary = [], isLoading } = useGetChaptersByTitleQuery({ titleId, sortOrder: "desc" }, { skip: !titleId });
   const { data: fallback, isLoading: isLoadingFallback } = useSearchChaptersQuery({ titleId, limit: 200, sortBy: "chapterNumber", sortOrder: "desc" }, { skip: !titleId });
   const chapters = (primary && primary.length ? primary : fallback?.chapters) || [];
@@ -28,7 +30,7 @@ export default function ChaptersManagementPage() {
       await deleteChapter(id).unwrap();
     } catch (e) {
       const error = e as Error;
-      alert(error?.message || "Ошибка удаления");
+      toast.error(error?.message || "Ошибка удаления");
     }
   };
 

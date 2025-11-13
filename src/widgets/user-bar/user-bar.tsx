@@ -17,16 +17,19 @@ interface UserDropdownUser {
   name?: string;
   email?: string;
   username?: string;
-  avatar?: string; 
+  avatar?: string;
+  level?: number;
+  experience?: number;
+  balance?: number;
 }
 
 export default function UserBar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false); 
+  const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const { user, isAuthenticated, login, logout, isLoading } = useAuth();
 
 
@@ -88,13 +91,16 @@ export default function UserBar() {
   // Преобразование пользователя для UserDropdown
   const getUserForDropdown = (): UserDropdownUser => {
     if (!user) return {};
-    
+
     return {
       id: user.id,
       name: user.username,
       email: user.email,
       username: user.username,
-      avatar: user.avatar // Добавляем аватар
+      avatar: user.avatar, // Добавляем аватар
+      level: user.level,
+      experience: user.experience,
+      balance: user.balance
     };
   };
 
@@ -136,7 +142,7 @@ export default function UserBar() {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               aria-label="Открыть меню пользователя"
             >
-              <UserAvatar 
+              <UserAvatar
                 avatarUrl={user?.avatar}
                 username={user?.username}
                 size={40}

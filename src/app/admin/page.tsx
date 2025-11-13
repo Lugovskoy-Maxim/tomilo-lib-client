@@ -2,6 +2,7 @@
 
 import { AdminTabs } from "@/shared/admin/admin-tabs";
 import { ChaptersSection } from "@/shared/admin/chapters-section";
+import { CollectionsSection } from "@/shared/admin/collections-section";
 import { OverviewSection } from "@/shared/admin/overview-section";
 import { ParserSection } from "@/shared/admin/parser-section";
 import { TitlesSection } from "@/shared/admin/titles-section";
@@ -10,7 +11,7 @@ import { Footer, Header } from "@/widgets";
 import { useState } from "react";
 
 
-type AdminTab = "overview" | "parser" | "titles" | "chapters" | "users";
+type AdminTab = "overview" | "parser" | "titles" | "chapters" | "collections" | "users";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
@@ -38,6 +39,8 @@ export default function AdminPage() {
             onTitleChange={setSelectedTitleId}
           />
         );
+      case "collections":
+        return <CollectionsSection onTabChange={(tab: string) => setActiveTab(tab as AdminTab)} />;
       case "users":
         return <UsersSection />;
       default:
@@ -46,10 +49,10 @@ export default function AdminPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+    <main className="flex flex-col  min-h-screen h-full bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
+      <div className="max-w-7xl px-2 sm:px-4 py-4 sm:py-6 flex flex-col flex-1">
         <div className="mb-4 sm:mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
             <span className="text-xl sm:text-2xl">⚙️</span>

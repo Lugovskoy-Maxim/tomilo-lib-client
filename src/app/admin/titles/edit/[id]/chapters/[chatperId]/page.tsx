@@ -10,12 +10,14 @@ import {
 } from "@/store/api/chaptersApi";
 import { Chapter, ChapterStatus, UpdateChapterDto } from "@/types/title";
 import { Footer, Header } from "@/widgets";
+import { useToast } from "@/hooks/useToast";
 
 export default function ChapterEditPage() {
   const params = useParams();
   const router = useRouter();
   const chapterId = (params?.chatperId as string) || ""; // маршрут содержит chapterId
   const titleId = (params?.id as string) || ""; // маршрут содержит id
+  const toast = useToast();
 
   const { data, isLoading, isError } = useGetChapterByIdQuery(chapterId, {
     skip: !chapterId,
@@ -75,10 +77,10 @@ export default function ChapterEditPage() {
         id: chapterId,
         data: dto,
       }).unwrap();
-      alert(`Глава #${updated.chapterNumber} обновлена`);
+      toast.success(`Глава #${updated.chapterNumber} обновлена`);
       router.back();
     } catch (err) {
-      alert(
+      toast.error(
         `Ошибка: ${
           (err as { data?: { message?: string } })?.data?.message ||
           (err as Error).message ||
@@ -93,10 +95,10 @@ export default function ChapterEditPage() {
     if (!confirm("Удалить главу?")) return;
     try {
       await deleteChapter(chapterId).unwrap();
-      alert("Глава удалена");
+      toast.success("Глава удалена");
       router.back();
     } catch (err) {
-      alert(
+      toast.error(
         `Ошибка удаления: ${
           (err as { data?: { message?: string } })?.data?.message ||
           (err as Error).message ||
@@ -112,9 +114,9 @@ export default function ChapterEditPage() {
     if (!files.length) return;
     try {
       await addPagesToChapter({ id: chapterId, pages: files }).unwrap();
-      alert("Страницы добавлены");
+      toast.success("Страницы добавлены");
     } catch (err) {
-      alert(
+      toast.error(
         `Ошибка загрузки страниц: ${
           (err as { data?: { message?: string } })?.data?.message ||
           (err as Error).message ||

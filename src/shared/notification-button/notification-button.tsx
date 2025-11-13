@@ -15,7 +15,7 @@ export function NotificationButton() {
     <Link href="/notifications">
       <button
         type="button"
-        className="relative flex items-center justify-center p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-lg transition-colors"
+        className="flex items-center p-2 hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)]"
         aria-label={notificationCount > 0 ? `Уведомления (${notificationCount} новых)` : 'Уведомления'}
       >
         <Bell className="w-5 h-5" />

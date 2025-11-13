@@ -4,7 +4,7 @@ export { default as Search } from "./search/search";
 export { default as UserAvatar } from "./user/avatar";
 export { default as UserDropdown } from "./dropdown-menu/dropdown-menu";
 export { default as NotificationButton } from "./notification-button/notification-button";
-export { default as CarouselCard } from "./carousel-card/carousel-card";
+export { default as CarouselCard } from "./popular-card/popular-card";
 export { default as ReadingCard } from "./reading-card/reading-card";
 export { default as CollectionCard } from "./collection-card/collection-card";
 export { default as LastUpdates } from "./last-updates/last-updates";
@@ -34,7 +34,7 @@ export { default as ProfileContent } from "./profile/profile-content";
 export { default as ProfileAvatar } from "./profile/profile-avatar";
 export { default as LatestUpdateCard } from "./last-updates/last-updates";
 export { default as BookmarkCard } from "./bookmark-card/bookmark-card";
-export { default as ReaderControls } from "./reader-controls";
+export { default as ReaderControls } from "./reader/reader-controls";
 export { default as TopTitleCard } from "./top-title-card/top-title-card";
 
 

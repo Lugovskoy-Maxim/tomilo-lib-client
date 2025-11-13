@@ -29,6 +29,9 @@ export interface StoredUser {
   username: string;
   avatar?: string;
   role: string;
+  level?: number;
+  experience?: number;
+  balance?: number;
   bookmarks?: string[];
   readingHistory?: {
     titleId: {
@@ -100,6 +103,7 @@ export interface User {
   username: string;
   avatar?: string;
   role: string;
+  level?: number;
   bookmarks?: string[];
   readingHistory: {
     titleId: {

@@ -5,6 +5,8 @@ export interface UserProfile {
   avatar?: string;
   role: string;
   level?: number;
+  experience?: number;
+  balance?: number;
   bookmarks: string[];
   readingHistory: {
     titleId: string;

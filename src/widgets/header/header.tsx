@@ -32,7 +32,7 @@ export default function Header() {
   };
 
   return (
-    <header className="w-full bg-[var(--secondary)] border-b border-[var(--border)] h-[var(--header-height)]" >
+    <header className="w-full bg-[var(--secondary)]/40 border-b border-[var(--border)] h-[var(--header-height)]" >
       <div className="w-full max-w-7xl mx-auto p-4 h-16 flex items-center justify-between">
         {/* Логотип или кнопка меню для мобильных экранов */}
         <div className="flex items-center gap-4">

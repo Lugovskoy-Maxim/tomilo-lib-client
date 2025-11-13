@@ -6,11 +6,13 @@ import {
   useCreateChapterWithPagesMutation,
 } from "@/store/api/chaptersApi";
 import { ChapterStatus, CreateChapterDto } from "@/types/title";
+import { useToast } from "@/hooks/useToast";
 
 export default function ChapterCreatePage() {
   const params = useParams();
   const router = useRouter();
   const titleId = (params?.id as string) || "";
+  const toast = useToast();
 
   const [createWithPages, { isLoading }] = useCreateChapterWithPagesMutation();
 
@@ -43,11 +45,11 @@ export default function ChapterCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titleId) {
-      alert("Не указан ID тайтла");
+      toast.error("Не указан ID тайтла");
       return;
     }
     if (!form.chapterNumber) {
-      alert("Укажите номер главы");
+      toast.error("Укажите номер главы");
       return;
     }
     try {
@@ -59,11 +61,11 @@ export default function ChapterCreatePage() {
         price: form.price ? Number(form.price) : undefined,
       };
       const created = await createWithPages({ data, pages }).unwrap();
-      alert(`Глава #${created.chapterNumber} создана`);
+      toast.success(`Глава #${created.chapterNumber} создана`);
       router.push(`/admin/titles/edit/${titleId}`);
     } catch (err: unknown) {
       const error = err as { data?: { message?: string }; message?: string };
-      alert(`Ошибка создания: ${error?.data?.message || (error as Error)?.message || "Unknown"}`);
+      toast.error(`Ошибка создания: ${error?.data?.message || (error as Error)?.message || "Unknown"}`);
     }
   };
 

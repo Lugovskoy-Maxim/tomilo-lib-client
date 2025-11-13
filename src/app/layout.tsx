@@ -3,6 +3,8 @@ import { Exo_2, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Providers } from "./providers";
+import { ToastProvider } from "@/contexts/ToastContext";
+import { ToastContainer } from "@/shared/ui/Toast";
 
 const exo_2 = Exo_2({
   variable: "--font-exo_2",
@@ -30,9 +32,12 @@ export default function RootLayout({
       <body
         className={`${exo_2.variable} ${geistMono.variable} antialiased w-full justify-center items-center`}
       >
-        <Providers>
-          <ThemeProvider>{children}</ThemeProvider>
-        </Providers>
+        <ToastProvider>
+          <Providers>
+            <ThemeProvider>{children}</ThemeProvider>
+          </Providers>
+          <ToastContainer />
+        </ToastProvider>
       </body>
     </html>
   );

@@ -15,12 +15,15 @@ interface UserDropdownProps {
   isOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
-  user?: { 
+  user?: {
     id?: string;
-    name?: string; 
-    email?: string; 
+    name?: string;
+    email?: string;
     username?: string;
     avatar?: string;
+    level?: number;
+    experience?: number;
+    balance?: number;
   };
 }
 
@@ -70,7 +73,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       {/* Заголовок с информацией о пользователе */}
       <div className="p-4 border-b border-[var(--border)] bg-[var(--secondary)]">
         <div className="flex items-center space-x-3">
-          <UserAvatar 
+          <UserAvatar
             avatarUrl={user?.avatar}
             username={user?.username || user?.name}
             size={40}
@@ -85,6 +88,18 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
                 {user.email}
               </p>
             )}
+            {/* Информация о уровне, опыте и балансе */}
+            <div className="flex items-center gap-2 mt-2">
+              <div className="px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-1)] rounded-lg text-[var(--primary)] text-xs">
+                {user?.level || 0}
+              </div>
+              <div className="px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-2)] rounded-lg text-[var(--primary)] text-xs">
+                {user?.experience || 0} XP
+              </div>
+              <div className="px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-3)] rounded-lg text-[var(--primary)] text-xs">
+                {user?.balance || 0} ₽
+              </div>
+            </div>
           </div>
         </div>
       </div>

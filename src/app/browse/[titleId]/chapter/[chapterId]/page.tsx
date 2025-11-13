@@ -6,6 +6,7 @@ import { ReaderTitle as ReadTitle, ReaderChapter as ReadChapter } from '@/shared
 import { useGetTitleByIdQuery } from '@/store/api/titlesApi';
 import { useGetChaptersByTitleQuery } from '@/store/api/chaptersApi';
 import { Chapter } from '@/types/title';
+import { useSEO, seoConfigs } from '@/hooks/useSEO';
 
 function getApiOrigin(): string {
   const env = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -43,6 +44,16 @@ export default function ChapterPage() {
 
   const isLoading = titleLoading || chaptersLoading;
   const error = titleError || chaptersError;
+
+  // SEO для страницы главы - всегда вызываем хук в начале компонента
+  useSEO(seoConfigs.chapter(
+    titleData?.data ? {
+      name: titleData.data.name,
+      title: titleData.data.name,
+    } : { name: '', title: '' },
+    chaptersData?.find((c: Chapter) => c._id === chapterId)?.chapterNumber || 0,
+    chaptersData?.find((c: Chapter) => c._id === chapterId)?.title || ''
+  ));
 
   if (isLoading) {
     return (
@@ -88,7 +99,7 @@ export default function ChapterPage() {
     type: serverTitle.type || 'Манга',
     year: Number(serverTitle.releaseYear) || new Date().getFullYear(),
     rating: Number(serverTitle.rating) || 0,
-    image: normalizeAssetUrl(serverTitle.coverImage || ''),
+    image: serverTitle.coverImage || undefined,
     genres: serverTitle.genres || [],
     description: serverTitle.description || '',
     status: serverTitle.status || 'ongoing',

@@ -46,10 +46,10 @@ export function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 font-medium transition-colors border-b-2 ${
+      className={`flex items-center gap-3 px-4 sm:px-4 py-1 sm:py-2 font-medium transition-colors border-b-2 rounded-full hover:bg-[var(--background)]/50 ${
         active
-          ? "border-[var(--primary)] text-[var(--primary)]"
-          : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          ? "border-[var(--primary)] text-[var(--primary)] bg-[var(--chart-1)]"
+          : "border-transparent text-[var(--primary)] hover:text-[var(--primary)]"
       }`}
     >
       <Icon className="w-4 h-4" />
@@ -61,8 +61,8 @@ export function TabButton({
 export function StatItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col text-center">
-      <div className="text-xs text-[var(--muted-foreground)] mt-1">{label}</div>
-      <div className="text-md font-bold text-[var(--foreground)]">{value}</div>
+      <div className="text-xs text-[var(--primary)] mt-1">{label}</div>
+      <div className="text-md font-bold text-[var(--primary)]">{value}</div>
     </div>
   );
 }
@@ -79,11 +79,11 @@ export function InfoField({
   if (!value) return null;
   return (
     <div>
-      <label className="text-sm font-medium text-[var(--muted-foreground)] mb-1 flex items-center gap-2">
+      <label className="text-sm font-medium text-[var(--primary)] mb-1 flex items-center gap-2">
         {Icon && <Icon className="w-3 h-3" />}
         {label}
       </label>
-      <div className="px-3 py-2 bg-[var(--background)] rounded-lg text-[var(--foreground)]">
+      <div className="px-3 py-2 bg-[var(--background)] rounded-lg text-[var(--primary)]">
         {value}
       </div>
     </div>
@@ -108,15 +108,15 @@ export function LeftSidebar({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col bg-[var(--card)] rounded-xl p-4">
+      <div className="flex flex-col rounded-full">
         {titleData.coverImage && (
           <Image
             width={320}
             height={480}
-            src={titleData.coverImage}
+            src={process.env.NEXT_PUBLIC_URL + titleData.coverImage}
             alt={titleData.name}
             unoptimized={true}
-            className="w-full max-w-[320px] mx-auto lg:max-w-none h-auto rounded-lg shadow-lg mb-4 object-cover"
+            className="w-full max-w-[320px] mx-auto lg:max-w-none h-auto rounded-2xl shadow-lg mb-4 object-cover lg:block hidden"
           />
         )}
 
@@ -124,7 +124,7 @@ export function LeftSidebar({
           <ReadButton
             titleData={titleData}
             chapters={chapters}
-            className="w-full"
+            className="w-full rounded-full"
           />
         </div>
 
@@ -137,14 +137,14 @@ export function LeftSidebar({
 
           <button
             onClick={onShare}
-            className="py-2 w-full h-10 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors flex items-center justify-center gap-2"
+            className="py-2 w-full h-10 bg-[var(--accent)] text-[var(--primary)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors flex items-center justify-center gap-2"
           >
             <ShareIcon className="w-4 h-4" />
           </button>
           {isAdmin && (
             <Link
               href={`/admin/titles/edit/${titleData._id}`}
-              className="w-full h-10 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/80 transition-colors flex items-center justify-center gap-2"
+              className="w-full h-10 py-2 bg-[var(--chart-1)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/80 transition-colors flex items-center justify-center gap-2"
             >
               <Edit className="w-4 h-4" />
             </Link>
@@ -153,14 +153,14 @@ export function LeftSidebar({
       </div>
 
       {titleData.altNames && titleData.altNames.length > 0 && (
-        <div className="bg-[var(--card)] rounded-xl p-4">
-          <h3 className="font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
+        <div className="bg-[var(--card)]/40 rounded-xl p-4">
+          <h3 className="font-semibold text-[var(--primary)] mb-2 flex items-center gap-2">
             <Globe className="w-4 h-4" />
             Альтернативные названия
           </h3>
           <div className="space-y-1">
             {titleData.altNames.map((name, index) => (
-              <p key={index} className="text-sm text-[var(--muted-foreground)]">
+              <p key={index} className="text-sm text-[var(--primary)]">
                 {name}
               </p>
             ))}
@@ -206,13 +206,13 @@ export function ChaptersTab({
   return (
     <div className="space-y-4">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] w-4 h-4" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary)] w-4 h-4" />
         <input
           type="text"
           placeholder="Номер или название главы"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-3 py-2 bg-[var(--background)] rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--foreground)] text-sm sm:text-base"
+          className="w-full pl-10 pr-3 py-2 bg-[var(--background)]/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--primary)] text-sm sm:text-base"
         />
       </div>
 
@@ -237,7 +237,7 @@ export function ChaptersTab({
       </div>
 
       {chapters.length === 0 && !loading && (
-        <div className="text-center py-8 text-[var(--muted-foreground)]">
+        <div className="text-center py-8 text-[var(--primary)]">
           Главы не найдены
         </div>
       )}
@@ -291,12 +291,12 @@ export function ChapterItem({
   return (
     <Link
       href={`/browse/${titleId}/chapter/${chapter._id}`}
-      className="flex items-center justify-between px-3 py-1  rounded-lg transition-colors bg-[var(--muted)]/20 hover:bg-[var(--muted)]/50"
+      className="flex items-center bg-[var(--background)]/50 justify-between px-3 py-2 border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors rounded-full"
     >
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-3">
         {/* Иконка статуса прочтения */}
         <div
-          className="relative flex items-center w-5 h-5"
+          className="flex items-center w-5 h-5"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -306,7 +306,7 @@ export function ChapterItem({
               disabled={isRemoving}
               className={`flex items-center justify-center transition-colors hover:text-red-600 ${
                 isRemoving
-                  ? "cursor-not-allowed text-[var(--muted-foreground)]"
+                  ? "cursor-not-allowed text-[var(--primary)]"
                   : "text-red-500 cursor-pointer"
               }`}
               title="Удалить из истории чтения"
@@ -320,25 +320,25 @@ export function ChapterItem({
           ) : (
             <Eye
               className={`w-5 h-5 ${
-                isRead ? "text-green-500" : "text-[var(--muted-foreground)]"
+                isRead ? "text-green-500" : "text-[var(--primary)]"
               }`}
             />
           )}
         </div>
         <div>
-          <div className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors text-sm sm:text-base">
+          <div className="font-medium text-[var(--primary)] text-sm sm:text-base">
             Глава {chapter.chapterNumber}
             {chapter.title && `: ${chapter.title}`}
           </div>
           {chapter.releaseDate && (
-            <div className="text-xs text-[var(--muted-foreground)]">
+            <div className="text-xs text-[var(--primary)]">
               {new Date(chapter.releaseDate).toLocaleDateString("ru-RU")}
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-3 text-sm text-[var(--muted-foreground)]">
+      <div className="flex items-center gap-3 text-sm text-[var(--primary)]">
         {chapter.views && (
           <span className="flex items-center gap-1">
             <Eye className="w-4 h-4" />
@@ -355,11 +355,11 @@ export function ChapterItem({
 export function CommentsTab() {
   return (
     <div className="text-center py-8">
-      <MessageCircle className="w-12 h-12 text-[var(--muted-foreground)] mx-auto mb-4" />
-      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
+      <MessageCircle className="w-12 h-12 text-[var(--primary)] mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-[var(--primary)] mb-2">
         Система комментариев
       </h3>
-      <p className="text-[var(--muted-foreground)]">
+      <p className="text-[var(--primary)]">
         Комментарии будут доступны в ближайшее время
       </p>
     </div>
@@ -419,28 +419,21 @@ export function RightContent({
 
   return (
     <div className="space-y-6">
-      <div className="bg-[var(--card)] rounded-xl p-4 sm:p-5 md:p-6">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 sm:gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-1 sm:mb-2">
-              {titleData.name}
-            </h1>
-
-            <div className="flex items-center gap-2 mb-2 sm:mb-3 md:mb-4">
-              <div className="flex items-center gap-2">
+      <div className=" rounded-xl">
+        <div className="flex flex-col lg:items-start lg:justify-between gap-4">
+          <div className="flex justify-between items-center w-full">
+            <div className="flex gap-2">
+              <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
                 <Calendar className="w-4 h-4" />
                 <span>{titleData.releaseYear}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
                 <BookOpen className="w-4 h-4" />
                 <span>{titleData.type || "Манга"}</span>
               </div>
             </div>
-          </div>
-
-          <div className="flex flex-wrap gap-3 sm:gap-4 text-sm text-[var(--muted-foreground)]">
-            <div className="flex items-center gap-3">
-              <span className="text-lg font-semibold text-[var(--foreground)]">
+            <div className="flex items-center gap-3 bg-[var(--background)]/20 px-3 py-1 rounded-full">
+              <span className="text-lg font-bold text-[var(--chart-1)]">
                 {formatRating(
                   typeof pendingRating === "number"
                     ? pendingRating
@@ -450,10 +443,59 @@ export function RightContent({
               <button
                 type="button"
                 onClick={() => setIsRatingOpen((v) => !v)}
-                className="px-3 py-1.5 rounded-lg bg-[var(--accent)] text-[var(--foreground)] text-sm hover:bg-[var(--accent)]/80"
+                className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer"
               >
                 Оценить
               </button>
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary)] mb-3">
+              {titleData.name}
+            </h1>
+
+            {/* <div className="flex flex-wrap items-center gap-4 mb-4">
+              <div className="flex items-center gap-2 bg-[var(--background)] px-3 py-1 rounded-full">
+                <span className="text-sm font-semibold">
+                  {statusLabels[titleData.status]}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-semibold">
+                {titleData.ageLimit}+
+              </span>
+              {titleData.genres?.slice(0, 3).map((genre, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-full text-sm font-semibold"
+                  onClick={() => {
+                    router.push(`/browse?genres=${encodeURIComponent(genre)}`);
+                  }}
+                >
+                  {genre}
+                </span>
+              ))}
+              {titleData.tags?.slice(0, 3).map((tag, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-[var(--accent)] text-[var(--primary)] rounded-full text-sm font-semibold"
+                  onClick={() => {
+                    router.push(`/browse?tags=${encodeURIComponent(tag)}`);
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div> */}
+          </div>
+
+          <div className="flex flex-col items-end gap-3">
+            <div className="flex items-center gap-2 text-sm text-[var(--primary)]">
+              <Eye className="w-4 h-4" />
+              <span>{titleData.views?.toLocaleString() || "0"} просмотров</span>
             </div>
           </div>
         </div>
@@ -461,7 +503,7 @@ export function RightContent({
         <div className="mt-2">
           <div className="flex flex-wrap gap-2">
             <span
-              className="px-2.5 py-1 cursor-pointer text-red-800 rounded-full text-xs font-semibold"
+              className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-xs font-semibold bg-[var(--background)]/60"
               onClick={() => {
                 router.push(
                   `/browse?ageLimit=${encodeURIComponent(titleData.ageLimit)}`
@@ -473,7 +515,7 @@ export function RightContent({
             {titleData.genres?.map((genre, index) => (
               <span
                 key={index}
-                className="px-2 py-1 cursor-pointer rounded-full text-xs font-semibold"
+                className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--primary)]"
                 onClick={() => {
                   router.push(`/browse?genres=${encodeURIComponent(genre)}`);
                 }}
@@ -484,7 +526,7 @@ export function RightContent({
             {titleData.tags?.map((tag, index) => (
               <span
                 key={index}
-                className="px-2 py-1 cursor-pointer rounded-full text-xs font-semibold"
+                className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--primary)]"
                 onClick={() => {
                   router.push(`/browse?tags=${encodeURIComponent(tag)}`);
                 }}
@@ -498,7 +540,7 @@ export function RightContent({
         {isRatingOpen && (
           <div className="mt-3 p-3 bg-[var(--background)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--muted-foreground)]">
+              <span className="text-sm text-[var(--primary)]">
                 Ваша оценка
               </span>
               <button
@@ -524,7 +566,7 @@ export function RightContent({
                   className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium ${
                     pendingRating === n
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "bg-[var(--accent)] text-[var(--foreground)] hover:bg-[var(--accent)]/80"
+                      : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
                   }`}
                 >
                   {n}
@@ -541,11 +583,11 @@ export function RightContent({
                 !isDescriptionExpanded ? "max-h-30 overflow-hidden" : ""
               }`}
             >
-              <p className="text-[var(--muted-foreground)] leading-relaxed whitespace-pre-wrap">
+              <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap">
                 {titleData.description}
               </p>
               {!isDescriptionExpanded && (
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[var(--card)] to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 h-8 to-transparent" />
               )}
             </div>
             {titleData.description.length > 100 && (
@@ -568,25 +610,9 @@ export function RightContent({
             )}
           </div>
         )}
-
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-3 sm:pt-4 text-md border border-dashed border-[var(--border)] rounded-md pb-4">
-          <StatItem
-            label="Статус тайтла"
-            value={statusLabels[titleData.status]}
-          />
-          <StatItem
-            label="Глав"
-            value={titleData.totalChapters?.toLocaleString() || "0"}
-          />
-          <StatItem label="Формат" value="В цвете, Вебтун, Веб" />
-          <StatItem
-            label="Просмотры"
-            value={titleData.views?.toLocaleString() || "0"}
-          />
-        </div>
       </div>
 
-      <div className="bg-[var(--card)] rounded-xl">
+      <div className="rounded-xl overflow-hidden">
         <div className="border-b border-[var(--border)]">
           <div className="flex overflow-x-auto">
             <TabButton
@@ -628,12 +654,46 @@ export function RightContent({
                 <InfoField label="Художник" value={titleData.artist} />
               </div>
               {titleData.description && (
-                <div>
-                  <h3 className="font-semibold text-[var(--foreground)] mb-3">
+                <div className="flex flex-col gap-3">
+                  <h3 className="font-semibold text-[var(--primary)] mb-3 ">
                     Полное описание
                   </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="bg-[var(--background)] rounded-lg p-4 text-center">
+                      <div className="text-xs text-[var(--primary)] mb-1">
+                        Статус
+                      </div>
+                      <div className="font-bold text-[var(--primary)]">
+                        {statusLabels[titleData.status]}
+                      </div>
+                    </div>
+                    <div className="bg-[var(--background)] rounded-lg p-4 text-center">
+                      <div className="text-xs text-[var(--primary)] mb-1">
+                        Глав
+                      </div>
+                      <div className="font-bold text-[var(--primary)]">
+                        {titleData.totalChapters?.toLocaleString() || "0"}
+                      </div>
+                    </div>
+                    <div className="bg-[var(--background)] rounded-lg p-4 text-center">
+                      <div className="text-xs text-[var(--primary)] mb-1">
+                        Формат
+                      </div>
+                      <div className="font-bold text-[var(--primary)]">
+                        В цвете
+                      </div>
+                    </div>
+                    <div className="bg-[var(--background)] rounded-lg p-4 text-center">
+                      <div className="text-xs text-[var(--primary)] mb-1">
+                        Просмотры
+                      </div>
+                      <div className="font-bold text-[var(--primary)]">
+                        {titleData.views?.toLocaleString() || "0"}
+                      </div>
+                    </div>
+                  </div>
                   <div className="bg-[var(--background)] rounded-lg p-4">
-                    <p className="text-[var(--muted-foreground)] leading-relaxed whitespace-pre-wrap">
+                    <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap">
                       {titleData.description}
                     </p>
                   </div>

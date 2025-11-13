@@ -26,8 +26,10 @@ import { RootState } from "@/store/index";
 import { Title, TitleStatus, TitleType } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
-import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { useGetTitleByIdQuery, useUpdateTitleMutation } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
+import { UpdateTitleDto } from "@/types/title";
+import { useToast } from "@/hooks/useToast";
 import Image from "next/image";
 
 // Конфигурация API
@@ -171,6 +173,7 @@ interface ErrorStateProps {
 export default function TitleEditorPage() {
   const params = useParams();
   const titleId = params.id as string;
+  const toast = useToast();
 
   const dispatch = useDispatch();
 
@@ -188,6 +191,9 @@ export default function TitleEditorPage() {
     { titleId },
     { skip: !titleId }
   );
+
+  // Хук для обновления тайтла
+  const [updateTitleMutation, { isLoading: isUpdating }] = useUpdateTitleMutation();
 
   const [formData, setFormData] = useState<Title>({
     _id: "",
@@ -257,6 +263,8 @@ export default function TitleEditorPage() {
         value = target.checked;
       } else if (target.type === "number") {
         value = parseInt(target.value) || 0;
+      } else if (field === "releaseYear" || field === "ageLimit") {
+        value = parseInt(target.value) || 0;
       }
 
       setFormData((prev) => ({ ...prev, [field]: value }));
@@ -290,12 +298,15 @@ export default function TitleEditorPage() {
     if (file) {
       setSelectedFile(file);
 
-      // Создаем preview для изображения
+      // Конвертируем файл в base64 для отправки на сервер
       const reader = new FileReader();
       reader.onload = (e) => {
+        const result = e.target?.result as string;
+        // Извлекаем base64 данные из data URL
+        const base64 = result.split(',')[1];
         setFormData((prev) => ({
           ...prev,
-          coverImage: e.target?.result as string,
+          coverImage: base64,
         }));
       };
       reader.readAsDataURL(file);
@@ -306,54 +317,54 @@ export default function TitleEditorPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      // Создаем FormData для отправки файла
-      const formDataToSend = new FormData();
+      let updateData: Partial<UpdateTitleDto>;
+      const hasFile = !!selectedFile;
 
-      // Добавляем текстовые данные
-      const textData = {
-        ...formData,
-        ageLimit: Number(formData.ageLimit),
-        releaseYear: Number(formData.releaseYear),
-        views: Number(formData.views),
-        totalChapters: chaptersCount,
-        rating: Number(formData.rating),
-        updatedAt: new Date().toISOString(),
-      };
+      if (hasFile) {
+        // При обновлении только изображения отправляем только файл
+        updateData = { coverImage: selectedFile };
+      } else {
+        // При обновлении других полей отправляем все данные
+        updateData = { ...formData };
 
-      // Удаляем coverImage из текстовых данных, если есть файл
-      if (selectedFile) {
-        delete textData.coverImage;
+        // Убеждаемся, что числовые поля являются числами
+        if (updateData.ageLimit !== undefined) {
+          updateData.ageLimit = Number(updateData.ageLimit);
+        }
+        if (updateData.releaseYear !== undefined) {
+          updateData.releaseYear = Number(updateData.releaseYear);
+        }
+        if (updateData.views !== undefined) {
+          updateData.views = Number(updateData.views);
+        }
+        if (updateData.totalChapters !== undefined) {
+          updateData.totalChapters = Number(updateData.totalChapters);
+        }
+        if (updateData.rating !== undefined) {
+          updateData.rating = Number(updateData.rating);
+        }
+
+        // Удаляем служебные поля
+        delete updateData._id;
+        delete updateData.createdAt;
+        delete updateData.updatedAt;
+        delete updateData.chapters;
       }
 
-      formDataToSend.append("data", JSON.stringify(textData));
+      // Вызываем мутацию обновления тайтла
+      const result = await updateTitleMutation({
+        id: titleId,
+        data: updateData,
+        hasFile
+      }).unwrap();
 
-      // Добавляем файл, если он выбран
-      if (selectedFile) {
-        formDataToSend.append("coverImage", selectedFile);
-      }
-
-      const response = await fetch(`${API_CONFIG.baseUrl}/titles/${titleId}`, {
-        method: "PUT",
-        body: formDataToSend,
-        // Не устанавливаем Content-Type - браузер сделает это автоматически с boundary
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          `Failed to update title: ${response.status} - ${JSON.stringify(
-            errorData
-          )}`
-        );
-      }
-
-      const updatedTitle = await response.json();
-      dispatch(updateTitle(updatedTitle));
+      // Обновляем состояние в Redux
+      dispatch(updateTitle(result.data));
       setSelectedFile(null); // Сбрасываем выбранный файл после успешного сохранения
-      alert("Тайтл успешно обновлен!");
+      toast.success("Тайтл успешно обновлен!");
     } catch (err) {
       console.error("Error updating title:", err);
-      alert(
+      toast.error(
         `Ошибка при обновлении тайтла: ${
           err instanceof Error ? err.message : "Unknown error"
         }`
@@ -397,7 +408,7 @@ export default function TitleEditorPage() {
               >
                 Открыть страницу тайтла
               </Link>
-              <FormActions isSaving={isSaving} />
+              <FormActions isSaving={isSaving || isUpdating} />
             </div>
           </form>
           <div className="space-y-6 lg:col-span-1">

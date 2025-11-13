@@ -12,6 +12,7 @@ import {
 import { TitleStatus, TitleType } from "@/types/title";
 import { useRouter } from "next/navigation";
 import { CreateTitleDto } from "@/types/title";
+import { useToast } from "@/hooks/useToast";
 
 
 interface TitleFormData {
@@ -62,6 +63,7 @@ export default function TitleEditorPage({
   params: { id?: string };
 }) {
   const router = useRouter();
+  const toast = useToast();
   const titleId = params.id;
   const isEditMode = Boolean(titleId);
 
@@ -218,29 +220,29 @@ export default function TitleEditorPage({
 
     // Валидация обязательных полей
     if (!formData.name.trim()) {
-      alert("Название обязательно для заполнения");
+      toast.error("Название обязательно для заполнения");
       return;
     }
 
     if (!formData.author.trim()) {
-      alert("Автор обязателен для заполнения");
+      toast.error("Автор обязателен для заполнения");
       return;
     }
 
     if (!formData.description.trim()) {
-      alert("Описание обязательно для заполнения");
+      toast.error("Описание обязательно для заполнения");
       return;
     }
 
     if (formData.genres.length === 0) {
-      alert("Выберите хотя бы один жанр");
+      toast.error("Выберите хотя бы один жанр");
       return;
     }
 
     // Валидация releaseYear
     const currentYear = new Date().getFullYear();
     if (formData.releaseYear < 1900 || formData.releaseYear > currentYear) {
-      alert(`Год выпуска должен быть между 1900 и ${currentYear}`);
+      toast.error(`Год выпуска должен быть между 1900 и ${currentYear}`);
       return;
     }
 
@@ -260,9 +262,9 @@ export default function TitleEditorPage({
     } catch (err: any) {
       console.error("Ошибка при сохранении:", err);
       if (err.data?.message) {
-        alert(`Ошибка: ${Array.isArray(err.data.message) ? err.data.message.join(', ') : err.data.message}`);
+        toast.error(`Ошибка: ${Array.isArray(err.data.message) ? err.data.message.join(', ') : err.data.message}`);
       } else {
-        alert("Произошла ошибка при сохранении. Проверьте консоль для подробностей.");
+        toast.error("Произошла ошибка при сохранении. Проверьте консоль для подробностей.");
       }
     }
   };

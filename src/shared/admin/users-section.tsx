@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Search, Trash2, Eye, User, Mail, Calendar } from "lucide-react";
 import { useGetUsersQuery, useDeleteUserMutation } from "@/store/api/usersApi";
 import { UserProfile } from "@/types/user";
+import { useToast } from "@/hooks/useToast";
 
 export function UsersSection() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -11,6 +12,7 @@ export function UsersSection() {
     limit: 50,
   });
   const [deleteUser] = useDeleteUserMutation();
+  const toast = useToast();
 
   const users = usersResponse?.data?.data || [];
 
@@ -22,10 +24,10 @@ export function UsersSection() {
     ) {
       try {
         await deleteUser(id).unwrap();
-        alert("Пользователь успешно удален");
+        toast.success("Пользователь успешно удален");
       } catch (error) {
         console.error("Ошибка при удалении пользователя:", error);
-        alert("Ошибка при удалении пользователя");
+        toast.error("Ошибка при удалении пользователя");
       }
     }
   };

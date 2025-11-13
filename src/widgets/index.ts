@@ -8,3 +8,4 @@ export { default as ReadChapterPage} from "./read-chapter-page/read-chapter-page
 export { default as BookmarksSection } from './profile-bookmarks/profile-bookmarks';
 export { default as ReadingHistorySection } from './profile-reading/profile-reading';
 export { default as BrowseContent } from './browse-content/browse-content';
+export { default as CollectionsContent } from './collections-content/collections-content';

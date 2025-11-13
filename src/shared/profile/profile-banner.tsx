@@ -40,6 +40,17 @@ export default function ProfileBanner({
             </p>
           </span>
         </div>
+        {/* опыт и баланс пользователя */}
+        <div className="absolute flex items-center space-x-2 top-4 left-4">
+          <span className="flex justify-center items-center text-sm gap-1">
+            <div className="flex justify-center items-center px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-2)] rounded-lg text-[var(--primary)]">
+              {userProfile.experience || 0} XP
+            </div>
+            <div className="flex justify-center items-center px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-3)] rounded-lg text-[var(--primary)]">
+              {userProfile.balance || 0} ₽
+            </div>
+          </span>
+        </div>
       </div>
 
       {/* Нижняя часть - информация */}

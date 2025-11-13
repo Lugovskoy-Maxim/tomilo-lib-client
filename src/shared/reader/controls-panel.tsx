@@ -61,7 +61,7 @@ export default function ControlsPanel({
             className="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] min-w-[120px]"
           >
             {chapters.map((ch) => (
-              <option key={ch._id || ch.id} value={ch._id || ch.number}>
+              <option key={ch._id } value={ch._id || ch.number}>
                 Глава {ch.number} {ch.title && `- ${ch.title}`}
               </option>
             ))}

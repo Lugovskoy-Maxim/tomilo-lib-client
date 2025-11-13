@@ -6,6 +6,7 @@ import {
   useGetChaptersByTitleQuery,
   useDeleteChapterMutation,
 } from "@/store/api/chaptersApi";
+import { useToast } from "@/hooks/useToast";
 
 interface ChaptersSectionProps {
   titleId: string | null;
@@ -18,6 +19,7 @@ export function ChaptersSection({
 }: ChaptersSectionProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteChapter] = useDeleteChapterMutation();
+  const toast = useToast();
 
   // Get titles for selection
   const { data: titlesResponse } = useGetTitlesQuery();
@@ -38,9 +40,9 @@ export function ChaptersSection({
     if (!confirm(`Удалить главу #${chapterNumber}?`)) return;
     try {
       await deleteChapter(id).unwrap();
-      alert("Глава удалена");
+      toast.success("Глава удалена");
     } catch (error) {
-      alert("Ошибка при удалении главы");
+      toast.error("Ошибка при удалении главы");
     }
   };
 

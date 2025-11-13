@@ -10,6 +10,7 @@ import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 
 interface BookmarksSectionProps {
   bookmarks: UserProfile["bookmarks"];
+  showAll?: boolean;
 }
 
 function BookmarksSection({
