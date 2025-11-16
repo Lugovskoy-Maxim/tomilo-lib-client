@@ -52,7 +52,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`relative p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 ${
+      className={`flex items-center p-2 hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)] ${
         isAnimating ? 'animate-pulse scale-90' : 'hover:scale-105 active:scale-95'
       }`}
       aria-label={`Тема: ${currentTheme.label}. Нажмите для смены`}

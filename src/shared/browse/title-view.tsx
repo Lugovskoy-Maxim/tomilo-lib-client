@@ -30,6 +30,8 @@ import Image from "next/image";
 import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
 import { useAuth } from "@/hooks/useAuth";
+import { CommentsSection } from "@/shared/comments";
+import { CommentEntityType } from "@/types/comment";
 
 // Shared UI
 export function TabButton({
@@ -352,17 +354,12 @@ export function ChapterItem({
   );
 }
 
-export function CommentsTab() {
+export function CommentsTab({ titleId }: { titleId: string }) {
   return (
-    <div className="text-center py-8">
-      <MessageCircle className="w-12 h-12 text-[var(--primary)] mx-auto mb-4" />
-      <h3 className="text-lg font-semibold text-[var(--primary)] mb-2">
-        Система комментариев
-      </h3>
-      <p className="text-[var(--primary)]">
-        Комментарии будут доступны в ближайшее время
-      </p>
-    </div>
+    <CommentsSection
+      entityType={CommentEntityType.TITLE}
+      entityId={titleId}
+    />
   );
 }
 
@@ -454,50 +451,14 @@ export function RightContent({
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary)] mb-3">
               {titleData.name}
             </h1>
-
-            {/* <div className="flex flex-wrap items-center gap-4 mb-4">
-              <div className="flex items-center gap-2 bg-[var(--background)] px-3 py-1 rounded-full">
-                <span className="text-sm font-semibold">
-                  {statusLabels[titleData.status]}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mb-4">
-              <span className="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-semibold">
-                {titleData.ageLimit}+
-              </span>
-              {titleData.genres?.slice(0, 3).map((genre, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-full text-sm font-semibold"
-                  onClick={() => {
-                    router.push(`/browse?genres=${encodeURIComponent(genre)}`);
-                  }}
-                >
-                  {genre}
-                </span>
-              ))}
-              {titleData.tags?.slice(0, 3).map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-[var(--accent)] text-[var(--primary)] rounded-full text-sm font-semibold"
-                  onClick={() => {
-                    router.push(`/browse?tags=${encodeURIComponent(tag)}`);
-                  }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div> */}
           </div>
 
-          <div className="flex flex-col items-end gap-3">
+          {/* <div className="flex flex-col items-end gap-3">
             <div className="flex items-center gap-2 text-sm text-[var(--primary)]">
               <Eye className="w-4 h-4" />
               <span>{titleData.views?.toLocaleString() || "0"} просмотров</span>
             </div>
-          </div>
+          </div> */}
         </div>
 
         <div className="mt-2">
@@ -713,7 +674,7 @@ export function RightContent({
               user={user}
             />
           )}
-          {activeTab === "comments" && <CommentsTab />}
+          {activeTab === "comments" && <CommentsTab titleId={titleId} />}
           {activeTab === "statistics" && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <StatItem

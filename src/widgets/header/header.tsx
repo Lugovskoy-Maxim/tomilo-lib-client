@@ -35,7 +35,7 @@ export default function Header() {
     <header className="w-full bg-[var(--secondary)]/40 border-b border-[var(--border)] h-[var(--header-height)]" >
       <div className="w-full max-w-7xl mx-auto p-4 h-16 flex items-center justify-between">
         {/* Логотип или кнопка меню для мобильных экранов */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <button
             onClick={toggleMobileMenu}
             className="lg:hidden p-2 rounded-md hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)]"
@@ -54,7 +54,7 @@ export default function Header() {
         <div className="hidden lg:block flex-1 mx-8">
           <Navigation />
         </div>
-        <div className="flex gap-4 justify-center items-center">
+        <div className="flex gap-2 justify-center items-center">
           {/* Поиск для пк */}
           <div className="hidden lg:block flex-1 max-w-md">
             <Search />
@@ -75,7 +75,7 @@ export default function Header() {
           <div className="relative">
             <button
               onClick={toggleDropdown}
-              className="p-2 rounded-md hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)]"
+              className="flex items-center p-2 hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)]"
               aria-label="Дополнительное меню"
             >
               <MoreVertical className="w-5 h-5" />
@@ -115,7 +115,7 @@ export default function Header() {
           </div>
 
           {/* UserBar */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center">
             <UserBar />
           </div>
         </div>

@@ -323,7 +323,7 @@ export default function ReadChapterPage({
         onClick={handleMobileTap}
       >
         {/* Изображения текущей главы */}
-        <div className="container mx-auto px-2 sm:px-4">
+        <div className="container mx-auto">
           {currentChapter.images.map((src, imageIndex) => (
             <div key={imageIndex} className="flex justify-center">
               <div className="relative max-w-4xl w-full">

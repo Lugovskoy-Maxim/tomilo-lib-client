@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchResult } from "@/api/searchApi";
+import { SearchResult } from "@/types/search";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -13,8 +13,7 @@ interface SearchResultsProps {
 
 const Container = ({ children }: { children: React.ReactNode }) => (
   <div
-    className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border 
-                    rounded-lg shadow-lg z-50 p-4"
+    className="absolute bg-[var(--background)]/90 w-80 top-full left-0 right-0 mt-1 bg-popover border border-[var(--border)] rounded-lg shadow-lg z-50 p-2"
     role="region"
     aria-label="Результаты поиска"
   >
@@ -22,8 +21,7 @@ const Container = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_URL || "http://localhost:3001";
+const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3001";
 
 export default function SearchResults({
   results,
@@ -41,10 +39,10 @@ export default function SearchResults({
     return (
       <Container>
         <div
-          className="flex justify-center items-center py-4"
+          className="flex justify-center items-center py-2"
           aria-live="polite"
         >
-          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-6 h-6 border-2 border-[var(--border)] border-t-transparent rounded-full animate-spin"></div>
           <span className="ml-2 text-sm text-muted-foreground">Поиск...</span>
         </div>
       </Container>
@@ -61,7 +59,10 @@ export default function SearchResults({
     );
   }
 
-  if (!Array.isArray(results) || (results.length === 0 && normalizedSearchTerm)) {
+  if (
+    !Array.isArray(results) ||
+    (results.length === 0 && normalizedSearchTerm)
+  ) {
     return (
       <Container>
         <div className="text-sm text-muted-foreground text-center">
@@ -73,13 +74,12 @@ export default function SearchResults({
 
   return (
     <Container>
-      <div className="max-h-60 overflow-y-auto" data-testid="search-results">
+      <div className="max-h-80 overflow-y-auto flex flex-col gap-1 " data-testid="search-results">
         {results.map((result) => (
           <Link
             key={result.id}
             href={`/browse/${result.id}`}
-            className="block px-4 py-3 hover:bg-accent hover:text-accent-foreground
-                        transition-colors border-b border-border last:border-b-0"
+            className="flex px-2 py-2 mr-1 hover:bg-[var(--accent)] rounded-lg hover:text-accent-foreground transition-colors border-b border-[var(--border)] last:border-b-0"
             onClick={() => {
               // Опционально: логика закрытия попапа после выбора
             }}
@@ -94,7 +94,6 @@ export default function SearchResults({
                     width={48}
                     height={64}
                     className="object-cover rounded"
-
                   />
                 </div>
               )}

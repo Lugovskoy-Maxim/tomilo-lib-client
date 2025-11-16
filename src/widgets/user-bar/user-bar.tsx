@@ -107,7 +107,7 @@ export default function UserBar() {
   // Показываем скелетон во время загрузки или до монтирования
   if (isLoading || !isMounted) {
     return (
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         <ThemeToggle />
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-full bg-[var(--border)] animate-pulse" />
@@ -118,7 +118,7 @@ export default function UserBar() {
 
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         <ThemeToggle />
 
         {isAuthenticated && <NotificationButton />}

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, MessageCircle, Hash, MoreVertical, TableOfContents } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageCircle, Hash, MoreVertical, TableOfContents, X } from "lucide-react";
 import ThemeToggle from "../theme-toggle/theme-toggle";
 import { ReaderChapter } from "@/types/chapter";
+import { CommentsSection } from "@/shared/comments";
+import { CommentEntityType } from "@/types/comment";
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -26,6 +28,7 @@ export default function ReaderControls({
   isMobileControlsVisible = true,
 }: ReaderControlsProps & { isMobileControlsVisible?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
 
   const filteredChapters = chapters.filter(chapter =>
@@ -75,13 +78,13 @@ export default function ReaderControls({
             <ThemeToggle />
           </div>
 
-          {/* Комментарии (заглушка) */}
+          {/* Комментарии */}
           <button
-            disabled
-            className="p-2 relative p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Комментарии (скоро)"
+            onClick={() => setIsCommentsOpen(!isCommentsOpen)}
+            className="p-2 relative bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
+            title="Комментарии"
           >
-            <MessageCircle className="w-4 h-4 text-[var(--muted-foreground)]" />
+            <MessageCircle className={`w-4 h-4 ${isCommentsOpen ? 'text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`} />
           </button>
         </div>
       </div>
@@ -135,14 +138,14 @@ export default function ReaderControls({
               <span className="text-[10px] text-[var(--muted-foreground)] mt-1 leading-tight">Тема</span>
             </div>
 
-            {/* Комментарии (заглушка) */}
+            {/* Комментарии */}
             <button
-              disabled
-              className="flex flex-col items-center p-2 opacity-50 cursor-not-allowed min-w-[64px]"
-              title="Комментарии (скоро)"
+              onClick={() => setIsCommentsOpen(!isCommentsOpen)}
+              className={`flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[64px] active:scale-95 ${isCommentsOpen ? 'bg-[var(--accent)]' : ''}`}
+              title="Комментарии"
             >
-              <MessageCircle className="w-5 h-5 text-[var(--muted-foreground)]" />
-              <span className="text-[10px] text-[var(--muted-foreground)] mt-1 leading-tight">Комм.</span>
+              <MessageCircle className={`w-5 h-5 ${isCommentsOpen ? 'text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`} />
+              <span className={`text-[10px] mt-1 leading-tight ${isCommentsOpen ? 'text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}>Комм.</span>
             </button>
           </div>
         </div>
@@ -196,6 +199,63 @@ export default function ReaderControls({
             setChapterSearch("");
           }}
         />
+      )}
+
+      {/* Панель комментариев */}
+      {isCommentsOpen && (
+        <>
+          {/* Overlay для закрытия панели комментариев */}
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm sm:hidden"
+            onClick={() => setIsCommentsOpen(false)}
+          />
+          
+          {/* Боковая панель комментариев (десктоп) */}
+          <div className="hidden sm:block fixed right-14 top-1/2 -translate-y-1/2 w-96 max-h-[80vh] bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-50 overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
+              <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-[var(--primary)]" />
+                Комментарии к главе
+              </h3>
+              <button
+                onClick={() => setIsCommentsOpen(false)}
+                className="p-1 hover:bg-[var(--muted)] rounded transition-colors"
+                title="Закрыть"
+              >
+                <X className="w-4 h-4 text-[var(--muted-foreground)]" />
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(80vh-60px)] p-4">
+              <CommentsSection
+                entityType={CommentEntityType.CHAPTER}
+                entityId={currentChapter._id}
+              />
+            </div>
+          </div>
+
+          {/* Мобильная панель комментариев */}
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--card)] border-t border-[var(--border)] shadow-lg max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
+              <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-[var(--primary)]" />
+                Комментарии к главе
+              </h3>
+              <button
+                onClick={() => setIsCommentsOpen(false)}
+                className="p-1 hover:bg-[var(--muted)] rounded transition-colors"
+                title="Закрыть"
+              >
+                <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-4">
+              <CommentsSection
+                entityType={CommentEntityType.CHAPTER}
+                entityId={currentChapter._id}
+              />
+            </div>
+          </div>
+        </>
       )}
     </>
   );
