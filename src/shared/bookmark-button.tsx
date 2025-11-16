@@ -64,10 +64,10 @@ export function BookmarkButton({
     <button
       onClick={handleBookmarkToggle}
       disabled={isLoading}
-      className={`flex items-center justify-center w-10 h-10 rounded-full border transition-colors ${
+      className={`p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors ${
         isBookmarked
-          ? "bg-[var(--primary)] border-[var(--primary)] text-[var(--primary-foreground)]"
-          : "bg-[var(--secondary)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-[var(--primary-foreground)]"
+          ? "bg-[var(--primary)] border-[var(--primary)] text-[var(--chart-1)]"
+          : "bg-[var(--secondary)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
       } ${className} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
       title={isBookmarked ? "Удалить из закладок" : "Добавить в закладки"}
     >

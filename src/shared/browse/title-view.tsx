@@ -48,10 +48,10 @@ export function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-3 px-4 sm:px-4 py-1 sm:py-2 font-medium transition-colors border-b-2 rounded-full hover:bg-[var(--background)]/50 ${
+      className={`flex shrink-0 items-center cursor-pointer gap-2 px-2 sm:px-2 py-1 sm:py-1 font-medium transition-colors rounded-full hover:bg-[var(--chart-1)]/70 ${
         active
           ? "border-[var(--primary)] text-[var(--primary)] bg-[var(--chart-1)]"
-          : "border-transparent text-[var(--primary)] hover:text-[var(--primary)]"
+          : "border-transparent text-[var(--primary)] hover:text-[var(--primary)]  bg-[var(--background)]/50 "
       }`}
     >
       <Icon className="w-4 h-4" />
@@ -96,7 +96,6 @@ export function InfoField({
 export function LeftSidebar({
   titleData,
   chapters,
-  onBookmark,
   onShare,
   isAdmin,
 }: {
@@ -106,8 +105,6 @@ export function LeftSidebar({
   onShare: () => void;
   isAdmin: boolean;
 }) {
-  const router = useRouter();
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col rounded-full">
@@ -214,7 +211,7 @@ export function ChaptersTab({
           placeholder="Номер или название главы"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-3 py-2 bg-[var(--background)]/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--primary)] text-sm sm:text-base"
+          className="w-full pl-10 pr-3 py-2 bg-[var(--background)]/50 rounded-full focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--primary)] text-sm sm:text-base"
         />
       </div>
 
@@ -250,7 +247,6 @@ export function ChaptersTab({
 export function ChapterItem({
   chapter,
   titleId,
-  index,
   user,
 }: {
   chapter: Chapter;
@@ -278,11 +274,8 @@ export function ChapterItem({
 
     setIsRemoving(true);
     try {
-      // TODO: Заменить на реальный вызов API
       await removeFromReadingHistory(titleId, chapter._id);
       console.log(`Removed chapter ${chapter._id} from reading history`);
-
-      // Обновление данных пользователя должно происходить в useAuth
     } catch (error) {
       console.error("Failed to remove from reading history:", error);
     } finally {
@@ -293,7 +286,7 @@ export function ChapterItem({
   return (
     <Link
       href={`/browse/${titleId}/chapter/${chapter._id}`}
-      className="flex items-center bg-[var(--background)]/50 justify-between px-3 py-2 border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors rounded-full"
+      className="flex items-center bg-[var(--background)]/50 justify-between px-2 py-2 border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors rounded-full"
     >
       <div className="flex items-center gap-3">
         {/* Иконка статуса прочтения */}
@@ -327,13 +320,15 @@ export function ChapterItem({
             />
           )}
         </div>
-        <div>
-          <div className="font-medium text-[var(--primary)] text-sm sm:text-base">
+        <div className="flex gap-1 justify-center items-center">
+          <div className="font-medium text-[var(--primary)] text-sm sm:text-sm">
             Глава {chapter.chapterNumber}
-            {chapter.title && `: ${chapter.title}`}
+            {chapter.name != `Глава ${chapter.chapterNumber.toString()}` &&
+              `: ${chapter.name}`}
           </div>
           {chapter.releaseDate && (
-            <div className="text-xs text-[var(--primary)]">
+            <div className="flex items-center gap-1 font-medium text-[var(--primary)] text-sm sm:text-sm">
+              <Calendar className="w-3 h-3" />
               {new Date(chapter.releaseDate).toLocaleDateString("ru-RU")}
             </div>
           )}
@@ -356,10 +351,7 @@ export function ChapterItem({
 
 export function CommentsTab({ titleId }: { titleId: string }) {
   return (
-    <CommentsSection
-      entityType={CommentEntityType.TITLE}
-      entityId={titleId}
-    />
+    <CommentsSection entityType={CommentEntityType.TITLE} entityId={titleId} />
   );
 }
 
@@ -417,7 +409,7 @@ export function RightContent({
   return (
     <div className="space-y-6">
       <div className=" rounded-xl">
-        <div className="flex flex-col lg:items-start lg:justify-between gap-4">
+        <div className="relative flex flex-col lg:items-start lg:justify-between gap-4">
           <div className="flex justify-between items-center w-full">
             <div className="flex gap-2">
               <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
@@ -446,6 +438,48 @@ export function RightContent({
               </button>
             </div>
           </div>
+
+          {/* Блок с цифрами для оценки тайтла */}
+          {isRatingOpen && (
+            <div className="relative flex flex-col justify-center items-end w-full ">
+              <div className="absolute top-0 right-0 flex flex-col w-max bg-[var(--background)]/80 rounded-lg p-2">
+                <div className="flex items-end justify-between mb-2">
+                  <span className="text-sm text-[var(--primary)]">
+                    Ваша оценка
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsRatingOpen(false)}
+                    className="p-1 rounded hover:bg-[var(--accent)]"
+                    aria-label="Закрыть"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex gap-2 overflow-x-auto">
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => {
+                        setPendingRating(n);
+                        setIsRatingOpen(false);
+                        // Отправляем рейтинг на сервер
+                        updateRating({ id: titleData._id, rating: n });
+                      }}
+                      className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer ${
+                        pendingRating === n
+                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                          : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary)] mb-3">
@@ -498,50 +532,11 @@ export function RightContent({
           </div>
         </div>
 
-        {isRatingOpen && (
-          <div className="mt-3 p-3 bg-[var(--background)] rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--primary)]">
-                Ваша оценка
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsRatingOpen(false)}
-                className="p-1 rounded hover:bg-[var(--accent)]"
-                aria-label="Закрыть"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex gap-2 overflow-x-auto">
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => {
-                    setPendingRating(n);
-                    setIsRatingOpen(false);
-                    // Отправляем рейтинг на сервер
-                    updateRating({ id: titleData._id, rating: n });
-                  }}
-                  className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium ${
-                    pendingRating === n
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {titleData.description && (
           <div className="mt-5">
             <div
               className={`relative ${
-                !isDescriptionExpanded ? "max-h-30 overflow-hidden" : ""
+                !isDescriptionExpanded ? "max-h-40 overflow-hidden" : ""
               }`}
             >
               <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap">
@@ -574,8 +569,8 @@ export function RightContent({
       </div>
 
       <div className="rounded-xl overflow-hidden">
-        <div className="border-b border-[var(--border)]">
-          <div className="flex overflow-x-auto">
+        <div className="p-1 rounded-full">
+          <div className="flex gap-2 pb-2 overflow-x-auto">
             <TabButton
               active={activeTab === "description"}
               onClick={() => onTabChange("description")}
@@ -607,7 +602,7 @@ export function RightContent({
           </div>
         </div>
 
-        <div className="p-4 sm:p-5 md:p-6">
+        <div className="">
           {activeTab === "description" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -616,11 +611,8 @@ export function RightContent({
               </div>
               {titleData.description && (
                 <div className="flex flex-col gap-3">
-                  <h3 className="font-semibold text-[var(--primary)] mb-3 ">
-                    Полное описание
-                  </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-[var(--background)] rounded-lg p-4 text-center">
+                    <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
                       <div className="text-xs text-[var(--primary)] mb-1">
                         Статус
                       </div>
@@ -628,7 +620,7 @@ export function RightContent({
                         {statusLabels[titleData.status]}
                       </div>
                     </div>
-                    <div className="bg-[var(--background)] rounded-lg p-4 text-center">
+                    <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
                       <div className="text-xs text-[var(--primary)] mb-1">
                         Глав
                       </div>
@@ -636,7 +628,7 @@ export function RightContent({
                         {titleData.totalChapters?.toLocaleString() || "0"}
                       </div>
                     </div>
-                    <div className="bg-[var(--background)] rounded-lg p-4 text-center">
+                    <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
                       <div className="text-xs text-[var(--primary)] mb-1">
                         Формат
                       </div>
@@ -644,7 +636,7 @@ export function RightContent({
                         В цвете
                       </div>
                     </div>
-                    <div className="bg-[var(--background)] rounded-lg p-4 text-center">
+                    <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
                       <div className="text-xs text-[var(--primary)] mb-1">
                         Просмотры
                       </div>
@@ -653,7 +645,10 @@ export function RightContent({
                       </div>
                     </div>
                   </div>
-                  <div className="bg-[var(--background)] rounded-lg p-4">
+                  <h3 className="font-semibold text-[var(--primary)] mb-3 ">
+                    Полное описание
+                  </h3>
+                  <div className="bg-[var(--background)]/50 rounded-lg p-4">
                     <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap">
                       {titleData.description}
                     </p>

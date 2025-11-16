@@ -2,28 +2,22 @@
 import { useMemo } from "react";
 import { Trophy } from "lucide-react";
 
-import { Carousel, Footer, GridSection, Header } from "@/widgets";
+import { Carousel, Footer, Header } from "@/widgets";
 import {
-  CarouselCard,
-  CollectionCard,
-  LatestUpdateCard,
+
   TopTitleCard,
   PeriodFilter,
   LoadingSkeleton,
   ErrorState,
 } from "@/shared";
 import { useHomeData } from "@/hooks/useHomeData";
-import { useStaticData } from "@/hooks/useStaticData";
 import { useSEO } from "@/hooks/useSEO";
 import { useMounted } from "@/hooks/useMounted";
 import { usePeriodFilter } from "@/hooks/usePeriodFilter";
 
-type Period = "day" | "week" | "month";
-
 export default function TopPage() {
   const mounted = useMounted();
   const { activePeriod, setActivePeriod, periodLabels } = usePeriodFilter();
-  const { collections, latestUpdates } = useStaticData();
   const { topTitlesDay, topTitlesWeek, topTitlesMonth } = useHomeData();
 
   useSEO({

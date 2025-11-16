@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/index";
-import { Chapter, Title } from "@/types/title";
+import { Chapter } from "@/types/title";
 import { User } from "@/types/auth";
 import { useParams } from "next/navigation";
 import { useIncrementViewsMutation, useGetTitleByIdQuery } from "@/store/api/titlesApi";
@@ -15,7 +15,6 @@ import {
   LeftSidebar,
   RightContent,
 } from "@/shared/browse/title-view";
-import { ContinueReadingButton } from "@/shared/continue-reading-button";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
@@ -236,10 +235,10 @@ export default function TitleViewPage() {
               />
               <button
                 onClick={handleShare}
-                className="p-3 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
+                className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
                 aria-label="Поделиться"
               >
-                <ShareIcon className="w-5 h-5 text-[var(--foreground)]" />
+                <ShareIcon className="w-4 h-4 text-[var(--foreground)]" />
               </button>
               {isAdmin && (
                 <Link

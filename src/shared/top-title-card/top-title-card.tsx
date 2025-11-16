@@ -27,11 +27,11 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
         <div className="flex gap-4 sm:hidden">
           <div className="relative flex-shrink-0">
             <Image
-              src={data.image}
+              src={process.env.NEXT_PUBLIC_URL + data.image}
               alt={data.title}
               width={120}
               height={160}
-              className="w-24 h-32 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
+              className="w-42 h-52 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
             />
             <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
               {data.rank}
@@ -81,11 +81,11 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
         <div className="hidden sm:flex flex-col items-center gap-3">
           <div className="relative">
             <Image
-              src={data.image}
+              src={process.env.NEXT_PUBLIC_URL + data.image}
               alt={data.title}
               width={120}
               height={160}
-              className="w-28 h-36 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
+              className="w-42 h-54 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
             />
             <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
               {data.rank}
@@ -93,7 +93,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
           </div>
           <div className="text-center w-full">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] text-[var(--primary)] rounded-full font-bold text-sm shadow-lg">
+              <div className="w-8 h-8 flex shrink-0 items-center justify-center bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] text-[var(--primary)] rounded-full font-bold text-sm shadow-lg">
                 <Trophy className="w-4 h-4" />
               </div>
               <h3 className="font-bold text-lg text-[var(--foreground)] leading-tight group-hover:text-[var(--primary)] transition-colors">

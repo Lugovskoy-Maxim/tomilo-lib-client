@@ -1,18 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
-import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
+
 import { useAuth } from "@/hooks/useAuth";
-import { Chapter, ReaderTitle, Title } from "@/types/title";
-import { ApiResponse } from "@/types/api";
+import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
-import { ArrowBigLeft, ArrowBigRight, Home } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import ReaderControls from "@/shared/reader/reader-controls";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
-
 
 export default function ReadChapterPage({
   title,
@@ -24,7 +21,7 @@ export default function ReadChapterPage({
   chapters: ReaderChapter[];
 }) {
   const router = useRouter();
-  const { user, updateChapterViews, addToReadingHistory } = useAuth();
+  const { updateChapterViews, addToReadingHistory } = useAuth();
 
   const titleId = title._id;
   const chapterId = chapter._id;
@@ -40,18 +37,19 @@ export default function ReadChapterPage({
 
   // Состояния для бесконечной прокрутки
   const [loadedChapters, setLoadedChapters] = useState<ReaderChapter[]>([]);
-  const [currentVisibleChapterIndex, setCurrentVisibleChapterIndex] = useState(0);
+  const [currentVisibleChapterIndex, setCurrentVisibleChapterIndex] =
+    useState(0);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
-  const lastUpdatedChapterIdRef = useRef<string>('');
+  const lastUpdatedChapterIdRef = useRef<string>("");
 
   // Состояния
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(
     new Set()
   );
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [, setIsFullscreen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
-  const [hasTapped, setHasTapped] = useState(false);
+  const [, setHasTapped] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
 
   // Refs для предотвращения повторных вызовов
@@ -89,17 +87,34 @@ export default function ReadChapterPage({
         })
         .catch(console.error);
     }
-  }, [currentVisibleChapterIndex, loadedChapters, title, updateChapterViews, addToReadingHistory]);
+  }, [
+    currentVisibleChapterIndex,
+    loadedChapters,
+    title,
+    updateChapterViews,
+    addToReadingHistory,
+  ]);
 
   // Debug logging for state changes
   useEffect(() => {
-    console.log('DEBUG: currentVisibleChapterIndex changed to:', currentVisibleChapterIndex);
-    console.log('DEBUG: loadedChapters:', loadedChapters.map(ch => ({ id: ch._id, number: ch.number })));
-    console.log('DEBUG: visible chapter:', loadedChapters[currentVisibleChapterIndex]);
+    console.log(
+      "DEBUG: currentVisibleChapterIndex changed to:",
+      currentVisibleChapterIndex
+    );
+    console.log(
+      "DEBUG: loadedChapters:",
+      loadedChapters.map((ch) => ({ id: ch._id, number: ch.number }))
+    );
+    console.log(
+      "DEBUG: visible chapter:",
+      loadedChapters[currentVisibleChapterIndex]
+    );
   }, [currentVisibleChapterIndex, loadedChapters]);
 
   // Force re-render of ReaderControls when visible chapter changes
-  const readerControlsKey = (loadedChapters[currentVisibleChapterIndex] || currentChapter)._id;
+  const readerControlsKey = (
+    loadedChapters[currentVisibleChapterIndex] || currentChapter
+  )._id;
 
   // Обновление SEO при изменении видимой главы
   const visibleChapter = useMemo(() => {
@@ -109,10 +124,11 @@ export default function ReadChapterPage({
   // Конфигурация SEO с актуальным URL
   const seoConfig = useMemo(() => {
     const chapter = visibleChapter;
-    const baseUrl = typeof window !== 'undefined' 
-      ? `${window.location.origin}/browse/${titleId}/chapter/${chapter._id}`
-      : '';
-    
+    const baseUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/browse/${titleId}/chapter/${chapter._id}`
+        : "";
+
     return {
       ...seoConfigs.chapter(
         {
@@ -138,7 +154,9 @@ export default function ReadChapterPage({
     }
 
     // Проверяем, изменилась ли текущая глава
-    const isCurrentChapterLoaded = loadedChapters.some(ch => ch._id === chapterId);
+    const isCurrentChapterLoaded = loadedChapters.some(
+      (ch) => ch._id === chapterId
+    );
 
     // Если текущая глава не загружена или это явный переход (не через прокрутку)
     if (!isCurrentChapterLoaded || loadedChapters.length === 0) {
@@ -156,69 +174,78 @@ export default function ReadChapterPage({
 
         // Прокручиваем в начало главы при явном переходе
         setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }, 100);
       }
     }
-  }, [chapterId, currentChapter, chapters]);
+  }, [chapterId, currentChapter, chapters, loadedChapters]);
 
   // Обработчик ошибок загрузки изображений
-  const handleImageError = useCallback((chapterId: string, imageIndex: number) => {
-    const errorKey = `${chapterId}-${imageIndex}`;
-    setImageLoadErrors((prev) => new Set(prev).add(errorKey));
-  }, []);
+  const handleImageError = useCallback(
+    (chapterId: string, imageIndex: number) => {
+      const errorKey = `${chapterId}-${imageIndex}`;
+      setImageLoadErrors((prev) => new Set(prev).add(errorKey));
+    },
+    []
+  );
 
   // Функция для плавного обновления URL без перезагрузки
-  const updateUrlSmoothly = useCallback((newChapterId: string) => {
-    const newUrl = `/browse/${titleId}/chapter/${newChapterId}`;
-    const currentUrl = window.location.pathname;
-    
-    // Обновляем URL только если он действительно изменился
-    if (currentUrl === newUrl) {
-      return;
-    }
-    
-    // Используем только window.history.replaceState для плавного обновления без перезагрузки
-    if (typeof window !== 'undefined' && window.history) {
-      try {
-        // Получаем текущее состояние истории
-        const currentState = window.history.state || {};
-        
-        // Обновляем URL через History API без перезагрузки страницы
-        window.history.replaceState(
-          { ...currentState, as: newUrl, url: newUrl },
-          '',
-          newUrl
-        );
-        
-        // Обновляем состояние роутера асинхронно в следующем тике, чтобы не блокировать UI
-        // Используем setTimeout с минимальной задержкой для плавности
-        setTimeout(() => {
-          // Проверяем, что URL все еще нужно обновить (на случай если пользователь уже перешел)
-          if (window.location.pathname !== newUrl) {
-            router.replace(newUrl, { scroll: false });
-          }
-        }, 0);
-      } catch (error) {
-        console.warn('Failed to update URL smoothly:', error);
-        // Fallback на обычный replace только в случае ошибки
-        router.replace(newUrl, { scroll: false });
+  const updateUrlSmoothly = useCallback(
+    (newChapterId: string) => {
+      const newUrl = `/browse/${titleId}/chapter/${newChapterId}`;
+      const currentUrl = window.location.pathname;
+
+      // Обновляем URL только если он действительно изменился
+      if (currentUrl === newUrl) {
+        return;
       }
-    }
-  }, [titleId, router]);
+
+      // Используем только window.history.replaceState для плавного обновления без перезагрузки
+      if (typeof window !== "undefined" && window.history) {
+        try {
+          // Получаем текущее состояние истории
+          const currentState = window.history.state || {};
+
+          // Обновляем URL через History API без перезагрузки страницы
+          window.history.replaceState(
+            { ...currentState, as: newUrl, url: newUrl },
+            "",
+            newUrl
+          );
+
+          // Обновляем состояние роутера асинхронно в следующем тике, чтобы не блокировать UI
+          // Используем setTimeout с минимальной задержкой для плавности
+          setTimeout(() => {
+            // Проверяем, что URL все еще нужно обновить (на случай если пользователь уже перешел)
+            if (window.location.pathname !== newUrl) {
+              router.replace(newUrl, { scroll: false });
+            }
+          }, 0);
+        } catch (error) {
+          console.warn("Failed to update URL smoothly:", error);
+          // Fallback на обычный replace только в случае ошибки
+          router.replace(newUrl, { scroll: false });
+        }
+      }
+    },
+    [titleId, router]
+  );
 
   // Функция для загрузки следующей главы
   const loadNextChapter = useCallback(() => {
     if (isLoadingNext) return;
-    
-    const lastLoadedIndex = loadedChapters.length > 0 
-      ? chapters.findIndex(ch => ch._id === loadedChapters[loadedChapters.length - 1]._id)
-      : currentChapterIndex;
-    
+
+    const lastLoadedIndex =
+      loadedChapters.length > 0
+        ? chapters.findIndex(
+            (ch) => ch._id === loadedChapters[loadedChapters.length - 1]._id
+          )
+        : currentChapterIndex;
+
     if (lastLoadedIndex < chapters.length - 1) {
       setIsLoadingNext(true);
       const nextChapter = chapters[lastLoadedIndex + 1];
-      setLoadedChapters(prev => {
+      setLoadedChapters((prev) => {
         const newChapters = [...prev, nextChapter];
         // После добавления новой главы, убеждаемся что её маркер будет наблюдаться
         setTimeout(() => {
@@ -227,7 +254,7 @@ export default function ReadChapterPage({
             try {
               chapterEndObserverRef.current.observe(newMarker);
             } catch (error) {
-              console.debug('Failed to observe new chapter marker:', error);
+              console.debug("Failed to observe new chapter marker:", error);
             }
           }
         }, 150);
@@ -251,17 +278,28 @@ export default function ReadChapterPage({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const observedChapterId = entry.target.getAttribute('data-chapter-id');
+            const observedChapterId =
+              entry.target.getAttribute("data-chapter-id");
             if (!observedChapterId) return;
 
-            console.log('IntersectionObserver triggered for chapter:', observedChapterId);
+            console.log(
+              "IntersectionObserver triggered for chapter:",
+              observedChapterId
+            );
 
             // Находим индекс видимой главы
-            const visibleIndex = loadedChapters.findIndex(ch => ch._id === observedChapterId);
+            const visibleIndex = loadedChapters.findIndex(
+              (ch) => ch._id === observedChapterId
+            );
             if (visibleIndex !== -1) {
               const newChapterId = loadedChapters[visibleIndex]._id;
 
-              console.log('Updating to chapter index:', visibleIndex, 'chapterId:', newChapterId);
+              console.log(
+                "Updating to chapter index:",
+                visibleIndex,
+                "chapterId:",
+                newChapterId
+              );
 
               // Обновляем состояние и URL только если это действительно новая глава
               if (newChapterId !== lastUpdatedChapterIdRef.current) {
@@ -286,7 +324,7 @@ export default function ReadChapterPage({
       },
       {
         root: null,
-        rootMargin: '-20% 0px -70% 0px', // Срабатывает когда маркер в верхней части экрана
+        rootMargin: "-20% 0px -70% 0px", // Срабатывает когда маркер в верхней части экрана
         threshold: 0.1,
       }
     );
@@ -300,12 +338,12 @@ export default function ReadChapterPage({
             chapterEndObserverRef.current.observe(marker);
           } catch (error) {
             // Маркер уже наблюдается или был удален - это нормально
-            console.debug('Marker observation skipped for chapter:', chapterId);
+            console.debug("Marker observation skipped for chapter:", chapterId);
           }
         }
       });
     };
-    
+
     // Используем несколько попыток для надежности при загрузке новых глав
     requestAnimationFrame(() => {
       observeMarkers();
@@ -318,7 +356,12 @@ export default function ReadChapterPage({
         chapterEndObserverRef.current.disconnect();
       }
     };
-  }, [loadedChapters, currentVisibleChapterIndex, loadNextChapter, updateUrlSmoothly]);
+  }, [
+    loadedChapters,
+    currentVisibleChapterIndex,
+    loadNextChapter,
+    updateUrlSmoothly,
+  ]);
 
   // Навигация по клавиатуре
   useEffect(() => {
@@ -347,7 +390,6 @@ export default function ReadChapterPage({
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [currentChapterIndex, chapters, titleId, router]);
-
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -403,7 +445,8 @@ export default function ReadChapterPage({
   // Проверка достижения низа страницы, скролл для хедера и предзагрузка следующей главы
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
 
@@ -411,13 +454,13 @@ export default function ReadChapterPage({
 
       if (isNearBottom) {
         setIsMobileControlsVisible(true);
-        
+
         // Предзагрузка следующей главы при приближении к концу
         if (!isLoadingNext && loadedChapters.length > 0) {
           const lastLoadedIndex = chapters.findIndex(
-            ch => ch._id === loadedChapters[loadedChapters.length - 1]._id
+            (ch) => ch._id === loadedChapters[loadedChapters.length - 1]._id
           );
-          
+
           // Если осталось меньше 500px до конца и есть следующая глава
           const distanceToBottom = documentHeight - scrollTop - windowHeight;
           if (distanceToBottom < 500 && lastLoadedIndex < chapters.length - 1) {
@@ -452,8 +495,8 @@ export default function ReadChapterPage({
       }
     };
 
-    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', throttledHandleScroll);
+    window.addEventListener("scroll", throttledHandleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", throttledHandleScroll);
   }, [lastScrollY, isLoadingNext, loadedChapters, chapters, loadNextChapter]);
 
   const loading = !currentChapter;
@@ -489,38 +532,59 @@ export default function ReadChapterPage({
       {/* Меню управления */}
       <ReaderControls
         key={readerControlsKey}
-        currentChapter={loadedChapters[currentVisibleChapterIndex] || currentChapter}
+        currentChapter={
+          loadedChapters[currentVisibleChapterIndex] || currentChapter
+        }
         chapters={chapters}
         onChapterSelect={(chapterId) =>
           router.push(`/browse/${titleId}/chapter/${chapterId}`)
         }
         onPrev={() => {
-          const visibleChapter = loadedChapters[currentVisibleChapterIndex] || currentChapter;
-          const visibleIndex = chapters.findIndex(ch => ch._id === visibleChapter._id);
+          const visibleChapter =
+            loadedChapters[currentVisibleChapterIndex] || currentChapter;
+          const visibleIndex = chapters.findIndex(
+            (ch) => ch._id === visibleChapter._id
+          );
           if (visibleIndex > 0) {
             const prevChapter = chapters[visibleIndex - 1];
             router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
           }
         }}
         onNext={() => {
-          const visibleChapter = loadedChapters[currentVisibleChapterIndex] || currentChapter;
-          const visibleIndex = chapters.findIndex(ch => ch._id === visibleChapter._id);
+          const visibleChapter =
+            loadedChapters[currentVisibleChapterIndex] || currentChapter;
+          const visibleIndex = chapters.findIndex(
+            (ch) => ch._id === visibleChapter._id
+          );
           if (visibleIndex < chapters.length - 1) {
             const nextChapter = chapters[visibleIndex + 1];
             router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
           }
         }}
-        canGoPrev={(loadedChapters[currentVisibleChapterIndex] || currentChapter) &&
-          chapters.findIndex(ch => ch._id === (loadedChapters[currentVisibleChapterIndex] || currentChapter)._id) > 0}
-        canGoNext={(loadedChapters[currentVisibleChapterIndex] || currentChapter) &&
-          chapters.findIndex(ch => ch._id === (loadedChapters[currentVisibleChapterIndex] || currentChapter)._id) < chapters.length - 1}
+        canGoPrev={
+          (loadedChapters[currentVisibleChapterIndex] || currentChapter) &&
+          chapters.findIndex(
+            (ch) =>
+              ch._id ===
+              (loadedChapters[currentVisibleChapterIndex] || currentChapter)._id
+          ) > 0
+        }
+        canGoNext={
+          (loadedChapters[currentVisibleChapterIndex] || currentChapter) &&
+          chapters.findIndex(
+            (ch) =>
+              ch._id ===
+              (loadedChapters[currentVisibleChapterIndex] || currentChapter)._id
+          ) <
+            chapters.length - 1
+        }
         isMobileControlsVisible={isMobileControlsVisible}
       />
 
       {/* Хедер */}
       <header
         className={`fixed top-0 left-0 right-0 bg-[var(--card)]/90 backdrop-blur-sm z-50 border-b border-[var(--border)] transition-transform duration-300 ${
-          isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
+          isHeaderVisible ? "translate-y-0" : "-translate-y-full"
         }`}
         onMouseEnter={handleHeaderMouseEnter}
         onMouseLeave={handleHeaderMouseLeave}
@@ -538,7 +602,6 @@ export default function ReadChapterPage({
               {/* Изображение тайтла */}
               {title.image && (
                 <div className="relative w-10 h-12 flex-shrink-0">
-
                   <Image
                     src={process.env.NEXT_PUBLIC_URL + title.image}
                     alt={title.title}
@@ -559,7 +622,7 @@ export default function ReadChapterPage({
                   {loadedChapters[currentVisibleChapterIndex] ? (
                     <>
                       Глава {loadedChapters[currentVisibleChapterIndex].number}{" "}
-                      {loadedChapters[currentVisibleChapterIndex].title && 
+                      {loadedChapters[currentVisibleChapterIndex].title &&
                         `- ${loadedChapters[currentVisibleChapterIndex].title}`}
                     </>
                   ) : (
@@ -573,9 +636,11 @@ export default function ReadChapterPage({
             </div>
 
             <div className="flex items-center space-x-2 w-full sm:w-auto">
-
               <select
-                value={loadedChapters[currentVisibleChapterIndex]?._id || currentChapter._id}
+                value={
+                  loadedChapters[currentVisibleChapterIndex]?._id ||
+                  currentChapter._id
+                }
                 onChange={(e) =>
                   router.push(`/browse/${titleId}/chapter/${e.target.value}`)
                 }
@@ -602,7 +667,10 @@ export default function ReadChapterPage({
         {/* Изображения всех загруженных глав с бесконечной прокруткой */}
         <div className="container mx-auto">
           {loadedChapters.map((chapter, chapterIdx) => (
-            <div key={`${chapter._id}-${chapterIdx}`} className="chapter-container">
+            <div
+              key={`${chapter._id}-${chapterIdx}`}
+              className="chapter-container"
+            >
               {/* Маркер начала главы для IntersectionObserver (кроме первой главы) */}
               {chapterIdx > 0 && (
                 <div
@@ -617,14 +685,16 @@ export default function ReadChapterPage({
                             chapterEndObserverRef.current.observe(el);
                           } catch (error) {
                             // Маркер уже наблюдается
-                            console.debug('Marker already observed:', error);
+                            console.debug("Marker already observed:", error);
                           }
                         }
                       });
                     } else {
                       // Удаляем маркер из observer при размонтировании
                       if (chapterMarkerRefs.current.has(chapter._id)) {
-                        const marker = chapterMarkerRefs.current.get(chapter._id);
+                        const marker = chapterMarkerRefs.current.get(
+                          chapter._id
+                        );
                         if (marker && chapterEndObserverRef.current) {
                           chapterEndObserverRef.current.unobserve(marker);
                         }
@@ -640,7 +710,7 @@ export default function ReadChapterPage({
 
               {/* Заголовок главы (только для первой главы или при переходе) */}
               {chapterIdx === 0 || chapterIdx === currentVisibleChapterIndex ? (
-                <div className="py-4 text-center border-b border-[var(--border)] mb-4">
+                <div className="py-2 text-center border-b border-[var(--border)] mb-2">
                   <h2 className="text-xl font-semibold">
                     Глава {chapter.number}
                     {chapter.title && ` - ${chapter.title}`}
@@ -652,21 +722,29 @@ export default function ReadChapterPage({
               {chapter.images.map((src, imageIndex) => {
                 const errorKey = `${chapter._id}-${imageIndex}`;
                 const isError = imageLoadErrors.has(errorKey);
-                const isFirstChapterFirstImages = chapterIdx === 0 && imageIndex < 3;
-                
+                const isFirstChapterFirstImages =
+                  chapterIdx === 0 && imageIndex < 3;
+
                 return (
-                  <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center mb-2">
+                  <div
+                    key={`${chapter._id}-${imageIndex}`}
+                    className="flex justify-center"
+                  >
                     <div className="relative max-w-4xl w-full">
                       {!isError ? (
                         <Image
                           src={src}
-                          alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
+                          alt={`Глава ${chapter.number}, Страница ${
+                            imageIndex + 1
+                          }`}
                           width={1200}
                           height={1600}
                           className="w-full h-auto shadow-2xl"
                           quality={85}
                           loading={isFirstChapterFirstImages ? "eager" : "lazy"}
-                          onError={() => handleImageError(chapter._id, imageIndex)}
+                          onError={() =>
+                            handleImageError(chapter._id, imageIndex)
+                          }
                         />
                       ) : (
                         <div className="w-full h-64 bg-[var(--card)] flex items-center justify-center">
@@ -696,17 +774,16 @@ export default function ReadChapterPage({
 
               {/* Маркер конца главы для предзагрузки следующей главы */}
               {chapterIdx === loadedChapters.length - 1 && (
-                <div
-                  className="h-20 w-full"
-                  aria-hidden="true"
-                />
+                <div className="h-20 w-full" aria-hidden="true" />
               )}
 
               {/* Индикатор загрузки следующей главы */}
               {chapterIdx === loadedChapters.length - 1 && isLoadingNext && (
                 <div className="py-8 text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto mb-2"></div>
-                  <p className="text-[var(--muted-foreground)] text-sm">Загрузка следующей главы...</p>
+                  <p className="text-[var(--muted-foreground)] text-sm">
+                    Загрузка следующей главы...
+                  </p>
                 </div>
               )}
 
@@ -715,15 +792,31 @@ export default function ReadChapterPage({
                 <div className="flex justify-center items-center space-x-4">
                   <button
                     onClick={() => {
-                      const visibleChapter = loadedChapters[currentVisibleChapterIndex] || currentChapter;
-                      const visibleIndex = chapters.findIndex(ch => ch._id === visibleChapter._id);
+                      const visibleChapter =
+                        loadedChapters[currentVisibleChapterIndex] ||
+                        currentChapter;
+                      const visibleIndex = chapters.findIndex(
+                        (ch) => ch._id === visibleChapter._id
+                      );
                       if (visibleIndex > 0) {
                         const prevChapter = chapters[visibleIndex - 1];
-                        router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
+                        router.push(
+                          `/browse/${titleId}/chapter/${prevChapter._id}`
+                        );
                       }
                     }}
-                    disabled={(loadedChapters[currentVisibleChapterIndex] || currentChapter) &&
-                      chapters.findIndex(ch => ch._id === (loadedChapters[currentVisibleChapterIndex] || currentChapter)._id) === 0}
+                    disabled={
+                      (loadedChapters[currentVisibleChapterIndex] ||
+                        currentChapter) &&
+                      chapters.findIndex(
+                        (ch) =>
+                          ch._id ===
+                          (
+                            loadedChapters[currentVisibleChapterIndex] ||
+                            currentChapter
+                          )._id
+                      ) === 0
+                    }
                     className="flex items-center space-x-2 px-4 py-2 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
                   >
                     <ArrowBigLeft className="w-4 h-4" />
@@ -732,15 +825,32 @@ export default function ReadChapterPage({
 
                   <button
                     onClick={() => {
-                      const visibleChapter = loadedChapters[currentVisibleChapterIndex] || currentChapter;
-                      const visibleIndex = chapters.findIndex(ch => ch._id === visibleChapter._id);
+                      const visibleChapter =
+                        loadedChapters[currentVisibleChapterIndex] ||
+                        currentChapter;
+                      const visibleIndex = chapters.findIndex(
+                        (ch) => ch._id === visibleChapter._id
+                      );
                       if (visibleIndex < chapters.length - 1) {
                         const nextChapter = chapters[visibleIndex + 1];
-                        router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
+                        router.push(
+                          `/browse/${titleId}/chapter/${nextChapter._id}`
+                        );
                       }
                     }}
-                    disabled={(loadedChapters[currentVisibleChapterIndex] || currentChapter) &&
-                      chapters.findIndex(ch => ch._id === (loadedChapters[currentVisibleChapterIndex] || currentChapter)._id) === chapters.length - 1}
+                    disabled={
+                      (loadedChapters[currentVisibleChapterIndex] ||
+                        currentChapter) &&
+                      chapters.findIndex(
+                        (ch) =>
+                          ch._id ===
+                          (
+                            loadedChapters[currentVisibleChapterIndex] ||
+                            currentChapter
+                          )._id
+                      ) ===
+                        chapters.length - 1
+                    }
                     className="flex items-center space-x-2 px-4 py-2 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
                   >
                     <span>Следующая глава</span>
@@ -752,20 +862,22 @@ export default function ReadChapterPage({
           ))}
 
           {/* Сообщение о завершении всех глав */}
-          {loadedChapters.length > 0 && 
-           loadedChapters[loadedChapters.length - 1]._id === chapters[chapters.length - 1]?._id && (
-            <div className="py-8 text-center border-t border-[var(--border)] mt-8">
-              <p className="text-lg font-semibold mb-2">Вы дочитали до конца!</p>
-              <button
-                onClick={() => router.push(`/browse/${titleId}`)}
-                className="px-6 py-3 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-lg transition-colors"
-              >
-                Вернуться к тайтлу
-              </button>
-            </div>
-          )}
+          {loadedChapters.length > 0 &&
+            loadedChapters[loadedChapters.length - 1]._id ===
+              chapters[chapters.length - 1]?._id && (
+              <div className="py-8 text-center border-t border-[var(--border)] mt-8">
+                <p className="text-lg font-semibold mb-2">
+                  Вы дочитали до конца!
+                </p>
+                <button
+                  onClick={() => router.push(`/browse/${titleId}`)}
+                  className="px-6 py-3 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-lg transition-colors"
+                >
+                  Вернуться к тайтлу
+                </button>
+              </div>
+            )}
         </div>
-
       </main>
 
       {/* Футер */}

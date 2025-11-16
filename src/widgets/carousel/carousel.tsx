@@ -284,7 +284,7 @@ export default function Carousel<T>({
           {data.map((item) => (
             <div
               key={getCardId(item)}
-              className={`flex-shrink-0 ${cardWidth}`}
+              className={`flex-shrink-0 flex-col ${cardWidth}`}
               data-card-id={getCardId(item)}
               data-card-type={type}
             >
