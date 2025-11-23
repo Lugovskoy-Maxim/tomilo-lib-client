@@ -331,8 +331,10 @@ const handleSubmit = async (e: FormEvent) => {
         data: formData as any, // Используем any чтобы обойти проверку типов
       }).unwrap();
 
-      // Обновляем состояние в Redux
-      dispatch(updateTitle(result.data));
+      // Обновляем состояние в Redux только если данные есть
+      if (result.data) {
+        dispatch(updateTitle(result.data));
+      }
       setSelectedFile(null);
       toast.success("Тайтл успешно обновлен!");
       return;
@@ -370,8 +372,10 @@ const handleSubmit = async (e: FormEvent) => {
         data: updateData,
       }).unwrap();
 
-      // Обновляем состояние в Redux
-      dispatch(updateTitle(result.data));
+      // Обновляем состояние в Redux только если данные есть
+      if (result.data) {
+        dispatch(updateTitle(result.data));
+      }
       toast.success("Тайтл успешно обновлен!");
     }
   } catch (err) {
