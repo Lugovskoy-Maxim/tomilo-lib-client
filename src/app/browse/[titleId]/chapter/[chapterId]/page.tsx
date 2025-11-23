@@ -99,7 +99,7 @@ export default function ChapterPage() {
     type: serverTitle.type || 'Манга',
     year: Number(serverTitle.releaseYear) || new Date().getFullYear(),
     rating: Number(serverTitle.rating) || 0,
-    image: serverTitle.coverImage || '',,
+    image: serverTitle.coverImage || '',
     genres: serverTitle.genres || [],
     description: serverTitle.description || '',
     status: serverTitle.status || 'ongoing',
