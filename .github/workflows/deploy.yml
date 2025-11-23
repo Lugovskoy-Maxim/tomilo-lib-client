@@ -76,52 +76,87 @@ jobs:
             echo "Installing dependencies and building..."
             rm -rf node_modules .next
             npm install
-            npm run build -- --no-lint
+            
+            # Собираем проект и проверяем результат
+            echo "🔨 Building Next.js application..."
+            if npm run build -- --no-lint; then
+              echo "✅ Build successful"
+              # Проверяем что сборка создалась
+              echo "Checking build output..."
+              ls -la .next/ || echo "❌ .next directory not found"
+              ls -la .next/static/ || echo "❌ .next/static directory not found"
+              test -f .next/BUILD_ID && echo "✅ BUILD_ID exists" || echo "❌ BUILD_ID not found"
+            else
+              echo "❌ Build failed"
+              exit 1
+            fi
 
             # Запускаем приложение через pm2
             echo "🔄 Starting Next.js application with PM2..."
             
             # Создаем ecosystem файл для PM2
             cat > ecosystem.config.js << 'EOF'
-            module.exports = {
-              apps: [{
-                name: 'tomilo-lib-client',
-                script: 'node_modules/next/dist/bin/next',
-                args: 'start',
-                instances: 1,
-                exec_mode: 'fork',
-                env: {
-                  NODE_ENV: 'production',
-                  PORT: 3000
-                },
-                error_file: './logs/err.log',
-                out_file: './logs/out.log',
-                log_file: './logs/combined.log',
-                time: true
-              }]
-            }
-            EOF
+module.exports = {
+  apps: [{
+    name: 'tomilo-lib-client',
+    script: 'node_modules/next/dist/bin/next',
+    args: 'start',
+    instances: 1,
+    exec_mode: 'fork',
+    env: {
+      NODE_ENV: 'production',
+      PORT: 3000
+    },
+    error_file: './logs/err.log',
+    out_file: './logs/out.log',
+    log_file: './logs/combined.log',
+    time: true
+  }]
+}
+EOF
 
             # Останавливаем старый процесс и запускаем новый
             pm2 stop tomilo-lib-client 2>/dev/null || true
             pm2 delete tomilo-lib-client 2>/dev/null || true
+            
+            # Проверяем порт 3000
+            echo "🔍 Checking port 3000..."
+            netstat -tlnp | grep 3000 || echo "Port 3000 is free"
+            
+            # Запускаем приложение
             pm2 start ecosystem.config.js
-            pm2 save
+            
+            # Даем время на запуск
+            sleep 10
 
             # Проверяем статус
             echo "PM2 process list:"
             pm2 ls
 
-            # Проверяем что приложение запустилось
+            # Проверяем что приложение запустилось и есть процесс
             echo "🔍 Checking if application is running..."
-            sleep 5
+            if pm2 show tomilo-lib-client | grep -q "online"; then
+              echo "✅ PM2 process is online"
+            else
+              echo "❌ PM2 process is not online"
+              pm2 logs tomilo-lib-client --lines 20
+              exit 1
+            fi
+
+            # Проверяем что приложение отвечает
             if curl -f http://localhost:3000 > /dev/null 2>&1; then
               echo "✅ Next.js application is running successfully on port 3000"
             else
-              echo "❌ Application failed to start"
-              # Показываем логи для диагностики
-              pm2 logs tomilo-lib-client --lines 20
-              exit 1
+              echo "⚠️  Application might be starting, checking logs..."
+              pm2 logs tomilo-lib-client --lines 10
+              # Не выходим с ошибкой, даем больше времени
+              sleep 10
+              if curl -f http://localhost:3000 > /dev/null 2>&1; then
+                echo "✅ Application started successfully after delay"
+              else
+                echo "❌ Application failed to start after multiple attempts"
+                exit 1
+              fi
             fi
 
             echo "✅ Successfully deployed Next.js client on server!"
