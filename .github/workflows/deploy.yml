@@ -34,8 +34,8 @@ jobs:
               git reset --hard origin/main
             fi
 
-            # Создаем конфиг для игнорирования всех ошибок
-            echo "🔧 Creating Next.js config to ignore all build errors..."
+            # Создаем простой конфиг для игнорирования ошибок
+            echo "🔧 Creating Next.js config to ignore build errors..."
             cat > next.config.js << 'EOF'
             /** @type {import('next').NextConfig} */
             const nextConfig = {
@@ -44,15 +44,6 @@ jobs:
               },
               eslint: {
                 ignoreDuringBuilds: true,
-              },
-              experimental: {
-                turbo: {
-                  rules: {
-                    '*.tsx': {
-                      loaders: ['typescript', '...'],
-                    },
-                  },
-                },
               },
             }
             
@@ -105,25 +96,34 @@ jobs:
             rm -rf node_modules .next
             npm install
 
-            # Собираем проект с игнорированием ошибок
-            echo "🔨 Building Next.js application (ignoring errors)..."
-            set +e  # Отключаем выход при ошибках
-            npm run build
-            BUILD_EXIT_CODE=$?
-            set -e  # Включаем обратно
-
-            if [ $BUILD_EXIT_CODE -eq 0 ]; then
-              echo "✅ Build successful"
-            else
-              echo "⚠️ Build had errors but continuing due to ignoreBuildErrors"
+            # Собираем проект БЕЗ Turbopack
+            echo "🔨 Building Next.js application (without Turbopack)..."
+            
+            # Временно изменяем package.json чтобы убрать --turbopack
+            if grep -q '"build":.*--turbopack' package.json; then
+              echo "Removing --turbopack from build script..."
+              sed -i 's/"build":.*next build --turbopack"/"build": "next build"/g' package.json
             fi
+            
+            # Выполняем сборку
+            npm run build
 
-            # Проверяем, что сборка все же создалась
+            # Проверяем результат сборки
+            echo "🔍 Checking build results..."
             if [ -d ".next" ]; then
               echo "✅ .next directory exists"
-              ls -la .next/ || echo "But cannot list contents"
+              echo "Contents of .next:"
+              ls -la .next/ || echo "Cannot list .next contents"
+              
+              if [ -f ".next/BUILD_ID" ]; then
+                echo "✅ BUILD_ID exists - production build is ready"
+                echo "BUILD_ID: $(cat .next/BUILD_ID)"
+              else
+                echo "❌ BUILD_ID not found - build may be incomplete"
+                exit 1
+              fi
             else
-              echo "❌ .next directory does not exist - cannot continue"
+              echo "❌ .next directory does not exist - build failed"
               exit 1
             fi
 
@@ -163,30 +163,20 @@ jobs:
             pm2 start ecosystem.config.js
             
             # Даем время на запуск
-            sleep 15
+            sleep 10
 
             # Проверяем статус
             echo "PM2 process list:"
             pm2 ls
 
-            # Проверяем что приложение запустилось и есть процесс
+            # Проверяем что приложение запустилось
             echo "🔍 Checking if application is running..."
             if pm2 show tomilo-lib-client | grep -q "online"; then
               echo "✅ PM2 process is online"
             else
               echo "❌ PM2 process is not online"
               pm2 logs tomilo-lib-client --lines 20
-              # Пытаемся запустить альтернативным способом
-              echo "🔄 Trying alternative startup method..."
-              cd /home/${{ secrets.VM_USERNAME }}/tomilo-lib-client
-              NODE_ENV=production PORT=3000 npx next start &
-              sleep 10
-              if curl -f http://localhost:3000 > /dev/null 2>&1; then
-                echo "✅ Application started with alternative method"
-              else
-                echo "❌ All startup methods failed"
-                exit 1
-              fi
+              exit 1
             fi
 
             # Проверяем что приложение отвечает
@@ -202,17 +192,7 @@ jobs:
                 echo "✅ Application started successfully after delay"
               else
                 echo "❌ Application failed to start after multiple attempts"
-                # Пытаемся собрать без Turbopack
-                echo "🔄 Trying build without Turbopack..."
-                rm -rf .next
-                npx next build
-                pm2 restart tomilo-lib-client
-                sleep 10
-                if curl -f http://localhost:3000 > /dev/null 2>&1; then
-                  echo "✅ Application started after rebuild without Turbopack"
-                else
-                  exit 1
-                fi
+                exit 1
               fi
             fi
 
