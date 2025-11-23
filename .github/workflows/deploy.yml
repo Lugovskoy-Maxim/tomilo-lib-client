@@ -1,4 +1,4 @@
-name: Deploy to Cloud.ru - Server Build
+name: Deploy Next.js client to home server
 
 on:
   push:
@@ -8,7 +8,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to cloud.ru server
+      - name: Deploy Next.js client to home server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VM_HOST }}
@@ -16,10 +16,10 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: ${{ secrets.VM_SSH_PORT || 22 }}
           script: |
-            echo "🚀 Deploying to cloud.ru server..."
+            echo "🚀 Deploying Next.js client to server..."
 
             # Создаем папку проекта если не существует
-            PROJECT_DIR="/home/${{ secrets.VM_USERNAME }}/tomilo-lib-server"
+            PROJECT_DIR="/home/${{ secrets.VM_USERNAME }}/tomilo-lib-client"
             mkdir -p "$PROJECT_DIR"
             cd "$PROJECT_DIR"
             echo "Current directory: $(pwd)"
@@ -47,97 +47,99 @@ jobs:
               git reset --hard origin/main
             fi
 
+            # Проверяем что мы в правильной папке
+            echo "Project contents:"
+            ls -la
             echo "Package.json exists: $(test -f package.json && echo 'YES' || echo 'NO')"
 
-            # Устанавливаем Node.js и npm правильно
-            if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
-              echo "Installing Node.js and npm..."
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S apt-get update
-              
-              # Устанавливаем curl если нет
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S apt-get install -y curl
-              
-              # Скачиваем и выполняем скрипт установки Node.js (включая npm)
-              curl -fsSL https://deb.nodesource.com/setup_18.x -o node_setup.sh
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S bash node_setup.sh
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S apt-get install -y nodejs
-              
-              # Проверяем установку
-              echo "Node.js version: $(node --version)"
-              echo "npm version: $(npm --version)"
-              
-              # Устанавливаем PM2 глобально
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S npm install -g pm2
-              
-              # Очищаем временный файл
-              rm -f node_setup.sh
+            # Устанавливаем Node.js через nvm
+            echo "🔧 Setting up Node.js 20..."
+            if [ -s "$HOME/.nvm/nvm.sh" ]; then
+              source "$HOME/.nvm/nvm.sh"
             else
-              echo "Node.js is already installed"
-              echo "Node.js version: $(node --version)"
-              echo "npm version: $(npm --version)"
+              echo "Installing nvm..."
+              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+              source "$HOME/.nvm/nvm.sh"
             fi
 
-            # Устанавливаем MongoDB используя Docker (надежнее)
-            if ! command -v docker &> /dev/null; then
-              echo "Installing Docker..."
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S apt-get update
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S apt-get install -y docker.io
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S systemctl start docker
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S systemctl enable docker
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S usermod -aG docker $USER
-            else
-              echo "Docker is already installed"
+            if ! nvm ls 20 &> /dev/null; then
+              echo "Installing Node.js 20..."
+              nvm install 20
             fi
+            nvm use 20
+            nvm alias default 20
 
-            # Запускаем MongoDB в Docker
-            if ! echo "${{ secrets.VM_PASSWORD }}" | sudo -S docker ps | grep mongodb &> /dev/null; then
-              echo "Starting MongoDB in Docker..."
-              echo "${{ secrets.VM_PASSWORD }}" | sudo -S docker run -d \
-                --name mongodb \
-                -p 27017:27017 \
-                -e MONGO_INITDB_ROOT_USERNAME=admin \
-                -e MONGO_INITDB_ROOT_PASSWORD=password \
-                --restart unless-stopped \
-                mongo:latest
-              
-              # Ждем запуска MongoDB
-              sleep 10
-            else
-              echo "MongoDB is already running in Docker"
-            fi
+            echo "Node.js version: $(node --version)"
+            echo "npm version: $(npm --version)"
 
-            # Устанавливаем зависимости проекта
-            echo "Installing project dependencies..."
-            npm install
-
-            # Настраиваем переменные окружения
-            if [ -f .env.example ]; then
+            # Копируем .env из примера, если нет
+            if [ -f .env.example ] && [ ! -f .env ]; then
               cp .env.example .env
+              echo "✅ .env created from example"
             fi
 
-            # Создаем пользователя MongoDB если скрипт существует
-            if [ -f create-user.js ]; then
-              echo "Creating MongoDB user..."
-              # Даем время MongoDB полностью запуститься
-              sleep 5
-              node create-user.js || echo "MongoDB user creation completed or skipped"
+            # Обновляем .env для продакшена
+            if [ -f .env ]; then
+              sed -i 's|NEXT_PUBLIC_API_URL=.*|NEXT_PUBLIC_API_URL=https://tomilo-lib.ru/api|g' .env
+              sed -i 's/NODE_ENV=development/NODE_ENV=production/g' .env
+              echo "✅ Updated .env for production"
             fi
 
-            # Собираем приложение
-            echo "Building application..."
+            # Устанавливаем зависимости и собираем проект
+            echo "Installing dependencies and building..."
+            rm -rf node_modules .next
+            npm install
             npm run build
 
-            # Перезапускаем приложение через PM2
-            echo "Restarting application with PM2..."
-            pm2 stop tomilo-lib-server 2>/dev/null || true
-            pm2 delete tomilo-lib-server 2>/dev/null || true
-            pm2 start dist/main.js --name "tomilo-lib-server"
-            pm2 save
-            echo "${{ secrets.VM_PASSWORD }}" | sudo -S env PATH=$PATH:/usr/bin pm2 startup -u ${{ secrets.VM_USERNAME }} --hp /home/${{ secrets.VM_USERNAME }} 2>/dev/null || echo "PM2 startup setup skipped"
+            # Запускаем приложение через pm2
+            echo "🔄 Starting Next.js application with PM2..."
+            
+            # Создаем ecosystem файл для PM2
+            cat > ecosystem.config.js << 'EOF'
+            module.exports = {
+            apps: [{
+            name: 'tomilo-lib-client',
+            script: 'node_modules/next/dist/bin/next',
+            args: 'start',
+            instances: 1,
+            exec_mode: 'fork',
+            env: {
+              NODE_ENV: 'production',
+              PORT: 3000
+            },
+            error_file: './logs/err.log',
+            out_file: './logs/out.log',
+            log_file: './logs/combined.log',
+            time: true
+              }]
+            }
+            EOF
 
-            # Очистка
+            # Останавливаем старый процесс и запускаем новый
+            pm2 stop tomilo-lib-client 2>/dev/null || true
+            pm2 delete tomilo-lib-client 2>/dev/null || true
+            pm2 start ecosystem.config.js
+            pm2 save
+
+            # Проверяем статус
+            echo "PM2 process list:"
+            pm2 ls
+
+            # Проверяем что приложение запустилось
+            echo "🔍 Checking if application is running..."
+            sleep 5
+            if curl -f http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Next.js application is running successfully on port 3000"
+            else
+              echo "❌ Application failed to start"
+              # Показываем логи для диагностики
+              pm2 logs tomilo-lib-client --lines 20
+              exit 1
+            fi
+
+            # Очистка временных ключей SSH
             if [ -f ~/.ssh/github_key ]; then
               rm -f ~/.ssh/github_key
             fi
 
-            echo "✅ Successfully deployed!"
+            echo "✅ Successfully deployed Next.js client on server!"
