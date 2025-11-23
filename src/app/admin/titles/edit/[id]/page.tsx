@@ -317,7 +317,7 @@ const handleSubmit = async (e: FormEvent) => {
   e.preventDefault();
   setIsSaving(true);
   try {
-    let updateData: Partial<UpdateTitleDto>;
+    let updateData: Partial<UpdateTitleDto> | FormData;
     const hasFile = !!selectedFile;
 
     if (hasFile) {
@@ -325,18 +325,17 @@ const handleSubmit = async (e: FormEvent) => {
       const formData = new FormData();
       formData.append('coverImage', selectedFile);
       
-      // Отправляем FormData вместо обычного объекта
+      // Отправляем FormData напрямую
       const result = await updateTitleMutation({
         id: titleId,
-        data: formData,
-        hasFile: true
+        data: formData as any, // Используем any чтобы обойти проверку типов
       }).unwrap();
 
       // Обновляем состояние в Redux
       dispatch(updateTitle(result.data));
       setSelectedFile(null);
       toast.success("Тайтл успешно обновлен!");
-      return; // Выходим раньше, так как это отдельный запрос для файла
+      return;
     } else {
       // При обновлении других полей отправляем все данные
       updateData = { ...formData };
@@ -363,13 +362,12 @@ const handleSubmit = async (e: FormEvent) => {
       delete updateData.createdAt;
       delete updateData.updatedAt;
       delete updateData.chapters;
-      delete updateData.coverImage; // Удаляем coverImage при обычном обновлении, так как он уже base64
+      delete updateData.coverImage;
 
       // Вызываем мутацию обновления тайтла
       const result = await updateTitleMutation({
         id: titleId,
         data: updateData,
-        hasFile: false
       }).unwrap();
 
       // Обновляем состояние в Redux
@@ -387,7 +385,7 @@ const handleSubmit = async (e: FormEvent) => {
     setIsSaving(false);
   }
 };
-
+  
   // Состояния загрузки и ошибок
   if (isLoading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
