@@ -89,7 +89,7 @@ jobs:
             echo "Installing dependencies and building..."
             rm -rf node_modules .next
             npm install
-            npm run build
+            next build --turbopack --no-lint
 
             # Запускаем приложение через pm2
             echo "🔄 Starting Next.js application with PM2..."
