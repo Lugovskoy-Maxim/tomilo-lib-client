@@ -313,66 +313,80 @@ export default function TitleEditorPage() {
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    try {
-      let updateData: Partial<UpdateTitleDto>;
-      const hasFile = !!selectedFile;
+const handleSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  setIsSaving(true);
+  try {
+    let updateData: Partial<UpdateTitleDto>;
+    const hasFile = !!selectedFile;
 
-      if (hasFile) {
-        // При обновлении только изображения отправляем только файл
-        updateData = { coverImage: selectedFile };
-      } else {
-        // При обновлении других полей отправляем все данные
-        updateData = { ...formData };
+    if (hasFile) {
+      // Для загрузки файла используем FormData
+      const formData = new FormData();
+      formData.append('coverImage', selectedFile);
+      
+      // Отправляем FormData вместо обычного объекта
+      const result = await updateTitleMutation({
+        id: titleId,
+        data: formData,
+        hasFile: true
+      }).unwrap();
 
-        // Убеждаемся, что числовые поля являются числами
-        if (updateData.ageLimit !== undefined) {
-          updateData.ageLimit = Number(updateData.ageLimit);
-        }
-        if (updateData.releaseYear !== undefined) {
-          updateData.releaseYear = Number(updateData.releaseYear);
-        }
-        if (updateData.views !== undefined) {
-          updateData.views = Number(updateData.views);
-        }
-        if (updateData.totalChapters !== undefined) {
-          updateData.totalChapters = Number(updateData.totalChapters);
-        }
-        if (updateData.rating !== undefined) {
-          updateData.rating = Number(updateData.rating);
-        }
+      // Обновляем состояние в Redux
+      dispatch(updateTitle(result.data));
+      setSelectedFile(null);
+      toast.success("Тайтл успешно обновлен!");
+      return; // Выходим раньше, так как это отдельный запрос для файла
+    } else {
+      // При обновлении других полей отправляем все данные
+      updateData = { ...formData };
 
-        // Удаляем служебные поля
-        delete updateData._id;
-        delete updateData.createdAt;
-        delete updateData.updatedAt;
-        delete updateData.chapters;
+      // Убеждаемся, что числовые поля являются числами
+      if (updateData.ageLimit !== undefined) {
+        updateData.ageLimit = Number(updateData.ageLimit);
       }
+      if (updateData.releaseYear !== undefined) {
+        updateData.releaseYear = Number(updateData.releaseYear);
+      }
+      if (updateData.views !== undefined) {
+        updateData.views = Number(updateData.views);
+      }
+      if (updateData.totalChapters !== undefined) {
+        updateData.totalChapters = Number(updateData.totalChapters);
+      }
+      if (updateData.rating !== undefined) {
+        updateData.rating = Number(updateData.rating);
+      }
+
+      // Удаляем служебные поля
+      delete updateData._id;
+      delete updateData.createdAt;
+      delete updateData.updatedAt;
+      delete updateData.chapters;
+      delete updateData.coverImage; // Удаляем coverImage при обычном обновлении, так как он уже base64
 
       // Вызываем мутацию обновления тайтла
       const result = await updateTitleMutation({
         id: titleId,
         data: updateData,
-        hasFile
+        hasFile: false
       }).unwrap();
 
       // Обновляем состояние в Redux
       dispatch(updateTitle(result.data));
-      setSelectedFile(null); // Сбрасываем выбранный файл после успешного сохранения
       toast.success("Тайтл успешно обновлен!");
-    } catch (err) {
-      console.error("Error updating title:", err);
-      toast.error(
-        `Ошибка при обновлении тайтла: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`
-      );
-    } finally {
-      setIsSaving(false);
     }
-  };
+  } catch (err) {
+    console.error("Error updating title:", err);
+    toast.error(
+      `Ошибка при обновлении тайтла: ${
+        err instanceof Error ? err.message : "Unknown error"
+      }`
+    );
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   // Состояния загрузки и ошибок
   if (isLoading) return <LoadingState />;
