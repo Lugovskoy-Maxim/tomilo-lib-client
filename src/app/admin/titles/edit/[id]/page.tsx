@@ -328,7 +328,7 @@ const handleSubmit = async (e: FormEvent) => {
       // Отправляем FormData напрямую
       const result = await updateTitleMutation({
         id: titleId,
-        data: formData as any, // Используем any чтобы обойти проверку типов
+        data: formData as any,
       }).unwrap();
 
       // Обновляем состояние в Redux только если данные есть
@@ -339,32 +339,21 @@ const handleSubmit = async (e: FormEvent) => {
       toast.success("Тайтл успешно обновлен!");
       return;
     } else {
-      // При обновлении других полей отправляем все данные
-      updateData = { ...formData };
-
-      // Убеждаемся, что числовые поля являются числами
-      if (updateData.ageLimit !== undefined) {
-        updateData.ageLimit = Number(updateData.ageLimit);
-      }
-      if (updateData.releaseYear !== undefined) {
-        updateData.releaseYear = Number(updateData.releaseYear);
-      }
-      if (updateData.views !== undefined) {
-        updateData.views = Number(updateData.views);
-      }
-      if (updateData.totalChapters !== undefined) {
-        updateData.totalChapters = Number(updateData.totalChapters);
-      }
-      if (updateData.rating !== undefined) {
-        updateData.rating = Number(updateData.rating);
-      }
-
-      // Удаляем служебные поля
-      delete updateData._id;
-      delete updateData.createdAt;
-      delete updateData.updatedAt;
-      delete updateData.chapters;
-      delete updateData.coverImage;
+      // При обновлении других полей отправляем только разрешенные поля
+      updateData = {
+        name: formData.name,
+        altNames: formData.altNames,
+        description: formData.description,
+        genres: formData.genres,
+        tags: formData.tags,
+        artist: formData.artist,
+        status: formData.status,
+        author: formData.author,
+        releaseYear: Number(formData.releaseYear),
+        ageLimit: Number(formData.ageLimit),
+        isPublished: formData.isPublished,
+        type: formData.type,
+      };
 
       // Вызываем мутацию обновления тайтла
       const result = await updateTitleMutation({
