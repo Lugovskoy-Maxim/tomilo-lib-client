@@ -24,23 +24,10 @@ jobs:
             cd "$PROJECT_DIR"
             echo "Current directory: $(pwd)"
 
-            # Настраиваем SSH для GitHub
-            if [ -n "${{ secrets.GITHUB_SSH_KEY }}" ]; then
-              mkdir -p ~/.ssh
-              echo "${{ secrets.GITHUB_SSH_KEY }}" > ~/.ssh/github_key
-              chmod 600 ~/.ssh/github_key
-              ssh-keyscan github.com >> ~/.ssh/known_hosts
-              git config --global core.sshCommand "ssh -i ~/.ssh/github_key -o StrictHostKeyChecking=no"
-            fi
-
-            # Клонируем или обновляем репозиторий
+            # Клонируем или обновляем репозиторий через HTTPS (не требует SSH ключа)
             if [ ! -d .git ]; then
               echo "Cloning repository for the first time..."
-              if [ -n "${{ secrets.GITHUB_SSH_KEY }}" ]; then
-                git clone git@github.com:${{ github.repository }}.git .
-              else
-                git clone https://github.com/${{ github.repository }}.git .
-              fi
+              git clone https://github.com/${{ github.repository }}.git .
             else
               echo "Updating existing repository..."
               git fetch origin
@@ -85,35 +72,35 @@ jobs:
               echo "✅ Updated .env for production"
             fi
 
-            # Устанавливаем зависимости и собираем проект
+            # Устанавливаем зависимости и собираем проект (пропускаем линтинг)
             echo "Installing dependencies and building..."
             rm -rf node_modules .next
             npm install
-            next build --turbopack --no-lint
+            npm run build -- --no-lint
 
             # Запускаем приложение через pm2
             echo "🔄 Starting Next.js application with PM2..."
             
             # Создаем ecosystem файл для PM2
             cat > ecosystem.config.js << 'EOF'
-            module.exports = {
-            apps: [{
-            name: 'tomilo-lib-client',
-            script: 'node_modules/next/dist/bin/next',
-            args: 'start',
-            instances: 1,
-            exec_mode: 'fork',
-            env: {
-              NODE_ENV: 'production',
-              PORT: 3000
-            },
-            error_file: './logs/err.log',
-            out_file: './logs/out.log',
-            log_file: './logs/combined.log',
-            time: true
-              }]
-            }
-            EOF
+module.exports = {
+  apps: [{
+    name: 'tomilo-lib-client',
+    script: 'node_modules/next/dist/bin/next',
+    args: 'start',
+    instances: 1,
+    exec_mode: 'fork',
+    env: {
+      NODE_ENV: 'production',
+      PORT: 3000
+    },
+    error_file: './logs/err.log',
+    out_file: './logs/out.log',
+    log_file: './logs/combined.log',
+    time: true
+  }]
+}
+EOF
 
             # Останавливаем старый процесс и запускаем новый
             pm2 stop tomilo-lib-client 2>/dev/null || true
@@ -135,11 +122,6 @@ jobs:
               # Показываем логи для диагностики
               pm2 logs tomilo-lib-client --lines 20
               exit 1
-            fi
-
-            # Очистка временных ключей SSH
-            if [ -f ~/.ssh/github_key ]; then
-              rm -f ~/.ssh/github_key
             fi
 
             echo "✅ Successfully deployed Next.js client on server!"
