@@ -3,6 +3,7 @@
 import { Footer, Header } from "@/widgets";
 import { Plus, BookOpen, Tag, Edit, Save } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   useCreateTitleMutation,
@@ -57,14 +58,11 @@ const availableGenres = [
   "Сейнен",
 ];
 
-export default function TitleEditorPage({
-  params,
-}: {
-  params: { id?: string };
-}) {
+export default function TitleEditorPage() {
+  const params = useParams();
   const router = useRouter();
   const toast = useToast();
-  const titleId = params.id;
+  const titleId = params.id as string | undefined;
   const isEditMode = Boolean(titleId);
 
   // API hooks
