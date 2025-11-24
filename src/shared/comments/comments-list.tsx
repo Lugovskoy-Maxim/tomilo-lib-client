@@ -3,7 +3,7 @@
 import React from 'react';
 import { Comment } from '@/types/comment';
 import { CommentItem } from './comment-item';
-import LoadingSkeleton from '@/shared/loading-skeleton';
+import LoadingSkeleton from '@/shared/skeleton';
 
 interface CommentsListProps {
   comments: Comment[];

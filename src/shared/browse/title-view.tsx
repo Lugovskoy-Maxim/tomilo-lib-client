@@ -124,7 +124,7 @@ export function LeftSidebar({
 
         <div className="flex gap-2">
           <BookmarkButton
-            titleId={titleData._id}
+            titleId={titleData?._id || ''}
             initialBookmarked={false}
             className="py-2 w-full h-10 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
           />
@@ -135,7 +135,7 @@ export function LeftSidebar({
           >
             <ShareIcon className="w-4 h-4" />
           </button>
-          {isAdmin && (
+          {isAdmin && titleData?._id && (
             <Link
               href={`/admin/titles/edit/${titleData._id}`}
               className="w-full h-10 py-2 bg-[var(--chart-1)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/80 transition-colors flex items-center justify-center gap-2"
@@ -257,7 +257,9 @@ export function ChapterItem({
   const isRead = user?.readingHistory?.some(
     (historyItem) =>
       historyItem.titleId._id === titleId &&
-      historyItem.chapters?.some((ch) => ch.chapterId._id === chapter._id)
+      historyItem.chapters &&
+      Array.isArray(historyItem.chapters) &&
+      historyItem.chapters.some((ch) => ch.chapterId._id === chapter._id)
   );
 
   // Функция для удаления из истории чтения
@@ -421,7 +423,7 @@ export function RightContent({
                 {formatRating(
                   typeof pendingRating === "number"
                     ? pendingRating
-                    : titleData.rating
+                    : titleData?.rating
                 )}
               </span>
               <button
@@ -460,7 +462,7 @@ export function RightContent({
                         setPendingRating(n);
                         setIsRatingOpen(false);
                         // Отправляем рейтинг на сервер
-                        updateRating({ id: titleData._id, rating: n });
+                        updateRating({ id: titleData?._id, rating: n });
                       }}
                       className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer ${
                         pendingRating === n
@@ -478,7 +480,7 @@ export function RightContent({
 
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary)] mb-3">
-              {titleData.name}
+              {titleData?.name}
             </h1>
           </div>
 
@@ -496,18 +498,18 @@ export function RightContent({
               className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-xs font-semibold bg-[var(--background)]/60"
               onClick={() => {
                 router.push(
-                  `/browse?ageLimit=${encodeURIComponent(titleData.ageLimit)}`
+                  `/browse?ageLimit=${encodeURIComponent(titleData?.ageLimit || '')}`
                 );
               }}
             >
-              {titleData.ageLimit}+
+              {titleData?.ageLimit}+
             </span>
             {titleData.genres?.map((genre, index) => (
               <span
                 key={index}
                 className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--primary)]"
                 onClick={() => {
-                  router.push(`/browse?genres=${encodeURIComponent(genre)}`);
+                  router.push(`/browse?genres=${encodeURIComponent(genre || '')}`);
                 }}
               >
                 {genre}
@@ -518,7 +520,7 @@ export function RightContent({
                 key={index}
                 className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--primary)]"
                 onClick={() => {
-                  router.push(`/browse?tags=${encodeURIComponent(tag)}`);
+                  router.push(`/browse?tags=${encodeURIComponent(tag || '')}`);
                 }}
               >
                 {tag}
@@ -535,7 +537,7 @@ export function RightContent({
               }`}
             >
               <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap">
-                {titleData.description}
+                {titleData?.description}
               </p>
               {!isDescriptionExpanded && (
                 <div className="absolute bottom-0 left-0 right-0 h-8 to-transparent" />
@@ -578,7 +580,7 @@ export function RightContent({
               onClick={() => onTabChange("chapters")}
               icon={ChevronDown}
             >
-              Главы ({titleData.totalChapters || 0})
+              Главы ({titleData?.totalChapters || 0})
             </TabButton>
             <TabButton
               active={activeTab === "comments"}
@@ -601,8 +603,8 @@ export function RightContent({
           {activeTab === "description" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InfoField label="Автор" value={titleData.author} />
-                <InfoField label="Художник" value={titleData.artist} />
+                <InfoField label="Автор" value={titleData?.author} />
+                <InfoField label="Художник" value={titleData?.artist} />
               </div>
               {titleData.description && (
                 <div className="flex flex-col gap-3">
@@ -612,7 +614,7 @@ export function RightContent({
                         Статус
                       </div>
                       <div className="font-bold text-[var(--primary)]">
-                        {statusLabels[titleData.status]}
+                        {statusLabels[titleData?.status || TitleStatus.ONGOING]}
                       </div>
                     </div>
                     <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
@@ -620,7 +622,7 @@ export function RightContent({
                         Глав
                       </div>
                       <div className="font-bold text-[var(--primary)]">
-                        {titleData.totalChapters?.toLocaleString() || "0"}
+                        {titleData?.totalChapters?.toLocaleString() || "0"}
                       </div>
                     </div>
                     <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
@@ -636,7 +638,7 @@ export function RightContent({
                         Просмотры
                       </div>
                       <div className="font-bold text-[var(--primary)]">
-                        {titleData.views?.toLocaleString() || "0"}
+                        {titleData?.views?.toLocaleString() || "0"}
                       </div>
                     </div>
                   </div>
@@ -645,7 +647,7 @@ export function RightContent({
                   </h3>
                   <div className="bg-[var(--background)]/50 rounded-lg p-4">
                     <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap">
-                      {titleData.description}
+                      {titleData?.description}
                     </p>
                   </div>
                 </div>
@@ -669,19 +671,19 @@ export function RightContent({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <StatItem
                 label="Просмотры"
-                value={titleData.views?.toLocaleString() || "0"}
+                value={titleData?.views?.toLocaleString() || "0"}
               />
               <StatItem
                 label="Оценка"
-                value={titleData.rating?.toFixed(2) || "0.00"}
+                value={titleData?.rating?.toFixed(2) || "0.00"}
               />
               <StatItem
                 label="Год релиза"
-                value={String(titleData.releaseYear)}
+                value={String(titleData?.releaseYear || '')}
               />
               <StatItem
                 label="Глав"
-                value={titleData.totalChapters?.toLocaleString() || "0"}
+                value={titleData?.totalChapters?.toLocaleString() || "0"}
               />
             </div>
           )}

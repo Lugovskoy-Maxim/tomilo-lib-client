@@ -14,7 +14,7 @@ import {
   UpdateCollectionDto,
 } from "@/types/collection";
 import Modal from "@/shared/modal/modal";
-import LoadingSkeleton from "@/shared/loading-skeleton";
+import LoadingSkeleton from "@/shared/skeleton";
 import SharedErrorState from "@/shared/error-state";
 
 interface CollectionsSectionProps {

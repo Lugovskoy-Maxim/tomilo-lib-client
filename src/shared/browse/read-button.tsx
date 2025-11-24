@@ -21,13 +21,17 @@ export function ReadButton({
 
   // Находим следующую главу для чтения
   const getNextChapter = () => {
+    // Проверяем, что titleData существует
+    if (!titleData) return null;
+    
     // Если есть продолжение чтения и оно относится к текущему тайтлу
     const readingHistoryItem = user?.readingHistory?.find(
-      (item: User['readingHistory'][0]) => item.titleId._id === titleData._id
+      (item: User['readingHistory'][0]) => item.titleId._id === titleData?._id
     );
     if (
       readingHistoryItem &&
       readingHistoryItem.chapters &&
+      Array.isArray(readingHistoryItem.chapters) &&
       readingHistoryItem.chapters.length > 0
     ) {
       // Получаем последнюю прочитанную главу
@@ -66,7 +70,7 @@ export function ReadButton({
   const nextChapter = getNextChapter();
 
   const handleClick = () => {
-    if (nextChapter) {
+    if (nextChapter && titleData?._id) {
       router.push(`/browse/${titleData._id}/chapter/${nextChapter._id}`);
     }
   };
@@ -90,11 +94,12 @@ export function ReadButton({
 
   // Если есть продолжение чтения для этого тайтла
   const readingHistoryItem = user?.readingHistory?.find(
-    (item: User['readingHistory'][0]) => item.titleId._id === titleData._id
+    (item: User['readingHistory'][0]) => item.titleId._id === titleData?._id
   );
   if (
     readingHistoryItem &&
     readingHistoryItem.chapters &&
+    Array.isArray(readingHistoryItem.chapters) &&
     readingHistoryItem.chapters.length > 0
   ) {
     if (nextChapter) {
