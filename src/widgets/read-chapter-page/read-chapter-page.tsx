@@ -288,6 +288,7 @@ export default function ReadChapterPage({
               {title.image && (
                 <div className="relative w-10 h-12 flex-shrink-0">
                   <Image
+                    loader={() => getImageUrl(title.image)}
                     src={getImageUrl(title.image)}
                     alt={title.title}
                     fill
@@ -362,6 +363,7 @@ export default function ReadChapterPage({
                   <div className="relative max-w-4xl w-full">
                     {!isError ? (
                       <Image
+                      loader={() => imageUrl}
                         src={imageUrl}
                         alt={`Глава ${chapter.number}, Страница ${
                           imageIndex + 1
