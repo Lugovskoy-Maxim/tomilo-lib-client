@@ -212,11 +212,12 @@ export default function TitleViewPage() {
             <div className="relative w-full aspect-[2/3] max-w-md mx-auto rounded-xl overflow-hidden shadow-2xl">
               {processedTitleData?.coverImage ? (
                 <Image
-                  src={process.env.NEXT_PUBLIC_URL + processedTitleData.coverImage}
-                  alt={processedTitleData?.name || 'Обложка тайтла'}
-                  fill
+                  src={`${process.env.NEXT_PUBLIC_URL}${processedTitleData.coverImage}`}
+                  alt={processedTitleData?.name}
+                  unoptimized={true}
                   className="object-cover"
                   priority
+                  sizes="(max-width: 768px) 100vw, 33vw"
                 />
               ) : (
                 <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-full" />

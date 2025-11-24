@@ -282,24 +282,12 @@ export default function ReadChapterPage({
               entry.target.getAttribute("data-chapter-id");
             if (!observedChapterId) return;
 
-            console.log(
-              "IntersectionObserver triggered for chapter:",
-              observedChapterId
-            );
-
             // Находим индекс видимой главы
             const visibleIndex = loadedChapters.findIndex(
               (ch) => ch._id === observedChapterId
             );
             if (visibleIndex !== -1) {
               const newChapterId = loadedChapters[visibleIndex]._id;
-
-              console.log(
-                "Updating to chapter index:",
-                visibleIndex,
-                "chapterId:",
-                newChapterId
-              );
 
               // Обновляем состояние и URL только если это действительно новая глава
               if (newChapterId !== lastUpdatedChapterIdRef.current) {

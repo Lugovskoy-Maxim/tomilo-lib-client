@@ -110,7 +110,8 @@ export function LeftSidebar({
             src={process.env.NEXT_PUBLIC_URL + titleData.coverImage}
             alt={titleData.name}
             unoptimized={true}
-            className="w-full max-w-[320px] mx-auto lg:max-w-none h-auto rounded-2xl shadow-lg mb-4 object-cover lg:block hidden"
+            className="w-full max-w-[320px] mx-auto lg:max-w-none h-auto rounded-2xl shadow-lg mb-4 object-cover"
+            sizes="(max-width: 1024px) 320px, 25vw"
           />
         )}
 
