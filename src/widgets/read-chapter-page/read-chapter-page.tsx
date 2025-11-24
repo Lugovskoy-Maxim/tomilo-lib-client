@@ -275,7 +275,7 @@ export default function ReadChapterPage({
               {title.image && (
                 <div className="relative w-10 h-12 flex-shrink-0">
                   <Image
-                    src={process.env.NEXT_PUBLIC_URL + title.image}
+                    src={`${process.env.NEXT_PUBLIC_URL}${title.image}`}
                     alt={title.title}
                     fill
                     className="object-cover rounded-md"
@@ -336,7 +336,9 @@ export default function ReadChapterPage({
             {chapter.images.map((src, imageIndex) => {
               const errorKey = `${chapter._id}-${imageIndex}`;
               const isError = imageLoadErrors.has(errorKey);
-
+              {
+                console.log("Image src:", src);
+              }
               return (
                 <div
                   key={`${chapter._id}-${imageIndex}`}
@@ -345,7 +347,7 @@ export default function ReadChapterPage({
                   <div className="relative max-w-4xl w-full">
                     {!isError ? (
                       <Image
-                        src={src}
+                        src={`${process.env.NEXT_PUBLIC_URL}${src}`}
                         alt={`Глава ${chapter.number}, Страница ${
                           imageIndex + 1
                         }`}
