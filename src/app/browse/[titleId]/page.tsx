@@ -213,7 +213,7 @@ export default function TitleViewPage() {
               {processedTitleData?.coverImage ? (
                 <Image
                   src={process.env.NEXT_PUBLIC_URL + processedTitleData.coverImage}
-                  alt={processedTitleData.name}
+                  alt={processedTitleData?.name || 'Обложка тайтла'}
                   fill
                   className="object-cover"
                   priority

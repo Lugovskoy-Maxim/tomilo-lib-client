@@ -256,10 +256,10 @@ export function ChapterItem({
   // Проверяем, прочитана ли глава
   const isRead = user?.readingHistory?.some(
     (historyItem) =>
-      historyItem.titleId._id === titleId &&
+      historyItem.titleId?._id === titleId &&
       historyItem.chapters &&
       Array.isArray(historyItem.chapters) &&
-      historyItem.chapters.some((ch) => ch.chapterId._id === chapter._id)
+      historyItem.chapters.some((ch) => ch.chapterId?._id === chapter._id)
   );
 
   // Функция для удаления из истории чтения
@@ -462,7 +462,7 @@ export function RightContent({
                         setPendingRating(n);
                         setIsRatingOpen(false);
                         // Отправляем рейтинг на сервер
-                        updateRating({ id: titleData?._id, rating: n });
+                        updateRating({ id: titleData?._id || '', rating: n });
                       }}
                       className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer ${
                         pendingRating === n
