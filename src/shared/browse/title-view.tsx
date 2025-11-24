@@ -125,7 +125,7 @@ export function LeftSidebar({
 
         <div className="flex gap-2">
           <BookmarkButton
-            titleId={titleData?._id || ''}
+            titleId={titleData?._id || ""}
             initialBookmarked={false}
             className="py-2 w-full h-10 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
           />
@@ -255,23 +255,23 @@ export function ChapterItem({
   const [isRemoving, setIsRemoving] = useState(false);
 
   // Проверяем, прочитана ли глава
-  const isRead = user?.readingHistory?.some(
-    (historyItem) =>
-      historyItem &&
-      typeof historyItem === 'object' &&
-      historyItem.titleId &&
-      typeof historyItem.titleId === 'object' &&
-      historyItem.titleId._id === titleId &&
-      historyItem.chapters &&
-      Array.isArray(historyItem.chapters) &&
-      historyItem.chapters.some((ch) =>
-        ch &&
-        typeof ch === 'object' &&
-        ch.chapterId &&
-        typeof ch.chapterId === 'object' &&
-        ch.chapterId._id === chapter._id
-      )
-  ) || false;
+  const isRead =
+    user?.readingHistory?.some(
+      (historyItem) =>
+        historyItem &&
+        typeof historyItem === "object" &&
+        historyItem.titleId != null &&
+        historyItem.titleId._id === titleId &&
+        historyItem.chapters &&
+        Array.isArray(historyItem.chapters) &&
+        historyItem.chapters.some(
+          (ch) =>
+            ch &&
+            typeof ch === "object" &&
+            ch.chapterId != null &&
+            ch.chapterId._id === chapter._id
+        )
+    ) || false;
 
   // Функция для удаления из истории чтения
   const handleRemoveFromHistory = async (e: React.MouseEvent) => {
@@ -473,7 +473,7 @@ export function RightContent({
                         setPendingRating(n);
                         setIsRatingOpen(false);
                         // Отправляем рейтинг на сервер
-                        updateRating({ id: titleData?._id || '', rating: n });
+                        updateRating({ id: titleData?._id || "", rating: n });
                       }}
                       className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer ${
                         pendingRating === n
@@ -509,7 +509,9 @@ export function RightContent({
               className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-xs font-semibold bg-[var(--background)]/60"
               onClick={() => {
                 router.push(
-                  `/browse?ageLimit=${encodeURIComponent(titleData?.ageLimit || '')}`
+                  `/browse?ageLimit=${encodeURIComponent(
+                    titleData?.ageLimit || ""
+                  )}`
                 );
               }}
             >
@@ -520,7 +522,9 @@ export function RightContent({
                 key={index}
                 className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--primary)]"
                 onClick={() => {
-                  router.push(`/browse?genres=${encodeURIComponent(genre || '')}`);
+                  router.push(
+                    `/browse?genres=${encodeURIComponent(genre || "")}`
+                  );
                 }}
               >
                 {genre}
@@ -531,7 +535,7 @@ export function RightContent({
                 key={index}
                 className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--primary)]"
                 onClick={() => {
-                  router.push(`/browse?tags=${encodeURIComponent(tag || '')}`);
+                  router.push(`/browse?tags=${encodeURIComponent(tag || "")}`);
                 }}
               >
                 {tag}
@@ -690,7 +694,7 @@ export function RightContent({
               />
               <StatItem
                 label="Год релиза"
-                value={String(titleData?.releaseYear || '')}
+                value={String(titleData?.releaseYear || "")}
               />
               <StatItem
                 label="Глав"
