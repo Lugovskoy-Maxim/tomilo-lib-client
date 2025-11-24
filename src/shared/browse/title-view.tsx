@@ -257,16 +257,20 @@ export function ChapterItem({
   const isRead = user?.readingHistory?.some(
     (historyItem) =>
       historyItem &&
+      typeof historyItem === 'object' &&
       historyItem.titleId &&
-      historyItem.titleId?._id === titleId &&
+      typeof historyItem.titleId === 'object' &&
+      historyItem.titleId._id === titleId &&
       historyItem.chapters &&
       Array.isArray(historyItem.chapters) &&
       historyItem.chapters.some((ch) =>
         ch &&
+        typeof ch === 'object' &&
         ch.chapterId &&
-        ch.chapterId?._id === chapter._id
+        typeof ch.chapterId === 'object' &&
+        ch.chapterId._id === chapter._id
       )
-  );
+  ) || false;
 
   // Функция для удаления из истории чтения
   const handleRemoveFromHistory = async (e: React.MouseEvent) => {
