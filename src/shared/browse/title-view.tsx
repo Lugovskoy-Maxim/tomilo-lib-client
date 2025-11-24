@@ -256,10 +256,16 @@ export function ChapterItem({
   // Проверяем, прочитана ли глава
   const isRead = user?.readingHistory?.some(
     (historyItem) =>
+      historyItem &&
+      historyItem.titleId &&
       historyItem.titleId?._id === titleId &&
       historyItem.chapters &&
       Array.isArray(historyItem.chapters) &&
-      historyItem.chapters.some((ch) => ch.chapterId?._id === chapter._id)
+      historyItem.chapters.some((ch) =>
+        ch &&
+        ch.chapterId &&
+        ch.chapterId?._id === chapter._id
+      )
   );
 
   // Функция для удаления из истории чтения
