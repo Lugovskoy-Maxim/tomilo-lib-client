@@ -28,7 +28,7 @@ interface UserDropdownProps {
 }
 
 export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDropdownProps) {
-  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const [activeSubmenu] = useState<string | null>(null);
   const router = useRouter();
 
   if (!isOpen) return null;

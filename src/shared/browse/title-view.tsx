@@ -12,18 +12,13 @@ import {
   Eye,
   Globe,
   MessageCircle,
-  Play,
-  Bookmark as BookmarkIcon,
   Share as ShareIcon,
   Edit,
   Search,
   X,
-  Trash2,
-  CheckCircle,
   EyeOff,
 } from "lucide-react";
 import { Title, TitleStatus, Chapter } from "@/types/title";
-import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";

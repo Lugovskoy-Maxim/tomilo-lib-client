@@ -63,25 +63,30 @@ export function CommentForm({
       }
       setContent('');
       onSubmit?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save comment:', error);
       // Более детальное логирование ошибки
-      if (error?.data) {
-        console.error('Error data:', error.data);
-        if (error.data?.errors) {
-          console.error('Validation errors:', error.data.errors);
+      if (typeof error === 'object' && error !== null) {
+        const err = error as Record<string, unknown>;
+        if ('data' in err) {
+          const data = err.data as Record<string, unknown> | undefined;
+          console.error('Error data:', data);
+          if (data?.errors && Array.isArray(data.errors)) {
+            console.error('Validation errors:', data.errors);
+          }
+          if (data?.message && typeof data.message === 'string') {
+            console.error('Error message:', data.message);
+          }
         }
-        if (error.data?.message) {
-          console.error('Error message:', error.data.message);
+        if ('status' in err) {
+          console.error('Error status:', err.status);
         }
-      }
-      if (error?.status) {
-        console.error('Error status:', error.status);
       }
       // Показываем пользователю понятное сообщение
+      const errData = ((error as Record<string, unknown>).data) as Record<string, unknown> | undefined;
       alert(
-        error?.data?.message ||
-        error?.data?.errors?.join(', ') ||
+        (errData?.message as string | undefined) ||
+        (Array.isArray(errData?.errors) ? errData?.errors.join(', ') : undefined) ||
         'Не удалось отправить комментарий. Проверьте консоль для подробностей.'
       );
     }

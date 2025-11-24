@@ -338,7 +338,7 @@ export default function ReadChapterPage({
             chapterEndObserverRef.current.observe(marker);
           } catch (error) {
             // Маркер уже наблюдается или был удален - это нормально
-            console.debug("Marker observation skipped for chapter:", chapterId);
+            console.debug("Marker observation skipped for chapter:", chapterId, error);
           }
         }
       });
@@ -413,21 +413,6 @@ export default function ReadChapterPage({
     headerTimeoutRef.current = setTimeout(() => {
       setIsHeaderVisible(false);
     }, 1000); // Скрываем через 1 секунду
-  };
-
-  // Обработчик скролла для авто-скрытия хедера
-  const handleScroll = () => {
-    const currentScrollY = window.scrollY;
-
-    if (currentScrollY > lastScrollY && currentScrollY > 100) {
-      // Скролл вниз - скрываем хедер
-      setIsHeaderVisible(false);
-    } else if (currentScrollY < lastScrollY) {
-      // Скролл вверх - показываем хедер
-      setIsHeaderVisible(true);
-    }
-
-    setLastScrollY(currentScrollY);
   };
 
   // Обработчики для мобильных контролов

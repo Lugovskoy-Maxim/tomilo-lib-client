@@ -41,7 +41,6 @@ export default function HistoryPage() {
 
           <ReadingHistorySection
             readingHistory={userProfile.readingHistory}
-            showAll={true}
           />
         </div>
 

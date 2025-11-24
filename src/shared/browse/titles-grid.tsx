@@ -25,7 +25,7 @@ const titleToCardProps = (title: GridTitle): CardProps => ({
   type: title.type,
   year: title.year,
   rating: title.rating,
-  image: title.image,
+  image: title.image || '',
   genres: title.genres,
 });
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Comment, CommentUser } from '@/types/comment';
+import { Comment } from '@/types/comment';
 import { useAuth } from '@/hooks/useAuth';
 import {
   useLikeCommentMutation,

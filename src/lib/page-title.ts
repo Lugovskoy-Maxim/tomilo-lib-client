@@ -16,7 +16,7 @@ class PageTitleHelper {
     }
   }
 
-  setTitleWithSuffix(title: string, suffix: string) {
+  setTitleWithSuffix(title: string) {
     if (typeof document !== 'undefined') {
       document.title = title;
     }

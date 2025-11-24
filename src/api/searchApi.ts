@@ -22,3 +22,4 @@ export async function searchApi(term: string, signal?: AbortSignal): Promise<Sea
     return [];
   }
 }
+

@@ -1,33 +1,54 @@
 "use client";
+import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   MobileFilterButton,
-  SortAndSearch,
   Pagination,
   FilterSidebar,
 } from "@/shared";
+import CollectionsSortAndSearch from "@/shared/browse/collections-sort-and-search";
 import { useGetCollectionsQuery } from "@/store/api/collectionsApi";
-import { Collection } from "@/types/collection";
 
-interface CollectionsFilters {
+import { SortOrder } from "@/types/browse-page";
+
+type CollectionsSortBy = "name" | "views" | "createdAt";
+
+export interface CollectionsFilters {
   search: string;
-  sortBy: "name" | "views" | "createdAt";
-  sortOrder: "asc" | "desc";
+  genres: string[];
+  types: string[];
+  status: string[];
+  sortBy: CollectionsSortBy;
+  sortOrder: SortOrder;
 }
 
 function CollectionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  function mapCollectionsSortByToSortBy(sortBy: CollectionsSortBy): 'name' | 'views' | 'createdAt' {
+    if (sortBy === "name") return "name";
+    if (sortBy === "createdAt") return "createdAt";
+    if (sortBy === "views") return "views";
+    return "name";
+  }
+
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<CollectionsFilters>(() => {
     const urlSearch = searchParams.get("search") || "";
-    const urlSortBy = (searchParams.get("sortBy") || "createdAt") as CollectionsFilters["sortBy"];
-    const urlSortOrder = (searchParams.get("sortOrder") || "desc") as CollectionsFilters["sortOrder"];
+    const urlSortBy = (searchParams.get("sortBy") || "views") as CollectionsSortBy;
+    const urlSortOrder = (searchParams.get("sortOrder") || "desc") as SortOrder;
+    const urlGenres = searchParams.getAll("genres") || [];
+    const urlTypes = searchParams.getAll("types") || [];
+    const urlStatus = searchParams.getAll("status") || [];
     return {
       search: urlSearch,
       sortBy: urlSortBy,
       sortOrder: urlSortOrder,
+      genres: urlGenres,
+      types: urlTypes,
+      status: urlStatus,
     };
   });
 
@@ -53,7 +74,7 @@ function CollectionsContent() {
   // Запрос коллекций с параметрами
   const { data: collectionsResponse, isLoading, error } = useGetCollectionsQuery({
     search: debouncedSearch || undefined,
-    sortBy: appliedFilters.sortBy,
+    sortBy: mapCollectionsSortByToSortBy(appliedFilters.sortBy) as import('@/types/collection').CollectionsQuery['sortBy'],
     sortOrder: appliedFilters.sortOrder,
     page,
     limit: 12,
@@ -68,6 +89,9 @@ function CollectionsContent() {
   const resetFilters = () => {
     const defaultFilters: CollectionsFilters = {
       search: "",
+      genres: [],
+      types: [],
+      status: [],
       sortBy: "createdAt",
       sortOrder: "desc",
     };
@@ -149,11 +173,11 @@ function CollectionsContent() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <MobileFilterButton onClick={() => setIsMobileFilterOpen(true)} />
-            <SortAndSearch
-              filters={appliedFilters}
-              onFiltersChange={handleFiltersChange}
-            />
+          <MobileFilterButton onClick={() => setIsMobileFilterOpen(true)} />
+          <CollectionsSortAndSearch
+            filters={appliedFilters}
+            onFiltersChange={(filters) => handleFiltersChange(filters)}
+          />
           </div>
         </div>
 
@@ -222,9 +246,9 @@ function CollectionsContent() {
 
       {/* Боковая панель с фильтрами (десктоп) */}
       <div className="hidden lg:block lg:w-1/4">
-        <FilterSidebar
+        <FilterSidebar<CollectionsFilters>
           filters={appliedFilters}
-          onFiltersChange={handleFiltersChange}
+          onFiltersChange={(filters) => handleFiltersChange(filters)}
           filterOptions={{
             genres: [],
             types: [],
@@ -235,9 +259,9 @@ function CollectionsContent() {
       </div>
 
       {/* Мобильный фильтр (шторка) */}
-      <FilterSidebar
+      <FilterSidebar<CollectionsFilters>
         filters={appliedFilters}
-        onFiltersChange={handleFiltersChange}
+        onFiltersChange={(filters) => handleFiltersChange(filters)}
         filterOptions={{
           genres: [],
           types: [],

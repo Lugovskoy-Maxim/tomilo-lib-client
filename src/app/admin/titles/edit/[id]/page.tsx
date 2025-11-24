@@ -19,10 +19,8 @@ import {
   LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-// removed preview page; keep a link button to open public title page
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/store/index";
+import { useDispatch } from "react-redux";
 import { Title, TitleStatus, TitleType } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
@@ -321,17 +319,19 @@ const handleSubmit = async (e: FormEvent) => {
     const hasFile = !!selectedFile;
 
     if (hasFile) {
-      // Для загрузки файла используем FormData
-      const formData = new FormData();
-      formData.append('coverImage', selectedFile);
-      
-      // Отправляем FormData напрямую
+      // При обновлении с файлом передаем объект с hasFile: true
+      // Временно приводим тип coverImage к unknown, чтобы избежать конфликта типов
+      const dataWithFile = {
+        ...formData,
+        coverImage: selectedFile as unknown as string,
+      };
+
       const result = await updateTitleMutation({
         id: titleId,
-        data: formData as any,
+        data: dataWithFile,
+        hasFile: true,
       }).unwrap();
 
-      // Обновляем состояние в Redux только если данные есть
       if (result.data) {
         dispatch(updateTitle(result.data));
       }

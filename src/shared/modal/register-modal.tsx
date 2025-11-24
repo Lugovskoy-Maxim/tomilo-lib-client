@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Mail, Lock, User } from "lucide-react";
 import { useRegisterMutation } from "@/store/api/authApi";
 import { RegisterForm, FormErrors, FormTouched } from "../../types/form";
-import { useModal } from "../../hooks/useModal";
 import { Input, Modal } from "..";
 import { AuthResponse, ApiResponseDto } from "@/types/auth";
 
@@ -37,7 +36,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   // Используем хук мутации из RTK Query
   const [register, { isLoading, error: apiError }] = useRegisterMutation();
   
-  const modalRef = useModal(isOpen, onClose);
 
   const validate = {
     email: (email: string): string | null => {

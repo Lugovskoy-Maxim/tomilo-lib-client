@@ -5,31 +5,11 @@ import {
   CreateCollectionDto,
   UpdateCollectionDto,
   CollectionsQuery,
-  CollectionsResponse,
   ApiResponseDto
 } from "@/types/collection";
 
 const COLLECTIONS_TAG = "Collections";
 
-// 🔧 Утилита для преобразования объекта в FormData
-function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormData {
-  const formData = new FormData();
-
-  Object.entries(data).forEach(([key, value]) => {
-    if (value === undefined || value === null) return;
-
-    if (Array.isArray(value)) {
-      formData.append(key, JSON.stringify(value));
-    } else if (value instanceof Blob) {
-      // File наследуется от Blob — это корректная и безопасная проверка
-      formData.append(key, value);
-    } else {
-      formData.append(key, String(value));
-    }
-  });
-
-  return formData;
-}
 
 export const collectionsApi = createApi({
   reducerPath: "collectionsApi",

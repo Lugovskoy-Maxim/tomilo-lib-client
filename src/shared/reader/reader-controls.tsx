@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, MessageCircle, Hash, MoreVertical, TableOfContents, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageCircle, TableOfContents, X } from "lucide-react";
 import ThemeToggle from "../theme-toggle/theme-toggle";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";

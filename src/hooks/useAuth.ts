@@ -1,6 +1,13 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useGetProfileQuery, useAddBookmarkMutation, useRemoveBookmarkMutation, useGetReadingHistoryQuery, useAddToReadingHistoryMutation, useRemoveFromReadingHistoryMutation } from "@/store/api/authApi";
+import {
+  useGetProfileQuery,
+  useAddBookmarkMutation,
+  useRemoveBookmarkMutation,
+  useGetReadingHistoryQuery,
+  useAddToReadingHistoryMutation,
+  useRemoveFromReadingHistoryMutation
+} from "@/store/api/authApi";
 import { useUpdateChapterMutation } from "@/store/api/chaptersApi";
 import { UpdateChapterDto } from "@/types/title";
 import {
@@ -10,24 +17,20 @@ import {
   updateUser,
 } from "@/store/slices/authSlice";
 import { RootState } from "@/store";
-import { AuthResponse, StoredUser, ApiResponseDto, User } from "@/types/auth";
+import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 
-// Сохраняем ваши существующие ключи
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
 
-// Базовый URL API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state: RootState) => state.auth);
 
-  // Получаем токен напрямую из localStorage при каждом рендере
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
   const token = getToken();
-
 
   const {
     data: profileResponse,
@@ -40,25 +43,24 @@ export const useAuth = () => {
 
   const [addBookmark] = useAddBookmarkMutation();
   const [removeBookmark] = useRemoveBookmarkMutation();
-  const [updateChapter] = useUpdateChapterMutation(); // Добавляем useUpdateChapterMutation
-  const [addToReadingHistory] = useAddToReadingHistoryMutation(); // Добавляем useAddToReadingHistoryMutation
-  const [removeFromReadingHistory] = useRemoveFromReadingHistoryMutation(); // Добавляем useRemoveFromReadingHistoryMutation
+  const [updateChapter] = useUpdateChapterMutation();
+  const [addToReadingHistory] = useAddToReadingHistoryMutation();
+  const [removeFromReadingHistory] = useRemoveFromReadingHistoryMutation();
+
   const { data: readingHistoryData, isLoading: readingHistoryLoading, error: readingHistoryError } = useGetReadingHistoryQuery(undefined, {
     skip: !getToken(),
   });
 
   const continueReading = readingHistoryData?.data;
 
-  // Синхронизируем состояние загрузки
   useEffect(() => {
     dispatch(setLoading(profileLoading));
   }, [profileLoading, dispatch]);
 
-  // При успешной проверке авторизации обновляем состояние
   useEffect(() => {
     const currentToken = getToken();
     if (profileResponse && profileResponse.success && profileResponse.data && currentToken) {
-      const user: User = profileResponse.data;
+      const user: StoredUser = profileResponse.data;
       const authResponse: AuthResponse = {
         access_token: currentToken,
         user: {
@@ -81,23 +83,17 @@ export const useAuth = () => {
     }
   }, [profileResponse, token, dispatch]);
 
-  // При ошибке проверки авторизации разлогиниваемся
   useEffect(() => {
     if (error && getToken()) {
       console.error("Auth check failed:", error);
-
-      // Проверяем, что это именно ошибка авторизации (404 или 401), а не сетевые проблемы
       if ("status" in error && (error.status === 401 || error.status === 404)) {
         dispatch(logout());
       }
     }
   }, [error, token, dispatch]);
 
-  // Функция для обновления данных пользователя
   const updateUserData = (userData: Partial<StoredUser>) => {
     dispatch(updateUser(userData));
-
-    // Также обновляем данные в localStorage
     if (typeof window !== "undefined") {
       try {
         const storedUser = localStorage.getItem(USER_DATA_KEY);
@@ -112,7 +108,6 @@ export const useAuth = () => {
     }
   };
 
-  // Функция для обновления аватара
   const updateAvatar = async (
     avatarFile: File
   ): Promise<{ success: boolean; error?: string }> => {
@@ -133,19 +128,17 @@ export const useAuth = () => {
         throw new Error(errorData.message || "Ошибка при обновлении аватара");
       }
 
-      const result: ApiResponseDto<User> = await response.json();
-      
+      const result: ApiResponseDto<StoredUser> = await response.json();
+
       if (!result.success) {
         throw new Error(result.message || "Ошибка при обновлении аватара");
       }
 
-      // Обновляем пользователя в состоянии
       updateUserData({
         avatar: result.data?.avatar,
         updatedAt: result.data?.updatedAt,
       });
 
-      // Перезапрашиваем профиль для получения актуальных данных
       refetchProfile();
 
       return { success: true };
@@ -158,7 +151,6 @@ export const useAuth = () => {
     }
   };
 
-  // Функция для обновления профиля
   const updateProfile = async (profileData: {
     username?: string;
     email?: string;
@@ -179,20 +171,18 @@ export const useAuth = () => {
         throw new Error(errorData.message || "Ошибка при обновлении профиля");
       }
 
-      const result: ApiResponseDto<User> = await response.json();
-      
+      const result: ApiResponseDto<StoredUser> = await response.json();
+
       if (!result.success) {
         throw new Error(result.message || "Ошибка при обновлении профиля");
       }
 
-      // Обновляем пользователя в состоянии
       updateUserData({
         username: result.data?.username,
         email: result.data?.email,
         updatedAt: result.data?.updatedAt,
       });
 
-      // Перезапрашиваем профиль для получения актуальных данных
       refetchProfile();
 
       return { success: true };
@@ -205,22 +195,19 @@ export const useAuth = () => {
     }
   };
 
-  // Функция для добавления закладки
   const addBookmarkToUser = async (titleId: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await addBookmark(titleId).unwrap();
-      
+
       if (!result.success) {
         throw new Error(result.message || "Ошибка при добавлении в закладки");
       }
 
-      // Обновляем пользователя в состоянии
       updateUserData({
         bookmarks: result.data?.bookmarks,
         updatedAt: result.data?.updatedAt,
       });
 
-      // Перезапрашиваем профиль для получения актуальных данных
       refetchProfile();
 
       return { success: true };
@@ -233,22 +220,19 @@ export const useAuth = () => {
     }
   };
 
-  // Функция для удаления закладки
   const removeBookmarkFromUser = async (titleId: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await removeBookmark(titleId).unwrap();
-      
+
       if (!result.success) {
         throw new Error(result.message || "Ошибка при удалении из закладок");
       }
 
-      // Обновляем пользователя в состоянии
       updateUserData({
         bookmarks: result.data?.bookmarks,
         updatedAt: result.data?.updatedAt,
       });
 
-      // Перезапрашиваем профиль для получения актуальных данных
       refetchProfile();
 
       return { success: true };
@@ -261,15 +245,14 @@ export const useAuth = () => {
     }
   };
 
-  // Функция для обновления счетчиков просмотров
   const updateChapterViewsCount = async (chapterId: string, currentViews: number): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Используем updateChapter для обновления просмотров
-      const result = await updateChapter({
+      await updateChapter({
         id: chapterId,
-        data: { views: currentViews + 1 } as Partial<UpdateChapterDto>
+        data: { views: currentViews + 1 } as Partial<UpdateChapterDto>,
       }).unwrap();
       
+
       return { success: true };
     } catch (error) {
       console.error("Error updating chapter views:", error);
@@ -280,7 +263,6 @@ export const useAuth = () => {
     }
   };
 
-  // Функция для добавления записи в историю чтения
   const addToReadingHistoryFunc = async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await addToReadingHistory({ titleId, chapterId }).unwrap();
@@ -289,7 +271,6 @@ export const useAuth = () => {
         throw new Error(result.message || "Ошибка при добавлении в историю чтения");
       }
 
-      // Перезапрашиваем профиль для получения актуальных данных
       refetchProfile();
 
       return { success: true };
@@ -299,16 +280,14 @@ export const useAuth = () => {
     }
   };
 
-  // Функция для удаления записи из истории чтения
   const removeFromReadingHistoryFunc = async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await removeFromReadingHistory({ titleId, chapterId }).unwrap();
-      
+
       if (!result.success) {
         throw new Error(result.message || "Ошибка при удалении из истории чтения");
       }
 
-      // Перезапрашиваем профиль для получения актуальных данных
       refetchProfile();
 
       return { success: true };
@@ -321,31 +300,25 @@ export const useAuth = () => {
     }
   };
 
-  // Ваши существующие функции (адаптированные для Redux)
   const loginUser = (authResponse: ApiResponseDto<AuthResponse>) => {
-    // Извлекаем токен из правильного поля
     const token = authResponse.data?.access_token;
     const user = authResponse.data?.user;
-    
+
     if (typeof window !== "undefined" && token && user) {
       localStorage.setItem(AUTH_TOKEN_KEY, token);
       localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
-      
-      // Вызываем dispatch с правильной структурой
-      dispatch(login({
-        access_token: token,
-        user: user
-      }));
+
+      if (authResponse.data) {
+        dispatch(login(authResponse.data));
+      }
     }
   };
 
   const logoutUser = () => {
-    // Очищаем localStorage при выходе
     if (typeof window !== "undefined") {
       localStorage.removeItem(AUTH_TOKEN_KEY);
       localStorage.removeItem(USER_DATA_KEY);
     }
-
     dispatch(logout());
   };
 

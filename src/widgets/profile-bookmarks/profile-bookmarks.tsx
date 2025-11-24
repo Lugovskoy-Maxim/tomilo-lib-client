@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
 import { Title } from "@/types/title";
 import BookmarkCard from "@/shared/bookmark-card/bookmark-card";
@@ -94,7 +93,7 @@ function BookmarksSection({
   };
 
   // Компонент для отображения состояния загрузки
-  const LoadingCard = ({ bookmarkId }: { bookmarkId: string }) => (
+  const LoadingCard = ({ }: { bookmarkId: string }) => (
     <div className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] animate-pulse">
       <div className="flex items-start space-x-3">
         <div className="w-12 h-16 bg-[var(--muted)] rounded flex-shrink-0"></div>

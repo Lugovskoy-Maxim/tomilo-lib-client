@@ -11,21 +11,26 @@ export default function ChaptersManagementPage() {
   const params = useParams();
   const titleId = (params?.id as string) || "";
   const toast = useToast();
+
   const { data: primary = [], isLoading } = useGetChaptersByTitleQuery({ titleId, sortOrder: "desc" }, { skip: !titleId });
-  const { data: fallback, isLoading: isLoadingFallback } = useSearchChaptersQuery({ titleId, limit: 200, sortBy: "chapterNumber", sortOrder: "desc" }, { skip: !titleId });
-  const chapters = (primary && primary.length ? primary : fallback?.chapters) || [];
+  const { data: fallback, isLoading: isLoadingFallback } = useSearchChaptersQuery(
+    { titleId, limit: 200, sortBy: "chapterNumber", sortOrder: "desc" },
+    { skip: !titleId }
+  );
   const [deleteChapter] = useDeleteChapterMutation();
 
   const sorted = useMemo(() => {
-    // Проверяем, что chapters является массивом перед применением spread syntax
+    const chapters = (primary && primary.length ? primary : fallback?.chapters) || [];
     if (!Array.isArray(chapters)) {
       return [];
     }
     return [...chapters].sort((a, b) => (b.chapterNumber ?? 0) - (a.chapterNumber ?? 0));
-  }, [chapters]);
+  }, [primary, fallback]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Удалить главу?")) return;
+    if (!confirm("Удалить главу?")) {
+      return;
+    }
     try {
       await deleteChapter(id).unwrap();
     } catch (e) {
@@ -40,10 +45,17 @@ export default function ChaptersManagementPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Link href={`/admin/titles/edit/${titleId}`} className="px-3 py-2 rounded border">Назад к тайтлу</Link>
+            <Link href={`/admin/titles/edit/${titleId}`} className="px-3 py-2 rounded border">
+              Назад к тайтлу
+            </Link>
             <h1 className="text-2xl font-semibold text-[var(--foreground)]">Главы тайтла</h1>
           </div>
-          <Link href={`/admin/titles/edit/${titleId}/chapters/new`} className="px-3 py-2 rounded bg-[var(--primary)] text-[var(--primary-foreground)]">Добавить главу</Link>
+          <Link
+            href={`/admin/titles/edit/${titleId}/chapters/new`}
+            className="px-3 py-2 rounded bg-[var(--primary)] text-[var(--primary-foreground)]"
+          >
+            Добавить главу
+          </Link>
         </div>
 
         {isLoading || isLoadingFallback ? (
@@ -65,15 +77,21 @@ export default function ChaptersManagementPage() {
                 {sorted.map((ch) => (
                   <tr key={ch._id} className="border-b border-[var(--border)] hover:bg-[var(--accent)]/30">
                     <td className="p-3">#{ch.chapterNumber}</td>
-                    <td className="p-3">{ch.title || '-'}</td>
+                    <td className="p-3">{ch.title || "-"}</td>
                     <td className="p-3">{ch.status}</td>
-                    <td className="p-3">{ch.isPublished ? 'Да' : 'Нет'}</td>
+                    <td className="p-3">{ch.isPublished ? "Да" : "Нет"}</td>
                     <td className="p-3">{ch.views ?? 0}</td>
                     <td className="p-3 text-right">
                       <div className="inline-flex gap-2">
-                        <Link href={`/browse/${titleId}/chapter/${ch._id}`} className="px-2 py-1 border rounded">Открыть</Link>
-                        <Link href={`/admin/titles/edit/${titleId}/chapters/${ch._id}`} className="px-2 py-1 border rounded">Редактировать</Link>
-                        <button className="px-2 py-1 border rounded text-red-600" onClick={() => handleDelete(ch._id)}>Удалить</button>
+                        <Link href={`/browse/${titleId}/chapter/${ch._id}`} className="px-2 py-1 border rounded">
+                          Открыть
+                        </Link>
+                        <Link href={`/admin/titles/edit/${titleId}/chapters/${ch._id}`} className="px-2 py-1 border rounded">
+                          Редактировать
+                        </Link>
+                        <button className="px-2 py-1 border rounded text-red-600" onClick={() => handleDelete(ch._id)}>
+                          Удалить
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -90,5 +108,3 @@ export default function ChaptersManagementPage() {
     </main>
   );
 }
-
-

@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, Mail, Lock, User, LucideIcon } from "lucide-react";
+import { Eye, EyeOff, LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 interface InputProps {
@@ -42,7 +42,7 @@ const Input: React.FC<InputProps> = ({
     setIsFocused(true);
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  const handleBlur = () => {
     setIsFocused(false);
     onBlur();
   };

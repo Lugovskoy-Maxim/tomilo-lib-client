@@ -1,6 +1,5 @@
 "use client";
-import { baseUrl } from "@/api/config";
-import { Sparkles, Star } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -29,7 +28,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
       router.push(`/browse/${data.id}/`);
     }
   };
-  
+
   return (
     <div
       className="overflow-hidden rounded-lg group cursor-pointer active:cursor-grabbing transition-all w-30 sm:w-30 md:w-35 lg:w-40 select-none"

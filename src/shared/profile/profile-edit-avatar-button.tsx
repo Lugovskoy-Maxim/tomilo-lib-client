@@ -1,16 +1,16 @@
 // shared/EditAvatarButton.tsx
 "use client";
 
-import { useRef, useState } from 'react';
-import { Edit, Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/useToast';
+import { useRef, useState } from "react";
+import { Edit, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 
 interface EditAvatarButtonProps {
   onAvatarUpdate?: (newAvatarUrl: string) => void;
 }
 
-function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
+function EditAvatarButton({}: EditAvatarButtonProps) {
   const { updateAvatar, refetchProfile } = useAuth();
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,14 +25,14 @@ function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
     if (!file) return;
 
     // Проверка типа файла
-    if (!file.type.startsWith('image/')) {
-      toast.warning('Пожалуйста, выберите файл изображения');
+    if (!file.type.startsWith("image/")) {
+      toast.warning("Пожалуйста, выберите файл изображения");
       return;
     }
 
     // Проверка размера файла (2MB)
     if (file.size > 2 * 1024 * 1024) {
-      toast.warning('Размер файла не должен превышать 2MB');
+      toast.warning("Размер файла не должен превышать 2MB");
       return;
     }
 
@@ -46,18 +46,22 @@ function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
         // Перезапрашиваем профиль для получения актуальных данных
         await refetchProfile();
 
-        toast.success('Аватар успешно обновлен!');
+        toast.success("Аватар успешно обновлен!");
       } else {
-        throw new Error(result.error || 'Ошибка при обновлении аватара');
+        throw new Error(result.error || "Ошибка при обновлении аватара");
       }
     } catch (error) {
-      console.error('Error updating avatar:', error);
-      toast.error(`Ошибка при обновлении аватара: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Error updating avatar:", error);
+      toast.error(
+        `Ошибка при обновлении аватара: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     } finally {
       setIsLoading(false);
       // Сбрасываем значение input чтобы можно было выбрать тот же файл снова
       if (inputRef.current) {
-        inputRef.current.value = '';
+        inputRef.current.value = "";
       }
     }
   };

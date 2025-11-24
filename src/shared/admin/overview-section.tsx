@@ -1,5 +1,13 @@
-import { Plus, Download, BookOpen, FileText, Users, Eye, Star, TrendingUp, Loader2 } from "lucide-react";
-import Link from "next/link";
+import {
+  Plus,
+  Download,
+  BookOpen,
+  FileText,
+  Users,
+  Eye,
+  Star,
+  Loader2,
+} from "lucide-react";
 import { useGetStatsQuery } from "@/store/api/statsApi";
 
 type AdminTab = "overview" | "parser" | "titles" | "chapters";
@@ -21,38 +29,40 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
     return num.toString();
   };
 
-  const stats = statsData?.data ? [
-    {
-      icon: BookOpen,
-      value: formatNumber(statsData.data.totalTitles),
-      label: "Тайтлов",
-      color: "blue",
-    },
-    {
-      icon: FileText,
-      value: formatNumber(statsData.data.totalChapters),
-      label: "Глав",
-      color: "green",
-    },
-    {
-      icon: Users,
-      value: formatNumber(statsData.data.totalUsers),
-      label: "Пользователей",
-      color: "purple",
-    },
-    {
-      icon: Eye,
-      value: formatNumber(statsData.data.totalViews),
-      label: "Просмотров",
-      color: "orange",
-    },
-    {
-      icon: Star,
-      value: formatNumber(statsData.data.totalBookmarks),
-      label: "Закладок",
-      color: "yellow",
-    },
-  ] : [];
+  const stats = statsData?.data
+    ? [
+        {
+          icon: BookOpen,
+          value: formatNumber(statsData.data.totalTitles),
+          label: "Тайтлов",
+          color: "blue",
+        },
+        {
+          icon: FileText,
+          value: formatNumber(statsData.data.totalChapters),
+          label: "Глав",
+          color: "green",
+        },
+        {
+          icon: Users,
+          value: formatNumber(statsData.data.totalUsers),
+          label: "Пользователей",
+          color: "purple",
+        },
+        {
+          icon: Eye,
+          value: formatNumber(statsData.data.totalViews),
+          label: "Просмотров",
+          color: "orange",
+        },
+        {
+          icon: Star,
+          value: formatNumber(statsData.data.totalBookmarks),
+          label: "Закладок",
+          color: "yellow",
+        },
+      ]
+    : [];
 
   const quickActions = [
     {
@@ -114,7 +124,9 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
         ) : error ? (
           // Error state
           <div className="col-span-full bg-red-50 border border-red-200 rounded-xl p-6">
-            <p className="text-red-800 font-medium">Ошибка загрузки статистики</p>
+            <p className="text-red-800 font-medium">
+              Ошибка загрузки статистики
+            </p>
             <p className="text-red-600 text-sm mt-1">
               Не удалось получить данные с сервера
             </p>

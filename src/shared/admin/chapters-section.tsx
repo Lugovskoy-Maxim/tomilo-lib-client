@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Plus, Search, Edit, Trash2, Eye, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { useGetTitlesQuery } from "@/store/api/titlesApi";
@@ -17,7 +16,6 @@ export function ChaptersSection({
   titleId,
   onTitleChange,
 }: ChaptersSectionProps) {
-  const [searchTerm, setSearchTerm] = useState("");
   const [deleteChapter] = useDeleteChapterMutation();
   const toast = useToast();
 
@@ -42,7 +40,7 @@ export function ChaptersSection({
       await deleteChapter(id).unwrap();
       toast.success("Глава удалена");
     } catch (error) {
-      toast.error("Ошибка при удалении главы");
+      toast.error(`Ошибка при удалении главы: ${error}`);
     }
   };
 

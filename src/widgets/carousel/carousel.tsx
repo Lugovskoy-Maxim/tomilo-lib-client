@@ -89,7 +89,7 @@ export default function Carousel<T>({
   /**
    * Начальная позиция прокрутки перед началом перетаскивания.
    */
-  const [startScrollLeft, setStartScrollLeft] = useState(0);
+  const [, setStartScrollLeft] = useState(0);
 
   /**
    * Хук для навигации между страницами.

@@ -16,7 +16,7 @@ export interface ReaderTitle {
   totalChapters: number;
   views: number;
   lastUpdate: string;
-  chapters: string;
+  chapters: ReaderChapter[];
   alternativeTitles: string[];
 }
 

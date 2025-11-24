@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { searchApi, SearchResult } from '../api/searchApi';
+import { searchApi } from '../api/searchApi';
+import { SearchResult } from "@/types/search";
 
 export function useSearch() {
   const [searchTerm, setSearchTerm] = useState('');

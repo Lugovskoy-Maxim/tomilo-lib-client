@@ -1,7 +1,5 @@
 import { ReactNode } from "react";
 import { Carousel } from "@/widgets";
-import LoadingSkeleton from "@/shared/loading-skeleton";
-import ErrorState from "@/shared/error-state";
 
 interface DataCarouselProps<T> {
   title: string;

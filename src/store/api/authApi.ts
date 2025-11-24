@@ -6,11 +6,13 @@ import {
   User,
   ApiResponseDto,
 } from "@/types/auth";
-import { Title } from "@/types/title";
-import { ReadingHistoryChapter, ReadingHistoryEntry, BookmarkItem, AvatarResponse } from "@/types/store";
+import {
+  ReadingHistoryEntry,
+  BookmarkItem,
+  AvatarResponse,
+} from "@/types/store";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
-const USER_DATA_KEY = "tomilo_lib_user";
 
 export const authApi = createApi({
   reducerPath: "authApi",
@@ -94,7 +96,10 @@ export const authApi = createApi({
     }),
 
     // История чтения
-    getReadingHistory: builder.query<ApiResponseDto<ReadingHistoryEntry[]>, void>({
+    getReadingHistory: builder.query<
+      ApiResponseDto<ReadingHistoryEntry[]>,
+      void
+    >({
       query: () => "/users/profile/history",
       providesTags: ["ReadingHistory"],
     }),
@@ -115,7 +120,7 @@ export const authApi = createApi({
       { titleId: string; chapterId?: string }
     >({
       query: ({ titleId, chapterId }) => ({
-        url: chapterId 
+        url: chapterId
           ? `/users/profile/history/${titleId}/${chapterId}`
           : `/users/profile/history/${titleId}`,
         method: "DELETE",

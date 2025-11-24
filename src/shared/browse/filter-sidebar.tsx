@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { Filter, X, Check, ChevronDown, ChevronUp } from "lucide-react";
-import { Filters } from "@/types/browse-page";
 
 
 
@@ -11,9 +10,9 @@ interface FilterOptions {
   status: string[];
 }
 
-interface FilterSidebarProps {
-  filters: Filters;
-  onFiltersChange: (filters: Filters) => void;
+interface FilterSidebarProps<T> {
+  filters: T;
+  onFiltersChange: (filters: T) => void;
   filterOptions: FilterOptions;
   onReset: () => void;
   isMobile?: boolean;
@@ -51,7 +50,14 @@ const FilterSection = ({
   );
 };
 
-export default function FilterSidebar({
+export default function FilterSidebar<T extends {
+  search: string;
+  genres: string[];
+  types: string[];
+  status: string[];
+  sortBy: string;
+  sortOrder: string;
+}>({
   filters,
   onFiltersChange,
   filterOptions,
@@ -59,7 +65,7 @@ export default function FilterSidebar({
   isMobile = false,
   isOpen = false,
   onClose,
-}: FilterSidebarProps) {
+}: FilterSidebarProps<T>) {
   // Обработчики для фильтров
   const handleGenreChange = (genre: string) => {
     const newGenres = filters.genres.includes(genre)

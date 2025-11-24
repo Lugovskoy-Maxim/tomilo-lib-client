@@ -1,5 +1,4 @@
 import { useToastContext } from '@/contexts/ToastContext';
-import { ToastType } from '@/types/toast';
 
 export const useToast = () => {
   const { addToast } = useToastContext();

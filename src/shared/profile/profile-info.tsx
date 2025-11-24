@@ -1,12 +1,5 @@
-import {
-  Bookmark,
-  BookOpenCheck,
-  Calendar1,
-  ChevronsUp,
-  Mail,
-} from "lucide-react";
+import { Bookmark, Calendar1, Mail } from "lucide-react";
 import { UserProfile } from "@/types/user";
-import ProfileStats from "./profile-stats";
 
 interface UserInfoProps {
   userProfile: UserProfile;

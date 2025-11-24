@@ -3,9 +3,7 @@
 import { Footer, Header } from "@/widgets";
 import { AlertTriangle, Share as ShareIcon, Edit } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/index";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Chapter } from "@/types/title";
 import { User } from "@/types/auth";
 import { useParams } from "next/navigation";
@@ -63,17 +61,25 @@ export default function TitleViewPage() {
 
   const { user } = useAuth();
 
-  const titlesState = useSelector((state: RootState) => state.titles);
-  const existingTitle = titlesState.titles?.find((t) => t._id === titleId);
+  // Remove unused existingTitle
+  // const titlesState = useSelector((state: RootState) => state.titles);
 
   // RTK Query hooks
-  const { data: titleData, isLoading: titleLoading, error: titleError } = useGetTitleByIdQuery(titleId);
-  const { data: chaptersData, isLoading: chaptersLoading } = useGetChaptersByTitleQuery({ titleId });
+  const { data: titleDataRaw, isLoading: titleLoading, error: titleError } = useGetTitleByIdQuery(titleId);
+  const { data: chaptersDataRaw, isLoading: chaptersLoading } = useGetChaptersByTitleQuery({ titleId });
 
   const [incrementViews] = useIncrementViewsMutation();
 
   // Состояния для глав
   const [chapters, setChapters] = useState<Chapter[]>([]);
+
+  // Wrap data in useMemo to prevent useMemo dependency warning
+  const processedTitleData = useMemo(() => titleDataRaw?.data || null, [titleDataRaw]);
+  const processedChaptersData = useMemo(() => chaptersDataRaw || [], [chaptersDataRaw]);
+
+  // Simplify isAdmin state usage
+  const isAdmin = true;
+  
   const [chaptersPage, setChaptersPage] = useState(1);
   const [hasMoreChapters, setHasMoreChapters] = useState(true);
   const [chaptersLoadingState, setChaptersLoadingState] = useState(false);
@@ -84,14 +90,9 @@ export default function TitleViewPage() {
     "description" | "chapters" | "comments" | "statistics"
   >("chapters");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [isAdmin, ] = useState(true);
 
   // Флаг для предотвращения множественных инкрементов просмотров
   const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
-
-  // Обработка данных из RTK Query
-  const processedTitleData = titleData?.data || null;
-  const processedChaptersData = chaptersData || [];
 
   const isLoading = titleLoading || chaptersLoading;
   const error = titleError ? "Ошибка загрузки данных" : null;
@@ -190,18 +191,18 @@ export default function TitleViewPage() {
           className="fixed inset-0 z-0"
           style={{
             backgroundImage: `url(${process.env.NEXT_PUBLIC_URL + processedTitleData.coverImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
         >
           <div className="absolute inset-0 backdrop-blur-3xl bg-black/30"></div>
         </div>
       )}
-      
+
       {/* Overlay для улучшения читаемости */}
       <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40 z-10"></div>
-      
+
       {/* Контент */}
       <div className="relative z-20">
         <Header />
@@ -221,18 +222,11 @@ export default function TitleViewPage() {
                 <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-full" />
               )}
             </div>
-            
+
             {/* Мобильные кнопки действий */}
             <div className="flex justify-center gap-4 mt-4 rounded-full">
-              <ReadButton
-                titleData={processedTitleData}
-                chapters={chapters}
-                className="flex-1"
-              />
-              <BookmarkButton
-                titleId={titleId}
-                initialBookmarked={false}
-              />
+              <ReadButton titleData={processedTitleData} chapters={chapters} className="flex-1" />
+              <BookmarkButton titleId={titleId} initialBookmarked={false} />
               <button
                 onClick={handleShare}
                 className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
@@ -270,9 +264,7 @@ export default function TitleViewPage() {
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 isDescriptionExpanded={isDescriptionExpanded}
-                onDescriptionToggle={() =>
-                  setIsDescriptionExpanded(!isDescriptionExpanded)
-                }
+                onDescriptionToggle={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                 chapters={chapters}
                 hasMoreChapters={hasMoreChapters}
                 chaptersLoading={chaptersLoadingState}
@@ -297,10 +289,10 @@ function ErrorState({ error, titleId }: { error: string; titleId?: string }) {
     <main className="min-h-screen relative">
       {/* Размытый фон */}
       <div className="fixed inset-0 z-0 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]"></div>
-      
+
       {/* Overlay для улучшения читаемости */}
       <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40 z-10"></div>
-      
+
       {/* Контент */}
       <div className="relative z-20">
         <Header />
@@ -308,12 +300,8 @@ function ErrorState({ error, titleId }: { error: string; titleId?: string }) {
           <div className="flex items-center justify-center min-h-[50vh]">
             <div className="text-center">
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-                {error}
-              </h1>
-              <p className="text-[var(--muted-foreground)] mb-4">
-                ID тайтла: {titleId || "не указан"}
-              </p>
+              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">{error}</h1>
+              <p className="text-[var(--muted-foreground)] mb-4">ID тайтла: {titleId || "не указан"}</p>
               <p className="text-[var(--muted-foreground)] mb-6">
                 Проверьте консоль браузера для подробной информации об ошибке
               </p>
@@ -346,10 +334,10 @@ function LoadingState() {
     <main className="min-h-screen relative">
       {/* Размытый фон */}
       <div className="fixed inset-0 z-0 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]"></div>
-      
+
       {/* Overlay для улучшения читаемости */}
       <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40 z-10"></div>
-      
+
       {/* Контент */}
       <div className="relative z-20">
         <Header />
@@ -357,9 +345,7 @@ function LoadingState() {
           <div className="flex items-center justify-center min-h-[50vh]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-              <p className="text-[var(--muted-foreground)]">
-                Загрузка данных тайтла...
-              </p>
+              <p className="text-[var(--muted-foreground)]">Загрузка данных тайтла...</p>
             </div>
           </div>
         </div>

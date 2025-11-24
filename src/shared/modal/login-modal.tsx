@@ -4,7 +4,6 @@ import { Mail, Lock } from "lucide-react";
 import { useLoginMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm, FormErrors, FormTouched } from "../../types/form";
-import { useModal } from "../../hooks/useModal";
 import { Input, Modal } from "..";
 import { AuthResponse, ApiResponseDto } from "@/types/auth";
 
@@ -12,19 +11,6 @@ import { AuthResponse, ApiResponseDto } from "@/types/auth";
 interface ServerError {
   message: string;
 }
-
-interface SerializedError {
-  message?: string;
-  code?: string;
-  name?: string;
-}
-
-interface FetchBaseQueryError {
-  status: number;
-  data?: unknown;
-}
-
-type RTKQueryError = FetchBaseQueryError | SerializedError | undefined;
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -49,8 +35,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
   // Используем RTK Query для логина
   const [loginMutation, { isLoading, error }] = useLoginMutation();
   const { login: authLogin } = useAuth();
-
-  const modalRef = useModal(isOpen, onClose);
 
   const validate = {
     email: (email: string): string | null => {

@@ -2,8 +2,17 @@
 
 import React, { useState } from "react";
 import { Plus, Search, Edit, Trash2, Eye, FolderOpen } from "lucide-react";
-import { useGetCollectionsQuery, useCreateCollectionMutation, useUpdateCollectionMutation, useDeleteCollectionMutation } from "@/store/api/collectionsApi";
-import { Collection, CreateCollectionDto, UpdateCollectionDto } from "@/types/collection";
+import {
+  useGetCollectionsQuery,
+  useCreateCollectionMutation,
+  useUpdateCollectionMutation,
+  useDeleteCollectionMutation,
+} from "@/store/api/collectionsApi";
+import {
+  Collection,
+  CreateCollectionDto,
+  UpdateCollectionDto,
+} from "@/types/collection";
 import Modal from "@/shared/modal/modal";
 import LoadingSkeleton from "@/shared/loading-skeleton";
 import SharedErrorState from "@/shared/error-state";
@@ -12,18 +21,26 @@ interface CollectionsSectionProps {
   onTabChange?: (tab: string) => void;
 }
 
-export function CollectionsSection({ onTabChange }: CollectionsSectionProps) {
+export function CollectionsSection({}: CollectionsSectionProps) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [sortBy, setSortBy] = useState<'name' | 'views' | 'createdAt'>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState<"name" | "views" | "createdAt">(
+    "createdAt"
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+  const [selectedCollection, setSelectedCollection] =
+    useState<Collection | null>(null);
 
-  const { data: collectionsResponse, isLoading, error, refetch } = useGetCollectionsQuery({
+  const {
+    data: collectionsResponse,
+    isLoading,
+    error,
+    refetch,
+  } = useGetCollectionsQuery({
     page,
     limit,
     search: search || undefined,
@@ -31,9 +48,12 @@ export function CollectionsSection({ onTabChange }: CollectionsSectionProps) {
     sortOrder,
   });
 
-  const [createCollection, { isLoading: isCreating }] = useCreateCollectionMutation();
-  const [updateCollection, { isLoading: isUpdating }] = useUpdateCollectionMutation();
-  const [deleteCollection, { isLoading: isDeleting }] = useDeleteCollectionMutation();
+  const [createCollection, { isLoading: isCreating }] =
+    useCreateCollectionMutation();
+  const [updateCollection, { isLoading: isUpdating }] =
+    useUpdateCollectionMutation();
+  const [deleteCollection, { isLoading: isDeleting }] =
+    useDeleteCollectionMutation();
 
   const collections = collectionsResponse?.data?.collections || [];
   const totalPages = collectionsResponse?.data?.totalPages || 1;
@@ -44,7 +64,7 @@ export function CollectionsSection({ onTabChange }: CollectionsSectionProps) {
       setIsCreateModalOpen(false);
       refetch();
     } catch (error) {
-      console.error('Failed to create collection:', error);
+      console.error("Failed to create collection:", error);
     }
   };
 
@@ -56,7 +76,7 @@ export function CollectionsSection({ onTabChange }: CollectionsSectionProps) {
       setSelectedCollection(null);
       refetch();
     } catch (error) {
-      console.error('Failed to update collection:', error);
+      console.error("Failed to update collection:", error);
     }
   };
 
@@ -72,12 +92,12 @@ export function CollectionsSection({ onTabChange }: CollectionsSectionProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Вы уверены, что хотите удалить эту коллекцию?')) return;
+    if (!confirm("Вы уверены, что хотите удалить эту коллекцию?")) return;
     try {
       await deleteCollection(id).unwrap();
       refetch();
     } catch (error) {
-      console.error('Failed to delete collection:', error);
+      console.error("Failed to delete collection:", error);
     }
   };
 
@@ -100,7 +120,12 @@ export function CollectionsSection({ onTabChange }: CollectionsSectionProps) {
   }
 
   if (error) {
-    return <SharedErrorState title="Ошибка загрузки" message="Не удалось загрузить коллекции. Попробуйте еще раз." />;
+    return (
+      <SharedErrorState
+        title="Ошибка загрузки"
+        message="Не удалось загрузить коллекции. Попробуйте еще раз."
+      />
+    );
   }
 
   return (
@@ -140,7 +165,10 @@ export function CollectionsSection({ onTabChange }: CollectionsSectionProps) {
         <select
           value={`${sortBy}-${sortOrder}`}
           onChange={(e) => {
-            const [field, order] = e.target.value.split('-') as [typeof sortBy, typeof sortOrder];
+            const [field, order] = e.target.value.split("-") as [
+              typeof sortBy,
+              typeof sortOrder
+            ];
             setSortBy(field);
             setSortOrder(order);
           }}
@@ -195,14 +223,13 @@ export function CollectionsSection({ onTabChange }: CollectionsSectionProps) {
                 <Eye className="w-3 h-3" />
                 {collection.views} просмотров
               </span>
-              <span>
-                {collection.titles?.length || 0} тайтлов
-              </span>
+              <span>{collection.titles?.length || 0} тайтлов</span>
             </div>
 
             {collection.createdAt && (
               <div className="mt-2 text-xs text-[var(--muted-foreground)]">
-                Создано: {new Date(collection.createdAt).toLocaleDateString('ru-RU')}
+                Создано:{" "}
+                {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
               </div>
             )}
           </div>
@@ -267,12 +294,19 @@ interface CollectionModalProps {
   initialData?: Collection;
 }
 
-function CollectionModal({ isOpen, onClose, onSubmit, isLoading, title, initialData }: CollectionModalProps) {
+function CollectionModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  isLoading,
+  title,
+  initialData,
+}: CollectionModalProps) {
   const [formData, setFormData] = useState<CreateCollectionDto>({
-    name: '',
-    description: '',
-    image: '',
-    link: '',
+    name: "",
+    description: "",
+    image: "",
+    link: "",
     titles: [],
     comments: [],
   });
@@ -282,18 +316,18 @@ function CollectionModal({ isOpen, onClose, onSubmit, isLoading, title, initialD
     if (initialData) {
       setFormData({
         name: initialData.name,
-        description: initialData.description || '',
-        image: initialData.image || '',
-        link: initialData.link || '',
+        description: initialData.description || "",
+        image: initialData.image || "",
+        link: initialData.link || "",
         titles: initialData.titles || [],
         comments: initialData.comments || [],
       });
     } else {
       setFormData({
-        name: '',
-        description: '',
-        image: '',
-        link: '',
+        name: "",
+        description: "",
+        image: "",
+        link: "",
         titles: [],
         comments: [],
       });
@@ -305,8 +339,11 @@ function CollectionModal({ isOpen, onClose, onSubmit, isLoading, title, initialD
     onSubmit(formData);
   };
 
-  const handleChange = (field: keyof CreateCollectionDto, value: string | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleChange = (
+    field: keyof CreateCollectionDto,
+    value: string | string[]
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -319,7 +356,7 @@ function CollectionModal({ isOpen, onClose, onSubmit, isLoading, title, initialD
           <input
             type="text"
             value={formData.name}
-            onChange={(e) => handleChange('name', e.target.value)}
+            onChange={(e) => handleChange("name", e.target.value)}
             required
             placeholder="Введите название коллекции"
             className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
@@ -331,8 +368,8 @@ function CollectionModal({ isOpen, onClose, onSubmit, isLoading, title, initialD
             Описание
           </label>
           <textarea
-            value={formData.description || ''}
-            onChange={(e) => handleChange('description', e.target.value)}
+            value={formData.description || ""}
+            onChange={(e) => handleChange("description", e.target.value)}
             className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] resize-none"
             rows={3}
             placeholder="Введите описание коллекции"
@@ -345,8 +382,8 @@ function CollectionModal({ isOpen, onClose, onSubmit, isLoading, title, initialD
           </label>
           <input
             type="url"
-            value={formData.image || ''}
-            onChange={(e) => handleChange('image', e.target.value)}
+            value={formData.image || ""}
+            onChange={(e) => handleChange("image", e.target.value)}
             placeholder="https://example.com/image.jpg"
             className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
@@ -358,8 +395,8 @@ function CollectionModal({ isOpen, onClose, onSubmit, isLoading, title, initialD
           </label>
           <input
             type="text"
-            value={formData.link || ''}
-            onChange={(e) => handleChange('link', e.target.value)}
+            value={formData.link || ""}
+            onChange={(e) => handleChange("link", e.target.value)}
             placeholder="/collections/my-collection"
             className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
@@ -378,7 +415,7 @@ function CollectionModal({ isOpen, onClose, onSubmit, isLoading, title, initialD
             disabled={isLoading}
             className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
           >
-            {isLoading ? 'Сохранение...' : 'Сохранить'}
+            {isLoading ? "Сохранение..." : "Сохранить"}
           </button>
         </div>
       </form>

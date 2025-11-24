@@ -52,18 +52,6 @@ interface ChaptersInfoData {
   chapters: ChapterInfo[];
 }
 
-interface TitleImportData {
-  titleName: string;
-  status: string;
-  currentStep?: number;
-  totalSteps?: number;
-}
-
-interface ChapterImportData {
-  chapterNumber: number;
-  chapterName: string;
-  status: string;
-}
 
 export function ParsingModal({
   isOpen,
@@ -78,6 +66,24 @@ export function ParsingModal({
   initialCustomGenres = "",
   initialCustomType = "",
 }: ParsingModalProps) {
+  // Type guard function to check if data is ChaptersInfoData
+  function isChaptersInfoData(data: unknown): data is ChaptersInfoData {
+    return (
+      data !== null &&
+      typeof data === "object" &&
+      typeof (data as unknown as { title?: unknown }).title === "string" &&
+      typeof (data as unknown as { totalChapters?: unknown }).totalChapters === "number" &&
+      Array.isArray((data as unknown as { chapters?: unknown[] }).chapters) &&
+      ((data as unknown as { chapters?: unknown[] }).chapters ?? []).every(
+        (chapter: unknown) =>
+          chapter !== null &&
+          typeof chapter === "object" &&
+          typeof (chapter as unknown as { name?: unknown }).name === "string" &&
+          typeof (chapter as unknown as { number?: unknown }).number === "number"
+      )
+    );
+  }
+
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [currentProgress, setCurrentProgress] =
@@ -134,9 +140,11 @@ export function ParsingModal({
 
           if (
             progress.status === "completed" &&
-            progress.type === "chapters_info"
+            progress.type === "chapters_info" &&
+            progress.data !== undefined &&
+            isChaptersInfoData(progress.data)
           ) {
-            setChaptersInfo(progress.data);
+            setChaptersInfo(progress.data as ChaptersInfoData);
           }
 
           if (progress.status === "completed" || progress.status === "error") {

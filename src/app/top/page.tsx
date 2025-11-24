@@ -86,12 +86,9 @@ export default function TopPage() {
         {/* Топ тайтлы */}
         {activeTopTitles.loading ? (
           <LoadingSkeleton />
-        ) : activeTopTitles.error ? (
-          <ErrorState
-            title="Ошибка загрузки"
-            description="Не удалось загрузить топ тайтлов. Попробуйте позже."
-          />
-        ) : topTitlesWithRank.length > 0 ? (
+          ) : activeTopTitles.error ? (
+            <ErrorState />
+          ) : topTitlesWithRank.length > 0 ? (
           <div className="w-full max-w-7xl mx-auto px-4">
             {/* Топ 3 тайтла */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -110,12 +107,12 @@ export default function TopPage() {
                 title={`Топ тайтлов ${periodLabels[activePeriod]} (4-${topTitlesWithRank.length})`}
                 data={topTitlesWithRank.slice(3)}
                 cardComponent={TopTitleCard}
-                cardProps={{ variant: "carousel" }}
-                type="browse"
-                icon={<Trophy className="w-6 h-6" />}
-                cardWidth="w-48 sm:w-52 md:w-56 lg:w-60"
-                showNavigation={false}
-              />
+              // cardProps={{ variant: "carousel" }} // Убрано, так как отсутствует в типах CarouselProps
+              type="browse"
+              icon={<Trophy className="w-6 h-6" />}
+              cardWidth="w-48 sm:w-52 md:w-56 lg:w-60"
+              showNavigation={false}
+            />
             )}
           </div>
         ) : (
