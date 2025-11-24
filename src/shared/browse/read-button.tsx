@@ -26,7 +26,7 @@ export function ReadButton({
     
     // Если есть продолжение чтения и оно относится к текущему тайтлу
     const readingHistoryItem = user?.readingHistory?.find(
-      (item: User['readingHistory'][0]) => item.titleId._id === titleData?._id
+      (item: User['readingHistory'][0]) => item.titleId?._id === titleData?._id
     );
     if (
       readingHistoryItem &&
@@ -39,7 +39,7 @@ export function ReadButton({
         readingHistoryItem.chapters[readingHistoryItem.chapters.length - 1];
       // Находим главу по chapterId
       const currentChapter = chapters.find(
-        (ch) => ch._id === lastReadChapter.chapterId._id
+        (ch) => ch._id === lastReadChapter.chapterId?._id
       );
       if (currentChapter) {
         // Ищем следующую главу по номеру
@@ -94,7 +94,7 @@ export function ReadButton({
 
   // Если есть продолжение чтения для этого тайтла
   const readingHistoryItem = user?.readingHistory?.find(
-    (item: User['readingHistory'][0]) => item.titleId._id === titleData?._id
+    (item: User['readingHistory'][0]) => item.titleId?._id === titleData?._id
   );
   if (
     readingHistoryItem &&
