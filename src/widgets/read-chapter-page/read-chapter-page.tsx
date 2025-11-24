@@ -49,6 +49,19 @@ export default function ReadChapterPage({
   const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mobileControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Функция для получения корректного URL изображения
+  const getImageUrl = useCallback((url: string) => {
+    if (!url) return "";
+
+    // Если URL уже абсолютный (начинается с http), возвращаем как есть
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    // Если URL относительный, добавляем базовый URL
+    return `${process.env.NEXT_PUBLIC_URL}${url}`;
+  }, []);
+
   // Обновление просмотров и истории чтения
   useEffect(() => {
     if (!title?._id || !chapter?._id) return;
@@ -275,10 +288,11 @@ export default function ReadChapterPage({
               {title.image && (
                 <div className="relative w-10 h-12 flex-shrink-0">
                   <Image
-                    src={`${process.env.NEXT_PUBLIC_URL}${title.image}`}
+                    src={getImageUrl(title.image)}
                     alt={title.title}
                     fill
                     className="object-cover rounded-md"
+                    sizes="40px"
                   />
                 </div>
               )}
@@ -336,18 +350,19 @@ export default function ReadChapterPage({
             {chapter.images.map((src, imageIndex) => {
               const errorKey = `${chapter._id}-${imageIndex}`;
               const isError = imageLoadErrors.has(errorKey);
-              {
-                console.log("Image src:", src);
-              }
+              const imageUrl = getImageUrl(src);
+
+              console.log("Image URL:", imageUrl);
+
               return (
                 <div
                   key={`${chapter._id}-${imageIndex}`}
-                  className="flex justify-center"
+                  className="flex justify-center mb-4"
                 >
                   <div className="relative max-w-4xl w-full">
                     {!isError ? (
                       <Image
-                        src={`${process.env.NEXT_PUBLIC_URL}${src}`}
+                        src={imageUrl}
                         alt={`Глава ${chapter.number}, Страница ${
                           imageIndex + 1
                         }`}
@@ -359,12 +374,13 @@ export default function ReadChapterPage({
                         onError={() =>
                           handleImageError(chapter._id, imageIndex)
                         }
+                        priority={imageIndex === 0}
                       />
                     ) : (
                       <div className="w-full h-64 bg-[var(--card)] flex items-center justify-center">
                         <div className="text-center">
-                          <div className="text-[var(--destructive)]">
-                            Ошибка загрузки
+                          <div className="text-[var(--destructive)] mb-2">
+                            Ошибка загрузки изображения
                           </div>
                           <button
                             onClick={() => {
@@ -374,10 +390,13 @@ export default function ReadChapterPage({
                                 return newSet;
                               });
                             }}
-                            className="px-3 py-1 bg-[var(--primary)] hover:bg-[var(--primary)]/80 rounded transition-colors"
+                            className="px-4 py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded transition-colors"
                           >
-                            Повторить
+                            Повторить загрузку
                           </button>
+                          <div className="mt-2 text-sm text-[var(--muted-foreground)]">
+                            URL: {imageUrl}
+                          </div>
                         </div>
                       </div>
                     )}
