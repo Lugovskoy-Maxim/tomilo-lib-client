@@ -83,7 +83,7 @@ export function ParserSection() {
 
   useEffect(() => {
     const newSocket = io(
-      `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}/parsing`,
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/parsing`,
       {
         transports: ["websocket", "polling"],
       }
