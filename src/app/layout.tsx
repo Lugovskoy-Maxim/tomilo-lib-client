@@ -25,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <head>
+        <meta name="yandex-verification" content="8f2bae575aa86202" />
         <Script id="yandex-metrika-counter" strategy="beforeInteractive">
           {`
             (function(m,e,t,r,i,k,a){
