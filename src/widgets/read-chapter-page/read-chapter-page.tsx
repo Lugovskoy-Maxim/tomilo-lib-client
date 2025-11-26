@@ -21,7 +21,7 @@ export default function ReadChapterPage({
   chapters: ReaderChapter[];
 }) {
   const router = useRouter();
-  const { updateChapterViews, addToReadingHistory } = useAuth();
+  const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
 
   const titleId = title._id;
   const chapterId = chapter._id;
@@ -64,7 +64,7 @@ export default function ReadChapterPage({
 
   // Обновление просмотров и истории чтения
   useEffect(() => {
-    if (!title?._id || !chapter?._id) return;
+    if (!title?._id || !chapter?._id || !isAuthenticated) return;
 
     const chapterKey = `${title._id}-${chapter._id}`;
 
@@ -88,7 +88,7 @@ export default function ReadChapterPage({
           // Не перебрасываем ошибку, чтобы избежать бесконечных запросов
         });
     }
-  }, [chapter._id, title._id, chapter.views, updateChapterViews, addToReadingHistory]);
+  }, [chapter._id, title._id, chapter.views, updateChapterViews, addToReadingHistory, isAuthenticated]);
 
   // Конфигурация SEO для текущей главы
   const seoConfig = useMemo(() => {
