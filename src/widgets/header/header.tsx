@@ -34,19 +34,8 @@ export default function Header() {
   return (
     <header className="w-full bg-[var(--secondary)]/40 border-b border-[var(--border)] h-[var(--header-height)]" >
       <div className="w-full max-w-7xl mx-auto p-4 h-16 flex items-center justify-between">
-        {/* Логотип или кнопка меню для мобильных экранов */}
+        {/* Логотип */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={toggleMobileMenu}
-            className="lg:hidden p-2 rounded-md hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)]"
-            aria-label="Открыть меню"
-          >
-            {isMobileMenuOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
-          </button>
           <Logo />
         </div>
 

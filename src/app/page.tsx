@@ -114,7 +114,7 @@ export default function Home() {
     return (
       <>
         <Header />
-        <main className="flex flex-col items-center justify-center gap-6">
+        <main className="flex flex-col items-center justify-center gap-6 pb-16">
           <CarouselSkeleton />
           <CarouselSkeleton />
           <CarouselSkeleton />
