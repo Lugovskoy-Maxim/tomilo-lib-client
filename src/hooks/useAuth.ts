@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   useGetProfileQuery,
@@ -245,13 +245,13 @@ export const useAuth = () => {
     }
   };
 
-  const updateChapterViewsCount = async (chapterId: string, currentViews: number): Promise<{ success: boolean; error?: string }> => {
+  const updateChapterViewsCount = useCallback(async (chapterId: string, currentViews: number): Promise<{ success: boolean; error?: string }> => {
     try {
       await updateChapter({
         id: chapterId,
         data: { views: currentViews + 1 } as Partial<UpdateChapterDto>,
       }).unwrap();
-      
+
 
       return { success: true };
     } catch (error) {
@@ -261,9 +261,9 @@ export const useAuth = () => {
         error: error instanceof Error ? error.message : "Неизвестная ошибка",
       };
     }
-  };
+  }, [updateChapter]);
 
-  const addToReadingHistoryFunc = async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
+  const addToReadingHistoryFunc = useCallback(async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await addToReadingHistory({ titleId, chapterId }).unwrap();
 
@@ -278,7 +278,7 @@ export const useAuth = () => {
       console.error("Error adding to reading history:", error);
       throw error; // Перебрасываем ошибку, чтобы она была обработана в компоненте
     }
-  };
+  }, [addToReadingHistory, refetchProfile]);
 
   const removeFromReadingHistoryFunc = async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
     try {

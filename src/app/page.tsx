@@ -54,10 +54,14 @@ const DataCarousel = ({
 }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
 any) => {
   if (loading) return <CarouselSkeleton />;
-  if (error) {
-    console.error(`Ошибка загрузки ${title}:`, error);
-    return null;
-  }
+if (error) {
+  console.error(`Ошибка загрузки ${title}:`, error);
+  return (
+    <div className="text-red-600 font-semibold p-4">
+      Ошибка загрузки {title}. Пожалуйста, попробуйте позже.
+    </div>
+  );
+}
   if (!data?.length) return null;
   return (
     <Carousel

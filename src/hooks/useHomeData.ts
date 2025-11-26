@@ -1,7 +1,12 @@
 import { useGetPopularTitlesQuery, useGetTopTitlesDayQuery, useGetTopTitlesWeekQuery, useGetTopTitlesMonthQuery } from "@/store/api/titlesApi";
 import { useGetReadingHistoryQuery } from "@/store/api/authApi";
 
+const AUTH_TOKEN_KEY = "tomilo_lib_token";
+
 export const useHomeData = () => {
+  const getToken = () =>
+    typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
+
   // Популярные тайтлы
   const {
     data: popularTitlesData,
@@ -35,7 +40,9 @@ export const useHomeData = () => {
     data: readingHistory,
     isLoading: readingHistoryLoading,
     error: readingHistoryError,
-  } = useGetReadingHistoryQuery();
+  } = useGetReadingHistoryQuery(undefined, {
+    skip: !getToken(),
+  });
 
   // Преобразование популярных тайтлов
   const popularTitles = popularTitlesData?.data?.map(item => ({

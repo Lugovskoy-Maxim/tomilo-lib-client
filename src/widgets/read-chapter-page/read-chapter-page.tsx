@@ -83,9 +83,12 @@ export default function ReadChapterPage({
         .then(() => {
           historyAddedRef.current.add(chapterKey);
         })
-        .catch(console.error);
+        .catch((error) => {
+          console.error("Error adding to reading history:", error);
+          // Не перебрасываем ошибку, чтобы избежать бесконечных запросов
+        });
     }
-  }, [chapter, title, updateChapterViews, addToReadingHistory]);
+  }, [chapter._id, title._id, chapter.views, updateChapterViews, addToReadingHistory]);
 
   // Конфигурация SEO для текущей главы
   const seoConfig = useMemo(() => {
