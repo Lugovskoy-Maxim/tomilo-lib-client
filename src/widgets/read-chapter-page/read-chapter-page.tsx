@@ -42,6 +42,12 @@ export default function ReadChapterPage({
   const [, setHasTapped] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
 
+  // Определение мобильного устройства
+  const isMobile = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent);
+  }, []);
+
   // Refs для предотвращения повторных вызовов
   const containerRef = useRef<HTMLDivElement>(null);
   const historyAddedRef = useRef<Set<string>>(new Set());
@@ -376,11 +382,11 @@ export default function ReadChapterPage({
                         height={1600}
                         className="w-full h-auto shadow-2xl"
                         quality={85}
-                        loading={imageIndex < 3 ? "eager" : "lazy"}
+                        loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
                         onError={() =>
                           handleImageError(chapter._id, imageIndex)
                         }
-                        priority={imageIndex === 0}
+                        priority={imageIndex < (isMobile ? 3 : 1)}
                       />
                     ) : (
                       <div className="w-full h-64 bg-[var(--card)] flex items-center justify-center">
