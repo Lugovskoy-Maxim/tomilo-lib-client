@@ -74,7 +74,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           {data.title}
         </h3>
 
-        <div className="hidden sm:flex flex-wrap gap-0.5 mt-1">
+        {/* <div className="hidden sm:flex flex-wrap gap-0.5 mt-1">
           {data.genres && data.genres.length > 0 ? (
             data.genres.slice(0, 1).map((genre, index) => (
               <span
@@ -89,7 +89,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
               Без жанра
             </span>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );

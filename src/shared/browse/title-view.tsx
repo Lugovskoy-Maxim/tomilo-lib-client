@@ -495,12 +495,6 @@ export function RightContent({
             </h1>
           </div>
 
-          {/* <div className="flex flex-col items-end gap-3">
-            <div className="flex items-center gap-2 text-sm text-[var(--primary)]">
-              <Eye className="w-4 h-4" />
-              <span>{titleData.views?.toLocaleString() || "0"} просмотров</span>
-            </div>
-          </div> */}
         </div>
 
         <div className="mt-2">

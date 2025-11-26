@@ -128,7 +128,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="flex flex-col items-center justify-center gap-6">
+      <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16">
         {/* Топ тайтлы с переключателем периода */}
 
         <div className="w-full mx-auto">

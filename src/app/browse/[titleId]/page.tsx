@@ -78,7 +78,7 @@ export default function TitleViewPage() {
   const processedChaptersData = useMemo(() => chaptersDataRaw || [], [chaptersDataRaw]);
 
   // Simplify isAdmin state usage
-  const isAdmin = true;
+  const isAdmin = (user?.role == 'admin');
   
   const [chaptersPage, setChaptersPage] = useState(1);
   const [hasMoreChapters, setHasMoreChapters] = useState(true);
@@ -215,7 +215,7 @@ export default function TitleViewPage() {
         <div className="max-w-7xl mx-auto px-2 py-4">
           {/* Мобильная версия - обложка сверху */}
           <div className="lg:hidden mb-6">
-            <div className="relative w-full aspect-[2/3] max-w-md mx-auto rounded-xl overflow-hidden shadow-2xl">
+            <div className="flex relative w-max h-max justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
               {processedTitleData?.coverImage ? (
                 <Image
                   src={`${process.env.NEXT_PUBLIC_URL}${processedTitleData.coverImage}`}
@@ -225,7 +225,7 @@ export default function TitleViewPage() {
                   unoptimized={true}
                   className="object-cover"
                   priority
-                  sizes="(max-width: 768px) 100vw, 33vw"
+                  sizes="(max-width: 280px) 100vw, 33vw"
                 />
               ) : (
                 <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-full" />
@@ -234,7 +234,7 @@ export default function TitleViewPage() {
 
             {/* Мобильные кнопки действий */}
             <div className="flex justify-center gap-4 mt-4 rounded-full">
-              <ReadButton titleData={processedTitleData} chapters={processedChaptersData} className="flex-1" />
+              <ReadButton titleData={processedTitleData} chapters={processedChaptersData} className="flex-1 text-sm" />
               <BookmarkButton titleId={titleId} initialBookmarked={false} />
               <button
                 onClick={handleShare}
