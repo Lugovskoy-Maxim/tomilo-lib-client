@@ -16,7 +16,7 @@ export default function BrowsePageClient({ searchQuery }: BrowsePageClientProps)
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 pt-6 pb-20 md:pb-6">
         <BrowseContent />
       </div>
 

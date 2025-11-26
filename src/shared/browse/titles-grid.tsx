@@ -48,9 +48,9 @@ export default function TitleGrid({ titles, onCardClick, isEmpty, onResetFilters
 
   return (
     <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
-      {titles.map((title) => (
+      {titles.map((title, index) => (
         <PopularCard
-          key={title.id}
+          key={`${title.id}-${index}`}
           data={titleToCardProps(title)}
           onCardClick={onCardClick}
         />

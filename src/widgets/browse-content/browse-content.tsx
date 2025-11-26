@@ -5,11 +5,20 @@ import {
   MobileFilterButton,
   SortAndSearch,
   TitleGrid,
-  Pagination,
   FilterSidebar,
 } from "@/shared";
 import { Filters } from "@/types/browse-page";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
+
+interface GridTitle {
+  id: string;
+  title: string;
+  type: string;
+  year: number;
+  rating: number;
+  image?: string;
+  genres: string[];
+}
 
 function BrowseContent() {
   const router = useRouter();
@@ -32,6 +41,11 @@ function BrowseContent() {
     };
   });
 
+  // States for load more functionality
+  const [allTitles, setAllTitles] = useState<GridTitle[]>([]);
+  const [loadMorePage, setLoadMorePage] = useState(1);
+  const [limit, setLimit] = useState(15); // Default to desktop
+
   // Debounce for search input (1s)
   const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -45,6 +59,16 @@ function BrowseContent() {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
   }, [appliedFilters.search]);
+
+  // Set limit based on window size
+  useEffect(() => {
+    const updateLimit = () => {
+      setLimit(window.innerWidth < 1024 ? 6 : 15); // 6 for mobile/tablet, 12 for desktop
+    };
+    updateLimit();
+    window.addEventListener('resize', updateLimit);
+    return () => window.removeEventListener('resize', updateLimit);
+  }, []);
 
   const page = useMemo(() => {
     const p = Number(searchParams.get("page") || "1");
@@ -62,8 +86,8 @@ function BrowseContent() {
     status: appliedFilters.status[0],
     sortBy: appliedFilters.sortBy,
     sortOrder: appliedFilters.sortOrder,
-    page,
-    limit: 12,
+    page: loadMorePage,
+    limit,
   });
 
   const paginatedTitles = useMemo(() => titlesData?.data?.data ?? [], [titlesData]);
@@ -80,9 +104,25 @@ function BrowseContent() {
       })),
     [paginatedTitles]
   );
+
+  // Append new titles to allTitles when data loads
+  useEffect(() => {
+    if (adaptedTitles.length > 0) {
+      if (loadMorePage === 1) {
+        setAllTitles(adaptedTitles);
+      } else {
+        setAllTitles(prev => {
+          const existingIds = new Set(prev.map(t => t.id));
+          const newTitles = adaptedTitles.filter(t => !existingIds.has(t.id));
+          return [...prev, ...newTitles];
+        });
+      }
+    }
+  }, [adaptedTitles, loadMorePage]);
+
   const totalTitles = titlesData?.data?.total ?? 0;
   const currentPage = titlesData?.data?.page ?? page;
-  const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / 12)) || 1;
+  const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
 
   // Функция сброса фильтров
   const resetFilters = () => {
@@ -121,11 +161,17 @@ function BrowseContent() {
 
   const handleFiltersChange = (newFilters: Filters) => {
     setAppliedFilters(newFilters);
+    setAllTitles([]);
+    setLoadMorePage(1);
     updateURL(newFilters, 1); // Сбрасываем на первую страницу при изменении фильтров
   };
 
   const handlePageChange = (page: number) => {
     updateURL(appliedFilters, page);
+  };
+
+  const handleLoadMore = () => {
+    setLoadMorePage(prev => prev + 1);
   };
 
   // Обработчик клика по карточке
@@ -159,19 +205,22 @@ function BrowseContent() {
 
         {/* Сетка тайтлов */}
         <TitleGrid
-          titles={adaptedTitles}
+          titles={allTitles}
           onCardClick={handleCardClick}
-          isEmpty={adaptedTitles.length === 0}
+          isEmpty={allTitles.length === 0}
           onResetFilters={resetFilters}
         />
 
-        {/* Пагинация */}
-        {totalPages > 1 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+        {/* Кнопка загрузить ещё */}
+        {loadMorePage < totalPages && (
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={handleLoadMore}
+              className="bg-[var(--primary)] text-[var(--primary-foreground)] px-6 py-3 rounded-lg hover:bg-[var(--primary)]/90 transition-colors cursor-pointer"
+            >
+              Загрузить ещё
+            </button>
+          </div>
         )}
       </div>
 

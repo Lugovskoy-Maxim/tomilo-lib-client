@@ -31,7 +31,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
   return (
     <div
-      className="overflow-hidden rounded-lg group cursor-pointer active:cursor-grabbing transition-all w-30 sm:w-30 md:w-35 lg:w-40 select-none"
+      className="overflow-hidden rounded-lg group cursor-pointer active:cursor-grabbing transition-all select-none"
       onClick={handleClick}
     >
       <div className="relative">
