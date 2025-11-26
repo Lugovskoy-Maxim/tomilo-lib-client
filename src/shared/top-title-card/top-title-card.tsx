@@ -136,7 +136,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
     <div className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:bg-[var(--accent)] hover:shadow-md transition-all duration-300 cursor-pointer group h-full">
       <div className="relative">
         <Image
-          src={data.image}
+          src={process.env.NEXT_PUBLIC_URL + data.image}
           alt={data.title}
           width={160}
           height={128}
