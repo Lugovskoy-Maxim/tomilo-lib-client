@@ -266,6 +266,7 @@ export default function ReadChapterPage({
         }}
         canGoPrev={currentChapterIndex > 0}
         canGoNext={currentChapterIndex < chapters.length - 1}
+        titleId={titleId}
         isMobileControlsVisible={isMobileControlsVisible}
       />
 
@@ -284,7 +285,7 @@ export default function ReadChapterPage({
                 onClick={() => router.push(`/browse/${titleId}`)}
                 className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors flex-shrink-0 cursor-pointer"
               >
-                ← Назад
+                <ArrowBigLeft className="h-4 w-4"/>
               </button>
 
               {/* Изображение тайтла */}
@@ -314,7 +315,7 @@ export default function ReadChapterPage({
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 w-full sm:w-auto">
+            {/* <div className="flex items-center space-x-2 w-full sm:w-auto">
               <select
                 value={chapter._id}
                 onChange={(e) =>
@@ -329,7 +330,7 @@ export default function ReadChapterPage({
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
           </div>
         </div>
       </header>

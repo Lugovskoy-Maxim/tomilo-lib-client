@@ -70,10 +70,6 @@ function BrowseContent() {
     return () => window.removeEventListener('resize', updateLimit);
   }, []);
 
-  const page = useMemo(() => {
-    const p = Number(searchParams.get("page") || "1");
-    return Number.isFinite(p) && p > 0 ? p : 1;
-  }, [searchParams]);
 
   // Опции фильтров
   const { data: filterOptions } = useGetFilterOptionsQuery();
@@ -121,7 +117,6 @@ function BrowseContent() {
   }, [adaptedTitles, loadMorePage]);
 
   const totalTitles = titlesData?.data?.total ?? 0;
-  const currentPage = titlesData?.data?.page ?? page;
   const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
 
   // Функция сброса фильтров
@@ -164,10 +159,6 @@ function BrowseContent() {
     setAllTitles([]);
     setLoadMorePage(1);
     updateURL(newFilters, 1); // Сбрасываем на первую страницу при изменении фильтров
-  };
-
-  const handlePageChange = (page: number) => {
-    updateURL(appliedFilters, page);
   };
 
   const handleLoadMore = () => {
