@@ -358,7 +358,7 @@ export default function ReadChapterPage({
               return (
                 <div
                   key={`${chapter._id}-${imageIndex}`}
-                  className="flex justify-center mb-4"
+                  className="flex justify-center"
                 >
                   <div className="relative max-w-4xl w-full">
                     {!isError ? (
