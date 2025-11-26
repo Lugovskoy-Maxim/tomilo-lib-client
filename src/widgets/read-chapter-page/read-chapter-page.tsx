@@ -279,7 +279,7 @@ export default function ReadChapterPage({
             <div className="flex items-center space-x-4 w-full sm:w-auto">
               <button
                 onClick={() => router.push(`/browse/${titleId}`)}
-                className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors flex-shrink-0"
+                className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors flex-shrink-0 cursor-pointer"
               >
                 ← Назад
               </button>
@@ -420,7 +420,7 @@ export default function ReadChapterPage({
                     }
                   }}
                   disabled={currentChapterIndex === 0}
-                  className="flex items-center space-x-2 px-4 py-2 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="flex cursor-pointer items-center space-x-2 px-4 py-2 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   <ArrowBigLeft className="w-4 h-4" />
                   <span>Предыдущая глава</span>
@@ -436,7 +436,7 @@ export default function ReadChapterPage({
                     }
                   }}
                   disabled={currentChapterIndex === chapters.length - 1}
-                  className="flex items-center space-x-2 px-4 py-2 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="flex cursor-pointer items-center space-x-2 px-4 py-2 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   <span>Следующая глава</span>
                   <ArrowBigRight className="w-4 h-4" />
