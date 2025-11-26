@@ -95,7 +95,13 @@ export default function TitleViewPage() {
   const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
 
   const isLoading = titleLoading || chaptersLoading;
-  const error = titleError ? "Ошибка загрузки данных" : null;
+  // Suppress error if user not authorized
+  const error =
+    !user && titleError
+      ? null
+      : titleError
+      ? "Ошибка загрузки данных"
+      : null;
 
   // SEO для страницы тайтла
   useSEO(seoConfigs.title(processedTitleData || {}));
@@ -214,6 +220,8 @@ export default function TitleViewPage() {
                 <Image
                   src={`${process.env.NEXT_PUBLIC_URL}${processedTitleData.coverImage}`}
                   alt={processedTitleData?.name}
+                  width={280}
+                  height={420}
                   unoptimized={true}
                   className="object-cover"
                   priority
@@ -226,7 +234,7 @@ export default function TitleViewPage() {
 
             {/* Мобильные кнопки действий */}
             <div className="flex justify-center gap-4 mt-4 rounded-full">
-              <ReadButton titleData={processedTitleData} chapters={chapters} className="flex-1" />
+              <ReadButton titleData={processedTitleData} chapters={processedChaptersData} className="flex-1" />
               <BookmarkButton titleId={titleId} initialBookmarked={false} />
               <button
                 onClick={handleShare}
@@ -252,7 +260,7 @@ export default function TitleViewPage() {
             <div className="hidden lg:block lg:w-1/4">
               <LeftSidebar
                 titleData={processedTitleData}
-                chapters={chapters}
+                chapters={processedChaptersData}
                 onBookmark={handleBookmark}
                 onShare={handleShare}
                 isAdmin={isAdmin}
