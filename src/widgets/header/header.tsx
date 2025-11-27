@@ -2,7 +2,7 @@
 import { Logo, Search, ThemeToggle } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState } from "react";
-import { Menu, X, Search as SearchIcon, Home, User, FileText, Shield, MoreVertical, Info, Mail } from "lucide-react";
+import { X, Search as SearchIcon, Home, User, FileText, Shield, MoreVertical, Info, Mail } from "lucide-react";
 import Link from "next/link";
 import ContactForm from "@/widgets/contact-form/contact-form";
 
@@ -10,10 +10,6 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
 
   const toggleSearch = () => {
     setIsSearchOpen(!isSearchOpen);
@@ -54,17 +50,17 @@ export default function Header() {
             onClick={toggleSearch}
             className={`${
               isSearchOpen ? "hidden" : "lg:hidden"
-            } lg:hidden p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1`}
+            } lg:hidden p-2 bg-[var(--secondary)] cursor-pointer text-[var(--muted-foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1`}
             aria-label="Поиск"
           >
             {isSearchOpen ? null : <SearchIcon className="w-5 h-5" />}
           </button>
 
           {/* Кнопка "..." с выпадающим меню */}
-          <div className="relative">
+          <div className="relative hidden md:block">
             <button
               onClick={toggleDropdown}
-              className="flex items-center p-2 hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)]"
+              className="flex items-center p-2 cursor-pointer hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)]"
               aria-label="Дополнительное меню"
             >
               <MoreVertical className="w-5 h-5" />

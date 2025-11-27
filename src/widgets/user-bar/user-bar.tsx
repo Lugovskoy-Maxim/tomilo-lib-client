@@ -97,7 +97,7 @@ export default function UserBar() {
       name: user.username,
       email: user.email,
       username: user.username,
-      avatar: user.avatar, // Добавляем аватар
+      avatar: user.avatar,
       level: user.level,
       experience: user.experience,
       balance: user.balance
@@ -138,7 +138,7 @@ export default function UserBar() {
           <div className="relative flex items-center justify-center" ref={dropdownRef}>
             <button
               type="button"
-              className="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer focus:outline-none hover:ring-2 hover:ring-[var(--border)] transition-all"
+              className="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer focus:outline-none ring hover:ring-2 ring-[var(--border)] hover:ring-[var(--border)]/80 transition-all"
               onClick={() => setDropdownOpen(!dropdownOpen)}
               aria-label="Открыть меню пользователя"
             >

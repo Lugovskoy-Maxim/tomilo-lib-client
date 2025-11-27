@@ -12,10 +12,10 @@ export function NotificationButton() {
   const notificationCount = typeof unreadCountResponse?.data === 'object' ? unreadCountResponse.data.count : unreadCountResponse?.data || 0;
 
   return (
-    <Link href="/notifications">
+    <Link href="/notifications" className='relative'>
       <button
         type="button"
-        className="flex items-center p-2 hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)]"
+        className="flex items-center p-2 cursor-pointer hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)]"
         aria-label={notificationCount > 0 ? `Уведомления (${notificationCount} новых)` : 'Уведомления'}
       >
         <Bell className="w-5 h-5" />
