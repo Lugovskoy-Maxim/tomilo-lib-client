@@ -12,7 +12,7 @@ export default function ProfileContent({ userProfile }: ProfileContentProps) {
         bookmarks={userProfile.bookmarks}
       />
       <div className="flex flex-col gap-6">
-        <ReadingHistorySection readingHistory={userProfile.readingHistory} />
+        <ReadingHistorySection readingHistory={userProfile.readingHistory} limit={5} />
       </div>
     </div>
   );

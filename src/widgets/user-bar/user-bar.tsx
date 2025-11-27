@@ -10,6 +10,7 @@ import { UserAvatar } from "@/shared";
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+
 import { AuthResponse, ApiResponseDto } from "@/types/auth";
 
 interface UserDropdownUser {

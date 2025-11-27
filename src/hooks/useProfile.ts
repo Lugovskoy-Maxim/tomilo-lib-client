@@ -29,7 +29,7 @@ function transformStoredUserToProfile(storedUser: StoredUser | null): UserProfil
               ? item.chapters.map((chap) => ({
                   chapterId:
                     typeof chap.chapterId === "object" && chap.chapterId !== null
-                      ? (chap.chapterId._id as string)
+                      ? (chap.chapterId as { _id: string })._id as string
                       : (chap.chapterId as string),
                   chapterNumber: chap.chapterNumber,
                   chapterTitle: chap.chapterTitle,

@@ -152,8 +152,8 @@ async function calculateStats(userProfile: UserProfile): Promise<Stats> {
   // Проходим по истории чтения
   for (const historyItem of readingHistory) {
     // Определяем titleId
-    const titleId = typeof historyItem.titleId === 'object' ? (historyItem.titleId as { _id: string })._id : historyItem.titleId;
-    uniqueMangaTitles.add(titleId);
+    const titleId = historyItem.titleId ? (typeof historyItem.titleId === 'object' ? (historyItem.titleId as { _id: string })._id : historyItem.titleId) : null;
+    if (titleId) uniqueMangaTitles.add(titleId);
 
     // Считаем главы
     if (historyItem.chapters && Array.isArray(historyItem.chapters)) {

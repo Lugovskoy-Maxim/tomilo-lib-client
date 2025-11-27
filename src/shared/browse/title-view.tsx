@@ -261,7 +261,7 @@ export function ChapterItem({
         historyItem &&
         typeof historyItem === "object" &&
         historyItem.titleId != null &&
-        historyItem.titleId._id === titleId &&
+        (typeof historyItem.titleId === 'string' ? historyItem.titleId : historyItem.titleId._id) === titleId &&
         historyItem.chapters &&
         Array.isArray(historyItem.chapters) &&
         historyItem.chapters.some(
@@ -269,7 +269,7 @@ export function ChapterItem({
             ch &&
             typeof ch === "object" &&
             ch.chapterId != null &&
-            ch.chapterId._id === chapter._id
+            ch.chapterId === chapter._id
         )
     ) || false;
 

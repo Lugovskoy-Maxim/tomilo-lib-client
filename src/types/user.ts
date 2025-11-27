@@ -1,3 +1,5 @@
+import { ReadingHistoryEntry } from "./store";
+
 export interface UserProfile {
   _id: string;
   username: string;
@@ -8,16 +10,7 @@ export interface UserProfile {
   experience?: number;
   balance?: number;
   bookmarks: string[];
-  readingHistory: {
-    titleId: string;
-    chapters: {
-      chapterId: string;
-      chapterNumber: number;
-      chapterTitle: string | null;
-      readAt: string;
-    }[];
-    readAt: string;
-  }[];
+  readingHistory: ReadingHistoryEntry[];
   createdAt: string;
   updatedAt: string;
 }

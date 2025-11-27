@@ -21,9 +21,10 @@ interface ReadingHistorySectionProps {
         readAt: string;
       }[]
     | undefined;
+  limit?: number;
 }
 
-function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
+function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
   const [titleData, setTitleData] = useState<Record<string, { _id: string; name: string; coverImage?: string }>>({});
@@ -173,12 +174,12 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
         </h2>
         <span className="text-xs flex gap-2 items-center text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
           <BookOpen className="h-3 w-3" />
-          {recentChapters.length}
+          {limit ? Math.min(limit, recentChapters.length) : recentChapters.length}
         </span>
       </div>
 
       <div className="grid grid-cols-1 gap-2">
-        {recentChapters.map((item) => {
+        {recentChapters.slice(0, limit || recentChapters.length).map((item) => {
           const loadingKey = `${item.titleId}-${item.chapterId}`;
           // Получаем данные о тайтле из состояния или из item.titleData
           const title = titleData[item.titleId] || item.titleData;
@@ -282,13 +283,13 @@ function ReadingHistorySection({ readingHistory }: ReadingHistorySectionProps) {
         })}
       </div>
 
-      {allChapters.length > 5 && (
+      {limit && recentChapters.length > limit && (
         <div className="text-center mt-4">
           <button
             className="text-xs text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]/80 transition-colors"
             onClick={() => router.push("/history")}
           >
-            Показать все {allChapters.length} историй чтения
+            Показать все {recentChapters.length} историй чтения
           </button>
         </div>
       )}

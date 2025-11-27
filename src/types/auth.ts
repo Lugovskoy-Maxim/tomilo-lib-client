@@ -33,53 +33,7 @@ export interface StoredUser {
   experience?: number;
   balance?: number;
   bookmarks?: string[];
-  readingHistory?: {
-    titleId: {
-      _id: string;
-      name: string;
-      altNames?: string[];
-      description?: string;
-      genres?: string[];
-      tags?: string[];
-      coverImage?: string;
-      status: string;
-      views: number;
-      totalChapters: number;
-      rating: number;
-      ageLimit: number;
-      chapters: string[]; // массив chapterId
-      isPublished: boolean;
-      type?: string;
-      createdAt: string;
-      updatedAt: string;
-      dayViews?: number;
-      lastDayReset?: string;
-      lastMonthReset?: string;
-      lastWeekReset?: string;
-      monthViews?: number;
-      weekViews?: number;
-    };
-    chapters: {
-      chapterId: {
-        _id: string;
-        titleId: string;
-        chapterNumber: number;
-        name: string;
-        pages: string[];
-        views: number;
-        isPublished: boolean;
-        releaseDate: string;
-        createdAt: string;
-        updatedAt: string;
-      };
-      chapterNumber: number;
-      chapterTitle: string;
-      readAt: string;
-      _id: string;
-    }[];
-    readAt: string;
-    _id: string;
-  }[];
+  readingHistory?: import("@/types/store").ReadingHistoryEntry[];
 }
 
 export interface AuthResponse {
@@ -105,52 +59,6 @@ export interface User {
   role: string;
   level?: number;
   bookmarks?: string[];
-  readingHistory: {
-    titleId: {
-      _id: string;
-      name: string;
-      altNames?: string[];
-      description?: string;
-      genres?: string[];
-      tags?: string[];
-      coverImage?: string;
-      status: string;
-      views: number;
-      totalChapters: number;
-      rating: number;
-      ageLimit: number;
-      chapters: string[]; // массив chapterId
-      isPublished: boolean;
-      type?: string;
-      createdAt: string;
-      updatedAt: string;
-      dayViews?: number;
-      lastDayReset?: string;
-      lastMonthReset?: string;
-      lastWeekReset?: string;
-      monthViews?: number;
-      weekViews?: number;
-    };
-    chapters: {
-      chapterId: {
-        _id: string;
-        titleId: string;
-        chapterNumber: number;
-        name: string;
-        pages: string[];
-        views: number;
-        isPublished: boolean;
-        releaseDate: string;
-        createdAt: string;
-        updatedAt: string;
-      };
-      chapterNumber: number;
-      chapterTitle: string;
-      readAt: string;
-      _id: string;
-    }[];
-    readAt: string;
-    _id: string;
-  }[];
+  readingHistory?: import("@/types/store").ReadingHistoryEntry[];
 }
   

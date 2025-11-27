@@ -6,7 +6,7 @@ import {
   useRemoveBookmarkMutation,
   useGetReadingHistoryQuery,
   useAddToReadingHistoryMutation,
-  useRemoveFromReadingHistoryMutation
+  useRemoveFromReadingHistoryMutation,
 } from "@/store/api/authApi";
 import { useUpdateChapterMutation } from "@/store/api/chaptersApi";
 import { UpdateChapterDto } from "@/types/title";
@@ -47,7 +47,11 @@ export const useAuth = () => {
   const [addToReadingHistory] = useAddToReadingHistoryMutation();
   const [removeFromReadingHistory] = useRemoveFromReadingHistoryMutation();
 
-  const { data: readingHistoryData, isLoading: readingHistoryLoading, error: readingHistoryError } = useGetReadingHistoryQuery(undefined, {
+  const {
+    data: readingHistoryData,
+    isLoading: readingHistoryLoading,
+    error: readingHistoryError,
+  } = useGetReadingHistoryQuery(undefined, {
     skip: !getToken(),
   });
 
@@ -59,7 +63,12 @@ export const useAuth = () => {
 
   useEffect(() => {
     const currentToken = getToken();
-    if (profileResponse && profileResponse.success && profileResponse.data && currentToken) {
+    if (
+      profileResponse &&
+      profileResponse.success &&
+      profileResponse.data &&
+      currentToken
+    ) {
       const user: StoredUser = profileResponse.data;
       const authResponse: AuthResponse = {
         access_token: currentToken,
@@ -92,7 +101,7 @@ export const useAuth = () => {
     }
   }, [error, token, dispatch]);
 
-  const updateUserData = (userData: Partial<StoredUser>) => {
+  const updateUserData = useCallback((userData: Partial<StoredUser>) => {
     dispatch(updateUser(userData));
     if (typeof window !== "undefined") {
       try {
@@ -106,7 +115,18 @@ export const useAuth = () => {
         console.error("Error updating user data in localStorage:", e);
       }
     }
-  };
+  }, [dispatch]);
+
+  // Обновление истории чтения в профиле пользователя
+  useEffect(() => {
+    if (
+      readingHistoryData &&
+      readingHistoryData.success &&
+      readingHistoryData.data
+    ) {
+      updateUserData({ readingHistory: readingHistoryData.data });
+    }
+  }, [readingHistoryData, updateUserData]);
 
   const updateAvatar = async (
     avatarFile: File
@@ -195,7 +215,9 @@ export const useAuth = () => {
     }
   };
 
-  const addBookmarkToUser = async (titleId: string): Promise<{ success: boolean; error?: string }> => {
+  const addBookmarkToUser = async (
+    titleId: string
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await addBookmark(titleId).unwrap();
 
@@ -220,7 +242,9 @@ export const useAuth = () => {
     }
   };
 
-  const removeBookmarkFromUser = async (titleId: string): Promise<{ success: boolean; error?: string }> => {
+  const removeBookmarkFromUser = async (
+    titleId: string
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await removeBookmark(titleId).unwrap();
 
@@ -245,47 +269,71 @@ export const useAuth = () => {
     }
   };
 
-  const updateChapterViewsCount = useCallback(async (chapterId: string, currentViews: number): Promise<{ success: boolean; error?: string }> => {
+  const updateChapterViewsCount = useCallback(
+    async (
+      chapterId: string,
+      currentViews: number
+    ): Promise<{ success: boolean; error?: string }> => {
+      try {
+        await updateChapter({
+          id: chapterId,
+          data: { views: currentViews + 1 } as Partial<UpdateChapterDto>,
+        }).unwrap();
+
+        return { success: true };
+      } catch (error) {
+        console.error("Error updating chapter views:", error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Неизвестная ошибка",
+        };
+      }
+    },
+    [updateChapter]
+  );
+
+  const addToReadingHistoryFunc = useCallback(
+    async (
+      titleId: string,
+      chapterId: string
+    ): Promise<{ success: boolean; error?: string }> => {
+      try {
+        const result = await addToReadingHistory({
+          titleId,
+          chapterId,
+        }).unwrap();
+
+        if (!result.success) {
+          throw new Error(
+            result.message || "Ошибка при добавлении в историю чтения"
+          );
+        }
+
+        refetchProfile();
+
+        return { success: true };
+      } catch (error) {
+        console.error("Error adding to reading history:", error);
+        throw error; // Перебрасываем ошибку, чтобы она была обработана в компоненте
+      }
+    },
+    [addToReadingHistory, refetchProfile]
+  );
+
+  const removeFromReadingHistoryFunc = async (
+    titleId: string,
+    chapterId: string
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
-      await updateChapter({
-        id: chapterId,
-        data: { views: currentViews + 1 } as Partial<UpdateChapterDto>,
+      const result = await removeFromReadingHistory({
+        titleId,
+        chapterId,
       }).unwrap();
 
-
-      return { success: true };
-    } catch (error) {
-      console.error("Error updating chapter views:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Неизвестная ошибка",
-      };
-    }
-  }, [updateChapter]);
-
-  const addToReadingHistoryFunc = useCallback(async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const result = await addToReadingHistory({ titleId, chapterId }).unwrap();
-
       if (!result.success) {
-        throw new Error(result.message || "Ошибка при добавлении в историю чтения");
-      }
-
-      refetchProfile();
-
-      return { success: true };
-    } catch (error) {
-      console.error("Error adding to reading history:", error);
-      throw error; // Перебрасываем ошибку, чтобы она была обработана в компоненте
-    }
-  }, [addToReadingHistory, refetchProfile]);
-
-  const removeFromReadingHistoryFunc = async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const result = await removeFromReadingHistory({ titleId, chapterId }).unwrap();
-
-      if (!result.success) {
-        throw new Error(result.message || "Ошибка при удалении из истории чтения");
+        throw new Error(
+          result.message || "Ошибка при удалении из истории чтения"
+        );
       }
 
       refetchProfile();
