@@ -1,5 +1,6 @@
 import { useGetPopularTitlesQuery, useGetTopTitlesDayQuery, useGetTopTitlesWeekQuery, useGetTopTitlesMonthQuery } from "@/store/api/titlesApi";
 import { useGetReadingHistoryQuery } from "@/store/api/authApi";
+import { Chapter } from "@/types/title";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
@@ -105,9 +106,15 @@ export const useHomeData = () => {
     const titleData = item.titleId && typeof item.titleId === 'object' ? item.titleId : {};
     const titleId = typeof item.titleId === 'string' ? item.titleId : (titleData as { _id?: string })._id || '';
 
-    const totalChapters = (titleData as { chapters?: { chapterNumber: number }[] }).chapters?.length || 0;
+    const titleChapters = (titleData as { chapters?: Chapter[] }).chapters || [];
+    const totalChapters = titleChapters.length;
     const currentChapter = latestChapter?.chapterNumber || 0;
-    const newChapters = Math.max(0, totalChapters - currentChapter);
+
+    // Calculate new chapters based on release date vs last read date
+    const lastReadDate = latestChapter ? new Date(latestChapter.readAt) : new Date(0);
+    const newChapters = titleChapters.filter((ch: Chapter) =>
+      ch.releaseDate && new Date(ch.releaseDate) > lastReadDate
+    ).length;
 
     return {
       id: titleId,

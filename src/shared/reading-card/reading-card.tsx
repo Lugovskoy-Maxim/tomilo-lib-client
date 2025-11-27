@@ -1,8 +1,8 @@
-"use client"
+"use client";
 import { BookOpen, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import IMAGE_HOLDER from "../../../public/404/image-holder.png"; 
+import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
 interface ReadingItem {
   id: string;
@@ -38,14 +38,16 @@ export default function ReadingCard({ data }: ReadingCardProps) {
   // Формируем корректный URL для изображения
   const getImageUrl = () => {
     if (!data.cover) return IMAGE_HOLDER;
-    
+
     // Если изображение уже полный URL, используем как есть
-    if (data.cover.startsWith('http')) {
+    if (data.cover.startsWith("http")) {
       return data.cover;
     }
-    
+
     // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3001'}${data.cover}`;
+    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${
+      data.cover
+    }`;
   };
 
   const imageUrl = getImageUrl();
@@ -61,7 +63,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0">
           <div className="relative w-full h-full">
             <Image
-            loader={() => `${imageUrl}`}
+              loader={() => `${imageUrl}`}
               src={imageUrl}
               alt={data.title}
               fill
@@ -90,26 +92,28 @@ export default function ReadingCard({ data }: ReadingCardProps) {
           </h3>
 
           {/* Информация о чтении */}
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--chart-1)]/50 flex-shrink-0" />
-              <span className="text-[var(--primary)]/50 truncate">
-                +{data.newChaptersSinceLastRead} новых глав
-              </span>
-            </div>
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--chart-1)]/50 flex-shrink-0" />
+            <span className="text-[var(--primary)]/50 truncate">
+              {data.newChaptersSinceLastRead === 0
+                ? "Нет новых глав"
+                : `${data.newChaptersSinceLastRead} новых глав`}
+            </span>
+          </div>
 
-            {/* Прогресс чтения */}
-            <div className="absolute bottom-0 left-0 right-0  px-2 py-1 sm:px-2">
-              {/* <div className="text-[var(--primary)]/50 text-xs font-semibold text-center">
+          {/* Прогресс чтения */}
+          <div className="absolute bottom-0 left-0 right-0  px-2 py-1 sm:px-2">
+            {/* <div className="text-[var(--primary)]/50 text-xs font-semibold text-center">
                 Последняя прочитанная глава {data.readingHistory?.chapterNumber || data.currentChapter}
               </div> */}
-                        <div className="space-y-1 sm:space-y-2">
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-[var(--primary)]">
-              <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="truncate">
-                Глава {data.currentChapter} из {data.totalChapters} глав
-              </span>
-            </div>
-            
+            <div className="space-y-1 sm:space-y-2">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-[var(--primary)]">
+                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="truncate">
+                  Глава {data.currentChapter} из {data.totalChapters} глав
+                </span>
+              </div>
+
               <div className="w-full bg-[var(--muted-foreground)] rounded-full h-1 mt-1">
                 <div
                   className="bg-[var(--chart-1)] h-1 rounded-full transition-all"
