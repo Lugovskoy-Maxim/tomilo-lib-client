@@ -29,6 +29,7 @@ import { BookmarkButton } from "@/shared/bookmark-button";
 import { useAuth } from "@/hooks/useAuth";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
+import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
 
 // Shared UI
 export function TabButton({
@@ -95,13 +96,30 @@ export function LeftSidebar({
   chapters,
   onShare,
   isAdmin,
+  onAgeVerificationRequired,
 }: {
   titleData: Title;
   chapters: Chapter[];
   onBookmark: () => void;
   onShare: () => void;
   isAdmin: boolean;
+  onAgeVerificationRequired?: () => void;
 }) {
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [isAgeVerified, setIsAgeVerified] = useState(() => checkAgeVerification());
+
+  const handleAgeConfirm = () => {
+    setIsAgeVerified(true);
+    setShowAgeModal(false);
+  };
+
+  const handleAgeCancel = () => {
+    setShowAgeModal(false);
+  };
+
+  const isAdultContent = titleData.ageLimit >= 18;
+  const shouldBlurImage = isAdultContent && !isAgeVerified;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col rounded-full">
@@ -122,6 +140,7 @@ export function LeftSidebar({
             titleData={titleData}
             chapters={chapters}
             className="w-full rounded-full"
+            onAgeVerificationRequired={() => setShowAgeModal(true)}
           />
         </div>
 
@@ -164,6 +183,12 @@ export function LeftSidebar({
           </div>
         </div>
       )}
+
+      <AgeVerificationModal
+        isOpen={showAgeModal}
+        onConfirm={handleAgeConfirm}
+        onCancel={handleAgeCancel}
+      />
     </div>
   );
 }
@@ -180,6 +205,8 @@ export function ChaptersTab({
   onSortChange,
   loading,
   user,
+  titleData,
+  onAgeVerificationRequired,
 }: {
   titleId: string;
   chapters: Chapter[];
@@ -191,6 +218,8 @@ export function ChaptersTab({
   onSortChange: (order: 'desc' | 'asc') => void;
   loading: boolean;
   user: User | null;
+  titleData?: Title;
+  onAgeVerificationRequired?: () => void;
 }) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -414,6 +443,7 @@ export function RightContent({
   onSortChange,
   titleId,
   user,
+  onAgeVerificationRequired,
 }: {
   titleData: Title;
   activeTab: "description" | "chapters" | "comments" | "statistics";
@@ -432,6 +462,7 @@ export function RightContent({
   onSortChange: (order: 'desc' | 'asc') => void;
   titleId: string;
   user: User | null;
+  onAgeVerificationRequired?: () => void;
 }) {
   const statusLabels: Record<TitleStatus, string> = {
     [TitleStatus.ONGOING]: "Онгоинг",

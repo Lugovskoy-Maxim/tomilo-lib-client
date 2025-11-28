@@ -3,19 +3,21 @@ import { Play, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { Title, Chapter } from "@/types/title";
-
 import { ReadingHistoryEntry } from "@/types/store";
+import { checkAgeVerification } from "@/shared/modal/age-verification-modal";
 
 interface ReadButtonProps {
   titleData: Title;
   className?: string;
   chapters: Chapter[];
+  onAgeVerificationRequired?: () => void;
 }
 
 export function ReadButton({
   titleData,
   className,
   chapters,
+  onAgeVerificationRequired,
 }: ReadButtonProps) {
   const { user, readingHistoryLoading } = useAuth();
   const router = useRouter();
@@ -102,6 +104,10 @@ export function ReadButton({
 
   const handleClick = () => {
     if (nextChapter && titleData?._id) {
+      if (titleData.ageLimit >= 18 && !checkAgeVerification()) {
+        onAgeVerificationRequired?.();
+        return;
+      }
       router.push(`/browse/${titleData._id}/chapter/${nextChapter._id}`);
     }
   };
