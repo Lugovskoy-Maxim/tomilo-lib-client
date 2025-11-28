@@ -28,12 +28,37 @@ export const collectionsApi = createApi({
         params,
       }),
       providesTags: [COLLECTIONS_TAG],
-      transformResponse: (response: ApiResponseDto<{ collections?: Collection[]; data?: Collection[]; pagination?: { total: number; page: number; pages: number; limit: number }; total?: number; page?: number; totalPages?: number }>) => {
+      transformResponse: (response: ApiResponseDto<unknown>) => {
         // Нормализуем серверный ответ
-        const collections: Collection[] = response?.data?.collections ?? response?.data?.data ?? response?.data ?? [];
-        const total: number = response?.data?.pagination?.total ?? response?.data?.total ?? collections.length ?? 0;
-        const page: number = response?.data?.pagination?.page ?? response?.data?.page ?? 1;
-        const totalPages: number = response?.data?.pagination?.pages ?? response?.data?.totalPages ?? Math.ceil(total / (response?.data?.pagination?.limit ?? 12)) ?? 1;
+        const data = response?.data;
+        let collections: Collection[] = [];
+        let total: number = 0;
+        let page: number = 1;
+        let totalPages: number = 1;
+
+        if (Array.isArray(data)) {
+          // API returns collections directly as array
+          collections = data as Collection[];
+          total = data.length;
+        } else if (data && typeof data === 'object') {
+          const dataObj = data as any;
+          collections = dataObj.collections || dataObj.data || [];
+          total = dataObj.pagination?.total || dataObj.total || collections.length || 0;
+          page = dataObj.pagination?.page || dataObj.page || 1;
+          totalPages = dataObj.pagination?.pages || dataObj.totalPages || Math.ceil(total / (dataObj.pagination?.limit || 12)) || 1;
+        }
+
+        // Map id to _id if needed, filter out collections without any ID
+        collections = collections
+          .map((collection: Record<string, unknown>) => ({
+            ...collection,
+            _id: (collection._id as string) || (collection.id as string) || (collection._id as string)
+          }))
+          .filter((collection: Record<string, unknown>) => {
+            const id = collection._id as string;
+            return id && id !== 'undefined';
+          });
+
         return {
           ...response,
           data: { collections, total, page, totalPages },
@@ -59,7 +84,7 @@ export const collectionsApi = createApi({
     }),
 
     // Создание коллекции
-    createCollection: builder.mutation<ApiResponseDto<Collection>, Partial<CreateCollectionDto>>({
+    createCollection: builder.mutation<ApiResponseDto<Collection>, Partial<CreateCollectionDto> | FormData>({
       query: (data) => ({
         url: "/collections",
         method: "POST",

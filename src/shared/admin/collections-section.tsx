@@ -76,8 +76,13 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   const collections = collectionsResponse?.data?.collections || [];
   const totalPages = collectionsResponse?.data?.totalPages || 1;
 
+  // Debug logging
+  console.log('Collections response:', collectionsResponse);
+  console.log('Collections:', collections);
+  console.log('First collection:', collections[0]);
 
-  const handleCreate = async (data: CreateCollectionDto) => {
+
+  const handleCreate = async (data: CreateCollectionDto | FormData) => {
     try {
       await createCollection(data).unwrap();
       setIsCreateModalOpen(false);
@@ -99,18 +104,33 @@ export function CollectionsSection({}: CollectionsSectionProps) {
     }
   };
 
-  const handleEditSubmit = async (data: CreateCollectionDto) => {
+  const handleEditSubmit = async (data: CreateCollectionDto | FormData) => {
     if (!selectedCollection) return;
-    const updateData: UpdateCollectionDto = {
-      name: data.name,
-      description: data.description,
-      image: data.image,
-      link: data.link,
-    };
-    await handleUpdate(updateData);
+    if (data instanceof FormData) {
+      // Handle FormData case
+      const updateData: UpdateCollectionDto = {
+        name: data.get('name') as string,
+        description: (data.get('description') as string) || undefined,
+        image: (data.get('image') as string) || undefined,
+        link: (data.get('link') as string) || undefined,
+      };
+      await handleUpdate(updateData);
+    } else {
+      const updateData: UpdateCollectionDto = {
+        name: data.name,
+        description: data.description,
+        image: data.image,
+        link: data.link,
+      };
+      await handleUpdate(updateData);
+    }
   };
 
   const handleDelete = async (id: string) => {
+    if (!id || id === 'undefined') {
+      console.error('Invalid collection ID for deletion');
+      return;
+    }
     if (!confirm("Вы уверены, что хотите удалить эту коллекцию?")) return;
     try {
       await deleteCollection(id).unwrap();
@@ -121,16 +141,28 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   };
 
   const openEditModal = (collection: Collection) => {
+    if (!collection._id) {
+      console.error('Collection missing _id:', collection);
+      return;
+    }
     setSelectedCollection(collection);
     setIsEditModalOpen(true);
   };
 
   const openTitlesModal = (collection: Collection) => {
+    if (!collection._id) {
+      console.error('Collection missing _id:', collection);
+      return;
+    }
     setSelectedCollection(collection);
     setIsTitlesModalOpen(true);
   };
 
   const openCommentsModal = (collection: Collection) => {
+    if (!collection._id) {
+      console.error('Collection missing _id:', collection);
+      return;
+    }
     setSelectedCollection(collection);
     setIsCommentsModalOpen(true);
   };
@@ -260,9 +292,9 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             </p>
           </div>
         ) : (
-          collections.map((collection: Collection) => (
+          collections.map((collection: Collection, index) => (
           <div
-            key={collection._id}
+            key={`${collection._id}-${index}`}
             className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors"
           >
             <div className="flex justify-between items-start mb-3">
@@ -303,7 +335,13 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             </div>
 
             {collection.description && (
-              <p className="text-sm text-[var(--muted-foreground)] mb-3 line-clamp-2">
+              <p className="text-sm text-[var(--muted-foreground)] mb-3 overflow-hidden" style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                lineHeight: '1.4em',
+                maxHeight: '2.8em'
+              }}>
                 {collection.description}
               </p>
             )}
@@ -411,7 +449,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
 interface CollectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateCollectionDto) => void;
+  onSubmit: (data: CreateCollectionDto | FormData) => Promise<void>;
   isLoading: boolean;
   title: string;
   initialData?: Collection;
@@ -502,10 +540,13 @@ function CollectionModal({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-const imageCover = () => 
-  formData?.image 
-    ? `${process.env.NEXT_PUBLIC_URL}${previewUrl || ''}`
-    : `${process.env.NEXT_PUBLIC_URL}${formData?.image || ''}`;
+const imageCover = (): string => {
+  if (previewUrl) return previewUrl;
+  if (formData?.image) {
+    return formData.image.startsWith('http') ? formData.image : `${process.env.NEXT_PUBLIC_URL || ''}${formData.image}`;
+  }
+  return '';
+};
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
