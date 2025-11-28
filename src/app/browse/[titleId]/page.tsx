@@ -30,15 +30,21 @@ function filterAndPaginateChapters(
   let filtered = allChapters;
 
   if (normalized) {
-    filtered = allChapters.filter((ch) => {
-      const numberMatch = String(ch.chapterNumber).includes(normalized);
-      const titleText = (ch.title || "").toLowerCase();
-      const titleMatch = titleText.includes(normalized);
-      const comboMatch = `глава ${ch.chapterNumber} ${ch.title || ""}`
-        .toLowerCase()
-        .includes(normalized);
-      return numberMatch || titleMatch || comboMatch;
-    });
+    const isNumeric = !isNaN(parseFloat(normalized)) && isFinite(Number(normalized));
+    if (isNumeric) {
+      // Exact match for numeric searches
+      filtered = allChapters.filter((ch) => ch.chapterNumber === parseFloat(normalized));
+    } else {
+      // Partial match for text searches
+      filtered = allChapters.filter((ch) => {
+        const titleText = (ch.title || "").toLowerCase();
+        const titleMatch = titleText.includes(normalized);
+        const comboMatch = `глава ${ch.chapterNumber} ${ch.title || ""}`
+          .toLowerCase()
+          .includes(normalized);
+        return titleMatch || comboMatch;
+      });
+    }
   }
 
   // Сортировка по номеру главы
