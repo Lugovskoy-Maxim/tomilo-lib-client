@@ -6,6 +6,7 @@ import { useGetChaptersByTitleQuery, useDeleteChapterMutation, useSearchChapters
 import { useMemo } from "react";
 import { Header, Footer } from "@/widgets";
 import { useToast } from "@/hooks/useToast";
+import { Chapter } from "@/types/title";
 
 export default function ChaptersManagementPage() {
   const params = useParams();
@@ -20,7 +21,14 @@ export default function ChaptersManagementPage() {
   const [deleteChapter] = useDeleteChapterMutation();
 
   const sorted = useMemo(() => {
-    const chapters = (primary?.chapters && primary.chapters.length ? primary.chapters : fallback?.chapters) || [];
+    let chapters: Chapter[] = [];
+    if (Array.isArray(primary)) {
+      chapters = primary;
+    } else if (primary?.chapters) {
+      chapters = primary.chapters;
+    } else if (fallback?.chapters) {
+      chapters = fallback.chapters;
+    }
     if (!Array.isArray(chapters)) {
       return [];
     }

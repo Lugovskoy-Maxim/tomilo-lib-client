@@ -130,7 +130,7 @@ export default function TitleViewPage() {
       setChaptersLoadingState(true);
       try {
         const source = processedChaptersData;
-        const result = filterAndPaginateChapters(source, page, 25, search);
+        const result = filterAndPaginateChapters(source, page, chaptersPage, search);
 
         if (append) {
           setChapters((prev) => [...prev, ...result.chapters]);
@@ -142,7 +142,7 @@ export default function TitleViewPage() {
         setChaptersLoadingState(false);
       }
     },
-    [chaptersLoadingState, processedChaptersData]
+    [chaptersLoadingState, processedChaptersData, chaptersPage]
   );
 
   // Первоначальная загрузка глав
@@ -157,24 +157,24 @@ export default function TitleViewPage() {
   // Обновление списка глав при изменении данных от API
   useEffect(() => {
     if (activeTab === "chapters" && processedChaptersData) {
-      setChapters(processedChaptersData);
-      setHasMoreChapters(false); // All chapters are loaded from title data
+      // Загружаем первую страницу глав
+      loadChapters(1, searchQuery, false);
     }
-  }, [activeTab, processedChaptersData]);
+  }, [activeTab, processedChaptersData, loadChapters, searchQuery]);
 
   // Обработчики
   const handleLoadMoreChapters = () => {
     if (hasMoreChapters && !chaptersLoadingState) {
       const nextPage = chaptersPage + 1;
       setChaptersPage(nextPage);
-      // Данные будут автоматически загружены через useGetChaptersByTitleQuery при изменении chaptersPage
+      loadChapters(nextPage, searchQuery, true);
     }
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setChaptersPage(1);
-    // При сбросе поиска данные будут перезагружены через useGetChaptersByTitleQuery
+    loadChapters(1, query, false);
   };
 
   const handleBookmark = () => {

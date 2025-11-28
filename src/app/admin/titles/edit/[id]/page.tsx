@@ -224,7 +224,7 @@ export default function TitleEditorPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Вычисляем количество глав из данных
-  const chaptersCount = chaptersData?.length || 0;
+  const chaptersCount = chaptersData?.chapters?.length || 0;
 
   // Обработка данных тайтла из API
   useEffect(() => {
