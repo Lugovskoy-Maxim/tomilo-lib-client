@@ -121,7 +121,7 @@ export const collectionsApi = createApi({
     }),
 
     // Обновление коллекции
-    updateCollection: builder.mutation<ApiResponseDto<Collection>, { id: string; data: Partial<UpdateCollectionDto> }>({
+    updateCollection: builder.mutation<ApiResponseDto<Collection>, { id: string; data: Partial<UpdateCollectionDto> | FormData }>({
       query: ({ id, data }) => ({
         url: `/collections/${id}`,
         method: "PUT",

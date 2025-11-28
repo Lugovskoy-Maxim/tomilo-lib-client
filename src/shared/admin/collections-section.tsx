@@ -92,7 +92,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
     }
   };
 
-  const handleUpdate = async (data: UpdateCollectionDto) => {
+  const handleUpdate = async (data: UpdateCollectionDto | FormData) => {
     if (!selectedCollection) return;
     try {
       const updatedCollection = await updateCollection({ id: selectedCollection.id, data }).unwrap();
@@ -107,13 +107,8 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   const handleEditSubmit = async (data: CreateCollectionDto | FormData) => {
     if (!selectedCollection) return;
     if (data instanceof FormData) {
-      // Handle FormData case
-      const updateData: UpdateCollectionDto = {
-        name: data.get('name') as string,
-        description: (data.get('description') as string) || undefined,
-        cover: (data.get('cover') as string) || undefined,
-      };
-      await handleUpdate(updateData);
+      // Handle FormData case - send FormData directly
+      await handleUpdate(data);
     } else {
       const updateData: UpdateCollectionDto = {
         name: data.name,
@@ -121,6 +116,18 @@ export function CollectionsSection({}: CollectionsSectionProps) {
         cover: data.cover,
       };
       await handleUpdate(updateData);
+    }
+  };
+
+  const handleCoverUpdate = async (file: File) => {
+    if (!selectedCollection) return;
+    try {
+      const formData = new FormData();
+      formData.append('cover', file);
+      await updateCollection({ id: selectedCollection.id, data: formData }).unwrap();
+      refetch();
+    } catch (error) {
+      // Handle error silently in production
     }
   };
 
@@ -403,6 +410,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
           setSelectedCollection(null);
         }}
         onSubmit={handleEditSubmit}
+        onCoverUpdate={handleCoverUpdate}
         isLoading={isUpdating}
         title="Редактировать коллекцию"
         initialData={selectedCollection || undefined}
@@ -448,6 +456,7 @@ interface CollectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateCollectionDto | FormData) => Promise<void>;
+  onCoverUpdate?: (file: File) => Promise<void>;
   isLoading: boolean;
   title: string;
   initialData?: Collection;
@@ -457,6 +466,7 @@ function CollectionModal({
   isOpen,
   onClose,
   onSubmit,
+  onCoverUpdate,
   isLoading,
   title,
   initialData,
@@ -540,10 +550,11 @@ function CollectionModal({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-const imageCover = () =>
-  formData?.cover
-    ? `${process.env.NEXT_PUBLIC_URL}${previewUrl || ''}`
-    : `${process.env.NEXT_PUBLIC_URL}${formData?.cover || ''}`;
+const imageCover = () => {
+  if (previewUrl) return previewUrl;
+  if (formData?.cover) return `${process.env.NEXT_PUBLIC_URL}${formData.cover}`;
+  return '/404/image-holder.png'; // placeholder
+};
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
@@ -623,6 +634,19 @@ const imageCover = () =>
               </span>
             </label>
           </div>
+
+          {/* Update Cover Button */}
+          {onCoverUpdate && selectedFile && (
+            <div className="mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={() => onCoverUpdate(selectedFile)}
+                className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+              >
+                Обновить только обложку
+              </button>
+            </div>
+          )}
         </div>
 
 
