@@ -2,7 +2,6 @@
 
 import { ReadChapterPage } from "@/widgets";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
 import {
   ReaderTitle as ReadTitle,
   ReaderChapter as ReadChapter,
@@ -52,7 +51,6 @@ export default function ChapterPage() {
   const {
     data: chapterData,
     isLoading: chapterLoading,
-    error: chapterError,
   } = useGetChapterByIdQuery(chapterId, { skip: !shouldFetchChapter });
 
   // SEO для страницы главы - всегда вызываем хук в начале компонента
@@ -152,7 +150,7 @@ export default function ChapterPage() {
 
     if (chapterData && chapterData.titleId !== titleId) {
       // Chapter exists but belongs to a different title, redirect
-      const correctTitleId = typeof chapterData.titleId === 'object' ? chapterData.titleId._id : chapterData.titleId;
+      const correctTitleId = typeof chapterData.titleId === 'object' ? (chapterData.titleId as { _id: string })._id : chapterData.titleId;
       router.push(`/browse/${correctTitleId}/chapter/${chapterId}`);
       return null;
     }
