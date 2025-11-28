@@ -43,10 +43,12 @@ export function AutoParsingSection() {
     useCheckNewChaptersMutation();
 
   // Search titles
-  const { data: searchResults } = useSearchTitlesQuery(
+  const { data: searchResultsResponse } = useSearchTitlesQuery(
     { search: titleSearch, limit: 5 },
     { skip: !titleSearch || titleSearch.length < 2 }
   );
+
+  const searchResults: Title[] = searchResultsResponse?.data?.data || [];
 
   const jobs = jobsResponse || [];
 
@@ -242,7 +244,7 @@ export function AutoParsingSection() {
               : undefined
           }
           isLoading={createLoading || updateLoading}
-          searchResults={searchResults?.data || []}
+          searchResults={searchResults}
           titleSearch={titleSearch}
           setTitleSearch={setTitleSearch}
           onSelectTitle={selectTitle}
