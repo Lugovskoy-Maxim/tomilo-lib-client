@@ -10,6 +10,7 @@ import { collectionsApi } from "./api/collectionsApi";
 import { commentsApi } from "./api/commentsApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
+import { autoParsingApi } from "./api/autoParsingApi";
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     [usersApi.reducerPath]: usersApi.reducer,
     [collectionsApi.reducerPath]: collectionsApi.reducer,
     [commentsApi.reducerPath]: commentsApi.reducer,
+    [autoParsingApi.reducerPath]: autoParsingApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -35,7 +37,8 @@ export const store = configureStore({
       .concat(statsApi.middleware)
       .concat(usersApi.middleware)
       .concat(collectionsApi.middleware)
-      .concat(commentsApi.middleware),
+      .concat(commentsApi.middleware)
+      .concat(autoParsingApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

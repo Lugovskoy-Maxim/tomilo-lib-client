@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminTabs } from "@/shared/admin/admin-tabs";
+import { AutoParsingSection } from "@/shared/admin/auto-parsing-section";
 import { ChaptersSection } from "@/shared/admin/chapters-section";
 import { CollectionsSection } from "@/shared/admin/collections-section";
 import { OverviewSection } from "@/shared/admin/overview-section";
@@ -11,7 +12,7 @@ import { Footer, Header } from "@/widgets";
 import { useState } from "react";
 
 
-type AdminTab = "overview" | "parser" | "titles" | "chapters" | "collections" | "users";
+type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
@@ -23,6 +24,8 @@ export default function AdminPage() {
         return <OverviewSection onTabChange={setActiveTab} />;
       case "parser":
         return <ParserSection />;
+      case "auto-parsing":
+        return <AutoParsingSection />;
       case "titles":
         return (
           <TitlesSection

@@ -4,3 +4,10 @@ export interface ApiResponse<T> {
   timestamp?: string;
   path?: string;
 }
+
+export interface ApiResponseDto<T> {
+  success: boolean;
+  data: T;
+  timestamp?: string;
+  path?: string;
+}
