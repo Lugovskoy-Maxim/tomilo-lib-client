@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Title, TitleStatus, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
+import { ReadingHistoryEntry } from "@/types/store";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ReadButton } from "@/shared/browse/read-button";
@@ -217,7 +218,6 @@ export function ChaptersTab({
             key={chapter._id || index}
             chapter={chapter}
             titleId={titleId}
-            index={index}
             user={user}
           />
         ))}
@@ -247,7 +247,6 @@ export function ChapterItem({
 }: {
   chapter: Chapter;
   titleId: string;
-  index: number;
   user: User | null;
 }) {
   const { removeFromReadingHistory } = useAuth();
@@ -257,20 +256,35 @@ export function ChapterItem({
   // Проверяем, прочитана ли глава
   const isRead =
     user?.readingHistory?.some(
-      (historyItem) =>
-        historyItem &&
-        typeof historyItem === "object" &&
-        historyItem.titleId != null &&
-        (typeof historyItem.titleId === 'string' ? historyItem.titleId : historyItem.titleId._id) === titleId &&
-        historyItem.chapters &&
-        Array.isArray(historyItem.chapters) &&
-        historyItem.chapters.some(
-          (ch) =>
-            ch &&
-            typeof ch === "object" &&
-            ch.chapterId != null &&
-            ch.chapterId === chapter._id
-        )
+      (historyItem: ReadingHistoryEntry) => {
+        // Проверяем соответствие titleId
+        let historyTitleId: string;
+        if (typeof historyItem.titleId === 'string') {
+          historyTitleId = historyItem.titleId;
+        } else if (historyItem.titleId && typeof historyItem.titleId === 'object' && '_id' in historyItem.titleId) {
+          historyTitleId = (historyItem.titleId as { _id: string })._id;
+        } else {
+          return false;
+        }
+        
+        if (historyTitleId !== titleId) return false;
+        
+        // Проверяем, есть ли эта глава в истории
+        return historyItem.chapters.some((ch) => {
+          if (ch.chapterId == null) return false;
+          
+          let historyChapterId: string;
+          if (typeof ch.chapterId === 'string') {
+            historyChapterId = ch.chapterId;
+          } else if (ch.chapterId && typeof ch.chapterId === 'object' && '_id' in ch.chapterId) {
+            historyChapterId = (ch.chapterId as { _id: string })._id;
+          } else {
+            return false;
+          }
+          
+          return historyChapterId === chapter._id;
+        });
+      }
     ) || false;
 
   // Функция для удаления из истории чтения
