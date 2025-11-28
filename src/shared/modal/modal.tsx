@@ -14,14 +14,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
         ref={modalRef}
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-md mx-4 bg-[var(--background)] rounded-2xl shadow-xl border border-[var(--border)] max-h-[85vh] overflow-hidden"
+        className="relative w-max mx-4 bg-[var(--background)] rounded-2xl shadow-xl border border-[var(--border)] max-h-[85vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
-     >
+      >
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)] sticky top-0 bg-[var(--background)] z-10 rounded-t-2xl">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button

@@ -50,12 +50,19 @@ export const collectionsApi = createApi({
 
         // Map id to _id if needed, filter out collections without any ID
         collections = collections
-          .map((collection: Record<string, unknown>) => ({
-            ...collection,
-            _id: (collection._id as string) || (collection.id as string) || (collection._id as string)
+          .map((collection: any): Collection => ({
+            id: collection.id || collection._id || "",
+            cover: collection.cover || collection.image || "",
+            name: collection.name || "",
+            description: collection.description || undefined,
+            titles: collection.titles || [],
+            comments: collection.comments || [],
+            views: collection.views || 0,
+            createdAt: collection.createdAt || "",
+            updatedAt: collection.updatedAt || ""
           }))
-          .filter((collection: Record<string, unknown>) => {
-            const id = collection._id as string;
+          .filter((collection: Collection) => {
+            const id = collection.id;
             return id && id !== 'undefined';
           });
 
@@ -80,7 +87,26 @@ export const collectionsApi = createApi({
     getCollectionById: builder.query<ApiResponseDto<CollectionWithTitles>, string>({
       query: (id) => `/collections/${id}`,
       providesTags: (result, error, id) => [{ type: COLLECTIONS_TAG, id }],
-      transformResponse: (response: ApiResponseDto<CollectionWithTitles>) => response,
+      transformResponse: (response: ApiResponseDto<CollectionWithTitles>) => {
+        if (response.data && typeof response.data === 'object') {
+          const dataObj = response.data as any;
+          return {
+            ...response,
+            data: {
+              id: dataObj.id || dataObj._id || "",
+              cover: dataObj.cover || dataObj.image || "",
+              name: dataObj.name || "",
+              description: dataObj.description || undefined,
+              titles: dataObj.titles || [],
+              comments: dataObj.comments || [],
+              views: dataObj.views || 0,
+              createdAt: dataObj.createdAt || "",
+              updatedAt: dataObj.updatedAt || ""
+            } as CollectionWithTitles
+          };
+        }
+        return response;
+      },
     }),
 
     // Создание коллекции
@@ -102,7 +128,27 @@ export const collectionsApi = createApi({
         body: data,
       }),
       invalidatesTags: [COLLECTIONS_TAG],
-      transformResponse: (response: ApiResponseDto<Collection>) => response,
+      transformResponse: (response: ApiResponseDto<Collection>) => {
+        // Map API response fields to match Collection interface
+        if (response.data && typeof response.data === 'object') {
+          const dataObj = response.data as any;
+          return {
+            ...response,
+            data: {
+              id: dataObj.id || dataObj._id || "",
+              cover: dataObj.cover || dataObj.image || "",
+              name: dataObj.name || "",
+              description: dataObj.description || undefined,
+              titles: dataObj.titles || [],
+              comments: dataObj.comments || [],
+              views: dataObj.views || 0,
+              createdAt: dataObj.createdAt || "",
+              updatedAt: dataObj.updatedAt || ""
+            } as Collection
+          };
+        }
+        return response;
+      },
     }),
 
     // Удаление коллекции

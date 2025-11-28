@@ -95,9 +95,9 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   const handleUpdate = async (data: UpdateCollectionDto) => {
     if (!selectedCollection) return;
     try {
-      await updateCollection({ id: selectedCollection._id, data }).unwrap();
+      const updatedCollection = await updateCollection({ id: selectedCollection.id, data }).unwrap();
+      setSelectedCollection(updatedCollection.data || null);
       setIsEditModalOpen(false);
-      setSelectedCollection(null);
       refetch();
     } catch (error) {
       // Handle error silently in production
@@ -111,16 +111,14 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       const updateData: UpdateCollectionDto = {
         name: data.get('name') as string,
         description: (data.get('description') as string) || undefined,
-        image: (data.get('image') as string) || undefined,
-        link: (data.get('link') as string) || undefined,
+        cover: (data.get('cover') as string) || undefined,
       };
       await handleUpdate(updateData);
     } else {
       const updateData: UpdateCollectionDto = {
         name: data.name,
         description: data.description,
-        image: data.image,
-        link: data.link,
+        cover: data.cover,
       };
       await handleUpdate(updateData);
     }
@@ -141,8 +139,8 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   };
 
   const openEditModal = (collection: Collection) => {
-    if (!collection._id) {
-      console.error('Collection missing _id:', collection);
+    if (!collection.id) {
+      console.error('Collection missing id:', collection);
       return;
     }
     setSelectedCollection(collection);
@@ -150,8 +148,8 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   };
 
   const openTitlesModal = (collection: Collection) => {
-    if (!collection._id) {
-      console.error('Collection missing _id:', collection);
+    if (!collection.id) {
+      console.error('Collection missing id:', collection);
       return;
     }
     setSelectedCollection(collection);
@@ -159,8 +157,8 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   };
 
   const openCommentsModal = (collection: Collection) => {
-    if (!collection._id) {
-      console.error('Collection missing _id:', collection);
+    if (!collection.id) {
+      console.error('Collection missing id:', collection);
       return;
     }
     setSelectedCollection(collection);
@@ -294,7 +292,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
         ) : (
           collections.map((collection: Collection, index) => (
           <div
-            key={`${collection._id}-${index}`}
+            key={`${collection.id}-${index}`}
             className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors"
           >
             <div className="flex justify-between items-start mb-3">
@@ -324,7 +322,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDelete(collection._id)}
+                  onClick={() => handleDelete(collection.id)}
                   disabled={isDeleting}
                   className="p-1 text-[var(--muted-foreground)] hover:text-red-500 transition-colors disabled:opacity-50"
                   title="Удалить"
@@ -466,8 +464,9 @@ function CollectionModal({
   const [formData, setFormData] = useState<CreateCollectionDto>({
     name: "",
     description: "",
-    image: "",
-    link: "",
+    cover: "",
+    titles: [],
+    comments: [],
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -479,16 +478,18 @@ function CollectionModal({
       setFormData({
         name: initialData.name,
         description: initialData.description || "",
-        image: initialData.image || "",
-        link: initialData.link || "",
+        cover: initialData.cover || "",
+        titles: initialData.titles || [],
+        comments: initialData.comments || [],
       });
-      setPreviewUrl(initialData.image || null);
+      setPreviewUrl(initialData.cover || null);
     } else {
       setFormData({
         name: "",
         description: "",
-        image: "",
-        link: "",
+        cover: "",
+        titles: [],
+        comments: [],
       });
       setPreviewUrl(null);
     }
@@ -519,7 +520,6 @@ function CollectionModal({
         formDataToSend.append('cover', selectedFile);
         formDataToSend.append('name', formData.name);
         formDataToSend.append('description', formData.description || '');
-        formDataToSend.append('link', formData.link || '');
 
         // For now, we'll submit with the file - the API will handle it
         await onSubmit(formDataToSend as unknown as CreateCollectionDto);
@@ -540,13 +540,10 @@ function CollectionModal({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-const imageCover = (): string => {
-  if (previewUrl) return previewUrl;
-  if (formData?.image) {
-    return formData.image.startsWith('http') ? formData.image : `${process.env.NEXT_PUBLIC_URL || ''}${formData.image}`;
-  }
-  return '';
-};
+const imageCover = () =>
+  formData?.cover
+    ? `${process.env.NEXT_PUBLIC_URL}${previewUrl || ''}`
+    : `${process.env.NEXT_PUBLIC_URL}${formData?.cover || ''}`;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
@@ -584,7 +581,7 @@ const imageCover = (): string => {
           </label>
 
           {/* Current/Preview Image */}
-          {(previewUrl || formData.image) && (
+          {(previewUrl || formData.cover) && (
             <div className="mb-4 flex justify-center">
               <div className="relative">
                 <Image
@@ -628,18 +625,7 @@ const imageCover = (): string => {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-1">
-            Ссылка
-          </label>
-          <input
-            type="text"
-            value={formData.link || ""}
-            onChange={(e) => handleChange("link", e.target.value)}
-            placeholder="/collections/my-collection"
-            className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-          />
-        </div>
+
 
         <div className="flex justify-end gap-3 pt-4">
           <button
@@ -690,7 +676,7 @@ function TitlesModal({
     limit: 50,
   });
 
-  const { data: collectionDetails } = useGetCollectionByIdQuery(collection._id);
+  const { data: collectionDetails } = useGetCollectionByIdQuery(collection.id);
 
   const titles = titlesResponse?.data?.data || [];
   const collectionTitles = collectionDetails?.data?.titles || collection.titles || [];
@@ -701,13 +687,13 @@ function TitlesModal({
 
   const handleAddTitle = () => {
     if (selectedTitleId) {
-      onAddTitle(collection._id, selectedTitleId);
+      onAddTitle(collection.id, selectedTitleId);
       setSelectedTitleId("");
     }
   };
 
   const handleRemoveTitle = (titleId: string) => {
-    onRemoveTitle(collection._id, titleId);
+    onRemoveTitle(collection.id, titleId);
   };
 
   return (
@@ -807,13 +793,13 @@ function CommentsModal({
 
   const handleAddComment = () => {
     if (newComment.trim()) {
-      onAddComment(collection._id, newComment.trim());
+      onAddComment(collection.id, newComment.trim());
       setNewComment("");
     }
   };
 
   const handleRemoveComment = (index: number) => {
-    onRemoveComment(collection._id, index);
+    onRemoveComment(collection.id, index);
   };
 
   return (

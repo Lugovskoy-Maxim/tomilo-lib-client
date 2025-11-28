@@ -12,37 +12,35 @@ export interface ApiResponseDto<T> {
 }
 
 export interface Collection {
-  _id: string;
+  id: string;
+  cover: string;
   name: string;
   description?: string;
-  image?: string;
-  link?: string;
-  titles?: string[];
+  titles: string[];
+  comments: string[];
   views: number;
-  comments?: string[];
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CollectionWithTitles {
-  _id: string;
+  id: string;
+  cover: string;
   name: string;
   description?: string;
-  image?: string;
-  link?: string;
   titles: {
     _id: string;
     name: string;
     coverImage?: string;
   }[];
+  comments: string[];
   views: number;
-  comments?: string[];
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Типы для DTO (Data Transfer Objects)
-export type CreateCollectionDto = Omit<Collection, '_id' | 'views' | 'createdAt' | 'updatedAt'>;
+export type CreateCollectionDto = Omit<Collection, 'id' | 'views' | 'createdAt' | 'updatedAt'>;
 export type UpdateCollectionDto = Partial<CreateCollectionDto>;
 
 // Типы для запросов с пагинацией и фильтрацией
