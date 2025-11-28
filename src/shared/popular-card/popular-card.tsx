@@ -21,6 +21,13 @@ export interface PopularCardProps {
 
 export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const router = useRouter();
+
+  const formatRating = (value?: number) => {
+    const num = typeof value === "number" ? value : 0;
+    const fixed = num.toFixed(1);
+    return fixed.replace(/\.0$/, "");
+  };
+
   const handleClick = () => {
     if (onCardClick) {
       onCardClick(data.id);
@@ -58,7 +65,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
         <div className="absolute top-1 left-1 bg-black/80 text-white px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[10px] sm:text-xs font-semibold">
           <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
-          {data.rating}
+          {formatRating(data.rating)}
         </div>
       </div>
 
