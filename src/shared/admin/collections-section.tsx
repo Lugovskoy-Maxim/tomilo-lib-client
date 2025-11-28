@@ -1,21 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
-import { Plus, Search, Edit, Trash2, Eye, FolderOpen } from "lucide-react";
+import React, { useState, ChangeEvent } from "react";
+import { Plus, Search, Edit, Trash2, Eye, FolderOpen, Upload, X, BookOpen, MessageSquare } from "lucide-react";
 import {
   useGetCollectionsQuery,
   useCreateCollectionMutation,
   useUpdateCollectionMutation,
   useDeleteCollectionMutation,
+  useAddTitleToCollectionMutation,
+  useRemoveTitleFromCollectionMutation,
+  useAddCommentToCollectionMutation,
+  useRemoveCommentFromCollectionMutation,
+  useGetCollectionByIdQuery,
 } from "@/store/api/collectionsApi";
 import {
   Collection,
   CreateCollectionDto,
   UpdateCollectionDto,
 } from "@/types/collection";
+import { useGetTitlesQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
+import { Title } from "@/types/title";
 import Modal from "@/shared/modal/modal";
 import LoadingSkeleton from "@/shared/skeleton";
 import SharedErrorState from "@/shared/error-state";
+import Image from "next/image";
 
 interface CollectionsSectionProps {
   onTabChange?: (tab: string) => void;
@@ -32,6 +40,8 @@ export function CollectionsSection({}: CollectionsSectionProps) {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isTitlesModalOpen, setIsTitlesModalOpen] = useState(false);
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
   const [selectedCollection, setSelectedCollection] =
     useState<Collection | null>(null);
 
@@ -54,6 +64,14 @@ export function CollectionsSection({}: CollectionsSectionProps) {
     useUpdateCollectionMutation();
   const [deleteCollection, { isLoading: isDeleting }] =
     useDeleteCollectionMutation();
+  const [addTitleToCollection, { isLoading: isAddingTitle }] =
+    useAddTitleToCollectionMutation();
+  const [removeTitleFromCollection, { isLoading: isRemovingTitle }] =
+    useRemoveTitleFromCollectionMutation();
+  const [addCommentToCollection, { isLoading: isAddingComment }] =
+    useAddCommentToCollectionMutation();
+  const [removeCommentFromCollection, { isLoading: isRemovingComment }] =
+    useRemoveCommentFromCollectionMutation();
 
   const collections = collectionsResponse?.data?.collections || [];
   const totalPages = collectionsResponse?.data?.totalPages || 1;
@@ -104,6 +122,52 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   const openEditModal = (collection: Collection) => {
     setSelectedCollection(collection);
     setIsEditModalOpen(true);
+  };
+
+  const openTitlesModal = (collection: Collection) => {
+    setSelectedCollection(collection);
+    setIsTitlesModalOpen(true);
+  };
+
+  const openCommentsModal = (collection: Collection) => {
+    setSelectedCollection(collection);
+    setIsCommentsModalOpen(true);
+  };
+
+  const handleAddTitle = async (collectionId: string, titleId: string) => {
+    try {
+      await addTitleToCollection({ collectionId, titleId }).unwrap();
+      refetch();
+    } catch (error) {
+      console.error("Failed to add title to collection:", error);
+    }
+  };
+
+  const handleRemoveTitle = async (collectionId: string, titleId: string) => {
+    try {
+      await removeTitleFromCollection({ collectionId, titleId }).unwrap();
+      refetch();
+    } catch (error) {
+      console.error("Failed to remove title from collection:", error);
+    }
+  };
+
+  const handleAddComment = async (collectionId: string, comment: string) => {
+    try {
+      await addCommentToCollection({ collectionId, comment }).unwrap();
+      refetch();
+    } catch (error) {
+      console.error("Failed to add comment to collection:", error);
+    }
+  };
+
+  const handleRemoveComment = async (collectionId: string, commentIndex: number) => {
+    try {
+      await removeCommentFromCollection({ collectionId, commentIndex }).unwrap();
+      refetch();
+    } catch (error) {
+      console.error("Failed to remove comment from collection:", error);
+    }
   };
 
   if (isLoading) {
@@ -195,6 +259,20 @@ export function CollectionsSection({}: CollectionsSectionProps) {
               </h3>
               <div className="flex gap-1">
                 <button
+                  onClick={() => openTitlesModal(collection)}
+                  className="p-1 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
+                  title="Управление тайтлами"
+                >
+                  <BookOpen className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => openCommentsModal(collection)}
+                  className="p-1 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
+                  title="Управление комментариями"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => openEditModal(collection)}
                   className="p-1 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
                   title="Редактировать"
@@ -280,6 +358,38 @@ export function CollectionsSection({}: CollectionsSectionProps) {
         title="Редактировать коллекцию"
         initialData={selectedCollection || undefined}
       />
+
+      {/* Titles Modal */}
+      {selectedCollection && (
+        <TitlesModal
+          isOpen={isTitlesModalOpen}
+          onClose={() => {
+            setIsTitlesModalOpen(false);
+            setSelectedCollection(null);
+          }}
+          collection={selectedCollection}
+          onAddTitle={handleAddTitle}
+          onRemoveTitle={handleRemoveTitle}
+          isAdding={isAddingTitle}
+          isRemoving={isRemovingTitle}
+        />
+      )}
+
+      {/* Comments Modal */}
+      {selectedCollection && (
+        <CommentsModal
+          isOpen={isCommentsModalOpen}
+          onClose={() => {
+            setIsCommentsModalOpen(false);
+            setSelectedCollection(null);
+          }}
+          collection={selectedCollection}
+          onAddComment={handleAddComment}
+          onRemoveComment={handleRemoveComment}
+          isAdding={isAddingComment}
+          isRemoving={isRemovingComment}
+        />
+      )}
     </div>
   );
 }
@@ -308,6 +418,9 @@ function CollectionModal({
     image: "",
     link: "",
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Update form data when initialData changes
   React.useEffect(() => {
@@ -318,6 +431,7 @@ function CollectionModal({
         image: initialData.image || "",
         link: initialData.link || "",
       });
+      setPreviewUrl(initialData.image || null);
     } else {
       setFormData({
         name: "",
@@ -325,12 +439,47 @@ function CollectionModal({
         image: "",
         link: "",
       });
+      setPreviewUrl(null);
     }
+    setSelectedFile(null);
   }, [initialData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    if (selectedFile) {
+      // Handle file upload
+      setIsUploading(true);
+      try {
+        const formDataToSend = new FormData();
+        formDataToSend.append('cover', selectedFile);
+        formDataToSend.append('name', formData.name);
+        formDataToSend.append('description', formData.description || '');
+        formDataToSend.append('link', formData.link || '');
+
+        // For now, we'll submit with the file - the API will handle it
+        await onSubmit(formDataToSend as unknown as CreateCollectionDto);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      onSubmit(formData);
+    }
   };
 
   const handleChange = (
@@ -372,15 +521,52 @@ function CollectionModal({
 
         <div>
           <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-1">
-            Изображение (URL)
+            Изображение обложки
           </label>
-          <input
-            type="url"
-            value={formData.image || ""}
-            onChange={(e) => handleChange("image", e.target.value)}
-            placeholder="https://example.com/image.jpg"
-            className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-          />
+
+          {/* Current/Preview Image */}
+          {(previewUrl || formData.image) && (
+            <div className="mb-4 flex justify-center">
+              <div className="relative">
+                <Image
+                  src={previewUrl || formData.image || ""}
+                  alt="Cover preview"
+                  width={200}
+                  height={300}
+                  className="rounded-lg border border-[var(--border)]"
+                  unoptimized
+                />
+                {previewUrl && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                    <span className="text-white font-medium">Предпросмотр</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* File Upload */}
+          <div className="border border-dashed border-[var(--border)] rounded-lg p-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+              id="collection-cover-upload"
+            />
+            <label
+              htmlFor="collection-cover-upload"
+              className="cursor-pointer flex flex-col items-center gap-2 p-4 hover:bg-[var(--accent)]/50 rounded transition-colors"
+            >
+              <Upload className="w-6 h-6 text-[var(--muted-foreground)]" />
+              <span className="text-sm text-[var(--muted-foreground)]">
+                {selectedFile ? selectedFile.name : "Выберите изображение обложки"}
+              </span>
+              <span className="text-xs text-[var(--muted-foreground)]">
+                Нажмите для выбора файла (JPG, PNG, WebP, макс. 5MB)
+              </span>
+            </label>
+          </div>
         </div>
 
         <div>
@@ -413,6 +599,223 @@ function CollectionModal({
           </button>
         </div>
       </form>
+    </Modal>
+  );
+}
+
+// Titles Modal Component
+interface TitlesModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  collection: Collection;
+  onAddTitle: (collectionId: string, titleId: string) => void;
+  onRemoveTitle: (collectionId: string, titleId: string) => void;
+  isAdding: boolean;
+  isRemoving: boolean;
+}
+
+function TitlesModal({
+  isOpen,
+  onClose,
+  collection,
+  onAddTitle,
+  onRemoveTitle,
+  isAdding,
+  isRemoving,
+}: TitlesModalProps) {
+  const [search, setSearch] = useState("");
+  const [selectedTitleId, setSelectedTitleId] = useState("");
+
+  const { data: titlesResponse, isLoading: isLoadingTitles } = useSearchTitlesQuery({
+    search: search || undefined,
+    limit: 50,
+  });
+
+  const { data: collectionDetails } = useGetCollectionByIdQuery(collection._id);
+
+  const titles = titlesResponse?.data?.data || [];
+  const collectionTitles = collectionDetails?.data?.titles || collection.titles || [];
+
+  const availableTitles = titles.filter(
+    (title: Title) => !collectionTitles.some((ct) => (typeof ct === 'string' ? ct : ct._id) === title._id)
+  );
+
+  const handleAddTitle = () => {
+    if (selectedTitleId) {
+      onAddTitle(collection._id, selectedTitleId);
+      setSelectedTitleId("");
+    }
+  };
+
+  const handleRemoveTitle = (titleId: string) => {
+    onRemoveTitle(collection._id, titleId);
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={`Управление тайтлами - ${collection.name}`}>
+      <div className="space-y-6">
+        {/* Current Titles */}
+        <div>
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-3">
+            Текущие тайтлы ({collectionTitles.length})
+          </h3>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {collectionTitles.map((title, index) => {
+              const titleData = typeof title === 'string' ? { _id: title, name: `Title ${title}` } : title;
+              return (
+                <div key={titleData._id} className="flex justify-between items-center p-2 bg-[var(--secondary)] rounded">
+                  <span className="text-[var(--muted-foreground)]">{titleData.name}</span>
+                  <button
+                    onClick={() => handleRemoveTitle(titleData._id)}
+                    disabled={isRemoving}
+                    className="p-1 text-red-500 hover:text-red-700 disabled:opacity-50"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              );
+            })}
+            {collectionTitles.length === 0 && (
+              <p className="text-sm text-[var(--muted-foreground)]">Нет тайтлов в коллекции</p>
+            )}
+          </div>
+        </div>
+
+        {/* Add Title */}
+        <div>
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-3">
+            Добавить тайтл
+          </h3>
+          <div className="flex gap-2">
+            <select
+              value={selectedTitleId}
+              onChange={(e) => setSelectedTitleId(e.target.value)}
+              className="flex-1 px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)]"
+            >
+              <option value="">Выберите тайтл...</option>
+              {availableTitles.map((title: Title) => (
+                <option key={title._id} value={title._id}>
+                  {title.name}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleAddTitle}
+              disabled={!selectedTitleId || isAdding}
+              className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50"
+            >
+              {isAdding ? "Добавление..." : "Добавить"}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-[var(--muted-foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors"
+          >
+            Закрыть
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// Comments Modal Component
+interface CommentsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  collection: Collection;
+  onAddComment: (collectionId: string, comment: string) => void;
+  onRemoveComment: (collectionId: string, commentIndex: number) => void;
+  isAdding: boolean;
+  isRemoving: boolean;
+}
+
+function CommentsModal({
+  isOpen,
+  onClose,
+  collection,
+  onAddComment,
+  onRemoveComment,
+  isAdding,
+  isRemoving,
+}: CommentsModalProps) {
+  const [newComment, setNewComment] = useState("");
+
+  const comments = collection.comments || [];
+
+  const handleAddComment = () => {
+    if (newComment.trim()) {
+      onAddComment(collection._id, newComment.trim());
+      setNewComment("");
+    }
+  };
+
+  const handleRemoveComment = (index: number) => {
+    onRemoveComment(collection._id, index);
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={`Управление комментариями - ${collection.name}`}>
+      <div className="space-y-6">
+        {/* Current Comments */}
+        <div>
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-3">
+            Комментарии ({comments.length})
+          </h3>
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {comments.map((comment, index) => (
+              <div key={index} className="flex justify-between items-start p-3 bg-[var(--secondary)] rounded">
+                <p className="text-[var(--muted-foreground)] flex-1">{comment}</p>
+                <button
+                  onClick={() => handleRemoveComment(index)}
+                  disabled={isRemoving}
+                  className="p-1 text-red-500 hover:text-red-700 disabled:opacity-50 ml-2"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            {comments.length === 0 && (
+              <p className="text-sm text-[var(--muted-foreground)]">Нет комментариев</p>
+            )}
+          </div>
+        </div>
+
+        {/* Add Comment */}
+        <div>
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-3">
+            Добавить комментарий
+          </h3>
+          <div className="flex gap-2">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Введите комментарий..."
+              className="flex-1 px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] resize-none"
+              rows={3}
+            />
+            <button
+              onClick={handleAddComment}
+              disabled={!newComment.trim() || isAdding}
+              className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 self-end"
+            >
+              {isAdding ? "Добавление..." : "Добавить"}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-[var(--muted-foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors"
+          >
+            Закрыть
+          </button>
+        </div>
+      </div>
     </Modal>
   );
 }
