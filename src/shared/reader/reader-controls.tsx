@@ -156,7 +156,7 @@ export default function ReaderControls({
       </div>
 
       {/* Мобильное меню - стиль смартфонного меню */}
-      <div className={`sm:hidden h-max fixed bottom-0 left-0 right-0 z-40 transition-transform duration-600 ${
+      <div className={`sm:hidden h-max fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 ease-out will-change-transform ${
         isMobileControlsVisible ? 'translate-y-0' : 'translate-y-full'
       }`}>
         <div className="bg-[var(--card)]/95 backdrop-blur-sm border-t border-[var(--border)] shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>

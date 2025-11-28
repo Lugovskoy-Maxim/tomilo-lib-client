@@ -191,33 +191,31 @@ export default function ReadChapterPage({
     }, 3000);
   };
 
-  // Скрытие хедера при скролле
+  // Скрытие хедера при скролле с оптимизацией
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsHeaderVisible(false);
-      } else if (currentScrollY < lastScrollY) {
-        setIsHeaderVisible(true);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
     let ticking = false;
-    const throttledHandleScroll = () => {
+    
+    const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(() => {
-          handleScroll();
+        requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+
+          if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            setIsHeaderVisible(false);
+          } else if (currentScrollY < lastScrollY) {
+            setIsHeaderVisible(true);
+          }
+
+          setLastScrollY(currentScrollY);
           ticking = false;
         });
         ticking = true;
       }
     };
 
-    window.addEventListener("scroll", throttledHandleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", throttledHandleScroll);
+    // Используем passive: true для лучшей производительности
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
   const loading = !chapter;
@@ -278,7 +276,7 @@ export default function ReadChapterPage({
 
       {/* Хедер */}
       <header
-        className={`fixed top-0 left-0 right-0 bg-[var(--card)]/90 backdrop-blur-sm z-50 border-b border-[var(--border)] transition-transform duration-300 ${
+        className={`fixed top-0 left-0 right-0 bg-[var(--card)]/90 backdrop-blur-sm z-50 border-b border-[var(--border)] transition-transform duration-300 ease-out will-change-transform ${
           isHeaderVisible ? "translate-y-0" : "-translate-y-full"
         }`}
         onMouseEnter={handleHeaderMouseEnter}
