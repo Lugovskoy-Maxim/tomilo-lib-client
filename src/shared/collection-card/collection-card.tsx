@@ -34,16 +34,8 @@ export default function CollectionCard({ data }: CollectionCardProps) {
   const getImageUrl = () => {
     if (!collectionImage) return IMAGE_HOLDER;
 
-    // Если изображение уже полный URL, используем как есть
-    if (collectionImage.startsWith("http")) {
-      return collectionImage;
-    }
-
-    // Если относительный путь, добавляем базовый URL
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || "http://localhost:3001";
-    // Убираем начальный слэш из пути к изображению если он уже есть в baseUrl
-    const imagePath = collectionImage.startsWith('/') ? collectionImage : `/${collectionImage}`;
-    return `${baseUrl}${imagePath}`;
+    // Для относительных путей, добавляем url сервера
+    return  `${process.env.NEXT_PUBLIC_URL}${collectionImage}`
   };
 
   const imageUrl = getImageUrl();
@@ -57,6 +49,7 @@ export default function CollectionCard({ data }: CollectionCardProps) {
       <div className="aspect-[3/4] relative rounded-lg overflow-hidden">
         <div className="relative w-full h-full">
           <Image
+            loader={() => {return `${imageUrl}`}}
             src={imageUrl}
             alt={collectionName || "Коллекция"}
             fill
