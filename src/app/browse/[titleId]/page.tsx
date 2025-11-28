@@ -1,4 +1,4 @@
-"use client";
+  "use client";
 
 import { Footer, Header } from "@/widgets";
 import { AlertTriangle, Share as ShareIcon, Edit } from "lucide-react";
@@ -23,7 +23,8 @@ function filterAndPaginateChapters(
   allChapters: Chapter[] = [],
   page: number,
   limit: number,
-  search: string
+  search: string,
+  sortOrder: 'desc' | 'asc' = 'desc'
 ): { chapters: Chapter[]; total: number; hasMore: boolean } {
   const normalized = (search || "").trim().toLowerCase();
   let filtered = allChapters;
@@ -40,8 +41,8 @@ function filterAndPaginateChapters(
     });
   }
 
-  // Сортировка по номеру главы по убыванию
-  filtered = [...filtered].sort((a, b) => b.chapterNumber - a.chapterNumber);
+  // Сортировка по номеру главы
+  filtered = [...filtered].sort((a, b) => sortOrder === 'desc' ? b.chapterNumber - a.chapterNumber : a.chapterNumber - b.chapterNumber);
 
   const start = (page - 1) * limit;
   const end = start + limit;
@@ -91,6 +92,7 @@ export default function TitleViewPage() {
   const [hasMoreChapters, setHasMoreChapters] = useState(true);
   const [chaptersLoadingState, setChaptersLoadingState] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   // Состояния UI
   const [activeTab, setActiveTab] = useState<
@@ -130,7 +132,8 @@ export default function TitleViewPage() {
       setChaptersLoadingState(true);
       try {
         const source = processedChaptersData;
-        const result = filterAndPaginateChapters(source, page, chaptersPage, search);
+        const limit = 25; // Fixed limit of 25 chapters per page
+        const result = filterAndPaginateChapters(source, page, limit, search, sortOrder);
 
         if (append) {
           setChapters((prev) => [...prev, ...result.chapters]);
@@ -142,7 +145,7 @@ export default function TitleViewPage() {
         setChaptersLoadingState(false);
       }
     },
-    [chaptersLoadingState, processedChaptersData, chaptersPage]
+    [chaptersLoadingState, processedChaptersData, sortOrder]
   );
 
   // Первоначальная загрузка глав
@@ -175,6 +178,12 @@ export default function TitleViewPage() {
     setSearchQuery(query);
     setChaptersPage(1);
     loadChapters(1, query, false);
+  };
+
+  const handleSortChange = (order: 'desc' | 'asc') => {
+    setSortOrder(order);
+    setChaptersPage(1);
+    loadChapters(1, searchQuery, false);
   };
 
   const handleBookmark = () => {
@@ -300,6 +309,8 @@ export default function TitleViewPage() {
                 onLoadMoreChapters={handleLoadMoreChapters}
                 searchQuery={searchQuery}
                 onSearchChange={handleSearchChange}
+                sortOrder={sortOrder}
+                onSortChange={handleSortChange}
                 titleId={titleId}
                 user={user as unknown as User | null}
               />

@@ -17,6 +17,7 @@ import {
   Search,
   X,
   EyeOff,
+  ArrowUpDown,
 } from "lucide-react";
 import { Title, TitleStatus, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
@@ -175,6 +176,8 @@ export function ChaptersTab({
   onLoadMore,
   searchQuery,
   onSearchChange,
+  sortOrder,
+  onSortChange,
   loading,
   user,
 }: {
@@ -184,6 +187,8 @@ export function ChaptersTab({
   onLoadMore: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
+  sortOrder: 'desc' | 'asc';
+  onSortChange: (order: 'desc' | 'asc') => void;
   loading: boolean;
   user: User | null;
 }) {
@@ -201,25 +206,40 @@ export function ChaptersTab({
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary)] w-4 h-4" />
-        <input
-          type="text"
-          placeholder="Номер или название главы"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-3 py-2 bg-[var(--background)]/50 rounded-full focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--primary)] text-sm sm:text-base"
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary)] w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Номер или название главы"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full pl-10 pr-3 py-2 bg-[var(--background)]/50 rounded-full focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--primary)] text-sm sm:text-base"
+          />
+        </div>
+        <button
+          onClick={() => onSortChange(sortOrder === 'desc' ? 'asc' : 'desc')}
+          className="flex items-center gap-2 px-3 py-2 bg-[var(--background)]/50 rounded-full hover:bg-[var(--accent)]/30 transition-colors text-[var(--primary)] text-sm"
+          title={`Сортировка: ${sortOrder === 'desc' ? 'по убыванию' : 'по возрастанию'}`}
+        >
+          <ArrowUpDown className="w-4 h-4" />
+          {/* {sortOrder === 'desc' ? '↓' : '↑'} */}
+        </button>
       </div>
 
       <div className="space-y-2">
         {chapters.map((chapter, index) => (
-          <ChapterItem
+          <div
             key={chapter._id || index}
-            chapter={chapter}
-            titleId={titleId}
-            user={user}
-          />
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <ChapterItem
+              chapter={chapter}
+              titleId={titleId}
+              user={user}
+            />
+          </div>
         ))}
 
         {loading && (
@@ -390,6 +410,8 @@ export function RightContent({
   onLoadMoreChapters,
   searchQuery,
   onSearchChange,
+  sortOrder,
+  onSortChange,
   titleId,
   user,
 }: {
@@ -406,6 +428,8 @@ export function RightContent({
   onLoadMoreChapters: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  sortOrder: 'desc' | 'asc';
+  onSortChange: (order: 'desc' | 'asc') => void;
   titleId: string;
   user: User | null;
 }) {
@@ -685,6 +709,8 @@ export function RightContent({
               onLoadMore={onLoadMoreChapters}
               searchQuery={searchQuery}
               onSearchChange={onSearchChange}
+              sortOrder={sortOrder}
+              onSortChange={onSortChange}
               loading={chaptersLoading}
               user={user}
             />
