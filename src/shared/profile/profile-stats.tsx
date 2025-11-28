@@ -162,6 +162,9 @@ async function calculateStats(userProfile: UserProfile): Promise<Stats> {
 
     // Получаем жанры для тайтла
     try {
+      // Проверяем, что titleId не null или undefined перед выполнением запроса
+      if (!titleId) continue;
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_URL || 'http://localhost:3001'}/api/titles/${titleId}`);
       if (response.ok) {
         const result = await response.json();

@@ -3,7 +3,7 @@
 import React from 'react';
 import { BookOpen, Trash2, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -27,45 +27,7 @@ interface ReadingHistorySectionProps {
 function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
-  const [titleData, setTitleData] = useState<Record<string, { _id: string; name: string; coverImage?: string }>>({});
   const router = useRouter();
-
-  // Получаем уникальные titleId из истории чтения
-  const uniqueTitleIds = useMemo(() => {
-    if (!readingHistory) return [];
-    const ids = new Set<string>();
-    readingHistory.forEach(item => {
-      const isTitleObject = typeof item.titleId === 'object' && item.titleId !== null;
-      const titleId = isTitleObject ? (item.titleId as { _id: string })._id : item.titleId as string;
-      ids.add(titleId);
-    });
-    return Array.from(ids);
-  }, [readingHistory]);
-
-  // Загружаем данные о тайтлах
-  useEffect(() => {
-    const fetchTitles = async () => {
-      for (const titleId of uniqueTitleIds) {
-        if (!titleData[titleId]) {
-          try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}/api/titles/${titleId}`);
-            if (response.ok) {
-              const result = await response.json();
-              if (result.success && result.data) {
-                setTitleData(prev => ({ ...prev, [titleId]: result.data }));
-              }
-            }
-          } catch (error) {
-            console.error(`Ошибка при загрузке данных о тайтле ${titleId}:`, error);
-          }
-        }
-      }
-    };
-
-    if (uniqueTitleIds.length > 0) {
-      fetchTitles();
-    }
-  }, [uniqueTitleIds, titleData]);
 
   // Преобразуем данные в плоский список глав с информацией о тайтле
   const allChapters = useMemo(() => {
@@ -87,7 +49,7 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
           readAt: chapter.readAt || historyItem.readAt,
           // Добавляем ключ для уникальной идентификации
           uniqueKey: `${titleId}-${chapter.chapterId}-${chapter.readAt || historyItem.readAt}`,
-          // Если titleId - объект, сохраняем его данные
+          // Если titleId - объект, сохраняем его данные, иначе undefined
           titleData: isTitleObject ? historyItem.titleId as { _id: string; name: string; coverImage?: string } : undefined
         };
       });
@@ -181,8 +143,8 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
       <div className="grid grid-cols-1 gap-2">
         {recentChapters.slice(0, limit || recentChapters.length).map((item) => {
           const loadingKey = `${item.titleId}-${item.chapterId}`;
-          // Получаем данные о тайтле из состояния или из item.titleData
-          const title = titleData[item.titleId] || item.titleData;
+          // Получаем данные о тайтле из item.titleData (теперь данные встроены в API ответ)
+          const title = item.titleData;
 
           return (
             <div

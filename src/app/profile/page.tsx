@@ -40,7 +40,7 @@ export default function ProfilePage() {
             userProfile={userProfile}
             onAvatarUpdate={handleAvatarUpdate}
           />
-          <ProfileStats userProfile={userProfile} />
+          {/* <ProfileStats userProfile={userProfile} /> */}
           <ProfileContent userProfile={userProfile} />
         </div>
 

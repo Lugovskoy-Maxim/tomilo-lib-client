@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
 import { pageTitle } from "@/lib/page-title";
 import { StoredUser } from "@/types/auth";
+import { useGetReadingHistoryQuery } from "@/store/api/authApi";
 
 // Преобразование StoredUser в UserProfile
 function transformStoredUserToProfile(storedUser: StoredUser | null): UserProfile | null {
@@ -21,10 +22,7 @@ function transformStoredUserToProfile(storedUser: StoredUser | null): UserProfil
       readingHistory: Array.isArray(storedUser.readingHistory)
         ? storedUser.readingHistory.map((item) => ({
             ...item,
-            titleId:
-              typeof item.titleId === "object" && item.titleId !== null
-                ? (item.titleId._id as string)
-                : (item.titleId as string),
+            titleId: item.titleId, // Preserve the original titleId (can be string, null, or object)
             chapters: Array.isArray(item.chapters)
               ? item.chapters.map((chap) => ({
                   chapterId:
@@ -48,15 +46,23 @@ export function useProfile() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Получаем историю чтения напрямую из API
+  const { data: readingHistoryData, isLoading: readingHistoryLoading } = useGetReadingHistoryQuery();
+
   // Обновление userProfile при изменении user из useAuth
   useEffect(() => {
     if (user) {
-      setUserProfile(transformStoredUserToProfile(user));
+      const profile = transformStoredUserToProfile(user);
+      // Если есть данные из API истории чтения, используем их
+      if (readingHistoryData?.success && readingHistoryData.data) {
+        profile.readingHistory = readingHistoryData.data;
+      }
+      setUserProfile(profile);
     } else {
       setUserProfile(null);
     }
     setIsLoading(false);
-  }, [user]);
+  }, [user, readingHistoryData]);
 
   // Обработчик обновления аватара
   const handleAvatarUpdate = (newAvatarUrl: string) => {
