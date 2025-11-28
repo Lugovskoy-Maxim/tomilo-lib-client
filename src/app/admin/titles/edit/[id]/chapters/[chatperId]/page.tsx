@@ -44,7 +44,7 @@ export default function ChapterEditorPage() {
   const [deleteChapter] = useDeleteChapterMutation();
 
   useEffect(() => {
-    if (chapter) {
+    if (chapter && chapter._id !== formData._id) {
       // Ensure pages is always array
       setFormData({
         ...chapter,
@@ -53,7 +53,7 @@ export default function ChapterEditorPage() {
     } else if (apiError) {
       toast.error("Ошибка при загрузке данных главы");
     }
-  }, [chapter, apiError, toast]);
+  }, [chapter, apiError, toast, formData._id]);
 
   const handleInputChange = (field: keyof Chapter) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     let value: string | string[] = e.target.value;
