@@ -1,11 +1,13 @@
 import { Plus, Search, Edit, Trash2, Eye, BookOpen } from "lucide-react";
 import Link from "next/link";
+import React, { useState, useEffect } from "react";
 import { useGetTitlesQuery } from "@/store/api/titlesApi";
 import {
   useGetChaptersByTitleQuery,
   useDeleteChapterMutation,
 } from "@/store/api/chaptersApi";
 import { useToast } from "@/hooks/useToast";
+import Pagination from "@/shared/browse/pagination";
 
 interface ChaptersSectionProps {
   titleId: string | null;
@@ -16,6 +18,7 @@ export function ChaptersSection({
   titleId,
   onTitleChange,
 }: ChaptersSectionProps) {
+  const [currentPage, setCurrentPage] = useState(1);
   const [deleteChapter] = useDeleteChapterMutation();
   const toast = useToast();
 
@@ -26,13 +29,22 @@ export function ChaptersSection({
 
   // Get chapters for selected title
   const { data: chaptersResponse, isLoading } = useGetChaptersByTitleQuery(
-    { titleId: titleId!, sortOrder: "desc" },
+    { titleId: titleId!, page: currentPage, limit: 10000, sortOrder: "desc" },
     { skip: !titleId }
   );
 
   const chapters = chaptersResponse?.chapters || [];
 
   const selectedTitle = titles.find((t) => t._id === titleId);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Reset page when title changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [titleId]);
 
   const handleDelete = async (id: string, chapterNumber: number) => {
     if (!confirm(`Удалить главу #${chapterNumber}?`)) return;
@@ -225,6 +237,15 @@ export function ChaptersSection({
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+            {chaptersResponse && chaptersResponse.totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={chaptersResponse.page}
+                  totalPages={chaptersResponse.totalPages}
+                  onPageChange={handlePageChange}
+                />
               </div>
             )}
           </div>
