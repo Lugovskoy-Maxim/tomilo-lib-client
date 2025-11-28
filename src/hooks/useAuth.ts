@@ -304,9 +304,9 @@ export const useAuth = () => {
         }).unwrap();
 
         if (!result.success) {
-          throw new Error(
-            result.message || "Ошибка при добавлении в историю чтения"
-          );
+          const errorMessage = result.message || "Ошибка при добавлении в историю чтения";
+          console.error("Error adding to reading history:", errorMessage);
+          return { success: false, error: errorMessage };
         }
 
         refetchProfile();
@@ -314,7 +314,10 @@ export const useAuth = () => {
         return { success: true };
       } catch (error) {
         console.error("Error adding to reading history:", error);
-        throw error; // Перебрасываем ошибку, чтобы она была обработана в компоненте
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Неизвестная ошибка",
+        };
       }
     },
     [addToReadingHistory, refetchProfile]

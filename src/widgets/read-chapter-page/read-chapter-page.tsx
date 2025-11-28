@@ -361,8 +361,6 @@ export default function ReadChapterPage({
               const isError = imageLoadErrors.has(errorKey);
               const imageUrl = getImageUrl(src);
 
-              console.log("Image URL:", imageUrl);
-
               return (
                 <div
                   key={`${chapter._id}-${imageIndex}`}
