@@ -48,7 +48,7 @@ export default function DataCarousel<T>({
   }
 
   if (error) {
-    console.error(`Ошибка загрузки ${title}:`, error);
+    // Handle error silently in production
     return null;
   }
 

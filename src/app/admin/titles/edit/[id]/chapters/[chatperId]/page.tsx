@@ -101,7 +101,6 @@ export default function ChapterEditorPage() {
         setImagesToDelete([]);
       }
     } catch (err) {
-      console.error("Error updating chapter:", err);
       toast.error(
         `Ошибка при обновлении главы: ${
           err instanceof Error ? err.message : "Unknown error"
@@ -120,7 +119,6 @@ export default function ChapterEditorPage() {
       toast.success("Глава успешно удалена!");
       // Здесь можно добавить редирект на страницу списка глав
     } catch (err) {
-      console.error("Error deleting chapter:", err);
       toast.error(
         `Ошибка при удалении главы: ${
           err instanceof Error ? err.message : "Unknown error"

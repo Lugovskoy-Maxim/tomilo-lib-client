@@ -247,8 +247,6 @@ export default function TitleEditorPage() {
     try {
       const dataToSend = prepareSubmitData();
 
-      console.log("Отправляемые данные:", dataToSend);
-
       if (isEditMode && titleId) {
         await updateTitle({ id: titleId, data: dataToSend }).unwrap();
       } else {
@@ -258,7 +256,7 @@ export default function TitleEditorPage() {
       router.push("/admin");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error("Ошибка при сохранении:", err);
+      // Handle error silently in production
       if (err.data?.message) {
         toast.error(`Ошибка: ${Array.isArray(err.data.message) ? err.data.message.join(', ') : err.data.message}`);
       } else {

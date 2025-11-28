@@ -71,7 +71,6 @@ export const useStaticData = (): StaticData => {
           error: null,
         });
       } catch (error) {
-        console.error("Error fetching collections:", error);
         // Возвращаем к статическим данным в случае ошибки
         setCollections({
           data: [

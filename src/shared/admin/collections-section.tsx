@@ -83,7 +83,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       setIsCreateModalOpen(false);
       refetch();
     } catch (error) {
-      console.error("Failed to create collection:", error);
+      // Handle error silently in production
     }
   };
 
@@ -95,7 +95,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       setSelectedCollection(null);
       refetch();
     } catch (error) {
-      console.error("Failed to update collection:", error);
+      // Handle error silently in production
     }
   };
 
@@ -116,7 +116,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       await deleteCollection(id).unwrap();
       refetch();
     } catch (error) {
-      console.error("Failed to delete collection:", error);
+      // Handle error silently in production
     }
   };
 
@@ -140,7 +140,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       await addTitleToCollection({ collectionId, titleId }).unwrap();
       refetch();
     } catch (error) {
-      console.error("Failed to add title to collection:", error);
+      // Handle error silently in production
     }
   };
 
@@ -149,7 +149,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       await removeTitleFromCollection({ collectionId, titleId }).unwrap();
       refetch();
     } catch (error) {
-      console.error("Failed to remove title from collection:", error);
+      // Handle error silently in production
     }
   };
 
@@ -158,7 +158,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       await addCommentToCollection({ collectionId, comment }).unwrap();
       refetch();
     } catch (error) {
-      console.error("Failed to add comment to collection:", error);
+      // Handle error silently in production
     }
   };
 
@@ -167,7 +167,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       await removeCommentFromCollection({ collectionId, commentIndex }).unwrap();
       refetch();
     } catch (error) {
-      console.error("Failed to remove comment from collection:", error);
+      // Handle error silently in production
     }
   };
 
@@ -486,7 +486,7 @@ function CollectionModal({
         // For now, we'll submit with the file - the API will handle it
         await onSubmit(formDataToSend as unknown as CreateCollectionDto);
       } catch (error) {
-        console.error("Error uploading file:", error);
+        // Handle error silently in production
       } finally {
         setIsUploading(false);
       }

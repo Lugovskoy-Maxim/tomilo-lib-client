@@ -195,7 +195,6 @@ export default function TitleViewPage() {
   const handleBookmark = () => {
     // BookmarkButton теперь сам управляет добавлением/удалением закладок
     // Эта функция может использоваться для дополнительной логики, например аналитики
-    console.log("Bookmark button clicked");
   };
 
   const handleShare = () => {

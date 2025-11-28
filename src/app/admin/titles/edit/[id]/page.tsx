@@ -371,7 +371,6 @@ const handleSubmit = async (e: FormEvent) => {
       toast.success("Тайтл успешно обновлен!");
     }
   } catch (err) {
-    console.error("Error updating title:", err);
     toast.error(
       `Ошибка при обновлении тайтла: ${
         err instanceof Error ? err.message : "Unknown error"

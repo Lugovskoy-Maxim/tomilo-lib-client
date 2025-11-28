@@ -34,7 +34,7 @@ export default function NotificationCard({
       try {
         await markAsRead(notification._id).unwrap();
       } catch (error) {
-        console.error("Error marking notification as read:", error);
+        // Error handling is done by the RTK Query
       }
     }
   };
@@ -44,7 +44,7 @@ export default function NotificationCard({
     try {
       await markAsRead(notification._id).unwrap();
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      // Error handling is done by the RTK Query
     }
   };
 
@@ -53,7 +53,7 @@ export default function NotificationCard({
     try {
       await deleteNotification(notification._id).unwrap();
     } catch (error) {
-      console.error("Error deleting notification:", error);
+      // Error handling is done by the RTK Query
     }
   };
 
