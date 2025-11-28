@@ -30,13 +30,13 @@ export const collectionsApi = createApi({
       providesTags: [COLLECTIONS_TAG],
       transformResponse: (response: ApiResponseDto<{ collections?: Collection[]; data?: Collection[]; pagination?: { total: number; page: number; pages: number; limit: number }; total?: number; page?: number; totalPages?: number }>) => {
         // Нормализуем серверный ответ
-        const data: Collection[] = response?.data?.collections ?? response?.data?.data ?? [];
-        const total: number = response?.data?.pagination?.total ?? response?.data?.total ?? data.length ?? 0;
+        const collections: Collection[] = response?.data?.collections ?? response?.data?.data ?? [];
+        const total: number = response?.data?.pagination?.total ?? response?.data?.total ?? collections.length ?? 0;
         const page: number = response?.data?.pagination?.page ?? response?.data?.page ?? 1;
         const totalPages: number = response?.data?.pagination?.pages ?? response?.data?.totalPages ?? Math.ceil(total / (response?.data?.pagination?.limit ?? 12)) ?? 1;
         return {
           ...response,
-          data: { collections: data, total, page, totalPages },
+          data: { collections, total, page, totalPages },
         };
       },
     }),

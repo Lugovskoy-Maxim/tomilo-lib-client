@@ -30,7 +30,7 @@ export function ChaptersSection({
     { skip: !titleId }
   );
 
-  const chapters = chaptersResponse || [];
+  const chapters = chaptersResponse?.chapters || [];
 
   const selectedTitle = titles.find((t) => t._id === titleId);
 

@@ -18,7 +18,7 @@ import {
   CreateCollectionDto,
   UpdateCollectionDto,
 } from "@/types/collection";
-import { useGetTitlesQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
+import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 import Modal from "@/shared/modal/modal";
 import LoadingSkeleton from "@/shared/skeleton";
@@ -75,6 +75,12 @@ export function CollectionsSection({}: CollectionsSectionProps) {
 
   const collections = collectionsResponse?.data?.collections || [];
   const totalPages = collectionsResponse?.data?.totalPages || 1;
+
+  // Debug logging
+  console.log('Collections response:', collectionsResponse);
+  console.log('Collections data:', collections);
+  console.log('Total collections:', collections.length);
+  console.log('Error:', error);
 
   const handleCreate = async (data: CreateCollectionDto) => {
     try {
@@ -202,7 +208,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             Управление коллекциями
           </h2>
           <p className="text-[var(--muted-foreground)] mt-1">
-            Всего коллекций: {collectionsResponse?.data?.total || 0}
+            Всего коллекций: {collectionsResponse?.data?.total || collections.length || 0}
           </p>
         </div>
         <button
@@ -248,7 +254,18 @@ export function CollectionsSection({}: CollectionsSectionProps) {
 
       {/* Collections Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {collections.map((collection) => (
+        {collections.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <FolderOpen className="w-16 h-16 text-[var(--muted-foreground)] mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg font-medium text-[var(--muted-foreground)] mb-2">
+              Коллекции не найдены
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Создайте первую коллекцию, нажав кнопку &quot;Создать коллекцию&quot;
+            </p>
+          </div>
+        ) : (
+          collections.map((collection: Collection) => (
           <div
             key={collection._id}
             className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors"
@@ -311,7 +328,8 @@ export function CollectionsSection({}: CollectionsSectionProps) {
               </div>
             )}
           </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Pagination */}
