@@ -35,7 +35,10 @@ export const notificationsApi = createApi({
 
     // Получение количества непрочитанных уведомлений
     getUnreadCount: builder.query<ApiResponseDto<UnreadCountResponse>, void>({
-      query: () => "/notifications/unread-count",
+      query: () => ({
+        url: "/notifications/unread-count",
+        timeout: 10000, // 10 секунд таймаут
+      }),
       providesTags: ["UnreadCount"],
     }),
 
