@@ -24,7 +24,7 @@ export function ReadButton({
   const getNextChapter = () => {
     // Проверяем, что titleData существует
     if (!titleData) return null;
-    
+
     // Если есть продолжение чтения и оно относится к текущему тайтлу
     const readingHistoryItem = user?.readingHistory?.find(
       (item: ReadingHistoryEntry) => {
@@ -32,35 +32,61 @@ export function ReadButton({
         return titleId === titleData?._id;
       }
     );
-    if (
-      readingHistoryItem &&
-      readingHistoryItem.chapters &&
-      Array.isArray(readingHistoryItem.chapters) &&
-      readingHistoryItem.chapters.length > 0
-    ) {
-      // Получаем последнюю прочитанную главу
-      const lastReadChapter =
-        readingHistoryItem.chapters[readingHistoryItem.chapters.length - 1];
-      // Находим главу по chapterId
-      const currentChapter = chapters.find(
-        (ch) => ch._id === lastReadChapter.chapterId
-      );
-      if (currentChapter) {
+
+    if (readingHistoryItem && readingHistoryItem.chapters && Array.isArray(readingHistoryItem.chapters) && readingHistoryItem.chapters.length > 0) {
+      // Находим последнюю прочитанную главу по времени чтения
+      const lastReadChapter = readingHistoryItem.chapters.reduce((latest, current) => {
+        const latestTime = new Date(latest.readAt).getTime();
+        const currentTime = new Date(current.readAt).getTime();
+        return currentTime > latestTime ? current : latest;
+      });
+
+      // Используем chapterNumber из истории чтения
+      const lastReadNumber = lastReadChapter.chapterNumber;
+
+      if (lastReadNumber !== undefined) {
+        const sortedChapters = [...chapters].sort((a, b) => a.chapterNumber - b.chapterNumber);
+
         // Ищем следующую главу по номеру
-        const nextChapters = chapters.filter(
-          (ch) => ch.chapterNumber > currentChapter.chapterNumber
+        const nextChapter = sortedChapters.find(ch => ch.chapterNumber > lastReadNumber);
+
+        if (nextChapter) {
+          return nextChapter;
+        }
+
+        // Если следующих глав нет, возвращаем последнюю прочитанную
+        const currentChapter = sortedChapters.find(ch => ch.chapterNumber === lastReadNumber);
+        if (currentChapter) {
+          return currentChapter;
+        }
+
+        // Если не нашли, возвращаем первую главу
+        return sortedChapters[0];
+      } else {
+        // Fallback to old logic if chapterNumber not available
+        const currentChapter = chapters.find(
+          (ch) => ch._id === lastReadChapter.chapterId
         );
-        if (nextChapters.length > 0) {
-          // Сортируем по номеру и берем первую
-          const sortedNextChapters = nextChapters.sort(
+
+        if (currentChapter) {
+          const nextChapters = chapters.filter(
+            (ch) => ch.chapterNumber > currentChapter.chapterNumber
+          ).sort((a, b) => a.chapterNumber - b.chapterNumber);
+
+          if (nextChapters.length > 0) {
+            return nextChapters[0];
+          }
+
+          return currentChapter;
+        } else {
+          const sortedChapters = [...chapters].sort(
             (a, b) => a.chapterNumber - b.chapterNumber
           );
-          return sortedNextChapters[0];
+          return sortedChapters[0];
         }
-        // Если следующих глав нет, возвращаем текущую
-        return currentChapter;
       }
     }
+
     // Если нет продолжения чтения, возвращаем первую главу
     if (chapters && chapters.length > 0) {
       const sortedChapters = [...chapters].sort(
@@ -68,6 +94,7 @@ export function ReadButton({
       );
       return sortedChapters[0];
     }
+
     return null;
   };
 
@@ -91,6 +118,7 @@ export function ReadButton({
       </Button>
     );
   }
+
 
   // Определяем текст кнопки
   let buttonText = "С первой главы";

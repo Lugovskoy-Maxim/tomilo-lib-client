@@ -8,7 +8,6 @@ import {
   ProfileBanner,
   ProfileContent,
   ProfileHeader,
-  ProfileStats,
 } from "@/shared";
 
 import { Footer, Header } from "@/widgets";

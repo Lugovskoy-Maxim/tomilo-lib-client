@@ -15,28 +15,20 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
   const getLastReadChapter = () => {
     if (!user?.readingHistory || user.readingHistory.length === 0) return null;
 
-    // Находим тайтл с самой поздней датой чтения
-    const latestTitle = user.readingHistory.reduce((latest, current) => {
-      const latestTime = new Date(latest.readAt).getTime();
-      const currentTime = new Date(current.readAt).getTime();
-      return currentTime > latestTime ? current : latest;
+    // Собираем все главы со временем чтения
+    const allChaptersWithTime = user.readingHistory.flatMap(historyItem => {
+      return historyItem.chapters.map(chapter => ({
+        titleId: typeof historyItem.titleId === 'string' ? historyItem.titleId : historyItem.titleId._id,
+        chapterId: chapter.chapterId,
+        chapterNumber: chapter.chapterNumber,
+        readAt: new Date(chapter.readAt).getTime()
+      }));
     });
 
-    // Находим последнюю прочитанную главу в этом тайтле
-    if (latestTitle.chapters && latestTitle.chapters.length > 0) {
-      const lastChapter = latestTitle.chapters.reduce((latest, current) => {
-        const latestTime = new Date(latest.readAt).getTime();
-        const currentTime = new Date(current.readAt).getTime();
-        return currentTime > latestTime ? current : latest;
-      });
+    // Сортируем по времени чтения (по убыванию) и берем первую
+    const latestChapter = allChaptersWithTime.sort((a, b) => b.readAt - a.readAt)[0];
 
-      return {
-        titleId: latestTitle.titleId,
-        chapterId: lastChapter.chapterId
-      };
-    }
-
-    return null;
+    return latestChapter || null;
   };
 
   const lastReadChapter = getLastReadChapter();
