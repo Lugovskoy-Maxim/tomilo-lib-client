@@ -20,7 +20,7 @@ export default function ChaptersManagementPage() {
   const [deleteChapter] = useDeleteChapterMutation();
 
   const sorted = useMemo(() => {
-    const chapters = (primary && primary.length ? primary : fallback?.chapters) || [];
+    const chapters = (primary?.chapters && primary.chapters.length ? primary.chapters : fallback?.chapters) || [];
     if (!Array.isArray(chapters)) {
       return [];
     }

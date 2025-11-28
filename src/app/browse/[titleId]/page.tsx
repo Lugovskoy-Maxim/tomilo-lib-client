@@ -11,7 +11,6 @@ import {
   useIncrementViewsMutation,
   useGetTitleByIdQuery,
 } from "@/store/api/titlesApi";
-import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { LeftSidebar, RightContent } from "@/shared/browse/title-view";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,8 +68,6 @@ export default function TitleViewPage() {
     isLoading: titleLoading,
     error: titleError,
   } = useGetTitleByIdQuery(titleId);
-  const { data: chaptersDataRaw, isLoading: chaptersLoading } =
-    useGetChaptersByTitleQuery({ titleId });
 
   const [incrementViews] = useIncrementViewsMutation();
 
@@ -83,8 +80,8 @@ export default function TitleViewPage() {
     [titleDataRaw]
   );
   const processedChaptersData = useMemo(
-    () => chaptersDataRaw?.chapters || [],
-    [chaptersDataRaw]
+    () => processedTitleData?.chapters || [],
+    [processedTitleData]
   );
 
   // Simplify isAdmin state usage
@@ -104,7 +101,7 @@ export default function TitleViewPage() {
   // Флаг для предотвращения множественных инкрементов просмотров
   const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
 
-  const isLoading = titleLoading || chaptersLoading;
+  const isLoading = titleLoading;
   // Suppress error if user not authorized
   const error =
     !user && titleError ? null : titleError ? "Ошибка загрузки данных" : null;
@@ -153,7 +150,7 @@ export default function TitleViewPage() {
     if (activeTab === "chapters") {
       setChapters([]);
       setChaptersPage(1);
-      // При переключении на вкладку глав, данные будут загружены через useGetChaptersByTitleQuery
+      // При переключении на вкладку глав, данные будут загружены из title data
     }
   }, [activeTab]);
   
@@ -161,9 +158,9 @@ export default function TitleViewPage() {
   useEffect(() => {
     if (activeTab === "chapters" && processedChaptersData) {
       setChapters(processedChaptersData);
-      setHasMoreChapters(chaptersDataRaw?.hasMore || false);
+      setHasMoreChapters(false); // All chapters are loaded from title data
     }
-  }, [activeTab, processedChaptersData, chaptersDataRaw?.hasMore]);
+  }, [activeTab, processedChaptersData]);
 
   // Обработчики
   const handleLoadMoreChapters = () => {
