@@ -8,6 +8,20 @@ import {
   ApiResponseDto
 } from "@/types/collection";
 
+interface CollectionsApiResponseData {
+  collections?: Collection[];
+  data?: Collection[];
+  pagination?: {
+    total?: number;
+    page?: number;
+    pages?: number;
+    limit?: number;
+  };
+  total?: number;
+  page?: number;
+  totalPages?: number;
+}
+
 const COLLECTIONS_TAG = "Collections";
 
 
@@ -41,30 +55,38 @@ export const collectionsApi = createApi({
           collections = data as Collection[];
           total = data.length;
         } else if (data && typeof data === 'object') {
-          const dataObj = data as any;
-          collections = dataObj.collections || dataObj.data || [];
-          total = dataObj.pagination?.total || dataObj.total || collections.length || 0;
+          const dataObj = data as CollectionsApiResponseData;
+          const rawCollections = dataObj.collections || dataObj.data || [];
+          total = dataObj.pagination?.total || dataObj.total || rawCollections.length || 0;
           page = dataObj.pagination?.page || dataObj.page || 1;
           totalPages = dataObj.pagination?.pages || dataObj.totalPages || Math.ceil(total / (dataObj.pagination?.limit || 12)) || 1;
-        }
 
-        // Map id to _id if needed, filter out collections without any ID
-        collections = collections
-          .map((collection: any): Collection => ({
-            id: collection.id || collection._id || "",
-            cover: collection.cover || collection.image || "",
-            name: collection.name || "",
-            description: collection.description || undefined,
-            titles: collection.titles || [],
-            comments: collection.comments || [],
-            views: collection.views || 0,
-            createdAt: collection.createdAt || "",
-            updatedAt: collection.updatedAt || ""
-          }))
-          .filter((collection: Collection) => {
+          // If rawCollections is already Collection[], use it directly, otherwise map from unknown
+          if (rawCollections.length > 0 && typeof rawCollections[0] === 'object' && rawCollections[0] !== null && 'id' in rawCollections[0]) {
+            collections = rawCollections as Collection[];
+          } else {
+            collections = (rawCollections as unknown[])
+              .map((collection): Collection => {
+                const coll = collection as Record<string, unknown>;
+                return {
+                  id: (coll.id as string) || (coll._id as string) || "",
+                  cover: (coll.cover as string) || (coll.image as string) || "",
+                  name: (coll.name as string) || "",
+                  description: (coll.description as string) || undefined,
+                  titles: (coll.titles as string[]) || [],
+                  comments: (coll.comments as string[]) || [],
+                  views: (coll.views as number) || 0,
+                  createdAt: (coll.createdAt as string) || "",
+                  updatedAt: (coll.updatedAt as string) || ""
+                };
+              });
+          }
+
+          collections = collections.filter((collection: Collection) => {
             const id = collection.id;
             return id && id !== 'undefined';
           });
+        }
 
         return {
           ...response,
@@ -89,19 +111,19 @@ export const collectionsApi = createApi({
       providesTags: (result, error, id) => [{ type: COLLECTIONS_TAG, id }],
       transformResponse: (response: ApiResponseDto<CollectionWithTitles>) => {
         if (response.data && typeof response.data === 'object') {
-          const dataObj = response.data as any;
+          const dataObj = response.data as unknown as Record<string, unknown>;
           return {
             ...response,
             data: {
-              id: dataObj.id || dataObj._id || "",
-              cover: dataObj.cover || dataObj.image || "",
-              name: dataObj.name || "",
-              description: dataObj.description || undefined,
-              titles: dataObj.titles || [],
-              comments: dataObj.comments || [],
-              views: dataObj.views || 0,
-              createdAt: dataObj.createdAt || "",
-              updatedAt: dataObj.updatedAt || ""
+              id: (dataObj.id as string) || (dataObj._id as string) || "",
+              cover: (dataObj.cover as string) || (dataObj.image as string) || "",
+              name: (dataObj.name as string) || "",
+              description: (dataObj.description as string) || undefined,
+              titles: (dataObj.titles as unknown[]) || [],
+              comments: (dataObj.comments as unknown[]) || [],
+              views: (dataObj.views as number) || 0,
+              createdAt: (dataObj.createdAt as string) || "",
+              updatedAt: (dataObj.updatedAt as string) || ""
             } as CollectionWithTitles
           };
         }
@@ -131,19 +153,19 @@ export const collectionsApi = createApi({
       transformResponse: (response: ApiResponseDto<Collection>) => {
         // Map API response fields to match Collection interface
         if (response.data && typeof response.data === 'object') {
-          const dataObj = response.data as any;
+          const dataObj = response.data as unknown as Record<string, unknown>;
           return {
             ...response,
             data: {
-              id: dataObj.id || dataObj._id || "",
-              cover: dataObj.cover || dataObj.image || "",
-              name: dataObj.name || "",
-              description: dataObj.description || undefined,
-              titles: dataObj.titles || [],
-              comments: dataObj.comments || [],
-              views: dataObj.views || 0,
-              createdAt: dataObj.createdAt || "",
-              updatedAt: dataObj.updatedAt || ""
+              id: (dataObj.id as string) || (dataObj._id as string) || "",
+              cover: (dataObj.cover as string) || (dataObj.image as string) || "",
+              name: (dataObj.name as string) || "",
+              description: (dataObj.description as string) || undefined,
+              titles: (dataObj.titles as string[]) || [],
+              comments: (dataObj.comments as string[]) || [],
+              views: (dataObj.views as number) || 0,
+              createdAt: (dataObj.createdAt as string) || "",
+              updatedAt: (dataObj.updatedAt as string) || ""
             } as Collection
           };
         }

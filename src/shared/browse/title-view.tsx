@@ -476,8 +476,8 @@ export function RightContent({
 
   const formatRating = (value?: number) => {
     const num = typeof value === "number" ? value : 0;
-    const fixed = num.toFixed(2);
-    return fixed.replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+    const fixed = num.toFixed(1);
+    return fixed.replace(/\.0$/, "");
   };
 
   // Хук для обновления рейтинга
@@ -503,7 +503,7 @@ export function RightContent({
                 {formatRating(
                   typeof pendingRating === "number"
                     ? pendingRating
-                    : titleData?.rating
+                    : titleData?.averageRating
                 )}
               </span>
               <button
@@ -755,7 +755,7 @@ export function RightContent({
               />
               <StatItem
                 label="Оценка"
-                value={titleData?.rating?.toFixed(2) || "0.00"}
+                value={formatRating(titleData?.rating)}
               />
               <StatItem
                 label="Год релиза"

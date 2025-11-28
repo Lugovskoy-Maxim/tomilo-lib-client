@@ -47,6 +47,7 @@ export interface TitlesState {
 }
 
 export interface Title {
+  averageRating: number | undefined;
   _id: string;
   name: string;
   altNames?: string[];
