@@ -1,13 +1,14 @@
 "use client";
 
 import { ReadChapterPage } from "@/widgets";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import {
   ReaderTitle as ReadTitle,
   ReaderChapter as ReadChapter,
 } from "@/shared/reader/types";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
-import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
+import { useGetChaptersByTitleQuery, useGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { Chapter } from "@/types/title";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
@@ -27,6 +28,7 @@ function normalizeAssetUrl(p: string): string {
 
 export default function ChapterPage() {
   const params = useParams();
+  const router = useRouter();
   const titleId = params.titleId as string;
   const chapterId = params.chapterId as string;
 
@@ -40,10 +42,18 @@ export default function ChapterPage() {
     data: chaptersData,
     isLoading: chaptersLoading,
     error: chaptersError,
-  } = useGetChaptersByTitleQuery({ titleId, sortOrder: "asc" });
+  } = useGetChaptersByTitleQuery({ titleId, sortOrder: "asc", limit: 10000 });
 
   const isLoading = titleLoading || chaptersLoading;
   const error = titleError || chaptersError;
+
+  // Conditionally fetch chapter by ID if not found in title chapters
+  const shouldFetchChapter = !isLoading && !error && chaptersData && !chaptersData.chapters.find((c: Chapter) => c._id === chapterId);
+  const {
+    data: chapterData,
+    isLoading: chapterLoading,
+    error: chapterError,
+  } = useGetChapterByIdQuery(chapterId, { skip: !shouldFetchChapter });
 
   // SEO для страницы главы - всегда вызываем хук в начале компонента
   useSEO(
@@ -129,6 +139,24 @@ export default function ChapterPage() {
   const chapter = mappedChapters.find((c) => c._id === chapterId);
 
   if (!chapter) {
+    if (chapterLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+            <div className="text-[var(--foreground)]">Проверка главы...</div>
+          </div>
+        </div>
+      );
+    }
+
+    if (chapterData && chapterData.titleId !== titleId) {
+      // Chapter exists but belongs to a different title, redirect
+      const correctTitleId = typeof chapterData.titleId === 'object' ? chapterData.titleId._id : chapterData.titleId;
+      router.push(`/browse/${correctTitleId}/chapter/${chapterId}`);
+      return null;
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

@@ -2,7 +2,7 @@
 
 import { Footer, Header } from "@/widgets";
 import {
-  Upload,
+  // Upload,
   BookOpen,
   User,
   Tag,
@@ -28,7 +28,7 @@ import { useGetTitleByIdQuery, useUpdateTitleMutation } from "@/store/api/titles
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { UpdateTitleDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
-import Image from "next/image";
+// import Image from "next/image";
 import { CoverUploadSection } from "@/shared/admin/cover-upload-section";
 
 // Конфигурация API
@@ -160,12 +160,12 @@ interface CheckboxGroupProps {
   icon?: LucideIcon;
 }
 
-interface ImageUploadFieldProps {
-  label: string;
-  image?: string;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  selectedFile: File | null;
-}
+// interface ImageUploadFieldProps {
+//   label: string;
+//   image?: string;
+//   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+//   selectedFile: File | null;
+// }
 
 interface ErrorStateProps {
   error: string;
@@ -501,8 +501,6 @@ function BasicInfoSection({
   handleInputChange,
   handleArrayFieldChange,
   handleAltNamesChange,
-  handleImageChange,
-  selectedFile,
   onCoverUpdate,
 }: BasicInfoSectionProps) {
   return (
@@ -878,80 +876,80 @@ function CheckboxGroup({
   );
 }
 
-function ImageUploadField({
-  label,
-  image,
-  onChange,
-  selectedFile,
-}: ImageUploadFieldProps) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
-        {label}
-      </label>
-      <div className="border border-dashed border-[var(--border)] rounded-lg p-3 text-center">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={onChange}
-          className="hidden"
-          id="image-upload"
-        />
-        <label
-          htmlFor="image-upload"
-          className="cursor-pointer flex flex-col items-center gap-1"
-        >
-          <Upload className="w-6 h-6 text-[var(--muted-foreground)]" />
-          <span className="text-xs text-[var(--muted-foreground)]">
-            {selectedFile
-              ? `Выбран файл: ${selectedFile.name}`
-              : "Загрузить обложку"}
-          </span>
-          <span className="text-xs text-[var(--muted-foreground)]">
-            {image && !selectedFile
-              ? "Текущая обложка (загрузите новую для замены)"
-              : "Нажмите для выбора файла"}
-          </span>
-        </label>
-        {(image || selectedFile) && (
-          <div className="mt-2">
-            {(() => {
-              const apiBase =
-                process.env.NEXT_PUBLIC_URL || "http://localhost:3000/";
-              const isAbsolute =
-                typeof image === "string" &&
-                (image.startsWith("http://") ||
-                  image.startsWith("https://") ||
-                  image.startsWith("data:"));
-              const resolvedSrc = image
-                ? isAbsolute
-                  ? image
-                  : `${apiBase}${image?.startsWith("/") ? "" : "/"}${image}`
-                : "";
-              // Не отображаем изображение, если resolvedSrc пустой
-              if (!resolvedSrc) {
-                return null;
-              }
-              return (
-                <Image
-                  loader={() => resolvedSrc}
-                  src={resolvedSrc}
-                  alt="Current cover"
-                  className="max-w-[200px] mx-auto rounded"
-                  width={200}
-                  height={300}
-                  unoptimized
-                />
-              );
-            })()}
-            {selectedFile && (
-              <p className="text-xs text-[var(--primary)] mt-1">
-                Новое изображение будет загружено при сохранении
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+// function ImageUploadField({
+//   label,
+//   image,
+//   onChange,
+//   selectedFile,
+// }: ImageUploadFieldProps) {
+//   return (
+//     <div>
+//       <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+//         {label}
+//       </label>
+//       <div className="border border-dashed border-[var(--border)] rounded-lg p-3 text-center">
+//         <input
+//           type="file"
+//           accept="image/*"
+//           onChange={onChange}
+//           className="hidden"
+//           id="image-upload"
+//         />
+//         <label
+//           htmlFor="image-upload"
+//           className="cursor-pointer flex flex-col items-center gap-1"
+//         >
+//           <Upload className="w-6 h-6 text-[var(--muted-foreground)]" />
+//           <span className="text-xs text-[var(--muted-foreground)]">
+//             {selectedFile
+//               ? `Выбран файл: ${selectedFile.name}`
+//               : "Загрузить обложку"}
+//           </span>
+//           <span className="text-xs text-[var(--muted-foreground)]">
+//             {image && !selectedFile
+//               ? "Текущая обложка (загрузите новую для замены)"
+//               : "Нажмите для выбора файла"}
+//           </span>
+//         </label>
+//         {(image || selectedFile) && (
+//           <div className="mt-2">
+//             {(() => {
+//               const apiBase =
+//                 process.env.NEXT_PUBLIC_URL || "http://localhost:3000/";
+//               const isAbsolute =
+//                 typeof image === "string" &&
+//                 (image.startsWith("http://") ||
+//                   image.startsWith("https://") ||
+//                   image.startsWith("data:"));
+//               const resolvedSrc = image
+//                 ? isAbsolute
+//                   ? image
+//                   : `${apiBase}${image?.startsWith("/") ? "" : "/"}${image}`
+//                 : "";
+//               // Не отображаем изображение, если resolvedSrc пустой
+//               if (!resolvedSrc) {
+//                 return null;
+//               }
+//               return (
+//                 <Image
+//                   loader={() => resolvedSrc}
+//                   src={resolvedSrc}
+//                   alt="Current cover"
+//                   className="max-w-[200px] mx-auto rounded"
+//                   width={200}
+//                   height={300}
+//                   unoptimized
+//                 />
+//               );
+//             })()}
+//             {selectedFile && (
+//               <p className="text-xs text-[var(--primary)] mt-1">
+//                 Новое изображение будет загружено при сохранении
+//               </p>
+//             )}
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
