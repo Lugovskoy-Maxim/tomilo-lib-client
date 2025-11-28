@@ -76,11 +76,6 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   const collections = collectionsResponse?.data?.collections || [];
   const totalPages = collectionsResponse?.data?.totalPages || 1;
 
-  // Debug logging
-  console.log('Collections response:', collectionsResponse);
-  console.log('Collections data:', collections);
-  console.log('Total collections:', collections.length);
-  console.log('Error:', error);
 
   const handleCreate = async (data: CreateCollectionDto) => {
     try {

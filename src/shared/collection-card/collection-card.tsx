@@ -2,13 +2,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
-
-interface Collection {
-  id: string;
-  name: string;
-  image: string;
-  link: string;
-}
+import { Collection } from "@/types/collection";
 
 interface CollectionCardProps {
   data: Collection;
@@ -26,24 +20,32 @@ export default function CollectionCard({ data }: CollectionCardProps) {
     );
   }
 
-  const { image, name, link } = data;
+  const collectionId = data._id;
+  const collectionLink = data.link || `/collections/${collectionId}`;
+  const collectionImage = data.image;
+  const collectionName = data.name;
 
   const handleClick = () => {
-    if (link) {
-      router.push(link);
+    if (collectionLink) {
+      router.push(collectionLink);
     }
   };
 
   const getImageUrl = () => {
-    if (!image) return IMAGE_HOLDER;
+    if (!collectionImage) return IMAGE_HOLDER;
 
     // Если изображение уже полный URL, используем как есть
-    if (image.startsWith("http")) {
-      return image;
+    if (collectionImage.startsWith("http")) {
+      return collectionImage;
     }
 
     // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${image}`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    // Убираем завершающий слэш если есть
+    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+    // Убираем начальный слэш из пути к изображению если есть
+    const cleanImagePath = collectionImage.startsWith('/') ? collectionImage : `/${collectionImage}`;
+    return `${cleanBaseUrl}${cleanImagePath}`;
   };
 
   const imageUrl = getImageUrl();
@@ -59,7 +61,7 @@ export default function CollectionCard({ data }: CollectionCardProps) {
           <Image
             loader={() => `${imageUrl}`}
             src={imageUrl}
-            alt={name || "Коллекция"}
+            alt={collectionName || "Коллекция"}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, 128px"
@@ -73,7 +75,7 @@ export default function CollectionCard({ data }: CollectionCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-2 text-white">
           <h3 className="text-xs sm:text-sm font-bold drop-shadow-lg text-center leading-tight">
-            {name || "Без названия"}
+            {collectionName || "Без названия"}
           </h3>
         </div>
       </div>

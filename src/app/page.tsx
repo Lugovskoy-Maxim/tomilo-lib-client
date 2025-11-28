@@ -62,7 +62,11 @@ if (error) {
     </div>
   );
 }
-  if (!data?.length) return null;
+  if (!data?.length) return (
+    <div className="text-[var(--muted-foreground)] font-semibold p-4">
+      Нет данных для отображения {title}
+    </div>
+  );
   return (
     <Carousel
       title={title}
