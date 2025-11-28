@@ -29,6 +29,7 @@ import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { UpdateTitleDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
 import Image from "next/image";
+import { CoverUploadSection } from "@/shared/admin/cover-upload-section";
 
 // Конфигурация API
 const API_CONFIG = {
@@ -88,6 +89,7 @@ const API_CONFIG = {
 // Типы для пропсов компонентов
 interface BasicInfoSectionProps {
   formData: Title;
+  titleId: string;
   handleInputChange: (
     field: keyof Title
   ) => (
@@ -99,6 +101,7 @@ interface BasicInfoSectionProps {
   handleAltNamesChange: (e: ChangeEvent<HTMLInputElement>) => void;
   handleImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
   selectedFile: File | null;
+  onCoverUpdate: (newCover: string) => void;
 }
 
 interface StatsSectionProps {
@@ -392,11 +395,13 @@ const handleSubmit = async (e: FormEvent) => {
           <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
             <BasicInfoSection
               formData={formData}
+              titleId={titleId}
               handleInputChange={handleInputChange}
               handleArrayFieldChange={handleArrayFieldChange}
               handleAltNamesChange={handleAltNamesChange}
               handleImageChange={handleImageChange}
               selectedFile={selectedFile}
+              onCoverUpdate={(newCover) => setFormData(prev => ({ ...prev, coverImage: newCover }))}
             />
             {/* <TextareaField
                 label="Описание *"
@@ -492,11 +497,13 @@ function HeaderSection() {
 
 function BasicInfoSection({
   formData,
+  titleId,
   handleInputChange,
   handleArrayFieldChange,
   handleAltNamesChange,
   handleImageChange,
   selectedFile,
+  onCoverUpdate,
 }: BasicInfoSectionProps) {
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-6">
@@ -507,11 +514,10 @@ function BasicInfoSection({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
-          <ImageUploadField
-            label="Обложка"
-            image={formData.coverImage}
-            onChange={handleImageChange}
-            selectedFile={selectedFile}
+          <CoverUploadSection
+            titleId={titleId}
+            currentCover={formData.coverImage}
+            onCoverUpdate={onCoverUpdate}
           />
 
           <InputField
