@@ -57,31 +57,12 @@ export function CommentForm({
           content: content.trim(),
           ...(parentId && { parentId }),
         };
-        console.log('Sending comment data:', JSON.stringify(commentData, null, 2));
         const result = await createComment(commentData).unwrap();
-        console.log('Comment created successfully:', result);
       }
       setContent('');
       onSubmit?.();
     } catch (error: unknown) {
-      console.error('Failed to save comment:', error);
-      // Более детальное логирование ошибки
-      if (typeof error === 'object' && error !== null) {
-        const err = error as Record<string, unknown>;
-        if ('data' in err) {
-          const data = err.data as Record<string, unknown> | undefined;
-          console.error('Error data:', data);
-          if (data?.errors && Array.isArray(data.errors)) {
-            console.error('Validation errors:', data.errors);
-          }
-          if (data?.message && typeof data.message === 'string') {
-            console.error('Error message:', data.message);
-          }
-        }
-        if ('status' in err) {
-          console.error('Error status:', err.status);
-        }
-      }
+      // Handle error silently in production
       // Показываем пользователю понятное сообщение
       const errData = ((error as Record<string, unknown>).data) as Record<string, unknown> | undefined;
       alert(
