@@ -7,18 +7,17 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Chapter } from "@/types/title";
 import { User } from "@/types/auth";
 import { useParams } from "next/navigation";
-import { useIncrementViewsMutation, useGetTitleByIdQuery } from "@/store/api/titlesApi";
-import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import {
-  LeftSidebar,
-  RightContent,
-} from "@/shared/browse/title-view";
+  useIncrementViewsMutation,
+  useGetTitleByIdQuery,
+} from "@/store/api/titlesApi";
+import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
+import { LeftSidebar, RightContent } from "@/shared/browse/title-view";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
 import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
-
 
 // Клиентская фильтрация и пагинация глав из titleData
 function filterAndPaginateChapters(
@@ -65,8 +64,13 @@ export default function TitleViewPage() {
   // const titlesState = useSelector((state: RootState) => state.titles);
 
   // RTK Query hooks
-  const { data: titleDataRaw, isLoading: titleLoading, error: titleError } = useGetTitleByIdQuery(titleId);
-  const { data: chaptersDataRaw, isLoading: chaptersLoading } = useGetChaptersByTitleQuery({ titleId });
+  const {
+    data: titleDataRaw,
+    isLoading: titleLoading,
+    error: titleError,
+  } = useGetTitleByIdQuery(titleId);
+  const { data: chaptersDataRaw, isLoading: chaptersLoading } =
+    useGetChaptersByTitleQuery({ titleId });
 
   const [incrementViews] = useIncrementViewsMutation();
 
@@ -74,12 +78,18 @@ export default function TitleViewPage() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
 
   // Wrap data in useMemo to prevent useMemo dependency warning
-  const processedTitleData = useMemo(() => titleDataRaw?.data || null, [titleDataRaw]);
-  const processedChaptersData = useMemo(() => chaptersDataRaw || [], [chaptersDataRaw]);
+  const processedTitleData = useMemo(
+    () => titleDataRaw?.data || null,
+    [titleDataRaw]
+  );
+  const processedChaptersData = useMemo(
+    () => chaptersDataRaw?.chapters || [],
+    [chaptersDataRaw]
+  );
 
   // Simplify isAdmin state usage
-  const isAdmin = (user?.role == 'admin');
-  
+  const isAdmin = user?.role == "admin";
+
   const [chaptersPage, setChaptersPage] = useState(1);
   const [hasMoreChapters, setHasMoreChapters] = useState(true);
   const [chaptersLoadingState, setChaptersLoadingState] = useState(false);
@@ -97,11 +107,7 @@ export default function TitleViewPage() {
   const isLoading = titleLoading || chaptersLoading;
   // Suppress error if user not authorized
   const error =
-    !user && titleError
-      ? null
-      : titleError
-      ? "Ошибка загрузки данных"
-      : null;
+    !user && titleError ? null : titleError ? "Ошибка загрузки данных" : null;
 
   // SEO для страницы тайтла
   useSEO(seoConfigs.title(processedTitleData || {}));
@@ -144,25 +150,34 @@ export default function TitleViewPage() {
 
   // Первоначальная загрузка глав
   useEffect(() => {
-    if (activeTab === "chapters" && processedChaptersData.length > 0) {
+    if (activeTab === "chapters") {
       setChapters([]);
       setChaptersPage(1);
-      loadChapters(1, searchQuery, false);
+      // При переключении на вкладку глав, данные будут загружены через useGetChaptersByTitleQuery
     }
-  }, [activeTab, searchQuery, loadChapters, processedChaptersData]);
+  }, [activeTab]);
+  
+  // Обновление списка глав при изменении данных от API
+  useEffect(() => {
+    if (activeTab === "chapters" && processedChaptersData) {
+      setChapters(processedChaptersData);
+      setHasMoreChapters(chaptersDataRaw?.hasMore || false);
+    }
+  }, [activeTab, processedChaptersData, chaptersDataRaw?.hasMore]);
 
   // Обработчики
   const handleLoadMoreChapters = () => {
     if (hasMoreChapters && !chaptersLoadingState) {
       const nextPage = chaptersPage + 1;
       setChaptersPage(nextPage);
-      loadChapters(nextPage, searchQuery, true);
+      // Данные будут автоматически загружены через useGetChaptersByTitleQuery при изменении chaptersPage
     }
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setChaptersPage(1);
+    // При сбросе поиска данные будут перезагружены через useGetChaptersByTitleQuery
   };
 
   const handleBookmark = () => {
@@ -196,7 +211,9 @@ export default function TitleViewPage() {
         <div
           className="fixed inset-0 z-0"
           style={{
-            backgroundImage: `url(${process.env.NEXT_PUBLIC_URL + processedTitleData.coverImage})`,
+            backgroundImage: `url(${
+              process.env.NEXT_PUBLIC_URL + processedTitleData.coverImage
+            })`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
@@ -234,7 +251,11 @@ export default function TitleViewPage() {
 
             {/* Мобильные кнопки действий */}
             <div className="flex justify-center gap-4 mt-4 rounded-full">
-              <ReadButton titleData={processedTitleData} chapters={processedChaptersData} className="flex-1 text-sm" />
+              <ReadButton
+                titleData={processedTitleData}
+                chapters={processedChaptersData}
+                className="flex-1 text-sm"
+              />
               <BookmarkButton titleId={titleId} initialBookmarked={false} />
               <button
                 onClick={handleShare}
@@ -273,7 +294,9 @@ export default function TitleViewPage() {
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 isDescriptionExpanded={isDescriptionExpanded}
-                onDescriptionToggle={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                onDescriptionToggle={() =>
+                  setIsDescriptionExpanded(!isDescriptionExpanded)
+                }
                 chapters={chapters}
                 hasMoreChapters={hasMoreChapters}
                 chaptersLoading={chaptersLoadingState}
@@ -309,8 +332,12 @@ function ErrorState({ error, titleId }: { error: string; titleId?: string }) {
           <div className="flex items-center justify-center min-h-[50vh]">
             <div className="text-center">
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">{error}</h1>
-              <p className="text-[var(--muted-foreground)] mb-4">ID тайтла: {titleId || "не указан"}</p>
+              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
+                {error}
+              </h1>
+              <p className="text-[var(--muted-foreground)] mb-4">
+                ID тайтла: {titleId || "не указан"}
+              </p>
               <p className="text-[var(--muted-foreground)] mb-6">
                 Проверьте консоль браузера для подробной информации об ошибке
               </p>
@@ -354,7 +381,9 @@ function LoadingState() {
           <div className="flex items-center justify-center min-h-[50vh]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-              <p className="text-[var(--muted-foreground)]">Загрузка данных тайтла...</p>
+              <p className="text-[var(--muted-foreground)]">
+                Загрузка данных тайтла...
+              </p>
             </div>
           </div>
         </div>

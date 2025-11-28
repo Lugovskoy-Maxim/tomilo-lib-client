@@ -307,8 +307,6 @@ function CollectionModal({
     description: "",
     image: "",
     link: "",
-    titles: [],
-    comments: [],
   });
 
   // Update form data when initialData changes
@@ -319,8 +317,6 @@ function CollectionModal({
         description: initialData.description || "",
         image: initialData.image || "",
         link: initialData.link || "",
-        titles: initialData.titles || [],
-        comments: initialData.comments || [],
       });
     } else {
       setFormData({
@@ -328,8 +324,6 @@ function CollectionModal({
         description: "",
         image: "",
         link: "",
-        titles: [],
-        comments: [],
       });
     }
   }, [initialData]);

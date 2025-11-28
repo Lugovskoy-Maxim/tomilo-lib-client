@@ -11,7 +11,6 @@ import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { Chapter } from "@/types/title";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
-
 function normalizeAssetUrl(p: string): string {
   if (!p) return "";
   if (p.startsWith("http")) {
@@ -55,9 +54,9 @@ export default function ChapterPage() {
             title: titleData.data.name,
           }
         : { name: "", title: "" },
-      chaptersData?.find((c: Chapter) => c._id === chapterId)?.chapterNumber ||
+      chaptersData?.chapters?.find((c: Chapter) => c._id === chapterId)?.chapterNumber ||
         0,
-      chaptersData?.find((c: Chapter) => c._id === chapterId)?.title || ""
+      chaptersData?.chapters?.find((c: Chapter) => c._id === chapterId)?.title || ""
     )
   );
 
@@ -93,16 +92,18 @@ export default function ChapterPage() {
 
   const serverTitle = titleData.data;
 
-  const mappedChapters: ReadChapter[] = chaptersData.map((ch: Chapter) => ({
-    _id: ch._id || "",
-    number: Number(ch.chapterNumber) || 0,
-    title: ch.title || "",
-    date: ch.releaseDate || "",
-    views: Number(ch.views) || 0,
-    images: Array.isArray(ch.pages)
-      ? ch.pages.map((p: string) => normalizeAssetUrl(p))
-      : [],
-  }));
+  const mappedChapters: ReadChapter[] = chaptersData.chapters.map(
+    (ch: Chapter) => ({
+      _id: ch._id || "",
+      number: Number(ch.chapterNumber) || 0,
+      title: ch.title || "",
+      date: ch.releaseDate || "",
+      views: Number(ch.views) || 0,
+      images: Array.isArray(ch.pages)
+        ? ch.pages.map((p: string) => normalizeAssetUrl(p))
+        : [],
+    })
+  );
 
   const mappedTitle: ReadTitle = {
     _id: serverTitle._id,

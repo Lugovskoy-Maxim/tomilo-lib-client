@@ -37,17 +37,27 @@ export const chaptersApi = createApi({
       providesTags: (result, error, id) => [{ type: CHAPTERS_TAG, id }],
     }),
 
-    getChaptersByTitle: builder.query<Chapter[], { titleId: string; sortOrder?: "asc" | "desc" }>({
-      query: ({ titleId, sortOrder = "asc" }) => ({
-        url: `/chapters/title/${titleId}`,
-        params: { sortOrder },
-      }),
-      providesTags: (result, error, { titleId }) => [{ type: CHAPTERS_TAG, id: `title-${titleId}` }],
-      transformResponse: (response: ApiResponseDto<Chapter[]> | Chapter[]): Chapter[] => {
-        if (Array.isArray(response)) return response;
-        return (response as ApiResponseDto<Chapter[]>)?.data ?? [];
-      },
-    }),
+    getChaptersByTitle: builder.query<ChaptersResponse, { titleId: string; page?: number; limit?: number; sortOrder?: "asc" | "desc" }>({
+     query: ({ titleId, page = 1, limit = 50, sortOrder = "asc" }) => ({
+       url: `/chapters/title/${titleId}`,
+       params: { page, limit, sortOrder },
+     }),
+     providesTags: (result, error, { titleId }) => [{ type: CHAPTERS_TAG, id: `title-${titleId}` }],
+     transformResponse: (response: ApiResponseDto<ChaptersResponse> | ChaptersResponse): ChaptersResponse => {
+       // Normalize various possible server shapes
+       if ('data' in response && response.data) {
+         return response.data;
+       }
+       const resp = response as unknown as Record<string, unknown>;
+       const chapters: Chapter[] = (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
+       const total: number = (resp.pagination as Record<string, unknown>)?.total as number ?? resp.total as number ?? chapters.length ?? 0;
+       const page: number = (resp.pagination as Record<string, unknown>)?.page as number ?? resp.page as number ?? 1;
+       const limit: number = (resp.pagination as Record<string, unknown>)?.limit as number ?? resp.limit as number ?? 50;
+       const totalPages: number = (resp.pagination as Record<string, unknown>)?.pages as number ?? resp.totalPages as number ?? Math.max(1, Math.ceil(total / (limit || 1)));
+       const hasMore: boolean = (resp.pagination as Record<string, unknown>)?.hasMore as boolean ?? page < totalPages;
+       return { chapters, total, page, limit, totalPages, hasMore };
+     },
+   }),
 
     searchChapters: builder.query<ChaptersResponse, { titleId?: string; page?: number; limit?: number; sortBy?: string; sortOrder?: "asc" | "desc" }>({
       query: (params) => ({ url: "/chapters", params }),
