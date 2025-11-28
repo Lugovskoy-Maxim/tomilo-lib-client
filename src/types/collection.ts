@@ -17,7 +17,7 @@ export interface Collection {
   description?: string;
   image?: string;
   link?: string;
-  titles?: string[]; // Array of title IDs
+  titles?: string[];
   views: number;
   comments?: string[];
   createdAt?: string;

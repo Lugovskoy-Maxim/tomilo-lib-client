@@ -502,6 +502,11 @@ function CollectionModal({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+const imageCover = () => 
+  formData?.image 
+    ? `${process.env.NEXT_PUBLIC_URL}${previewUrl || ''}`
+    : `${process.env.NEXT_PUBLIC_URL}${formData?.image || ''}`;
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -542,7 +547,7 @@ function CollectionModal({
             <div className="mb-4 flex justify-center">
               <div className="relative">
                 <Image
-                  src={previewUrl || formData.image || ""}
+                  src={imageCover()}
                   alt="Cover preview"
                   width={200}
                   height={300}
