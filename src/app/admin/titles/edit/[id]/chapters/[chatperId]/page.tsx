@@ -3,12 +3,14 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Edit, Save, AlertCircle } from "lucide-react";
+import { Edit, Save, AlertCircle, Eye, Trash2 } from "lucide-react";
 
 import { useToast } from "@/hooks/useToast";
-import { useGetChapterByIdQuery, useUpdateChapterMutation } from "@/store/api/chaptersApi";
+import { useGetChapterByIdQuery, useUpdateChapterMutation, useDeleteChapterMutation } from "@/store/api/chaptersApi";
 import { UpdateChapterDto } from "@/types/title";
 import { Chapter } from "@/types/chapter";
+import { ImagePreviewModal } from "@/shared/admin/image-preview-modal";
+import { Button } from "@/shared/ui/button";
 
 interface FormActionsProps {
   isSaving: boolean;
@@ -19,7 +21,6 @@ export default function ChapterEditorPage() {
   const titleId = params.id as string;
   const chapterId = params.chatperId as string;
   const toast = useToast();
-  // const dispatch = useDispatch(); // Удаляем неиспользуемую переменную
 
   const {
     data: chapter,
@@ -36,8 +37,11 @@ export default function ChapterEditorPage() {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; index: number } | null>(null);
+  const [imagesToDelete, setImagesToDelete] = useState<number[]>([]);
 
   const [updateChapterMutation, { isLoading: isUpdating }] = useUpdateChapterMutation();
+  const [deleteChapter] = useDeleteChapterMutation();
 
   useEffect(() => {
     if (chapter) {
@@ -63,10 +67,19 @@ export default function ChapterEditorPage() {
     setFormData((prev: Chapter) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
+  const handleDeleteImage = (index: number) => {
+    setImagesToDelete(prev => [...prev, index]);
+  };
+
+  const handleRestoreImage = (index: number) => {
+    setImagesToDelete(prev => prev.filter(i => i !== index));
+  };
+
+  const handleSaveChanges = async () => {
     try {
+      // Фильтруем страницы, исключая помеченные на удаление
+      const filteredPages = formData.pages?.filter((_, index) => !imagesToDelete.includes(index)) || [];
+      
       const updateData: Partial<UpdateChapterDto> = {
         chapterNumber:
           typeof formData.chapterNumber === "string"
@@ -75,7 +88,7 @@ export default function ChapterEditorPage() {
             ? formData.chapterNumber
             : 0,
         name: formData.name,
-        pages: formData.pages || [],
+        pages: filteredPages,
       };
 
       const result = await updateChapterMutation({
@@ -85,6 +98,7 @@ export default function ChapterEditorPage() {
 
       if (result) {
         toast.success("Глава успешно обновлена!");
+        setImagesToDelete([]);
       }
     } catch (err) {
       console.error("Error updating chapter:", err);
@@ -93,9 +107,44 @@ export default function ChapterEditorPage() {
           err instanceof Error ? err.message : "Unknown error"
         }`
       );
+    }
+  };
+
+  const handleDeleteChapter = async () => {
+    if (!confirm("Вы уверены, что хотите удалить эту главу? Это действие нельзя отменить.")) {
+      return;
+    }
+
+    try {
+      await deleteChapter(chapterId).unwrap();
+      toast.success("Глава успешно удалена!");
+      // Здесь можно добавить редирект на страницу списка глав
+    } catch (err) {
+      console.error("Error deleting chapter:", err);
+      toast.error(
+        `Ошибка при удалении главы: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await handleSaveChanges();
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const openImagePreview = (url: string, index: number) => {
+    setSelectedImage({ url, index });
+  };
+
+  const closeImagePreview = () => {
+    setSelectedImage(null);
   };
 
   if (isLoading) return <LoadingState />;
@@ -104,10 +153,17 @@ export default function ChapterEditorPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4 flex items-center gap-2">
-          <Edit className="w-6 h-6" />
-          Редактировать главу
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-[var(--foreground)] flex items-center gap-2">
+            <Edit className="w-6 h-6" />
+            Редактировать главу
+          </h1>
+          <Button variant="destructive" onClick={handleDeleteChapter} className="flex items-center gap-2">
+            <Trash2 className="w-4 h-4" />
+            Удалить главу
+          </Button>
+        </div>
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block mb-1 text-[var(--foreground)] font-medium">Название главы</label>
@@ -130,25 +186,87 @@ export default function ChapterEditorPage() {
               min={0}
             />
           </div>
+          
+          {/* Секция изображений */}
           <div>
-            <label className="block mb-1 text-[var(--foreground)] font-medium">Страницы (JSON строка массива URL)</label>
-            <textarea
-              value={JSON.stringify(formData.pages ?? [])}
-              onChange={(e) => {
-                try {
-                  const parsed = JSON.parse(e.target.value);
-                  if (Array.isArray(parsed)) {
-                    setFormData((prev: Chapter) => ({ ...prev, pages: parsed }));
-                  }
-                } catch {
-                  // ignore JSON parse errors
-                }
-              }}
-              rows={5}
-              className="w-full px-3 py-2 rounded border border-[var(--border)] resize-none focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
-              required
-            />
+            <div className="flex justify-between items-center mb-3">
+              <label className="block text-[var(--foreground)] font-medium">Страницы главы</label>
+              <span className="text-sm text-[var(--muted-foreground)]">
+                {formData.pages?.length || 0} изображений
+              </span>
+            </div>
+            
+            {formData.pages && formData.pages.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {formData.pages.map((pageUrl, index) => {
+                  const isMarkedForDeletion = imagesToDelete.includes(index);
+                  return (
+                    <div 
+                      key={index} 
+                      className={`relative group border rounded-lg overflow-hidden ${isMarkedForDeletion ? 'opacity-50' : ''}`}
+                    >
+                      <div 
+                        className="aspect-[2/3] bg-gray-200 cursor-pointer relative"
+                        onClick={() => openImagePreview(pageUrl, index)}
+                      >
+                        <img 
+                          src={process.env.NEXT_PUBLIC_UPLOADS_URL + pageUrl} 
+                          alt={`Страница ${index + 1}`} 
+                          className="w-full h-full object-cover"
+                        />
+                        {isMarkedForDeletion && (
+                          <div className="absolute inset-0 bg-red-500/70 flex items-center justify-center">
+                            <Trash2 className="w-6 h-6 text-white" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Eye className="w-6 h-6 text-white" />
+                        </div>
+                      </div>
+                      
+                      <div className="p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-[var(--muted-foreground)]">#{index + 1}</span>
+                          {isMarkedForDeletion ? (
+                            <Button 
+                              type="button"
+                              size="sm" 
+                              variant="outline" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRestoreImage(index);
+                              }}
+                              className="text-xs h-6 px-2"
+                            >
+                              Отменить
+                            </Button>
+                          ) : (
+                            <Button 
+                              type="button"
+                              size="sm" 
+                              variant="destructive" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteImage(index);
+                              }}
+                              className="text-xs h-6 px-2"
+                            >
+                              Удалить
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-[var(--muted-foreground)]">
+                Нет изображений для отображения
+              </div>
+            )}
           </div>
+          
           <FormActions isSaving={isSaving || isUpdating} />
         </form>
         <div className="mt-6">
@@ -160,6 +278,16 @@ export default function ChapterEditorPage() {
           </Link>
         </div>
       </div>
+      
+      {/* Модальное окно предпросмотра */}
+      {selectedImage && (
+        <ImagePreviewModal
+          isOpen={!!selectedImage}
+          onClose={closeImagePreview}
+          imageUrl={selectedImage.url}
+          altText={`Предпросмотр страницы #${selectedImage.index + 1}`}
+        />
+      )}
     </main>
   );
 }
@@ -191,21 +319,21 @@ interface FormActionsProps {
 
 function FormActions({ isSaving }: FormActionsProps) {
   return (
-          <div className="flex justify-end gap-3">
-            <Link
-              href="/admin/titles"
-              className="px-6 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
-            >
-              Отмена
-            </Link>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Save className="w-4 h-4" />
-              {isSaving ? "Сохранение..." : "Сохранить"}
-            </button>
-          </div>
+    <div className="flex justify-end gap-3">
+      <Link
+        href="/admin/titles"
+        className="px-6 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
+      >
+        Отмена
+      </Link>
+      <button
+        type="submit"
+        disabled={isSaving}
+        className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Save className="w-4 h-4" />
+        {isSaving ? "Сохранение..." : "Сохранить"}
+      </button>
+    </div>
   );
 }
