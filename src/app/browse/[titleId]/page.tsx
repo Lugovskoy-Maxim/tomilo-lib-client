@@ -264,7 +264,7 @@ export default function TitleViewPage() {
             <div className="flex justify-center gap-4 mt-4 rounded-full">
               <ReadButton
                 titleData={processedTitleData}
-                chapters={chapters}
+                chapters={processedChaptersData}
                 className="flex-1 text-sm"
               />
               <BookmarkButton titleId={titleId} initialBookmarked={false} />
