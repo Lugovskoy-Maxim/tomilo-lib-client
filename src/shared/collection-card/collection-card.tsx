@@ -43,7 +43,7 @@ export default function CollectionCard({ data }: CollectionCardProps) {
   return (
     <div
       draggable="false"
-      className="flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 group relative select-none bg-card rounded-lg border border-border hover:border-primary transition-all duration-300 overflow-hidden cursor-pointer active:cursor-grabbing"
+      className="flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36 group relative select-none bg-card rounded-lg border border-transparent hover:filter-color hover:border-primary transition-all duration-300 overflow-hidden cursor-pointer active:cursor-grabbing"
       onClick={handleClick}
     >
       <div className="aspect-[3/4] relative rounded-lg overflow-hidden">
@@ -62,7 +62,7 @@ export default function CollectionCard({ data }: CollectionCardProps) {
             }}
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-2 text-white">
           <h3 className="text-xs sm:text-sm font-bold drop-shadow-lg text-center leading-tight">
             {collectionName || "Без названия"}
