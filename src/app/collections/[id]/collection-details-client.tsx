@@ -45,9 +45,9 @@ export default function CollectionDetailsClient({
 
   useSEO(seoConfig);
 
-  const normalizeImageUrl = (titleCover: string) => {
-    return titleCover
-      ? `${process.env.NEXT_PUBLIC_URL}${titleCover}`
+  const normalizeImageUrl = (cover: string) => {
+    return cover
+      ? process.env.NEXT_PUBLIC_URL+cover
       : "/404/image-holder.png";
   };
 
@@ -133,7 +133,7 @@ export default function CollectionDetailsClient({
           {collection.cover && (
             <div className="flex-shrink-0">
               <Image
-                src={`${process.env.NEXT_PUBLIC_URL}${collection.cover}`}
+                src={normalizeImageUrl(collection.cover)}
                 alt={collection.name}
                 width={192}
                 height={192}
@@ -153,7 +153,7 @@ export default function CollectionDetailsClient({
             >
               <div className="aspect-[3/4] mb-3 overflow-hidden rounded">
                 <Image
-                  src={`${process.env.NEXT_PUBLIC_URL}${title.coverImage}`}
+                  src={normalizeImageUrl(collection.cover)}
                   alt={title.name}
                   width={280}
                   height={380}

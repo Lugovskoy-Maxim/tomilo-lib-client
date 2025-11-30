@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { pageTitle } from "@/lib/page-title";
 import CollectionDetailsClient from "./collection-details-client";
+
 
 interface CollectionPageProps {
   params: Promise<{ id: string }>;
@@ -15,8 +15,6 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
   if (!id || id === 'undefined') {
     notFound();
   }
-
-  // pageTitle.setTitlePage(`Коллекция`); // Commented out to prevent infinite refresh loop
 
   return <CollectionDetailsClient collectionId={id} />;
 }
