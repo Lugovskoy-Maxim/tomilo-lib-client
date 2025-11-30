@@ -38,7 +38,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
   return (
     <div
-      className="overflow-hidden rounded-lg group cursor-pointer active:cursor-grabbing transition-all select-none"
+      className="overflow-hidden max-w-xl rounded-lg group cursor-pointer active:cursor-grabbing transition-all select-none"
       onClick={handleClick}
     >
       <div className="relative">
@@ -50,6 +50,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
             width={160}
             height={220}
             unoptimized
+            style={{ width: 'auto' }}
             onDragStart={(e) => e.preventDefault()}
           />
         ) : (
@@ -59,6 +60,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
             alt={data.title}
             width={160}
             height={220}
+            style={{ width: 'auto' }}
             onDragStart={(e) => e.preventDefault()}
           />
         )}
