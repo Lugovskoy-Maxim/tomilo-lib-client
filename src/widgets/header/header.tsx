@@ -2,7 +2,7 @@
 import { Logo, Search, ThemeToggle } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState } from "react";
-import { X, Search as SearchIcon, Home, User, FileText, Shield, MoreVertical, Info, Mail } from "lucide-react";
+import { X, Search as SearchIcon, Home, User, FileText, Shield, MoreVertical, Info, Mail, Bookmark, Bell } from "lucide-react";
 import Link from "next/link";
 import ContactForm from "@/widgets/contact-form/contact-form";
 
@@ -55,6 +55,8 @@ export default function Header() {
           >
             {isSearchOpen ? null : <SearchIcon className="w-5 h-5" />}
           </button>
+
+
 
           {/* Кнопка "..." с выпадающим меню */}
           <div className="relative hidden md:block">
@@ -162,6 +164,30 @@ export default function Header() {
                   >
                     <User className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
                     Профиль
+                  </Link>
+                  <Link
+                    href="/"
+                    onClick={closeMobileMenu}
+                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
+                  >
+                    <Home className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
+                    Главная страница
+                  </Link>
+                  <Link
+                    href="/bookmarks"
+                    onClick={closeMobileMenu}
+                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
+                  >
+                    <Bookmark className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
+                    Закладки
+                  </Link>
+                  <Link
+                    href="/notifications"
+                    onClick={closeMobileMenu}
+                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors group"
+                  >
+                    <Bell className="w-4 h-4 mr-3 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
+                    Уведомления
                   </Link>
                 </div>
               </div>

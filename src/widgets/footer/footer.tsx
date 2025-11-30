@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { MoreVertical, Library, Home, Mail, Copyright } from "lucide-react";
+import { MoreVertical, Library, Home, Mail, Copyright, Bookmark, Bell } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/shared";
 
@@ -102,35 +102,51 @@ export default function Footer() {
       </div>
       {/* Мобильный футер */}
       <div className="fixed bottom-0 left-0 right-0 bg-[var(--background)]/80 border-t border-[var(--border)] shadow-lg z-50 backdrop-blur-sm md:hidden">
-        <div className="flex items-center justify-between px-3 py-2 relative">
-          {/* Левая кнопка - Каталог */}
+        <div className="flex items-center justify-around px-2 py-2">
           <Link
             href="/browse"
-            className="flex items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+            className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
             aria-label="Каталог"
           >
-            <Library className="w-6 h-6 text-[var(--muted-foreground)]" />
+            <Library className="w-5 h-5 text-[var(--muted-foreground)]" />
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">Каталог</span>
           </Link>
 
-          {/* Центральная кнопка - Домой */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 -top-0">
-            <Link
-              href="/"
-              className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] text-[var(--secondary)] rounded-full hover:from-[var(--primary)]/90 hover:to-[var(--primary)]/70 transition-all duration-200 shadow-xl active:scale-95 border-2 border-[var(--border)]"
-              aria-label="Домой"
-            >
-              <Home className="w-6 h-6" />
-            </Link>
-          </div>
+          <Link
+            href="/bookmarks"
+            className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+            aria-label="Закладки"
+          >
+            <Bookmark className="w-5 h-5 text-[var(--muted-foreground)]" />
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">Закладки</span>
+          </Link>
 
-          {/* Правая кнопка - ... с меню */}
+          <Link
+            href="/"
+            className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+            aria-label="Главная страница"
+          >
+            <Home className="w-5 h-5 text-[var(--muted-foreground)]" />
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">Главная</span>
+          </Link>
+
+          <Link
+            href="/notifications"
+            className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+            aria-label="Уведомления"
+          >
+            <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">Уведомления</span>
+          </Link>
+
           <div className="relative">
             <button
               onClick={toggleDropdown}
-              className="flex items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
-              aria-label="Дополнительное меню"
+              className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+              aria-label="Меню"
             >
-              <MoreVertical className="w-6 h-6 text-[var(--muted-foreground)]" />
+              <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <span className="text-xs text-[var(--muted-foreground)] mt-1">Меню</span>
             </button>
 
             {/* Выпадающее меню */}
@@ -173,9 +189,9 @@ export default function Footer() {
                 <div className="fixed inset-0 z-40" onClick={closeDropdown} />
               </>
             )}
+            </div>
           </div>
         </div>
-      </div>
     </footer>
   );
 }

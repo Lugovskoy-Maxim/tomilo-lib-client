@@ -240,7 +240,7 @@ export default function TitleViewPage() {
       {/* Контент */}
       <div className="relative z-20">
         <Header />
-        <div className="max-w-7xl mx-auto px-2 py-4">
+        <div className="max-w-7xl mx-auto px-2 py-4 pb-20 md:pb-4">
           {/* Мобильная версия - обложка сверху */}
           <div className="lg:hidden mb-6">
             <div className="flex relative w-max h-max justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
