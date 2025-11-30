@@ -8,14 +8,16 @@ interface AuthGuardProps {
   children: React.ReactNode;
   requireAuth?: boolean;
   redirectTo?: string;
+  requiredRole?: string;
 }
 
 export function AuthGuard({
   children,
   requireAuth = true,
   redirectTo = "/login",
+  requiredRole,
 }: AuthGuardProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -41,6 +43,10 @@ export function AuthGuard({
   }
 
   if (!requireAuth && isAuthenticated) {
+    return null;
+  }
+
+  if (requiredRole && user && user.role !== requiredRole) {
     return null;
   }
 

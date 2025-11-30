@@ -9,6 +9,7 @@ import { ParserSection } from "@/shared/admin/parser-section";
 import { TitlesSection } from "@/shared/admin/titles-section";
 import { UsersSection } from "@/shared/admin/users-section";
 import { Footer, Header } from "@/widgets";
+import { AuthGuard } from "@/guard/auth-guard";
 import { useState } from "react";
 
 
@@ -52,28 +53,30 @@ export default function AdminPage() {
   };
 
   return (
-    <main className="flex flex-col  min-h-screen h-full bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-      <Header />
+    <AuthGuard requiredRole="admin">
+      <main className="flex flex-col  min-h-screen h-full bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+        <Header />
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col flex-1">
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
-            <span className="text-xl sm:text-2xl">⚙️</span>
-            Админ-панель
-          </h1>
-          <p className="text-[var(--muted-foreground)] text-sm sm:text-base">
-            Управление контентом и системой
-          </p>
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col flex-1">
+          <div className="mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
+              <span className="text-xl sm:text-2xl">⚙️</span>
+              Админ-панель
+            </h1>
+            <p className="text-[var(--muted-foreground)] text-sm sm:text-base">
+              Управление контентом и системой
+            </p>
+          </div>
+
+          <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+          <div className="mt-4 sm:mt-6">
+            {renderTabContent()}
+          </div>
         </div>
 
-        <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-        <div className="mt-4 sm:mt-6">
-          {renderTabContent()}
-        </div>
-      </div>
-
-      <Footer />
-    </main>
+        <Footer />
+      </main>
+    </AuthGuard>
   );
 }
