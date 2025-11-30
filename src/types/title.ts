@@ -63,6 +63,7 @@ export interface Title {
   rating: number;
   releaseYear: number;
   ageLimit: number;
+  isAdult: boolean;
   chapters?: Chapter[]; // Array of chapter objects
   isPublished: boolean;
   createdAt?: string;

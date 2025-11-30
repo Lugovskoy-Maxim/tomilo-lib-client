@@ -148,8 +148,7 @@ const TRANSLATION_MAP: Record<string, string> = {
   "СВЕРХЪЕСТЕСТВЕННОЕ": "Сверхъестественное",
   "СПОРТ": "Спорт",
   "Фантастика": "Научная фантастика",
-
-  // Дополнительные переводы
+  "Video games": "Видео игры",
   "detective": "Детектив",
   "horror": "Ужасы",
   "psychological": "Психологическое",
@@ -320,6 +319,7 @@ export default function TitleEditorPage() {
     averageRating: undefined,
     releaseYear: new Date().getFullYear(),
     ageLimit: 0,
+    isAdult: false,
     chapters: [],
     isPublished: false,
     createdAt: "",

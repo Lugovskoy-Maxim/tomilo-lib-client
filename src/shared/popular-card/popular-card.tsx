@@ -2,6 +2,7 @@
 import { Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
 export interface CardProps {
@@ -12,6 +13,7 @@ export interface CardProps {
   rating: number;
   image: string;
   genres: string[];
+  isAdult?: boolean;
 }
 
 export interface PopularCardProps {
@@ -21,6 +23,7 @@ export interface PopularCardProps {
 
 export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
 
   const formatRating = (value?: number) => {
     const num = typeof value === "number" ? value : 0;
@@ -36,39 +39,51 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     }
   };
 
+  const isAdultContent = data.isAdult && !isAuthenticated;
+
   return (
     <div
       className="overflow-hidden max-w-xl rounded-lg group cursor-pointer active:cursor-grabbing transition-all select-none"
       onClick={handleClick}
     >
       <div className="relative">
-        {data.image ? (
-          <Image
-            className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
-            src={process.env.NEXT_PUBLIC_URL + data.image}
-            alt={data.title}
-            width={160}
-            height={220}
-            unoptimized
-            style={{ width: 'auto' }}
-            onDragStart={(e) => e.preventDefault()}
-          />
+        {isAdultContent ? (
+          <div className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-gradient-to-br from-red-900/20 to-red-800/20 flex items-center justify-center">
+            <div className="bg-red-500/90 text-white px-3 py-1 rounded-full font-bold text-sm">
+              18+
+            </div>
+          </div>
         ) : (
-          <Image
-            className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
-            src={IMAGE_HOLDER}
-            alt={data.title}
-            width={160}
-            height={220}
-            style={{ width: 'auto' }}
-            onDragStart={(e) => e.preventDefault()}
-          />
-        )}
+          <>
+            {data.image ? (
+              <Image
+                className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
+                src={process.env.NEXT_PUBLIC_URL + data.image}
+                alt={data.title}
+                width={160}
+                height={220}
+                unoptimized
+                style={{ width: 'auto' }}
+                onDragStart={(e) => e.preventDefault()}
+              />
+            ) : (
+              <Image
+                className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
+                src={IMAGE_HOLDER}
+                alt={data.title}
+                width={160}
+                height={220}
+                style={{ width: 'auto' }}
+                onDragStart={(e) => e.preventDefault()}
+              />
+            )}
 
-        <div className="absolute top-1 left-1 bg-black/80 text-white px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[10px] sm:text-xs font-semibold">
-          <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
-          {formatRating(data.rating)}
-        </div>
+            <div className="absolute top-1 left-1 bg-black/80 text-white px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[10px] sm:text-xs font-semibold">
+              <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
+              {formatRating(data.rating)}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="pt-1 sm:pt-1.5">

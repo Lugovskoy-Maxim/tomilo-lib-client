@@ -4,7 +4,7 @@ import { Footer, Header } from "@/widgets";
 import { AlertTriangle, Share as ShareIcon, Edit } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Chapter } from "@/types/title";
+import { Chapter, Title } from "@/types/title";
 import { User } from "@/types/auth";
 import { useParams } from "next/navigation";
 import {
@@ -210,10 +210,17 @@ export default function TitleViewPage() {
     }
   };
 
+  // Проверка на взрослый контент
+  const isAdultContent = processedTitleData?.isAdult && !user;
+
   // Состояния загрузки и ошибок
   if (isLoading) return <LoadingState />;
   if (error || !processedTitleData)
     return <ErrorState error={error || "Тайтл не найден"} titleId={titleId} />;
+
+  if (isAdultContent) {
+    return <AdultContentWarning titleData={processedTitleData} />;
+  }
 
   return (
     <main className="min-h-screen relative">
@@ -397,6 +404,54 @@ function LoadingState() {
               <p className="text-[var(--muted-foreground)]">
                 Загрузка данных тайтла...
               </p>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    </main>
+  );
+}
+
+// Компонент предупреждения о взрослом контенте
+function AdultContentWarning({ titleData }: { titleData: Title }) {
+  return (
+    <main className="min-h-screen relative">
+      {/* Размытый фон */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-red-900/20 to-red-800/20"></div>
+
+      {/* Overlay для улучшения читаемости */}
+      <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60 z-10"></div>
+
+      {/* Контент */}
+      <div className="relative z-20">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="text-center bg-[var(--background)]/90 backdrop-blur-sm border border-red-500/50 rounded-lg p-8 max-w-md">
+              <div className="bg-red-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <span className="text-red-500 text-2xl font-bold">18+</span>
+              </div>
+              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
+                Контент для взрослых
+              </h1>
+              <p className="text-[var(--muted-foreground)] mb-6">
+                Этот тайтл содержит контент для взрослых. Для просмотра необходимо авторизоваться.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Link
+                  href="/auth/login"
+                  className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+                >
+                  Войти
+                </Link>
+                <Link
+                  href="/"
+                  className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
+                >
+                  На главную
+                </Link>
+              </div>
             </div>
           </div>
         </div>
