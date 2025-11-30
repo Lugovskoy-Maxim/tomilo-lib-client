@@ -154,8 +154,8 @@ export default function CollectionDetailsClient({
             >
               <div className="aspect-[3/4] mb-3 overflow-hidden rounded">
                 <Image
-                  loader={() => normalizeImageUrl(collection.cover)}
-                  src={normalizeImageUrl(collection.cover)}
+                  loader={() => normalizeImageUrl(title?.coverImage? title?.coverImage : "")}
+                  src={normalizeImageUrl(title?.coverImage? title?.coverImage : "")}
                   alt={title.name}
                   width={280}
                   height={380}
