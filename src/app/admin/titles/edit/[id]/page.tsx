@@ -87,6 +87,108 @@ const API_CONFIG = {
   ],
 };
 
+// Словарь для перевода жанров и тегов с английского на русский
+const TRANSLATION_MAP: Record<string, string> = {
+  // Жанры из API
+  "action": "Боевик",
+  "adventure": "Приключения",
+  "animal companions": "Животные компаньоны",
+  "another world memory": "Память другого мира",
+  "artifacts": "Артефакты",
+  "beastmen": "Звериолюди",
+  "comedy": "Комедия",
+  "demon": "Демоны",
+  "drama": "Драма",
+  "ecchi": "Этти",
+  "erotica": "Эротика",
+  "fantasy": "Фэнтези",
+  "female harem": "Гарем девушек",
+  "games": "Игры",
+  "god": "Бог",
+  "hiding identity": "Скрытие личности",
+  "isekai": "Исекай",
+  "magic": "Магия",
+  "magic academy": "Магическая академия",
+  "magical creatures": "Магические существа",
+  "male protagonist": "Главный герой мужчина",
+  "martial arts": "Боевые искусства",
+  "middle ages": "Средневековье",
+  "monster": "Монстры",
+  "mystery": "Таинственность",
+  "power ranks": "Ранги силы",
+  "power struggle": "Борьба за власть",
+  "primarily adult cast": "В основном взрослые персонажи",
+  "quests": "Квесты",
+  "reincarnation": "Перерождение",
+  "revenge": "Месть",
+  "romance": "Романтика",
+  "school": "Школа",
+  "sci-fi": "Научная фантастика",
+  "skills": "Навыки",
+  "slice of life": "Повседневность",
+  "smart protagonist": "Умный главный герой",
+  "sport": "Спорт",
+  "supernatural": "Сверхъестественное",
+  "survival": "Выживание",
+  "swordplay": "Фехтование",
+  "system": "Система",
+  "teacher": "Учитель",
+  "territory management": "Управление территорией",
+  "time manipulation": "Манипуляция временем",
+  "tragedy": "Трагедия",
+  "violence": "Насилие",
+  "seinen": "Сейнен",
+  "shounen": "Сёнэн",
+  "xianxia": "Сянься",
+  "БОЕВИК": "Боевик",
+  "БОЕВЫЕ ИСКУУССТВА": "Боевые искусства",
+  "ДЕМОНЫ": "Демоны",
+  "ДРАМА": "Драма",
+  "СЁНЭН": "Сёнэн",
+  "СВЕРХЪЕСТЕСТВЕННОЕ": "Сверхъестественное",
+  "СПОРТ": "Спорт",
+  "Фантастика": "Научная фантастика",
+
+  // Дополнительные переводы
+  "detective": "Детектив",
+  "horror": "Ужасы",
+  "psychological": "Психологическое",
+  "historical": "Исторический",
+  "shoujo": "Сёдзе",
+  "mecha": "Меха",
+  "harem": "Гарем",
+  "manhwa": "Манхва",
+  "manhua": "Манхва",
+  "op mc": "ГГ имба",
+  "weak mc": "ГГ слабый",
+  "rom-com": "Ромком",
+  "reverse harem": "Обратный гарем",
+  "zombies": "Зомби",
+  "vampires": "Вампиры",
+  "isekai world": "Попадание в другой мир",
+  "virtual reality": "Виртуальная реальность",
+  "work": "Работа",
+  "music": "Музыка",
+  "cooking": "Кулинария",
+};
+
+// Функция нормализации жанров/тегов
+const normalizeGenresTags = (items: string[]): string[] => {
+  return items.map(item => {
+    const trimmed = item.trim();
+    if (!trimmed) return trimmed;
+
+    // Приводим к нижнему регистру для поиска в словаре
+    const lowerCase = trimmed.toLowerCase();
+
+    // Ищем перевод в словаре
+    const translated = TRANSLATION_MAP[lowerCase] || trimmed;
+
+    // Делаем первую букву заглавной, остальные строчные
+    return translated.charAt(0).toUpperCase() + translated.slice(1).toLowerCase();
+  });
+};
+
 // Типы для пропсов компонентов
 interface BasicInfoSectionProps {
   formData: Title;
@@ -910,9 +1012,19 @@ function CheckboxGroup({
         ))}
       </div>
       <div className="mt-3">
-        <label className="text-sm font-medium text-[var(--foreground)] mb-1">
-          Установленные {label.toLowerCase()}
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-sm font-medium text-[var(--foreground)]">
+            Установленные {label.toLowerCase()}
+          </label>
+          <button
+            type="button"
+            onClick={() => onInputChange && onInputChange(normalizeGenresTags(safeSelectedItems))}
+            className="px-2 py-1 text-xs bg-[var(--accent)] text-[var(--foreground)] rounded hover:bg-[var(--accent)]/80 transition-colors"
+            title="Нормализовать жанры/теги"
+          >
+            Нормализовать
+          </button>
+        </div>
         <input
           type="text"
           value={safeSelectedItems.join(", ")}
