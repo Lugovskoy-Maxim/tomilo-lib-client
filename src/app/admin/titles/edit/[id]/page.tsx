@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { ChangeEvent as ReactChangeEvent } from "react";
 import { useDispatch } from "react-redux";
 import { Title, TitleStatus, TitleType } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";
@@ -98,6 +99,9 @@ interface BasicInfoSectionProps {
   handleArrayFieldChange: (
     field: "genres" | "tags"
   ) => (value: string, isChecked: boolean) => void;
+  handleInputArrayChange: (
+    field: "genres" | "tags"
+  ) => (values: string[]) => void;
   handleAltNamesChange: (e: ChangeEvent<HTMLInputElement>) => void;
   handleImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
   selectedFile: File | null;
@@ -157,6 +161,7 @@ interface CheckboxGroupProps {
   items: string[];
   selectedItems: string[];
   onChange: (value: string, isChecked: boolean) => void;
+  onInputChange?: (values: string[]) => void;
   icon?: LucideIcon;
 }
 
@@ -287,6 +292,13 @@ export default function TitleEditorPage() {
       });
     };
 
+  const handleInputArrayChange = (field: "genres" | "tags") => (values: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: values,
+    }));
+  };
+
   const handleAltNamesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const names = e.target.value
       .split(",")
@@ -398,6 +410,7 @@ const handleSubmit = async (e: FormEvent) => {
               titleId={titleId}
               handleInputChange={handleInputChange}
               handleArrayFieldChange={handleArrayFieldChange}
+              handleInputArrayChange={handleInputArrayChange}
               handleAltNamesChange={handleAltNamesChange}
               handleImageChange={handleImageChange}
               selectedFile={selectedFile}
@@ -500,6 +513,7 @@ function BasicInfoSection({
   titleId,
   handleInputChange,
   handleArrayFieldChange,
+  handleInputArrayChange,
   handleAltNamesChange,
   onCoverUpdate,
 }: BasicInfoSectionProps) {
@@ -608,6 +622,7 @@ function BasicInfoSection({
         onChange={(value, checked) =>
           handleArrayFieldChange("genres")(value, checked)
         }
+        onInputChange={handleInputArrayChange("genres")}
         icon={Tag}
       />
 
@@ -618,6 +633,7 @@ function BasicInfoSection({
         onChange={(value, checked) =>
           handleArrayFieldChange("tags")(value, checked)
         }
+        onInputChange={handleInputArrayChange("tags")}
       />
 
       <TextareaField
@@ -846,10 +862,31 @@ function CheckboxGroup({
   items,
   selectedItems,
   onChange,
+  onInputChange,
   icon: Icon,
 }: CheckboxGroupProps) {
   // Обеспечиваем, что selectedItems всегда является массивом
   const safeSelectedItems = Array.isArray(selectedItems) ? selectedItems : [];
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (onInputChange) {
+      const values = e.target.value
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+      onInputChange(values);
+    }
+  };
+
+  const handleCheckboxChange = (item: string, isChecked: boolean) => {
+    if (isChecked && onInputChange) {
+      // Добавляем элемент к существующим через input
+      const newSelected = [...safeSelectedItems, item];
+      onInputChange(newSelected);
+    } else {
+      onChange(item, isChecked);
+    }
+  };
 
   return (
     <div>
@@ -863,7 +900,7 @@ function CheckboxGroup({
             <input
               type="checkbox"
               checked={safeSelectedItems.includes(item)}
-              onChange={(e) => onChange(item, e.target.checked)}
+              onChange={(e) => handleCheckboxChange(item, e.target.checked)}
               className="hidden peer"
             />
             <span className="px-2 py-1 rounded-full text-xs border border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)] hover:border-[var(--primary)] transition-colors peer-checked:bg-[var(--primary)] peer-checked:text-[var(--primary-foreground)] peer-checked:border-[var(--primary)] cursor-pointer">
@@ -871,6 +908,18 @@ function CheckboxGroup({
             </span>
           </label>
         ))}
+      </div>
+      <div className="mt-3">
+        <label className="text-sm font-medium text-[var(--foreground)] mb-1">
+          Установленные {label.toLowerCase()}
+        </label>
+        <input
+          type="text"
+          value={safeSelectedItems.join(", ")}
+          onChange={handleInputChange}
+          placeholder={`Введите ${label.toLowerCase()} через запятую`}
+          className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+        />
       </div>
     </div>
   );
