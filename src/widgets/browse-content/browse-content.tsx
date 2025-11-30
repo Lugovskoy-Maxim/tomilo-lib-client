@@ -18,6 +18,7 @@ interface GridTitle {
   rating: number;
   image?: string;
   genres: string[];
+  isAdult?: boolean;
 }
 
 function BrowseContent() {
@@ -97,6 +98,7 @@ function BrowseContent() {
         rating: t.rating || 0,
         image: t.coverImage || undefined,
         genres: t.genres || [],
+        isAdult: t.isAdult || false,
       })),
     [paginatedTitles]
   );

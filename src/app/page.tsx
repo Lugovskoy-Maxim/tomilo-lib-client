@@ -121,7 +121,6 @@ export default function Home() {
           <CarouselSkeleton />
           <CarouselSkeleton />
           <CarouselSkeleton />
-          <GridSkeleton />
         </main>
         <Footer />
       </>

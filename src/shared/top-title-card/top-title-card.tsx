@@ -1,5 +1,6 @@
 import { Trophy, Eye, Sparkles } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TopTitleData {
   id: string;
@@ -12,6 +13,7 @@ interface TopTitleData {
   rank: number;
   views?: number;
   period: string;
+  isAdult: boolean;
 }
 
 interface TopTitleCardProps {
@@ -33,6 +35,13 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
               height={160}
               className="w-42 h-52 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
             />
+            {data.isAdult && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                <div className="bg-red-500/90 text-white px-3 py-1 rounded-full font-bold text-sm">
+                  18+
+                </div>
+              </div>
+            )}
             <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
               {data.rank}
             </div>
@@ -85,8 +94,15 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
               alt={data.title}
               width={120}
               height={160}
-              className="w-42 h-54 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
+              className={`w-42 h-54 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow  ${data.isAdult == true ? "blur-3xl" : ""}`}
             />
+            {data.isAdult && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                <div className="bg-red-500/90 text-white px-3 py-1 rounded-full font-bold text-sm">
+                  18+
+                </div>
+              </div>
+            )}
             <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
               {data.rank}
             </div>
@@ -142,6 +158,13 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
           height={128}
           className="w-full h-24 sm:h-32 object-cover rounded-lg shadow-sm group-hover:shadow-md transition-shadow"
         />
+        {data.isAdult && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+            <div className="bg-red-500/90 text-white px-3 py-1 rounded-full font-bold text-sm">
+              18+
+            </div>
+          </div>
+        )}
         <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
           {data.rank}
         </div>
