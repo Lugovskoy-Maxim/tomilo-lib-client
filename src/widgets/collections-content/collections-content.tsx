@@ -1,70 +1,17 @@
 "use client";
 import React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  MobileFilterButton,
-  Pagination,
-  FilterSidebar,
-} from "@/shared";
-import CollectionsSortAndSearch from "@/shared/browse/collections-sort-and-search";
+import { Pagination } from "@/shared";
 import { useGetCollectionsQuery } from "@/store/api/collectionsApi";
+import Image from "next/image";
+import { CollectionsQuery } from "@/types/collection";
 
-import { SortOrder } from "@/types/browse-page";
-
-type CollectionsSortBy = "name" | "views" | "createdAt";
-
-export interface CollectionsFilters {
-  search: string;
-  genres: string[];
-  types: string[];
-  status: string[];
-  sortBy: CollectionsSortBy;
-  sortOrder: SortOrder;
-}
+export type CollectionsFilters = CollectionsQuery;
 
 function CollectionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  function mapCollectionsSortByToSortBy(sortBy: CollectionsSortBy): 'name' | 'views' | 'createdAt' {
-    if (sortBy === "name") return "name";
-    if (sortBy === "createdAt") return "createdAt";
-    if (sortBy === "views") return "views";
-    return "name";
-  }
-
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<CollectionsFilters>(() => {
-    const urlSearch = searchParams.get("search") || "";
-    const urlSortBy = (searchParams.get("sortBy") || "views") as CollectionsSortBy;
-    const urlSortOrder = (searchParams.get("sortOrder") || "desc") as SortOrder;
-    const urlGenres = searchParams.getAll("genres") || [];
-    const urlTypes = searchParams.getAll("types") || [];
-    const urlStatus = searchParams.getAll("status") || [];
-    return {
-      search: urlSearch,
-      sortBy: urlSortBy,
-      sortOrder: urlSortOrder,
-      genres: urlGenres,
-      types: urlTypes,
-      status: urlStatus,
-    };
-  });
-
-  // Debounce for search input (1s)
-  const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      setDebouncedSearch(appliedFilters.search);
-    }, 1000);
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, [appliedFilters.search]);
 
   const page = useMemo(() => {
     const p = Number(searchParams.get("page") || "1");
@@ -73,9 +20,6 @@ function CollectionsContent() {
 
   // Запрос коллекций с параметрами
   const { data: collectionsResponse, isLoading, error } = useGetCollectionsQuery({
-    search: debouncedSearch || undefined,
-    sortBy: mapCollectionsSortByToSortBy(appliedFilters.sortBy) as import('@/types/collection').CollectionsQuery['sortBy'],
-    sortOrder: appliedFilters.sortOrder,
     page,
     limit: 12,
   });
@@ -85,42 +29,13 @@ function CollectionsContent() {
   const currentPage = collectionsResponse?.data?.page || page;
   const totalPages = collectionsResponse?.data?.totalPages || 1;
 
-  // Функция сброса фильтров
-  const resetFilters = () => {
-    const defaultFilters: CollectionsFilters = {
-      search: "",
-      genres: [],
-      types: [],
-      status: [],
-      sortBy: "createdAt",
-      sortOrder: "desc",
-    };
-    setAppliedFilters(defaultFilters);
-    updateURL(defaultFilters, 1);
-  };
-
-  // Обновление URL параметров при изменении фильтров
-  const updateURL = (filters: CollectionsFilters, page: number) => {
+  const handlePageChange = (page: number) => {
     const params = new URLSearchParams();
-
-    if (filters.search) params.set("search", filters.search);
-    if (filters.sortBy !== "createdAt") params.set("sortBy", filters.sortBy);
-    if (filters.sortOrder !== "desc") params.set("sortOrder", filters.sortOrder);
     if (page > 1) params.set("page", page.toString());
-
     const newUrl = params.toString()
       ? `/collections?${params.toString()}`
       : "/collections";
     router.replace(newUrl, { scroll: false });
-  };
-
-  const handleFiltersChange = (newFilters: CollectionsFilters) => {
-    setAppliedFilters(newFilters);
-    updateURL(newFilters, 1); // Сбрасываем на первую страницу при изменении фильтров
-  };
-
-  const handlePageChange = (page: number) => {
-    updateURL(appliedFilters, page);
   };
 
   // Обработчик клика по карточке коллекции
@@ -158,39 +73,40 @@ function CollectionsContent() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+    <div className="flex flex-col gap-6">
       {/* Основной контент */}
-      <div className="lg:w-3/4">
-        {/* Заголовок и управление */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-[var(--muted-foreground)] mb-2">
-              Коллекции
-            </h1>
-            <p className="text-[var(--muted-foreground)]">
-              Найдено {totalCollections} коллекций
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-          <MobileFilterButton onClick={() => setIsMobileFilterOpen(true)} />
-          <CollectionsSortAndSearch
-            filters={appliedFilters}
-            onFiltersChange={(filters) => handleFiltersChange(filters)}
-          />
-          </div>
+      <div>
+        {/* Заголовок */}
+        <div className="mb-6">
+          <h1 className="text-2xl lg:text-3xl font-bold text-[var(--muted-foreground)] mb-2">
+            Коллекции
+          </h1>
+          <p className="text-[var(--muted-foreground)]">
+            Найдено {totalCollections} коллекций
+          </p>
         </div>
 
         {/* Сетка коллекций */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {collections.map((collection) => (
             <div
-              key={collection._id}
-              onClick={() => handleCardClick(collection._id)}
-              className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors cursor-pointer"
+              key={collection.id}
+              onClick={() => handleCardClick(collection.id)}
+              className=" rounded-lg p-4 border border-transparent hover:border-[var(--chart-1)] transition-colors cursor-pointer"
             >
+              {collection.cover && (
+                <div className="mb-3">
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_URL}${collection.cover}`}
+                    alt={collection.name}
+                    width={328}
+                    height={328}
+                    className="w-full h-90 object-cover rounded-lg"
+                  />
+                </div>
+              )}
               <div className="flex justify-between items-start mb-3">
-                <h3 className="font-semibold text-[var(--muted-foreground)] truncate">
+                <h3 className="flex w-full text-xl font-semibold justify-center items-center text-[var(--muted-foreground)] truncate">
                   {collection.name}
                 </h3>
               </div>
@@ -225,12 +141,6 @@ function CollectionsContent() {
             <p className="text-[var(--muted-foreground)] mb-4">
               Коллекции не найдены
             </p>
-            <button
-              onClick={resetFilters}
-              className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90"
-            >
-              Сбросить фильтры
-            </button>
           </div>
         )}
 
@@ -243,35 +153,6 @@ function CollectionsContent() {
           />
         )}
       </div>
-
-      {/* Боковая панель с фильтрами (десктоп) */}
-      <div className="hidden lg:block lg:w-1/4">
-        <FilterSidebar<CollectionsFilters>
-          filters={appliedFilters}
-          onFiltersChange={(filters) => handleFiltersChange(filters)}
-          filterOptions={{
-            genres: [],
-            types: [],
-            status: [],
-          }}
-          onReset={resetFilters}
-        />
-      </div>
-
-      {/* Мобильный фильтр (шторка) */}
-      <FilterSidebar<CollectionsFilters>
-        filters={appliedFilters}
-        onFiltersChange={(filters) => handleFiltersChange(filters)}
-        filterOptions={{
-          genres: [],
-          types: [],
-          status: [],
-        }}
-        onReset={resetFilters}
-        isMobile={true}
-        isOpen={isMobileFilterOpen}
-        onClose={() => setIsMobileFilterOpen(false)}
-      />
     </div>
   );
 }

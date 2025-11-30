@@ -210,6 +210,7 @@ export default function TitleEditorPage() {
     views: 0,
     totalChapters: 0,
     rating: 0,
+    averageRating: undefined,
     releaseYear: new Date().getFullYear(),
     ageLimit: 0,
     chapters: [],

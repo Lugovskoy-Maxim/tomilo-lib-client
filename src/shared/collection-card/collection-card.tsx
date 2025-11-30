@@ -20,9 +20,9 @@ export default function CollectionCard({ data }: CollectionCardProps) {
     );
   }
 
-  const collectionId = data._id;
-  const collectionLink = data.link || `/collections/${collectionId}`;
-  const collectionImage = data.image;
+  const collectionId = data.id;
+  const collectionLink = `/collections/${collectionId}`;
+  const collectionImage = data.cover;
   const collectionName = data.name;
 
   const handleClick = () => {
