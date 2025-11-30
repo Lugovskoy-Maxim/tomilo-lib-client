@@ -97,6 +97,7 @@ function CollectionsContent() {
               {collection.cover && (
                 <div className="mb-3">
                   <Image
+                  loader={()=> {return process.env.NEXT_PUBLIC_URL+collection.cover}}
                     src={process.env.NEXT_PUBLIC_URL+collection.cover}
                     alt={collection.name}
                     width={328}
