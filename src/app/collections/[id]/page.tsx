@@ -16,7 +16,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
     notFound();
   }
 
-  pageTitle.setTitlePage(`Коллекция`);
+  // pageTitle.setTitlePage(`Коллекция`); // Commented out to prevent infinite refresh loop
 
   return <CollectionDetailsClient collectionId={id} />;
 }

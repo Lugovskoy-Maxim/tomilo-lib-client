@@ -7,6 +7,7 @@ import {
   CollectionsQuery,
   ApiResponseDto
 } from "@/types/collection";
+import { Title } from "@/types/title";
 
 interface CollectionsApiResponseData {
   collections?: Collection[];
@@ -119,7 +120,7 @@ export const collectionsApi = createApi({
               cover: (dataObj.cover as string) || (dataObj.image as string) || "",
               name: (dataObj.name as string) || "",
               description: (dataObj.description as string) || undefined,
-              titles: (dataObj.titles as unknown[]) || [],
+              titles: (dataObj.titles as Title[]) || [],
               comments: (dataObj.comments as unknown[]) || [],
               views: (dataObj.views as number) || 0,
               createdAt: (dataObj.createdAt as string) || "",
@@ -188,7 +189,7 @@ export const collectionsApi = createApi({
         url: `/collections/${id}/views`,
         method: "POST",
       }),
-      invalidatesTags: (result, error, id) => [{ type: COLLECTIONS_TAG, id }],
+      // Removed invalidatesTags to prevent infinite loop
       transformResponse: (response: ApiResponseDto<Collection>) => response,
     }),
 

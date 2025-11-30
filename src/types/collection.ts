@@ -28,11 +28,7 @@ export interface CollectionWithTitles {
   cover: string;
   name: string;
   description?: string;
-  titles: {
-    _id: string;
-    name: string;
-    coverImage?: string;
-  }[];
+  titles: Title[];
   comments: string[];
   views: number;
   createdAt: string;

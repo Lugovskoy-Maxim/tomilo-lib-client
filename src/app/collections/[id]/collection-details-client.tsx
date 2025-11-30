@@ -1,37 +1,63 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Header, Footer } from "@/widgets";
 import { useSEO } from "@/hooks/useSEO";
-import { useGetCollectionByIdQuery, useIncrementCollectionViewsMutation } from "@/store/api/collectionsApi";
+import {
+  useGetCollectionByIdQuery,
+  useIncrementCollectionViewsMutation,
+} from "@/store/api/collectionsApi";
 import { LoadingSkeleton } from "@/shared";
+import { Title } from "@/types/title";
+import Image from "next/image";
+import { Eye } from "lucide-react";
 
 interface CollectionDetailsClientProps {
   collectionId: string;
 }
 
-export default function CollectionDetailsClient({ collectionId }: CollectionDetailsClientProps) {
+export default function CollectionDetailsClient({
+  collectionId,
+}: CollectionDetailsClientProps) {
   const router = useRouter();
-  const { data: collectionResponse, isLoading, error } = useGetCollectionByIdQuery(collectionId);
+  const {
+    data: collectionResponse,
+    isLoading,
+    error,
+  } = useGetCollectionByIdQuery(collectionId);
   const [incrementViews] = useIncrementCollectionViewsMutation();
 
   const collection = collectionResponse?.data;
 
+  // Флаг для предотвращения множественных инкрементов просмотров
+  const hasIncrementedViewsRef = useRef(false);
+
   // SEO для страницы коллекции
-  const seoConfig = {
-    title: collection?.name || "Коллекция",
-    description: collection?.description || "Просмотрите коллекцию тайтлов",
-    keywords: "коллекция, тайтлы, манга",
-    image: collection?.cover || "/logo/tomilo_color.svg",
-  };
+  const seoConfig = useMemo(
+    () => ({
+      title: collection?.name || "Коллекция",
+      description: collection?.description || "Просмотрите коллекцию тайтлов",
+      keywords: "коллекция, тайтлы, манга",
+      image: collection?.cover || "/logo/tomilo_color.svg",
+    }),
+    [collection?.name, collection?.description, collection?.cover]
+  );
+
   useSEO(seoConfig);
+
+  const normalizeImageUrl = (titleCover: string) => {
+    return titleCover
+      ? `${process.env.NEXT_PUBLIC_URL}${titleCover}`
+      : "/404/image-holder.png";
+  };
 
   // Увеличиваем просмотры при загрузке
   useEffect(() => {
-    if (collection && collectionId) {
+    if (collectionId && !hasIncrementedViewsRef.current) {
       incrementViews(collectionId);
+      hasIncrementedViewsRef.current = true;
     }
-  }, [collection, collectionId, incrementViews]);
+  }, [collectionId, incrementViews]);
 
   if (isLoading) {
     return (
@@ -80,51 +106,66 @@ export default function CollectionDetailsClient({ collectionId }: CollectionDeta
 
       <div className="max-w-7xl mx-auto px-2 py-4">
         {/* Заголовок и информация о коллекции */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2">
-            {collection.name}
-          </h1>
-          {collection.description && (
-            <p className="text-[var(--muted-foreground)] mb-4">
-              {collection.description}
-            </p>
-          )}
-          <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
-            <span className="flex items-center gap-1">
-              👁️ {collection.views} просмотров
-            </span>
-            <span>
-              {collection.titles?.length || 0} тайтлов
-            </span>
-            {collection.createdAt && (
-              <span>
-                Создано: {new Date(collection.createdAt).toLocaleDateString('ru-RU')}
-              </span>
+        <div className="mb-6 flex flex-col md:flex-row gap-6">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2">
+              {collection.name}
+            </h1>
+            {collection.description && (
+              <p className="text-[var(--muted-foreground)] mb-4">
+                {collection.description}
+              </p>
             )}
+            <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
+              <span className="flex items-center gap-1">
+                <Eye className="w-4 h-4" />
+                {collection.views} просмотров
+              </span>
+              <span>{collection.titles?.length || 0} тайтлов</span>
+              {collection.createdAt && (
+                <span>
+                  Создано:{" "}
+                  {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
+                </span>
+              )}
+            </div>
           </div>
+          {collection.cover && (
+            <div className="flex-shrink-0">
+              <Image
+                src={`${process.env.NEXT_PUBLIC_URL}${collection.cover}`}
+                alt={collection.name}
+                width={192}
+                height={192}
+                className="w-full max-w-sm h-48 object-cover rounded-lg shadow-lg"
+              />
+            </div>
+          )}
         </div>
 
         {/* Сетка тайтлов */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {collection.titles?.map((title: Record<string, unknown>) => (
+          {collection.titles?.map((title: Title) => (
             <div
-              key={(title.id as string) || (title._id as string)}
-              onClick={() => router.push(`/titles/${(title.id as string) || (title._id as string)}`)}
+              key={title._id}
+              onClick={() => router.push(`/browse/${title._id}`)}
               className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors cursor-pointer"
             >
               <div className="aspect-[3/4] mb-3 overflow-hidden rounded">
-                <img
-                  src={(title.cover as string) || (title.image as string) || "/404/image-holder.png"}
-                  alt={(title.name as string) || "Тайтл"}
+                <Image
+                  src={`${process.env.NEXT_PUBLIC_URL}${title.coverImage}`}
+                  alt={title.name}
+                  width={280}
+                  height={380}
                   className="w-full h-full object-cover"
                 />
               </div>
               <h3 className="font-semibold text-[var(--muted-foreground)] truncate">
-                {(title.name as string) || "Без названия"}
+                {title.name}
               </h3>
-              {(title.description as string) && (
+              {title.description && (
                 <p className="text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2">
-                  {title.description as string}
+                  {title.description}
                 </p>
               )}
             </div>
