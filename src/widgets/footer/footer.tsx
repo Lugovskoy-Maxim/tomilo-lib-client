@@ -42,12 +42,12 @@ export default function Footer() {
                 </span>
               </div>
               <Link
-                href="mailto:lugovskou.myu@ya.ru"
+                href="mailto:support@tomilo-lib.ru"
                 className="flex items-center gap-2 text-[var(--chart-1)] hover:text-[var(--primary)] transition-colors text-sm break-words px-2 py-1 text-center md:text-right"
               >
                 <Mail className="w-4 h-4 flex-shrink-0" />
                 <span className="max-w-[180px] sm:max-w-[250px] md:max-w-none">
-                  lugovskou.myu@ya.ru
+                  support@tomilo-lib.ru
                 </span>
               </Link>
             </div>

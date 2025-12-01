@@ -19,7 +19,7 @@
       warning: "tomilo-lib.ru оставляет за собой право прекратить предоставление сервиса владельцам аккаунтов, которые были замечены в многократных нарушениях авторских прав.",
       contactTitle: "Контактная информация",
       contactDescription: "Для отправки уведомлений о нарушении авторских прав",
-      email: "lugovskou.myu@ya.ru",
+      email: "support@tomilo-lib.ru",
       backButton: "Вернуться назад",
       languageButton: "English"
     },
@@ -43,7 +43,7 @@
       warning: "tomilo-lib.ru reserves the right to terminate service to account holders who have been found to be repeat infringers of copyright.",
       contactTitle: "Contact Information",
       contactDescription: "For sending copyright infringement notices",
-      email: "lugovskou.myu@ya.ru",
+      email: "support@tomilo-lib.ru",
       backButton: "Go Back",
       languageButton: "Русский"
     }

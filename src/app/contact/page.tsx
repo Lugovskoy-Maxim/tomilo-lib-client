@@ -41,7 +41,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="font-medium text-[var(--foreground)]">Email</p>
-                      <p className="text-[var(--muted-foreground)]">lugovskou.myu@ya.ru</p>
+                      <p className="text-[var(--muted-foreground)]">support@tomilo-lib.ru</p>
                     </div>
                   </div>
 

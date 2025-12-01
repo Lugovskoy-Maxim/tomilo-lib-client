@@ -91,7 +91,7 @@
       contact: {
         title: "Контактная информация",
         description: "По всем вопросам, связанным с настоящим Соглашением",
-        email: "lugovskou.myu@ya.ru"
+        email: "support@tomilo-lib.ru"
       },
       
       // Важные уведомления
@@ -191,7 +191,7 @@
       contact: {
         title: "Contact Information",
         description: "For all questions related to this Agreement",
-        email: "lugovskou.myu@ya.ru"
+        email: "support@tomilo-lib.ru"
       },
       
       // Важные уведомления
