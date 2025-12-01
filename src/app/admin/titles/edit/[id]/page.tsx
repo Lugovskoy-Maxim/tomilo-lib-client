@@ -433,38 +433,53 @@ const handleSubmit = async (e: FormEvent) => {
   e.preventDefault();
   setIsSaving(true);
   try {
-    let updateData: Partial<UpdateTitleDto> | FormData;
+    // Всегда отправляем все данные формы, включая обложку
     const hasFile = !!selectedFile;
-
+    
     if (hasFile) {
-      // При обновлении с файлом передаем объект с hasFile: true
-      // Временно приводим тип coverImage к unknown, чтобы избежать конфликта типов
-      const dataWithFile = {
-        ...formData,
-        coverImage: selectedFile as unknown as string,
-      };
-
+      // При обновлении с файлом создаем FormData
+      const formDataToSend = new FormData();
+      
+      // Добавляем все поля из formData
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === 'coverImage' && selectedFile) {
+          // Для обложки используем выбранный файл
+          formDataToSend.append(key, selectedFile);
+        } else if (key !== 'coverImage') {
+          // Для остальных полей добавляем их значения
+          if (Array.isArray(value)) {
+            value.forEach(item => formDataToSend.append(key, item));
+          } else {
+            formDataToSend.append(key, String(value));
+          }
+        }
+      });
+      
       const result = await updateTitleMutation({
         id: titleId,
-        data: dataWithFile,
+        data: formDataToSend as unknown as Partial<UpdateTitleDto>,
         hasFile: true,
       }).unwrap();
 
       if (result.data) {
         dispatch(updateTitle(result.data));
+        // Обновляем обложку в локальном состоянии
+        if (result.data.coverImage) {
+          setFormData(prev => ({ ...prev, coverImage: result.data!.coverImage }));
+        }
       }
       setSelectedFile(null);
       toast.success("Тайтл успешно обновлен!");
-      return;
     } else {
-      // При обновлении других полей отправляем только разрешенные поля
-      updateData = {
+      // При обновлении без файла отправляем объект
+      const updateData: Partial<UpdateTitleDto> = {
         name: formData.name,
         altNames: formData.altNames,
         description: formData.description,
         genres: formData.genres,
         tags: formData.tags,
         artist: formData.artist,
+        coverImage: formData.coverImage, // Всегда отправляем текущее значение обложки
         status: formData.status,
         author: formData.author,
         releaseYear: Number(formData.releaseYear),
@@ -473,13 +488,11 @@ const handleSubmit = async (e: FormEvent) => {
         type: formData.type,
       };
 
-      // Вызываем мутацию обновления тайтла
       const result = await updateTitleMutation({
         id: titleId,
         data: updateData,
       }).unwrap();
 
-      // Обновляем состояние в Redux только если данные есть
       if (result.data) {
         dispatch(updateTitle(result.data));
       }
