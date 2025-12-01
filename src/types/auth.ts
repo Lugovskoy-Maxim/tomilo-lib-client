@@ -34,6 +34,7 @@ export interface StoredUser {
   balance?: number;
   bookmarks?: string[];
   readingHistory?: import("@/types/store").ReadingHistoryEntry[];
+  birthDate?: string;
 }
 
 export interface AuthResponse {
@@ -60,5 +61,6 @@ export interface User {
   level?: number;
   bookmarks?: string[];
   readingHistory?: import("@/types/store").ReadingHistoryEntry[];
+  birthDate?: string;
 }
   

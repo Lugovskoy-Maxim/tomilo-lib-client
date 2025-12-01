@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Modal from "./modal";
+import { UserProfile } from "@/types/user";
+import { StoredUser } from "@/types/auth";
 
 interface AgeVerificationModalProps {
   isOpen: boolean;
@@ -79,8 +81,35 @@ export function AgeVerificationModal({
   );
 }
 
-export function checkAgeVerification(): boolean {
-  return localStorage.getItem(AGE_VERIFICATION_KEY) === "true";
+export function checkAgeVerification(user: UserProfile | StoredUser | null = null): boolean {
+  // Если передан пользователь с датой рождения, проверяем возраст
+  if (user && user.birthDate) {
+    try {
+      const birthDate = new Date(user.birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      // Корректируем возраст, если день рождения еще не наступил в этом году
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      // Если пользователю 18+, возвращаем true и записываем в localStorage
+      if (age >= 18) {
+        localStorage.setItem(AGE_VERIFICATION_KEY, "true");
+        return true;
+      }
+    } catch (error) {
+      console.error("Error parsing birth date:", error);
+    }
+  }
+  
+  // Проверяем localStorage
+  const localStorageVerified = localStorage.getItem(AGE_VERIFICATION_KEY) === "true";
+  
+  // Возвращаем результат проверки localStorage
+  return localStorageVerified;
 }
 
 export function clearAgeVerification(): void {

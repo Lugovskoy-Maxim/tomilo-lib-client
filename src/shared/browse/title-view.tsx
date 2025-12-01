@@ -105,8 +105,9 @@ export function LeftSidebar({
   isAdmin: boolean;
   onAgeVerificationRequired?: () => void;
 }) {
+  const { user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
-  const [isAgeVerified, setIsAgeVerified] = useState(() => checkAgeVerification());
+  const [isAgeVerified, setIsAgeVerified] = useState(() => checkAgeVerification(user));
 
   const handleAgeConfirm = () => {
     setIsAgeVerified(true);

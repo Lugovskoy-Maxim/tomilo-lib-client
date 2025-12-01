@@ -1,16 +1,35 @@
 // src/app/profile/components/ProfileBanner.tsx
 import { UserProfile } from "@/types/user";
 import { EditAvatarButton, ProfileAvatar, UserInfo } from "@/shared";
+import { useState } from "react";
+import ProfileEditForm from "./profile-edit-form";
 
 interface ProfileBannerProps {
   userProfile: UserProfile;
   onAvatarUpdate: (newAvatarUrl: string) => void;
+  onUpdateProfile: (updatedProfile: Partial<UserProfile>) => void;
 }
 
 export default function ProfileBanner({
   userProfile,
   onAvatarUpdate,
+  onUpdateProfile,
 }: ProfileBannerProps) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = (updatedProfile: Partial<UserProfile>) => {
+    onUpdateProfile(updatedProfile);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
   return (
     <div className="bg-[var(--secondary)] rounded-xl border border-[var(--border)] overflow-hidden mb-2">
       {/* Верхняя часть - баннер */}
@@ -55,7 +74,15 @@ export default function ProfileBanner({
 
       {/* Нижняя часть - информация */}
       <div className="pt-2 pb-6 px-8">
-        <UserInfo userProfile={userProfile} />
+        {isEditing ? (
+          <ProfileEditForm
+            userProfile={userProfile}
+            onSave={handleSave}
+            onCancel={handleCancel}
+          />
+        ) : (
+          <UserInfo userProfile={userProfile} onEdit={handleEdit} />
+        )}
       </div>
     </div>
   );

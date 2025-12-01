@@ -4,12 +4,12 @@ import { Eye, EyeOff, LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 interface InputProps {
-  type: string;
+  type?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onBlur: () => void;
+  onBlur?: () => void;
   placeholder: string;
-  error: string | null | undefined;
+  error?: string | null | undefined;
   icon: LucideIcon;
   showPasswordToggle?: boolean;
   isPasswordVisible?: boolean;
@@ -18,15 +18,16 @@ interface InputProps {
   className?: string;
   name?: string;
   disabled?: boolean;
+  id?: string;
 }
 
 const Input: React.FC<InputProps> = ({
-  type,
+  type = "text",
   value,
   onChange,
-  onBlur,
+  onBlur = () => {},
   placeholder,
-  error,
+  error = null,
   icon: Icon,
   showPasswordToggle = false,
   isPasswordVisible = false,
@@ -35,6 +36,7 @@ const Input: React.FC<InputProps> = ({
   className = "",
   name,
   disabled = false,
+  id,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -44,7 +46,7 @@ const Input: React.FC<InputProps> = ({
 
   const handleBlur = () => {
     setIsFocused(false);
-    onBlur();
+    onBlur?.();
   };
 
   // Автоматическое определение типа для пароля
@@ -71,6 +73,7 @@ const Input: React.FC<InputProps> = ({
           onChange={onChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          id={id}
           placeholder={placeholder}
           required={required}
           name={name}

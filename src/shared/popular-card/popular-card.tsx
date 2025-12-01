@@ -26,13 +26,13 @@ import { useState, useEffect } from "react";
 
 export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
 
   useEffect(() => {
-    setIsAgeVerified(checkAgeVerification());
-  }, []);
+    setIsAgeVerified(checkAgeVerification(user || null));
+  }, [user]);
 
   const formatRating = (value?: number) => {
     const num = typeof value === "number" ? value : 0;

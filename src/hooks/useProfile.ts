@@ -38,6 +38,7 @@ function transformStoredUserToProfile(
             : [],
         }))
       : [],
+    birthDate: storedUser.birthDate,
     createdAt: storedUser.createdAt,
     updatedAt: storedUser.updatedAt,
   };

@@ -9,13 +9,16 @@ import {
   ProfileContent,
   ProfileHeader,
 } from "@/shared";
+import { useUpdateProfileMutation } from "@/store/api/authApi";
 
 import { Footer, Header } from "@/widgets";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
+import { UserProfile } from "@/types/user";
 
 export default function ProfilePage() {
   const { userProfile, isLoading, authLoading, handleAvatarUpdate } =
     useProfile();
+  const [updateProfile] = useUpdateProfileMutation();
 
   // SEO для страницы профиля
   useSEO(seoConfigs.profile(userProfile?.username || userProfile?.email));
@@ -28,6 +31,14 @@ export default function ProfilePage() {
     return <ErrorState />;
   }
 
+  const handleUpdateProfile = async (updatedProfile: Partial<UserProfile>) => {
+    try {
+      await updateProfile(updatedProfile).unwrap();
+    } catch (error) {
+      console.error("Ошибка при обновлении профиля:", error);
+    }
+  };
+
   return (
     <AuthGuard>
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
@@ -38,6 +49,7 @@ export default function ProfilePage() {
           <ProfileBanner
             userProfile={userProfile}
             onAvatarUpdate={handleAvatarUpdate}
+            onUpdateProfile={handleUpdateProfile}
           />
           {/* <ProfileStats userProfile={userProfile} /> */}
           <ProfileContent userProfile={userProfile} />

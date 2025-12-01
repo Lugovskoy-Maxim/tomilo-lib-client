@@ -11,6 +11,7 @@ export interface UserProfile {
   balance?: number;
   bookmarks: string[];
   readingHistory: ReadingHistoryEntry[];
+  birthDate?: string;
   createdAt: string;
   updatedAt: string;
 }
