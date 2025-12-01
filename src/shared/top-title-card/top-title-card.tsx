@@ -1,3 +1,4 @@
+"use client"
 import { Trophy, Eye, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
