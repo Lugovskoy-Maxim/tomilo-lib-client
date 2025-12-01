@@ -437,7 +437,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       </div>
 
       {/* Контейнеры для кнопок авторизации */}
-      <div className="px-6 py-2 space-y-3">
+      <div className="px-6 py-2 space-y-3 relative">
         <div ref={yandexButtonRef} className="flex justify-center" />
         <div ref={vkButtonRef} className="flex justify-center" />
       </div>
