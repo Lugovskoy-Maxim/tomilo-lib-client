@@ -26,6 +26,7 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <head>
         <meta name="yandex-verification" content="8f2bae575aa86202" />
+        <Script src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js" strategy="beforeInteractive" />
         <Script id="yandex-metrika-counter" strategy="beforeInteractive">
           {`
             (function(m,e,t,r,i,k,a){

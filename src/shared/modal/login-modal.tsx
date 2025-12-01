@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Mail, Lock } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useLoginMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm, FormErrors, FormTouched } from "../../types/form";
@@ -27,6 +27,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
 }) => {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const yandexButtonRef = useRef<HTMLDivElement>(null);
   const [touched, setTouched] = useState<FormTouched<LoginForm>>({
     email: false,
     password: false,
@@ -130,6 +131,66 @@ const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
+  // Инициализация виджета Яндекс авторизации
+  useEffect(() => {
+    if (isOpen && yandexButtonRef.current) {
+      // Очищаем контейнер перед инициализацией
+      yandexButtonRef.current.innerHTML = '';
+      
+      // Проверяем, что YaAuthSuggest доступен
+      if (typeof window !== 'undefined' && window.YaAuthSuggest) {
+        const tokenPageOrigin = window.location.origin;
+        
+        window.YaAuthSuggest.init(
+          {
+            client_id: 'ffd24e1c16544069bc7a1e8c66316f37',
+            response_type: 'token',
+            redirect_uri: 'https://tomilo-lib.ru/auth/yandex'
+          },
+          tokenPageOrigin,
+          {
+            view: "button",
+            parentId: "yandexButtonContainer",
+            buttonSize: 'm',
+            buttonView: 'main',
+            buttonTheme: 'light',
+            buttonBorderRadius: "22",
+            buttonIcon: 'ya',
+          }
+        )
+        .then((result: {handler: () => Promise<unknown>}) => {
+          // Создаем контейнер для кнопки
+          const container = document.createElement('div');
+          container.id = 'yandexButtonContainer';
+          yandexButtonRef.current?.appendChild(container);
+          
+          return result.handler();
+        })
+        .then((data: unknown) => {
+          // Явно типизируем data как объект с нужными полями
+          const tokenData = data as {access_token: string, expires_in: string};
+          console.log('Сообщение с токеном', tokenData);
+          // Здесь будет обработка токена авторизации
+        })
+        .catch((error: {error: string, error_description: string}) => {
+          console.log('Обработка ошибки', error);
+        });
+      } else {
+        // Для локальной разработки показываем тестовую кнопку
+        if (yandexButtonRef.current) {
+          const testButton = document.createElement('button');
+          testButton.textContent = 'Войти через Яндекс (локально)';
+          testButton.className = 'w-full py-3 bg-[#FFDB4D] text-black rounded-lg font-medium hover:bg-[#F0CA4D] transition-colors';
+          testButton.onclick = () => {
+            console.log('Тестовая авторизация через Яндекс');
+            // Здесь можно добавить тестовую авторизацию для локальной разработки
+          };
+          yandexButtonRef.current.appendChild(testButton);
+        }
+      }
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) {
       setForm({ email: "", password: "" });
@@ -145,48 +206,138 @@ const LoginModal: React.FC<LoginModalProps> = ({
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* Показываем ошибку от сервера */}
         {errorMessage && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm text-center">{errorMessage}</p>
+          <div 
+            className="p-3 bg-red-50 border border-red-200 rounded-lg animate-fadeIn"
+            role="alert"
+            aria-live="assertive"
+          >
+            <p className="text-red-700 text-sm text-center flex items-center justify-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+              {errorMessage}
+            </p>
           </div>
         )}
 
-        <Input
-          icon={Mail}
-          type="email"
-          placeholder="email@domen.ru"
-          value={form.email}
-          onChange={handleChange("email")}
-          onBlur={handleBlur("email")}
-          error={errors.email}
-          required
-          name="email"
-          disabled={isLoading}
-        />
+        <div className="space-y-2">
+          <label htmlFor="email" className="block text-sm font-medium text-[var(--foreground)]">
+            Email
+          </label>
+          <div className="relative">
+            <Mail 
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                errors.email 
+                  ? "text-red-500" 
+                  : "text-[var(--muted-foreground)]"
+              }`} 
+            />
+            <input
+              id="email"
+              type="email"
+              placeholder="email@domen.ru"
+              value={form.email}
+              onChange={handleChange("email")}
+              onBlur={handleBlur("email")}
+              className={`w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                errors.email 
+                  ? "border-red-500 focus:ring-red-500/20" 
+                  : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
+              }`}
+              required
+              name="email"
+              disabled={isLoading}
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
+            />
+          </div>
+          {errors.email && (
+            <p id="email-error" className="text-xs text-red-500 flex items-center gap-1">
+              <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+              {errors.email}
+            </p>
+          )}
+        </div>
 
-        <Input
-          icon={Lock}
-          type="password"
-          placeholder="Введите пароль"
-          value={form.password}
-          onChange={handleChange("password")}
-          onBlur={handleBlur("password")}
-          error={errors.password}
-          showPasswordToggle
-          isPasswordVisible={showPassword}
-          onTogglePassword={() => setShowPassword(!showPassword)}
-          required
-          name="password"
-          disabled={isLoading}
-        />
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <label htmlFor="password" className="block text-sm font-medium text-[var(--foreground)]">
+              Пароль
+            </label>
+            <button
+              type="button"
+              className="text-xs text-[var(--primary)] hover:underline"
+              onClick={() => console.log("Запрос на восстановление пароля")}
+            >
+              Забыли пароль?
+            </button>
+          </div>
+          <div className="relative">
+            <Lock 
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                errors.password 
+                  ? "text-red-500" 
+                  : "text-[var(--muted-foreground)]"
+              }`} 
+            />
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Введите пароль"
+              value={form.password}
+              onChange={handleChange("password")}
+              onBlur={handleBlur("password")}
+              className={`w-full pl-10 pr-10 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                errors.password 
+                  ? "border-red-500 focus:ring-red-500/20" 
+                  : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
+              }`}
+              required
+              name="password"
+              disabled={isLoading}
+              autoComplete="current-password"
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? "password-error" : undefined}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+              disabled={isLoading}
+              aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+          {errors.password && (
+            <p id="password-error" className="text-xs text-red-500 flex items-center gap-1">
+              <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+              {errors.password}
+            </p>
+          )}
+        </div>
 
         <button
           type="submit"
           disabled={!isFormValid() || isLoading}
-          className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-colors disabled:opacity-50 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
+          className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-all duration-300 disabled:opacity-50 disabled:bg-[var(--muted)] disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
         >
-          {isLoading ? "Загрузка..." : "Войти"}
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              Загрузка...
+            </span>
+          ) : (
+            "Войти"
+          )}
         </button>
       </form>
+
+      {/* Контейнер для кнопки Яндекс авторизации */}
+      <div ref={yandexButtonRef} className="px-6 py-4 flex justify-center" />
 
       <div className="p-6 border-t border-[var(--border)] text-center">
         <p className="text-sm text-[var(--muted-foreground)]">
@@ -194,7 +345,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           <button
             type="button"
             onClick={onSwitchToRegister}
-            className="text-[var(--primary)] hover:underline font-medium disabled:opacity-50"
+            className="text-[var(--primary)] hover:underline font-medium disabled:opacity-50 transition-colors"
             disabled={isLoading}
           >
             Зарегистрироваться

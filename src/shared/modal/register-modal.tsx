@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { useRegisterMutation } from "@/store/api/authApi";
 import { RegisterForm, FormErrors, FormTouched } from "../../types/form";
-import { Input, Modal } from "..";
+import { Modal } from "..";
 import { AuthResponse, ApiResponseDto } from "@/types/auth";
 
 interface RegisterModalProps {
@@ -26,6 +26,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [touched, setTouched] = useState<FormTouched<RegisterForm>>({
     email: false,
     password: false,
@@ -122,6 +123,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         confirmPassword: false,
       });
       setShowPassword(false);
+      setShowConfirmPassword(false);
     }
   }, [isOpen]);
 
@@ -130,8 +132,13 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* Показываем ошибку API если есть */}
         {apiError && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <p className="text-red-600 text-sm">
+          <div 
+            className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg animate-fadeIn"
+            role="alert"
+            aria-live="assertive"
+          >
+            <p className="text-red-600 text-sm flex items-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
               {"data" in apiError 
                 ? (apiError.data as { message?: string })?.message || "Ошибка регистрации"
                 : "Ошибка регистрации"
@@ -140,70 +147,224 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           </div>
         )}
 
-        <Input
-          icon={User}
-          type="text"
-          placeholder="Введите ваше имя"
-          value={form.username}
-          onChange={handleChange("username")}
-          onBlur={handleBlur("username")}
-          error={errors.username}
-          required
-          name="username"
-          disabled={isLoading}
-        />
+        <div className="space-y-2">
+          <label htmlFor="username" className="block text-sm font-medium text-[var(--foreground)]">
+            Имя пользователя
+          </label>
+          <div className="relative">
+            <User 
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                errors.username 
+                  ? "text-red-500" 
+                  : "text-[var(--muted-foreground)]"
+              }`} 
+            />
+            <input
+              id="username"
+              type="text"
+              placeholder="Введите ваше имя"
+              value={form.username}
+              onChange={handleChange("username")}
+              onBlur={handleBlur("username")}
+              className={`w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                errors.username 
+                  ? "border-red-500 focus:ring-red-500/20" 
+                  : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
+              }`}
+              required
+              name="username"
+              disabled={isLoading}
+              autoComplete="username"
+              aria-invalid={!!errors.username}
+              aria-describedby={errors.username ? "username-error" : undefined}
+            />
+          </div>
+          {errors.username && (
+            <p id="username-error" className="text-xs text-red-500 flex items-center gap-1">
+              <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+              {errors.username}
+            </p>
+          )}
+        </div>
 
-        <Input
-          icon={Mail}
-          type="email"
-          placeholder="email@domen.ru"
-          value={form.email}
-          onChange={handleChange("email")}
-          onBlur={handleBlur("email")}
-          error={errors.email}
-          required
-          name="email"
-          disabled={isLoading}
-        />
+        <div className="space-y-2">
+          <label htmlFor="email-register" className="block text-sm font-medium text-[var(--foreground)]">
+            Email
+          </label>
+          <div className="relative">
+            <Mail 
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                errors.email 
+                  ? "text-red-500" 
+                  : "text-[var(--muted-foreground)]"
+              }`} 
+            />
+            <input
+              id="email-register"
+              type="email"
+              placeholder="email@domen.ru"
+              value={form.email}
+              onChange={handleChange("email")}
+              onBlur={handleBlur("email")}
+              className={`w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                errors.email 
+                  ? "border-red-500 focus:ring-red-500/20" 
+                  : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
+              }`}
+              required
+              name="email"
+              disabled={isLoading}
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-register-error" : undefined}
+            />
+          </div>
+          {errors.email && (
+            <p id="email-register-error" className="text-xs text-red-500 flex items-center gap-1">
+              <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+              {errors.email}
+            </p>
+          )}
+        </div>
 
-        <Input
-          icon={Lock}
-          type="password"
-          placeholder="Введите пароль"
-          value={form.password}
-          onChange={handleChange("password")}
-          onBlur={handleBlur("password")}
-          error={errors.password}
-          showPasswordToggle
-          isPasswordVisible={showPassword}
-          onTogglePassword={() => setShowPassword(!showPassword)}
-          required
-          name="password"
-          disabled={isLoading}
-        />
+        <div className="space-y-2">
+          <label htmlFor="password-register" className="block text-sm font-medium text-[var(--foreground)]">
+            Пароль
+          </label>
+          <div className="relative">
+            <Lock 
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                errors.password 
+                  ? "text-red-500" 
+                  : "text-[var(--muted-foreground)]"
+              }`} 
+            />
+            <input
+              id="password-register"
+              type={showPassword ? "text" : "password"}
+              placeholder="Введите пароль"
+              value={form.password}
+              onChange={handleChange("password")}
+              onBlur={handleBlur("password")}
+              className={`w-full pl-10 pr-10 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                errors.password 
+                  ? "border-red-500 focus:ring-red-500/20" 
+                  : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
+              }`}
+              required
+              name="password"
+              disabled={isLoading}
+              autoComplete="new-password"
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? "password-register-error" : undefined}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+              disabled={isLoading}
+              aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+          {errors.password && (
+            <p id="password-register-error" className="text-xs text-red-500 flex items-center gap-1">
+              <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+              {errors.password}
+            </p>
+          )}
+        </div>
 
-        <Input
-          icon={Lock}
-          type="password"
-          placeholder="Повторите пароль"
-          value={form.confirmPassword}
-          onChange={handleChange("confirmPassword")}
-          onBlur={handleBlur("confirmPassword")}
-          error={errors.confirmPassword}
-          showPasswordToggle
-          isPasswordVisible={showPassword}
-          onTogglePassword={() => setShowPassword(!showPassword)}
-          required
-          name="confirmPassword"
-          disabled={isLoading}
-        />
+        <div className="space-y-2">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-[var(--foreground)]">
+            Подтверждение пароля
+          </label>
+          <div className="relative">
+            <Lock 
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                errors.confirmPassword 
+                  ? "text-red-500" 
+                  : "text-[var(--muted-foreground)]"
+              }`} 
+            />
+            <input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Повторите пароль"
+              value={form.confirmPassword}
+              onChange={handleChange("confirmPassword")}
+              onBlur={handleBlur("confirmPassword")}
+              className={`w-full pl-10 pr-10 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                errors.confirmPassword 
+                  ? "border-red-500 focus:ring-red-500/20" 
+                  : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
+              }`}
+              required
+              name="confirmPassword"
+              disabled={isLoading}
+              autoComplete="new-password"
+              aria-invalid={!!errors.confirmPassword}
+              aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+              disabled={isLoading}
+              aria-label={showConfirmPassword ? "Скрыть пароль" : "Показать пароль"}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <p id="confirm-password-error" className="text-xs text-red-500 flex items-center gap-1">
+              <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+              {errors.confirmPassword}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center">
+          <input
+            id="terms"
+            type="checkbox"
+            className="w-4 h-4 text-[var(--primary)] bg-[var(--secondary)] border-[var(--border)] rounded focus:ring-[var(--primary)]"
+            required
+          />
+          <label htmlFor="terms" className="ml-2 text-sm text-[var(--foreground)]">
+            Я согласен с{" "}
+            <button
+              type="button"
+              className="text-[var(--primary)] hover:underline"
+              onClick={() => console.log("Открыть условия использования")}
+            >
+              условиями использования
+            </button>
+          </label>
+        </div>
 
         <button
           type="submit"
           disabled={!isFormValid() || isLoading}
-          className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-colors disabled:opacity-50 disabled:bg-[var(--muted)] disabled:cursor-not-allowed"
+          className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-all duration-300 disabled:opacity-50 disabled:bg-[var(--muted)] disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
         >
-          {isLoading ? "Загрузка..." : "Зарегистрироваться"}
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              Загрузка...
+            </span>
+          ) : (
+            "Зарегистрироваться"
+          )}
         </button>
       </form>
 
@@ -213,7 +374,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           <button
             type="button"
             onClick={onSwitchToLogin}
-            className="text-[var(--primary)] hover:underline font-medium disabled:opacity-50"
+            className="text-[var(--primary)] hover:underline font-medium disabled:opacity-50 transition-colors"
             disabled={isLoading}
           >
             Войти
