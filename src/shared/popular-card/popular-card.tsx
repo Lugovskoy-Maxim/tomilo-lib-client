@@ -78,13 +78,13 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     >
       <div className={`relative ${isAdultContent ? "blur-sm" : ""}`}>
         <Image
-          className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
+          className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105 object-cover"
           src={imageSrc}
           alt={data.title}
           width={160}
           height={220}
           unoptimized
-          style={{ width: "auto" }}
+          style={{ width: "100%", height: "100%" }}
           onDragStart={(e) => e.preventDefault()}
         />
 
