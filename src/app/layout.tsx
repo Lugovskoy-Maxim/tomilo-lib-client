@@ -26,7 +26,8 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <head>
         <meta name="yandex-verification" content="8f2bae575aa86202" />
-        <Script id="yandex-metrika-counter" strategy="beforeInteractive">
+        <!-- Yandex metrika -->
+        <script id="yandex-metrika-counter" strategy="beforeInteractive">
           {`
             (function(m,e,t,r,i,k,a){
                 m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
@@ -37,12 +38,21 @@ export default function RootLayout({
 
             ym(105475213, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
           `}
-        </Script>
+        </script>
         <noscript>
           <div>
             <img src="https://mc.yandex.ru/watch/105475213" style={{position:'absolute', left:-9999}} alt="" />
           </div>
         </noscript>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-95QGC7HGHE"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+        
+          gtag('config', 'G-95QGC7HGHE');
+        </script>
       </head>
       <body
         className={`${exo_2.variable} ${geistMono.variable} antialiased w-full justify-center items-center`}
