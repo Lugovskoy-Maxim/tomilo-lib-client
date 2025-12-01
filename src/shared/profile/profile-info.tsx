@@ -48,19 +48,20 @@ export default function UserInfo({ userProfile, onEdit }: UserInfoProps) {
 
 function UserStats({ userProfile }: { userProfile: UserProfile }) {
   return (
-    <div className="flex flex-wrap gap-4 text-xs text-[var(--muted-foreground)]">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 text-xs text-[var(--muted-foreground)]">
       <div className="flex items-center space-x-1">
         <Mail className="w-4 h-4" />
         <span className="text-xs">{userProfile.email}</span>
+        {userProfile.birthDate && (
+          <>
+            <span className="mx-2">•</span>
+            <Calendar1 className="w-4 h-4" />
+            <span className="text-xs font-medium">
+              {new Date(userProfile.birthDate).toLocaleDateString("ru-RU")}
+            </span>
+          </>
+        )}
       </div>
-      {userProfile.birthDate && (
-        <div className="flex items-center space-x-1">
-          <Calendar1 className="w-4 h-4" />
-          <span className="text-xs">
-            Дата рождения: {new Date(userProfile.birthDate).toLocaleDateString("ru-RU")}
-          </span>
-        </div>
-      )}
       <div className="flex items-center space-x-1">
         <Calendar1 className="w-4 h-4" />
         <span className="text-xs">

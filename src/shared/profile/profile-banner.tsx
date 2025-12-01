@@ -1,8 +1,9 @@
-// src/app/profile/components/ProfileBanner.tsx
+"use client";
 import { UserProfile } from "@/types/user";
 import { EditAvatarButton, ProfileAvatar, UserInfo } from "@/shared";
 import { useState } from "react";
 import ProfileEditForm from "./profile-edit-form";
+import Modal from "@/shared/modal/modal";
 
 interface ProfileBannerProps {
   userProfile: UserProfile;
@@ -74,16 +75,20 @@ export default function ProfileBanner({
 
       {/* Нижняя часть - информация */}
       <div className="pt-2 pb-6 px-8">
-        {isEditing ? (
-          <ProfileEditForm
-            userProfile={userProfile}
-            onSave={handleSave}
-            onCancel={handleCancel}
-          />
-        ) : (
-          <UserInfo userProfile={userProfile} onEdit={handleEdit} />
-        )}
+        <UserInfo userProfile={userProfile} onEdit={handleEdit} />
       </div>
+      
+      <Modal
+        isOpen={isEditing}
+        onClose={handleCancel}
+        title="Редактирование профиля"
+      >
+        <ProfileEditForm
+          userProfile={userProfile}
+          onSave={handleSave}
+          onCancel={handleCancel}
+        />
+      </Modal>
     </div>
   );
 }
