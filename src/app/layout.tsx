@@ -26,7 +26,6 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <head>
         <meta name="yandex-verification" content="8f2bae575aa86202" />
-        <!-- Yandex metrika -->
         <script id="yandex-metrika-counter" strategy="beforeInteractive">
           {`
             (function(m,e,t,r,i,k,a){
@@ -44,7 +43,6 @@ export default function RootLayout({
             <img src="https://mc.yandex.ru/watch/105475213" style={{position:'absolute', left:-9999}} alt="" />
           </div>
         </noscript>
-        <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-95QGC7HGHE"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
