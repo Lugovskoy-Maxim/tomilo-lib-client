@@ -22,9 +22,10 @@ export interface TopTitle {
   rating: number;
   image: string;
   genres: string[];
-  rank: number;
+  rank?: number;
   views?: number;
-  period: 'day' | 'week' | 'month';
+  period?: 'day' | 'week' | 'month';
+  isAdult?: boolean;
 }
 
 export interface LatestUpdate {

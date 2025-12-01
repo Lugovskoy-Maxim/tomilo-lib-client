@@ -13,6 +13,7 @@ import LatestUpdateCard from "@/shared/last-updates/last-updates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import TopTitlesGrid from "@/widgets/top-titles-grid/top-titles-grid";
 import TopTitleGridCard from "@/shared/top-title-grid-card/top-title-grid-card";
+import TopCombinedSection from "@/widgets/top-combined-section/top-combined-section";
 import { pageTitle } from "@/lib/page-title";
 import { useHomeData } from "@/hooks/useHomeData";
 import { useStaticData } from "@/hooks/useStaticData";
@@ -224,30 +225,15 @@ export default function Home() {
           cardWidth="w-30 sm:w-30 md:w-35 lg:w-40"
         />
 
-        {/* Топ Манхва */}
-        <TopTitlesGrid
-          title="Топ Манхва"
-          data={topManhwa.data}
-          cardComponent={TopTitleGridCard}
-          icon={<Trophy className="w-6 h-6" />}
-        />
         
-        {/* Топ Маньхуа */}
-        <TopTitlesGrid
-          title="Топ Маньхуа"
-          data={topManhua.data}
-          cardComponent={TopTitleGridCard}
-          icon={<Trophy className="w-6 h-6" />}
-        />
-
-        {/* Топ новинок 2025 года */}
-        <TopTitlesGrid
-          title="Новинки 2025"
-          data={top2025.data}
-          cardComponent={TopTitleGridCard}
-          icon={<Trophy className="w-6 h-6" />}
-        />
-
+                {/* Объединенная секция топ манхв, маньхуа и новинок 2025 */}
+                <TopCombinedSection
+                  data={{
+                    topManhwa: topManhwa.data,
+                    topManhua: topManhua.data,
+                    top2025: top2025.data,
+                  }}
+                />
         {/* Последние обновления */}
         {latestUpdates.loading ? (
           <GridSkeleton />
@@ -267,3 +253,4 @@ export default function Home() {
     </>
   );
 }
+
