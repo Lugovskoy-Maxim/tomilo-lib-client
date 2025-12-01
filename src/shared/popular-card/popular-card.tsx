@@ -17,13 +17,22 @@ export interface CardProps {
 }
 
 export interface PopularCardProps {
-  data: CardProps;
+  data: CardProps;  
   onCardClick?: (id: string) => void;
 }
+
+import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { useState, useEffect } from "react";
 
 export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [isAgeVerified, setIsAgeVerified] = useState(false);
+
+  useEffect(() => {
+    setIsAgeVerified(checkAgeVerification());
+  }, []);
 
   const formatRating = (value?: number) => {
     const num = typeof value === "number" ? value : 0;
@@ -31,7 +40,22 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     return fixed.replace(/\.0$/, "");
   };
 
+  const handleAgeConfirm = () => {
+    setIsAgeVerified(true);
+    setShowAgeModal(false);
+  };
+
+  const handleAgeCancel = () => {
+    setShowAgeModal(false);
+  };
+
   const handleClick = () => {
+    // Проверяем, является ли контент для взрослых и подтверждено ли возрастное ограничение
+    if (data.isAdult && !isAgeVerified) {
+      setShowAgeModal(true);
+      return;
+    }
+
     if (onCardClick) {
       onCardClick(data.id);
     } else {
@@ -52,7 +76,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
       className="overflow-hidden max-w-xl rounded-lg group cursor-pointer active:cursor-grabbing transition-all select-none"
       onClick={handleClick}
     >
-      <div className={`relative ${isAdultContent ? "blur-3xl" : ""}`}>
+      <div className={`relative ${isAdultContent ? "blur-sm" : ""}`}>
         <Image
           className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105"
           src={imageSrc}
@@ -107,6 +131,11 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           )}
         </div> */}
       </div>
+      <AgeVerificationModal
+        isOpen={showAgeModal}
+        onConfirm={handleAgeConfirm}
+        onCancel={handleAgeCancel}
+      />
     </div>
   );
 }

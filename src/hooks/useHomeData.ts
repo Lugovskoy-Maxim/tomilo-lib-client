@@ -91,6 +91,7 @@ export const useHomeData = () => {
     year: item.releaseYear || new Date().getFullYear(),
     rating: item.rating || 0,
     genres: [], // Сервер не возвращает жанры для топ тайтлов
+    isAdult: item.rating !== undefined && item.rating >= 18, // Используем rating как замену ageLimit
   })) || [];
 
   // Преобразование прогресса чтения (сортировка по дате последнего чтения, самые свежие сначала)
