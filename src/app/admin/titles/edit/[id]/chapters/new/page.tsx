@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthGuard } from "@/guard/auth-guard";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -70,8 +71,9 @@ export default function ChapterCreatePage() {
   };
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <AuthGuard requiredRole="admin">
+      <main className="max-w-3xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Добавить главу</h1>
         <button
           type="button"
@@ -222,7 +224,6 @@ export default function ChapterCreatePage() {
         </div>
       </form>
     </main>
-  );
+  </AuthGuard>
+);
 }
-
-

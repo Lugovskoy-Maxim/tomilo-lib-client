@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthGuard } from "@/guard/auth-guard";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -149,8 +150,9 @@ export default function ChapterEditorPage() {
   if (apiError) return <ErrorState message="Ошибка загрузки данных главы" />;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <AuthGuard requiredRole="admin">
+      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+        <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-[var(--foreground)] flex items-center gap-2">
             <Edit className="w-6 h-6" />
@@ -287,9 +289,10 @@ export default function ChapterEditorPage() {
         />
       )}
     </main>
-  );
+  </AuthGuard>
+);
 }
-
+ 
 function LoadingState() {
   return (
     <div className="flex items-center justify-center min-h-[50vh]">

@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthGuard } from "@/guard/auth-guard";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useGetChaptersByTitleQuery, useDeleteChapterMutation, useSearchChaptersQuery } from "@/store/api/chaptersApi";
@@ -48,8 +49,9 @@ export default function ChaptersManagementPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-      <Header />
+    <AuthGuard requiredRole="admin">
+      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+        <Header />
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -114,5 +116,7 @@ export default function ChaptersManagementPage() {
       </div>
       <Footer />
     </main>
-  );
+  </AuthGuard>
+);
 }
+ 

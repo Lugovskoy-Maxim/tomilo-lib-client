@@ -1,5 +1,7 @@
 "use client";
 
+import { AuthGuard } from "@/guard/auth-guard";
+
 import { Footer, Header } from "@/widgets";
 import {
   // Upload,
@@ -169,6 +171,13 @@ const TRANSLATION_MAP: Record<string, string> = {
   "work": "Работа",
   "music": "Музыка",
   "cooking": "Кулинария",
+  "Apocalyptic": "Апокалиптический",
+  "Cruel world": "Жестокий мир",
+  "Game elements": "Игровые элементы",
+  "Murim": "Мурим",
+  "Overpowered protagonist": "",
+  "Zombie": "Зомби",
+// "": "",
 };
 
 // Функция нормализации жанров/тегов
@@ -514,8 +523,9 @@ const handleSubmit = async (e: FormEvent) => {
   if (error) return <ErrorState error={error} />;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-      <Header />
+    <AuthGuard requiredRole="admin">
+      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+        <Header />
       <div className="max-w-6xl mx-auto px-4 py-6">
         <HeaderSection />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -557,9 +567,10 @@ const handleSubmit = async (e: FormEvent) => {
       </div>
       <Footer />
     </main>
+    </AuthGuard>
   );
 }
-
+ 
 // Компоненты состояний (без изменений)
 function LoadingState() {
   return (

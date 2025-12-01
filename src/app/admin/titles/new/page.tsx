@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthGuard } from "@/guard/auth-guard";
 import { Footer, Header } from "@/widgets";
 import { Plus, BookOpen, Tag, Edit, Save } from "lucide-react";
 import Link from "next/link";
@@ -266,8 +267,9 @@ export default function TitleEditorPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
-      <Header />
+    <AuthGuard requiredRole="admin">
+      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+        <Header />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
@@ -622,8 +624,8 @@ export default function TitleEditorPage() {
           </div>
         </form>
       </div>
-
-      <Footer />
-    </main>
-  );
+<Footer />
+</main>
+</AuthGuard>
+);
 }
