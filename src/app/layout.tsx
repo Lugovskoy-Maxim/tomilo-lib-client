@@ -38,14 +38,6 @@ export default function RootLayout({
             ym(105475213, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
           `}
         </Script>
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-95QGC7HGHE"></Script>
-        <Script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments)}
-          gtag('js', new Date());
-        
-          gtag('config', 'G-95QGC7HGHE');
-        </Script>
         <noscript>
           <div>
             <img src="https://mc.yandex.ru/watch/105475213" style={{position:'absolute', left:-9999}} alt="" />
