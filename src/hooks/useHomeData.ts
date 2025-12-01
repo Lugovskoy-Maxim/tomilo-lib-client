@@ -55,6 +55,7 @@ export const useHomeData = () => {
     year: item.releaseYear || new Date().getFullYear(),
     rating: item.rating || 0,
     genres: [], // Сервер не возвращает жанры для популярных тайтлов
+    isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
   })) || [];
 
   // Преобразование топ тайтлов за день
@@ -67,6 +68,7 @@ export const useHomeData = () => {
     year: item.releaseYear || new Date().getFullYear(),
     rating: item.rating || 0,
     genres: [], // Сервер не возвращает жанры для топ тайтлов
+    isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
   })) || [];
 
   // Преобразование топ тайтлов за неделю
@@ -79,6 +81,7 @@ export const useHomeData = () => {
     year: item.releaseYear || new Date().getFullYear(),
     rating: item.rating || 0,
     genres: [], // Сервер не возвращает жанры для топ тайтлов
+    isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
   })) || [];
 
   // Преобразование топ тайтлов за месяц
@@ -91,7 +94,7 @@ export const useHomeData = () => {
     year: item.releaseYear || new Date().getFullYear(),
     rating: item.rating || 0,
     genres: [], // Сервер не возвращает жанры для топ тайтлов
-    isAdult: item.rating !== undefined && item.rating >= 18, // Используем rating как замену ageLimit
+    isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
   })) || [];
 
   // Преобразование прогресса чтения (сортировка по дате последнего чтения, самые свежие сначала)

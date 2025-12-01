@@ -141,11 +141,11 @@ export const titlesApi = createApi({
     // Получить популярные тайтлы
     getPopularTitles: builder.query<ApiResponseDto<{
       type: string;
-      releaseYear: number; id: string; title: string; cover?: string; description?: string; rating?: number
+      releaseYear: number; id: string; title: string; cover?: string; description?: string; rating?: number; isAdult?: boolean
 }[]>, void>({
       query: () => "/titles/popular",
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number; type: string; releaseYear: number; }[]>) => response,
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number; type: string; releaseYear: number; isAdult?: boolean }[]>) => response,
     }),
 
     // Получить топ тайтлы за день
@@ -157,13 +157,14 @@ export const titlesApi = createApi({
       type: string;
       releaseYear: number;
       description: string;
+      isAdult?: boolean;
     }[]>, { limit?: number }>({
       query: (params) => ({
         url: "/titles/top/day",
         params,
       }),
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; }[]>) => response,
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; isAdult?: boolean }[]>) => response,
     }),
 
     // Получить топ тайтлы за неделю
@@ -175,13 +176,14 @@ export const titlesApi = createApi({
       type: string;
       releaseYear: number;
       description: string;
+      isAdult?: boolean;
     }[]>, { limit?: number }>({
       query: (params) => ({
         url: "/titles/top/week",
         params,
       }),
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; }[]>) => response,
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; isAdult?: boolean }[]>) => response,
     }),
 
     // Получить топ тайтлы за месяц
@@ -193,13 +195,14 @@ export const titlesApi = createApi({
       type: string;
       releaseYear: number;
       description: string;
+      isAdult?: boolean;
     }[]>, { limit?: number }>({
       query: (params) => ({
         url: "/titles/top/month",
         params,
       }),
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; }[]>) => response,
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; isAdult?: boolean }[]>) => response,
     }),
 
     // Получить коллекции
