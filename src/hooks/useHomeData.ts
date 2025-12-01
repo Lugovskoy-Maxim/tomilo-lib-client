@@ -1,4 +1,10 @@
-import { useGetPopularTitlesQuery, useGetTopTitlesDayQuery, useGetTopTitlesWeekQuery, useGetTopTitlesMonthQuery } from "@/store/api/titlesApi";
+import {
+  useGetPopularTitlesQuery,
+  useGetTopTitlesDayQuery,
+  useGetTopTitlesWeekQuery,
+  useGetTopTitlesMonthQuery,
+  useSearchTitlesQuery,
+} from "@/store/api/titlesApi";
 import { useGetReadingHistoryQuery } from "@/store/api/authApi";
 import { Chapter } from "@/types/title";
 
@@ -8,6 +14,7 @@ export const useHomeData = () => {
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
 
+  
   // Популярные тайтлы
   const {
     data: popularTitlesData,
@@ -36,6 +43,45 @@ export const useHomeData = () => {
     error: topTitlesMonthError,
   } = useGetTopTitlesMonthQuery({ limit: 10 });
 
+  // Топ тайтлы Маньхуа
+  const {
+    data: topManhuaData,
+    isLoading: topManhuaLoading,
+    error: topManhuaError,
+  } = useSearchTitlesQuery({
+    search: "",
+    type: "manhua",
+    sortBy: "views",
+    sortOrder: "desc",
+    limit: 8,
+  });
+
+  // Топ тайтлы Манхва
+  const {
+    data: topManhwaData,
+    isLoading: topManhwaLoading,
+    error: topManhwaError,
+  } = useSearchTitlesQuery({
+    search: "",
+    type: "manhwa",
+    sortBy: "views",
+    sortOrder: "desc",
+    limit: 8,
+  });
+
+  // Топ тайтлы 2025 года
+  const {
+    data: top2025Data,
+    isLoading: top2025Loading,
+    error: top2025Error,
+  } = useSearchTitlesQuery({
+    search: "",
+    releaseYear: 2025,
+    sortBy: "views",
+    sortOrder: "desc",
+    limit: 8,
+  });
+
   // История чтения
   const {
     data: readingHistory,
@@ -46,101 +92,170 @@ export const useHomeData = () => {
   });
 
   // Преобразование популярных тайтлов
-  const popularTitles = popularTitlesData?.data?.map(item => ({
-    id: item.id,
-    title: item.title,
-    image: item.cover,
-    description: item.description,
-    type: item.type || "Неуказан",
-    year: item.releaseYear || new Date().getFullYear(),
-    rating: item.rating || 0,
-    genres: [], // Сервер не возвращает жанры для популярных тайтлов
-    isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
-  })) || [];
+  const popularTitles =
+    popularTitlesData?.data?.map((item) => ({
+      id: item.id,
+      title: item.title,
+      image: item.cover,
+      description: item.description,
+      type: item.type || "Неуказан",
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.rating || 0,
+      genres: [], // Сервер не возвращает жанры для популярных тайтлов
+      isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
+    })) || [];
 
   // Преобразование топ тайтлов за день
-  const topTitlesDay = topTitlesDayData?.data?.map(item => ({
-    id: item.id,
-    title: item.title,
-    image: item.cover,
-    description: item.description,
-    type: item.type || "Неуказан",
-    year: item.releaseYear || new Date().getFullYear(),
-    rating: item.rating || 0,
-    genres: [], // Сервер не возвращает жанры для топ тайтлов
-    isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
-  })) || [];
+  const topTitlesDay =
+    topTitlesDayData?.data?.map((item) => ({
+      id: item.id,
+      title: item.title,
+      image: item.cover,
+      description: item.description,
+      type: item.type || "Неуказан",
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.rating || 0,
+      genres: [], // Сервер не возвращает жанры для топ тайтлов
+      isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
+    })) || [];
 
   // Преобразование топ тайтлов за неделю
-  const topTitlesWeek = topTitlesWeekData?.data?.map(item => ({
-    id: item.id,
-    title: item.title,
-    image: item.cover,
-    description: item.description,
-    type: item.type || "Неуказан",
-    year: item.releaseYear || new Date().getFullYear(),
-    rating: item.rating || 0,
-    genres: [], // Сервер не возвращает жанры для топ тайтлов
-    isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
-  })) || [];
+  const topTitlesWeek =
+    topTitlesWeekData?.data?.map((item) => ({
+      id: item.id,
+      title: item.title,
+      image: item.cover,
+      description: item.description,
+      type: item.type || "Неуказан",
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.rating || 0,
+      genres: [], // Сервер не возвращает жанры для топ тайтлов
+      isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
+    })) || [];
 
   // Преобразование топ тайтлов за месяц
-  const topTitlesMonth = topTitlesMonthData?.data?.map(item => ({
-    id: item.id,
-    title: item.title,
-    image: item.cover,
-    description: item.description,
-    type: item.type || "Неуказан",
-    year: item.releaseYear || new Date().getFullYear(),
-    rating: item.rating || 0,
-    genres: [], // Сервер не возвращает жанры для топ тайтлов
-    isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
-  })) || [];
+  const topTitlesMonth =
+    topTitlesMonthData?.data?.map((item) => ({
+      id: item.id,
+      title: item.title,
+      image: item.cover,
+      description: item.description,
+      type: item.type || "Неуказан",
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.rating || 0,
+      genres: [], // Сервер не возвращает жанры для топ тайтлов
+      isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
+    })) || [];
+
+  // Преобразование топ тайтлов Маньхуа
+  const topManhua =
+    topManhuaData?.data?.data?.map((item) => ({
+      id: item._id,
+      title: item.name,
+      image: item.coverImage || "",
+      description: item.description,
+      type: item.type || "Неуказан",
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.rating || 0,
+      genres: item.genres || [],
+      isAdult: item.isAdult ?? false,
+    })) || [];
+
+  // Преобразование топ тайтлов Манхва
+  const topManhwa =
+    topManhwaData?.data?.data?.map((item) => ({
+      id: item._id,
+      title: item.name,
+      image: item.coverImage || "",
+      description: item.description,
+      type: item.type || "Неуказан",
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.rating || 0,
+      genres: item.genres || [],
+      isAdult: item.isAdult ?? false,
+    })) || [];
+
+  // Преобразование топ тайтлов 2025 года
+  const top2025 =
+    top2025Data?.data?.data?.map((item) => ({
+      id: item._id,
+      title: item.name,
+      image: item.coverImage || "",
+      description: item.description,
+      type: item.type || "Неуказан",
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.rating || 0,
+      genres: item.genres || [],
+      isAdult: item.isAdult ?? false,
+    })) || [];
 
   // Преобразование прогресса чтения (сортировка по дате последнего чтения, самые свежие сначала)
-  const readingProgress = readingHistory?.data?.map(item => {
-    // Проверяем, что chapters существует и это массив
-    const chaptersArray = item.chapters && Array.isArray(item.chapters) ? item.chapters : [];
+  const readingProgress =
+    readingHistory?.data
+      ?.map((item) => {
+        // Проверяем, что chapters существует и это массив
+        const chaptersArray =
+          item.chapters && Array.isArray(item.chapters) ? item.chapters : [];
 
-    const latestChapter = chaptersArray.length > 0 ? chaptersArray.reduce((latest, current) => {
-      return new Date(current.readAt) > new Date(latest.readAt) ? current : latest;
-    }) : null;
+        const latestChapter =
+          chaptersArray.length > 0
+            ? chaptersArray.reduce((latest, current) => {
+                return new Date(current.readAt) > new Date(latest.readAt)
+                  ? current
+                  : latest;
+              })
+            : null;
 
-    // Безопасное получение данных о тайтле
-    const titleData = item.titleId && typeof item.titleId === 'object' ? item.titleId : {};
-    const titleId = typeof item.titleId === 'string' ? item.titleId : (titleData as { _id?: string })._id || '';
+        // Безопасное получение данных о тайтле
+        const titleData =
+          item.titleId && typeof item.titleId === "object" ? item.titleId : {};
+        const titleId =
+          typeof item.titleId === "string"
+            ? item.titleId
+            : (titleData as { _id?: string })._id || "";
 
-    const titleChapters = (titleData as { chapters?: Chapter[] }).chapters || [];
-    const totalChapters = titleChapters.length;
-    const currentChapter = latestChapter?.chapterNumber || 0;
+        const titleChapters =
+          (titleData as { chapters?: Chapter[] }).chapters || [];
+        const totalChapters = titleChapters.length;
+        const currentChapter = latestChapter?.chapterNumber || 0;
 
-    // Calculate new chapters based on release date vs last read date
-    const lastReadDate = latestChapter ? new Date(latestChapter.readAt) : new Date(0);
-    const newChapters = titleChapters.filter((ch: Chapter) =>
-      ch.releaseDate && new Date(ch.releaseDate) > lastReadDate
-    ).length;
+        // Calculate new chapters based on release date vs last read date
+        const lastReadDate = latestChapter
+          ? new Date(latestChapter.readAt)
+          : new Date(0);
+        const newChapters = titleChapters.filter(
+          (ch: Chapter) =>
+            ch.releaseDate && new Date(ch.releaseDate) > lastReadDate
+        ).length;
 
-    return {
-      id: titleId,
-      title: (titleData as { name?: string }).name || `Манга #${titleId}`,
-      cover: (titleData as { coverImage?: string }).coverImage || "",
-      currentChapter: currentChapter,
-      totalChapters,
-      newChaptersSinceLastRead: newChapters,
-      type: (titleData as { type?: string }).type || "Неуказан",
-      readingHistory: latestChapter ? {
-        titleId,
-        chapterId: latestChapter.chapterId,
-        chapterNumber: latestChapter.chapterNumber,
-        lastReadDate: latestChapter.readAt,
-      } : undefined,
-      // Добавляем timestamp для сортировки
-      lastReadTimestamp: latestChapter ? new Date(latestChapter.readAt).getTime() : 0,
-    };
-  })
-  .filter(item => item.currentChapter <= item.totalChapters && item.totalChapters > 0)
-  // Сортировка по дате последнего чтения (свежие сначала)
-  .sort((a, b) => b.lastReadTimestamp - a.lastReadTimestamp) || [];
+        return {
+          id: titleId,
+          title: (titleData as { name?: string }).name || `Манга #${titleId}`,
+          cover: (titleData as { coverImage?: string }).coverImage || "",
+          currentChapter: currentChapter,
+          totalChapters,
+          newChaptersSinceLastRead: newChapters,
+          type: (titleData as { type?: string }).type || "Неуказан",
+          readingHistory: latestChapter
+            ? {
+                titleId,
+                chapterId: latestChapter.chapterId,
+                chapterNumber: latestChapter.chapterNumber,
+                lastReadDate: latestChapter.readAt,
+              }
+            : undefined,
+          // Добавляем timestamp для сортировки
+          lastReadTimestamp: latestChapter
+            ? new Date(latestChapter.readAt).getTime()
+            : 0,
+        };
+      })
+      .filter(
+        (item) =>
+          item.currentChapter <= item.totalChapters && item.totalChapters > 0
+      )
+      // Сортировка по дате последнего чтения (свежие сначала)
+      .sort((a, b) => b.lastReadTimestamp - a.lastReadTimestamp) || [];
 
   return {
     popularTitles: {
@@ -167,6 +282,21 @@ export const useHomeData = () => {
       data: readingProgress,
       loading: readingHistoryLoading,
       error: readingHistoryError,
+    },
+    topManhua: {
+      data: topManhua,
+      loading: topManhuaLoading,
+      error: topManhuaError,
+    },
+    topManhwa: {
+      data: topManhwa,
+      loading: topManhwaLoading,
+      error: topManhwaError,
+    },
+    top2025: {
+      data: top2025,
+      loading: top2025Loading,
+      error: top2025Error,
     },
   };
 };

@@ -62,6 +62,8 @@ export const titlesApi = createApi({
         search?: string;
         genre?: string;
         status?: string;
+        type?: string;
+        releaseYear?: number;
         sortBy?: string;
         sortOrder?: "asc" | "desc";
         page?: number;
