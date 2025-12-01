@@ -28,6 +28,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const yandexButtonRef = useRef<HTMLDivElement>(null);
+  const vkButtonRef = useRef<HTMLDivElement>(null);
   const [touched, setTouched] = useState<FormTouched<LoginForm>>({
     email: false,
     password: false,
@@ -135,57 +136,137 @@ const LoginModal: React.FC<LoginModalProps> = ({
   useEffect(() => {
     if (isOpen && yandexButtonRef.current) {
       // Очищаем контейнер перед инициализацией
-      yandexButtonRef.current.innerHTML = '';
-      
+      yandexButtonRef.current.innerHTML = "";
+
       // Проверяем, что YaAuthSuggest доступен
-      if (typeof window !== 'undefined' && window.YaAuthSuggest) {
+      if (typeof window !== "undefined" && window.YaAuthSuggest) {
         const tokenPageOrigin = window.location.origin;
-        
+
         window.YaAuthSuggest.init(
           {
-            client_id: 'ffd24e1c16544069bc7a1e8c66316f37',
-            response_type: 'token',
-            redirect_uri: 'https://tomilo-lib.ru/auth/yandex'
+            client_id: "ffd24e1c16544069bc7a1e8c66316f37",
+            response_type: "token",
+            redirect_uri: "https://tomilo-lib.ru/auth/yandex",
           },
           tokenPageOrigin,
           {
             view: "button",
             parentId: "yandexButtonContainer",
-            buttonSize: 'm',
-            buttonView: 'main',
-            buttonTheme: 'light',
+            buttonSize: "m",
+            buttonView: "main",
+            buttonTheme: "light",
             buttonBorderRadius: "22",
-            buttonIcon: 'ya',
+            buttonIcon: "ya",
           }
         )
-        .then((result: {handler: () => Promise<unknown>}) => {
-          // Создаем контейнер для кнопки
-          const container = document.createElement('div');
-          container.id = 'yandexButtonContainer';
-          yandexButtonRef.current?.appendChild(container);
-          
-          return result.handler();
-        })
-        .then((data: unknown) => {
-          // Явно типизируем data как объект с нужными полями
-          const tokenData = data as {access_token: string, expires_in: string};
-          console.log('Сообщение с токеном', tokenData);
-          // Здесь будет обработка токена авторизации
-        })
-        .catch((error: {error: string, error_description: string}) => {
-          console.log('Обработка ошибки', error);
-        });
+          .then((result: { handler: () => Promise<unknown> }) => {
+            // Создаем контейнер для кнопки
+            const container = document.createElement("div");
+            container.id = "yandexButtonContainer";
+            yandexButtonRef.current?.appendChild(container);
+
+            return result.handler();
+          })
+          .then((data: unknown) => {
+            // Явно типизируем data как объект с нужными полями
+            const tokenData = data as {
+              access_token: string;
+              expires_in: string;
+            };
+            console.log("Сообщение с токеном", tokenData);
+            // Здесь будет обработка токена авторизации
+          })
+          .catch((error: { error: string; error_description: string }) => {
+            console.log("Обработка ошибки", error);
+          });
       } else {
         // Для локальной разработки показываем тестовую кнопку
         if (yandexButtonRef.current) {
-          const testButton = document.createElement('button');
-          testButton.textContent = 'Войти через Яндекс (локально)';
-          testButton.className = 'w-full py-3 bg-[#FFDB4D] text-black rounded-lg font-medium hover:bg-[#F0CA4D] transition-colors';
+          const testButton = document.createElement("button");
+          testButton.textContent = "Войти через Яндекс (локально)";
+          testButton.className =
+            "w-full py-3 bg-[#FFDB4D] text-black rounded-lg font-medium hover:bg-[#F0CA4D] transition-colors";
           testButton.onclick = () => {
-            console.log('Тестовая авторизация через Яндекс');
+            console.log("Тестовая авторизация через Яндекс");
             // Здесь можно добавить тестовую авторизацию для локальной разработки
           };
           yandexButtonRef.current.appendChild(testButton);
+        }
+      }
+    }
+  }, [isOpen]);
+
+  // Инициализация виджета VK авторизации
+  useEffect(() => {
+    if (isOpen && vkButtonRef.current) {
+      // Очищаем контейнер перед инициализацией
+      vkButtonRef.current.innerHTML = "";
+
+      // Проверяем, что VKIDSDK доступен
+      if (typeof window !== "undefined" && window.VKIDSDK) {
+        const VKID = window.VKIDSDK;
+
+        try {
+          // Инициализация конфигурации
+          VKID.Config.init({
+            app: 54369328,
+            redirectUrl: "https://tomilo-lib.ru/auth/vk",
+            responseMode: VKID.Config.ResponseMode.Callback,
+            source: VKID.Config.Source.LOWCODE,
+            scope: "",
+          });
+
+          // Создаем контейнер для кнопки
+          const container = document.createElement("div");
+          container.id = "vkButtonContainer";
+          vkButtonRef.current.appendChild(container);
+
+          // Создаем виджет OneTap
+          const oneTap = new VKID.OneTap();
+
+          oneTap
+            .render({
+              container: "#vkButtonContainer",
+              showAlternativeLogin: true,
+              styles: {
+                borderRadius: 50,
+              },
+            })
+            .on(VKID.WidgetEvents.ERROR, (error: unknown) => {
+              console.log("Ошибка VK авторизации", error);
+            })
+            .on(
+              VKID.OneTapInternalEvents.LOGIN_SUCCESS,
+              function (payload: unknown) {
+                const typedPayload = payload as { code: string; device_id: string };
+                const code = typedPayload.code;
+                const deviceId = typedPayload.device_id;
+
+                VKID.Auth.exchangeCode(code, deviceId)
+                  .then((data: unknown) => {
+                    console.log("Успешная авторизация через VK", data);
+                    // Здесь будет обработка токена авторизации
+                  })
+                  .catch((error: unknown) => {
+                    console.log("Ошибка обмена кода VK", error);
+                  });
+              }
+            );
+        } catch (error) {
+          console.log("Ошибка инициализации VKID", error);
+        }
+      } else {
+        // Для локальной разработки показываем тестовую кнопку
+        if (vkButtonRef.current) {
+          const testButton = document.createElement("button");
+          testButton.textContent = "Войти через ВКонтакте (локально)";
+          testButton.className =
+            "w-full py-3 bg-[#4A76A8] text-white rounded-lg font-medium hover:bg-[#426A95] transition-colors";
+          testButton.onclick = () => {
+            console.log("Тестовая авторизация через ВКонтакте");
+            // Здесь можно добавить тестовую авторизацию для локальной разработки
+          };
+          vkButtonRef.current.appendChild(testButton);
         }
       }
     }
@@ -206,7 +287,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* Показываем ошибку от сервера */}
         {errorMessage && (
-          <div 
+          <div
             className="p-3 bg-red-50 border border-red-200 rounded-lg animate-fadeIn"
             role="alert"
             aria-live="assertive"
@@ -219,16 +300,17 @@ const LoginModal: React.FC<LoginModalProps> = ({
         )}
 
         <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-medium text-[var(--foreground)]">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-[var(--foreground)]"
+          >
             Email
           </label>
           <div className="relative">
-            <Mail 
+            <Mail
               className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                errors.email 
-                  ? "text-red-500" 
-                  : "text-[var(--muted-foreground)]"
-              }`} 
+                errors.email ? "text-red-500" : "text-[var(--muted-foreground)]"
+              }`}
             />
             <input
               id="email"
@@ -238,8 +320,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
               onChange={handleChange("email")}
               onBlur={handleBlur("email")}
               className={`w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                errors.email 
-                  ? "border-red-500 focus:ring-red-500/20" 
+                errors.email
+                  ? "border-red-500 focus:ring-red-500/20"
                   : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
               }`}
               required
@@ -251,7 +333,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
             />
           </div>
           {errors.email && (
-            <p id="email-error" className="text-xs text-red-500 flex items-center gap-1">
+            <p
+              id="email-error"
+              className="text-xs text-red-500 flex items-center gap-1"
+            >
               <span className="w-1 h-1 bg-red-500 rounded-full"></span>
               {errors.email}
             </p>
@@ -260,7 +345,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label htmlFor="password" className="block text-sm font-medium text-[var(--foreground)]">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-[var(--foreground)]"
+            >
               Пароль
             </label>
             <button
@@ -272,12 +360,12 @@ const LoginModal: React.FC<LoginModalProps> = ({
             </button>
           </div>
           <div className="relative">
-            <Lock 
+            <Lock
               className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                errors.password 
-                  ? "text-red-500" 
+                errors.password
+                  ? "text-red-500"
                   : "text-[var(--muted-foreground)]"
-              }`} 
+              }`}
             />
             <input
               id="password"
@@ -287,8 +375,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
               onChange={handleChange("password")}
               onBlur={handleBlur("password")}
               className={`w-full pl-10 pr-10 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                errors.password 
-                  ? "border-red-500 focus:ring-red-500/20" 
+                errors.password
+                  ? "border-red-500 focus:ring-red-500/20"
                   : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
               }`}
               required
@@ -313,7 +401,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
             </button>
           </div>
           {errors.password && (
-            <p id="password-error" className="text-xs text-red-500 flex items-center gap-1">
+            <p
+              id="password-error"
+              className="text-xs text-red-500 flex items-center gap-1"
+            >
               <span className="w-1 h-1 bg-red-500 rounded-full"></span>
               {errors.password}
             </p>
@@ -336,8 +427,20 @@ const LoginModal: React.FC<LoginModalProps> = ({
         </button>
       </form>
 
-      {/* Контейнер для кнопки Яндекс авторизации */}
-      <div ref={yandexButtonRef} className="px-6 py-4 flex justify-center" />
+      {/* Разделитель */}
+      <div className="px-6 py-2 flex items-center">
+        <div className="flex-grow border-t border-[var(--border)]"></div>
+        <span className="flex-shrink mx-4 text-xs text-[var(--muted-foreground)]">
+          или
+        </span>
+        <div className="flex-grow border-t border-[var(--border)]"></div>
+      </div>
+
+      {/* Контейнеры для кнопок авторизации */}
+      <div className="px-6 py-2 space-y-3">
+        <div ref={yandexButtonRef} className="flex justify-center" />
+        <div ref={vkButtonRef} className="flex justify-center" />
+      </div>
 
       <div className="p-6 border-t border-[var(--border)] text-center">
         <p className="text-sm text-[var(--muted-foreground)]">

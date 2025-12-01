@@ -21,4 +21,43 @@ interface Window {
       handler: () => Promise<unknown>;
     }>;
   };
+  
+  // Расширение для VK авторизации
+  VKIDSDK: {
+    Config: {
+      init: (params: {
+        app: number;
+        redirectUrl: string;
+        responseMode: string;
+        source: string;
+        scope: string;
+      }) => void;
+      ResponseMode: {
+        Callback: string;
+      };
+      Source: {
+        LOWCODE: string;
+      };
+    };
+    OneTap: new () => {
+      render: (params: {
+        container: string;
+        showAlternativeLogin: boolean;
+        styles: { borderRadius: number };
+      }) => VKIDWidget;
+    };
+    Auth: {
+      exchangeCode: (code: string, deviceId: string) => Promise<unknown>;
+    };
+    WidgetEvents: {
+      ERROR: string;
+    };
+    OneTapInternalEvents: {
+      LOGIN_SUCCESS: string;
+    };
+  };
+}
+
+interface VKIDWidget {
+  on: (event: string, callback: (payload: unknown) => void) => VKIDWidget;
 }
