@@ -30,6 +30,15 @@ export const collectionsApi = createApi({
   reducerPath: "collectionsApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+    prepareHeaders: (headers) => {
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("tomilo_lib_token");
+        if (token) {
+          headers.set("authorization", `Bearer ${token}`);
+        }
+      }
+      return headers;
+    },
   }),
   tagTypes: [COLLECTIONS_TAG],
   endpoints: (builder) => ({
