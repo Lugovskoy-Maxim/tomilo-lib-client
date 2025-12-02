@@ -55,18 +55,19 @@ const DataCarousel = ({
 }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
 any) => {
   if (loading) return <CarouselSkeleton />;
-if (error) {
-  return (
-    <div className="text-red-600 font-semibold p-4">
-      Ошибка загрузки {title}. Пожалуйста, попробуйте позже.
-    </div>
-  );
-}
-  if (!data?.length) return (
-    <div className="text-[var(--muted-foreground)] font-semibold p-4">
-      Нет данных для отображения {title}
-    </div>
-  );
+  if (error) {
+    return (
+      <div className="text-red-600 font-semibold p-4">
+        Ошибка загрузки {title}. Пожалуйста, попробуйте позже.
+      </div>
+    );
+  }
+  if (!data?.length)
+    return (
+      <div className="text-[var(--muted-foreground)] font-semibold p-4">
+        Нет данных для отображения {title}
+      </div>
+    );
   return (
     <Carousel
       title={title}
@@ -79,14 +80,14 @@ if (error) {
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
-  const [activePeriod, setActivePeriod] = useState<"day" | "week" | "month">(
-    "day"
-  );
+  // const [activePeriod, setActivePeriod] = useState<"day" | "week" | "month">(
+  //   "day"
+  // );
   const {
     popularTitles,
-    topTitlesDay,
-    topTitlesWeek,
-    topTitlesMonth,
+    // topTitlesDay,
+    // topTitlesWeek,
+    // topTitlesMonth,
     readingProgress,
     topManhua,
     topManhwa,
@@ -94,27 +95,29 @@ export default function Home() {
   } = useHomeData();
   const { collections, latestUpdates } = useStaticData();
 
-  const getActiveTopTitles = () => {
-    switch (activePeriod) {
-      case "day":
-        return topTitlesDay;
-      case "week":
-        return topTitlesWeek;
-      case "month":
-        return topTitlesMonth;
-      default:
-        return topTitlesDay;
-    }
-  };
+  // const getActiveTopTitles = () => {
+  //   switch (activePeriod) {
+  //     case "day":
+  //       return topTitlesDay;
+  //     case "week":
+  //       return topTitlesWeek;
+  //     case "month":
+  //       return topTitlesMonth;
+  //     default:
+  //       return topTitlesDay;
+  //   }
+  // };
 
-  const activeTopTitles = getActiveTopTitles();
+  // const activeTopTitles = getActiveTopTitles();
 
   // SEO для главной страницы
   useSEO(seoConfigs.home);
 
   useEffect(() => {
     setMounted(true);
-    pageTitle.setTitlePage("Tomilo-lib.ru - Платформа для чтения манги и комиксов");
+    pageTitle.setTitlePage(
+      "Tomilo-lib.ru - Платформа для чтения манги и комиксов"
+    );
   }, []);
 
   if (!mounted) {
@@ -135,7 +138,7 @@ export default function Home() {
     <>
       <Header />
       <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16">
-        {/* Топ тайтлы с переключателем периода */}
+        {/* Топ тайтлы с переключателем периода
 
         <div className="w-full mx-auto">
           <div className="flex items-center justify-between">
@@ -176,7 +179,20 @@ export default function Home() {
             cardWidth="w-30 sm:w-30 md:w-35 lg:w-40"
             showNavigation={true}
           />
-        </div>
+        </div> */}
+
+                {/* Популярные тайтлы */}
+        <DataCarousel
+          title="Популярные тайтлы"
+          data={popularTitles.data}
+          loading={popularTitles.loading}
+          error={popularTitles.error}
+          cardComponent={CarouselCard}
+          type="browse"
+          icon={<Trophy className="w-6 h-6" />}
+          navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
+          cardWidth="w-30 sm:w-30 md:w-35 lg:w-40"
+        />
 
         {/* Коллекции */}
         <DataCarousel
@@ -192,6 +208,39 @@ export default function Home() {
           icon={<LibraryIcon className="w-6 h-6" />}
           showNavigation={false}
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
+        />
+
+        {/* Объединенная секция топ манхв, маньхуа и новинок 2025 */}
+        <TopCombinedSection
+          data={{
+            topManhwa: (topManhwa.data || []).slice(0, 5).map((item) => ({
+              id: item.id,
+              title: item.title,
+              coverImage: item.image, // <-- исправлено здесь
+              type: item.type,
+              year: item.year,
+              rating: item.rating,
+              views: item.views || "0К", // Добавляем views, если нужно
+            })),
+            top2025: (top2025.data || []).slice(0, 5).map((item) => ({
+              id: item.id,
+              title: item.title,
+              coverImage: item.image, // <-- исправлено здесь
+              type: item.type,
+              year: item.year,
+              rating: item.rating,
+              views: item.views || "0К",
+            })),
+            topManhua: (topManhua.data || []).slice(0, 5).map((item) => ({
+              id: item.id,
+              title: item.title,
+              coverImage: item.image, // <-- исправлено здесь
+              type: item.type,
+              year: item.year,
+              rating: item.rating,
+              views: item.views || "0К",
+            })),
+          }}
         />
 
         {/* Продолжить чтение */}
@@ -210,28 +259,8 @@ export default function Home() {
           cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
         />
 
-        {/* Популярные тайтлы */}
-        <DataCarousel
-          title="Популярные тайтлы"
-          data={popularTitles.data}
-          loading={popularTitles.loading}
-          error={popularTitles.error}
-          cardComponent={CarouselCard}
-          type="browse"
-          icon={<Trophy className="w-6 h-6" />}
-          navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-          cardWidth="w-30 sm:w-30 md:w-35 lg:w-40"
-        />
 
-        
-                {/* Объединенная секция топ манхв, маньхуа и новинок 2025 */}
-                <TopCombinedSection
-                  data={{
-                    topManhwa: topManhwa.data,
-                    topManhua: topManhua.data,
-                    top2025: top2025.data,
-                  }}
-                />
+
         {/* Последние обновления */}
         {latestUpdates.loading ? (
           <GridSkeleton />
@@ -251,4 +280,3 @@ export default function Home() {
     </>
   );
 }
-

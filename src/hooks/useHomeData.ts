@@ -53,7 +53,7 @@ export const useHomeData = () => {
     type: "manhua",
     sortBy: "views",
     sortOrder: "desc",
-    limit: 8,
+    limit: 5,
   });
 
   // Топ тайтлы Манхва
@@ -66,7 +66,7 @@ export const useHomeData = () => {
     type: "manhwa",
     sortBy: "views",
     sortOrder: "desc",
-    limit: 8,
+    limit: 5,
   });
 
   // Топ тайтлы 2025 года
@@ -79,7 +79,7 @@ export const useHomeData = () => {
     releaseYear: 2025,
     sortBy: "views",
     sortOrder: "desc",
-    limit: 8,
+    limit: 5,
   });
 
   // История чтения
@@ -155,6 +155,7 @@ export const useHomeData = () => {
       image: item.coverImage || "",
       description: item.description,
       type: item.type || "Неуказан",
+      views: item.views || 0,
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.rating || 0,
       genres: item.genres || [],
@@ -168,6 +169,7 @@ export const useHomeData = () => {
       title: item.name,
       image: item.coverImage || "",
       description: item.description,
+      views: item.views || 0,
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.rating || 0,
@@ -182,6 +184,7 @@ export const useHomeData = () => {
       title: item.name,
       image: item.coverImage || "",
       description: item.description,
+      views: item.views || 0,
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.rating || 0,
