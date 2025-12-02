@@ -24,6 +24,7 @@ import {
 } from "@/types/auto-parsing";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
+import { formatDate } from "@/lib/date-utils";
 
 export function AutoParsingSection() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -147,7 +148,7 @@ export function AutoParsingSection() {
                         Задача {job._id.slice(-8)}
                       </h3>
                       <p className="text-sm text-[var(--muted-foreground)]">
-                        Title: {job.titleId.name}
+                        Title: {job.titleId?.name || "Не указан"}
                       </p>
                     </div>
                   </div>
@@ -210,7 +211,7 @@ export function AutoParsingSection() {
                       Создано:
                     </span>
                     <p className="text-[var(--foreground)] mt-1">
-                      {new Date(job.createdAt).toLocaleString()}
+                      {formatDate(job.createdAt)}
                     </p>
                   </div>
                 </div>
@@ -220,7 +221,7 @@ export function AutoParsingSection() {
                     Обновлено:
                   </span>
                   <p className="text-sm text-[var(--foreground)] mt-1">
-                    {new Date(job.updatedAt).toLocaleString()}
+                    {formatDate(job.updatedAt)}
                   </p>
                 </div>
               </div>
@@ -276,7 +277,7 @@ function JobModal({
   setTitleSearch,
   onSelectTitle,
 }: JobModalProps) {
-  const [titleId, setTitleId] = useState(job?.titleId._id || "");
+  const [titleId, setTitleId] = useState(job?.titleId?._id || "");
   const [url, setUrl] = useState(job?.url || "");
   const [frequency, setFrequency] = useState(job?.frequency || "daily");
   const [enabled, setEnabled] = useState(job?.enabled ?? true);

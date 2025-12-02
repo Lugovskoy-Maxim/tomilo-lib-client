@@ -54,7 +54,7 @@ export default function AdminPage() {
 
   return (
     <AuthGuard requiredRole="admin">
-      <main className="flex flex-col  min-h-screen h-full bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+      <main className="flex flex-col min-h-screen h-full bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
 
         <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col flex-1">
