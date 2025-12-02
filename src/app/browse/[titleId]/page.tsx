@@ -11,6 +11,7 @@ import {
   useIncrementViewsMutation,
   useGetTitleByIdQuery,
 } from "@/store/api/titlesApi";
+import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { LeftSidebar, RightContent } from "@/shared/browse/title-view";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,47 +19,7 @@ import Image from "next/image";
 import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
 
-// Клиентская фильтрация и пагинация глав из titleData
-function filterAndPaginateChapters(
-  allChapters: Chapter[] = [],
-  page: number,
-  limit: number,
-  search: string,
-  sortOrder: 'desc' | 'asc' = 'desc'
-): { chapters: Chapter[]; total: number; hasMore: boolean } {
-  const normalized = (search || "").trim().toLowerCase();
-  let filtered = allChapters;
 
-  if (normalized) {
-    const isNumeric = !isNaN(parseFloat(normalized)) && isFinite(Number(normalized));
-    if (isNumeric) {
-      // Exact match for numeric searches
-      filtered = allChapters.filter((ch) => ch.chapterNumber === parseFloat(normalized));
-    } else {
-      // Partial match for text searches
-      filtered = allChapters.filter((ch) => {
-        const titleText = (ch.title || "").toLowerCase();
-        const titleMatch = titleText.includes(normalized);
-        const comboMatch = `глава ${ch.chapterNumber} ${ch.title || ""}`
-          .toLowerCase()
-          .includes(normalized);
-        return titleMatch || comboMatch;
-      });
-    }
-  }
-
-  // Сортировка по номеру главы
-  filtered = [...filtered].sort((a, b) => sortOrder === 'desc' ? b.chapterNumber - a.chapterNumber : a.chapterNumber - b.chapterNumber);
-
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const pageItems = filtered.slice(start, end);
-  return {
-    chapters: pageItems,
-    total: filtered.length,
-    hasMore: end < filtered.length,
-  };
-}
 
 export default function TitleViewPage() {
   const params = useParams();
@@ -69,36 +30,14 @@ export default function TitleViewPage() {
   // Remove unused existingTitle
   // const titlesState = useSelector((state: RootState) => state.titles);
 
-  // RTK Query hooks
+  // RTK Query hooks - load title without chapters for better performance
   const {
     data: titleDataRaw,
     isLoading: titleLoading,
     error: titleError,
-  } = useGetTitleByIdQuery(titleId);
+  } = useGetTitleByIdQuery({ id: titleId, includeChapters: false });
 
   const [incrementViews] = useIncrementViewsMutation();
-
-  // Состояния для глав
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-
-  // Wrap data in useMemo to prevent useMemo dependency warning
-  const processedTitleData = useMemo(
-    () => titleDataRaw?.data || null,
-    [titleDataRaw]
-  );
-  const processedChaptersData = useMemo(
-    () => processedTitleData?.chapters || [],
-    [processedTitleData]
-  );
-
-  // Simplify isAdmin state usage
-  const isAdmin = user?.role == "admin";
-
-  const [chaptersPage, setChaptersPage] = useState(1);
-  const [hasMoreChapters, setHasMoreChapters] = useState(true);
-  const [chaptersLoadingState, setChaptersLoadingState] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   // Состояния UI
   const [activeTab, setActiveTab] = useState<
@@ -108,6 +47,50 @@ export default function TitleViewPage() {
 
   // Флаг для предотвращения множественных инкрементов просмотров
   const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
+
+  // Состояния для глав
+  const [chaptersPage, setChaptersPage] = useState(1);
+  const [hasMoreChapters, setHasMoreChapters] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
+  // Wrap data in useMemo to prevent useMemo dependency warning
+  const processedTitleData = useMemo(
+    () => titleDataRaw?.data || null,
+    [titleDataRaw]
+  );
+
+  // Use paginated chapters API instead of loading all chapters upfront
+  const {
+    data: chaptersData,
+    isLoading: chaptersLoading,
+    error: chaptersError,
+  } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: chaptersPage,
+      limit: 25, // Load 25 chapters per page
+      sortOrder: sortOrder === 'desc' ? 'desc' : 'asc',
+    },
+    {
+      skip: activeTab !== 'chapters', // Only load when chapters tab is active
+    }
+  );
+
+  const processedChaptersData = useMemo(
+    () => chaptersData?.chapters || [],
+    [chaptersData]
+  );
+
+  // Update hasMoreChapters based on API response
+  useEffect(() => {
+    if (chaptersData) {
+      setHasMoreChapters(chaptersData.hasMore);
+    }
+  }, [chaptersData]);
+
+  // Simplify isAdmin state usage
+  const isAdmin = user?.role == "admin";
 
   const isLoading = titleLoading;
   // Suppress error if user not authorized
@@ -131,65 +114,35 @@ export default function TitleViewPage() {
     setHasIncrementedViews(false);
   }, [titleId]);
 
-  // Загрузка глав
-  const loadChapters = useCallback(
-    (page: number, search: string = "", append: boolean = false) => {
-      if (chaptersLoadingState) return;
-      setChaptersLoadingState(true);
-      try {
-        const source = processedChaptersData;
-        const limit = 25; // Fixed limit of 25 chapters per page
-        const result = filterAndPaginateChapters(source, page, limit, search, sortOrder);
+  // Load more chapters using server-side pagination
+  const loadMoreChapters = useCallback(() => {
+    if (!chaptersLoading && hasMoreChapters) {
+      setChaptersPage(prev => prev + 1);
+    }
+  }, [chaptersLoading, hasMoreChapters]);
 
-        if (append) {
-          setChapters((prev) => [...prev, ...result.chapters]);
-        } else {
-          setChapters(result.chapters);
-        }
-        setHasMoreChapters(result.hasMore);
-      } finally {
-        setChaptersLoadingState(false);
-      }
-    },
-    [chaptersLoadingState, processedChaptersData, sortOrder]
-  );
-
-  // Первоначальная загрузка глав
+  // Reset pagination when tab changes
   useEffect(() => {
     if (activeTab === "chapters") {
-      setChapters([]);
       setChaptersPage(1);
-      // При переключении на вкладку глав, данные будут загружены из title data
     }
   }, [activeTab]);
-  
-  // Обновление списка глав при изменении данных от API
-  useEffect(() => {
-    if (activeTab === "chapters" && processedChaptersData) {
-      // Загружаем первую страницу глав
-      loadChapters(1, searchQuery, false);
-    }
-  }, [activeTab, processedChaptersData, loadChapters, searchQuery]);
 
   // Обработчики
   const handleLoadMoreChapters = () => {
-    if (hasMoreChapters && !chaptersLoadingState) {
-      const nextPage = chaptersPage + 1;
-      setChaptersPage(nextPage);
-      loadChapters(nextPage, searchQuery, true);
+    if (hasMoreChapters && !chaptersLoading) {
+      setChaptersPage(prev => prev + 1);
     }
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setChaptersPage(1);
-    loadChapters(1, query, false);
   };
 
   const handleSortChange = (order: 'desc' | 'asc') => {
     setSortOrder(order);
     setChaptersPage(1);
-    loadChapters(1, searchQuery, false);
   };
 
   const handleBookmark = () => {
@@ -315,9 +268,9 @@ export default function TitleViewPage() {
                 onDescriptionToggle={() =>
                   setIsDescriptionExpanded(!isDescriptionExpanded)
                 }
-                chapters={chapters}
+                chapters={processedChaptersData}
                 hasMoreChapters={hasMoreChapters}
-                chaptersLoading={chaptersLoadingState}
+                chaptersLoading={chaptersLoading}
                 onLoadMoreChapters={handleLoadMoreChapters}
                 searchQuery={searchQuery}
                 onSearchChange={handleSearchChange}

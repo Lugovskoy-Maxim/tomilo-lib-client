@@ -1,5 +1,4 @@
 "use client";
-import { ReactNode } from "react";
 import { ExternalLink, Trophy } from "lucide-react";
 import Link from "next/link";
 import TopTitleGridCard from "@/shared/top-title-grid-card/top-title-grid-card";

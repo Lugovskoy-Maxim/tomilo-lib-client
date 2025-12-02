@@ -99,9 +99,12 @@ export const titlesApi = createApi({
     }),
 
     // Получить тайтл по ID
-    getTitleById: builder.query<ApiResponseDto<Title>, string>({
-      query: (id) => `/titles/${id}`,
-      providesTags: (result, error, id) => [{ type: TITLES_TAG, id }],
+    getTitleById: builder.query<ApiResponseDto<Title>, { id: string; includeChapters?: boolean }>({
+      query: ({ id, includeChapters = true }) => ({
+        url: `/titles/${id}`,
+        params: { populateChapters: includeChapters.toString() }
+      }),
+      providesTags: (result, error, { id }) => [{ type: TITLES_TAG, id }],
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
