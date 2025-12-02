@@ -56,7 +56,7 @@ export default function TitleViewPage() {
 
   // Wrap data in useMemo to prevent useMemo dependency warning
   const processedTitleData = useMemo(
-    () => titleDataRaw?.data || null,
+    () => titleDataRaw || null,
     [titleDataRaw]
   );
 

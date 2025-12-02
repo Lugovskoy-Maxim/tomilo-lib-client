@@ -23,10 +23,10 @@ function BookmarksSection({
 
   // Загружаем данные о тайтлах с помощью RTK Query
   // Используем отдельные хуки для каждого bookmarkId
-  const bookmarkQuery1 = useGetTitleByIdQuery(currentBookmarks[0] || 'null', { skip: !currentBookmarks[0] });
-  const bookmarkQuery2 = useGetTitleByIdQuery(currentBookmarks[1] || 'null', { skip: !currentBookmarks[1] });
-  const bookmarkQuery3 = useGetTitleByIdQuery(currentBookmarks[2] || 'null', { skip: !currentBookmarks[2] });
-  const bookmarkQuery4 = useGetTitleByIdQuery(currentBookmarks[3] || 'null', { skip: !currentBookmarks[3] });
+  const bookmarkQuery1 = useGetTitleByIdQuery({ id: currentBookmarks[0] || 'null' }, { skip: !currentBookmarks[0] });
+  const bookmarkQuery2 = useGetTitleByIdQuery({ id: currentBookmarks[1] || 'null' }, { skip: !currentBookmarks[1] });
+  const bookmarkQuery3 = useGetTitleByIdQuery({ id: currentBookmarks[2] || 'null' }, { skip: !currentBookmarks[2] });
+  const bookmarkQuery4 = useGetTitleByIdQuery({ id: currentBookmarks[3] || 'null' }, { skip: !currentBookmarks[3] });
 
   // Обновляем titleData на основе результатов запросов
   useEffect(() => {
@@ -36,8 +36,8 @@ function BookmarksSection({
 
     queries.forEach((query, index) => {
       const bookmarkId = currentBookmarks[index];
-      if (bookmarkId && query.data && query.data.success && query.data.data) {
-        newTitleData[bookmarkId] = query.data.data;
+      if (bookmarkId && query.data) {
+        newTitleData[bookmarkId] = query.data;
       } else if (bookmarkId && query.error) {
         newErrorBookmarks[bookmarkId] = true;
       }

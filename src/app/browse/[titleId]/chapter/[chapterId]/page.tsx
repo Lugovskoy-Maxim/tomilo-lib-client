@@ -36,7 +36,7 @@ export default function ChapterPage() {
     data: titleData,
     isLoading: titleLoading,
     error: titleError,
-  } = useGetTitleByIdQuery(titleId);
+  } = useGetTitleByIdQuery({ id: titleId });
   const {
     data: chaptersData,
     isLoading: chaptersLoading,
@@ -56,10 +56,10 @@ export default function ChapterPage() {
   // SEO для страницы главы - всегда вызываем хук в начале компонента
   useSEO(
     seoConfigs.chapter(
-      titleData?.data
+      titleData
         ? {
-            name: titleData.data.name,
-            title: titleData.data.name,
+            name: titleData.name,
+            title: titleData.name,
           }
         : { name: "", title: "" },
       chaptersData?.chapters?.find((c: Chapter) => c._id === chapterId)?.chapterNumber ||
@@ -79,7 +79,7 @@ export default function ChapterPage() {
     );
   }
 
-  if (error || !titleData?.data || !chaptersData) {
+  if (error || !titleData || !chaptersData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -98,7 +98,7 @@ export default function ChapterPage() {
     );
   }
 
-  const serverTitle = titleData.data;
+  const serverTitle = titleData;
 
   const mappedChapters: ReadChapter[] = chaptersData.chapters.map(
     (ch: Chapter) => ({

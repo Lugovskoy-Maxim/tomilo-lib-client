@@ -67,7 +67,7 @@ export default function TitleEditorPage() {
   const isEditMode = Boolean(titleId);
 
   // API hooks
-  const { data: existingTitle } = useGetTitleByIdQuery(titleId!, {
+  const { data: existingTitle } = useGetTitleByIdQuery({ id: titleId! }, {
     skip: !isEditMode,
   });
   const [createTitle, { isLoading: isCreating }] = useCreateTitleMutation();

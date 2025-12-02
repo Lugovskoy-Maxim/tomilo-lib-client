@@ -99,13 +99,26 @@ export const titlesApi = createApi({
     }),
 
     // Получить тайтл по ID
-    getTitleById: builder.query<ApiResponseDto<Title>, { id: string; includeChapters?: boolean }>({
+    getTitleById: builder.query<Title, { id: string; includeChapters?: boolean }>({
       query: ({ id, includeChapters = true }) => ({
         url: `/titles/${id}`,
         params: { populateChapters: includeChapters.toString() }
       }),
       providesTags: (result, error, { id }) => [{ type: TITLES_TAG, id }],
-      transformResponse: (response: ApiResponseDto<Title>) => response,
+      transformResponse: (response: unknown): Title => {
+        const apiResponse = response as ApiResponseDto<Title> | Title;
+        if (typeof apiResponse === 'object' && apiResponse !== null && 'success' in apiResponse) {
+          const wrappedResponse = apiResponse as ApiResponseDto<Title>;
+          if (wrappedResponse.success === false) {
+            throw new Error(wrappedResponse.message || 'Failed to fetch title');
+          }
+          if (!wrappedResponse.data) {
+            throw new Error('No data in API response');
+          }
+          return wrappedResponse.data;
+        }
+        return apiResponse as Title;
+      },
     }),
 
     // Создание тайтла
