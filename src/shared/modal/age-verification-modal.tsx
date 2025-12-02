@@ -9,6 +9,7 @@ interface AgeVerificationModalProps {
   isOpen: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+
 }
 
 const AGE_VERIFICATION_KEY = "age-verified";

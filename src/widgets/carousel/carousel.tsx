@@ -166,6 +166,12 @@ export default function Carousel<T>({
       if (card) {
         const cardId = card.getAttribute("data-card-id");
         if (cardId) {
+          // Проверяем, есть ли у карточки обработчик onClick
+          const cardComponent = card.querySelector('[data-card-click-handler]');
+          if (cardComponent) {
+            // Если есть обработчик, не выполняем переход по умолчанию
+            return;
+          }
           router.push(`/${type}/${cardId}`);
         }
       }

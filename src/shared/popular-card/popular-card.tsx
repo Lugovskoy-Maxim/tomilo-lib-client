@@ -29,6 +29,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const { isAuthenticated, user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     setIsAgeVerified(checkAgeVerification(user || null));
@@ -40,27 +41,46 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     return fixed.replace(/\.0$/, "");
   };
 
-  const handleAgeConfirm = () => {
-    setIsAgeVerified(true);
-    setShowAgeModal(false);
-  };
-
-  const handleAgeCancel = () => {
-    setShowAgeModal(false);
-  };
-
-  const handleClick = () => {
-    // Проверяем, является ли контент для взрослых и подтверждено ли возрастное ограничение
-    if (data.isAdult && !isAgeVerified) {
-      setShowAgeModal(true);
-      return;
-    }
-
+  // Функция для выполнения действия с карточкой
+  const performCardAction = () => {
     if (onCardClick) {
       onCardClick(data.id);
     } else {
       router.push(`/browse/${data.id}/`);
     }
+  };
+
+  // Обработка подтверждения возраста
+  const handleAgeConfirm = () => {
+    setIsAgeVerified(true);
+    setShowAgeModal(false);
+    
+    // Выполняем отложенное действие после подтверждения возраста
+    if (pendingAction) {
+      pendingAction(); // Просто вызываем функцию
+    }
+  };
+
+  const handleAgeCancel = () => {
+    setShowAgeModal(false);
+    setPendingAction(null);
+  };
+
+  // Основной обработчик клика
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Если контент для взрослых и возраст не подтвержден
+    if (data.isAdult && !isAgeVerified) {
+      // Сохраняем функцию, которую нужно выполнить после подтверждения
+      setPendingAction(() => performCardAction);
+      setShowAgeModal(true);
+      return;
+    }
+
+    // Если возраст подтвержден или контент не для взрослых, выполняем действие сразу
+    performCardAction();
   };
 
   const isAdultContent = data.isAdult;
@@ -75,10 +95,11 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     <div
       className="overflow-hidden max-w-xl rounded-lg group cursor-pointer active:cursor-grabbing transition-all select-none"
       onClick={handleClick}
+      data-card-click-handler="true"
     >
-      <div className={`relative ${isAdultContent ? "blur-sm" : ""}`}>
+      <div className="relative overflow-hidden rounded-lg">
         <Image
-          className="w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105 object-cover"
+          className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105 object-cover`}
           src={imageSrc}
           alt={data.title}
           width={160}
@@ -86,6 +107,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           unoptimized
           style={{ width: "100%", height: "100%" }}
           onDragStart={(e) => e.preventDefault()}
+          draggable={false}
         />
 
         {isAdultContent && (
@@ -113,24 +135,8 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
         <h3 className="font-semibold text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-2 leading-tight mb-1">
           {data.title}
         </h3>
-
-        {/* <div className="hidden sm:flex flex-wrap gap-0.5 mt-1">
-          {data.genres && data.genres.length > 0 ? (
-            data.genres.slice(0, 1).map((genre, index) => (
-              <span
-                key={index}
-                className="text-[9px] sm:text-[10px] bg-[var(--accent)] text-[var(--accent-foreground)] px-1 py-0.5 rounded"
-              >
-                {genre}
-              </span>
-            ))
-          ) : (
-            <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)]">
-              Без жанра
-            </span>
-          )}
-        </div> */}
       </div>
+      
       <AgeVerificationModal
         isOpen={showAgeModal}
         onConfirm={handleAgeConfirm}
