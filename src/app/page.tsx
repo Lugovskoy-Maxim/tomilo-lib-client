@@ -11,8 +11,6 @@ import {
 import { CarouselCard, CollectionCard, ReadingCard } from "@/shared";
 import LatestUpdateCard from "@/shared/last-updates/last-updates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
-import TopTitlesGrid from "@/widgets/top-titles-grid/top-titles-grid";
-import TopTitleGridCard from "@/shared/top-title-grid-card/top-title-grid-card";
 import TopCombinedSection from "@/widgets/top-combined-section/top-combined-section";
 import { pageTitle } from "@/lib/page-title";
 import { useHomeData } from "@/hooks/useHomeData";
@@ -21,12 +19,12 @@ import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
 // Компоненты скелетонов
 const CarouselSkeleton = () => (
-  <div className="flex flex-col items-center justify-center carousel-skeleton animate-pulse">
+  <div className="flex flex-col items-start justify-center carousel-skeleton animate-pulse w-full max-w-7xl mx-auto px-4 py-2 overflow-hidden">
     <div className="h-8 bg-[var(--muted)] rounded w-48 mb-4"></div>
-    <div className="flex gap-4 overflow-hidden">
-      {[...Array(6)].map((_, i) => (
+    <div className="flex gap-4 overflow-hidden items-center justify-center">
+      {[...Array(7)].map((_, i) => (
         <div key={i} className="flex-shrink-0">
-          <div className="w-30 h-40 bg-[var(--muted)] rounded-lg mb-2"></div>
+          <div className="w-40 h-64 bg-[var(--muted)] rounded-lg mb-2"></div>
           <div className="h-4 bg-[var(--muted)] rounded w-24"></div>
         </div>
       ))}
@@ -116,7 +114,7 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-    pageTitle.setTitlePage("Tomilo-lib.ru - Платформа манги и комиксов");
+    pageTitle.setTitlePage("Tomilo-lib.ru - Платформа для чтения манги и комиксов");
   }, []);
 
   if (!mounted) {
