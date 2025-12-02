@@ -23,6 +23,7 @@ export interface PopularCardProps {
 
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
 import { useState, useEffect } from "react";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const router = useRouter();
@@ -88,7 +89,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const isBrowsePage = pathname.startsWith("/browse");
 
   const imageSrc = data.image
-    ? process.env.NEXT_PUBLIC_URL + data.image
+    ? `${process.env.NEXT_PUBLIC_URL}${data.image}`
     : IMAGE_HOLDER;
 
   return (
@@ -104,15 +105,16 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           alt={data.title}
           width={160}
           height={220}
-          unoptimized
+          quality={85}
+          loading="lazy"
           style={{ width: "100%", height: "100%" }}
           onDragStart={(e) => e.preventDefault()}
           draggable={false}
         />
 
         {isAdultContent && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-red-500/90 text-white px-3 py-1 rounded-full font-bold text-sm">
+          <div className="absolute top-1 right-1  flex items-center justify-center">
+            <div className="bg-red-500/90 text-white px-1  rounded-full font-bold text-sm">
               18+
             </div>
           </div>
@@ -127,7 +129,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
       <div className="pt-1 sm:pt-1.5">
         <div className="flex justify-between items-center text-[10px] sm:text-xs text-[var(--muted-foreground)] mb-1">
           <span className="bg-[var(--secondary)] px-1 py-0.5 rounded text-[9px] sm:text-[10px]">
-            {data.type}
+            {translateTitleType(data.type)}
           </span>
           <span className="text-[9px] sm:text-[10px]">{data.year}</span>
         </div>
