@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Title, Chapter } from "@/types/title";
 import { ReadingHistoryEntry } from "@/types/store";
 import { checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { useState, useEffect } from "react";
 
 interface ReadButtonProps {
   titleData: Title;
@@ -23,6 +24,11 @@ export function ReadButton({
 }: ReadButtonProps) {
   const { user, readingHistoryLoading } = useAuth();
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Находим следующую главу для чтения
   const getNextChapter = () => {
@@ -105,20 +111,6 @@ export function ReadButton({
     }
   };
 
-  if (readingHistoryLoading) {
-    return (
-      <Button
-        variant="primary"
-        className={`w-full justify-center ${className}`}
-        disabled
-      >
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        Загрузка...
-      </Button>
-    );
-  }
-
-
   // Определяем текст кнопки
   let buttonText = "С первой главы";
   let showIcon = true;
@@ -130,6 +122,7 @@ export function ReadButton({
       return titleId === titleData?._id;
     }
   );
+  
   if (
     readingHistoryItem &&
     readingHistoryItem.chapters &&
@@ -146,6 +139,20 @@ export function ReadButton({
 
   // Если нет глав, кнопка неактивна
   const isDisabled = !nextChapter;
+
+  // Показываем состояние загрузки только на клиенте
+  if (readingHistoryLoading && isClient) {
+    return (
+      <Button
+        variant="primary"
+        className={`w-full justify-center ${className}`}
+        disabled
+      >
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Загрузка...
+      </Button>
+    );
+  }
 
   return (
     <Button
