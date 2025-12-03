@@ -1,8 +1,11 @@
+"use client";
+
 import Button from "@/shared/ui/button";
 import { BookOpen, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useGetChapterByNumberQuery } from "@/store/api/chaptersApi";
+import { useEffect, useState } from "react";
 
 interface ContinueReadingButtonProps {
   className?: string;
@@ -11,6 +14,11 @@ interface ContinueReadingButtonProps {
 export function ContinueReadingButton({ className }: ContinueReadingButtonProps) {
   const { user, readingHistoryLoading } = useAuth();
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Получаем последнюю прочитанную главу из истории чтения
   const getLastReadChapter = () => {
@@ -51,7 +59,8 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
     }
   };
 
-  if (readingHistoryLoading || chapterLoading) {
+  // Показываем состояние загрузки только на клиенте
+  if ((readingHistoryLoading || chapterLoading) && isClient) {
     return (
       <Button
         variant="outline"
