@@ -97,24 +97,24 @@ export default function TitleEditorPage() {
   const [tagInput, setTagInput] = useState("");
 
   useEffect(() => {
-    if (existingTitle?.data) {
+    if (existingTitle) {
       setFormData({
-        name: existingTitle.data.name || "",
-        altNames: existingTitle.data.altNames || [],
-        author: existingTitle.data.author || "",
-        artist: existingTitle.data.artist || "",
-        description: existingTitle.data.description || "",
-        genres: existingTitle.data.genres || [],
-        tags: existingTitle.data.tags || [],
-        ageLimits: existingTitle.data.ageLimit || 0,
-        releaseYear: existingTitle.data.releaseYear || new Date().getFullYear(),
-        status: existingTitle.data.status || TitleStatus.ONGOING,
-        coverImage: existingTitle.data.coverImage || "",
-        type: existingTitle.data.type || TitleType.MANGA,
-        publisher: existingTitle.data.publisher || "",
-        serialization: existingTitle.data.serialization || "",
-        relatedTitles: existingTitle.data.relatedTitles || [],
-        isPublished: existingTitle.data.isPublished || false,
+        name: existingTitle.name || "",
+        altNames: existingTitle.altNames || [],
+        author: existingTitle.author || "",
+        artist: existingTitle.artist || "",
+        description: existingTitle.description || "",
+        genres: existingTitle.genres || [],
+        tags: existingTitle.tags || [],
+        ageLimits: existingTitle.ageLimit || 0,
+        releaseYear: existingTitle.releaseYear || new Date().getFullYear(),
+        status: existingTitle.status || TitleStatus.ONGOING,
+        coverImage: existingTitle.coverImage || "",
+        type: existingTitle.type || TitleType.MANGA,
+        publisher: existingTitle.publisher || "",
+        serialization: existingTitle.serialization || "",
+        relatedTitles: existingTitle.relatedTitles || [],
+        isPublished: existingTitle.isPublished || false,
       });
     }
   }, [existingTitle]);

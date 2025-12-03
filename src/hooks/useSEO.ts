@@ -168,7 +168,7 @@ export const seoConfigs = {
     author?: string;
     artist?: string;
     status?: string;
-    year?: number;
+    releaseYear?: number;
     coverImage?: string;
     image?: string;
   }) => {
@@ -176,7 +176,7 @@ export const seoConfigs = {
     const shortDescription = titleData.description
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, '') + '...'
       : `Читать ${titleName} онлайн. ${titleData.genres?.join(', ')}`;
-
+    
     return {
       title: `${titleName} - Читать онлайн | Tomilo-lib.ru`,
       description: shortDescription,
@@ -186,7 +186,7 @@ export const seoConfigs = {
       author: titleData.author,
       section: titleData.genres?.[0],
       tags: titleData.genres,
-      publishedTime: titleData.year ? new Date(titleData.year, 0, 1).toISOString() : undefined,
+      publishedTime: titleData.releaseYear ? new Date(titleData.releaseYear, 0, 1).toISOString() : undefined,
     };
   },
 

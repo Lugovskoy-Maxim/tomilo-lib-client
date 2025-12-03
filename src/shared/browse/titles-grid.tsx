@@ -27,6 +27,7 @@ const titleToCardProps = (title: GridTitle): CardProps => ({
   rating: title.rating,
   image: title.image || '',
   genres: title.genres,
+  isAdult: false
 });
 
 export default function TitleGrid({ titles, onCardClick, isEmpty, onResetFilters }: TitleGridProps) {
