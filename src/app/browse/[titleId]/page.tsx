@@ -1,9 +1,8 @@
 // ./src/app/browse/[titleId]/page.tsx
 import { notFound } from 'next/navigation';
-import { titlesApi } from '@/store/api/titlesApi';
-import { store } from '@/store/index';
 import TitleViewClient from './title-view-client';
 import { Metadata } from 'next';
+import { Title } from '@/types/title';
 
 // Функция для получения метаданных
 export async function generateMetadata(
@@ -13,32 +12,42 @@ export async function generateMetadata(
     const resolvedParams = await params;
     const { titleId } = resolvedParams;
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://tomilo-lib.ru';
-    
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
     // Получаем данные тайтла
-    const result = await store.dispatch(
-      titlesApi.endpoints.getTitleById.initiate({ 
-        id: titleId, 
-        includeChapters: false 
-      })
-    );
-    
-    if (!result.data) {
+    const response = await fetch(`${apiUrl}/titles/${titleId}?populateChapters=false`, {
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return {
+          title: 'Тайтл не найден | Tomilo-lib.ru',
+          description: 'Запрашиваемый тайтл не найден',
+        };
+      }
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const apiResponse = await response.json();
+
+    if (!apiResponse.success || !apiResponse.data) {
       return {
         title: 'Тайтл не найден | Tomilo-lib.ru',
         description: 'Запрашиваемый тайтл не найден',
       };
     }
-    
-    const titleData = result.data;
+
+    const titleData: Title = apiResponse.data;
     const titleName = titleData.name || 'Без названия';
     const shortDescription = titleData.description
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, '') + '...'
       : `Читать ${titleName} онлайн. ${titleData.genres?.join(', ')}`;
-    
-    const image = titleData.coverImage 
+
+    const image = titleData.coverImage
       ? `${baseUrl}${titleData.coverImage}`
       : undefined;
-    
+
     // Формируем метаданные
     const metadata: Metadata = {
       title: `${titleName} - Читать онлайн | Tomilo-lib.ru`,
@@ -59,7 +68,7 @@ export async function generateMetadata(
         images: image ? [image] : [],
       },
     };
-    
+
     return metadata;
   } catch (error) {
     console.error('Ошибка при генерации метаданных:', error);
@@ -77,20 +86,29 @@ export default async function TitleView(
   try {
     const resolvedParams = await params;
     const { titleId } = resolvedParams;
-    
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
     // Получаем данные тайтла
-    const result = await store.dispatch(
-      titlesApi.endpoints.getTitleById.initiate({ 
-        id: titleId, 
-        includeChapters: false 
-      })
-    );
-    
-    if (!result.data) {
+    const response = await fetch(`${apiUrl}/titles/${titleId}?populateChapters=false`, {
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        notFound();
+      }
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const apiResponse = await response.json();
+
+    if (!apiResponse.success || !apiResponse.data) {
       notFound();
     }
-    
-    return <TitleViewClient initialTitleData={result.data} />;
+
+    const titleData: Title = apiResponse.data;
+
+    return <TitleViewClient initialTitleData={titleData} />;
   } catch (error) {
     console.error('Ошибка при получении данных тайтла:', error);
     notFound();

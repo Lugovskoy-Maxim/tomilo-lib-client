@@ -51,7 +51,7 @@ export default function TitleViewClient({
     {
       titleId,
       page: chaptersPage,
-      limit: 25, // Load 25 chapters per page for display
+      limit: 1000, // Load 25 chapters per page for display
       sortOrder: sortOrder === "desc" ? "desc" : "asc",
     },
     {
@@ -64,7 +64,7 @@ export default function TitleViewClient({
     {
       titleId: titleId as string,
       page: 1,
-      limit: 100, // Load many chapters for ReadButton
+      limit: 1000, // Load many chapters for ReadButton
       sortOrder: "asc",
     },
     {
