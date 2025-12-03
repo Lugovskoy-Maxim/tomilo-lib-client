@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { MoreVertical, Library, Home, Mail, Copyright, Bookmark, Bell } from "lucide-react";
+import { MoreVertical, Library, Home, Mail, Copyright, Bookmark, Bell, Paperclip } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/shared";
 
@@ -48,6 +48,17 @@ export default function Footer() {
                 <Mail className="w-4 h-4 flex-shrink-0" />
                 <span className="max-w-[180px] sm:max-w-[250px] md:max-w-none">
                   support@tomilo-lib.ru
+                </span>
+              </Link>
+              <Link
+                href="https://t.me/tomilolib"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-[var(--chart-1)] hover:text-[var(--primary)] transition-colors text-sm break-words px-2 py-1 text-center md:text-right"
+              >
+                <Paperclip className="w-4 h-4 flex-shrink-0" />
+                <span className="max-w-[180px] sm:max-w-[250px] md:max-w-none">
+                  Мы в телеграме
                 </span>
               </Link>
             </div>
