@@ -353,6 +353,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             </label>
             <button
               type="button"
+              disabled
               className="text-xs text-[var(--primary)] hover:underline"
               onClick={() => console.log("Запрос на восстановление пароля")}
             >
@@ -438,8 +439,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
       {/* Контейнеры для кнопок авторизации */}
       <div className="px-6 py-2 space-y-3 relative">
-        <div ref={yandexButtonRef} className="flex justify-center" />
-        <div ref={vkButtonRef} className="flex justify-center" />
+        {/* <div ref={yandexButtonRef} className="flex justify-center" />
+        <div ref={vkButtonRef} className="flex justify-center" /> */}
       </div>
 
       <div className="p-6 border-t border-[var(--border)] text-center">
@@ -448,8 +449,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
           <button
             type="button"
             onClick={onSwitchToRegister}
-            className="text-[var(--primary)] hover:underline font-medium disabled:opacity-50 transition-colors"
-            disabled={isLoading}
+            className="cursor-pointer text-[var(--primary)] hover:underline font-medium disabled:opacity-50 transition-colors"
+            // disabled={isLoading}
           >
             Зарегистрироваться
           </button>

@@ -4,6 +4,7 @@ import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { useRegisterMutation } from "@/store/api/authApi";
 import { RegisterForm, FormErrors, FormTouched } from "../../types/form";
 import { Modal } from "..";
+import termsOfUse from "@/constants/terms-of-use";
 import { AuthResponse, ApiResponseDto } from "@/types/auth";
 
 interface RegisterModalProps {
@@ -27,6 +28,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [touched, setTouched] = useState<FormTouched<RegisterForm>>({
     email: false,
     password: false,
@@ -345,7 +347,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
             <button
               type="button"
               className="text-[var(--primary)] hover:underline"
-              onClick={() => console.log("Открыть условия использования")}
+              onClick={() => setShowTermsModal(true)}
             >
               условиями использования
             </button>
@@ -381,6 +383,67 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           </button>
         </p>
       </div>
+
+      {/* Модальное окно с условиями использования */}
+      <Modal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        title="Условия использования"
+      >
+        <div className="prose prose-sm max-w-none text-[var(--muted-foreground)]">
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Общие положения</h3>
+          <p className="mb-4">{termsOfUse.ru.sections.general.content}</p>
+          
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Термины и определения</h3>
+          <ul className="list-disc list-inside mb-4 space-y-1">
+            {termsOfUse.ru.sections.definitions.items.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+          
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Предмет соглашения</h3>
+          <ul className="list-disc list-inside mb-4 space-y-1">
+            {termsOfUse.ru.sections.agreement.items.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+          
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Права и обязанности Пользователя</h3>
+          <ul className="list-disc list-inside mb-4 space-y-1">
+            {termsOfUse.ru.sections.userRights.items.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+          
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Права и обязанности Администрации</h3>
+          <ul className="list-disc list-inside mb-4 space-y-1">
+            {termsOfUse.ru.sections.adminRights.items.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+          
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Интеллектуальная собственность</h3>
+          <ul className="list-disc list-inside mb-4 space-y-1">
+            {termsOfUse.ru.sections.intellectualProperty.items.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+          
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Ограничение ответственности</h3>
+          <ul className="list-disc list-inside mb-4 space-y-1">
+            {termsOfUse.ru.sections.liability.items.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+          
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Прочие условия</h3>
+          <ul className="list-disc list-inside mb-4 space-y-1">
+            {termsOfUse.ru.sections.other.items.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      </Modal>
     </Modal>
   );
 };
