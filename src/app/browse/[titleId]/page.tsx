@@ -2,7 +2,6 @@
 import { notFound } from 'next/navigation';
 import { titlesApi } from '@/store/api/titlesApi';
 import { store } from '@/store/index';
-import { Title } from "@/types/title";
 import TitleViewClient from './title-view-client';
 import { Metadata } from 'next';
 

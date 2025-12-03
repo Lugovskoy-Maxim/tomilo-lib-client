@@ -29,7 +29,9 @@ export function AgeVerificationModal({
 
   const handleConfirm = () => {
     if (isChecked) {
-      localStorage.setItem(AGE_VERIFICATION_KEY, "true");
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.setItem(AGE_VERIFICATION_KEY, "true");
+      }
       onConfirm();
     }
   };
@@ -98,7 +100,9 @@ export function checkAgeVerification(user: UserProfile | StoredUser | null = nul
       
       // Если пользователю 18+, возвращаем true и записываем в localStorage
       if (age >= 18) {
-        localStorage.setItem(AGE_VERIFICATION_KEY, "true");
+        if (typeof window !== "undefined" && window.localStorage) {
+          localStorage.setItem(AGE_VERIFICATION_KEY, "true");
+        }
         return true;
       }
     } catch (error) {
@@ -106,13 +110,18 @@ export function checkAgeVerification(user: UserProfile | StoredUser | null = nul
     }
   }
   
-  // Проверяем localStorage
-  const localStorageVerified = localStorage.getItem(AGE_VERIFICATION_KEY) === "true";
+  // Проверяем localStorage только в браузере
+  if (typeof window !== "undefined" && window.localStorage) {
+    const localStorageVerified = localStorage.getItem(AGE_VERIFICATION_KEY) === "true";
+    return localStorageVerified;
+  }
   
-  // Возвращаем результат проверки localStorage
-  return localStorageVerified;
+  // Возвращаем false если localStorage недоступен (на сервере)
+  return false;
 }
 
 export function clearAgeVerification(): void {
-  localStorage.removeItem(AGE_VERIFICATION_KEY);
+  if (typeof window !== "undefined" && window.localStorage) {
+    localStorage.removeItem(AGE_VERIFICATION_KEY);
+  }
 }

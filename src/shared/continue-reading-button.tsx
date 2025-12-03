@@ -2,6 +2,7 @@ import Button from "@/shared/ui/button";
 import { BookOpen, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { useGetChapterByNumberQuery } from "@/store/api/chaptersApi";
 
 interface ContinueReadingButtonProps {
   className?: string;
@@ -33,13 +34,24 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
 
   const lastReadChapter = getLastReadChapter();
 
+  // Используем новый API endpoint для получения главы по номеру
+  const { data: chapterData, isLoading: chapterLoading } = useGetChapterByNumberQuery(
+    {
+      titleId: lastReadChapter?.titleId || '',
+      chapterNumber: lastReadChapter?.chapterNumber || 0
+    },
+    { skip: !lastReadChapter?.titleId || !lastReadChapter?.chapterNumber }
+  );
+
   const handleClick = () => {
-    if (lastReadChapter?.titleId && lastReadChapter?.chapterId) {
-      router.push(`/browse/${lastReadChapter.titleId}/chapter/${lastReadChapter.chapterId}`);
+    // Используем ID главы из нового API endpoint если доступен, иначе из истории
+    const chapterId = chapterData?._id || lastReadChapter?.chapterId;
+    if (lastReadChapter?.titleId && chapterId) {
+      router.push(`/browse/${lastReadChapter.titleId}/chapter/${chapterId}`);
     }
   };
 
-  if (readingHistoryLoading) {
+  if (readingHistoryLoading || chapterLoading) {
     return (
       <Button
         variant="outline"

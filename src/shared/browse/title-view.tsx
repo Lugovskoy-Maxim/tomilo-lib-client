@@ -101,7 +101,6 @@ export function LeftSidebar({
 }: {
   titleData: Title;
   chapters: Chapter[];
-  onBookmark: () => void;
   onShare: () => void;
   isAdmin: boolean;
   onAgeVerificationRequired?: () => void;

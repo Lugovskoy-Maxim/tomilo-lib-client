@@ -1,38 +1,44 @@
 "use client";
 
 import { Footer, Header } from "@/widgets";
-import { AlertTriangle, Share as ShareIcon, Edit } from "lucide-react";
+import { Share, Edit } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Chapter, Title } from "@/types/title";
+import { useState, useEffect, useMemo } from "react";
+import { Title } from "@/types/title";
 import { User } from "@/types/auth";
-import { useParams } from "next/navigation";
-import {
-  useIncrementViewsMutation,
-  useGetTitleByIdQuery,
-} from "@/store/api/titlesApi";
+
+import {  useIncrementViewsMutation} from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
-import { LeftSidebar, RightContent } from "@/shared/browse/title-view";
-import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
 import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
+import LoadingState from "./loading";
+import ErrorState from "./error";
+import AdultContentWarning from "./adult";
+import { checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { LeftSidebar, RightContent } from "@/shared/browse/title-view";
 
-export default function TitleViewClient({ initialTitleData }: { initialTitleData: Title }) {
+export default function TitleViewClient({
+  initialTitleData,
+}: {
+  initialTitleData: Title;
+}) {
   const titleId = initialTitleData._id as string;
-  console.log(initialTitleData)
   const { user } = useAuth();
 
   // Используем initialTitleData напрямую, без дополнительных запросов
-  const processedTitleData = useMemo(() => initialTitleData, [initialTitleData]);
-  
+  const processedTitleData = useMemo(
+    () => initialTitleData,
+    [initialTitleData]
+  );
+
   // RTK Query hooks - загружаем главы с пагинацией
   const [chaptersPage, setChaptersPage] = useState(1);
   const [hasMoreChapters, setHasMoreChapters] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
-  
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+
   const [incrementViews] = useIncrementViewsMutation();
 
   // Use paginated chapters API for display, but load all chapters for ReadButton
@@ -45,7 +51,7 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
       titleId,
       page: chaptersPage,
       limit: 25, // Load 25 chapters per page for display
-      sortOrder: sortOrder === 'desc' ? 'desc' : 'asc',
+      sortOrder: sortOrder === "desc" ? "desc" : "asc",
     },
     {
       skip: false, // Всегда загружаем главы для отображения
@@ -53,14 +59,12 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
   );
 
   // Load all chapters for ReadButton to ensure correct chapter determination
-  const {
-    data: allChaptersData,
-  } = useGetChaptersByTitleQuery(
+  const { data: allChaptersData } = useGetChaptersByTitleQuery(
     {
       titleId,
       page: 1,
-      limit: 1000, // Load many chapters for ReadButton
-      sortOrder: 'asc', // Always ascending for proper sorting
+      limit: 100, // Load many chapters for ReadButton
+      sortOrder: "asc", 
     },
     {
       skip: false,
@@ -84,6 +88,7 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
     "description" | "chapters" | "comments" | "statistics"
   >("chapters");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [showAgeModal, setShowAgeModal] = useState(false);
 
   // Флаг для предотвращения множественных инкрементов просмотров
   const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
@@ -93,9 +98,6 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
 
   const isLoading = false; // Убираем состояние загрузки, так как данные уже есть
   const error = null; // Убираем состояние ошибки, так как данные уже есть
-
-  // SEO для страницы тайтла
-  useSEO(seoConfigs.title(processedTitleData || {}));
 
   // Загрузка данных тайтла
   useEffect(() => {
@@ -111,12 +113,6 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
     setHasIncrementedViews(false);
   }, [titleId]);
 
-  // Load more chapters using server-side pagination
-  const loadMoreChapters = useCallback(() => {
-    if (!chaptersLoading && hasMoreChapters) {
-      setChaptersPage(prev => prev + 1);
-    }
-  }, [chaptersLoading, hasMoreChapters]);
 
   // Reset pagination when tab changes
   useEffect(() => {
@@ -128,7 +124,7 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
   // Обработчики
   const handleLoadMoreChapters = () => {
     if (hasMoreChapters && !chaptersLoading) {
-      setChaptersPage(prev => prev + 1);
+      setChaptersPage((prev) => prev + 1);
     }
   };
 
@@ -137,14 +133,9 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
     setChaptersPage(1);
   };
 
-  const handleSortChange = (order: 'desc' | 'asc') => {
+  const handleSortChange = (order: "desc" | "asc") => {
     setSortOrder(order);
     setChaptersPage(1);
-  };
-
-  const handleBookmark = () => {
-    // BookmarkButton теперь сам управляет добавлением/удалением закладок
-    // Эта функция может использоваться для дополнительной логики, например аналитики
   };
 
   const handleShare = () => {
@@ -160,6 +151,7 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
     }
   };
 
+
   // Проверка на взрослый контент
   const isAdultContent = processedTitleData?.isAdult && !user;
 
@@ -169,7 +161,7 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
     return <ErrorState error={error || "Тайтл не найден"} titleId={titleId} />;
 
   if (isAdultContent) {
-    return <AdultContentWarning titleData={processedTitleData} />;
+    return <AdultContentWarning />;
   }
 
   return (
@@ -223,6 +215,7 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
                 titleData={processedTitleData}
                 chapters={allChaptersData?.chapters || processedChaptersData}
                 className="flex-1 text-sm"
+                onAgeVerificationRequired={() => setShowAgeModal(true)}
               />
               <BookmarkButton titleId={titleId} initialBookmarked={false} />
               <button
@@ -230,7 +223,7 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
                 className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
                 aria-label="Поделиться"
               >
-                <ShareIcon className="w-4 h-4 text-[var(--foreground)]" />
+                <Share className="w-4 h-4 text-[var(--foreground)]" />
               </button>
               {isAdmin && (
                 <Link
@@ -250,9 +243,9 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
               <LeftSidebar
                 titleData={processedTitleData}
                 chapters={processedChaptersData}
-                onBookmark={handleBookmark}
                 onShare={handleShare}
                 isAdmin={isAdmin}
+                onAgeVerificationRequired={() => setShowAgeModal(true)}
               />
             </div>
 
@@ -276,132 +269,6 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
                 titleId={titleId}
                 user={user as unknown as User | null}
               />
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    </main>
-  );
-}
-
-// Улучшенный компонент ошибки с отладочной информацией
-function ErrorState({ error, titleId }: { error: string; titleId?: string }) {
-  return (
-    <main className="min-h-screen relative">
-      {/* Размытый фон */}
-      <div className="fixed inset-0 z-0 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]"></div>
-
-      {/* Overlay для улучшения читаемости */}
-      <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40 z-10"></div>
-
-      {/* Контент */}
-      <div className="relative z-20">
-        <Header />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[50vh]">
-            <div className="text-center">
-              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-                {error}
-              </h1>
-              <p className="text-[var(--muted-foreground)] mb-4">
-                ID тайтла: {titleId || "не указан"}
-              </p>
-              <p className="text-[var(--muted-foreground)] mb-6">
-                Проверьте консоль браузера для подробной информации об ошибке
-              </p>
-              <div className="flex gap-3 justify-center">
-                <Link
-                  href="/admin/titles"
-                  className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
-                >
-                  Вернуться к списку тайтлов
-                </Link>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
-                >
-                  Перезагрузить страницу
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    </main>
-  );
-}
-
-// Компонент загрузки (без изменений)
-function LoadingState() {
-  return (
-    <main className="min-h-screen relative">
-      {/* Размытый фон */}
-      <div className="fixed inset-0 z-0 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]"></div>
-
-      {/* Overlay для улучшения читаемости */}
-      <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40 z-10"></div>
-
-      {/* Контент */}
-      <div className="relative z-20">
-        <Header />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[50vh]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-              <p className="text-[var(--muted-foreground)]">
-                Загрузка данных тайтла...
-              </p>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    </main>
-  );
-}
-
-// Компонент предупреждения о взрослом контенте
-function AdultContentWarning({ titleData }: { titleData: Title }) {
-  return (
-    <main className="min-h-screen relative">
-      {/* Размытый фон */}
-      <div className="fixed inset-0 z-0 bg-gradient-to-br from-red-900/20 to-red-800/20"></div>
-
-      {/* Overlay для улучшения читаемости */}
-      <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60 z-10"></div>
-
-      {/* Контент */}
-      <div className="relative z-20">
-        <Header />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[50vh]">
-            <div className="text-center bg-[var(--background)]/90 backdrop-blur-sm border border-red-500/50 rounded-lg p-8 max-w-md">
-              <div className="bg-red-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-red-500 text-2xl font-bold">18+</span>
-              </div>
-              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-                Контент для взрослых
-              </h1>
-              <p className="text-[var(--muted-foreground)] mb-6">
-                Этот тайтл содержит контент для взрослых. Для просмотра необходимо авторизоваться.
-              </p>
-              <div className="flex gap-3 justify-center">
-                <Link
-                  href="/auth/login"
-                  className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
-                >
-                  Войти
-                </Link>
-                <Link
-                  href="/"
-                  className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
-                >
-                  На главную
-                </Link>
-              </div>
             </div>
           </div>
         </div>

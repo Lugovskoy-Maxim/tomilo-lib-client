@@ -48,6 +48,10 @@ export const chaptersApi = createApi({
       providesTags: (result, error, id) => [{ type: CHAPTERS_TAG, id }],
     }),
 
+    getChapterByNumber: builder.query<Chapter, { titleId: string; chapterNumber: number }>({
+      query: ({ titleId, chapterNumber }) => `/chapters/by-number/${titleId}?chapterNumber=${chapterNumber}`,
+    }),
+
     getChaptersByTitle: builder.query<
       ChaptersResponse,
       {
@@ -215,4 +219,6 @@ export const {
   useAddPagesToChapterMutation,
   useUpdateChapterMutation,
   useDeleteChapterMutation,
+  useGetChapterByNumberQuery,
 } = chaptersApi;
+
