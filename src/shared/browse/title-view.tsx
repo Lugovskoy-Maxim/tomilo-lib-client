@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 // Shared UI
 export function TabButton({
@@ -235,7 +236,7 @@ export function ChaptersTab({
   }, [loading, hasMore, onLoadMore]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-2">
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary)] w-4 h-4" />
@@ -358,7 +359,7 @@ export function ChapterItem({
   return (
     <Link
       href={`/browse/${titleId}/chapter/${chapter._id}`}
-      className="flex items-center bg-[var(--background)]/50 justify-between px-2 py-2 border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors rounded-full"
+      className="flex items-center bg-[var(--background)]/50 justify-between px-2 py-2 border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors rounded-xl"
     >
       <div className="flex items-center gap-3">
         {/* Иконка статуса прочтения */}
@@ -408,9 +409,10 @@ export function ChapterItem({
       </div>
 
       <div className="flex items-center gap-3 text-sm text-[var(--primary)]">
+        {"Просмотров: "}
         {chapter.views && (
           <span className="flex items-center gap-1">
-            <Eye className="w-4 h-4" />
+            {/* <Eye className="w-4 h-4" /> */}
             {chapter.views}
           </span>
         )}
@@ -496,7 +498,7 @@ export function RightContent({
               </div>
               <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
                 <BookOpen className="w-4 h-4" />
-                <span>{titleData.type || "Манга"}</span>
+                <span>{translateTitleType(titleData.type || "")}</span>
               </div>
             </div>
             <div className="flex items-center gap-3 bg-[var(--background)]/20 px-3 py-1 rounded-full">
@@ -560,7 +562,7 @@ export function RightContent({
           )}
 
           <div className="flex-1">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary)] mb-3">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white/90 mb-3 p-2">
               {titleData?.name}
             </h1>
           </div>
@@ -584,7 +586,7 @@ export function RightContent({
             {titleData.genres?.map((genre, index) => (
               <span
                 key={index}
-                className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--primary)]"
+                className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
                 onClick={() => {
                   router.push(
                     `/browse?genres=${encodeURIComponent(genre || "")}`
@@ -597,7 +599,7 @@ export function RightContent({
             {titleData.tags?.map((tag, index) => (
               <span
                 key={index}
-                className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--primary)]"
+                className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
                 onClick={() => {
                   router.push(`/browse?tags=${encodeURIComponent(tag || "")}`);
                 }}
@@ -615,11 +617,11 @@ export function RightContent({
                 !isDescriptionExpanded ? "max-h-40 overflow-hidden" : ""
               }`}
             >
-              <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap">
+              <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap bg-[var(--card)]/40 rounded-xl p-4">
                 {titleData?.description}
               </p>
               {!isDescriptionExpanded && (
-                <div className="absolute bottom-0 left-0 right-0 h-8 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 h-8 to-transparent " />
               )}
             </div>
             {titleData.description.length > 100 && (
