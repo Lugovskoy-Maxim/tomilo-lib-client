@@ -95,12 +95,14 @@ export function InfoField({
 export function LeftSidebar({
   titleData,
   chapters,
+  readingHistory,
   onShare,
   isAdmin,
   onAgeVerificationRequired,
 }: {
   titleData: Title;
   chapters: Chapter[];
+  readingHistory?: ReadingHistoryEntry;
   onShare: () => void;
   isAdmin: boolean;
   onAgeVerificationRequired?: () => void;
@@ -140,6 +142,7 @@ export function LeftSidebar({
           <ReadButton
             titleData={titleData}
             chapters={chapters}
+            readingHistory={readingHistory}
             className="w-full rounded-full"
             onAgeVerificationRequired={() => setShowAgeModal(true)}
           />

@@ -10,6 +10,7 @@ interface ReadButtonProps {
   titleData: Title;
   className?: string;
   chapters: Chapter[];
+  readingHistory?: ReadingHistoryEntry;
   onAgeVerificationRequired?: () => void;
 }
 
@@ -17,6 +18,7 @@ export function ReadButton({
   titleData,
   className,
   chapters,
+  readingHistory,
   onAgeVerificationRequired,
 }: ReadButtonProps) {
   const { user, readingHistoryLoading } = useAuth();
@@ -36,7 +38,7 @@ export function ReadButton({
     });
 
     // Если есть продолжение чтения и оно относится к текущему тайтлу
-    const readingHistoryItem = user?.readingHistory?.find(
+    const readingHistoryItem = readingHistory || user?.readingHistory?.find(
       (item: ReadingHistoryEntry) => {
         const titleId = typeof item.titleId === 'string' ? item.titleId : item.titleId?._id;
         return titleId === titleData?._id;
@@ -122,7 +124,7 @@ export function ReadButton({
   let showIcon = true;
 
   // Если есть продолжение чтения для этого тайтла
-  const readingHistoryItem = user?.readingHistory?.find(
+  const readingHistoryItem = readingHistory || user?.readingHistory?.find(
     (item: ReadingHistoryEntry) => {
       const titleId = typeof item.titleId === 'string' ? item.titleId : item.titleId?._id;
       return titleId === titleData?._id;

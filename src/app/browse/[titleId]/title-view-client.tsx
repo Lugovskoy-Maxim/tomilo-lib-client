@@ -7,8 +7,9 @@ import { useState, useEffect, useMemo } from "react";
 import { Title } from "@/types/title";
 import { User } from "@/types/auth";
 
-import {  useIncrementViewsMutation} from "@/store/api/titlesApi";
+import { useIncrementViewsMutation} from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
+import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
 import { ReadButton } from "@/shared/browse/read-button";
@@ -61,14 +62,20 @@ export default function TitleViewClient({
   // Load all chapters for ReadButton to ensure correct chapter determination
   const { data: allChaptersData } = useGetChaptersByTitleQuery(
     {
-      titleId,
+      titleId: titleId as string,
       page: 1,
       limit: 100, // Load many chapters for ReadButton
-      sortOrder: "asc", 
+      sortOrder: "asc",
     },
     {
       skip: false,
     }
+  );
+
+  // Load reading history for the current title
+  const { data: readingHistoryData } = useGetReadingHistoryByTitleQuery(
+    titleId as string,
+    { skip: !titleId }
   );
 
   const processedChaptersData = useMemo(
@@ -242,7 +249,8 @@ export default function TitleViewClient({
             <div className="hidden lg:block lg:w-1/4">
               <LeftSidebar
                 titleData={processedTitleData}
-                chapters={processedChaptersData}
+                chapters={allChaptersData?.chapters || processedChaptersData}
+                readingHistory={readingHistoryData?.data}
                 onShare={handleShare}
                 isAdmin={isAdmin}
                 onAgeVerificationRequired={() => setShowAgeModal(true)}
