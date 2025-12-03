@@ -44,7 +44,7 @@ export default async function sitemap() {
   // Базовые страницы
   const routes = ['', '/browse', '/top', '/updates', '/copyright', '/terms-of-use'].map((route) => ({
     url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString(),
+    lastModified: new Date(),
   }))
   
   try {
@@ -56,7 +56,7 @@ export default async function sitemap() {
       .filter(title => title._id) // Убедимся, что у тайтла есть ID
       .map((title) => ({
         url: `${baseUrl}/browse/${title._id}`,
-        lastModified: title.updatedAt || new Date().toISOString(),
+        lastModified: title.updatedAt ? new Date(title.updatedAt) : new Date(),
       }))
     
     return [...routes, ...titleRoutes]

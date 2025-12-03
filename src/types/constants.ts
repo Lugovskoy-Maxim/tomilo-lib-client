@@ -28,6 +28,17 @@ export interface TopTitle {
   isAdult?: boolean;
 }
 
+export interface TopTitleCombined {
+  id: string;
+  title: string;
+  type: string;
+  year: number;
+  rating: number;
+  coverImage: string;
+  views?: number | string;
+}
+
+
 export interface LatestUpdate {
   id: string;
   title: string;

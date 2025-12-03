@@ -27,7 +27,10 @@ import { useDispatch } from "react-redux";
 import { Title, TitleStatus, TitleType } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
-import { useGetTitleByIdQuery, useUpdateTitleMutation } from "@/store/api/titlesApi";
+import {
+  useGetTitleByIdQuery,
+  useUpdateTitleMutation,
+} from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { UpdateTitleDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
@@ -92,97 +95,100 @@ const API_CONFIG = {
 // Словарь для перевода жанров и тегов с английского на русский
 const TRANSLATION_MAP: Record<string, string> = {
   // Жанры из API
-  "action": "Боевик",
-  "adventure": "Приключения",
+  action: "Боевик",
+  adventure: "Приключения",
   "animal companions": "Животные компаньоны",
   "another world memory": "Память другого мира",
-  "artifacts": "Артефакты",
-  "beastmen": "Звериолюди",
-  "comedy": "Комедия",
-  "demon": "Демоны",
-  "drama": "Драма",
-  "ecchi": "Этти",
-  "erotica": "Эротика",
-  "fantasy": "Фэнтези",
+  artifacts: "Артефакты",
+  beastmen: "Звериолюди",
+  comedy: "Комедия",
+  demon: "Демоны",
+  drama: "Драма",
+  ecchi: "Этти",
+  erotica: "Эротика",
+  fantasy: "Фэнтези",
   "female harem": "Гарем девушек",
-  "games": "Игры",
-  "god": "Бог",
+  games: "Игры",
+  god: "Бог",
   "hiding identity": "Скрытие личности",
-  "isekai": "Исекай",
-  "magic": "Магия",
+  isekai: "Исекай",
+  magic: "Магия",
   "magic academy": "Магическая академия",
   "magical creatures": "Магические существа",
   "male protagonist": "Главный герой мужчина",
   "martial arts": "Боевые искусства",
   "middle ages": "Средневековье",
-  "monster": "Монстры",
-  "mystery": "Таинственность",
+  monster: "Монстры",
+  mystery: "Таинственность",
   "power ranks": "Ранги силы",
   "power struggle": "Борьба за власть",
   "primarily adult cast": "В основном взрослые персонажи",
-  "quests": "Квесты",
-  "reincarnation": "Перерождение",
-  "revenge": "Месть",
-  "romance": "Романтика",
-  "school": "Школа",
+  quests: "Квесты",
+  reincarnation: "Перерождение",
+  revenge: "Месть",
+  romance: "Романтика",
+  school: "Школа",
   "sci-fi": "Научная фантастика",
-  "skills": "Навыки",
+  skills: "Навыки",
   "slice of life": "Повседневность",
   "smart protagonist": "Умный главный герой",
-  "sport": "Спорт",
-  "supernatural": "Сверхъестественное",
-  "survival": "Выживание",
-  "swordplay": "Фехтование",
-  "system": "Система",
-  "teacher": "Учитель",
+  sport: "Спорт",
+  supernatural: "Сверхъестественное",
+  survival: "Выживание",
+  swordplay: "Фехтование",
+  system: "Система",
+  teacher: "Учитель",
   "territory management": "Управление территорией",
   "time manipulation": "Манипуляция временем",
-  "tragedy": "Трагедия",
-  "violence": "Насилие",
-  "seinen": "Сейнен",
-  "shounen": "Сёнэн",
-  "xianxia": "Сянься",
-  "БОЕВИК": "Боевик",
+  tragedy: "Трагедия",
+  violence: "Насилие",
+  seinen: "Сейнен",
+  shounen: "Сёнэн",
+  xianxia: "Сянься",
+  БОЕВИК: "Боевик",
   "БОЕВЫЕ ИСКУУССТВА": "Боевые искусства",
-  "ДЕМОНЫ": "Демоны",
-  "ДРАМА": "Драма",
-  "СЁНЭН": "Сёнэн",
-  "СВЕРХЪЕСТЕСТВЕННОЕ": "Сверхъестественное",
-  "СПОРТ": "Спорт",
-  "Фантастика": "Научная фантастика",
+  ДЕМОНЫ: "Демоны",
+  ДРАМА: "Драма",
+  СЁНЭН: "Сёнэн",
+  СВЕРХЪЕСТЕСТВЕННОЕ: "Сверхъестественное",
+  СПОРТ: "Спорт",
+  Фантастика: "Научная фантастика",
   "Video games": "Видео игры",
-  "detective": "Детектив",
-  "horror": "Ужасы",
-  "psychological": "Психологическое",
-  "historical": "Исторический",
-  "shoujo": "Сёдзе",
-  "mecha": "Меха",
-  "harem": "Гарем",
-  "manhwa": "Манхва",
-  "manhua": "Манхва",
+  detective: "Детектив",
+  horror: "Ужасы",
+  psychological: "Психологическое",
+  historical: "Исторический",
+  shoujo: "Сёдзе",
+  mecha: "Меха",
+  harem: "Гарем",
+  manhwa: "Манхва",
+  manhua: "Манхва",
   "op mc": "ГГ имба",
   "weak mc": "ГГ слабый",
   "rom-com": "Ромком",
   "reverse harem": "Обратный гарем",
-  "zombies": "Зомби",
-  "vampires": "Вампиры",
+  zombies: "Зомби",
+  vampires: "Вампиры",
   "isekai world": "Попадание в другой мир",
   "virtual reality": "Виртуальная реальность",
-  "work": "Работа",
-  "music": "Музыка",
-  "cooking": "Кулинария",
-  "Apocalyptic": "Апокалиптический",
+  work: "Работа",
+  music: "Музыка",
+  cooking: "Кулинария",
+  Apocalyptic: "Апокалиптический",
   "Cruel world": "Жестокий мир",
   "Game elements": "Игровые элементы",
-  "Murim": "Мурим",
+  Murim: "Мурим",
   "Overpowered protagonist": "",
-  "Zombie": "Зомби",
-// "": "",
+  Zombie: "Зомби",
+  ApocalypticGame: "Апокалиптический игровой мир",
+  elements: "Елементы",
+
+  // "": "",
 };
 
 // Функция нормализации жанров/тегов
 const normalizeGenresTags = (items: string[]): string[] => {
-  return items.map(item => {
+  return items.map((item) => {
     const trimmed = item.trim();
     if (!trimmed) return trimmed;
 
@@ -193,7 +199,9 @@ const normalizeGenresTags = (items: string[]): string[] => {
     const translated = TRANSLATION_MAP[lowerCase] || trimmed;
 
     // Делаем первую букву заглавной, остальные строчные
-    return translated.charAt(0).toUpperCase() + translated.slice(1).toLowerCase();
+    return (
+      translated.charAt(0).toUpperCase() + translated.slice(1).toLowerCase()
+    );
   });
 };
 
@@ -298,9 +306,12 @@ export default function TitleEditorPage() {
     data: titleResponse,
     isLoading,
     error: apiError,
-  } = useGetTitleByIdQuery(titleId, {
-    skip: !titleId,
-  });
+  } = useGetTitleByIdQuery(
+    { id: titleId },
+    {
+      skip: !titleId,
+    }
+  );
 
   // Получаем главы тайтла для подсчета количества
   const { data: chaptersData } = useGetChaptersByTitleQuery(
@@ -309,7 +320,8 @@ export default function TitleEditorPage() {
   );
 
   // Хук для обновления тайтла
-  const [updateTitleMutation, { isLoading: isUpdating }] = useUpdateTitleMutation();
+  const [updateTitleMutation, { isLoading: isUpdating }] =
+    useUpdateTitleMutation();
 
   const [formData, setFormData] = useState<Title>({
     _id: "",
@@ -345,8 +357,8 @@ export default function TitleEditorPage() {
 
   // Обработка данных тайтла из API
   useEffect(() => {
-    if (titleResponse?.data) {
-      const titleData = titleResponse.data;
+    if (titleResponse) {
+      const titleData = titleResponse;
 
       // Преобразуем числовые поля и обеспечиваем, что genres и tags всегда массивы
       const processedData = {
@@ -361,8 +373,6 @@ export default function TitleEditorPage() {
       };
 
       setFormData(processedData);
-
-
     } else if (apiError) {
       setError("Ошибка при загрузке данных тайтла");
     }
@@ -403,12 +413,13 @@ export default function TitleEditorPage() {
       });
     };
 
-  const handleInputArrayChange = (field: "genres" | "tags") => (values: string[]) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: values,
-    }));
-  };
+  const handleInputArrayChange =
+    (field: "genres" | "tags") => (values: string[]) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: values,
+      }));
+    };
 
   const handleAltNamesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const names = e.target.value
@@ -428,7 +439,7 @@ export default function TitleEditorPage() {
       reader.onload = (e) => {
         const result = e.target?.result as string;
         // Извлекаем base64 данные из data URL
-        const base64 = result.split(',')[1];
+        const base64 = result.split(",")[1];
         setFormData((prev) => ({
           ...prev,
           coverImage: base64,
@@ -438,86 +449,89 @@ export default function TitleEditorPage() {
     }
   };
 
-const handleSubmit = async (e: FormEvent) => {
-  e.preventDefault();
-  setIsSaving(true);
-  try {
-    // Всегда отправляем все данные формы, включая обложку
-    const hasFile = !!selectedFile;
-    
-    if (hasFile) {
-      // При обновлении с файлом создаем FormData
-      const formDataToSend = new FormData();
-      
-      // Добавляем все поля из formData
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === 'coverImage' && selectedFile) {
-          // Для обложки используем выбранный файл
-          formDataToSend.append(key, selectedFile);
-        } else if (key !== 'coverImage') {
-          // Для остальных полей добавляем их значения
-          if (Array.isArray(value)) {
-            value.forEach(item => formDataToSend.append(key, item));
-          } else {
-            formDataToSend.append(key, String(value));
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      // Всегда отправляем все данные формы, включая обложку
+      const hasFile = !!selectedFile;
+
+      if (hasFile) {
+        // При обновлении с файлом создаем FormData
+        const formDataToSend = new FormData();
+
+        // Добавляем все поля из formData
+        Object.entries(formData).forEach(([key, value]) => {
+          if (key === "coverImage" && selectedFile) {
+            // Для обложки используем выбранный файл
+            formDataToSend.append(key, selectedFile);
+          } else if (key !== "coverImage") {
+            // Для остальных полей добавляем их значения
+            if (Array.isArray(value)) {
+              value.forEach((item) => formDataToSend.append(key, item));
+            } else {
+              formDataToSend.append(key, String(value));
+            }
+          }
+        });
+
+        const result = await updateTitleMutation({
+          id: titleId,
+          data: formDataToSend as unknown as Partial<UpdateTitleDto>,
+          hasFile: true,
+        }).unwrap();
+
+        if (result.data) {
+          dispatch(updateTitle(result.data));
+          // Обновляем обложку в локальном состоянии
+          if (result.data.coverImage) {
+            setFormData((prev) => ({
+              ...prev,
+              coverImage: result.data!.coverImage,
+            }));
           }
         }
-      });
-      
-      const result = await updateTitleMutation({
-        id: titleId,
-        data: formDataToSend as unknown as Partial<UpdateTitleDto>,
-        hasFile: true,
-      }).unwrap();
+        setSelectedFile(null);
+        toast.success("Тайтл успешно обновлен!");
+      } else {
+        // При обновлении без файла отправляем объект
+        const updateData: Partial<UpdateTitleDto> = {
+          name: formData.name,
+          altNames: formData.altNames,
+          description: formData.description,
+          genres: formData.genres,
+          tags: formData.tags,
+          artist: formData.artist,
+          coverImage: formData.coverImage, // Всегда отправляем текущее значение обложки
+          status: formData.status,
+          author: formData.author,
+          releaseYear: Number(formData.releaseYear),
+          ageLimit: Number(formData.ageLimit),
+          isPublished: formData.isPublished,
+          type: formData.type,
+        };
 
-      if (result.data) {
-        dispatch(updateTitle(result.data));
-        // Обновляем обложку в локальном состоянии
-        if (result.data.coverImage) {
-          setFormData(prev => ({ ...prev, coverImage: result.data!.coverImage }));
+        const result = await updateTitleMutation({
+          id: titleId,
+          data: updateData,
+        }).unwrap();
+
+        if (result.data) {
+          dispatch(updateTitle(result.data));
         }
+        toast.success("Тайтл успешно обновлен!");
       }
-      setSelectedFile(null);
-      toast.success("Тайтл успешно обновлен!");
-    } else {
-      // При обновлении без файла отправляем объект
-      const updateData: Partial<UpdateTitleDto> = {
-        name: formData.name,
-        altNames: formData.altNames,
-        description: formData.description,
-        genres: formData.genres,
-        tags: formData.tags,
-        artist: formData.artist,
-        coverImage: formData.coverImage, // Всегда отправляем текущее значение обложки
-        status: formData.status,
-        author: formData.author,
-        releaseYear: Number(formData.releaseYear),
-        ageLimit: Number(formData.ageLimit),
-        isPublished: formData.isPublished,
-        type: formData.type,
-      };
-
-      const result = await updateTitleMutation({
-        id: titleId,
-        data: updateData,
-      }).unwrap();
-
-      if (result.data) {
-        dispatch(updateTitle(result.data));
-      }
-      toast.success("Тайтл успешно обновлен!");
+    } catch (err) {
+      toast.error(
+        `Ошибка при обновлении тайтла: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setIsSaving(false);
     }
-  } catch (err) {
-    toast.error(
-      `Ошибка при обновлении тайтла: ${
-        err instanceof Error ? err.message : "Unknown error"
-      }`
-    );
-  } finally {
-    setIsSaving(false);
-  }
-};
-  
+  };
+
   // Состояния загрузки и ошибок
   if (isLoading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
@@ -526,22 +540,24 @@ const handleSubmit = async (e: FormEvent) => {
     <AuthGuard requiredRole="admin">
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <HeaderSection />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
-            <BasicInfoSection
-              formData={formData}
-              titleId={titleId}
-              handleInputChange={handleInputChange}
-              handleArrayFieldChange={handleArrayFieldChange}
-              handleInputArrayChange={handleInputArrayChange}
-              handleAltNamesChange={handleAltNamesChange}
-              handleImageChange={handleImageChange}
-              selectedFile={selectedFile}
-              onCoverUpdate={(newCover) => setFormData(prev => ({ ...prev, coverImage: newCover }))}
-            />
-            {/* <TextareaField
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <HeaderSection />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
+              <BasicInfoSection
+                formData={formData}
+                titleId={titleId}
+                handleInputChange={handleInputChange}
+                handleArrayFieldChange={handleArrayFieldChange}
+                handleInputArrayChange={handleInputArrayChange}
+                handleAltNamesChange={handleAltNamesChange}
+                handleImageChange={handleImageChange}
+                selectedFile={selectedFile}
+                onCoverUpdate={(newCover) =>
+                  setFormData((prev) => ({ ...prev, coverImage: newCover }))
+                }
+              />
+              {/* <TextareaField
                 label="Описание *"
                 value={formData.description}
                 onChange={handleInputChange("description")}
@@ -549,28 +565,31 @@ const handleSubmit = async (e: FormEvent) => {
                 rows={8}
                 required
               /> */}
-            <div className="flex items-center justify-between gap-3">
-              <Link
-                href={`/browse/${titleId}`}
-                className="px-4 py-2 rounded border"
-              >
-                Открыть страницу тайтла
-              </Link>
-              <FormActions isSaving={isSaving || isUpdating} />
+              <div className="flex items-center justify-between gap-3">
+                <Link
+                  href={`/browse/${titleId}`}
+                  className="px-4 py-2 rounded border"
+                >
+                  Открыть страницу тайтла
+                </Link>
+                <FormActions isSaving={isSaving || isUpdating} />
+              </div>
+            </form>
+            <div className="space-y-6 lg:col-span-1">
+              <StatsSection formData={formData} />
+              <ChaptersSection
+                titleId={titleId}
+                chaptersCount={chaptersCount}
+              />
             </div>
-          </form>
-          <div className="space-y-6 lg:col-span-1">
-            <StatsSection formData={formData} />
-            <ChaptersSection titleId={titleId} chaptersCount={chaptersCount} />
           </div>
         </div>
-      </div>
-      <Footer />
-    </main>
+        <Footer />
+      </main>
     </AuthGuard>
   );
 }
- 
+
 // Компоненты состояний (без изменений)
 function LoadingState() {
   return (
@@ -1042,7 +1061,10 @@ function CheckboxGroup({
           </label>
           <button
             type="button"
-            onClick={() => onInputChange && onInputChange(normalizeGenresTags(safeSelectedItems))}
+            onClick={() =>
+              onInputChange &&
+              onInputChange(normalizeGenresTags(safeSelectedItems))
+            }
             className="px-2 py-1 text-xs bg-[var(--accent)] text-[var(--foreground)] rounded hover:bg-[var(--accent)]/80 transition-colors"
             title="Нормализовать жанры/теги"
           >
