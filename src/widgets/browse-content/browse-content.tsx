@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   MobileFilterButton,
@@ -46,6 +46,8 @@ function BrowseContent() {
   const [allTitles, setAllTitles] = useState<GridTitle[]>([]);
   const [loadMorePage, setLoadMorePage] = useState(1);
   const [limit, setLimit] = useState(15); // Default to desktop
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Debounce for search input (1s)
   const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
@@ -86,7 +88,9 @@ function BrowseContent() {
     page: loadMorePage,
     limit,
   });
-
+  
+  const totalTitles = titlesData?.data?.total ?? 0;
+  const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
   const paginatedTitles = useMemo(() => titlesData?.data?.data ?? [], [titlesData]);
   const adaptedTitles = useMemo(
     () =>
@@ -116,10 +120,35 @@ function BrowseContent() {
         });
       }
     }
+    setIsLoadingMore(false);
   }, [adaptedTitles, loadMorePage]);
 
-  const totalTitles = titlesData?.data?.total ?? 0;
-  const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
+  // Infinite scroll logic
+  const loadMoreTitles = useCallback(() => {
+    if (!isLoadingMore && loadMorePage < totalPages) {
+      setIsLoadingMore(true);
+      setLoadMorePage(prev => prev + 1);
+    }
+  }, [isLoadingMore, loadMorePage, totalPages]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingMore && loadMorePage < totalPages) {
+          loadMoreTitles();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMoreTitles, isLoadingMore, loadMorePage, totalPages]);
+
+
 
   // Функция сброса фильтров
   const resetFilters = () => {
@@ -163,9 +192,7 @@ function BrowseContent() {
     updateURL(newFilters, 1); // Сбрасываем на первую страницу при изменении фильтров
   };
 
-  const handleLoadMore = () => {
-    setLoadMorePage(prev => prev + 1);
-  };
+
 
   // Обработчик клика по карточке
   const handleCardClick = (id: string) => {
@@ -204,18 +231,19 @@ function BrowseContent() {
           onResetFilters={resetFilters}
         />
 
-        {/* Кнопка загрузить ещё */}
+        {/* Infinite scroll trigger and loading indicator */}
         {loadMorePage < totalPages && (
-          <div className="flex justify-center mt-8">
-            <button
-              onClick={handleLoadMore}
-              className="bg-[var(--primary)] text-[var(--primary-foreground)] px-6 py-3 rounded-lg hover:bg-[var(--primary)]/90 transition-colors cursor-pointer"
-            >
-              Загрузить ещё
-            </button>
+          <div ref={loadMoreRef} className="flex justify-center mt-8">
+            {isLoadingMore ? (
+              <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--primary)]"></div>
+                Загрузка...
+              </div>
+            ) : (
+              <div className="h-4"></div> // Invisible trigger element
+            )}
+          </div>)    }
           </div>
-        )}
-      </div>
 
       {/* Боковая панель с фильтрами (десктоп) */}
       <div className="hidden lg:block lg:w-1/4">

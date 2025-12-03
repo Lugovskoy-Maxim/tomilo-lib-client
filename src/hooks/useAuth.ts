@@ -5,6 +5,7 @@ import {
   useAddBookmarkMutation,
   useRemoveBookmarkMutation,
   useGetReadingHistoryQuery,
+  useGetReadingHistoryByTitleQuery,
   useAddToReadingHistoryMutation,
   useRemoveFromReadingHistoryMutation,
 } from "@/store/api/authApi";
@@ -54,6 +55,12 @@ export const useAuth = () => {
   } = useGetReadingHistoryQuery(undefined, {
     skip: !getToken(),
   });
+
+  const useGetReadingHistoryByTitle = (titleId: string) => {
+    return useGetReadingHistoryByTitleQuery(titleId, {
+      skip: !getToken() || !titleId,
+    });
+  };
 
   const continueReading = readingHistoryData?.data;
 
@@ -391,5 +398,6 @@ export const useAuth = () => {
     refetchProfile,
     isAuthenticated: auth.isAuthenticated,
     removeFromReadingHistory: removeFromReadingHistoryFunc,
+    useGetReadingHistoryByTitle,
   };
 };

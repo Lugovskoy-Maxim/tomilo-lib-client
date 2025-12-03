@@ -24,8 +24,16 @@ export function ReadButton({
 
   // Находим следующую главу для чтения
   const getNextChapter = () => {
-    // Проверяем, что titleData существует
-    if (!titleData) return null;
+    // Проверяем, что titleData и chapters существуют
+    if (!titleData || !chapters || chapters.length === 0) return null;
+
+    // Сортируем главы по номеру главы
+    const sortedChapters = [...chapters].sort((a, b) => {
+      // Обрабатываем случаи, когда chapterNumber может быть undefined
+      const aNum = a.chapterNumber ?? 0;
+      const bNum = b.chapterNumber ?? 0;
+      return aNum - bNum;
+    });
 
     // Если есть продолжение чтения и оно относится к текущему тайтлу
     const readingHistoryItem = user?.readingHistory?.find(
@@ -47,8 +55,6 @@ export function ReadButton({
       const lastReadNumber = lastReadChapter.chapterNumber;
 
       if (lastReadNumber !== undefined) {
-        const sortedChapters = [...chapters].sort((a, b) => a.chapterNumber - b.chapterNumber);
-
         // Ищем следующую главу по номеру
         const nextChapter = sortedChapters.find(ch => ch.chapterNumber > lastReadNumber);
 
@@ -61,11 +67,8 @@ export function ReadButton({
         if (currentChapter) {
           return currentChapter;
         }
-
-        // Если не нашли, возвращаем первую главу
-        return sortedChapters[0];
       } else {
-        // Fallback to old logic if chapterNumber not available
+        // Fallback если chapterNumber не доступен в истории
         const currentChapter = chapters.find(
           (ch) => ch._id === lastReadChapter.chapterId
         );
@@ -80,24 +83,12 @@ export function ReadButton({
           }
 
           return currentChapter;
-        } else {
-          const sortedChapters = [...chapters].sort(
-            (a, b) => a.chapterNumber - b.chapterNumber
-          );
-          return sortedChapters[0];
         }
       }
     }
 
-    // Если нет продолжения чтения, возвращаем первую главу
-    if (chapters && chapters.length > 0) {
-      const sortedChapters = [...chapters].sort(
-        (a, b) => a.chapterNumber - b.chapterNumber
-      );
-      return sortedChapters[0];
-    }
-
-    return null;
+    // Если нет продолжения чтения или не удалось определить следующую главу, возвращаем первую главу
+    return sortedChapters[0];
   };
 
   const nextChapter = getNextChapter();

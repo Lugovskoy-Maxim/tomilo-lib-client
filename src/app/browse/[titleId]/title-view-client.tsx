@@ -20,42 +20,22 @@ import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
 
 export default function TitleViewClient({ initialTitleData }: { initialTitleData: Title }) {
-  const params = useParams();
-  const titleId = params.titleId as string;
-
+  const titleId = initialTitleData._id as string;
+  console.log(initialTitleData)
   const { user } = useAuth();
 
-  // RTK Query hooks - load title without chapters for better performance
-  const {
-    data: titleDataRaw,
-    isLoading: titleLoading,
-    error: titleError,
-  } = useGetTitleByIdQuery({ id: titleId, includeChapters: false });
-
-  const [incrementViews] = useIncrementViewsMutation();
-
-  // Состояния UI
-  const [activeTab, setActiveTab] = useState<
-    "description" | "chapters" | "comments" | "statistics"
-  >("chapters");
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-
-  // Флаг для предотвращения множественных инкрементов просмотров
-  const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
-
-  // Состояния для глав
+  // Используем initialTitleData напрямую, без дополнительных запросов
+  const processedTitleData = useMemo(() => initialTitleData, [initialTitleData]);
+  
+  // RTK Query hooks - загружаем главы с пагинацией
   const [chaptersPage, setChaptersPage] = useState(1);
   const [hasMoreChapters, setHasMoreChapters] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  
+  const [incrementViews] = useIncrementViewsMutation();
 
-  // Wrap data in useMemo to prevent useMemo dependency warning
-  const processedTitleData = useMemo(
-    () => titleDataRaw || initialTitleData || null,
-    [titleDataRaw, initialTitleData]
-  );
-
-  // Use paginated chapters API instead of loading all chapters upfront
+  // Use paginated chapters API for display, but load all chapters for ReadButton
   const {
     data: chaptersData,
     isLoading: chaptersLoading,
@@ -64,11 +44,26 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
     {
       titleId,
       page: chaptersPage,
-      limit: 25, // Load 25 chapters per page
+      limit: 25, // Load 25 chapters per page for display
       sortOrder: sortOrder === 'desc' ? 'desc' : 'asc',
     },
     {
-      skip: activeTab !== 'chapters', // Only load when chapters tab is active
+      skip: false, // Всегда загружаем главы для отображения
+    }
+  );
+
+  // Load all chapters for ReadButton to ensure correct chapter determination
+  const {
+    data: allChaptersData,
+  } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: 1,
+      limit: 1000, // Load many chapters for ReadButton
+      sortOrder: 'asc', // Always ascending for proper sorting
+    },
+    {
+      skip: false,
     }
   );
 
@@ -84,13 +79,20 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
     }
   }, [chaptersData]);
 
+  // Состояния UI
+  const [activeTab, setActiveTab] = useState<
+    "description" | "chapters" | "comments" | "statistics"
+  >("chapters");
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  // Флаг для предотвращения множественных инкрементов просмотров
+  const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
+
   // Simplify isAdmin state usage
   const isAdmin = user?.role == "admin";
 
-  const isLoading = titleLoading;
-  // Suppress error if user not authorized
-  const error =
-    !user && titleError ? null : titleError ? "Ошибка загрузки данных" : null;
+  const isLoading = false; // Убираем состояние загрузки, так как данные уже есть
+  const error = null; // Убираем состояние ошибки, так как данные уже есть
 
   // SEO для страницы тайтла
   useSEO(seoConfigs.title(processedTitleData || {}));
@@ -219,7 +221,7 @@ export default function TitleViewClient({ initialTitleData }: { initialTitleData
             <div className="flex justify-center gap-4 mt-4 rounded-full">
               <ReadButton
                 titleData={processedTitleData}
-                chapters={processedChaptersData}
+                chapters={allChaptersData?.chapters || processedChaptersData}
                 className="flex-1 text-sm"
               />
               <BookmarkButton titleId={titleId} initialBookmarked={false} />

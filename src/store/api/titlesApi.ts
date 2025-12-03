@@ -100,7 +100,7 @@ export const titlesApi = createApi({
 
     // Получить тайтл по ID
     getTitleById: builder.query<Title, { id: string; includeChapters?: boolean }>({
-      query: ({ id, includeChapters = true }) => ({
+      query: ({ id, includeChapters = false }) => ({
         url: `/titles/${id}`,
         params: { populateChapters: includeChapters.toString() }
       }),

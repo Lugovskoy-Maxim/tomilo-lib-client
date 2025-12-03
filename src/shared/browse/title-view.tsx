@@ -300,43 +300,28 @@ export function ChapterItem({
   titleId: string;
   user: User | null;
 }) {
-  const { removeFromReadingHistory } = useAuth();
+  const { removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
+  // Получаем историю чтения только для текущего тайтла
+  const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
+  
   // Проверяем, прочитана ли глава
-  const isRead =
-    user?.readingHistory?.some(
-      (historyItem: ReadingHistoryEntry) => {
-        // Проверяем соответствие titleId
-        let historyTitleId: string;
-        if (typeof historyItem.titleId === 'string') {
-          historyTitleId = historyItem.titleId;
-        } else if (historyItem.titleId && typeof historyItem.titleId === 'object' && '_id' in historyItem.titleId) {
-          historyTitleId = (historyItem.titleId as { _id: string })._id;
-        } else {
-          return false;
-        }
-        
-        if (historyTitleId !== titleId) return false;
-        
-        // Проверяем, есть ли эта глава в истории
-        return historyItem.chapters.some((ch) => {
-          if (ch.chapterId == null) return false;
-          
-          let historyChapterId: string;
-          if (typeof ch.chapterId === 'string') {
-            historyChapterId = ch.chapterId;
-          } else if (ch.chapterId && typeof ch.chapterId === 'object' && '_id' in ch.chapterId) {
-            historyChapterId = (ch.chapterId as { _id: string })._id;
-          } else {
-            return false;
-          }
-          
-          return historyChapterId === chapter._id;
-        });
-      }
-    ) || false;
+  const isRead = readingHistoryData?.data?.chapters?.some((ch) => {
+    if (ch.chapterId == null) return false;
+    
+    let historyChapterId: string;
+    if (typeof ch.chapterId === 'string') {
+      historyChapterId = ch.chapterId;
+    } else if (ch.chapterId && typeof ch.chapterId === 'object' && '_id' in ch.chapterId) {
+      historyChapterId = (ch.chapterId as { _id: string })._id;
+    } else {
+      return false;
+    }
+    
+    return historyChapterId === chapter._id;
+  }) || false;
 
   // Функция для удаления из истории чтения
   const handleRemoveFromHistory = async (e: React.MouseEvent) => {

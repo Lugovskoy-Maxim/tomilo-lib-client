@@ -104,6 +104,14 @@ export const authApi = createApi({
       providesTags: ["ReadingHistory"],
     }),
 
+    getReadingHistoryByTitle: builder.query<
+      ApiResponseDto<ReadingHistoryEntry>,
+      string
+    >({
+      query: (titleId) => `/users/profile/history/${titleId}`,
+      providesTags: ["ReadingHistory"],
+    }),
+
     addToReadingHistory: builder.mutation<
       ApiResponseDto<User>,
       { titleId: string; chapterId: string }
@@ -148,6 +156,7 @@ export const {
   useRemoveBookmarkMutation,
   useGetBookmarksQuery,
   useGetReadingHistoryQuery,
+  useGetReadingHistoryByTitleQuery,
   useAddToReadingHistoryMutation,
   useRemoveFromReadingHistoryMutation,
   useClearReadingHistoryMutation,
