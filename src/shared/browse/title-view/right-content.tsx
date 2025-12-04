@@ -1,6 +1,6 @@
 import { Title, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
-import { BookOpen, Calendar, CheckCheck, Eye } from "lucide-react";
+import { BookOpen, Calendar, CheckCheck, Eye, Loader2 } from "lucide-react";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
 
@@ -107,15 +107,11 @@ export function RightContent({
             </div>
 
             {/* Chapters list */}
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {chapters
-                .filter((chapter) =>
-                  chapter.name.toLowerCase().includes(searchQuery.toLowerCase())
-                )
-                .map((chapter) => (
+            <div className="space-y-2 mt-2">
+              {chapters.map((chapter) => (
                   <div
                     key={chapter._id}
-                    className="flex items-center justify-between gap-2 p-3 bg-[var(--card)]/50 rounded-lg hover:bg-[var(--background)]/70 transition-colors"
+                    className="flex items-center justify-between gap-2 py-2 px-3 bg-[var(--card)]/50 rounded-lg hover:bg-[var(--background)]/70 transition-colors"
                   >
                     {/* Иконка статуса прочтения */}
                     <Eye className="w-5 h-5 text-[var(--primary)]" />

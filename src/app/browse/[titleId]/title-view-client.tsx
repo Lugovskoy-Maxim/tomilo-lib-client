@@ -30,15 +30,13 @@ export default function TitleViewClient({
     [initialTitleData]
   );
 
-  // RTK Query hooks - загружаем главы с пагинацией
-  const [chaptersPage, setChaptersPage] = useState(1);
-  const [hasMoreChapters, setHasMoreChapters] = useState(true);
+  // RTK Query hooks - загружаем все главы сразу
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   const [incrementViews] = useIncrementViewsMutation();
 
-  // Use paginated chapters API for display, but load all chapters for ReadButton
+  // Load all chapters at once
   const {
     data: chaptersData,
     isLoading: chaptersLoading,
@@ -46,12 +44,12 @@ export default function TitleViewClient({
   } = useGetChaptersByTitleQuery(
     {
       titleId,
-      page: chaptersPage,
-      limit: 50, // Load 50 chapters per page for display
+      page: 1,
+      limit: 10000, // Load all chapters
       sortOrder: sortOrder === "desc" ? "desc" : "asc",
     },
     {
-      skip: false, // Всегда загружаем главы для отображения
+      skip: false,
     }
   );
 
@@ -74,18 +72,11 @@ export default function TitleViewClient({
     { skip: !user }
   );
 
-  // Обработка данных глав - аккумулируем главы при пагинации
+  // Обработка данных глав
   const processedChaptersData = useMemo(() => {
     if (!chaptersData?.chapters) return [];
     return chaptersData.chapters;
   }, [chaptersData]);
-
-  // Обновляем hasMoreChapters на основе ответа API
-  useEffect(() => {
-    if (chaptersData?.hasMore !== undefined) {
-      setHasMoreChapters(chaptersData.hasMore);
-    }
-  }, [chaptersData?.hasMore]);
 
 
 
@@ -107,23 +98,14 @@ export default function TitleViewClient({
     }
   }, [titleId, incrementViews]);
 
-  // Обработчик загрузки дополнительных глав
-  const handleLoadMoreChapters = () => {
-    if (hasMoreChapters && !chaptersLoading) {
-      setChaptersPage((prev) => prev + 1);
-    }
-  };
-
   // Обработчик поиска глав
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    setChaptersPage(1); // Сброс пагинации при поиске
   };
 
   // Обработчик сортировки глав
   const handleSortChange = (order: "desc" | "asc") => {
     setSortOrder(order);
-    setChaptersPage(1); // Сброс пагинации при сортировке
   };
 
   // Обработчик поделиться
@@ -184,9 +166,9 @@ export default function TitleViewClient({
                   setIsDescriptionExpanded(!isDescriptionExpanded)
                 }
                 chapters={processedChaptersData}
-                hasMoreChapters={hasMoreChapters}
+                hasMoreChapters={false}
                 chaptersLoading={chaptersLoading}
-                onLoadMoreChapters={handleLoadMoreChapters}
+                onLoadMoreChapters={() => {}}
                 searchQuery={searchQuery}
                 onSearchChange={handleSearchChange}
                 sortOrder={sortOrder}
