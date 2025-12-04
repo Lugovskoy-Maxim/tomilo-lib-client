@@ -13,3 +13,14 @@ export const titleTypeTranslations: Record<string, string> = {
 export function translateTitleType(type: string): string {
   return titleTypeTranslations[type.toLowerCase()] || type;
 }
+
+export function translateTitleStatus(status: string): string {
+  return titleStatusTitle[status.toLowerCase()] || status;
+}
+
+export const titleStatusTitle: Record<string, string> = {
+  "ongoing": "Онгоинг",
+  "completed": "Завершено",
+  "pause": "Пауза",
+  "cancelled": "Отменено"
+};

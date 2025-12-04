@@ -8,7 +8,7 @@ import {
   Eye,
   Loader2,
 } from "lucide-react";
-import { translateTitleType } from "@/lib/title-type-translations";
+import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 
@@ -348,7 +348,7 @@ export function RightContent({
           </div>
           <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
             <CheckCheck className="w-4 h-4" />
-            {titleData?.status && <span>{titleData.status}</span>}
+            {titleData?.status && <span>{translateTitleStatus(titleData.status || "")}</span>}
           </div>
         </div>
         <div className="flex items-center gap-3 bg-[var(--background)]/20 px-3 py-1 rounded-full">
