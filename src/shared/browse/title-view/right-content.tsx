@@ -126,15 +126,17 @@ export function RightContent({
               </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--accent)]">
-                    {titleData?.createdAt ? new Date(titleData.createdAt).toLocaleDateString() : 0}
+                  <div className="text-2xl font-bold text-[var(--primary)]/80">
+                    {titleData?.createdAt
+                      ? new Date(titleData.createdAt).toLocaleDateString()
+                      : 0}
                   </div>
                   <div className="text-sm text-[var(--foreground)]/60">
                     Дата загрузки на сайте:
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--accent)]">
+                  <div className="text-2xl font-bold text-[var(--primary)]/80">
                     {titleData?.totalChapters}
                   </div>
                   <div className="text-sm text-[var(--foreground)]/60">
@@ -148,18 +150,63 @@ export function RightContent({
                   </div>
                 </div>
               </div>
-              <div>
-                {titleData?.altNames && (
-                  <span>Альтернативные названия: {titleData.altNames}</span>
-                )}
+
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--primary)]/80">
+                    {"Нет доступных данных"}
+                  </div>
+                  <div className="text-sm text-[var(--foreground)]/60">
+                    Главные герои
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--primary)]/80">
+                    {"Нет доступных данных"}
+                  </div>
+                  <div className="text-sm text-[var(--foreground)]/60">
+                    Переводчики
+                  </div>
+                </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--primary)]/80">
+                    {titleData?.author
+                      ? titleData.author
+                      : "Нет доступных данных"}
+                  </div>
+                  <div className="text-sm text-[var(--foreground)]/60">
+                    Автор
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--primary)]/80">
+                    {titleData?.artist
+                      ? titleData.artist
+                      : "Нет доступных данных"}
+                  </div>
+                  <div className="text-sm text-[var(--foreground)]/60">
+                    Художник(и)
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-sm text-[var(--foreground)]/60 pt-4">
+                Альтернативные названия:
+              </div>
+              <div className="text-lg font-normal text-[var(--primary)]/80 ">
+                {titleData?.altNames
+                  ? titleData.altNames.join(", ")
+                  : "Нет доступных данных"}
+              </div>
+
             </div>
-            <div>Главные герои</div>
-            <div>Переводчики</div>
-            <div className="flex flex-wrap gap-4 text-sm text-[var(--foreground)]/60 mb-4">
+            {/* <div className="flex flex-wrap gap-4 text-sm text-[var(--foreground)]/60 mb-4">
               {titleData?.author && <span>Автор: {titleData.author}</span>}
               {titleData?.artist && <span>Художник: {titleData.artist}</span>}
-            </div>
+            </div> */}
           </>
         );
 
