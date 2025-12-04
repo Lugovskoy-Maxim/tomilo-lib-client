@@ -124,6 +124,21 @@ export function RightContent({
               <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
                 Полное описание тайтла
               </h2>
+              <p className="text-[var(--foreground)]">
+                Дата загрузки на сайте: 
+                {titleData?.createdAt}
+                
+              </p>
+              <p className="text-[var(--foreground)]">
+                Загружено: 
+                {titleData?.totalChapters}
+                {titleData?.totalChapters === 1
+                  ? " глава"
+                  : titleData?.totalChapters > 1 &&
+                    titleData?.totalChapters < 5
+                  ? " главы"
+                  : " глав"}
+              </p>
               <div>
                 {titleData?.altNames && (
                   <span>Альтернативные названия: {titleData.altNames}</span>
