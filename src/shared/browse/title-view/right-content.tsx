@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface RightContentProps {
   titleData: Title;
@@ -94,7 +94,7 @@ export function RightContent({
   }, [searchQuery, displayedChapters, loadedChaptersCount]);
 
   // Обработчик для загрузки дополнительных глав при прокрутке
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (
       window.innerHeight + window.scrollY >=
       document.body.offsetHeight - 1000
@@ -105,12 +105,12 @@ export function RightContent({
         );
       }
     }
-  };
+  }, [loadedChaptersCount, displayedChapters.length]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [loadedChaptersCount, displayedChapters.length]);
+  }, [handleScroll]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -409,7 +409,7 @@ export function RightContent({
               onClick={() => onTabChange(tab.key)}
               className={`flex-1 py-1 px-2 rounded-full font-medium transition-colors ${
                 activeTab === tab.key
-                  ? "bg-[var(--chart-1)]/40 text-[var(--foreground)]"
+                  ? "bg-[var(--chart-1)]/90 text-[var(--foreground)]"
                   : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
               }`}
             >
