@@ -60,7 +60,7 @@ export function LeftSidebar({
           <span className="text-sm">Поделиться</span>
         </button>
           <button
-            onClick={() => router.push(`/admin/titles/${titleData._id}/edit`)}
+            onClick={() => router.push(`/admin/titles/edit/${titleData._id}`)}
             className={`${isAdmin ? "" : "hidden"} flex items-center justify-center gap-2 lg:p-1 p-4  rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer`}
             aria-label="Редактировать"
             disabled={isAdmin ? false : true}
