@@ -199,7 +199,7 @@ export function RightContent({
                     </div>
                     <button
                       onClick={() =>
-                        router.push(`/read/${titleId}/${chapter._id}`)
+                        router.push(`/browse/${titleId}/chapter/${chapter._id}`)
                       }
                       className="px-4 py-2 bg-[var(--accent)] cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--accent)]/80 transition-colors"
                     >
