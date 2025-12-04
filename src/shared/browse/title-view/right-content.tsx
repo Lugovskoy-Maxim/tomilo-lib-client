@@ -44,6 +44,8 @@ export function RightContent({
 }: RightContentProps): React.ReactElement {
   const router = useRouter();
   const [displayedChapters, setDisplayedChapters] = useState<Chapter[]>([]);
+  const [visibleChapters, setVisibleChapters] = useState<Chapter[]>([]);
+  const [loadedChaptersCount, setLoadedChaptersCount] = useState(20); // Начальное количество отображаемых глав
 
   useEffect(() => {
     if (searchQuery) {
@@ -52,6 +54,7 @@ export function RightContent({
         chapter.name.toLowerCase() === searchQuery.toLowerCase()
       );
       setDisplayedChapters(filteredChapters);
+      setVisibleChapters(filteredChapters.slice(0, loadedChaptersCount));
     } else {
       // Без поиска накапливаем главы
       setDisplayedChapters((prev) => {
@@ -63,16 +66,24 @@ export function RightContent({
     }
   }, [chapters, searchQuery]);
 
+  // Эффект для постепенной прорисовки глав
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 && hasMoreChapters && !chaptersLoading) {
-        onLoadMoreChapters();
-      }
-    };
+    setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));
+  }, [displayedChapters, loadedChaptersCount]);
 
+  // Обработчик для загрузки дополнительных глав при прокрутке
+  const handleScroll = () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+      if (loadedChaptersCount < displayedChapters.length) {
+        setLoadedChaptersCount(prev => Math.min(prev + 10, displayedChapters.length));
+      }
+    }
+  };
+
+  useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMoreChapters, chaptersLoading, onLoadMoreChapters]);
+  }, [loadedChaptersCount, displayedChapters.length]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -143,7 +154,7 @@ export function RightContent({
 
             {/* Chapters list */}
             <div className="space-y-2 mt-2">
-              {displayedChapters.map((chapter) => (
+              {visibleChapters.map((chapter) => (
                   <div
                     key={chapter._id}
                     className="flex items-center justify-between gap-2 py-2 px-3 bg-[var(--card)]/50 rounded-full hover:bg-[var(--background)]/70 transition-colors"
