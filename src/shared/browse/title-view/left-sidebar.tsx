@@ -5,6 +5,8 @@ import { Title, Chapter } from "@/types/title";
 import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
 import { useRouter } from "next/navigation";
+import { checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { useAuth } from "@/hooks/useAuth";
 
 
 interface LeftSidebarProps {
@@ -23,6 +25,11 @@ export function LeftSidebar({
   onAgeVerificationRequired,
 }: LeftSidebarProps) {
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdultContent = titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);
+  const isAgeVerified = checkAgeVerification(user);
+  const shouldBlurImage = isAdultContent && !isAgeVerified;
+
   return (
     <div className="sticky top-4">
       <div className="flex relative w-max h-max justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
@@ -33,7 +40,7 @@ export function LeftSidebar({
             width={280}
             height={420}
             unoptimized={true}
-            className="object-cover"
+            className={`object-cover ${shouldBlurImage ? 'blur-sm' : ''}`}
             priority
             sizes="(max-width: 280px) 100vw, 33vw"
           />

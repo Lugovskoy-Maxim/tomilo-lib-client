@@ -9,6 +9,7 @@ import {
   Loader2,
   Star,
   X,
+  CheckCircle,
 } from "lucide-react";
 import {
   translateTitleStatus,
@@ -17,6 +18,10 @@ import {
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useUpdateRatingMutation } from "@/store/api/titlesApi";
+import {
+  AgeVerificationModal,
+  checkAgeVerification,
+} from "@/shared/modal/age-verification-modal";
 
 interface RightContentProps {
   titleData: Title;
@@ -36,6 +41,7 @@ interface RightContentProps {
   onSortChange: (order: "desc" | "asc") => void;
   titleId: string;
   user: User | null;
+  onAgeVerificationRequired?: () => void;
 }
 
 export function RightContent({
@@ -54,31 +60,63 @@ export function RightContent({
   onSortChange,
   titleId,
   user,
+  onAgeVerificationRequired,
 }: RightContentProps): React.ReactElement {
   const router = useRouter();
   const [updateRating] = useUpdateRatingMutation();
   const [displayedChapters, setDisplayedChapters] = useState<Chapter[]>([]);
   const [visibleChapters, setVisibleChapters] = useState<Chapter[]>([]);
-  const [loadedChaptersCount, setLoadedChaptersCount] = useState(20); // Начальное количество отображаемых глав
+  const [loadedChaptersCount, setLoadedChaptersCount] = useState(20);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
+  const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
+  const [isAgeVerified, setIsAgeVerified] = useState(false);
+
+  // Проверяем статус подтверждения возраста при монтировании и при изменении пользователя
+  useEffect(() => {
+    if (user) {
+      const verified = checkAgeVerification(user);
+      setIsAgeVerified(verified);
+    } else {
+      setIsAgeVerified(false);
+    }
+  }, [user]);
+
+  const handleAgeVerificationClick = () => {
+    if (isAgeVerified) {
+      return; // Если возраст уже подтвержден, ничего не делаем
+    }
+    
+    if (onAgeVerificationRequired) {
+      onAgeVerificationRequired();
+    } else {
+      // Если нет callback, открываем модальное окно
+      setIsAgeModalOpen(true);
+    }
+  };
+
+  const handleAgeVerificationConfirm = () => {
+    setIsAgeVerified(true);
+    setIsAgeModalOpen(false);
+    // Можно добавить обновление состояния пользователя или редирект
+    console.log("Возраст подтвержден");
+  };
+
+  const handleAgeVerificationCancel = () => {
+    setIsAgeModalOpen(false);
+  };
 
   useEffect(() => {
     if (searchQuery) {
-      // При поиске фильтруем главы по номеру главы
       const filteredChapters = chapters.filter((chapter) => {
-        // Извлекаем номер главы из названия (предполагаем формат "Глава N" или просто "N")
         const chapterNumberMatch = chapter.name.match(/(?:Глава\s+)?(\d+)/i);
         const chapterNumber = chapterNumberMatch ? chapterNumberMatch[1] : null;
-
-        // Сравниваем с поисковым запросом
         return chapterNumber === searchQuery.trim();
       });
       setDisplayedChapters(filteredChapters);
       setVisibleChapters(filteredChapters);
-      setLoadedChaptersCount(filteredChapters.length); // Показываем все найденные главы
+      setLoadedChaptersCount(filteredChapters.length);
     } else {
-      // Без поиска накапливаем главы
       setDisplayedChapters((prev) => {
         const newChapters = chapters.filter(
           (chapter) =>
@@ -86,23 +124,20 @@ export function RightContent({
         );
         return [...prev, ...newChapters];
       });
-      setLoadedChaptersCount(20); // Сбрасываем количество отображаемых глав
+      setLoadedChaptersCount(20);
     }
   }, [chapters, searchQuery]);
 
-  // Эффект для постепенной прорисовки глав
   useEffect(() => {
     setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));
   }, [displayedChapters, loadedChaptersCount]);
 
-  // Сброс отображаемых глав при изменении поискового запроса
   useEffect(() => {
     if (!searchQuery) {
       setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));
     }
   }, [searchQuery, displayedChapters, loadedChaptersCount]);
 
-  // Обработчик для загрузки дополнительных глав при прокрутке
   const handleScroll = useCallback(() => {
     if (
       window.innerHeight + window.scrollY >=
@@ -124,6 +159,7 @@ export function RightContent({
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "description":
@@ -211,21 +247,51 @@ export function RightContent({
                   : "Нет доступных данных"}
               </div>
             </div>
-            {/* <div className="flex flex-wrap gap-4 text-sm text-[var(--foreground)]/60 mb-4">
-              {titleData?.author && <span>Автор: {titleData.author}</span>}
-              {titleData?.artist && <span>Художник: {titleData.artist}</span>}
-            </div> */}
           </>
         );
 
       case "chapters":
+        const isAdultContent =
+          titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);
+        const isLoggedIn = !!user;
+        const shouldVerifyAge = isAdultContent && (!isLoggedIn || !isAgeVerified);
+
+        if (shouldVerifyAge) {
+          return (
+            <div className="flex flex-col justify-center items-center bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl h-full p-4">
+              <h2 className="flex justify-center items-center text-xl font-bold mb-4 text-[var(--foreground)]">
+                {!isLoggedIn ? "Внимание!" : "Возрастное ограничение"}
+              </h2>
+              <p className="flex justify-center items-center text-[var(--foreground)]/60 h-20 mb-4 text-center">
+                {!isLoggedIn
+                  ? "Для просмотра контента 18+ необходимо войти в аккаунт и подтвердить возраст."
+                  : "Этот контент предназначен только для лиц старше 18 лет."}
+              </p>
+              <button
+                onClick={handleAgeVerificationClick}
+                disabled={isAgeVerified}
+                className={`px-4 py-2 rounded-full transition-colors flex items-center gap-2 ${
+                  isAgeVerified
+                    ? "bg-[var(--muted)] text-[var(--muted-foreground)] cursor-not-allowed"
+                    : "bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--accent)]/80 cursor-pointer"
+                }`}
+              >
+                {isAgeVerified ? (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    Возраст подтвержден
+                  </>
+                ) : (
+                  "Подтвердить возраст"
+                )}
+              </button>
+            </div>
+          );
+        }
+
         return (
           <div className="rounded-xl">
             <div className="flex flex-col justify-between bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl items-center p-4">
-              {/* <h2 className="text-xl flex items-start w-full mb-2 font-bold text-[var(--foreground)]">
-                Главы
-              </h2> */}
-              {/* Chapter search and sort controls */}
               <div className="flex w-full flex-col sm:flex-row gap-4">
                 <input
                   type="text"
@@ -247,14 +313,12 @@ export function RightContent({
               </div>
             </div>
 
-            {/* Chapters list */}
             <div className="space-y-2 mt-2">
               {visibleChapters.map((chapter) => (
                 <div
                   key={chapter._id}
                   className="flex items-center justify-between gap-2 py-2 px-3 bg-[var(--card)]/50 rounded-full hover:bg-[var(--background)]/70 transition-colors"
                 >
-                  {/* Иконка статуса прочтения */}
                   <Eye className="w-5 h-5 text-[var(--primary)]" />
                   <div className="flex-1">
                     <h3 className="font-medium text-[var(--foreground)]">
@@ -271,7 +335,6 @@ export function RightContent({
                       {"Просмотров: "}
                       {chapter.views && (
                         <span className="flex items-center gap-1">
-                          {/* <Eye className="w-4 h-4" /> */}
                           {chapter.views}
                         </span>
                       )}
@@ -289,7 +352,6 @@ export function RightContent({
               ))}
             </div>
 
-            {/* Кнопка перемотки в верх */}
             <button
               onClick={scrollToTop}
               className="fixed bottom-4 right-4 w-14 h-14 animate-pulse transition-all duration-800 flex items-center justify-center  bg-[var(--chart-1)] text-[var(--accent-foreground)] rounded-full shadow-lg hover:bg-[var(--accent)]/80"
@@ -343,165 +405,168 @@ export function RightContent({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center w-full">
-        <div className="flex gap-2">
-          <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
-            <Calendar className="w-4 h-4" />
-            <span>{titleData.releaseYear}</span>
+    <>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center w-full">
+          <div className="flex gap-2">
+            <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
+              <Calendar className="w-4 h-4" />
+              <span>{titleData.releaseYear}</span>
+            </div>
+            <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
+              <BookOpen className="w-4 h-4" />
+              <span>{translateTitleType(titleData.type || "")}</span>
+            </div>
+            <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
+              <CheckCheck className="w-4 h-4" />
+              {titleData?.status && (
+                <span>{translateTitleStatus(titleData.status || "")}</span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
-            <BookOpen className="w-4 h-4" />
-            <span>{translateTitleType(titleData.type || "")}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
-            <CheckCheck className="w-4 h-4" />
-            {titleData?.status && (
-              <span>{translateTitleStatus(titleData.status || "")}</span>
+          <div className="relative flex flex-col items-end gap-1 bg-[var(--background)]/20 px-3 py-2 rounded-full min-w-[80px]">
+            <span className="text-lg font-bold text-[var(--chart-1)]">
+              {titleData?.averageRating
+                ? titleData?.averageRating.toFixed(2)
+                : "0"}
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsRatingOpen((v) => !v)}
+              className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer whitespace-nowrap"
+            >
+              Оценить
+            </button>
+            {isRatingOpen && (
+              <div className="absolute top-4 right-0 flex flex-col w-max bg-[var(--accent)] rounded-lg p-4">
+                <div className="flex items-end justify-between mb-2">
+                  <span className="text-sm text-[var(--primary)]">
+                    Ваша оценка
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsRatingOpen(false)}
+                    className="p-1 rounded hover:bg-[var(--accent)]"
+                    aria-label="Закрыть"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex gap-2 overflow-x-auto">
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => {
+                        setPendingRating(n);
+                        setIsRatingOpen(false);
+                        updateRating({ id: titleData?._id || "", rating: n });
+                      }}
+                      className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer flex items-center justify-center ${
+                        pendingRating === n
+                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                          : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
+                      }`}
+                      title={`Оценка ${n}`}
+                    >
+                      <Star className="w-4 h-4" />
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </div>
-        <div className="relative flex flex-col items-end gap-1 bg-[var(--background)]/20 px-3 py-2 rounded-full min-w-[80px]">
-          <span className="text-lg font-bold text-[var(--chart-1)]">
-            {titleData?.averageRating
-              ? titleData?.averageRating.toFixed(2)
-              : "0"}
-          </span>
-          <button
-            type="button"
-            onClick={() => setIsRatingOpen((v) => !v)}
-            className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer whitespace-nowrap"
+
+        <h1 className="hidden lg:flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-bold mb-6 text-[var(--foreground)] break-words">
+          {titleData?.name}
+        </h1>
+
+        <div className="flex flex-wrap gap-2">
+          <span
+            className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-sm font-semibold bg-[var(--muted)]/60 p-1"
+            onClick={() => {
+              router.push(
+                `/browse?ageLimit=${encodeURIComponent(
+                  titleData?.ageLimit || ""
+                )}`
+              );
+            }}
           >
-            Оценить
-          </button>
-          {/* Блок с цифрами для оценки тайтла */}
-          {isRatingOpen && (
-            <div className="absolute top-4 right-0 flex flex-col w-max bg-[var(--accent)] rounded-lg p-4">
-              <div className="flex items-end justify-between mb-2">
-                <span className="text-sm text-[var(--primary)]">
-                  Ваша оценка
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsRatingOpen(false)}
-                  className="p-1 rounded hover:bg-[var(--accent)]"
-                  aria-label="Закрыть"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="flex gap-2 overflow-x-auto">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => {
-                      setPendingRating(n);
-                      setIsRatingOpen(false);
-                      // Отправляем рейтинг на сервер
-                      updateRating({ id: titleData?._id || "", rating: n });
-                    }}
-                    className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer flex items-center justify-center ${
-                      pendingRating === n
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
-                    }`}
-                    title={`Оценка ${n}`}
-                  >
-                    <Star className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-            </div>
+            {titleData?.ageLimit}+
+          </span>
+          {titleData.genres?.map((genre, index) => (
+            <span
+              key={index}
+              className="px-2 py-1 cursor-pointer rounded-full text-sm font-normal bg-[var(--muted)]/50 p-1 text-[var(--foreground)]"
+              onClick={() => {
+                router.push(`/browse?genres=${encodeURIComponent(genre || "")}`);
+              }}
+            >
+              {genre}
+            </span>
+          ))}
+          {titleData.tags?.map((tag, index) => (
+            <span
+              key={index}
+              className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
+              onClick={() => {
+                router.push(`/browse?tags=${encodeURIComponent(tag || "")}`);
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+          <div
+            className={`text-[var(--foreground)]/80 leading-relaxed ${
+              !isDescriptionExpanded ? "line-clamp-3" : ""
+            }`}
+            dangerouslySetInnerHTML={{
+              __html: titleData?.description || "",
+            }}
+          ></div>
+          {(titleData?.description?.length || 0) > 200 && (
+            <button
+              onClick={onDescriptionToggle}
+              className=" text-[var(--chart-1)] hover:text-[var(--chart-1)]/80 transition-colors"
+            >
+              {isDescriptionExpanded ? "Свернуть" : "Развернуть"}
+            </button>
           )}
         </div>
-      </div>
 
-      {/* Title info - hidden on mobile, shown on desktop */}
-      <h1 className="hidden lg:flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-bold mb-6 text-[var(--foreground)] break-words">
-        {titleData?.name}
-      </h1>
-      {/* Genres */}
-      <div className="flex flex-wrap gap-2">
-        <span
-          className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-sm font-semibold bg-[var(--muted)]/60 p-1"
-          onClick={() => {
-            router.push(
-              `/browse?ageLimit=${encodeURIComponent(
-                titleData?.ageLimit || ""
-              )}`
-            );
-          }}
-        >
-          {titleData?.ageLimit}+
-        </span>
-        {titleData.genres?.map((genre, index) => (
-          <span
-            key={index}
-            className="px-2 py-1 cursor-pointer rounded-full text-sm font-normal bg-[var(--muted)]/50 p-1 text-[var(--foreground)]"
-            onClick={() => {
-              router.push(`/browse?genres=${encodeURIComponent(genre || "")}`);
-            }}
-          >
-            {genre}
-          </span>
-        ))}
-        {titleData.tags?.map((tag, index) => (
-          <span
-            key={index}
-            className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
-            onClick={() => {
-              router.push(`/browse?tags=${encodeURIComponent(tag || "")}`);
-            }}
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-      {/* description */}
-      <div
-        className={`text-[var(--foreground)]/80 leading-relaxed ${
-          !isDescriptionExpanded ? "line-clamp-3" : ""
-        }`}
-        dangerouslySetInnerHTML={{
-          __html: titleData?.description || "",
-        }}
-      ></div>
-      {(titleData?.description?.length || 0) > 200 && (
-        <button
-          onClick={onDescriptionToggle}
-          className="mt-2 text-[var(--chart-1)] hover:text-[var(--chart-1)]/80 transition-colors"
-        >
-          {isDescriptionExpanded ? "Свернуть" : "Развернуть"}
-        </button>
-      )}
-
-      {/* Tabs */}
-      <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1">
-        <div className="flex">
-          {[
-            { key: "description" as const, label: "Описание" },
-            { key: "chapters" as const, label: "Главы" },
-            { key: "comments" as const, label: "Комментарии" },
-            { key: "statistics" as const, label: "Статистика" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => onTabChange(tab.key)}
-              className={`flex-1 py-1 px-2 rounded-full font-medium transition-colors ${
-                activeTab === tab.key
-                  ? "bg-[var(--chart-1)]/90 text-[var(--foreground)]"
-                  : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1">
+          <div className="flex">
+            {[
+              { key: "description" as const, label: "Описание" },
+              { key: "chapters" as const, label: "Главы" },
+              { key: "comments" as const, label: "Комментарии" },
+              { key: "statistics" as const, label: "Статистика" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => onTabChange(tab.key)}
+                className={`flex-1 py-1 px-2 rounded-full font-medium transition-colors ${
+                  activeTab === tab.key
+                    ? "bg-[var(--chart-1)]/90 text-[var(--foreground)]"
+                    : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {renderTabContent()}
       </div>
 
-      {/* Tab content */}
-      {renderTabContent()}
-    </div>
+      {/* Модальное окно для подтверждения возраста */}
+      <AgeVerificationModal
+        isOpen={isAgeModalOpen}
+        onConfirm={handleAgeVerificationConfirm}
+        onCancel={handleAgeVerificationCancel}
+      />
+    </>
   );
 }

@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { LoginModal, RegisterModal } from "@/shared";
 import { translateTitleType } from "@/lib/title-type-translations";
 
 // Shared UI
@@ -329,9 +330,7 @@ export function ChapterItem({
   const handleRemoveFromHistory = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (isRemoving) return;
-
     setIsRemoving(true);
     try {
       await removeFromReadingHistory(titleId, chapter._id);
@@ -454,6 +453,48 @@ export function RightContent({
   user: User | null;
   onAgeVerificationRequired?: () => void;
 }) {
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [ageModalOpen, setAgeModalOpen] = useState(false);
+
+  const handleLoginModalOpen = () => {
+    setLoginModalOpen(true);
+  };
+
+  const handleLoginModalClose = () => {
+    setLoginModalOpen(false);
+  };
+
+  const handleSwitchToRegister = () => {
+    setLoginModalOpen(false);
+    setRegisterModalOpen(true);
+  };
+
+  const handleSwitchToLogin = () => {
+    setRegisterModalOpen(false);
+    setLoginModalOpen(true);
+  };
+
+  const handleRegisterModalClose = () => {
+    setRegisterModalOpen(false);
+  };
+
+  const handleAuthSuccess = () => {
+    setLoginModalOpen(false);
+    setRegisterModalOpen(false);
+    // Optionally refresh the page or update state
+  };
+
+  const handleModalRequired = () => {
+    const isLoggedIn = !!user;
+    const isAgeVerified = checkAgeVerification(user);
+
+    if (!isLoggedIn) {
+      handleLoginModalOpen();
+    } else if (!isAgeVerified) {
+      setAgeModalOpen(true);
+    }
+  };
   const statusLabels: Record<TitleStatus, string> = {
     [TitleStatus.ONGOING]: "Онгоинг",
     [TitleStatus.COMPLETED]: "Завершен",
@@ -734,6 +775,7 @@ export function RightContent({
               onSortChange={onSortChange}
               loading={chaptersLoading}
               user={user}
+              onAgeVerificationRequired={handleModalRequired}
             />
           )}
           {activeTab === "comments" && <CommentsTab titleId={titleId} />}
@@ -759,6 +801,29 @@ export function RightContent({
           )}
         </div>
       </div>
+
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={handleLoginModalClose}
+        onSwitchToRegister={handleSwitchToRegister}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      <RegisterModal
+        isOpen={registerModalOpen}
+        onClose={handleRegisterModalClose}
+        onSwitchToLogin={handleSwitchToLogin}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      <AgeVerificationModal
+        isOpen={ageModalOpen}
+        onConfirm={() => {
+          setAgeModalOpen(false);
+          // Optionally refresh or update state
+        }}
+        onCancel={() => setAgeModalOpen(false)}
+      />
     </div>
   );
 }
