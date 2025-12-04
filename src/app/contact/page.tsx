@@ -13,7 +13,7 @@ export default function ContactPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 pt-8 pb-20 lg:py-8 sm:px-6 lg:px-8">
         <div className="space-y-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-[var(--foreground)] mb-4">
@@ -74,7 +74,7 @@ export default function ContactPage() {
             </div>
 
             {/* Форма обратной связи */}
-            <div className="bg-[var(--secondary)] p-6 rounded-lg border border-[var(--border)]">
+            {/* <div className="bg-[var(--secondary)] p-6 rounded-lg border border-[var(--border)]">
               <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">
                 Форма обратной связи
               </h2>
@@ -143,7 +143,7 @@ export default function ContactPage() {
                   Отправить сообщение
                 </button>
               </form>
-            </div>
+            </div> */}
           </div>
         </div>
       </main>
