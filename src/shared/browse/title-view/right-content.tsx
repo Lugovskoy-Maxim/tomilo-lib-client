@@ -49,12 +49,18 @@ export function RightContent({
 
   useEffect(() => {
     if (searchQuery) {
-      // При поиске фильтруем главы по точному совпадению
-      const filteredChapters = chapters.filter((chapter) =>
-        chapter.name.toLowerCase() === searchQuery.toLowerCase()
-      );
+      // При поиске фильтруем главы по номеру главы
+      const filteredChapters = chapters.filter((chapter) => {
+        // Извлекаем номер главы из названия (предполагаем формат "Глава N" или просто "N")
+        const chapterNumberMatch = chapter.name.match(/(?:Глава\s+)?(\d+)/i);
+        const chapterNumber = chapterNumberMatch ? chapterNumberMatch[1] : null;
+        
+        // Сравниваем с поисковым запросом
+        return chapterNumber === searchQuery.trim();
+      });
       setDisplayedChapters(filteredChapters);
-      setVisibleChapters(filteredChapters.slice(0, loadedChaptersCount));
+      setVisibleChapters(filteredChapters);
+      setLoadedChaptersCount(filteredChapters.length); // Показываем все найденные главы
     } else {
       // Без поиска накапливаем главы
       setDisplayedChapters((prev) => {
@@ -63,6 +69,7 @@ export function RightContent({
         );
         return [...prev, ...newChapters];
       });
+      setLoadedChaptersCount(20); // Сбрасываем количество отображаемых глав
     }
   }, [chapters, searchQuery]);
 
@@ -70,6 +77,13 @@ export function RightContent({
   useEffect(() => {
     setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));
   }, [displayedChapters, loadedChaptersCount]);
+
+  // Сброс отображаемых глав при изменении поискового запроса
+  useEffect(() => {
+    if (!searchQuery) {
+      setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));
+    }
+  }, [searchQuery, displayedChapters, loadedChaptersCount]);
 
   // Обработчик для загрузки дополнительных глав при прокрутке
   const handleScroll = () => {
