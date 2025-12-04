@@ -1,24 +1,20 @@
 "use client";
 
 import { Footer, Header } from "@/widgets";
-import { Share, Edit } from "lucide-react";
-import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import { Title } from "@/types/title";
-import { User } from "@/types/auth";
 
 import { useIncrementViewsMutation} from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
-import Image from "next/image";
-import { ReadButton } from "@/shared/browse/read-button";
-import { BookmarkButton } from "@/shared/bookmark-button";
 import LoadingState from "./loading";
 import ErrorState from "./error";
-import AdultContentWarning from "./adult";
-import { checkAgeVerification } from "@/shared/modal/age-verification-modal";
-import { LeftSidebar, RightContent } from "@/shared/browse/title-view";
+// import { LeftSidebar, RightContent } from "@/shared/browse/title-view";
+import MobileCover from "@/shared/browse/title-view/mobile-cover";
+import { LeftSidebar } from "@/shared/browse/title-view/left-sidebar";
+import { RightContent } from "@/shared/browse/title-view/right-content";
+
 
 export default function TitleViewClient({
   initialTitleData,
@@ -74,193 +70,107 @@ export default function TitleViewClient({
 
   // Load reading history for the current title
   const { data: readingHistoryData } = useGetReadingHistoryByTitleQuery(
-    titleId as string,
-    { skip: !titleId }
+    titleId,
+    { skip: !user }
   );
 
-  const processedChaptersData = useMemo(
-    () => chaptersData?.chapters || [],
-    [chaptersData]
-  );
-
-  // Update hasMoreChapters based on API response
-  useEffect(() => {
-    if (chaptersData) {
-      setHasMoreChapters(chaptersData.hasMore);
-    }
+  // Обработка данных глав - аккумулируем главы при пагинации
+  const processedChaptersData = useMemo(() => {
+    if (!chaptersData?.chapters) return [];
+    return chaptersData.chapters;
   }, [chaptersData]);
 
-  // Состояния UI
+  // Обновляем hasMoreChapters на основе ответа API
+  useEffect(() => {
+    if (chaptersData?.hasMore !== undefined) {
+      setHasMoreChapters(chaptersData.hasMore);
+    }
+  }, [chaptersData?.hasMore]);
+
+
+
+  // Состояние для активной вкладки
   const [activeTab, setActiveTab] = useState<
     "description" | "chapters" | "comments" | "statistics"
-  >("chapters");
+  >("description");
+
+  // Состояние для раскрытого описания
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [showAgeModal, setShowAgeModal] = useState(false);
-  const [isClient, setIsClient] = useState(false); // Для предотвращения гидрационных ошибок
 
-  // Флаг для предотвращения множественных инкрементов просмотров
-  const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
+  // Проверка прав администратора
+  const displayIsAdmin = user?.role === "admin";
 
-  // Simplify isAdmin state usage
-  const isAdmin = user?.role == "admin";
-
-  const isLoading = false; // Убираем состояние загрузки, так как данные уже есть
-  const error = null; // Убираем состояние ошибки, так как данные уже есть
-
-  // Устанавливаем isClient в true после монтирования
+  // Эффект для увеличения просмотров
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Загрузка данных тайтла
-  useEffect(() => {
-    if (processedTitleData && !hasIncrementedViews) {
-      // Увеличиваем счётчик просмотров только один раз
+    if (titleId) {
       incrementViews(titleId);
-      setHasIncrementedViews(true);
     }
-  }, [processedTitleData, incrementViews, titleId, hasIncrementedViews]);
+  }, [titleId, incrementViews]);
 
-  // Сброс флага при изменении titleId
-  useEffect(() => {
-    setHasIncrementedViews(false);
-  }, [titleId]);
-
-  // Reset pagination when tab changes
-  useEffect(() => {
-    if (activeTab === "chapters") {
-      setChaptersPage(1);
-    }
-  }, [activeTab]);
-
-  // Обработчики
+  // Обработчик загрузки дополнительных глав
   const handleLoadMoreChapters = () => {
     if (hasMoreChapters && !chaptersLoading) {
       setChaptersPage((prev) => prev + 1);
     }
   };
 
+  // Обработчик поиска глав
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    setChaptersPage(1);
+    setChaptersPage(1); // Сброс пагинации при поиске
   };
 
+  // Обработчик сортировки глав
   const handleSortChange = (order: "desc" | "asc") => {
     setSortOrder(order);
-    setChaptersPage(1);
+    setChaptersPage(1); // Сброс пагинации при сортировке
   };
 
+  // Обработчик поделиться
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
         title: processedTitleData?.name,
-        text: processedTitleData?.description,
+        text: `Посмотрите тайтл: ${processedTitleData?.name}`,
         url: window.location.href,
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert("Ссылка скопирована в буфер обмена");
     }
   };
 
-  // Проверка на взрослый контент
-  const isAdultContent = processedTitleData?.isAdult && !user;
-
-  // Состояния загрузки и ошибок
-  if (isLoading) return <LoadingState />;
-  if (error || !processedTitleData)
-    return <ErrorState error={error || "Тайтл не найден"} titleId={titleId} />;
-
-  if (isAdultContent) {
-    return <AdultContentWarning />;
+  // Показываем состояние загрузки
+  if (chaptersLoading && processedChaptersData.length === 0) {
+    return <LoadingState />;
   }
 
-  // Для предотвращения гидрационной ошибки, показываем одинаковый контент на сервере и клиенте
-  const displayIsAdmin = isClient ? isAdmin : false;
+  // Показываем ошибку
+  if (chaptersError) {
+    return <ErrorState error={"Ошибка загрузки глав"} titleId={titleId} />;
+  }
 
   return (
-    <main className="min-h-screen relative">
-      {/* Размытый фон */}
-      {processedTitleData?.coverImage && (
-        <div
-          className="fixed inset-0 z-0"
-          style={{
-            backgroundImage: `url(${
-              process.env.NEXT_PUBLIC_URL + processedTitleData.coverImage
-            })`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-          }}
-        >
-          <div className="absolute inset-0 backdrop-blur-3xl bg-black/30"></div>
-        </div>
-      )}
+    <main className="min-h-screen bg-[var(--background)]">
+      <Header />
+      <div className="container mx-auto px-4 lg:py-8 pb-20">
+        <div className="max-w-7xl mx-auto">
+          <MobileCover
+            titleData={processedTitleData}
+            chapters={allChaptersData?.chapters || processedChaptersData}
+            onShare={handleShare}
+            isAdmin={displayIsAdmin}
+            onAgeVerificationRequired={() => {}}
+          />
 
-      {/* Overlay для улучшения читаемости */}
-      <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40 z-10"></div>
-
-      {/* Контент */}
-      <div className="relative z-20">
-        <Header />
-        <div className="max-w-7xl mx-auto px-2 py-4 pb-20 md:pb-4">
-          {/* Мобильная версия - обложка сверху */}
-          <div className="lg:hidden mb-6">
-            <div className="flex relative w-max h-max justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
-              {processedTitleData?.coverImage ? (
-                <Image
-                  src={`${process.env.NEXT_PUBLIC_URL}${processedTitleData.coverImage}`}
-                  alt={processedTitleData?.name}
-                  width={280}
-                  height={420}
-                  unoptimized={true}
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 280px) 100vw, 33vw"
-                />
-              ) : (
-                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-full" />
-              )}
-            </div>
-
-            {/* Мобильные кнопки действий */}
-            <div className="flex justify-center gap-4 mt-4 rounded-full">
-              <ReadButton
-                titleData={processedTitleData}
-                chapters={allChaptersData?.chapters || processedChaptersData}
-                className="flex-1 text-sm"
-                onAgeVerificationRequired={() => setShowAgeModal(true)}
-              />
-              <BookmarkButton titleId={titleId} initialBookmarked={false} />
-              <button
-                onClick={handleShare}
-                className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
-                aria-label="Поделиться"
-              >
-                <Share className="w-4 h-4 text-[var(--foreground)]" />
-              </button>
-              {displayIsAdmin && (
-                <Link
-                  href={`/admin/titles/${titleId}/edit`}
-                  className="p-3 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
-                  aria-label="Редактировать"
-                >
-                  <Edit className="w-5 h-5 text-[var(--foreground)]" />
-                </Link>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-10">
             {/* Десктопная версия - обложка слева */}
-            <div className="hidden lg:block lg:w-1/4">
+            <div className="hidden  lg:flex lg:w-1/4">
               <LeftSidebar
                 titleData={processedTitleData}
                 chapters={allChaptersData?.chapters || processedChaptersData}
-                readingHistory={readingHistoryData?.data}
                 onShare={handleShare}
                 isAdmin={displayIsAdmin}
-                onAgeVerificationRequired={() => setShowAgeModal(true)}
+                onAgeVerificationRequired={() => {}}
               />
             </div>
 
@@ -282,13 +192,13 @@ export default function TitleViewClient({
                 sortOrder={sortOrder}
                 onSortChange={handleSortChange}
                 titleId={titleId}
-                user={user as unknown as User | null}
+                user={user}
               />
             </div>
           </div>
         </div>
-        <Footer />
       </div>
+      <Footer />
     </main>
   );
 }

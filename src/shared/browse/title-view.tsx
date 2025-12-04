@@ -549,7 +549,7 @@ export function RightContent({
           )}
 
           <div className="flex-1">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white/90 mb-3 p-2">
+            <h1 className="flex justify-center items-center text-center text-2xl sm:text-3xl md:text-4xl font-bold mb-3 p-2">
               {titleData?.name}
             </h1>
           </div>
