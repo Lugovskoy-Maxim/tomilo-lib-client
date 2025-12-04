@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   MobileFilterButton,
@@ -47,7 +47,7 @@ function BrowseContent() {
   const [loadMorePage, setLoadMorePage] = useState(1);
   const [limit, setLimit] = useState(15); // Default to desktop
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+
 
   // Debounce for search input (1s)
   const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
@@ -123,30 +123,13 @@ function BrowseContent() {
     setIsLoadingMore(false);
   }, [adaptedTitles, loadMorePage]);
 
-  // Infinite scroll logic
+  // Load more logic
   const loadMoreTitles = useCallback(() => {
     if (!isLoadingMore && loadMorePage < totalPages) {
       setIsLoadingMore(true);
       setLoadMorePage(prev => prev + 1);
     }
   }, [isLoadingMore, loadMorePage, totalPages]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isLoadingMore && loadMorePage < totalPages) {
-          loadMoreTitles();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [loadMoreTitles, isLoadingMore, loadMorePage, totalPages]);
 
 
 
@@ -231,19 +214,25 @@ function BrowseContent() {
           onResetFilters={resetFilters}
         />
 
-        {/* Infinite scroll trigger and loading indicator */}
+        {/* Load more button */}
         {loadMorePage < totalPages && (
-          <div ref={loadMoreRef} className="flex justify-center mt-8">
+          <div className="flex justify-center my-8">
             {isLoadingMore ? (
               <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--primary)]"></div>
                 Загрузка...
               </div>
             ) : (
-              <div className="h-4"></div> // Invisible trigger element
+              <button
+                onClick={loadMoreTitles}
+                className="bg-[var(--primary)] text-[var(--primary-foreground)] px-6 py-3 rounded-lg hover:bg-[var(--primary)]/90 transition-colors cursor-pointer"
+              >
+                Загрузить ещё
+              </button>
             )}
-          </div>)    }
           </div>
+        )}
+      </div>
 
       {/* Боковая панель с фильтрами (десктоп) */}
       <div className="hidden lg:block lg:w-1/4">
