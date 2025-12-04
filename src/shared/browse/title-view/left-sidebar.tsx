@@ -4,7 +4,8 @@ import Image from "next/image";
 import { Title, Chapter } from "@/types/title";
 import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
-import router from "next/router";
+import { useRouter } from "next/navigation";
+
 
 interface LeftSidebarProps {
   titleData: Title;
@@ -21,6 +22,7 @@ export function LeftSidebar({
   isAdmin,
   onAgeVerificationRequired,
 }: LeftSidebarProps) {
+  const router = useRouter();
   return (
     <div className="sticky top-4">
       <div className="flex relative w-max h-max justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
@@ -59,7 +61,7 @@ export function LeftSidebar({
         </button>
           <button
             onClick={() => router.push(`/admin/titles/${titleData._id}/edit`)}
-            className={`${isAdmin ? "" : "hidden"} {} flex items-center justify-center gap-2 lg:p-1 p-4  rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer`}
+            className={`${isAdmin ? "" : "hidden"} flex items-center justify-center gap-2 lg:p-1 p-4  rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer`}
             aria-label="Редактировать"
             disabled={isAdmin ? false : true}
           >
