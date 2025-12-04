@@ -336,8 +336,8 @@ export function RightContent({
         </div>
       )} */}
 
-      {/* Title info */}
-      <h1 className="flex items-center justify-center text-3xl font-bold mb-6 text-[var(--foreground)]">
+      {/* Title info - hidden on mobile, shown on desktop */}
+      <h1 className="hidden lg:flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-bold mb-6 text-[var(--foreground)] break-words">
         {titleData?.name}
       </h1>
       {/* Genres */}

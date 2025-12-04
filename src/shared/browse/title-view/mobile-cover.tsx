@@ -21,7 +21,7 @@ export default function MobileCover({
   onAgeVerificationRequired,
 }: MobileCoverProps) {
   return (
-    <div className="lg:hidden mt-2 mb-6">
+    <div className="md:hidden mt-2 mb-6">
       <div className="flex relative w-max h-max justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
         {titleData?.coverImage ? (
           <Image
@@ -66,9 +66,9 @@ export default function MobileCover({
         )}
       </div>
       {/* Название тайтла в мобильной версии */}
-      {/* <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white/90 mb-3 p-2 text-center">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-3 p-2 text-center break-words">
         {titleData?.name}
-      </h1> */}
+      </h1>
     </div>
   );
 }

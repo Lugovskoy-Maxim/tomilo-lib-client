@@ -129,10 +129,10 @@ export default function TitleViewClient({
   }
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-[var(--background)]">
       <Header />
-      <div className="flex w-full justify-center items-center flex-col  p-4 lg:py-8 pb-20">
-        <div className="flex w-full max-w-7xl">
+      <div className="container mx-auto px-4 lg:py-8 pb-20">
+        <div className="max-w-7xl mx-auto">
           <MobileCover
             titleData={processedTitleData}
             chapters={allChaptersData?.chapters || processedChaptersData}
@@ -140,8 +140,7 @@ export default function TitleViewClient({
             isAdmin={displayIsAdmin}
             onAgeVerificationRequired={() => {}}
           />
-
-          <div className="flex flex-col lg:flex-row gap-10">
+          <div className="flex-1 flex flex-col lg:flex-row gap-10">
             {/* Десктопная версия - обложка слева */}
             <div className="hidden  lg:flex lg:w-1/4">
               <LeftSidebar
@@ -153,7 +152,7 @@ export default function TitleViewClient({
               />
             </div>
 
-            <div className="lg:w-3/4">
+            <div className="w-full lg:w-3/4">
               <RightContent
                 titleData={processedTitleData}
                 activeTab={activeTab}
