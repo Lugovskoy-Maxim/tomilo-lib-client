@@ -2,7 +2,7 @@ import { Title, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
 import { BookOpen, Calendar, CheckCheck, Eye } from "lucide-react";
 import { translateTitleType } from "@/lib/title-type-translations";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 interface RightContentProps {
   titleData: Title;
@@ -41,6 +41,7 @@ export function RightContent({
   titleId,
   user,
 }: RightContentProps) {
+  const router = useRouter();
   const renderTabContent = () => {
     switch (activeTab) {
       case "description":
@@ -78,7 +79,7 @@ export function RightContent({
 
       case "chapters":
         return (
-          <div className="rounded-">
+          <div className="rounded-xl">
             <div className="flex flex-col justify-between bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl items-center p-4">
               {/* <h2 className="text-xl flex items-start w-full mb-2 font-bold text-[var(--foreground)]">
                 Главы
@@ -114,39 +115,10 @@ export function RightContent({
                 .map((chapter) => (
                   <div
                     key={chapter._id}
-                    className="flex items-center justify-between p-3 bg-[var(--card)]/50 rounded-lg hover:bg-[var(--background)]/70 transition-colors"
+                    className="flex items-center justify-between gap-2 p-3 bg-[var(--card)]/50 rounded-lg hover:bg-[var(--background)]/70 transition-colors"
                   >
                     {/* Иконка статуса прочтения */}
-                    {/* <div
-                              className="flex items-center w-5 h-5"
-                              onMouseEnter={() => setIsHovered(true)}
-                              onMouseLeave={() => setIsHovered(false)}
-                            >
-                              {isRead && isHovered ? (
-                                <button
-                                  onClick={handleRemoveFromHistory}
-                                  disabled={isRemoving}
-                                  className={`flex items-center justify-center transition-colors hover:text-red-600 ${
-                                    isRemoving
-                                      ? "cursor-not-allowed text-[var(--primary)]"
-                                      : "text-red-500 cursor-pointer"
-                                  }`}
-                                  title="Удалить из истории чтения"
-                                >
-                                  {isRemoving ? (
-                                    <div className="w-5 h-5" />
-                                  ) : (
-                                    <EyeOff className="w-5 h-5" />
-                                  )}
-                                </button>
-                              ) : (
-                                <Eye
-                                  className={`w-5 h-5 ${
-                                    isRead ? "text-green-500" : "text-[var(--primary)]"
-                                  }`}
-                                />
-                              )}
-                            </div> */}
+                    <Eye className="w-5 h-5 text-[var(--primary)]" />
                     <div className="flex-1">
                       <h3 className="font-medium text-[var(--foreground)]">
                         {chapter.name}
@@ -158,7 +130,7 @@ export function RightContent({
                       </p>
                     </div>
                     <div className="flex gap-2 items-center">
-                      <div>
+                      <div className="flex gap-2  no-warp">
                         {"Просмотров: "}
                         {chapter.views && (
                           <span className="flex items-center gap-1">
@@ -167,7 +139,10 @@ export function RightContent({
                           </span>
                         )}
                       </div>
-                      <button className="px-4 py-2 bg-[var(--accent)] cursor-pointer text-[var(--accent-foreground)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors">
+                      <button
+                        onClick={() => router.push(`/read/${titleId}/${chapter._id}`)}
+                        className="px-4 py-2 bg-[var(--accent)] cursor-pointer text-[var(--accent-foreground)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors"
+                      >
                         Читать
                       </button>
                     </div>
