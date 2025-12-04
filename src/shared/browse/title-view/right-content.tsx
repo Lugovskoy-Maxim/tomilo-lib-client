@@ -7,10 +7,16 @@ import {
   CheckCheck,
   Eye,
   Loader2,
+  Star,
+  X,
 } from "lucide-react";
-import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
+import {
+  translateTitleStatus,
+  translateTitleType,
+} from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
+import { useUpdateRatingMutation } from "@/store/api/titlesApi";
 
 interface RightContentProps {
   titleData: Title;
@@ -50,9 +56,12 @@ export function RightContent({
   user,
 }: RightContentProps): React.ReactElement {
   const router = useRouter();
+  const [updateRating] = useUpdateRatingMutation();
   const [displayedChapters, setDisplayedChapters] = useState<Chapter[]>([]);
   const [visibleChapters, setVisibleChapters] = useState<Chapter[]>([]);
   const [loadedChaptersCount, setLoadedChaptersCount] = useState(20); // Начальное количество отображаемых глав
+  const [isRatingOpen, setIsRatingOpen] = useState(false);
+  const [pendingRating, setPendingRating] = useState<number | null>(null);
 
   useEffect(() => {
     if (searchQuery) {
@@ -201,7 +210,6 @@ export function RightContent({
                   ? titleData.altNames.join(", ")
                   : "Нет доступных данных"}
               </div>
-
             </div>
             {/* <div className="flex flex-wrap gap-4 text-sm text-[var(--foreground)]/60 mb-4">
               {titleData?.author && <span>Автор: {titleData.author}</span>}
@@ -348,64 +356,66 @@ export function RightContent({
           </div>
           <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
             <CheckCheck className="w-4 h-4" />
-            {titleData?.status && <span>{translateTitleStatus(titleData.status || "")}</span>}
+            {titleData?.status && (
+              <span>{translateTitleStatus(titleData.status || "")}</span>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-[var(--background)]/20 px-3 py-1 rounded-full">
+        <div className="relative flex flex-col items-end gap-1 bg-[var(--background)]/20 px-3 py-2 rounded-full min-w-[80px]">
           <span className="text-lg font-bold text-[var(--chart-1)]">
             {titleData?.averageRating
               ? titleData?.averageRating.toFixed(2)
               : "0"}
           </span>
-          {/* <button
+          <button
             type="button"
             onClick={() => setIsRatingOpen((v) => !v)}
-            className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer"
+            className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer whitespace-nowrap"
           >
             Оценить
-          </button> */}
+          </button>
+          {/* Блок с цифрами для оценки тайтла */}
+          {isRatingOpen && (
+            <div className="absolute top-4 right-0 flex flex-col w-max bg-[var(--accent)] rounded-lg p-4">
+              <div className="flex items-end justify-between mb-2">
+                <span className="text-sm text-[var(--primary)]">
+                  Ваша оценка
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsRatingOpen(false)}
+                  className="p-1 rounded hover:bg-[var(--accent)]"
+                  aria-label="Закрыть"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex gap-2 overflow-x-auto">
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => {
+                      setPendingRating(n);
+                      setIsRatingOpen(false);
+                      // Отправляем рейтинг на сервер
+                      updateRating({ id: titleData?._id || "", rating: n });
+                    }}
+                    className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer flex items-center justify-center ${
+                      pendingRating === n
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
+                    }`}
+                    title={`Оценка ${n}`}
+                  >
+                    <Star className="w-4 h-4" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Блок с цифрами для оценки тайтла */}
-      {/* {isRatingOpen && (
-        <div className="relative flex flex-col justify-center items-end w-full ">
-          <div className="absolute top-0 right-0 flex flex-col w-max bg-[var(--background)]/80 rounded-full p-2">
-            <div className="flex items-end justify-between mb-2">
-              <span className="text-sm text-[var(--primary)]">Ваша оценка</span>
-              <button
-                type="button"
-                onClick={() => setIsRatingOpen(false)}
-                className="p-1 rounded hover:bg-[var(--accent)]"
-                aria-label="Закрыть"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex gap-2 overflow-x-auto">
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => {
-                    setPendingRating(n);
-                    setIsRatingOpen(false);
-                    // Отправляем рейтинг на сервер
-                    updateRating({ id: titleData?._id || "", rating: n });
-                  }}
-                  className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer ${
-                    pendingRating === n
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )} */}
 
       {/* Title info - hidden on mobile, shown on desktop */}
       <h1 className="hidden lg:flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-bold mb-6 text-[var(--foreground)] break-words">
