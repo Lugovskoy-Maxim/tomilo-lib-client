@@ -124,21 +124,30 @@ export function RightContent({
               <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
                 Полное описание тайтла
               </h2>
-              <p className="text-[var(--foreground)]">
-                Дата загрузки на сайте: 
-                {titleData?.createdAt}
-                
-              </p>
-              <p className="text-[var(--foreground)]">
-                Загружено: 
-                {titleData?.totalChapters}
-                {titleData?.totalChapters === 1
-                  ? " глава"
-                  : titleData?.totalChapters > 1 &&
-                    titleData?.totalChapters < 5
-                  ? " главы"
-                  : " глав"}
-              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--accent)]">
+                    {titleData?.createdAt ? new Date(titleData.createdAt).toLocaleDateString() : 0}
+                  </div>
+                  <div className="text-sm text-[var(--foreground)]/60">
+                    Дата загрузки на сайте:
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--accent)]">
+                    {titleData?.totalChapters}
+                  </div>
+                  <div className="text-sm text-[var(--foreground)]/60">
+                    Загружено:{" "}
+                    {titleData?.totalChapters === 1
+                      ? " глава"
+                      : titleData?.totalChapters > 1 &&
+                        titleData?.totalChapters < 5
+                      ? " главы"
+                      : " глав"}
+                  </div>
+                </div>
+              </div>
               <div>
                 {titleData?.altNames && (
                   <span>Альтернативные названия: {titleData.altNames}</span>
