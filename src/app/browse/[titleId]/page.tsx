@@ -22,7 +22,7 @@ export async function generateMetadata(
     if (!response.ok) {
       if (response.status === 404) {
         return {
-          title: 'Тайтл не найден | Tomilo-lib.ru',
+          title: 'Тайтл не найден - Tomilo-lib',
           description: 'Запрашиваемый тайтл не найден',
         };
       }
@@ -33,7 +33,7 @@ export async function generateMetadata(
 
     if (!apiResponse.success || !apiResponse.data) {
       return {
-        title: 'Тайтл не найден | Tomilo-lib.ru',
+        title: 'Тайтл не найден - Tomilo-lib',
         description: 'Запрашиваемый тайтл не найден',
       };
     }
@@ -50,11 +50,11 @@ export async function generateMetadata(
 
     // Формируем метаданные
     const metadata: Metadata = {
-      title: `${titleName} - Читать онлайн | Tomilo-lib.ru`,
+      title: `Читать ${titleName} - Tomilo-lib`,
       description: shortDescription,
       keywords: `${titleName}, ${titleData.genres?.join(', ')}, ${titleData.author}, ${titleData.artist}, манга, маньхуа, комиксы, онлайн чтение`,
       openGraph: {
-        title: `${titleName} - Читать онлайн | Tomilo-lib.ru`,
+        title: `Читать ${titleName} -  Tomilo-lib`,
         description: shortDescription,
         type: 'article',
         url: `${baseUrl}/browse/${titleId}`,
@@ -63,7 +63,7 @@ export async function generateMetadata(
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${titleName} - Читать онлайн | Tomilo-lib.ru`,
+        title: `Читать ${titleName} - Tomilo-lib`,
         description: shortDescription,
         images: image ? [image] : [],
       },
@@ -73,7 +73,7 @@ export async function generateMetadata(
   } catch (error) {
     console.error('Ошибка при генерации метаданных:', error);
     return {
-      title: 'Ошибка | Tomilo-lib.ru',
+      title: 'Ошибка загрузки страницы | Tomilo-lib.ru',
       description: 'Произошла ошибка при загрузке страницы',
     };
   }

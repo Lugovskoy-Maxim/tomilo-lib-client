@@ -154,6 +154,10 @@ export function ReadButton({
     );
   }
 
+  // Для предотвращения гидрационной ошибки, показываем одинаковый контент на сервере и клиенте
+  const displayButtonText = isClient ? buttonText : "С первой главы";
+  const displayShowIcon = isClient ? showIcon : true;
+
   return (
     <Button
       variant="primary"
@@ -161,8 +165,8 @@ export function ReadButton({
       onClick={handleClick}
       disabled={isDisabled}
     >
-      {showIcon && <Play className="mr-2 h-5 w-5" />}
-      {buttonText}
+      {displayShowIcon && <Play className="mr-2 h-5 w-5" />}
+      {displayButtonText}
     </Button>
   );
 }

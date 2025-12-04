@@ -51,7 +51,7 @@ export default function TitleViewClient({
     {
       titleId,
       page: chaptersPage,
-      limit: 1000, // Load 25 chapters per page for display
+      limit: 50, // Load 50 chapters per page for display
       sortOrder: sortOrder === "desc" ? "desc" : "asc",
     },
     {
@@ -64,11 +64,11 @@ export default function TitleViewClient({
     {
       titleId: titleId as string,
       page: 1,
-      limit: 1000, // Load many chapters for ReadButton
+      limit: 1000, // Load all chapters for ReadButton
       sortOrder: "asc",
     },
     {
-      skip: false,
+      skip: !titleId, // Skip if no titleId
     }
   );
 
@@ -96,6 +96,7 @@ export default function TitleViewClient({
   >("chapters");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [showAgeModal, setShowAgeModal] = useState(false);
+  const [isClient, setIsClient] = useState(false); // Для предотвращения гидрационных ошибок
 
   // Флаг для предотвращения множественных инкрементов просмотров
   const [hasIncrementedViews, setHasIncrementedViews] = useState(false);
@@ -105,6 +106,11 @@ export default function TitleViewClient({
 
   const isLoading = false; // Убираем состояние загрузки, так как данные уже есть
   const error = null; // Убираем состояние ошибки, так как данные уже есть
+
+  // Устанавливаем isClient в true после монтирования
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Загрузка данных тайтла
   useEffect(() => {
@@ -119,7 +125,6 @@ export default function TitleViewClient({
   useEffect(() => {
     setHasIncrementedViews(false);
   }, [titleId]);
-
 
   // Reset pagination when tab changes
   useEffect(() => {
@@ -158,7 +163,6 @@ export default function TitleViewClient({
     }
   };
 
-
   // Проверка на взрослый контент
   const isAdultContent = processedTitleData?.isAdult && !user;
 
@@ -170,6 +174,9 @@ export default function TitleViewClient({
   if (isAdultContent) {
     return <AdultContentWarning />;
   }
+
+  // Для предотвращения гидрационной ошибки, показываем одинаковый контент на сервере и клиенте
+  const displayIsAdmin = isClient ? isAdmin : false;
 
   return (
     <main className="min-h-screen relative">
@@ -232,7 +239,7 @@ export default function TitleViewClient({
               >
                 <Share className="w-4 h-4 text-[var(--foreground)]" />
               </button>
-              {isAdmin && (
+              {displayIsAdmin && (
                 <Link
                   href={`/admin/titles/${titleId}/edit`}
                   className="p-3 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
@@ -252,7 +259,7 @@ export default function TitleViewClient({
                 chapters={allChaptersData?.chapters || processedChaptersData}
                 readingHistory={readingHistoryData?.data}
                 onShare={handleShare}
-                isAdmin={isAdmin}
+                isAdmin={displayIsAdmin}
                 onAgeVerificationRequired={() => setShowAgeModal(true)}
               />
             </div>
