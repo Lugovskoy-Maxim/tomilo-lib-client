@@ -4,7 +4,7 @@ import { Footer, Header } from "@/widgets";
 import { useState, useEffect, useMemo } from "react";
 import { Title } from "@/types/title";
 
-import { useIncrementViewsMutation} from "@/store/api/titlesApi";
+import { useIncrementViewsMutation } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,7 +14,6 @@ import ErrorState from "./error";
 import MobileCover from "@/shared/browse/title-view/mobile-cover";
 import { LeftSidebar } from "@/shared/browse/title-view/left-sidebar";
 import { RightContent } from "@/shared/browse/title-view/right-content";
-
 
 export default function TitleViewClient({
   initialTitleData,
@@ -78,8 +77,6 @@ export default function TitleViewClient({
     return chaptersData.chapters;
   }, [chaptersData]);
 
-
-
   // Состояние для активной вкладки
   const [activeTab, setActiveTab] = useState<
     "description" | "chapters" | "comments" | "statistics"
@@ -132,10 +129,10 @@ export default function TitleViewClient({
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="flex flex-col items-center min-h-screen bg-[var(--background)]">
       <Header />
-      <div className="container mx-auto px-4 lg:py-8 pb-20">
-        <div className="max-w-7xl mx-auto">
+      <div className="flex w-full justify-center items-center flex-col  p-4 lg:py-8 pb-20">
+        <div className="flex w-full max-w-7xl">
           <MobileCover
             titleData={processedTitleData}
             chapters={allChaptersData?.chapters || processedChaptersData}

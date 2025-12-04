@@ -1,6 +1,13 @@
 import { Title, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
-import { ArrowUpToLine, BookOpen, Calendar, CheckCheck, Eye, Loader2 } from "lucide-react";
+import {
+  ArrowUpToLine,
+  BookOpen,
+  Calendar,
+  CheckCheck,
+  Eye,
+  Loader2,
+} from "lucide-react";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -54,7 +61,7 @@ export function RightContent({
         // Извлекаем номер главы из названия (предполагаем формат "Глава N" или просто "N")
         const chapterNumberMatch = chapter.name.match(/(?:Глава\s+)?(\d+)/i);
         const chapterNumber = chapterNumberMatch ? chapterNumberMatch[1] : null;
-        
+
         // Сравниваем с поисковым запросом
         return chapterNumber === searchQuery.trim();
       });
@@ -65,7 +72,8 @@ export function RightContent({
       // Без поиска накапливаем главы
       setDisplayedChapters((prev) => {
         const newChapters = chapters.filter(
-          (chapter) => !prev.some((prevChapter) => prevChapter._id === chapter._id)
+          (chapter) =>
+            !prev.some((prevChapter) => prevChapter._id === chapter._id)
         );
         return [...prev, ...newChapters];
       });
@@ -87,20 +95,25 @@ export function RightContent({
 
   // Обработчик для загрузки дополнительных глав при прокрутке
   const handleScroll = () => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+    if (
+      window.innerHeight + window.scrollY >=
+      document.body.offsetHeight - 1000
+    ) {
       if (loadedChaptersCount < displayedChapters.length) {
-        setLoadedChaptersCount(prev => Math.min(prev + 10, displayedChapters.length));
+        setLoadedChaptersCount((prev) =>
+          Math.min(prev + 10, displayedChapters.length)
+        );
       }
     }
   };
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [loadedChaptersCount, displayedChapters.length]);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const renderTabContent = () => {
     switch (activeTab) {
@@ -111,22 +124,11 @@ export function RightContent({
               <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
                 Полное описание тайтла
               </h2>
-              <div
-                className={`text-[var(--foreground)]/80 leading-relaxed ${
-                  !isDescriptionExpanded ? "line-clamp-3" : ""
-                }`}
-                dangerouslySetInnerHTML={{
-                  __html: titleData?.description || "",
-                }}
-              />
-              {(titleData?.description?.length || 0) > 200 && (
-                <button
-                  onClick={onDescriptionToggle}
-                  className="mt-2 text-[var(--accent)] hover:text-[var(--accent)]/80 transition-colors"
-                >
-                  {isDescriptionExpanded ? "Свернуть" : "Развернуть"}
-                </button>
-              )}
+              <div>
+                {titleData?.altNames && (
+                  <span>Альтернативные названия: {titleData.altNames}</span>
+                )}
+              </div>
             </div>
             <div>Главные герои</div>
             <div>Переводчики</div>
@@ -169,41 +171,43 @@ export function RightContent({
             {/* Chapters list */}
             <div className="space-y-2 mt-2">
               {visibleChapters.map((chapter) => (
-                  <div
-                    key={chapter._id}
-                    className="flex items-center justify-between gap-2 py-2 px-3 bg-[var(--card)]/50 rounded-full hover:bg-[var(--background)]/70 transition-colors"
-                  >
-                    {/* Иконка статуса прочтения */}
-                    <Eye className="w-5 h-5 text-[var(--primary)]" />
-                    <div className="flex-1">
-                      <h3 className="font-medium text-[var(--foreground)]">
-                        {chapter.name}
-                      </h3>
-                      <p className="text-sm text-[var(--foreground)]/60">
-                        {chapter.createdAt
-                          ? new Date(chapter.createdAt).toLocaleDateString()
-                          : ""}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <div className="flex gap-2  no-warp">
-                        {"Просмотров: "}
-                        {chapter.views && (
-                          <span className="flex items-center gap-1">
-                            {/* <Eye className="w-4 h-4" /> */}
-                            {chapter.views}
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => router.push(`/read/${titleId}/${chapter._id}`)}
-                        className="px-4 py-2 bg-[var(--accent)] cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--accent)]/80 transition-colors"
-                      >
-                        Читать
-                      </button>
-                    </div>
+                <div
+                  key={chapter._id}
+                  className="flex items-center justify-between gap-2 py-2 px-3 bg-[var(--card)]/50 rounded-full hover:bg-[var(--background)]/70 transition-colors"
+                >
+                  {/* Иконка статуса прочтения */}
+                  <Eye className="w-5 h-5 text-[var(--primary)]" />
+                  <div className="flex-1">
+                    <h3 className="font-medium text-[var(--foreground)]">
+                      {chapter.name}
+                    </h3>
+                    <p className="text-sm text-[var(--foreground)]/60">
+                      {chapter.createdAt
+                        ? new Date(chapter.createdAt).toLocaleDateString()
+                        : ""}
+                    </p>
                   </div>
-                ))}
+                  <div className="flex gap-2 items-center">
+                    <div className="flex gap-2  no-warp">
+                      {"Просмотров: "}
+                      {chapter.views && (
+                        <span className="flex items-center gap-1">
+                          {/* <Eye className="w-4 h-4" /> */}
+                          {chapter.views}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() =>
+                        router.push(`/read/${titleId}/${chapter._id}`)
+                      }
+                      className="px-4 py-2 bg-[var(--accent)] cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--accent)]/80 transition-colors"
+                    >
+                      Читать
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Кнопка перемотки в верх */}
@@ -214,7 +218,6 @@ export function RightContent({
             >
               <ArrowUpToLine className="w-6 h-6" />
             </button>
-
           </div>
         );
 
@@ -374,6 +377,23 @@ export function RightContent({
           </span>
         ))}
       </div>
+      {/* description */}
+      <div
+        className={`text-[var(--foreground)]/80 leading-relaxed ${
+          !isDescriptionExpanded ? "line-clamp-3" : ""
+        }`}
+        dangerouslySetInnerHTML={{
+          __html: titleData?.description || "",
+        }}
+      ></div>
+      {(titleData?.description?.length || 0) > 200 && (
+        <button
+          onClick={onDescriptionToggle}
+          className="mt-2 text-[var(--chart-1)] hover:text-[var(--chart-1)]/80 transition-colors"
+        >
+          {isDescriptionExpanded ? "Свернуть" : "Развернуть"}
+        </button>
+      )}
 
       {/* Tabs */}
       <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1">
