@@ -173,13 +173,13 @@ export function AutoParsingSection() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {jobs.map((job: AutoParsingJob) => (
               <div
                 key={job._id}
-                className="border border-[var(--border)] rounded-lg p-4"
+                className="border border-[var(--border)] rounded-lg p-3"
               >
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-3 h-3 rounded-full ${
@@ -195,11 +195,11 @@ export function AutoParsingSection() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleCheckChapters(job._id)}
                       disabled={checkLoading}
-                      className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
+                      className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
                       title="Проверить новые главы"
                     >
                       <RefreshCw
@@ -210,7 +210,7 @@ export function AutoParsingSection() {
                     </button>
                     <button
                       onClick={() => setEditingJob(job)}
-                      className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                      className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                       title="Редактировать"
                     >
                       <Edit className="w-4 h-4" />
@@ -218,7 +218,7 @@ export function AutoParsingSection() {
                     <button
                       onClick={() => handleDeleteJob(job._id)}
                       disabled={deleteLoading}
-                      className="p-2 text-red-500 hover:text-red-600 disabled:opacity-50"
+                      className="p-1 text-red-500 hover:text-red-600 disabled:opacity-50"
                       title="Удалить"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -226,11 +226,11 @@ export function AutoParsingSection() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                   <div>
                     <span className="text-[var(--muted-foreground)]">URL:</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[var(--foreground)] truncate">
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-[var(--foreground)] truncate text-xs">
                         {job.url}
                       </span>
                       <button
@@ -245,7 +245,7 @@ export function AutoParsingSection() {
                     <span className="text-[var(--muted-foreground)]">
                       Частота:
                     </span>
-                    <p className="text-[var(--foreground)] mt-1">
+                    <p className="text-[var(--foreground)] mt-1 text-xs">
                       {job.frequency}
                     </p>
                   </div>
@@ -253,19 +253,18 @@ export function AutoParsingSection() {
                     <span className="text-[var(--muted-foreground)]">
                       Создано:
                     </span>
-                    <p className="text-[var(--foreground)] mt-1">
+                    <p className="text-[var(--foreground)] mt-1 text-xs">
                       {formatDate(job.createdAt)}
                     </p>
                   </div>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-[var(--border)]">
-                  <span className="text-sm text-[var(--muted-foreground)]">
-                    Обновлено:
-                  </span>
-                  <p className="text-sm text-[var(--foreground)] mt-1">
-                    {formatDate(job.updatedAt)}
-                  </p>
+                  <div>
+                    <span className="text-[var(--muted-foreground)]">
+                      Обновлено:
+                    </span>
+                    <p className="text-[var(--foreground)] mt-1 text-xs">
+                      {formatDate(job.updatedAt)}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
