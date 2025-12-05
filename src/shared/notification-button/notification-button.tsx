@@ -6,7 +6,7 @@ import { useGetUnreadCountQuery } from '@/store/api/notificationsApi';
 
 export function NotificationButton() {
   const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
-    pollingInterval: 30000, // Обновлять каждые 30 секунд
+    pollingInterval: 120000, // Обновлять каждые 2 минуты
   });
 
   const notificationCount = unreadCountResponse?.data?.count || 0;

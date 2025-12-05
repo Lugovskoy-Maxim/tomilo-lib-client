@@ -9,6 +9,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useGetStatsQuery } from "@/store/api/statsApi";
+import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
 
 type AdminTab = "overview" | "parser" | "titles" | "chapters";
 
@@ -18,6 +19,7 @@ interface OverviewSectionProps {
 
 export function OverviewSection({ onTabChange }: OverviewSectionProps) {
   const { data: statsData, isLoading, error } = useGetStatsQuery();
+  const { data: updatesData, isLoading: updatesLoading, error: updatesError } = useGetLatestUpdatesQuery();
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -172,53 +174,58 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Latest Updates */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
         <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">
-          Недавняя активность
+          Последние обновления
         </h2>
         <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Plus className="w-4 h-4 text-green-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-[var(--foreground)] text-sm">
-                Добавлен новый тайтл &ldquo;One Piece&rdquo;
+          {updatesLoading ? (
+            // Loading skeleton
+            Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg"
+              >
+                <div className="p-2 bg-[var(--secondary)] rounded-lg">
+                  <Loader2 className="w-4 h-4 text-[var(--muted-foreground)] animate-spin" />
+                </div>
+                <div className="flex-1">
+                  <div className="h-4 bg-[var(--muted)] rounded animate-pulse mb-1"></div>
+                  <div className="h-3 bg-[var(--muted)] rounded animate-pulse w-1/2"></div>
+                </div>
+              </div>
+            ))
+          ) : updatesError ? (
+            // Error state
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-red-800 font-medium text-sm">
+                Ошибка загрузки обновлений
               </p>
-              <p className="text-xs text-[var(--muted-foreground)]">
-                2 часа назад
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Download className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-[var(--foreground)] text-sm">
-                Импортировано 5 глав из внешнего источника
-              </p>
-              <p className="text-xs text-[var(--muted-foreground)]">
-                4 часа назад
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Users className="w-4 h-4 text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-[var(--foreground)] text-sm">
-                Зарегистрирован новый пользователь
-              </p>
-              <p className="text-xs text-[var(--muted-foreground)]">
-                6 часов назад
+              <p className="text-red-600 text-xs mt-1">
+                Не удалось получить последние обновления
               </p>
             </div>
-          </div>
+          ) : (
+            updatesData?.data?.slice(0, 3).map((update, index) => (
+              <div
+                key={update.id || index}
+                className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg"
+              >
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-[var(--foreground)] text-sm">
+                    {update.title}
+                  </p>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    Глава {update.chapterNumber} • {update.timeAgo}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
