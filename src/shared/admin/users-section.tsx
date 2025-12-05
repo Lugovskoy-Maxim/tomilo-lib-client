@@ -3,10 +3,11 @@ import { Search, Trash2, Eye, User, Mail, Calendar } from "lucide-react";
 import { useGetUsersQuery, useDeleteUserMutation } from "@/store/api/usersApi";
 import { UserProfile } from "@/types/user";
 import { useToast } from "@/hooks/useToast";
+import Image from "next/image";
 
 export function UsersSection() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: usersResponse, isLoading } = useGetUsersQuery({
+  const { data: usersData, isLoading } = useGetUsersQuery({
     search: searchTerm,
     page: 1,
     limit: 50,
@@ -14,7 +15,17 @@ export function UsersSection() {
   const [deleteUser] = useDeleteUserMutation();
   const toast = useToast();
 
-  const users = usersResponse?.data?.data || [];
+  // Отладочное логирование для проверки структуры данных
+  React.useEffect(() => {
+    if (usersData) {
+      console.log('Users data structure:', usersData);
+      console.log('Users array:', usersData.data?.users);
+      console.log('Users array length:', usersData.data?.users?.length);
+    }
+  }, [usersData]);
+
+  // Извлекаем пользователей из данных
+  const users = usersData?.data?.users || [];
 
   const handleDelete = async (id: string, username: string) => {
     if (
@@ -31,6 +42,11 @@ export function UsersSection() {
       }
     }
   };
+
+  const normalizeUrl = (url: string) => {
+    return process.env.NEXT_PUBLIC_URL + url
+  };
+  
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU");
@@ -100,10 +116,12 @@ export function UsersSection() {
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--secondary)] rounded-full flex items-center justify-center">
                           {user.avatar ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={user.avatar}
+                            <Image
+                              loader={() => normalizeUrl(user.avatar || "")}
+                              src={normalizeUrl(user.avatar || "")}
                               alt={user.username}
+                              width={32}
+                              height={32}
                               className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                             />
                           ) : (

@@ -21,10 +21,10 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`;
+      return `${(num / 1000000).toFixed(2)}M`;
     }
     if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}K`;
+      return `${(num / 1000).toFixed(2)}K`;
     }
     return num.toString();
   };
@@ -108,16 +108,14 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
           Array.from({ length: 5 }).map((_, index) => (
             <div
               key={index}
-              className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4"
+              className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 flex items-center gap-3"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[var(--secondary)] rounded-lg">
-                  <Loader2 className="w-5 h-5 text-[var(--muted-foreground)] animate-spin" />
-                </div>
-                <div className="flex-1">
-                  <div className="h-6 bg-[var(--muted)] rounded animate-pulse mb-1"></div>
-                  <div className="h-3 bg-[var(--muted)] rounded animate-pulse w-3/4"></div>
-                </div>
+              <div className="p-2 bg-[var(--secondary)] rounded-lg">
+                <Loader2 className="w-5 h-5 text-[var(--muted-foreground)] animate-spin" />
+              </div>
+              <div className="flex-1">
+                <div className="h-6 bg-[var(--muted)] rounded animate-pulse mb-1"></div>
+                <div className="h-3 bg-[var(--muted)] rounded animate-pulse w-3/4"></div>
               </div>
             </div>
           ))
@@ -135,20 +133,18 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
           stats.map((stat, index) => (
             <div
               key={index}
-              className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4"
+              className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 flex items-center gap-3"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[var(--secondary)] rounded-lg">
-                  <stat.icon className="w-5 h-5 text-[var(--muted-foreground)]" />
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-[var(--foreground)]">
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-[var(--muted-foreground)]">
-                    {stat.label}
-                  </p>
-                </div>
+              <div className="p-2 bg-[var(--secondary)] rounded-lg">
+                <stat.icon className="w-5 h-5 text-[var(--muted-foreground)]" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-[var(--foreground)]">
+                  {stat.value}
+                </p>
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  {stat.label}
+                </p>
               </div>
             </div>
           ))
@@ -165,14 +161,12 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
             <button
               key={index}
               onClick={action.action}
-              className={`p-3 border rounded-lg transition-colors hover:bg-[var(--accent)] text-left ${
+              className={`p-3 border rounded-lg transition-colors hover:bg-[var(--accent)] text-left flex flex-col items-center gap-2 ${
                 colorClasses[action.color as keyof typeof colorClasses]
               }`}
             >
-              <div className="flex flex-col items-center gap-2">
-                <action.icon className="w-5 h-5" />
-                <span className="text-xs font-medium text-center">{action.label}</span>
-              </div>
+              <action.icon className="w-5 h-5" />
+              <span className="text-xs font-medium text-center">{action.label}</span>
             </button>
           ))}
         </div>

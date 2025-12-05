@@ -21,17 +21,17 @@ export const usersApi = createApi({
   tagTypes: ["Users"],
   endpoints: (builder) => ({
     getUsers: builder.query<
-      ApiResponse<{ data: UserProfile[]; total: number; page: number; limit: number }>,
+      ApiResponse<{ users: UserProfile[]; pagination: { total: number; page: number; limit: number; pages: number } }>,
       { search?: string; page?: number; limit?: number }
     >({
-      query: ({ search = "", page = 1, limit = 20 }) => ({
+      query: ({ search = "", page = 1, limit = 50 }) => ({
         url: `/users/admin/?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`,
       }),
       providesTags: ["Users"],
     }),
     deleteUser: builder.mutation<ApiResponse<void>, string>({
       query: (userId) => ({
-        url: `/admin/users/${userId}`,
+        url: `/users/admin/${userId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Users"],
