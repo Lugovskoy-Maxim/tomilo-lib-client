@@ -30,6 +30,9 @@ export interface LatestUpdate {
   chapter: string;
   chapterNumber: number;
   timeAgo: string;
+  releaseYear?: number;
+  type?: string;
+  newChapters?: number;
 }
 
 // Типы для пропсов компонентов карточек
@@ -73,6 +76,9 @@ export interface LatestUpdateCardData {
   chapter: string;
   chapterNumber: number;
   timeAgo: string;
+  releaseYear?: number;
+  type?: string;
+  newChapters?: number;
 }
 
 import { ComponentType } from "react";
@@ -136,4 +142,7 @@ export interface LatestUpdateCard {
   chapter: string;
   chapterNumber: number;
   timeAgo: string;
+  releaseYear?: number;
+  type?: string;
+  newChapters?: number;
 }
