@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, AlertCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { Title } from "@/types/title";
 import {
@@ -23,6 +23,8 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   const [deleteTitle] = useDeleteTitleMutation();
   const router = useRouter();
   const toast = useToast();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<{title: string, message: string} | null>(null);
   const titles = titlesResponse?.data?.data || [];
 
   const handleDelete = async (id: string, title: string) => {
@@ -33,16 +35,53 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
     ) {
       try {
         await deleteTitle(id).unwrap();
-        toast.success("Тайтл успешно удален");
+        // Показываем модальное окно с результатом
+        setModalContent({
+          title: "Удаление завершено",
+          message: "Тайтл успешно удален"
+        });
+        setIsModalOpen(true);
       } catch (error) {
         console.error("Ошибка при удалении тайтла:", error);
-        toast.error("Ошибка при удалении тайтла");
+        // Показываем модальное окно с ошибкой
+        setModalContent({
+          title: "Ошибка удаления",
+          message: "Произошла ошибка при удалении тайтла"
+        });
+        setIsModalOpen(true);
       }
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Result Modal */}
+      {isModalOpen && modalContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+              {modalContent.title.includes("Ошибка") ? (
+                <AlertCircle className="w-5 h-5 text-red-500" />
+              ) : (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              )}
+              {modalContent.title}
+            </h3>
+            <p className="text-[var(--muted-foreground)] mb-6">
+              {modalContent.message}
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header with search and create button */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="relative flex-1 max-w-md">

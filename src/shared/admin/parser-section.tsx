@@ -47,6 +47,8 @@ export function ParserSection() {
   const [currentProgress, setCurrentProgress] =
     useState<ParsingProgress | null>(null);
   const [sessionId] = useState(() => Math.random().toString(36).substring(7));
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<{title: string, message: string} | null>(null);
 
   // API hooks
   const { data: supportedSites } = useGetSupportedSitesQuery();
@@ -112,6 +114,20 @@ export function ParserSection() {
           setIsParsing(false);
           // Обновляем список глав после завершения
           setTimeout(() => refetchChapters(), 1000);
+          
+          // Показываем модальное окно с результатом
+          if (progress.status === "completed") {
+            setModalContent({
+              title: "Парсинг завершен",
+              message: progress.message || "Парсинг успешно завершен"
+            });
+          } else {
+            setModalContent({
+              title: "Ошибка парсинга",
+              message: progress.message || "Произошла ошибка во время парсинга"
+            });
+          }
+          setIsModalOpen(true);
         }
       }
     });
@@ -200,6 +216,33 @@ export function ParserSection() {
                 {site}
               </span>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Result Modal */}
+      {isModalOpen && modalContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+              {modalContent.title.includes("Ошибка") ? (
+                <AlertCircle className="w-5 h-5 text-red-500" />
+              ) : (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              )}
+              {modalContent.title}
+            </h3>
+            <p className="text-[var(--muted-foreground)] mb-6">
+              {modalContent.message}
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90"
+              >
+                Закрыть
+              </button>
+            </div>
           </div>
         </div>
       )}

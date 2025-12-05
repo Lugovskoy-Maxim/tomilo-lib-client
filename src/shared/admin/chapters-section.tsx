@@ -1,4 +1,4 @@
-import { Plus, Search, Edit, Trash2, Eye, BookOpen } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, BookOpen, AlertCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { useGetTitlesQuery } from "@/store/api/titlesApi";
@@ -21,6 +21,8 @@ export function ChaptersSection({
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteChapter] = useDeleteChapterMutation();
   const toast = useToast();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<{title: string, message: string} | null>(null);
 
   // Get titles for selection
   const { data: titlesResponse } = useGetTitlesQuery();
@@ -50,14 +52,51 @@ export function ChaptersSection({
     if (!confirm(`Удалить главу #${chapterNumber}?`)) return;
     try {
       await deleteChapter(id).unwrap();
-      toast.success("Глава удалена");
+      // Показываем модальное окно с результатом
+      setModalContent({
+        title: "Удаление завершено",
+        message: "Глава успешно удалена"
+      });
+      setIsModalOpen(true);
     } catch (error) {
-      toast.error(`Ошибка при удалении главы: ${error}`);
+      // Показываем модальное окно с ошибкой
+      setModalContent({
+        title: "Ошибка удаления",
+        message: "Произошла ошибка при удалении главы"
+      });
+      setIsModalOpen(true);
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Result Modal */}
+      {isModalOpen && modalContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+              {modalContent.title.includes("Ошибка") ? (
+                <AlertCircle className="w-5 h-5 text-red-500" />
+              ) : (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              )}
+              {modalContent.title}
+            </h3>
+            <p className="text-[var(--muted-foreground)] mb-6">
+              {modalContent.message}
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Title selection */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
         <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">

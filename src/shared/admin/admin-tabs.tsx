@@ -48,16 +48,16 @@ const tabs = [
 export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-1">
-      <div className="flex gap-1">
+      <div className="flex flex-wrap gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 min-w-[100px] px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm ${
                 activeTab === tab.id
-                  ? "bg-[var(--secondary)] text-[var(--muted-foreground)]"
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                   : "text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
               }`}
             >
