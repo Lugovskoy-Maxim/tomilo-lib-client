@@ -32,6 +32,12 @@ export default function Footer() {
       const currentScrollY = window.scrollY;
       const scrollingDown = currentScrollY > lastScrollY;
 
+      if (
+        window.innerHeight + window.pageYOffset >=
+        document.documentElement.scrollHeight
+      ) {
+        setIsVisible(true);
+      }
       if (scrollingDown && isVisible) {
         setIsVisible(false);
       } else if (!scrollingDown && !isVisible) {
