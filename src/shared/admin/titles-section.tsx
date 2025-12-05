@@ -19,7 +19,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
     search: searchTerm,
     page: 1,
     limit: 50,
-  } : {});
+  } : { limit: 10000 });
   const [deleteTitle] = useDeleteTitleMutation();
   const router = useRouter();
   const toast = useToast();
