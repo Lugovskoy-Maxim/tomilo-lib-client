@@ -57,7 +57,7 @@ export default function AdminPage() {
       <main className="flex flex-col min-h-screen h-full bg-gradient-to-br from-background to-muted">
         <Header />
 
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col flex-1">
+        <div className="max-w-7xl w-full mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col flex-1">
           <div className="mb-4 sm:mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
               <span className="text-xl sm:text-2xl">⚙️</span>
