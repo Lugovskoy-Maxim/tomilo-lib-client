@@ -1,11 +1,21 @@
 "use client";
 import Link from "next/link";
-import { MoreVertical, Library, Home, Mail, Copyright, Bookmark, Bell, Paperclip } from "lucide-react";
-import { useState } from "react";
+import {
+  MoreVertical,
+  Library,
+  Home,
+  Mail,
+  Copyright,
+  Bookmark,
+  Bell,
+  Paperclip,
+} from "lucide-react";
+import { useState, useEffect } from "react";
 import { Logo } from "@/shared";
 
 export default function Footer() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -14,6 +24,28 @@ export default function Footer() {
   const closeDropdown = () => {
     setIsDropdownOpen(false);
   };
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollingDown = currentScrollY > lastScrollY;
+
+      if (scrollingDown && isVisible) {
+        setIsVisible(false);
+      } else if (!scrollingDown && !isVisible) {
+        setIsVisible(true);
+      }
+
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isVisible]);
 
   const currentYear = new Date().getFullYear();
 
@@ -58,7 +90,7 @@ export default function Footer() {
               >
                 <Paperclip className="w-4 h-4 flex-shrink-0" />
                 <span className="max-w-[180px] sm:max-w-[250px] md:max-w-none">
-                  Мы в телеграме
+                  Мы в телеграм
                 </span>
               </Link>
             </div>
@@ -112,7 +144,11 @@ export default function Footer() {
         </div>
       </div>
       {/* Мобильный футер */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[var(--background)]/80 border-t border-[var(--border)] shadow-lg z-50 backdrop-blur-sm md:hidden">
+      <div
+        className={`fixed bottom-0 left-0 right-0 bg-[var(--background)]/80 border-t border-[var(--border)] shadow-lg z-50 backdrop-blur-sm md:hidden transition-transform duration-300 ${
+          isVisible ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
         <div className="flex items-center justify-around px-2 py-2">
           <Link
             href="/browse"
@@ -120,7 +156,9 @@ export default function Footer() {
             aria-label="Каталог"
           >
             <Library className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">Каталог</span>
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">
+              Каталог
+            </span>
           </Link>
 
           <Link
@@ -129,7 +167,9 @@ export default function Footer() {
             aria-label="Закладки"
           >
             <Bookmark className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">Закладки</span>
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">
+              Закладки
+            </span>
           </Link>
 
           <Link
@@ -138,7 +178,9 @@ export default function Footer() {
             aria-label="Главная страница"
           >
             <Home className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">Главная</span>
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">
+              Главная
+            </span>
           </Link>
 
           <Link
@@ -147,7 +189,9 @@ export default function Footer() {
             aria-label="Уведомления"
           >
             <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">Уведомления</span>
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">
+              Уведомления
+            </span>
           </Link>
 
           <div className="relative">
@@ -157,7 +201,9 @@ export default function Footer() {
               aria-label="Меню"
             >
               <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
-              <span className="text-xs text-[var(--muted-foreground)] mt-1">Меню</span>
+              <span className="text-xs text-[var(--muted-foreground)] mt-1">
+                Меню
+              </span>
             </button>
 
             {/* Выпадающее меню */}
@@ -200,9 +246,9 @@ export default function Footer() {
                 <div className="fixed inset-0 z-40" onClick={closeDropdown} />
               </>
             )}
-            </div>
           </div>
         </div>
+      </div>
     </footer>
   );
 }
