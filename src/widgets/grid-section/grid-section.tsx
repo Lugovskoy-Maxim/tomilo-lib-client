@@ -8,6 +8,7 @@ interface GridSectionProps<T> {
   description?: string;
   type: string;
   href?: string;
+  releaseYear?: number;
   icon?: ReactNode;
   data: T[];
   cardComponent: React.ComponentType<{ data: T }>;

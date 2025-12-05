@@ -240,10 +240,10 @@ export const titlesApi = createApi({
     }),
 
     // Получить последние обновления
-    getLatestUpdates: builder.query<ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string }[]>, void>({
+    getLatestUpdates: builder.query<ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string; releaseYear?: number; type?: string }[]>, void>({
       query: () => "/titles/latest-updates",
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string }[]>) => response,
+      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string; releaseYear?: number; type?: string }[]>) => response,
     }),
 
     // Удаление тайтла

@@ -11,7 +11,7 @@ interface LatestUpdateCardProps {
     id: string;
     title: string;
     chapter: string;
-    releaseYear: number;
+    releaseYear?: number;
     chapterNumber: number;
     timeAgo: string;
     newChapters?: number;
