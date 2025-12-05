@@ -13,7 +13,7 @@ export default function AboutPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pb-20 md:pb-2">
         <div className="prose prose-lg max-w-none">
           <h1 className="text-3xl font-bold text-[var(--foreground)] mb-6">
             О нас
@@ -32,7 +32,7 @@ export default function AboutPage() {
               </h2>
               <p className="leading-relaxed">
                 Мы верим, что каждый человек должен иметь доступ к качественному контенту.
-                Наша платформа объединяет тысячи произведений, делая их доступными для читателей
+                Наша платформа объединяет сотни произведений, делая их доступными для читателей
                 по всему миру. Мы заботимся о комфорте пользователей и постоянно улучшаем наш сервис.
               </p>
             </div>
@@ -42,7 +42,7 @@ export default function AboutPage() {
                 Что мы предлагаем
               </h2>
               <ul className="space-y-2 list-disc list-inside leading-relaxed">
-                <li>Обширная коллекция маньхуя и комиксов</li>
+                <li>Обширная коллекция манги и манхвы и маньхуя и комиксов</li>
                 <li>Удобный интерфейс для чтения на любых устройствах</li>
                 <li>Регулярные обновления с новыми главами</li>
                 <li>Персонализированные рекомендации</li>
@@ -56,7 +56,6 @@ export default function AboutPage() {
                 Наша команда
               </h2>
               <p className="leading-relaxed">
-                Мы — команда энтузиастов, увлеченных азиатской культурой и технологиями.
                 Каждый член нашей команды вносит свой вклад в развитие платформы,
                 чтобы сделать ваше чтение максимально комфортным и приятным.
               </p>
@@ -68,7 +67,7 @@ export default function AboutPage() {
               </h2>
               <p className="leading-relaxed">
                 Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме,
-                пожалуйста, свяжитесь с нами через страницу контактов или по электронной почте.
+                пожалуйста, свяжитесь с нами по электронной почте или в группе в Telegram.
                 Мы всегда рады услышать ваше мнение и готовы помочь!
               </p>
             </div>

@@ -38,7 +38,7 @@ export default async function TermsOfServicePage({
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+      <main className="flex-1 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] pb-15 md:pb-0">
         <div className="container mx-auto px-4 py-12 max-w-4xl">
           {/* Переключатель языка */}
           <div className="flex justify-between items-center mb-6">

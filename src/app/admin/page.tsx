@@ -11,6 +11,7 @@ import { UsersSection } from "@/shared/admin/users-section";
 import { Footer, Header } from "@/widgets";
 import { AuthGuard } from "@/guard/auth-guard";
 import { useState } from "react";
+import { Cog } from "lucide-react";
 
 
 type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users";
@@ -60,7 +61,7 @@ export default function AdminPage() {
         <div className="max-w-7xl w-full mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col flex-1">
           <div className="mb-4 sm:mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
-              <span className="text-xl sm:text-2xl">⚙️</span>
+              <Cog className="w-6 h-6" />
               Админ-панель
             </h1>
             <p className="text-[var(--muted-foreground)] text-sm sm:text-base">
