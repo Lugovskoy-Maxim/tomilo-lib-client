@@ -11,13 +11,27 @@ interface ApiCollection {
   [key: string]: string | number | boolean | undefined;
 }
 
-interface LatestUpdate {
+interface ApiLatestUpdate {
   id: string;
   title: string;
   cover: string;
   chapter: string;
   chapterNumber: number;
   timeAgo: string;
+  releaseYear?: number;
+  type?: string;
+}
+
+interface LatestUpdate {
+  id: string;
+  title: string;
+  cover: string;
+  chapter: string;
+  releaseYear: number;
+  chapterNumber: number;
+  timeAgo: string;
+  type?: string;
+  newChapters?: number;
 }
 
 interface StaticData {
@@ -123,8 +137,14 @@ export const useStaticData = (): StaticData => {
         if (!response.ok) throw new Error('Failed to fetch latest updates');
         
         const result = await response.json();
+        // Преобразуем данные, добавляя недостающие поля с дефолтными значениями
+        const transformedData = (result.data || []).map((item: ApiLatestUpdate) => ({
+          ...item,
+          releaseYear: item.releaseYear || new Date().getFullYear(),
+          type: item.type || "manga"
+        }));
         setLatestUpdates({
-          data: result.data || [],
+          data: transformedData,
           loading: false,
           error: null,
         });

@@ -3,12 +3,15 @@ import { Clock, Plus } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import { timeAgo } from "@/lib/date-utils";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 interface LatestUpdateCardProps {
   data: {
     id: string;
     title: string;
     chapter: string;
+    releaseYear: number;
     chapterNumber: number;
     timeAgo: string;
     newChapters?: number;
@@ -49,12 +52,12 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
 
   return (
     <div
-      className="w-full bg-card rounded-lg border border-border hover:border-primary transition-all duration-200 overflow-hidden group cursor-pointer"
+      className="w-full bg-card rounded-lg border border-[var(--border))] hover:bg-[var(--muted)]/20 hover:border-[var(--primary)]/40 transition-all duration-200 overflow-hidden group cursor-pointer"
       onClick={handleClick}
     >
       <div className="flex">
         {/* Картинка слева */}
-        <div className="relative w-16 h-20 flex-shrink-0">
+        <div className="relative w-16 h-24 flex-shrink-0">
           <div className="relative w-full h-full rounded-l-lg overflow-hidden">
             <Image
               loader={() => `${imageUrl}`}
@@ -71,18 +74,22 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
             />
           </div>
 
-          {/* Бейдж типа (если есть) */}
-          {data.type && (
-            <div className="absolute bottom-1 left-1 bg-muted text-primary px-1 py-0.5 rounded text-xs font-medium">
-              {data.type}
-            </div>
-          )}
+
         </div>
 
         {/* Контент справа */}
-        <div className="flex flex-col flex-1 p-3 justify-between min-w-0">
+        <div className="flex flex-col flex-1 p-2 justify-between min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs text-[var(--muted-foreground)]">
+              {translateTitleType(data.type || "")}
+            </span>
+            <span className="text-xs text-[var(--muted-foreground)]">•</span>
+            <span className="text-xs text-[var(--muted-foreground)]">
+              {data.releaseYear || "2025"}
+            </span>
+          </div>
           {/* Заголовок */}
-          <h3 className="font-semibold text-foreground line-clamp-1 leading-tight text-sm group-hover:text-primary transition-colors">
+          <h3 className="font-medium text-[var(--primary)] line-clamp-1 leading-tight text-sm group-hover:text-[var(--chart-1)]/80 transition-colors">
             {data.title}
           </h3>
 
@@ -90,7 +97,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {/* Номер главы */}
-              <span className="text-foreground font-medium text-sm">
+              <span className="text-[var(--primary)] font-medium text-sm">
                 {data.chapter}
               </span>
 
@@ -106,9 +113,9 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
             </div>
 
             {/* Время обновления */}
-            <div className="flex items-center gap-1 text-muted-foreground text-xs">
+            <div className="flex items-center gap-1 text-[var(--muted-foreground)] text-xs">
               <Clock className="w-3 h-3" />
-              <span>{data.timeAgo}</span>
+              <span>{timeAgo(data.timeAgo)}</span>
             </div>
           </div>
         </div>

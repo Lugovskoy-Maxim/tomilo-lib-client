@@ -3,6 +3,7 @@ import { BookOpen, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 interface ReadingItem {
   id: string;
@@ -80,7 +81,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
           {/* тип на картинке */}
           <div className="absolute bottom-2 left-2 bg-[var(--muted)] text-[var(--primary)] px-1 py-0 rounded-sm flex items-center gap-1 text-xs sm:text-sm font-normal">
-            {data.type}
+            {translateTitleType(data.type|| "")}
           </div>
         </div>
 

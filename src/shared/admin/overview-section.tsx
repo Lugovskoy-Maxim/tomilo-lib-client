@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useGetStatsQuery } from "@/store/api/statsApi";
 import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
+import { timeAgo } from "@/lib/date-utils";
 
 type AdminTab = "overview" | "parser" | "titles" | "chapters";
 
@@ -92,6 +93,12 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
       color: "orange",
     },
   ];
+
+    const getChaptersText = (count: number) => {
+    if (count === 1) return "глава";
+    if (count >= 2 && count <= 4) return "главы";
+    return "глав";
+  };
 
   const colorClasses = {
     blue: "bg-blue-50 text-blue-600 border-blue-200",
@@ -220,7 +227,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
                     {update.title}
                   </p>
                   <p className="text-xs text-[var(--muted-foreground)]">
-                    Глава {update.chapterNumber} • {update.timeAgo}
+                    {update.chapterNumber} {getChaptersText(update.chapterNumber)} • {timeAgo(update.timeAgo)}
                   </p>
                 </div>
               </div>

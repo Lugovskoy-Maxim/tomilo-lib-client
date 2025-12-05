@@ -80,9 +80,9 @@ const CardItem = ({
               {item.views || "0"}
             </span>
 
-            <span className="flex gap-1 text-xs font-medium items-center justify-center text-[var(--chart-5)]">
+            <span className={`flex gap-1 text-xs font-medium items-center justify-center ${item.rating >= 7 ? 'text-[var(--chart-5)]' : 'text-[var(--muted-foreground)]'}`}>
               <Star className="w-4 h-4" />
-              {item.rating || "0.0"}
+              {item.rating ? item.rating.toFixed(1) .toString(): "0.0"}
             </span>
           </div>
         </div>
