@@ -174,7 +174,7 @@ export interface TitlesQuery {
   tags?: string[];
   status?: TitleStatus;
   type?: TitleType;
-  sortBy?: 'name' | 'releaseYear' | 'views' | 'rating' | 'createdAt';
+  sortBy?: 'name' | 'releaseYear' | 'views' | 'rating' | 'createdAt'| 'averageRating';
   sortOrder?: 'asc' | 'desc';
 }
 
