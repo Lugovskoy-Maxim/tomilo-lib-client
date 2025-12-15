@@ -3,14 +3,16 @@ import {
   ReaderTitle as ReadTitle,
   ReaderChapter as ReadChapter,
 } from "@/shared/reader/types";
-import { Chapter } from "@/types/title";
-import { seoConfigs } from "@/hooks/useSEO";
 import { Metadata } from "next";
 
 // Функция для получения данных на сервере
 async function getTitleData(titleId: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/titles/${titleId}`);
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+      }/titles/${titleId}`
+    );
     if (!response.ok) {
       throw new Error(`Failed to fetch title: ${response.status}`);
     }
@@ -22,23 +24,13 @@ async function getTitleData(titleId: string) {
   }
 }
 
-async function getChaptersData(titleId: string) {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/chapters/title/${titleId}?limit=10000&sortOrder=asc`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch chapters: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.data || data;
-  } catch (error) {
-    console.error("Error fetching chapters data:", error);
-    throw error;
-  }
-}
-
 async function getChapterData(chapterId: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/chapters/${chapterId}`);
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+      }/chapters/${chapterId}`
+    );
     if (!response.ok) {
       throw new Error(`Failed to fetch chapter: ${response.status}`);
     }
@@ -65,72 +57,33 @@ function normalizeAssetUrl(p: string): string {
 }
 
 // Функция для генерации SEO метаданных
-export async function generateMetadata({ params }: { params: Promise<{ titleId: string; chapterId: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ titleId: string; chapterId: string }>;
+}): Promise<Metadata> {
   try {
     const resolvedParams = await params;
     const { titleId, chapterId } = resolvedParams;
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://tomilo-lib.ru';
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
     // Получаем данные тайтла
-    const titleResponse = await fetch(`${apiUrl}/titles/${titleId}?populateChapters=false`, {
-      cache: 'no-store',
-    });
-
-    if (!titleResponse.ok) {
-      if (titleResponse.status === 404) {
-        return {
-          title: 'Тайтл не найден - Tomilo-lib',
-          description: 'Запрашиваемый тайтл не найден',
-        };
-      }
-      throw new Error(`API error: ${titleResponse.status}`);
-    }
-
-    const titleApiResponse = await titleResponse.json();
-
-    if (!titleApiResponse.success || !titleApiResponse.data) {
-      return {
-        title: 'Тайтл не найден - Tomilo-lib',
-        description: 'Запрашиваемый тайтл не найден',
-      };
-    }
-
-    const titleData: import("@/types/title").Title = titleApiResponse.data;
-    const titleName = titleData.name || 'Без названия';
+    const titleData = await getTitleData(titleId);
+    const titleName = titleData.name || "Без названия";
 
     // Получаем данные главы
-    const chapterResponse = await fetch(`${apiUrl}/chapters/${chapterId}`, {
-      cache: 'no-store',
-    });
-
-    if (!chapterResponse.ok) {
-      if (chapterResponse.status === 404) {
-        return {
-          title: 'Глава не найдена - Tomilo-lib',
-          description: 'Запрашиваемая глава не найдена',
-        };
-      }
-      throw new Error(`API error: ${chapterResponse.status}`);
-    }
-
-    const chapterApiResponse = await chapterResponse.json();
-
-    if (!chapterApiResponse.success || !chapterApiResponse.data) {
-      return {
-        title: 'Глава не найдена - Tomilo-lib',
-        description: 'Запрашиваемая глава не найдена',
-      };
-    }
-
-    const chapterData: Chapter = chapterApiResponse.data;
+    const chapterData = await getChapterData(chapterId);
     const chapterNumber = Number(chapterData.chapterNumber) || 0;
     const chapterTitle = chapterData.title || "";
 
     // Формирование заголовка по требованиям: "Читать глава № главы и название если есть - название тайтла - Tomilo-lib.ru"
-    const formattedTitle = `Глава ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} - ${titleName} - Tomilo-lib.ru`;
-    
-    const shortDescription = `Читать ${titleName} главу ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} онлайн. Манга, маньхуа, комиксы.`;
+    const formattedTitle = `Глава ${chapterNumber}${
+      chapterTitle ? ` "${chapterTitle}"` : ""
+    } - ${titleName} - Tomilo-lib.ru`;
+
+    const shortDescription = `Читать ${titleName} главу ${chapterNumber}${
+      chapterTitle ? ` "${chapterTitle}"` : ""
+    } онлайн. Манга, манхва, маньхуа, комиксы.`;
 
     const image = titleData.coverImage
       ? `${baseUrl}${titleData.coverImage}`
@@ -140,17 +93,19 @@ export async function generateMetadata({ params }: { params: Promise<{ titleId: 
     const metadata: Metadata = {
       title: formattedTitle,
       description: shortDescription,
-      keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, онлайн чтение, манга, маньхуа`,
+      keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, онлайн чтение, манга, маньхуа, манхва`,
       openGraph: {
-        title: `Глава ${chapterNumber} - ${titleName}`,
+        title: `Глава ${chapterNumber}${
+          chapterTitle ? ` "${chapterTitle}"` : ""
+        } - ${titleName} - Tomilo-lib.ru`,
         description: shortDescription,
-        type: 'article',
+        type: "article",
         url: `${baseUrl}/browse/${titleId}/chapter/${chapterId}`,
-        siteName: 'Tomilo-lib.ru',
+        siteName: "Tomilo-lib.ru",
         images: image ? [{ url: image }] : [],
       },
       twitter: {
-        card: 'summary_large_image',
+        card: "summary_large_image",
         title: formattedTitle,
         description: shortDescription,
         images: image ? [image] : [],
@@ -161,17 +116,17 @@ export async function generateMetadata({ params }: { params: Promise<{ titleId: 
     const schemaOrgData = {
       "@context": "https://schema.org",
       "@type": "Chapter",
-      "name": `Глава ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''}`,
-      "position": chapterNumber,
-      "hasPart": {
+      name: `Глава ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ""}`,
+      position: chapterNumber,
+      hasPart: {
         "@type": "ComicIssue",
-        "name": titleName,
-        "author": titleData.author || "",
-        "datePublished": chapterData.releaseDate || "",
-        "genre": titleData.genres || [],
-        "image": image || "",
-        "description": shortDescription,
-      }
+        name: titleName,
+        author: titleData.author || "",
+        datePublished: chapterData.releaseDate || "",
+        genre: titleData.genres || [],
+        image: image || "",
+        description: shortDescription,
+      },
     };
 
     // Добавляем JSON-LD микроразметку в head
@@ -181,24 +136,32 @@ export async function generateMetadata({ params }: { params: Promise<{ titleId: 
       ...metadata,
     };
   } catch (error) {
-    console.error('Ошибка при генерации метаданных:', error);
+    console.error("Ошибка при генерации метаданных:", error);
     return {
-      title: 'Ошибка загрузки страницы | Tomilo-lib.ru',
-      description: 'Произошла ошибка при загрузке страницы',
+      title: "Ошибка загрузки страницы | Tomilo-lib.ru",
+      description: "Произошла ошибка при загрузке страницы",
     };
   }
 }
 
-export default async function ServerChapterPage({ params }: { params: Promise<{ titleId: string; chapterId: string }> }) {
+export default async function ServerChapterPage({
+  params,
+}: {
+  params: Promise<{ titleId: string; chapterId: string }>;
+}) {
   try {
     const resolvedParams = await params;
     const { titleId, chapterId } = resolvedParams;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
     // Получаем данные тайтла
-    const titleResponse = await fetch(`${apiUrl}/titles/${titleId}?populateChapters=false`, {
-      cache: 'no-store',
-    });
+    const titleResponse = await fetch(
+      `${apiUrl}/titles/${titleId}?populateChapters=false`,
+      {
+        cache: "no-store",
+      }
+    );
 
     if (!titleResponse.ok) {
       if (titleResponse.status === 404) {
@@ -239,7 +202,7 @@ export default async function ServerChapterPage({ params }: { params: Promise<{ 
 
     // Получаем данные главы
     const chapterResponse = await fetch(`${apiUrl}/chapters/${chapterId}`, {
-      cache: 'no-store',
+      cache: "no-store",
     });
 
     if (!chapterResponse.ok) {
@@ -277,12 +240,14 @@ export default async function ServerChapterPage({ params }: { params: Promise<{ 
       );
     }
 
-    const chapterData: import("@/types/title").Chapter = chapterApiResponse.data;
+    const chapterData: import("@/types/title").Chapter =
+      chapterApiResponse.data;
 
     // Проверяем, принадлежит ли глава этому тайтлу
-    const chapterTitleId = typeof chapterData.titleId === 'object'
-      ? (chapterData.titleId as { _id: string })._id
-      : chapterData.titleId;
+    const chapterTitleId =
+      typeof chapterData.titleId === "object"
+        ? (chapterData.titleId as { _id: string })._id
+        : chapterData.titleId;
 
     if (chapterTitleId !== titleId) {
       // В серверной версии мы не можем делать редирект через router.push
@@ -302,9 +267,12 @@ export default async function ServerChapterPage({ params }: { params: Promise<{ 
     }
 
     // Получаем список всех глав тайтла
-    const chaptersResponse = await fetch(`${apiUrl}/chapters/title/${titleId}?limit=10000&sortOrder=asc`, {
-      cache: 'no-store',
-    });
+    const chaptersResponse = await fetch(
+      `${apiUrl}/chapters/title/${titleId}?limit=10000&sortOrder=asc`,
+      {
+        cache: "no-store",
+      }
+    );
 
     if (!chaptersResponse.ok) {
       throw new Error(`Failed to fetch chapters: ${chaptersResponse.status}`);
