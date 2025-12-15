@@ -142,7 +142,7 @@ export async function generateMetadata({ params }: { params: Promise<{ titleId: 
       description: shortDescription,
       keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, онлайн чтение, манга, маньхуа`,
       openGraph: {
-        title: formattedTitle,
+        title: `Глава ${chapterNumber} - ${titleName}`,
         description: shortDescription,
         type: 'article',
         url: `${baseUrl}/browse/${titleId}/chapter/${chapterId}`,
