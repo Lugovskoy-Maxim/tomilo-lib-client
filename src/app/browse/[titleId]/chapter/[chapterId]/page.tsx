@@ -9,9 +9,6 @@ export default async function ChapterPage({
 }: {
   params: Promise<{ titleId: string; chapterId: string }>;
 }) {
-  const { titleId, chapterId } = await params;
-          console.log("titleId:", titleId);
-        console.log("chapterId:", chapterId);
   
   return (
     <Suspense fallback={
