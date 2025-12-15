@@ -1,5 +1,8 @@
 import { Suspense } from "react";
-import ServerChapterPage from "./server-page";
+import ServerChapterPage, { generateMetadata } from "./server-page";
+
+// Экспортируем функцию генерации метаданных для Next.js
+export { generateMetadata };
 
 export default function ChapterPage({
   params,

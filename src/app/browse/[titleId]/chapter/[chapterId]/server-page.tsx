@@ -1,12 +1,11 @@
 import { ReadChapterPage } from "@/widgets";
-import { 
+import {
   ReaderTitle as ReadTitle,
   ReaderChapter as ReadChapter,
 } from "@/shared/reader/types";
-import { Chapter, Title } from "@/types/title";
-import { useSEO, seoConfigs } from "@/hooks/useSEO";
-import { titlesApi } from "@/store/api/titlesApi";
-import { chaptersApi } from "@/store/api/chaptersApi";
+import { Chapter } from "@/types/title";
+import { seoConfigs } from "@/hooks/useSEO";
+import { Metadata } from "next";
 
 // Функция для получения данных на сервере
 async function getTitleData(titleId: string) {
@@ -65,12 +64,87 @@ function normalizeAssetUrl(p: string): string {
   return `${origin}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-export default async function ServerChapterPage({ 
-  titleId, 
-  chapterId 
-}: { 
-  titleId: string; 
-  chapterId: string; 
+// Функция для генерации SEO метаданных
+export async function generateMetadata({
+  titleId,
+  chapterId
+}: {
+  titleId: string;
+  chapterId: string;
+}): Promise<Metadata> {
+  try {
+    // Load title data for SEO
+    const titleData = await getTitleData(titleId);
+    
+    // Find the requested chapter
+    const chaptersData = await getChaptersData(titleId);
+    const chapter = chaptersData.chapters.find((c: Chapter) => c._id === chapterId);
+    
+    // If chapter not found in title chapters, try to fetch it directly
+    let chapterData = null;
+    if (!chapter) {
+      try {
+        chapterData = await getChapterData(chapterId);
+      } catch (error) {
+        console.error("Error fetching chapter data:", error);
+      }
+    }
+    
+    const currentChapter = chapter || chapterData;
+    
+    if (!currentChapter || !titleData) {
+      return {
+        title: "Глава не найдена - Tomilo-lib.ru",
+        description: "Запрошенная глава не существует или была удалена.",
+      };
+    }
+    
+    // Генерация SEO данных
+    const chapterNumber = Number(currentChapter.chapterNumber) || 0;
+    const chapterTitle = currentChapter.title || "";
+    const titleName = titleData.name || "Без названия";
+    
+    // Формирование заголовка по требованиям: "Читать глава № главы и название если есть - название тайтла - Tomilo-lib.ru"
+    const formattedTitle = `Читать глава ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} - ${titleName} - Tomilo-lib.ru`;
+    
+    const seoConfig = {
+      title: formattedTitle,
+      description: `Читать ${titleName} главу ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} онлайн. Манга, маньхуа, комиксы.`,
+      keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, онлайн чтение, манга, маньхуа`,
+      type: 'article' as const,
+    };
+    
+    return {
+      title: seoConfig.title,
+      description: seoConfig.description,
+      keywords: seoConfig.keywords,
+      openGraph: {
+        title: seoConfig.title,
+        description: seoConfig.description,
+        type: "article",
+        url: `${process.env.NEXT_PUBLIC_URL}/browse/${titleId}/chapter/${chapterId}`,
+      },
+      twitter: {
+        title: seoConfig.title,
+        description: seoConfig.description,
+        card: "summary_large_image",
+      },
+    };
+  } catch (error) {
+    console.error("Error generating metadata:", error);
+    return {
+      title: "Ошибка загрузки | Tomilo-lib.ru",
+      description: "Не удалось загрузить данные главы.",
+    };
+  }
+}
+
+export default async function ServerChapterPage({
+  titleId,
+  chapterId
+}: {
+  titleId: string;
+  chapterId: string;
 }) {
   try {
     // Load title and chapters data
