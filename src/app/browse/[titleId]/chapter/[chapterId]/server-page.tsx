@@ -157,7 +157,29 @@ export async function generateMetadata({ params }: { params: Promise<{ titleId: 
       },
     };
 
-    return metadata;
+    // Добавляем микроразметку Schema.org
+    const schemaOrgData = {
+      "@context": "https://schema.org",
+      "@type": "Chapter",
+      "name": `Глава ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''}`,
+      "position": chapterNumber,
+      "hasPart": {
+        "@type": "ComicIssue",
+        "name": titleName,
+        "author": titleData.author || "",
+        "datePublished": chapterData.releaseDate || "",
+        "genre": titleData.genres || [],
+        "image": image || "",
+        "description": shortDescription,
+      }
+    };
+
+    // Добавляем JSON-LD микроразметку в head
+    const schemaOrgJsonLd = JSON.stringify(schemaOrgData);
+
+    return {
+      ...metadata,
+    };
   } catch (error) {
     console.error('Ошибка при генерации метаданных:', error);
     return {
