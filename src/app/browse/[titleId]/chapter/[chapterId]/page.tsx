@@ -4,11 +4,15 @@ import ServerChapterPage, { generateMetadata } from "./server-page";
 // Экспортируем функцию генерации метаданных для Next.js
 export { generateMetadata };
 
-export default function ChapterPage({
+export default async function ChapterPage({
   params,
 }: {
-  params: { titleId: string; chapterId: string };
+  params: Promise<{ titleId: string; chapterId: string }>;
 }) {
+  const { titleId, chapterId } = await params;
+          console.log("titleId:", titleId);
+        console.log("chapterId:", chapterId);
+  
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
@@ -18,7 +22,7 @@ export default function ChapterPage({
         </div>
       </div>
     }>
-      <ServerChapterPage titleId={params.titleId} chapterId={params.chapterId} />
+      <ServerChapterPage params={params} />
     </Suspense>
   );
 }

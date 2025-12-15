@@ -65,112 +65,206 @@ function normalizeAssetUrl(p: string): string {
 }
 
 // Функция для генерации SEO метаданных
-export async function generateMetadata({
-  titleId,
-  chapterId
-}: {
-  titleId: string;
-  chapterId: string;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ titleId: string; chapterId: string }> }): Promise<Metadata> {
   try {
-    // Load title data for SEO
-    const titleData = await getTitleData(titleId);
-    
-    // Find the requested chapter
-    const chaptersData = await getChaptersData(titleId);
-    const chapter = chaptersData.chapters.find((c: Chapter) => c._id === chapterId);
-    
-    // If chapter not found in title chapters, try to fetch it directly
-    let chapterData = null;
-    if (!chapter) {
-      try {
-        chapterData = await getChapterData(chapterId);
-      } catch (error) {
-        console.error("Error fetching chapter data:", error);
+    const resolvedParams = await params;
+    const { titleId, chapterId } = resolvedParams;
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://tomilo-lib.ru';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+    // Получаем данные тайтла
+    const titleResponse = await fetch(`${apiUrl}/titles/${titleId}?populateChapters=false`, {
+      cache: 'no-store',
+    });
+
+    if (!titleResponse.ok) {
+      if (titleResponse.status === 404) {
+        return {
+          title: 'Тайтл не найден - Tomilo-lib',
+          description: 'Запрашиваемый тайтл не найден',
+        };
       }
+      throw new Error(`API error: ${titleResponse.status}`);
     }
-    
-    const currentChapter = chapter || chapterData;
-    
-    if (!currentChapter || !titleData) {
+
+    const titleApiResponse = await titleResponse.json();
+
+    if (!titleApiResponse.success || !titleApiResponse.data) {
       return {
-        title: "Глава не найдена - Tomilo-lib.ru",
-        description: "Запрошенная глава не существует или была удалена.",
+        title: 'Тайтл не найден - Tomilo-lib',
+        description: 'Запрашиваемый тайтл не найден',
       };
     }
-    
-    // Генерация SEO данных
-    const chapterNumber = Number(currentChapter.chapterNumber) || 0;
-    const chapterTitle = currentChapter.title || "";
-    const titleName = titleData.name || "Без названия";
-    
+
+    const titleData: import("@/types/title").Title = titleApiResponse.data;
+    const titleName = titleData.name || 'Без названия';
+
+    // Получаем данные главы
+    const chapterResponse = await fetch(`${apiUrl}/chapters/${chapterId}`, {
+      cache: 'no-store',
+    });
+
+    if (!chapterResponse.ok) {
+      if (chapterResponse.status === 404) {
+        return {
+          title: 'Глава не найдена - Tomilo-lib',
+          description: 'Запрашиваемая глава не найдена',
+        };
+      }
+      throw new Error(`API error: ${chapterResponse.status}`);
+    }
+
+    const chapterApiResponse = await chapterResponse.json();
+
+    if (!chapterApiResponse.success || !chapterApiResponse.data) {
+      return {
+        title: 'Глава не найдена - Tomilo-lib',
+        description: 'Запрашиваемая глава не найдена',
+      };
+    }
+
+    const chapterData: Chapter = chapterApiResponse.data;
+    const chapterNumber = Number(chapterData.chapterNumber) || 0;
+    const chapterTitle = chapterData.title || "";
+
     // Формирование заголовка по требованиям: "Читать глава № главы и название если есть - название тайтла - Tomilo-lib.ru"
-    const formattedTitle = `Читать глава ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} - ${titleName} - Tomilo-lib.ru`;
+    const formattedTitle = `Глава ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} - ${titleName} - Tomilo-lib.ru`;
     
-    const seoConfig = {
+    const shortDescription = `Читать ${titleName} главу ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} онлайн. Манга, маньхуа, комиксы.`;
+
+    const image = titleData.coverImage
+      ? `${baseUrl}${titleData.coverImage}`
+      : undefined;
+
+    // Формируем метаданные
+    const metadata: Metadata = {
       title: formattedTitle,
-      description: `Читать ${titleName} главу ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} онлайн. Манга, маньхуа, комиксы.`,
+      description: shortDescription,
       keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, онлайн чтение, манга, маньхуа`,
-      type: 'article' as const,
-    };
-    
-    return {
-      title: seoConfig.title,
-      description: seoConfig.description,
-      keywords: seoConfig.keywords,
       openGraph: {
-        title: seoConfig.title,
-        description: seoConfig.description,
-        type: "article",
-        url: `${process.env.NEXT_PUBLIC_URL}/browse/${titleId}/chapter/${chapterId}`,
+        title: formattedTitle,
+        description: shortDescription,
+        type: 'article',
+        url: `${baseUrl}/browse/${titleId}/chapter/${chapterId}`,
+        siteName: 'Tomilo-lib.ru',
+        images: image ? [{ url: image }] : [],
       },
       twitter: {
-        title: seoConfig.title,
-        description: seoConfig.description,
-        card: "summary_large_image",
+        card: 'summary_large_image',
+        title: formattedTitle,
+        description: shortDescription,
+        images: image ? [image] : [],
       },
     };
+
+    return metadata;
   } catch (error) {
-    console.error("Error generating metadata:", error);
+    console.error('Ошибка при генерации метаданных:', error);
     return {
-      title: "Ошибка загрузки | Tomilo-lib.ru",
-      description: "Не удалось загрузить данные главы.",
+      title: 'Ошибка загрузки страницы | Tomilo-lib.ru',
+      description: 'Произошла ошибка при загрузке страницы',
     };
   }
 }
 
-export default async function ServerChapterPage({
-  titleId,
-  chapterId
-}: {
-  titleId: string;
-  chapterId: string;
-}) {
+export default async function ServerChapterPage({ params }: { params: Promise<{ titleId: string; chapterId: string }> }) {
   try {
-    // Load title and chapters data
-    const [titleData, chaptersData] = await Promise.all([
-      getTitleData(titleId),
-      getChaptersData(titleId)
-    ]);
+    const resolvedParams = await params;
+    const { titleId, chapterId } = resolvedParams;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-    // Find the requested chapter
-    const chapter = chaptersData.chapters.find((c: Chapter) => c._id === chapterId);
-    
-    // If chapter not found in title chapters, try to fetch it directly
-    let chapterData = null;
-    if (!chapter) {
-      try {
-        chapterData = await getChapterData(chapterId);
-      } catch (error) {
-        console.error("Error fetching chapter data:", error);
+    // Получаем данные тайтла
+    const titleResponse = await fetch(`${apiUrl}/titles/${titleId}?populateChapters=false`, {
+      cache: 'no-store',
+    });
+
+    if (!titleResponse.ok) {
+      if (titleResponse.status === 404) {
+        return (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
+                Тайтл не найден
+              </h1>
+              <p className="text-[var(--muted-foreground)]">
+                Запрашиваемый тайтл не существует или был удален.
+              </p>
+            </div>
+          </div>
+        );
       }
+      throw new Error(`API error: ${titleResponse.status}`);
     }
 
-    // Handle case where chapter belongs to a different title
-    if (chapterData && chapterData.titleId !== titleId) {
+    const titleApiResponse = await titleResponse.json();
+
+    if (!titleApiResponse.success || !titleApiResponse.data) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
+              Тайтл не найден
+            </h1>
+            <p className="text-[var(--muted-foreground)]">
+              Запрашиваемый тайтл не существует или был удален.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    const titleData: import("@/types/title").Title = titleApiResponse.data;
+
+    // Получаем данные главы
+    const chapterResponse = await fetch(`${apiUrl}/chapters/${chapterId}`, {
+      cache: 'no-store',
+    });
+
+    if (!chapterResponse.ok) {
+      if (chapterResponse.status === 404) {
+        return (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
+                Глава не найдена
+              </h1>
+              <p className="text-[var(--muted-foreground)]">
+                Запрашиваемая глава не существует или была удалена.
+              </p>
+            </div>
+          </div>
+        );
+      }
+      throw new Error(`API error: ${chapterResponse.status}`);
+    }
+
+    const chapterApiResponse = await chapterResponse.json();
+
+    if (!chapterApiResponse.success || !chapterApiResponse.data) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
+              Глава не найдена
+            </h1>
+            <p className="text-[var(--muted-foreground)]">
+              Запрашиваемая глава не существует или была удалена.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    const chapterData: import("@/types/title").Chapter = chapterApiResponse.data;
+
+    // Проверяем, принадлежит ли глава этому тайтлу
+    const chapterTitleId = typeof chapterData.titleId === 'object'
+      ? (chapterData.titleId as { _id: string })._id
+      : chapterData.titleId;
+
+    if (chapterTitleId !== titleId) {
       // В серверной версии мы не можем делать редирект через router.push
       // Вместо этого возвращаем сообщение об ошибке
-      const correctTitleId = typeof chapterData.titleId === 'object' ? (chapterData.titleId as { _id: string })._id : chapterData.titleId;
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
@@ -180,19 +274,27 @@ export default async function ServerChapterPage({
             <p className="text-[var(--muted-foreground)]">
               Эта глава была перемещена в другой тайтл.
             </p>
-            <div className="mt-4">
-              <p>Правильный Title ID: {correctTitleId}</p>
-              <p>Chapter ID: {chapterId}</p>
-            </div>
           </div>
         </div>
       );
     }
 
+    // Получаем список всех глав тайтла
+    const chaptersResponse = await fetch(`${apiUrl}/chapters/title/${titleId}?limit=10000&sortOrder=asc`, {
+      cache: 'no-store',
+    });
+
+    if (!chaptersResponse.ok) {
+      throw new Error(`Failed to fetch chapters: ${chaptersResponse.status}`);
+    }
+
+    const chaptersApiResponse = await chaptersResponse.json();
+    const chaptersData = chaptersApiResponse.data || chaptersApiResponse;
+
     const serverTitle = titleData;
 
     const mappedChapters: ReadChapter[] = chaptersData.chapters.map(
-      (ch: Chapter) => ({
+      (ch: import("@/types/title").Chapter) => ({
         _id: ch._id || "",
         number: Number(ch.chapterNumber) || 0,
         title: ch.title || "",
@@ -237,15 +339,6 @@ export default async function ServerChapterPage({
             <p className="text-[var(--muted-foreground)]">
               Запрошенная глава не существует или была удалена.
             </p>
-            <div className="mt-4 text-sm">
-              <p>Title ID: {titleId}</p>
-              <p>Chapter ID: {chapterId}</p>
-              <p>Available chapters: {mappedChapters.length}</p>
-              <p>
-                Available chapter IDs:{" "}
-                {mappedChapters.map((c) => c._id).join(", ")}
-              </p>
-            </div>
           </div>
         </div>
       );
@@ -269,10 +362,6 @@ export default async function ServerChapterPage({
           <p className="text-[var(--muted-foreground)]">
             Не удалось загрузить данные главы.
           </p>
-          <div className="mt-4 text-sm">
-            <p>Title ID: {titleId}</p>
-            <p>Chapter ID: {chapterId}</p>
-          </div>
         </div>
       </div>
     );
