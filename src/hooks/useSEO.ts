@@ -143,15 +143,15 @@ export const useSEO = ({
 // Предустановленные конфигурации для разных типов страниц
 export const seoConfigs = {
   home: {
-    title: 'Tomilo-lib.ru - Платформа манги и комиксов',
-    description: 'Современная платформа для чтения манги, маньхуа и комиксов. Большая коллекция тайтлов, удобный интерфейс и регулярные обновления.',
-    keywords: 'манга, маньхуа, комиксы, чтение онлайн, тайтлы, главы',
+    title: 'Tomilo-lib.ru - Платформа манги, манхвы, маньхуа и комиксов',
+    description: 'Современная платформа для чтения манги, манхвы, маньхуа и комиксов. Большая коллекция тайтлов, удобный интерфейс и регулярные обновления.',
+    keywords: 'манга, маньхуа, комиксы, чтение онлайн, тайтлы, главы, манхва',
     type: 'website' as const,
   },
 
   browse: (searchQuery?: string) => ({
     title: searchQuery
-      ? `Поиск: "${searchQuery}" - Каталог тайтлов | Tomilo-lib.ru`
+      ? `Поиск: "${searchQuery}" - Каталог тайтлов - Tomilo-lib.ru`
       : 'Каталог тайтлов - Tomilo-lib.ru',
     description: searchQuery
       ? `Результаты поиска по запросу "${searchQuery}". Найдите интересующие вас тайтлы в нашем каталоге манги и комиксов.`
@@ -175,10 +175,10 @@ export const seoConfigs = {
     const titleName = titleData.name || titleData.title || 'Без названия';
     const shortDescription = titleData.description
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, '') + '...'
-      : `Читать ${titleName} онлайн. ${titleData.genres?.join(', ')}`;
+      : `Читать ${titleName.toLowerCase()} онлайн. ${titleData.genres?.join(', ')}`;
     
     return {
-      title: `${titleName} - Читать онлайн | Tomilo-lib.ru`,
+      title: `${titleName} - Читать онлайн - Tomilo-lib.ru`,
       description: shortDescription,
       keywords: `${titleName}, ${titleData.genres?.join(', ')}, ${titleData.author}, ${titleData.artist}, манга, маньхуа, комиксы, онлайн чтение`,
       image: titleData.coverImage || titleData.image,
@@ -198,9 +198,9 @@ export const seoConfigs = {
     const chapterText = chapterTitle ? ` - ${chapterTitle}` : '';
 
     return {
-      title: `${titleName} - Глава ${chapterNumber}${chapterText} | Tomilo-lib.ru`,
-      description: `Читать ${titleName} главу ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} онлайн. Манга, маньхуа, комиксы.`,
-      keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, онлайн чтение, манга, маньхуа`,
+      title: `${titleName} - Глава ${chapterNumber}${chapterText} - Tomilo-lib.ru`,
+      description: `Читать ${titleName} главу ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ''} онлайн. Манга, манхва, маньхуа, комиксы.`,
+      keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, онлайн чтение, манга, манхва, маньхуа`,
       type: 'article' as const,
     };
   },
