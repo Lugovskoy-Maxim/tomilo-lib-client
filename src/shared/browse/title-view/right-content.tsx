@@ -78,7 +78,9 @@ export function RightContent({
       const verified = checkAgeVerification(user);
       setIsAgeVerified(verified);
     } else {
-      setIsAgeVerified(false);
+      // Проверяем localStorage для гостей
+      const verified = checkAgeVerification(null);
+      setIsAgeVerified(verified);
     }
   }, [user]);
 
@@ -98,7 +100,10 @@ export function RightContent({
   const handleAgeVerificationConfirm = () => {
     setIsAgeVerified(true);
     setIsAgeModalOpen(false);
-    // Можно добавить обновление состояния пользователя или редирект
+    // Сохраняем состояние в localStorage
+    if (typeof window !== "undefined" && window.localStorage) {
+      localStorage.setItem("age-verified", "true");
+    }
     console.log("Возраст подтвержден");
   };
 
