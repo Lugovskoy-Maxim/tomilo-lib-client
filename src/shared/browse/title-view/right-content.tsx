@@ -254,18 +254,16 @@ export function RightContent({
         const isAdultContent =
           titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);
         const isLoggedIn = !!user;
-        const shouldVerifyAge = isAdultContent && (!isLoggedIn || !isAgeVerified);
+        const shouldVerifyAge = isAdultContent && !isAgeVerified;
 
         if (shouldVerifyAge) {
           return (
             <div className="flex flex-col justify-center items-center bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl h-full p-4">
               <h2 className="flex justify-center items-center text-xl font-bold mb-4 text-[var(--foreground)]">
-                {!isLoggedIn ? "Внимание!" : "Возрастное ограничение"}
+                {"Возрастное ограничение"}
               </h2>
               <p className="flex justify-center items-center text-[var(--foreground)]/60 h-20 mb-4 text-center">
-                {!isLoggedIn
-                  ? "Для просмотра контента 18+ необходимо войти в аккаунт и подтвердить возраст."
-                  : "Этот контент предназначен только для лиц старше 18 лет."}
+                {"Этот контент предназначен только для лиц старше 18 лет."}
               </p>
               <button
                 onClick={handleAgeVerificationClick}
