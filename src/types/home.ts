@@ -81,6 +81,16 @@ export interface LatestUpdateCardData {
   newChapters?: number;
 }
 
+export interface TopTitle extends TitleCard {
+  isAdult?: boolean;
+}
+
+export interface TopTitleData {
+  data: TopTitle[];
+  loading: boolean;
+  error: unknown;
+}
+
 import { ComponentType } from "react";
 
 // Типы для компонентов
