@@ -239,6 +239,34 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<{ id: string; name: string; image: string; link: string }[]>) => response,
     }),
 
+    // Получить случайные тайтлы
+    getRandomTitles: builder.query<ApiResponseDto<{
+      id: string;
+      title: string;
+      cover: string;
+      rating: number;
+      type: string;
+      releaseYear: number;
+      description: string;
+      isAdult: boolean;
+    }[]>, { limit?: number }>({
+      query: (params) => ({
+        url: "/titles/random",
+        params,
+      }),
+      providesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<{ 
+        id: string;
+        title: string;
+        cover: string;
+        rating: number;
+        type: string;
+        releaseYear: number;
+        description: string;
+        isAdult: boolean;
+      }[]>) => response,
+    }),
+
     // Получить последние обновления
     getLatestUpdates: builder.query<ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string; releaseYear?: number; type?: string }[]>, void>({
       query: () => "/titles/latest-updates",
@@ -271,6 +299,7 @@ export const {
   useGetTopTitlesWeekQuery,
   useGetTopTitlesMonthQuery,
   useGetCollectionsQuery,
+  useGetRandomTitlesQuery,
   useGetLatestUpdatesQuery,
   useDeleteTitleMutation,
 } = titlesApi;

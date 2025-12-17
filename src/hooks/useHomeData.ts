@@ -1,9 +1,7 @@
 import {
   useGetPopularTitlesQuery,
-  useGetTopTitlesDayQuery,
-  useGetTopTitlesWeekQuery,
-  useGetTopTitlesMonthQuery,
   useSearchTitlesQuery,
+  useGetRandomTitlesQuery,
 } from "@/store/api/titlesApi";
 import { useGetReadingHistoryQuery } from "@/store/api/authApi";
 import { Chapter } from "@/types/title";
@@ -22,26 +20,12 @@ export const useHomeData = () => {
     error: popularTitlesError,
   } = useGetPopularTitlesQuery();
 
-  // Топ тайтлы за день
+  // Случайные тайтлы
   const {
-    data: topTitlesDayData,
-    isLoading: topTitlesDayLoading,
-    error: topTitlesDayError,
-  } = useGetTopTitlesDayQuery({ limit: 10 });
-
-  // Топ тайтлы за неделю
-  const {
-    data: topTitlesWeekData,
-    isLoading: topTitlesWeekLoading,
-    error: topTitlesWeekError,
-  } = useGetTopTitlesWeekQuery({ limit: 10 });
-
-  // Топ тайтлы за месяц
-  const {
-    data: topTitlesMonthData,
-    isLoading: topTitlesMonthLoading,
-    error: topTitlesMonthError,
-  } = useGetTopTitlesMonthQuery({ limit: 10 });
+    data: randomTitlesData,
+    isLoading: randomTitlesLoading,
+    error: randomTitlesError,
+  } = useGetRandomTitlesQuery({ limit: 10 });
 
   // Топ тайтлы Маньхуа
   const {
@@ -105,9 +89,9 @@ export const useHomeData = () => {
       isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
     })) || [];
 
-  // Преобразование топ тайтлов за день
-  const topTitlesDay =
-    topTitlesDayData?.data?.map((item) => ({
+  // Преобразование случайных тайтлов
+  const randomTitles =
+    randomTitlesData?.data?.map((item) => ({
       id: item.id,
       title: item.title,
       image: item.cover,
@@ -115,36 +99,8 @@ export const useHomeData = () => {
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.rating || 0,
-      genres: [], // Сервер не возвращает жанры для топ тайтлов
-      isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
-    })) || [];
-
-  // Преобразование топ тайтлов за неделю
-  const topTitlesWeek =
-    topTitlesWeekData?.data?.map((item) => ({
-      id: item.id,
-      title: item.title,
-      image: item.cover,
-      description: item.description,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
-      genres: [], // Сервер не возвращает жанры для топ тайтлов
-      isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
-    })) || [];
-
-  // Преобразование топ тайтлов за месяц
-  const topTitlesMonth =
-    topTitlesMonthData?.data?.map((item) => ({
-      id: item.id,
-      title: item.title,
-      image: item.cover,
-      description: item.description,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
-      genres: [], // Сервер не возвращает жанры для топ тайтлов
-      isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
+      genres: [], // Жанры не возвращаются для случайных тайтлов
+      isAdult: item.isAdult ?? false,
     })) || [];
 
   // Преобразование топ тайтлов Маньхуа
@@ -157,7 +113,7 @@ export const useHomeData = () => {
       type: item.type || "Неуказан",
       views: item.views || 0,
       year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
+      rating: item.averageRating || item.rating || 0,
       genres: item.genres || [],
       isAdult: item.isAdult ?? false,
     })) || [];
@@ -172,7 +128,7 @@ export const useHomeData = () => {
       views: item.views || 0,
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
+      rating: item.averageRating || item.rating || 0,
       genres: item.genres || [],
       isAdult: item.isAdult ?? false,
     })) || [];
@@ -187,7 +143,7 @@ export const useHomeData = () => {
       views: item.views || 0,
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
+      rating: item.averageRating || item.rating || 0,
       genres: item.genres || [],
       isAdult: item.isAdult ?? false,
     })) || [];
@@ -266,20 +222,10 @@ export const useHomeData = () => {
       loading: popularTitlesLoading,
       error: popularTitlesError,
     },
-    topTitlesDay: {
-      data: topTitlesDay,
-      loading: topTitlesDayLoading,
-      error: topTitlesDayError,
-    },
-    topTitlesWeek: {
-      data: topTitlesWeek,
-      loading: topTitlesWeekLoading,
-      error: topTitlesWeekError,
-    },
-    topTitlesMonth: {
-      data: topTitlesMonth,
-      loading: topTitlesMonthLoading,
-      error: topTitlesMonthError,
+    randomTitles: {
+      data: randomTitles,
+      loading: randomTitlesLoading,
+      error: randomTitlesError,
     },
     readingProgress: {
       data: readingProgress,
