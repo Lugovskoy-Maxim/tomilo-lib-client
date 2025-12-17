@@ -16,8 +16,9 @@ interface TopTitleData {
   genres: string[];
   rank: number;
   views?: number;
-  period: string;
+  period?: string;
   isAdult: boolean;
+  ratingCount?: number;
 }
 
 interface TopTitleCardProps {
@@ -59,7 +60,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
   if (variant === "top3") {
     return (
       <>
-        <div className="bg-[var(--muted)]/30  rounded-xl border border-[var(--border)] hover:shadow-xl transition-all duration-300 cursor-pointer group p-4 sm:p-6" onClick={handleClick}>
+        <div className="bg-[var(--muted)]/30 rounded-xl border border-[var(--border)] hover:shadow-xl transition-all duration-300 cursor-pointer group p-4 sm:p-6" onClick={handleClick}>
           {/* Мобильная версия - горизонтальная */}
           <div className="flex gap-4 sm:hidden">
             <div className="relative flex-shrink-0">
@@ -112,12 +113,20 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                   </span>
                 ))}
               </div>
-              {data.views && (
-                <div className="flex items-center gap-1 text-sm font-medium text-[var(--primary)]">
-                  <Eye className="w-4 h-4" />
-                  <span>{data.views.toLocaleString()}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-3 text-sm">
+                {data.views && (
+                  <div className="flex items-center gap-1 font-medium text-[var(--primary)]">
+                    <Eye className="w-4 h-4" />
+                    <span>{data.views.toLocaleString()}</span>
+                  </div>
+                )}
+                {data.ratingCount && (
+                  <div className="flex items-center gap-1 font-medium text-[var(--chart-3)]">
+                    <Sparkles className="w-4 h-4" />
+                    <span>{data.ratingCount.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -129,7 +138,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                 alt={data.title}
                 width={120}
                 height={160}
-                className={`w-42 h-54 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow  ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
+                className={`w-42 h-54 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
               />
               {data.isAdult && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
@@ -171,12 +180,20 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                   </span>
                 ))}
               </div>
-              {data.views && (
-                <div className="flex items-center justify-center gap-1 text-sm font-medium text-[var(--primary)]">
-                  <Eye className="w-4 h-4" />
-                  <span>{data.views.toLocaleString()}</span>
-                </div>
-              )}
+              <div className="flex items-center justify-center gap-3 text-sm">
+                {data.views && (
+                  <div className="flex items-center gap-1 font-medium text-[var(--primary)]">
+                    <Eye className="w-4 h-4" />
+                    <span>{data.views.toLocaleString()}</span>
+                  </div>
+                )}
+                {data.ratingCount && (
+                  <div className="flex items-center gap-1 font-medium text-[var(--chart-3)]">
+                    <Sparkles className="w-4 h-4" />
+                    <span>{data.ratingCount.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -216,20 +233,29 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
             {data.title}
           </h3>
           <div className="flex justify-around">
-          <div className="flex items-center justify-center gap-1 text-xs text-[var(--muted-foreground)]">
-            <span className="flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-[var(--chart-4)]" />
-              <span className="text-xs font-bold text-[var(--chart-4)]">
-                {data.rating}
+            <div className="flex items-center justify-center gap-1 text-xs text-[var(--muted-foreground)]">
+              <span className="flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-[var(--chart-4)]" />
+                <span className="text-xs font-bold text-[var(--chart-4)]">
+                  {data.rating}
+                </span>
               </span>
-            </span>
-          </div>
-          {data.views && (
-            <div className="flex items-center justify-center gap-1 text-xs font-medium text-[var(--primary)] mt-1">
-              <Eye className="w-3 h-3" />
-              <span>{(data.views / 1000).toFixed(0)}k</span>
             </div>
-          )}</div>
+            <div className="flex items-center justify-center gap-2">
+              {data.views && (
+                <div className="flex items-center justify-center gap-1 text-xs font-medium text-[var(--primary)]">
+                  <Eye className="w-3 h-3" />
+                  <span>{data.views >= 1000 ? `${(data.views / 1000).toFixed(1)}k` : data.views}</span>
+                </div>
+              )}
+              {data.ratingCount && (
+                <div className="flex items-center justify-center gap-1 text-xs font-medium text-[var(--chart-4)]">
+                  <Sparkles className="w-3 h-3" />
+                  <span>{data.ratingCount?.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
       <AgeVerificationModal

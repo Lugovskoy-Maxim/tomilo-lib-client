@@ -1,4 +1,5 @@
-import { Title, Chapter } from "@/types/title";
+
+import { Title, Chapter, RatingStat } from "@/types/title";
 import { User } from "@/types/auth";
 import {
   ArrowUpToLine,
@@ -161,9 +162,30 @@ export function RightContent({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Функция для обработки массива оценок и подсчета частоты каждой оценки
+  const getRatingStats = (ratings: number[]) => {
+    const stats = ratings.reduce((acc, rating) => {
+      acc[rating] = (acc[rating] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
+
+    // Сортируем по убыванию оценки
+    return Object.entries(stats)
+      .map(([rating, count]) => ({
+        rating: parseInt(rating),
+        count,
+        percentage: (count / ratings.length * 100).toFixed(1)
+      }))
+      .sort((a, b) => b.rating - a.rating);
+  };
+
+  const ratingStats = titleData?.ratings ? getRatingStats(titleData.ratings) : [];
+  const totalRatings = titleData?.totalRatings || titleData?.ratings?.length || 0;
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -377,13 +399,16 @@ export function RightContent({
           </div>
         );
 
+
       case "statistics":
         return (
           <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl p-4">
             <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
               Статистика
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            
+            {/* Основная статистика */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-[var(--accent)]">
                   {titleData?.views || 0}
@@ -399,6 +424,49 @@ export function RightContent({
                 <div className="text-sm text-[var(--foreground)]/60">Глав</div>
               </div>
             </div>
+
+            {/* Статистика рейтингов */}
+            {totalRatings > 0 && (
+              <div className="border-t border-[var(--border)] pt-4">
+                <div className="text-center mb-4">
+                  <div className="text-xl font-bold text-[var(--accent)]">
+                    {totalRatings}
+                  </div>
+                  <div className="text-sm text-[var(--foreground)]/60">
+                    Всего оценок
+                  </div>
+                </div>
+                
+                {ratingStats.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-[var(--foreground)] mb-3">
+                      Распределение оценок:
+                    </h3>
+                    {ratingStats.map((stat) => (
+                      <div key={stat.rating} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[var(--foreground)] font-medium">
+                            {stat.rating}
+                          </span>
+                          <Star className="w-4 h-4 text-[var(--chart-1)]" />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-24 bg-[var(--background)] rounded-full h-2">
+                            <div 
+                              className="bg-[var(--chart-1)] h-2 rounded-full"
+                              style={{ width: `${stat.percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-sm text-[var(--foreground)]/60 min-w-[50px]">
+                            {stat.count} шт ({stat.percentage}%)
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
 
@@ -427,12 +495,20 @@ export function RightContent({
               )}
             </div>
           </div>
+
           <div className="relative flex flex-col items-end gap-1 bg-[var(--background)]/20 px-3 py-2 rounded-full min-w-[80px]">
-            <span className="text-lg font-bold text-[var(--chart-1)]">
-              {titleData?.averageRating
-                ? titleData?.averageRating.toFixed(2)
-                : "0"}
-            </span>
+            <div className="flex flex-col items-end">
+              <span className="text-lg font-bold text-[var(--chart-1)]">
+                {titleData?.averageRating
+                  ? titleData?.averageRating.toFixed(2)
+                  : "0"}
+              </span>
+              {totalRatings > 0 && (
+                <span className="text-xs text-[var(--foreground)]/60">
+                  ({totalRatings} оценок)
+                </span>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => setIsRatingOpen((v) => !v)}

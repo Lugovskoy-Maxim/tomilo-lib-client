@@ -109,6 +109,7 @@ export interface RankedTopTitle {
   views?: number;
   period: string;
   isAdult: boolean;
+  ratingCount?: number;
 }
 
 import { ComponentType } from "react";

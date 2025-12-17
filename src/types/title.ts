@@ -46,6 +46,8 @@ export interface TitlesState {
   error: string | null;
 }
 
+
+
 export interface Title {
   averageRating: number | undefined;
   _id: string;
@@ -73,6 +75,16 @@ export interface Title {
   publisher?: string;
   serialization?: string;
   relatedTitles?: string[];
+  // Поля для рейтингов
+  totalRatings?: number; // Общее количество оценок
+  ratings?: number[]; // Массив всех оценок [10, 9, 8, 10, ...]
+}
+
+// Тип для статистики рейтингов
+export interface RatingStat {
+  rating: number;
+  count: number;
+  percentage: string;
 }
 
 export interface Chapter {

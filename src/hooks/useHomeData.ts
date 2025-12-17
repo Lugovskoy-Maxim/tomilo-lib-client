@@ -257,6 +257,7 @@ export const useHomeData = (): {
       rating: item.rating || 0,
       genres: [], // Жанры не возвращаются для топ тайтлов
       isAdult: item.isAdult ?? false,
+      ratingCount: item.ratingCount || 0,
     })) || [];
 
   // Преобразование топ тайтлов за неделю
@@ -271,6 +272,7 @@ export const useHomeData = (): {
       rating: item.rating || 0,
       genres: [], // Жанры не возвращаются для топ тайтлов
       isAdult: item.isAdult ?? false,
+      ratingCount: item.ratingCount || 0,
     })) || [];
 
   // Преобразование топ тайтлов за месяц
@@ -285,6 +287,7 @@ export const useHomeData = (): {
       rating: item.rating || 0,
       genres: [], // Жанры не возвращаются для топ тайтлов
       isAdult: item.isAdult ?? false,
+      ratingCount: item.ratingCount || 0,
     })) || [];
 
   // Преобразование топ тайтлов Манхва
