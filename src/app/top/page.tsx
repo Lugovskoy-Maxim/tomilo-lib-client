@@ -11,6 +11,7 @@ import {
   ErrorState,
 } from "@/shared";
 import { useHomeData } from "@/hooks/useHomeData";
+import { RankedTopTitle } from "@/types/home";
 import { useSEO } from "@/hooks/useSEO";
 import { useMounted } from "@/hooks/useMounted";
 import { usePeriodFilter } from "@/hooks/usePeriodFilter";
@@ -22,8 +23,8 @@ export default function TopPage() {
 
   useSEO({
     title: `Топ тайтлов ${periodLabels[activePeriod]} - Tomilo-lib.ru`,
-    description: `Самые популярные тайтлы ${periodLabels[activePeriod]}. Рейтинг лучшей манги и маньхуа по просмотрам.`,
-    keywords: "топ тайтлов, рейтинг, популярные, манга, маньхуа, просмотры",
+    description: `Самые популярные тайтлы ${periodLabels[activePeriod]}. Рейтинг лучшей манги, манхвы и маньхуа по просмотрам.`,
+    keywords: "топ тайтлов, рейтинг, популярные, манга, маньхуа, манхва, топ по просмотрам",
     type: "website",
   });
 
@@ -42,11 +43,18 @@ export default function TopPage() {
 
   const activeTopTitles = getActiveTopTitles();
 
-  const topTitlesWithRank = useMemo(() => {
+  const topTitlesWithRank = useMemo<RankedTopTitle[]>(() => {
     return activeTopTitles.data.map((title, index) => ({
-      ...title,
+      id: title.id,
+      title: title.title,
+      type: title.type || "Неуказан",
+      year: title.year || new Date().getFullYear(),
+      rating: title.rating || 0,
+      image: title.cover || title.image || "",
+      genres: title.genres || [],
       rank: index + 1,
       period: periodLabels[activePeriod],
+      isAdult: title.isAdult || false,
     }));
   }, [activeTopTitles.data, activePeriod, periodLabels]);
 
@@ -106,13 +114,12 @@ export default function TopPage() {
               <Carousel
                 title={`Топ тайтлов ${periodLabels[activePeriod]} (4-${topTitlesWithRank.length})`}
                 data={topTitlesWithRank.slice(3)}
-                cardComponent={TopTitleCard}
-              // cardProps={{ variant: "carousel" }} // Убрано, так как отсутствует в типах CarouselProps
-              type="browse"
-              icon={<Trophy className="w-6 h-6" />}
-              cardWidth="w-48 sm:w-52 md:w-56 lg:w-60"
-              showNavigation={false}
-            />
+                cardComponent={(props) => <TopTitleCard {...props} variant="carousel" />}
+                type="browse"
+                icon={<Trophy className="w-6 h-6" />}
+                cardWidth="w-48 sm:w-52 md:w-56 lg:w-60"
+                showNavigation={false}
+              />
             )}
           </div>
         ) : (

@@ -85,10 +85,30 @@ export interface TopTitle extends TitleCard {
   isAdult?: boolean;
 }
 
+// Make cover optional to match the data structure
+export interface TopTitleCardData extends Omit<TitleCard, 'cover'> {
+  cover?: string;
+  isAdult?: boolean;
+}
+
 export interface TopTitleData {
-  data: TopTitle[];
+  data: (TopTitleCardData & { image: string })[];
   loading: boolean;
   error: unknown;
+}
+
+export interface RankedTopTitle {
+  id: string;
+  title: string;
+  type: string;
+  year: number;
+  rating: number;
+  image: string;
+  genres: string[];
+  rank: number;
+  views?: number;
+  period: string;
+  isAdult: boolean;
 }
 
 import { ComponentType } from "react";

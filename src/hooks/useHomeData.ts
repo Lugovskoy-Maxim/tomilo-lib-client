@@ -12,7 +12,109 @@ import { TopTitleData } from "@/types/home";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
-export const useHomeData = () => {
+export const useHomeData = (): {
+  popularTitles: {
+    data: {
+      id: string;
+      title: string;
+      image: string | undefined;
+      description: string | undefined;
+      type: string;
+      year: number;
+      rating: number;
+      genres: never[];
+      isAdult: boolean;
+    }[];
+    loading: boolean;
+    error: unknown;
+  };
+  randomTitles: {
+    data: {
+      id: string;
+      title: string;
+      image: string;
+      description: string;
+      type: string;
+      year: number;
+      rating: number;
+      genres: never[];
+      isAdult: boolean;
+    }[];
+    loading: boolean;
+    error: unknown;
+  };
+  readingProgress: {
+    data: {
+      id: string;
+      title: string;
+      cover: string;
+      currentChapter: number;
+      totalChapters: number;
+      newChaptersSinceLastRead: number;
+      type: string;
+      readingHistory?: {
+        titleId: string;
+        chapterId: string;
+        chapterNumber: number;
+        lastReadDate?: string;
+      };
+      lastReadTimestamp: number;
+    }[];
+    loading: boolean;
+    error: unknown;
+  };
+  topManhua: {
+    data: {
+      id: string;
+      title: string;
+      image: string;
+      description: string;
+      views: number;
+      type: string;
+      year: number;
+      rating: number;
+      genres: string[];
+      isAdult: boolean;
+    }[];
+    loading: boolean;
+    error: unknown;
+  };
+  topManhwa: {
+    data: {
+      id: string;
+      title: string;
+      image: string;
+      description: string;
+      views: number;
+      type: string;
+      year: number;
+      rating: number;
+      genres: string[];
+      isAdult: boolean;
+    }[];
+    loading: boolean;
+    error: unknown;
+  };
+  top2025: {
+    data: {
+      id: string;
+      title: string;
+      image: string;
+      description: string;
+      views: number;
+      type: string;
+      year: number;
+      rating: number;
+      genres: string[];
+      isAdult: boolean;
+    }[];
+    loading: boolean;
+    error: unknown;
+  };
+  topTitlesDay: TopTitleData;
+  topTitlesWeek: TopTitleData;
+  topTitlesMonth: TopTitleData;
+} => {
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
 
