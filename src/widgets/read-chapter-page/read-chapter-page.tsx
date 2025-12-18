@@ -9,7 +9,6 @@ import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import ReaderControls from "@/shared/reader/reader-controls";
-import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
 export default function ReadChapterPage({
   title,
@@ -138,28 +137,6 @@ export default function ReadChapterPage({
     addToReadingHistory,
     isAuthenticated,
   ]);
-
-  // Конфигурация SEO для текущей главы
-  const seoConfig = useMemo(() => {
-    const baseUrl =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/browse/${titleId}/chapter/${chapter._id}`
-        : "";
-
-    return {
-      ...seoConfigs.chapter(
-        {
-          name: title.title,
-          title: title.title,
-        },
-        chapter.number,
-        chapter.title
-      ),
-      url: baseUrl,
-    };
-  }, [chapter, titleId, title.title]);
-
-  useSEO(seoConfig);
 
   // Обработчик ошибок загрузки изображений
   const handleImageError = useCallback(
