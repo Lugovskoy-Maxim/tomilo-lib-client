@@ -103,7 +103,7 @@ export function CommentItem({
         <div className="flex-shrink-0">
           {userData?.avatar ? (
             <Image
-              src={userData.avatar}
+              src={userData.avatar.startsWith('/uploads/') ? `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3001'}${userData.avatar}` : userData.avatar}
               alt={userData.username}
               width={40}
               height={40}
