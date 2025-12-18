@@ -100,14 +100,14 @@ export function CommentItem({
     >
       <div className="flex gap-3">
         {/* Avatar */}
-        <div className="flex-shrink-0 h-10 w-10 overflow-hidden rounded-full">
+        <div className="flex-shrink-0 h-14 w-14 overflow-hidden rounded-full">
           {userData?.avatar ? (
             <Image
               loader={() => `${process.env.NEXT_PUBLIC_URL}${userData.avatar}`}
               src={`${process.env.NEXT_PUBLIC_URL}${userData.avatar}`}
               alt={userData.username}
-              width={40}
-              height={40}
+              width={56}
+              height={56}
               className="rounded-full overflow-hidden"
             />
           ) : (
