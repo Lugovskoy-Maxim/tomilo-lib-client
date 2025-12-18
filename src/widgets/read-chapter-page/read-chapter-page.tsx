@@ -21,7 +21,8 @@ export default function ReadChapterPage({
   chapters: ReaderChapter[];
 }) {
   const router = useRouter();
-  const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
+  const { updateChapterViews, addToReadingHistory, isAuthenticated } =
+    useAuth();
 
   const titleId = title._id;
   const chapterId = chapter._id;
@@ -41,11 +42,21 @@ export default function ReadChapterPage({
   const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
   const [, setHasTapped] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Определение мобильного устройства
-  const isMobile = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent)
+      );
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Refs для предотвращения повторных вызовов
@@ -94,7 +105,14 @@ export default function ReadChapterPage({
           // Не перебрасываем ошибку, чтобы избежать бесконечных запросов
         });
     }
-  }, [chapter._id, title._id, chapter.views, updateChapterViews, addToReadingHistory, isAuthenticated]);
+  }, [
+    chapter._id,
+    title._id,
+    chapter.views,
+    updateChapterViews,
+    addToReadingHistory,
+    isAuthenticated,
+  ]);
 
   // Конфигурация SEO для текущей главы
   const seoConfig = useMemo(() => {
@@ -194,7 +212,7 @@ export default function ReadChapterPage({
   // Скрытие хедера при скролле с оптимизацией
   useEffect(() => {
     let ticking = false;
-    
+
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
@@ -217,6 +235,33 @@ export default function ReadChapterPage({
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
+
+  // Отслеживание текущей страницы с помощью scroll event
+  useEffect(() => {
+    const handleScroll = () => {
+      const pageElements = document.querySelectorAll("[data-page]");
+      let maxVisible = 0;
+      let current = 1;
+      pageElements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const visibleHeight = Math.max(
+          0,
+          Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0)
+        );
+        const visibleRatio = visibleHeight / rect.height;
+        if (visibleRatio > maxVisible) {
+          maxVisible = visibleRatio;
+          current = parseInt(el.getAttribute("data-page") || "1");
+        }
+      });
+      setCurrentPage(current);
+    };
+
+    handleScroll(); // initial update
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [chapter.images]);
 
   const loading = !chapter;
 
@@ -252,6 +297,8 @@ export default function ReadChapterPage({
       <ReaderControls
         key={chapter._id}
         currentChapter={chapter}
+        currentPage={currentPage}
+        chapterImageLength={chapter.images.length}
         chapters={chapters}
         onChapterSelect={(chapterId) =>
           router.push(`/browse/${titleId}/chapter/${chapterId}`)
@@ -289,7 +336,7 @@ export default function ReadChapterPage({
                 onClick={() => router.push(`/browse/${titleId}`)}
                 className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors flex-shrink-0 cursor-pointer"
               >
-                <ArrowBigLeft className="h-4 w-4"/>
+                <ArrowBigLeft className="h-4 w-4" />
               </button>
 
               {/* Изображение тайтла */}
@@ -346,7 +393,7 @@ export default function ReadChapterPage({
         onClick={handleMobileTap}
       >
         <div className="container mx-auto">
-          <div className="chapter-container">
+          <div className=" chapter-container">
             {/* Заголовок главы */}
             <div className="py-2 text-center border-b border-[var(--border)] mb-2">
               <h2 className="text-xl font-semibold">
@@ -366,10 +413,13 @@ export default function ReadChapterPage({
                   key={`${chapter._id}-${imageIndex}`}
                   className="flex justify-center"
                 >
-                  <div className="relative max-w-4xl w-full">
+                  <div
+                    className="relative max-w-4xl w-full"
+                    data-page={imageIndex + 1}
+                  >
                     {!isError ? (
                       <Image
-                      loader={() => imageUrl}
+                        loader={() => imageUrl}
                         src={imageUrl}
                         alt={`Глава ${chapter.number}, Страница ${
                           imageIndex + 1
@@ -378,7 +428,9 @@ export default function ReadChapterPage({
                         height={1600}
                         className="w-full h-auto shadow-2xl"
                         quality={85}
-                        loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
+                        loading={
+                          imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"
+                        }
                         onError={() =>
                           handleImageError(chapter._id, imageIndex)
                         }
@@ -470,7 +522,7 @@ export default function ReadChapterPage({
 
       {/* Футер */}
       <footer className="bg-[var(--card)] border-t border-[var(--border)] py-4">
-        <div className="container mx-auto px-4 text-center text-[var(--muted-foreground)] text-sm">
+        <div className="container mx-auto px-4 text-center text-[var(--muted-foreground)] text-sm hidden md:block">
           <p>Используйте ← → для навигации между главами</p>
         </div>
       </footer>
