@@ -117,7 +117,7 @@ export function UsersSection() {
                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--secondary)] rounded-full flex items-center justify-center">
                           {user.avatar ? (
                             <Image
-                              loader={() => normalizeUrl(user.avatar || "")}
+                              loader={({ src, width }) => `${src}?w=${width}`}
                               src={normalizeUrl(user.avatar || "")}
                               alt={user.username}
                               width={32}

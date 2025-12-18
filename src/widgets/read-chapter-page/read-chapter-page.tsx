@@ -43,9 +43,27 @@ export default function ReadChapterPage({
   const [, setHasTapped] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [imageWidth, setImageWidth] = useState(1200);
 
   // Определение мобильного устройства
   const [isMobile, setIsMobile] = useState(false);
+
+  // Загрузка ширины изображений из localStorage
+  useEffect(() => {
+    const savedWidth = localStorage.getItem('reader-image-width');
+    if (savedWidth) {
+      const width = parseInt(savedWidth, 10);
+      if (width >= 768 && width <= 1440) {
+        setImageWidth(width);
+      }
+    }
+  }, []);
+
+  // Сохранение ширины изображений в localStorage
+  const handleImageWidthChange = useCallback((width: number) => {
+    setImageWidth(width);
+    localStorage.setItem('reader-image-width', width.toString());
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -78,6 +96,13 @@ export default function ReadChapterPage({
     // Если URL относительный, добавляем базовый URL
     return `${process.env.NEXT_PUBLIC_URL}${url}`;
   }, []);
+
+  // Функция загрузчика изображений с поддержкой ширины
+  const imageLoader = useCallback(({ src, width }: { src: string; width: number }) => {
+    const imageUrl = getImageUrl(src);
+    // Добавляем параметр ширины к URL для оптимизации
+    return `${imageUrl}?w=${width}`;
+  }, [getImageUrl]);
 
   // Обновление просмотров и истории чтения
   useEffect(() => {
@@ -319,6 +344,8 @@ export default function ReadChapterPage({
         canGoNext={currentChapterIndex < chapters.length - 1}
         titleId={titleId}
         isMobileControlsVisible={isMobileControlsVisible}
+        imageWidth={imageWidth}
+        onImageWidthChange={handleImageWidthChange}
       />
 
       {/* Хедер */}
@@ -414,18 +441,20 @@ export default function ReadChapterPage({
                   className="flex justify-center"
                 >
                   <div
-                    className="relative max-w-4xl w-full"
+                    className="relative w-full flex justify-center"
                     data-page={imageIndex + 1}
+                    style={{ maxWidth: isMobile ? '1200px' : `${imageWidth}px` }}
                   >
                     {!isError ? (
                       <Image
-                        loader={() => imageUrl}
-                        src={imageUrl}
+                        key={`${chapter._id}-${imageIndex}-${imageWidth}`}
+                        loader={imageLoader}
+                        src={src}
                         alt={`Глава ${chapter.number}, Страница ${
                           imageIndex + 1
                         }`}
-                        width={1200}
-                        height={1600}
+                        width={isMobile ? 1200 : imageWidth}
+                        height={isMobile ? 1600 : Math.round((imageWidth * 1600) / 1200)}
                         className="w-full h-auto shadow-2xl"
                         quality={85}
                         loading={
@@ -505,13 +534,13 @@ export default function ReadChapterPage({
 
           {/* Сообщение о завершении всех глав */}
           {currentChapterIndex === chapters.length - 1 && (
-            <div className="py-8 text-center border-t border-[var(--border)] mt-8">
+            <div className="py-6 text-center border-t border-[var(--border)] mt-8">
               <p className="text-lg font-semibold mb-2">
                 Вы дочитали до конца!
               </p>
               <button
                 onClick={() => router.push(`/browse/${titleId}`)}
-                className="px-6 py-3 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-lg transition-colors"
+                className="px-6 py-2 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-lg transition-colors"
               >
                 Вернуться к тайтлу
               </button>

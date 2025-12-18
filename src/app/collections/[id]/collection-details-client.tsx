@@ -133,7 +133,7 @@ export default function CollectionDetailsClient({
           {collection.cover && (
             <div className="flex-shrink-0">
               <Image
-                loader={() => normalizeImageUrl(collection.cover)}
+                loader={({ src, width }) => `${src}?w=${width}`}
                 src={normalizeImageUrl(collection.cover)}
                 alt={collection.name}
                 width={192}

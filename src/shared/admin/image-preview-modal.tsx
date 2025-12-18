@@ -16,7 +16,8 @@ export function ImagePreviewModal({ isOpen, onClose, imageUrl, altText = "Пре
       <div className="flex justify-center">
         {imageUrl ? (
           <Image
-            loader={() => {return `${process.env.NEXT_PUBLIC_UPLOADS_URL}${imageUrl}`;}}            src={process.env.NEXT_PUBLIC_UPLOADS_URL + imageUrl}
+                loader={({ src, width }) => `${src}?w=${width}`}
+            src={process.env.NEXT_PUBLIC_UPLOADS_URL + imageUrl}
             alt={altText}
             width={400}
             height={600}

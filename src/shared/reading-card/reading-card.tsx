@@ -64,7 +64,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0">
           <div className="relative w-full h-full">
             <Image
-              loader={() => `${imageUrl}`}
+              loader={({ src, width }) => `${src}?w=${width}`}
               src={imageUrl}
               alt={data.title}
               fill

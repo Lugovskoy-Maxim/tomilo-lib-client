@@ -9,6 +9,7 @@ import {
   X,
   AlertTriangle,
   Bookmark,
+  Settings,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
@@ -27,6 +28,8 @@ interface ReaderControlsProps {
   currentPage: number;
   chapterImageLength: number;
   titleId: string;
+  imageWidth?: number;
+  onImageWidthChange?: (width: number) => void;
 }
 
 export default function ReaderControls({
@@ -41,10 +44,13 @@ export default function ReaderControls({
   canGoNext,
   titleId,
   isMobileControlsVisible = true,
+  imageWidth,
+  onImageWidthChange,
 }: ReaderControlsProps & { isMobileControlsVisible?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
+  const [isWidthControlOpen, setIsWidthControlOpen] = useState(false);
   const toast = useToast();
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
   const [isBookmarked, setIsBookmarked] = useState(
@@ -94,18 +100,79 @@ export default function ReaderControls({
 
   return (
     <>
+      {/* Стили для ползунка */}
+      <style jsx>{`
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: var(--primary);
+          cursor: pointer;
+          border: 2px solid var(--background);
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+        }
+        .slider::-moz-range-thumb {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: var(--primary);
+          cursor: pointer;
+          border: 2px solid var(--background);
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+        }
+      `}</style>
+
       {/* Основное меню */}
       <div className="hidden sm:flex fixed right-1 top-1/2 -translate-y-1/2 z-40 flex-col gap-5 ">
-
-
         {/* Счётчик страниц главы */}
-                <div className="w-full flex justify-center items-center  mb-2">
+        <div className="w-full flex justify-center items-center  mb-2">
           <p className="text-[var(--muted-foreground)] text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-1">
             {currentPage} {"/"} {chapterImageLength}
           </p>
         </div>
 
+        {/* Кнопка настроек ширины изображений */}
+        {onImageWidthChange && imageWidth !== undefined && (
+          <div className="relative w-full flex justify-center mb-4">
+            <button
+              onClick={() => setIsWidthControlOpen(!isWidthControlOpen)}
+              className={`p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 ${
+                isWidthControlOpen ? 'text-[var(--primary)] bg-[var(--accent)]' : ''
+              }`}
+              title="Настройки ширины изображений"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
 
+            {/* Ползунок ширины (абсолютное позиционирование слева) */}
+            {isWidthControlOpen && (
+              <div className="absolute left-0 top-0 -translate-x-full mr-2 flex flex-col items-center space-y-2 p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg z-50">
+                <div className="text-[var(--muted-foreground)] text-xs font-medium">
+                  Ширина: {imageWidth}px
+                </div>
+                <input
+                  type="range"
+                  min="768"
+                  max="1440"
+                  step="64"
+                  value={imageWidth}
+                  onChange={(e) => onImageWidthChange(Number(e.target.value))}
+                  className="w-32 h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: 'var(--muted)',
+                    outline: 'none',
+                  }}
+                  title="Изменить ширину изображений"
+                />
+                <div className="flex justify-between w-32 text-[var(--muted-foreground)] text-xs">
+                  <span>768</span>
+                  <span>1440</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-col items-center space-y-2 w-12">
           {/* Номер главы */}

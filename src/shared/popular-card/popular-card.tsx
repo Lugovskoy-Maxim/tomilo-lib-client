@@ -101,7 +101,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
       <div className="relative overflow-hidden rounded-lg">
         <Image
           className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105 object-cover`}
-          loader={() => {return imageSrc.toString()}}
+          loader={({ src, width }) => `${src}?w=${width}`}
           src={imageSrc}
           alt={data.title}
           width={160}

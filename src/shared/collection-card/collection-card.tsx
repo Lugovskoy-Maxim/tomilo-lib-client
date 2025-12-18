@@ -49,7 +49,7 @@ export default function CollectionCard({ data }: CollectionCardProps) {
       <div className="aspect-[3/4] relative rounded-lg overflow-hidden">
         <div className="relative w-full h-full">
           <Image
-            loader={() => {return `${imageUrl}`}}
+            loader={({ src, width }) => `${src}?w=${width}`}
             src={imageUrl}
             alt={collectionName || "Коллекция"}
             fill
