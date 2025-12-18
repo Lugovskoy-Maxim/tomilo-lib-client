@@ -1,6 +1,8 @@
 
 import { Title, Chapter, RatingStat } from "@/types/title";
 import { User } from "@/types/auth";
+import { CommentEntityType } from "@/types/comment";
+import { CommentsSection } from "@/shared/comments/comments-section";
 import {
   ArrowUpToLine,
   BookOpen,
@@ -395,14 +397,10 @@ export function RightContent({
 
       case "comments":
         return (
-          <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl p-4">
-            <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
-              Комментарии
-            </h2>
-            <p className="text-[var(--foreground)]/60">
-              Комментарии скоро будут доступны
-            </p>
-          </div>
+          <CommentsSection
+            entityType={CommentEntityType.TITLE}
+            entityId={titleId}
+          />
         );
 
 
