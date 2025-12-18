@@ -624,7 +624,7 @@ export function RightContent({
           <div className="flex">
             {[
               { key: "description" as const, label: "Описание" },
-              { key: "chapters" as const, label: "Главы" },
+              { key: "chapters" as const, label: `Главы (${titleData?.chapters?.length || 0})` },
               { key: "comments" as const, label: "Комментарии" },
               { key: "statistics" as const, label: "Статистика" },
             ].map((tab) => (
