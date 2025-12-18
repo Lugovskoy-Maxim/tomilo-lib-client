@@ -128,11 +128,17 @@ export function RightContent({
           (chapter) =>
             !prev.some((prevChapter) => prevChapter._id === chapter._id)
         );
-        return [...prev, ...newChapters];
+        // Sort chapters by chapterNumber based on sortOrder
+        const sortedChapters = [...prev, ...newChapters].sort((a, b) => {
+          const aNum = a.chapterNumber || 0;
+          const bNum = b.chapterNumber || 0;
+          return sortOrder === 'desc' ? bNum - aNum : aNum - bNum;
+        });
+        return sortedChapters;
       });
       setLoadedChaptersCount(20);
     }
-  }, [chapters, searchQuery]);
+  }, [chapters, searchQuery, sortOrder]);
 
   useEffect(() => {
     setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));

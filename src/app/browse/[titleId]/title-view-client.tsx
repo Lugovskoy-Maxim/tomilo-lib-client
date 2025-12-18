@@ -45,7 +45,6 @@ export default function TitleViewClient({
       titleId,
       page: 1,
       limit: 10000, // Load all chapters
-      sortOrder: sortOrder === "desc" ? "desc" : "asc",
     },
     {
       skip: false,

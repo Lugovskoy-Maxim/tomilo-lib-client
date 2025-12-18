@@ -287,15 +287,15 @@ export default function ReaderControls({
       </div>
 
       <div
-        className={`sm:hidden h-max fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 ease-out will-change-transform ${
-          isMobileControlsVisible ? "translate-y-0" : "translate-y-full"
+        className={`sm:hidden h-max fixed bottom-2 left-0 right-0 z-40 transition-transform duration-300 ease-out will-change-transform ${
+          isMobileControlsVisible ? "translate-y-0" : "translate-y-20"
         }`}
       >
         <div
-          className="bg-[var(--card)]/95 backdrop-blur-sm border-t border-[var(--border)] shadow-lg"
+          className="bg-[var(--card)]/95 backdrop-blur-sm border-t border-[var(--border)] shadow-lg rounded-xl mx-1 h-14"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
-          <div className="flex items-center justify-around px-2 py-2">
+          <div className="flex items-center justify-around px-1 py-">
             {/* Предыдущая глава */}
             <button
               onClick={onPrev}
