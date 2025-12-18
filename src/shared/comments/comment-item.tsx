@@ -100,7 +100,7 @@ export function CommentItem({
     >
       <div className="flex gap-3">
         {/* Avatar */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 h-10 w-10">
           {userData?.avatar ? (
             <Image
               loader={() => `${process.env.NEXT_PUBLIC_URL}${userData.avatar}`}
