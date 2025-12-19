@@ -239,7 +239,7 @@ const TRANSLATION_MAP: Record<string, string> = {
   "Cruel world": "Жестокий мир",
   "Game elements": "Игровые элементы",
   Murim: "Мурим",
-  "Overpowered protagonist": "",
+  "Overpowered protagonist": "Сильный протагонист",
   Zombie: "Зомби",
   ApocalypticGame: "Апокалиптический игровой мир",
   elements: "Елементы",
