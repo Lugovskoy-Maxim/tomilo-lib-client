@@ -176,6 +176,7 @@ const normalizeGenresTags = (items: string[]): string[] => {
 };
 
 // Типы для пропсов компонентов
+
 interface BasicInfoSectionProps {
   formData: Title;
   titleId: string;
@@ -191,7 +192,6 @@ interface BasicInfoSectionProps {
     field: "genres" | "tags"
   ) => (values: string[]) => void;
   handleAltNamesChange: (e: ChangeEvent<HTMLInputElement>) => void;
-
   handleImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
   selectedFile: File | null;
   onCoverUpdate: (newCover: string) => void;
@@ -640,6 +640,7 @@ function HeaderSection() {
 }
 
 
+
 function BasicInfoSection({
   formData,
   titleId,
@@ -647,6 +648,8 @@ function BasicInfoSection({
   handleArrayFieldChange,
   handleInputArrayChange,
   handleAltNamesChange,
+  handleImageChange,
+  selectedFile,
   onCoverUpdate,
   onSlugGenerate,
 }: BasicInfoSectionProps) {
@@ -659,10 +662,13 @@ function BasicInfoSection({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
+
           <CoverUploadSection
             titleId={titleId}
             currentCover={formData.coverImage}
             onCoverUpdate={onCoverUpdate}
+            selectedFile={selectedFile}
+            onImageChange={handleImageChange}
           />
 
         <InputField

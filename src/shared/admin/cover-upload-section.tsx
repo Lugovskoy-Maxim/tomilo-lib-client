@@ -1,68 +1,38 @@
+
+
 import React, { useState, ChangeEvent } from "react";
 import { Upload, Image as ImageIcon } from "lucide-react";
-import { useUpdateTitleMutation } from "@/store/api/titlesApi";
-import { useToast } from "@/hooks/useToast";
 import Image from "next/image";
 
 interface CoverUploadSectionProps {
   titleId: string;
   currentCover?: string;
   onCoverUpdate: (newCoverUrl: string) => void;
+  selectedFile: File | null;
+  onImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function CoverUploadSection({ titleId, currentCover, onCoverUpdate }: CoverUploadSectionProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+export function CoverUploadSection({ 
+  titleId, 
+  currentCover, 
+  onCoverUpdate, 
+  selectedFile, 
+  onImageChange 
+}: CoverUploadSectionProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [updateTitle] = useUpdateTitleMutation();
-  const toast = useToast();
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      
-      // Создаем превью изображения
+  // Создаем превью для выбранного файла
+  React.useEffect(() => {
+    if (selectedFile) {
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreviewUrl(e.target?.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(selectedFile);
+    } else {
+      setPreviewUrl(null);
     }
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      toast.error("Пожалуйста, выберите изображение для загрузки");
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      // Создаем FormData для отправки файла
-      const formData = new FormData();
-      formData.append('coverImage', selectedFile);
-
-      // Отправляем запрос на обновление обложки
-      const result = await updateTitle({
-        id: titleId,
-        data: formData as unknown as Partial<{ coverImage: string }>,
-        hasFile: true
-      }).unwrap();
-
-      if (result.data?.coverImage) {
-        onCoverUpdate(result.data.coverImage);
-        toast.success("Обложка успешно обновлена!");
-        setSelectedFile(null);
-        setPreviewUrl(null);
-      }
-    } catch (error) {
-      console.error("Error updating cover:", error);
-      toast.error("Ошибка при обновлении обложки");
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  }, [selectedFile]);
 
   const apiBase = process.env.NEXT_PUBLIC_URL || "http://localhost:3000/";
   const resolvedCurrentCover = currentCover 
@@ -80,12 +50,14 @@ export function CoverUploadSection({ titleId, currentCover, onCoverUpdate }: Cov
         {/* Текущая обложка */}
         {(resolvedCurrentCover || previewUrl) && (
           <div className="flex flex-col items-center gap-2">
-            <p className="text-sm text-[var(--muted-foreground)]">Текущая обложка:</p>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              {previewUrl ? "Предпросмотр новой обложки:" : "Текущая обложка:"}
+            </p>
             <div className="relative">
               <Image
                 loader={() => previewUrl || resolvedCurrentCover}
                 src={previewUrl || resolvedCurrentCover}
-                alt="Current cover"
+                alt="Cover"
                 className="max-w-[200px] rounded"
                 width={200}
                 height={300}
@@ -105,7 +77,7 @@ export function CoverUploadSection({ titleId, currentCover, onCoverUpdate }: Cov
           <input
             type="file"
             accept="image/*"
-            onChange={handleImageChange}
+            onChange={onImageChange}
             className="hidden"
             id="cover-upload"
           />
@@ -115,32 +87,22 @@ export function CoverUploadSection({ titleId, currentCover, onCoverUpdate }: Cov
           >
             <Upload className="w-6 h-6 text-[var(--muted-foreground)]" />
             <span className="text-sm text-[var(--muted-foreground)]">
-              {selectedFile ? selectedFile.name : "Выберите новое изображение"}
+              {selectedFile ? selectedFile.name : "Выберите изображение для обложки"}
             </span>
             <span className="text-xs text-[var(--muted-foreground)]">
-              Нажмите для выбора файла
+              Поддерживаемые форматы: JPG, PNG, WebP
             </span>
           </label>
         </div>
 
-        {/* Кнопка загрузки */}
-        <button
-          onClick={handleUpload}
-          disabled={!selectedFile || isUploading}
-          className="w-full px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isUploading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Загрузка...
-            </>
-          ) : (
-            <>
-              <Upload className="w-4 h-4" />
-              Обновить обложку
-            </>
-          )}
-        </button>
+
+        {selectedFile && (
+          <div className="text-sm text-[var(--muted-foreground)] bg-[var(--accent)]/20 p-3 rounded">
+            Выбрано изображение: <span className="font-medium">{selectedFile.name}</span>
+            <br />
+            Размер: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+          </div>
+        )}
       </div>
     </div>
   );
