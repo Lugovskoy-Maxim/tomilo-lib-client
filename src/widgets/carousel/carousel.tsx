@@ -253,7 +253,7 @@ export default function Carousel<T>({
                 {icon}
               </div>
             )}
-            {title && <h2 className="text-2xl font-bold text-[var(--muted-foreground)]">{title}</h2>}
+            {title && <h2 className="text-lg md:text-2xl font-bold text-[var(--muted-foreground)]">{title}</h2>}
           </div>
           <div className="flex justify-between items-center w-full">
             <p className="text-[var(--muted-foreground)] text-sm max-w-3xl">

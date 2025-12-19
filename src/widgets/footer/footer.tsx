@@ -139,7 +139,7 @@ export default function Footer() {
                         md:space-x-6 md:flex-nowrap"
             >
               <div className="flex items-center gap-1 text-xs sm:text-sm md:text-base">
-                <Copyright className="w-3 h-3 sm:w-4 sm:h-4" />
+                <Copyright className="w-4 h-4  sm:w-4 sm:h-4" />
                 <span>{currentYear} «Tomilo-lib.ru»</span>
               </div>
               <div className="text-xs bg-[var(--accent)] px-2 py-1 rounded border border-[var(--border)] whitespace-nowrap">
@@ -151,18 +151,18 @@ export default function Footer() {
       </div>
       {/* Мобильный футер */}
       <div
-        className={`fixed bottom-0 left-0 right-0 bg-[var(--background)]/80 border-t border-[var(--border)] shadow-lg z-50 backdrop-blur-sm md:hidden transition-transform duration-300 ${
-          isVisible ? "translate-y-0" : "translate-y-full"
+        className={`fixed bottom-2 left-0 right-0 rounded-md mx-2 bg-[var(--background)]/90 border-t border-[var(--border)] shadow-lg z-50 backdrop-blur-sm md:hidden transition-transform duration-300 ${
+          isVisible ? "translate-y-0" : "translate-y-20"
         }`}
       >
-        <div className="flex items-center justify-around px-2 py-2">
+        <div className="flex items-center justify-around p-0 rounded-md">
           <Link
             href="/browse"
             className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
             aria-label="Каталог"
           >
-            <Library className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">
+            <Library className="w-4 h-4  text-[var(--muted-foreground)]" />
+            <span className=" text-sm text-[var(--muted-foreground)]  ">
               Каталог
             </span>
           </Link>
@@ -172,8 +172,8 @@ export default function Footer() {
             className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
             aria-label="Закладки"
           >
-            <Bookmark className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">
+            <Bookmark className="w-4 h-4  text-[var(--muted-foreground)]" />
+            <span className=" text-sm text-[var(--muted-foreground)]  ">
               Закладки
             </span>
           </Link>
@@ -183,8 +183,8 @@ export default function Footer() {
             className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
             aria-label="Главная страница"
           >
-            <Home className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">
+            <Home className="w-4 h-4  text-[var(--muted-foreground)]" />
+            <span className=" text-sm text-[var(--muted-foreground)]  ">
               Главная
             </span>
           </Link>
@@ -194,9 +194,9 @@ export default function Footer() {
             className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
             aria-label="Уведомления"
           >
-            <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">
-              Уведомления
+            <Bell className="w-4 h-4  text-[var(--muted-foreground)]" />
+            <span className=" text-sm text-[var(--muted-foreground)]  ">
+              Увед.
             </span>
           </Link>
 
@@ -206,8 +206,8 @@ export default function Footer() {
               className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
               aria-label="Меню"
             >
-              <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
-              <span className="text-xs text-[var(--muted-foreground)] mt-1">
+              <MoreVertical className="w-4 h-4  text-[var(--muted-foreground)]" />
+              <span className=" text-sm text-[var(--muted-foreground)]  ">
                 Меню
               </span>
             </button>

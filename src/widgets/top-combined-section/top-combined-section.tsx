@@ -113,7 +113,7 @@ const Column = ({
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-2xl font-bold text-[var(--primary)]">{title}</h3>
+        <h3 className="text-lg md:text-2xl text-[var(--muted-foreground)] font-bold">{title}</h3>
         <Link
           href={href}
           className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
