@@ -192,7 +192,7 @@ export const titlesApi = createApi({
         const formData = new FormData();
         formData.append('coverImage', coverImage);
         return {
-          url: `/titles/${id}/cover`,
+          url: `/titles/${id}`,
           method: "PUT",
           body: formData,
         };
