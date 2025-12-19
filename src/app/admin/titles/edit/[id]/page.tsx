@@ -32,6 +32,7 @@ import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
 import {
   useGetTitleByIdQuery,
+  useUpdateTitleCoverMutation,
   useUpdateTitleMutation,
 } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
@@ -294,6 +295,7 @@ export default function TitleEditorPage() {
   // Хук для обновления тайтла
   const [updateTitleMutation, { isLoading: isUpdating }] =
     useUpdateTitleMutation();
+  const [updateTitleCoverMutation] = useUpdateTitleCoverMutation();
 
   const [formData, setFormData] = useState<Title>({
     _id: "",
@@ -425,78 +427,48 @@ export default function TitleEditorPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      // Всегда отправляем все данные формы, включая обложку
-      const hasFile = !!selectedFile;
-
-
-
-      if (hasFile) {
-        // При обновлении с файлом создаем FormData
-        const formDataToSend = new FormData();
-
-        // Добавляем все поля из formData
-        Object.entries(formData).forEach(([key, value]) => {
-          if (key === "coverImage" && selectedFile) {
-            // Для обложки используем выбранный файл
-            formDataToSend.append(key, selectedFile);
-          } else if (key !== "coverImage") {
-            // Для остальных полей добавляем их значения
-            if (Array.isArray(value)) {
-              value.forEach((item) => formDataToSend.append(key, item));
-            } else {
-              formDataToSend.append(key, String(value));
-            }
-          }
-        });
-
-        const result = await updateTitleMutation({
+      // Обновляем обложку отдельно, если файл выбран
+      if (selectedFile) {
+        await updateTitleCoverMutation({
           id: titleId,
-          data: formDataToSend as unknown as Partial<UpdateTitleDto>,
-          hasFile: true,
+          coverImage: selectedFile,
         }).unwrap();
-
-        if (result.data) {
-          dispatch(updateTitle(result.data));
-          // Обновляем обложку в локальном состоянии
-          if (result.data.coverImage) {
-            setFormData((prev) => ({
-              ...prev,
-              coverImage: result.data!.coverImage,
-            }));
-          }
-        }
-        setSelectedFile(null);
-        toast.success("Тайтл успешно обновлен!");
-      } else {
-
-        // При обновлении без файла отправляем объект
-        const updateData: Partial<UpdateTitleDto> = {
-          name: formData.name,
-          slug: formData.slug, // Добавляем slug в отправляемые данные
-          altNames: formData.altNames,
-          description: formData.description,
-          genres: formData.genres,
-          tags: formData.tags,
-          artist: formData.artist,
-          coverImage: formData.coverImage, // Всегда отправляем текущее значение обложки
-          status: formData.status,
-          author: formData.author,
-          releaseYear: Number(formData.releaseYear),
-          ageLimit: Number(formData.ageLimit),
-          isPublished: formData.isPublished,
-          type: formData.type,
-        };
-
-        const result = await updateTitleMutation({
-          id: titleId,
-          data: updateData,
-        }).unwrap();
-
-        if (result.data) {
-          dispatch(updateTitle(result.data));
-        }
-        toast.success("Тайтл успешно обновлен!");
       }
+
+      // Обновляем остальную информацию тайтла
+      const updateData: Partial<UpdateTitleDto> = {
+        name: formData.name,
+        slug: formData.slug,
+        altNames: formData.altNames,
+        description: formData.description,
+        genres: formData.genres,
+        tags: formData.tags,
+        artist: formData.artist,
+        status: formData.status,
+        author: formData.author,
+        releaseYear: Number(formData.releaseYear),
+        ageLimit: Number(formData.ageLimit),
+        isPublished: formData.isPublished,
+        type: formData.type,
+      };
+
+      const result = await updateTitleMutation({
+        id: titleId,
+        data: updateData,
+      }).unwrap();
+
+      if (result.data) {
+        dispatch(updateTitle(result.data));
+        // Обновляем обложку в локальном состоянии, если она была обновлена
+        if (selectedFile && result.data.coverImage) {
+          setFormData((prev) => ({
+            ...prev,
+            coverImage: result.data!.coverImage,
+          }));
+        }
+      }
+      setSelectedFile(null);
+      toast.success("Тайтл успешно обновлен!");
     } catch (err) {
       toast.error(
         `Ошибка при обновлении тайтла: ${

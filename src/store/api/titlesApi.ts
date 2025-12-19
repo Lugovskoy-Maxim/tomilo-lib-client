@@ -159,16 +159,47 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
-    // Обновление тайтла
-        updateTitle: builder.mutation<ApiResponseDto<Title>, { id: string; data: Partial<UpdateTitleDto>; hasFile?: boolean }>({
-          query: ({ id, data, hasFile = false }) => ({
-            url: `/titles/${id}`,
-            method: "PUT",
-            body: hasFile ? toFormData<UpdateTitleDto>(data) : data,
-          }),
-          invalidatesTags: [TITLES_TAG],
-          transformResponse: (response: ApiResponseDto<Title>) => response,
-        }),
+    // Создание тайтла с обложкой
+    createTitleWithCover: builder.mutation<ApiResponseDto<Title>, { data: Partial<CreateTitleDto>; coverImage: File }>({
+      query: ({ data, coverImage }) => {
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(data));
+        formData.append('coverImage', coverImage);
+        return {
+          url: "/titles/with-cover",
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<Title>) => response,
+    }),
+
+    // Обновление тайтла (без обложки)
+    updateTitle: builder.mutation<ApiResponseDto<Title>, { id: string; data: Partial<UpdateTitleDto> }>({
+      query: ({ id, data }) => ({
+        url: `/titles/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<Title>) => response,
+    }),
+
+    // Обновление обложки тайтла
+    updateTitleCover: builder.mutation<ApiResponseDto<Title>, { id: string; coverImage: File }>({
+      query: ({ id, coverImage }) => {
+        const formData = new FormData();
+        formData.append('coverImage', coverImage);
+        return {
+          url: `/titles/${id}/cover`,
+          method: "PUT",
+          body: formData,
+        };
+      },
+      invalidatesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<Title>) => response,
+    }),
 
     // Обновление рейтинга тайтла
     updateRating: builder.mutation<ApiResponseDto<Title>, { id: string; rating: number }>({
@@ -326,7 +357,9 @@ export const {
   useGetTitleByIdQuery,
   useGetTitleBySlugQuery,
   useCreateTitleMutation,
+  useCreateTitleWithCoverMutation,
   useUpdateTitleMutation,
+  useUpdateTitleCoverMutation,
   useUpdateRatingMutation,
   useIncrementViewsMutation,
   useGetPopularTitlesQuery,

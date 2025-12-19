@@ -5,11 +5,12 @@ import { Footer, Header } from "@/widgets";
 import { Plus, BookOpen, Tag, Edit, Save } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   useCreateTitleMutation,
   useGetTitleByIdQuery,
   useUpdateTitleMutation,
+  useCreateTitleWithCoverMutation,
 } from "@/store/api/titlesApi";
 import { TitleStatus, TitleType } from "@/types/title";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,89 @@ interface TitleFormData {
   relatedTitles?: string[];
   isPublished: boolean;
 }
+
+interface CoverUploadProps {
+  onCoverChange: (file: File | null) => void;
+}
+
+const CoverUpload: React.FC<CoverUploadProps> = ({ onCoverChange }) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    onCoverChange(file);
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setPreviewUrl(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewUrl(null);
+    }
+  };
+
+  const handleRemove = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    onCoverChange(null);
+    setPreviewUrl(null);
+  };
+
+  return (
+    <div className="space-y-4">
+      <label className="block text-sm font-medium mb-2">
+        Обложка
+      </label>
+      
+      {previewUrl && (
+        <div className="relative inline-block">
+          <img
+            src={previewUrl}
+            alt="Preview"
+            className="max-w-[200px] max-h-[300px] rounded border"
+          />
+          <button
+            type="button"
+            onClick={handleRemove}
+            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      
+      <div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+          id="cover-upload"
+        />
+        <label
+          htmlFor="cover-upload"
+          className="px-4 py-2 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg cursor-pointer hover:bg-[var(--secondary)]/80 transition-colors inline-block"
+        >
+          Выбрать файл
+        </label>
+        {previewUrl && (
+          <button
+            type="button"
+            onClick={handleRemove}
+            className="ml-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Удалить
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
 
 
 const availableGenres = [
@@ -86,6 +170,7 @@ export default function TitleEditorPage() {
   });
   const [createTitle, { isLoading: isCreating }] = useCreateTitleMutation();
   const [updateTitle, { isLoading: isUpdating }] = useUpdateTitleMutation();
+  const [createTitleWithCover, { isLoading: isCreatingWithCover }] = useCreateTitleWithCoverMutation();
 
   // local form state
   const [formData, setFormData] = useState<TitleFormData>({
@@ -108,9 +193,10 @@ export default function TitleEditorPage() {
     isPublished: false,
   });
 
-  const [altNameInput, setAltNameInput] = useState("");
-  const [tagInput, setTagInput] = useState("");
-
+  
+    const [altNameInput, setAltNameInput] = useState("");
+    const [tagInput, setTagInput] = useState("");
+    const [coverFile, setCoverFile] = useState<File | null>(null);
   useEffect(() => {
     if (existingTitle) {
       setFormData({
@@ -268,7 +354,12 @@ export default function TitleEditorPage() {
       if (isEditMode && titleId) {
         await updateTitle({ id: titleId, data: dataToSend }).unwrap();
       } else {
-        await createTitle(dataToSend).unwrap();
+        // При создании нового тайтла используем новый эндпоинт с обложкой
+        if (coverFile) {
+          await createTitleWithCover({ data: dataToSend, coverImage: coverFile }).unwrap();
+        } else {
+          await createTitle(dataToSend).unwrap();
+        }
       }
 
       router.push("/admin");
@@ -422,17 +513,7 @@ export default function TitleEditorPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Обложка (URL)
-                </label>
-                <input
-                  type="url"
-                  name="coverImage"
-                  value={formData.coverImage || ''}
-                  onChange={handleChange}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                />
+                <CoverUpload onCoverChange={setCoverFile} />
               </div>
 
               <div>
@@ -636,7 +717,7 @@ export default function TitleEditorPage() {
             </Link>
             <button
               type="submit"
-              disabled={isCreating || isUpdating}
+              disabled={isCreating || isUpdating || isCreatingWithCover}
               className="px-8 py-3 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--secondary-foreground)]/10 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               {isEditMode ? (
@@ -648,7 +729,7 @@ export default function TitleEditorPage() {
                 ? isUpdating
                   ? "Сохраняем..."
                   : "Сохранить изменения"
-                : isCreating
+                : isCreating || isCreatingWithCover
                 ? "Добавляем..."
                 : "Добавить тайтл"}
             </button>
