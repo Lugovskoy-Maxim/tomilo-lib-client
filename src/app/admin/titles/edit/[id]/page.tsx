@@ -677,13 +677,20 @@ function BasicInfoSection({
             onCoverUpdate={onCoverUpdate}
           />
 
-          <InputField
-            label="Название *"
-            value={formData.name}
-            onChange={handleInputChange("name")}
-            placeholder="Введите название тайтла"
-            required
-          />
+        <InputField
+          label="Название *"
+          value={formData.name}
+          onChange={handleInputChange("name")}
+          placeholder="Введите название тайтла"
+          required
+        />
+
+        <InputField
+          label="Slug"
+          value={formData.slug || ""}
+          onChange={handleInputChange("slug")}
+          placeholder="Введите slug тайтла"
+        />
         </div>
 
         <div className="md:col-span-2">

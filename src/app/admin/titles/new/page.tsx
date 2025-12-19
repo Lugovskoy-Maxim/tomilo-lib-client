@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/useToast";
 
 interface TitleFormData {
   name: string;
+  slug?: string;
   altNames: string[];
   author: string;
   artist: string;
@@ -76,6 +77,7 @@ export default function TitleEditorPage() {
   // local form state
   const [formData, setFormData] = useState<TitleFormData>({
     name: "",
+    slug: "",
     altNames: [],
     author: "",
     artist: "",
@@ -178,6 +180,7 @@ export default function TitleEditorPage() {
   const prepareSubmitData = (): Partial<CreateTitleDto> => {
     const data: Partial<CreateTitleDto> = {
       name: formData.name.trim(),
+      slug: formData.slug?.trim() || undefined,
       altNames: formData.altNames.filter(name => name.trim() !== ''),
       author: formData.author.trim(),
       description: formData.description.trim(),
@@ -307,6 +310,20 @@ export default function TitleEditorPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Slug
+                </label>
+                <input
+                  type="text"
+                  name="slug"
+                  value={formData.slug || ""}
+                  onChange={handleChange}
+                  placeholder="Введите slug тайтла"
                   className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
                 />
               </div>

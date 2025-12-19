@@ -52,6 +52,7 @@ export interface Title {
   averageRating: number | undefined;
   _id: string;
   name: string;
+  slug?: string;
   altNames?: string[];
   description: string;
   genres: string[];
