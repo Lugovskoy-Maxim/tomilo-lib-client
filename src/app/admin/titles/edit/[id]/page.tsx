@@ -92,6 +92,67 @@ const API_CONFIG = {
   ],
 };
 
+// Функция генерации slug из названия
+const generateSlug = (name: string): string => {
+  if (!name) return 'unknown-title';
+
+  // Транслитерация кириллических символов
+  const translitMap: { [key: string]: string } = {
+    а: 'a',
+    б: 'b',
+    в: 'v',
+    г: 'g',
+    д: 'd',
+    е: 'e',
+    ё: 'e',
+    ж: 'zh',
+    з: 'z',
+    и: 'i',
+    й: 'y',
+    к: 'k',
+    л: 'l',
+    м: 'm',
+    н: 'n',
+    о: 'o',
+    п: 'p',
+    р: 'r',
+    с: 's',
+    т: 't',
+    у: 'u',
+    ф: 'f',
+    х: 'h',
+    ц: 'ts',
+    ч: 'ch',
+    ш: 'sh',
+    щ: 'sch',
+    ъ: '',
+    ы: 'y',
+    ь: '',
+    э: 'e',
+    ю: 'yu',
+    я: 'ya',
+  };
+
+  let result = '';
+  for (let i = 0; i < name.length; i++) {
+    const char = name[i].toLowerCase();
+    if (translitMap[char]) {
+      result += translitMap[char];
+    } else if (/[a-z0-9]/.test(char)) {
+      result += char;
+    } else if (/[а-яё]/.test(char)) {
+      result += translitMap[char] || char;
+    } else if (/\s/.test(char)) {
+      result += '-';
+    }
+  }
+
+  // Удаляем множественные дефисы и дефисы в начале/конце
+  result = result.replace(/-+/g, '-').replace(/^-|-$/g, '');
+
+  return result || 'unknown-title';
+};
+
 // Словарь для перевода жанров и тегов с английского на русский
 const TRANSLATION_MAP: Record<string, string> = {
   // Жанры из API
