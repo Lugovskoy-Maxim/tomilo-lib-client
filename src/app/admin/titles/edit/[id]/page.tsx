@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AuthGuard } from "@/guard/auth-guard";
@@ -17,8 +18,10 @@ import {
   Star,
   Users,
   AlertTriangle,
+
   Globe,
   LucideIcon,
+  Wand2,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
@@ -282,9 +285,11 @@ interface BasicInfoSectionProps {
     field: "genres" | "tags"
   ) => (values: string[]) => void;
   handleAltNamesChange: (e: ChangeEvent<HTMLInputElement>) => void;
+
   handleImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
   selectedFile: File | null;
   onCoverUpdate: (newCover: string) => void;
+  onSlugGenerate: () => void;
 }
 
 interface StatsSectionProps {
@@ -593,9 +598,17 @@ export default function TitleEditorPage() {
     }
   };
 
+
   // Состояния загрузки и ошибок
   if (isLoading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
+
+  // Функция для генерации slug из названия
+  const handleSlugGenerate = () => {
+    const newSlug = generateSlug(formData.name);
+    setFormData(prev => ({ ...prev, slug: newSlug }));
+    toast.success("Slug успешно сгенерирован!");
+  };
 
   return (
     <AuthGuard requiredRole="admin">
@@ -605,6 +618,7 @@ export default function TitleEditorPage() {
           <HeaderSection />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
+
               <BasicInfoSection
                 formData={formData}
                 titleId={titleId}
@@ -617,6 +631,7 @@ export default function TitleEditorPage() {
                 onCoverUpdate={(newCover) =>
                   setFormData((prev) => ({ ...prev, coverImage: newCover }))
                 }
+                onSlugGenerate={handleSlugGenerate}
               />
               {/* <TextareaField
                 label="Описание *"
@@ -714,6 +729,7 @@ function HeaderSection() {
   );
 }
 
+
 function BasicInfoSection({
   formData,
   titleId,
@@ -722,6 +738,7 @@ function BasicInfoSection({
   handleInputArrayChange,
   handleAltNamesChange,
   onCoverUpdate,
+  onSlugGenerate,
 }: BasicInfoSectionProps) {
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-6">
@@ -746,12 +763,30 @@ function BasicInfoSection({
           required
         />
 
-        <InputField
-          label="Slug"
-          value={formData.slug || ""}
-          onChange={handleInputChange("slug")}
-          placeholder="Введите slug тайтла"
-        />
+        <div>
+          <label className="text-sm font-medium text-[var(--foreground)] mb-1 flex items-center gap-2">
+            <Globe className="w-3 h-3" />
+            Slug
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={formData.slug || ""}
+              onChange={handleInputChange("slug")}
+              placeholder="Введите slug тайтла"
+              className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+            />
+            <button
+              type="button"
+              onClick={onSlugGenerate}
+              className="px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-1 text-sm"
+              title="Генерировать slug из названия"
+            >
+              <Wand2 className="w-3 h-3" />
+              Генерировать
+            </button>
+          </div>
+        </div>
         </div>
 
         <div className="md:col-span-2">
