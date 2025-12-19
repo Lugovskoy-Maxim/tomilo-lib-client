@@ -95,6 +95,7 @@ const API_CONFIG = {
   ],
 };
 
+
 // Функция генерации slug из названия
 const generateSlug = (name: string): string => {
   if (!name) return 'unknown-title';
@@ -128,9 +129,9 @@ const generateSlug = (name: string): string => {
     ч: 'ch',
     ш: 'sh',
     щ: 'sch',
-    ъ: '',
+    ъ: 'y',
     ы: 'y',
-    ь: '',
+    ь: "'",
     э: 'e',
     ю: 'yu',
     я: 'ya',
@@ -522,6 +523,8 @@ export default function TitleEditorPage() {
       // Всегда отправляем все данные формы, включая обложку
       const hasFile = !!selectedFile;
 
+
+
       if (hasFile) {
         // При обновлении с файлом создаем FormData
         const formDataToSend = new FormData();
@@ -560,9 +563,11 @@ export default function TitleEditorPage() {
         setSelectedFile(null);
         toast.success("Тайтл успешно обновлен!");
       } else {
+
         // При обновлении без файла отправляем объект
         const updateData: Partial<UpdateTitleDto> = {
           name: formData.name,
+          slug: formData.slug, // Добавляем slug в отправляемые данные
           altNames: formData.altNames,
           description: formData.description,
           genres: formData.genres,
