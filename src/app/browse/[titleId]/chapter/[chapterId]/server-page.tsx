@@ -170,10 +170,12 @@ export default async function ServerChapterPage({
       })
     );
 
+
     const mappedTitle: ReadTitle = {
       _id: serverTitle._id,
       title: serverTitle.name,
       originalTitle: serverTitle.altNames?.[0] || "",
+      slug: serverTitle.slug || "",
       type: serverTitle.type || "Манга",
       year: Number(serverTitle.releaseYear) || new Date().getFullYear(),
       rating: Number(serverTitle.rating) || 0,

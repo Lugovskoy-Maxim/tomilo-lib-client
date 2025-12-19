@@ -69,9 +69,11 @@ export const useHomeData = (): {
     loading: boolean;
     error: unknown;
   };
+
   topManhua: {
     data: {
       id: string;
+      slug?: string;
       title: string;
       image: string;
       description: string;
@@ -88,6 +90,7 @@ export const useHomeData = (): {
   topManhwa: {
     data: {
       id: string;
+      slug?: string;
       title: string;
       image: string;
       description: string;
@@ -104,6 +107,7 @@ export const useHomeData = (): {
   top2025: {
     data: {
       id: string;
+      slug?: string;
       title: string;
       image: string;
       description: string;
@@ -241,10 +245,12 @@ export const useHomeData = (): {
       isAdult: item.isAdult ?? false,
     })) || [];
 
+
   // Преобразование топ тайтлов Маньхуа
   const topManhua =
     topManhuaData?.data?.data?.map((item) => ({
       id: item._id,
+      slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
       title: item.name,
       image: item.coverImage || "",
       description: item.description,
@@ -301,10 +307,12 @@ export const useHomeData = (): {
       ratingCount: item.ratingCount || 0,
     })) || [];
 
+
   // Преобразование топ тайтлов Манхва
   const topManhwa =
     topManhwaData?.data?.data?.map((item) => ({
       id: item._id,
+      slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
       title: item.name,
       image: item.coverImage || "",
       description: item.description,
@@ -316,10 +324,12 @@ export const useHomeData = (): {
       isAdult: item.isAdult ?? false,
     })) || [];
 
+
   // Преобразование топ тайтлов 2025 года
   const top2025 =
     top2025Data?.data?.data?.map((item) => ({
       id: item._id,
+      slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
       title: item.name,
       image: item.coverImage || "",
       description: item.description,

@@ -10,10 +10,17 @@ import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getChapterPath } from "@/lib/title-paths";
 
+interface TitleData {
+  _id: string;
+  name: string;
+  coverImage?: string;
+  slug?: string;
+}
+
 interface ReadingHistorySectionProps {
   readingHistory:
     | {
-        titleId: string | { _id: string; name: string; coverImage?: string };
+        titleId: string | TitleData;
         chapters: {
           chapterId: string;
           chapterNumber: number;
@@ -52,7 +59,7 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
           // Добавляем ключ для уникальной идентификации
           uniqueKey: `${titleId}-${chapter.chapterId}-${chapter.readAt || historyItem.readAt}`,
           // Если titleId - объект, сохраняем его данные, иначе undefined
-          titleData: isTitleObject ? historyItem.titleId as { _id: string; name: string; coverImage?: string } : undefined
+          titleData: isTitleObject ? historyItem.titleId as TitleData : undefined
         };
       });
     });
@@ -156,7 +163,7 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
                 if (item.titleId && item.chapterId) {
 
                   router.push(
-                    getChapterPath({ id: item.titleId, slug: undefined }, item.chapterId)
+                    getChapterPath({ id: item.titleId, slug: item.titleData?.slug }, item.chapterId)
                   );
                 }
               }}
