@@ -1,3 +1,5 @@
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Title, CreateTitleDto, UpdateTitleDto, ApiResponseDto } from "@/types/title";
 
@@ -191,6 +193,7 @@ export const titlesApi = createApi({
 
     // Получить популярные тайтлы
     getPopularTitles: builder.query<ApiResponseDto<{
+      [x: string]: any;
       type: string;
       releaseYear: number; id: string; title: string; cover?: string; description?: string; rating?: number; isAdult?: boolean
 }[]>, void>({
@@ -268,6 +271,7 @@ export const titlesApi = createApi({
 
     // Получить случайные тайтлы
     getRandomTitles: builder.query<ApiResponseDto<{
+      [x: string]: any;
       id: string;
       title: string;
       cover: string;

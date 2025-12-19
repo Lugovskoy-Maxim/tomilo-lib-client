@@ -1,4 +1,8 @@
 
+
+
+
+
 import { Title, Chapter, RatingStat } from "@/types/title";
 import { User } from "@/types/auth";
 import { CommentEntityType } from "@/types/comment";
@@ -25,7 +29,7 @@ import {
   AgeVerificationModal,
   checkAgeVerification,
 } from "@/shared/modal/age-verification-modal";
-
+import { getChapterPath, getTitlePath } from "@/lib/title-paths";
 
 interface RightContentProps {
   titleData: Title;
@@ -82,21 +86,21 @@ export function RightContent({
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
 
+
+
+
   // Функция для получения корректного пути к главе
-  const getChapterPath = useCallback((chapterId: string) => {
-    if (basePath && slug) {
-      return `${basePath}/${slug}/chapter/${chapterId}`;
-    }
-    return `/browse/${titleId}/chapter/${chapterId}`;
-  }, [basePath, slug, titleId]);
+  const getChapterPathCallback = useCallback((chapterId: string) => {
+    const titleData = { _id: titleId, slug };
+    return getChapterPath(titleData, chapterId);
+  }, [titleId, slug]);
+
 
   // Функция для получения корректного пути к тайтлу
-  const getTitlePath = useCallback(() => {
-    if (basePath && slug) {
-      return `${basePath}/${slug}`;
-    }
-    return `/browse/${titleId}`;
-  }, [basePath, slug, titleId]);
+  const getTitlePathCallback = useCallback(() => {
+    const titleData = { _id: titleId, slug };
+    return getTitlePath(titleData);
+  }, [titleId, slug]);
 
   // Проверяем статус подтверждения возраста при монтировании и при изменении пользователя
   useEffect(() => {
@@ -396,9 +400,10 @@ export function RightContent({
                         </span>
                       )}
                     </div>
+
                     <button
                       onClick={() =>
-                        router.push(getChapterPath(chapter._id))
+                        router.push(getChapterPathCallback(chapter._id))
                       }
                       className="px-4 py-2 bg-[var(--accent)] cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--accent)]/80 transition-colors"
                     >

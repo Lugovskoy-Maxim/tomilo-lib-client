@@ -1,8 +1,10 @@
 "use client";
 import PopularCard, { CardProps } from "@/shared/popular-card/popular-card";
 
+
 interface GridTitle {
   id: string;
+  slug?: string;
   title: string;
   type: string;
   year: number;
@@ -18,9 +20,11 @@ interface TitleGridProps {
   onResetFilters: () => void;
 }
 
+
 // Функция для преобразования Title в CardProps
 const titleToCardProps = (title: GridTitle): CardProps => ({
   id: title.id,
+  slug: title.slug,
   title: title.title,
   type: title.type,
   year: title.year,

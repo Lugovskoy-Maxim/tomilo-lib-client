@@ -1,7 +1,9 @@
 // Типы для уведомлений
 
+
 export interface NotificationTitle {
   _id: string;
+  slug?: string;
   name: string;
   altNames?: string[];
   description?: string;
@@ -22,6 +24,7 @@ export interface NotificationTitle {
   __v?: number;
   coverImage?: string;
 }
+
 
 export interface NotificationChapter {
   _id: string;

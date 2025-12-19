@@ -1,4 +1,5 @@
 "use client";
+
 import { Clock, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -6,10 +7,12 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface TopTitleGridCardProps {
   data: {
     id: string;
+    slug?: string;
     title: string;
     type: string;
     year: number;
@@ -43,14 +46,15 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
     setShowAgeModal(false);
   };
 
+
   const handleClick = () => {
     // Проверяем, является ли контент для взрослых и подтверждено ли возрастное ограничение
     if (data.isAdult && !isAgeVerified) {
       setShowAgeModal(true);
       return;
     }
-    // Переход к странице тайтла
-    router.push(`/browse/${data.id}`);
+    // Переход к странице тайтла с использованием правильного пути
+    router.push(getTitlePath(data));
   };
 
   const getImageUrl = () => {

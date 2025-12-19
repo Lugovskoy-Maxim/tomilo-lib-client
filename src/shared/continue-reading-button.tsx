@@ -1,11 +1,13 @@
 "use client";
 
+
 import Button from "@/shared/ui/button";
 import { BookOpen, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useGetChapterByNumberQuery } from "@/store/api/chaptersApi";
 import { useEffect, useState } from "react";
+import { getChapterPath } from "@/lib/title-paths";
 
 interface ContinueReadingButtonProps {
   className?: string;
@@ -51,11 +53,14 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
     { skip: !lastReadChapter?.titleId || !lastReadChapter?.chapterNumber }
   );
 
+
   const handleClick = () => {
     // Используем ID главы из нового API endpoint если доступен, иначе из истории
     const chapterId = chapterData?._id || lastReadChapter?.chapterId;
     if (lastReadChapter?.titleId && chapterId) {
-      router.push(`/browse/${lastReadChapter.titleId}/chapter/${chapterId}`);
+      // Создаем объект тайтла для передачи в getChapterPath
+      const title = { id: lastReadChapter.titleId, slug: undefined };
+      router.push(getChapterPath(title, chapterId));
     }
   };
 

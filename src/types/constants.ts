@@ -28,8 +28,10 @@ export interface TopTitle {
   isAdult?: boolean;
 }
 
+
 export interface TopTitleCombined {
   id: string;
+  slug?: string;
   title: string;
   type: string;
   year: number;

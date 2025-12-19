@@ -4,11 +4,13 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Check, X, Clock } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+
 import {
   useMarkAsReadMutation,
   useDeleteNotificationMutation,
 } from "@/store/api/notificationsApi";
 import { Notification } from "@/types/notifications";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface NotificationCardProps {
   notification: Notification;
@@ -22,14 +24,26 @@ export default function NotificationCard({
   const [markAsRead] = useMarkAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
 
+
+
+
+
   const handleClick = async () => {
-    const titleId =
-      typeof notification.titleId === "object"
-        ? notification.titleId._id
-        : notification.titleId;
-    if (titleId) {
-      router.push(`/browse/${titleId}`);
+    if (typeof notification.titleId === "object" && notification.titleId._id) {
+      // Если titleId это объект с _id, используем его для навигации
+      const titleData = {
+        id: notification.titleId._id,
+        slug: notification.titleId.slug
+      };
+      router.push(getTitlePath(titleData));
+    } else if (typeof notification.titleId === "string" && notification.titleId.trim()) {
+      // Если titleId это строка и не пустая, используем её как id
+      const titleId = notification.titleId.trim();
+      if (titleId) {
+        router.push(getTitlePath({ id: titleId }));
+      }
     }
+    
     if (!notification.isRead) {
       try {
         await markAsRead(notification._id).unwrap();

@@ -1,13 +1,16 @@
 "use client"
+
 import { Trophy, Eye, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface TopTitleData {
   id: string;
+  slug?: string;
   title: string;
   type: string;
   year: number;
@@ -47,14 +50,15 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
     setShowAgeModal(false);
   };
 
+
   const handleClick = () => {
     // Проверяем, является ли контент для взрослых и подтверждено ли возрастное ограничение
     if (data.isAdult && !isAgeVerified) {
       setShowAgeModal(true);
       return;
     }
-    // Переход к странице тайтла
-    router.push(`/browse/${data.id}`);
+    // Переход к странице тайтла с использованием правильного пути
+    router.push(getTitlePath(data));
   };
 
   if (variant === "top3") {

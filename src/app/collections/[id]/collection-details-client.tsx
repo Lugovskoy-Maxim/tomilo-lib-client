@@ -1,3 +1,4 @@
+
 "use client";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -11,6 +12,7 @@ import { LoadingSkeleton } from "@/shared";
 import { Title } from "@/types/title";
 import Image from "next/image";
 import { Eye } from "lucide-react";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface CollectionDetailsClientProps {
   collectionId: string;
@@ -147,9 +149,11 @@ export default function CollectionDetailsClient({
         {/* Сетка тайтлов */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {collection.titles?.map((title: Title) => (
+
+
             <div
               key={title._id}
-              onClick={() => router.push(`/browse/${title._id}`)}
+              onClick={() => router.push(getTitlePath({ id: title._id, slug: title.slug }))}
               className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors cursor-pointer"
             >
               <div className="aspect-[3/4] mb-3 overflow-hidden rounded">

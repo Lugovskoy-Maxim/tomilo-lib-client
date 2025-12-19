@@ -1,3 +1,5 @@
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   useGetPopularTitlesQuery,
   useSearchTitlesQuery,
@@ -13,9 +15,11 @@ import { TopTitleData } from "@/types/home";
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
 export const useHomeData = (): {
+
   popularTitles: {
     data: {
       id: string;
+      slug?: string;
       title: string;
       image: string | undefined;
       description: string | undefined;
@@ -28,9 +32,11 @@ export const useHomeData = (): {
     loading: boolean;
     error: unknown;
   };
+
   randomTitles: {
     data: {
       id: string;
+      slug?: string;
       title: string;
       image: string;
       description: string;
@@ -202,10 +208,13 @@ export const useHomeData = (): {
     skip: !getToken(),
   });
 
+
+
   // Преобразование популярных тайтлов
   const popularTitles =
     popularTitlesData?.data?.map((item) => ({
       id: item.id,
+      slug: (item as any).slug, // Добавляем поддержку slug
       title: item.title,
       image: item.cover,
       description: item.description,
@@ -216,10 +225,12 @@ export const useHomeData = (): {
       isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
     })) || [];
 
+
   // Преобразование случайных тайтлов
   const randomTitles =
     randomTitlesData?.data?.map((item) => ({
       id: item.id,
+      slug: item.slug, // Добавляем поддержку slug
       title: item.title,
       image: item.cover,
       description: item.description,

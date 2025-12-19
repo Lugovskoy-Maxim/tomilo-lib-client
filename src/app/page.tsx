@@ -1,4 +1,7 @@
+
+
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import {
   BookOpen,
@@ -17,6 +20,7 @@ import { useHomeData } from "@/hooks/useHomeData";
 import { useStaticData } from "@/hooks/useStaticData";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import RandomTitlesComponent from "@/shared/random-titles/random-titles";
+import { getTitlePath } from "@/lib/title-paths";
 
 // Компоненты скелетонов
 const CarouselSkeleton = () => (
@@ -45,16 +49,26 @@ const GridSkeleton = () => (
   </div>
 );
 
+
+
+
+
 // Вспомогательный компонент для рендера карусели
 const DataCarousel = ({
   title,
   data,
   loading,
   error,
-  cardComponent,
+  cardComponent: CardComponent,
   ...carouselProps
-}: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-any) => {
+}: {
+  title: string;
+  data: unknown[];
+  loading: boolean;
+  error: unknown;
+  cardComponent: React.ComponentType<any>;
+  [key: string]: any;
+}) => {
   if (loading) return <CarouselSkeleton />;
   if (error) {
     return (
@@ -69,11 +83,14 @@ any) => {
         Нет данных для отображения {title}
       </div>
     );
+
+
   return (
     <Carousel
       title={title}
-      data={data}
-      cardComponent={cardComponent}
+      data={data as any[]}
+      cardComponent={CardComponent as any}
+      type="browse"
       {...carouselProps}
     />
   );
@@ -125,6 +142,7 @@ export default function Home() {
     <>
       <Header />
       <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16">
+
         {/* Популярные тайтлы */}
         <DataCarousel
           title="Популярные тайтлы"
@@ -136,6 +154,8 @@ export default function Home() {
           icon={<Trophy className="w-6 h-6" />}
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
           cardWidth="w-30 sm:w-30 md:w-35 lg:w-40"
+
+          getItemPath={(item: any) => getTitlePath(item)}
         />
 
         {/* Случайные тайтлы */}
@@ -161,35 +181,42 @@ export default function Home() {
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
         />
 
+
+
+
+
         {/* Объединенная секция топ манхв, маньхуа и новинок 2025 */}
         <TopCombinedSection
           data={{
             topManhwa: (topManhwa.data || []).slice(0, 5).map((item) => ({
-              id: item.id,
-              title: item.title,
-              coverImage: item.image, // <-- исправлено здесь
-              type: item.type,
-              year: item.year,
-              rating: item.rating,
-              views: item.views || "0К", // Добавляем views, если нужно
+              id: (item as any).id,
+              slug: (item as any).slug, // Добавляем slug для правильной навигации
+              title: (item as any).title,
+              coverImage: (item as any).image, // <-- исправлено здесь
+              type: (item as any).type,
+              year: (item as any).year,
+              rating: (item as any).rating,
+              views: (item as any).views || "0К", // Добавляем views, если нужно
             })),
             top2025: (top2025.data || []).slice(0, 5).map((item) => ({
-              id: item.id,
-              title: item.title,
-              coverImage: item.image, // <-- исправлено здесь
-              type: item.type,
-              year: item.year,
-              rating: item.rating,
-              views: item.views || "0К",
+              id: (item as any).id,
+              slug: (item as any).slug, // Добавляем slug для правильной навигации
+              title: (item as any).title,
+              coverImage: (item as any).image, // <-- исправлено здесь
+              type: (item as any).type,
+              year: (item as any).year,
+              rating: (item as any).rating,
+              views: (item as any).views || "0К",
             })),
             topManhua: (topManhua.data || []).slice(0, 5).map((item) => ({
-              id: item.id,
-              title: item.title,
-              coverImage: item.image, // <-- исправлено здесь
-              type: item.type,
-              year: item.year,
-              rating: item.rating,
-              views: item.views || "0К",
+              id: (item as any).id,
+              slug: (item as any).slug, // Добавляем slug для правильной навигации
+              title: (item as any).title,
+              coverImage: (item as any).image, // <-- исправлено здесь
+              type: (item as any).type,
+              year: (item as any).year,
+              rating: (item as any).rating,
+              views: (item as any).views || "0К",
             })),
           }}
         />

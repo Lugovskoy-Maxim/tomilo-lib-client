@@ -1,12 +1,19 @@
 "use client";
+
+
 import { Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import { getTitlePath } from "@/lib/title-paths";
+import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { useState, useEffect } from "react";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 export interface CardProps {
   id: string;
+  slug?: string;
   title: string;
   type: string;
   year: number;
@@ -20,10 +27,6 @@ export interface PopularCardProps {
   data: CardProps;  
   onCardClick?: (id: string) => void;
 }
-
-import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
-import { useState, useEffect } from "react";
-import { translateTitleType } from "@/lib/title-type-translations";
 
 export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const router = useRouter();
@@ -42,12 +45,13 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     return fixed.replace(/\.0$/, "");
   };
 
+
   // Функция для выполнения действия с карточкой
   const performCardAction = () => {
     if (onCardClick) {
       onCardClick(data.id);
     } else {
-      router.push(`/browse/${data.id}/`);
+      router.push(getTitlePath(data));
     }
   };
 

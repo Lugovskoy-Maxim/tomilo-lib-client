@@ -1,8 +1,10 @@
+
 "use client";
 
 import { SearchResult } from "@/types/search";
 import Link from "next/link";
 import Image from "next/image";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface SearchResultsProps {
   results: SearchResult[];
@@ -76,9 +78,10 @@ export default function SearchResults({
     <Container>
       <div className="max-h-80 overflow-y-auto flex flex-col gap-1 " data-testid="search-results">
         {results.map((result) => (
+
           <Link
             key={result.id}
-            href={`/browse/${result.id}`}
+            href={getTitlePath(result)}
             className="flex px-2 py-2 mr-1 hover:bg-[var(--accent)] rounded-lg hover:text-accent-foreground transition-colors border-b border-[var(--border)] last:border-b-0"
             onClick={() => {
               // Опционально: логика закрытия попапа после выбора

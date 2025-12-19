@@ -1,9 +1,11 @@
+
 "use client";
 import { ArrowRight, Eye, Star, StarHalf } from "lucide-react";
 import Link from "next/link";
 import { TopTitleCombined } from "@/types/constants";
 import Image from "next/image";
 import { translateTitleType } from "@/lib/title-type-translations";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface CombinedTopData {
   topManhwa: TopTitleCombined[];
@@ -32,8 +34,9 @@ const CardItem = ({
     return process.env.NEXT_PUBLIC_URL + url;
   };
 
+
   return (
-    <Link href={`/browse/${item.id}`} className="block group">
+    <Link href={getTitlePath(item)} className="block group">
       <div className="flex items-center gap-3 hover:bg-[var(--muted)]/20 p-2 rounded-lg transition-colors">
         {/* Обложка */}
         <div className="w-16 h-24 rounded flex-shrink-0 overflow-hidden bg-gray-700 relative">

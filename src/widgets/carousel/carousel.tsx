@@ -1,8 +1,11 @@
+
 "use client";
 import { useRef, useState, ReactNode } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getTitlePath } from "@/lib/title-paths";
+
 
 interface CarouselProps<T> {
   title: string;
@@ -21,6 +24,7 @@ interface CarouselProps<T> {
     text: string;
     href: string;
   };
+  getItemPath?: (item: T) => string;
 }
 
 /**
@@ -41,6 +45,7 @@ interface CarouselProps<T> {
  * @param navigationIcon - Иконка для кнопки "Подробнее" (если не указана, используется ExternalLink).
  * @param descriptionLink - Объект с текстом и URL для вставки ссылки в описание.
  */
+
 export default function Carousel<T>({
   title,
   description = "",
@@ -55,6 +60,7 @@ export default function Carousel<T>({
   showNavigation = true,
   navigationIcon,
   descriptionLink,
+  getItemPath,
 }: CarouselProps<T>) {
   /**
    * Ссылка на контейнер карусели для управления прокруткой.
@@ -163,6 +169,7 @@ export default function Carousel<T>({
       const cardElement = document.elementFromPoint(e.clientX, e.clientY);
       const card = cardElement?.closest("[data-card-id]");
 
+
       if (card) {
         const cardId = card.getAttribute("data-card-id");
         if (cardId) {
@@ -172,7 +179,14 @@ export default function Carousel<T>({
             // Если есть обработчик, не выполняем переход по умолчанию
             return;
           }
-          router.push(`/${type}/${cardId}`);
+          
+          // Находим соответствующий элемент данных
+          const item = data.find((dataItem) => getCardId(dataItem) === cardId);
+          if (item) {
+            // Используем кастомный путь если предоставлен, иначе fallback на стандартный
+            const path = getItemPath ? getItemPath(item) : `/${type}/${cardId}`;
+            router.push(path);
+          }
         }
       }
     }

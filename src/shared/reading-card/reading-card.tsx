@@ -1,12 +1,15 @@
 "use client";
+
 import { BookOpen, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { translateTitleType } from "@/lib/title-type-translations";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface ReadingItem {
   id: string;
+  slug?: string;
   title: string;
   type: string;
   currentChapter: number;
@@ -33,7 +36,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
   };
 
   const handleClick = () => {
-    router.push(`/browse/${data.id}`);
+    router.push(getTitlePath(data));
   };
 
   // Формируем корректный URL для изображения
@@ -64,11 +67,12 @@ export default function ReadingCard({ data }: ReadingCardProps) {
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0">
           <div className="relative w-full h-full">
             <Image
-              loader={({ src, width }) => `${src}?w=${width}`}
+              loader={({ src, width }: { src: string; width: number }) => `${src}?w=${width}`}
               src={imageUrl}
               alt={data.title}
               fill
               className="object-cover"
+
               sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, 128px"
               unoptimized
               onError={(e) => {
@@ -81,7 +85,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
           {/* тип на картинке */}
           <div className="absolute bottom-2 left-2 bg-[var(--muted)] text-[var(--primary)] px-1 py-0 rounded-sm flex items-center gap-1 text-xs sm:text-sm font-normal">
-            {translateTitleType(data.type|| "")}
+            {translateTitleType(data.type || "")}
           </div>
         </div>
 

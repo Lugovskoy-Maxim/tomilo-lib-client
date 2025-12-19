@@ -1,14 +1,17 @@
 "use client";
+
 import { Clock, Plus } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { timeAgo } from "@/lib/date-utils";
 import { translateTitleType } from "@/lib/title-type-translations";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface LatestUpdateCardProps {
   data: {
     id: string;
+    slug?: string;
     title: string;
     chapter: string;
     releaseYear?: number;
@@ -23,8 +26,9 @@ interface LatestUpdateCardProps {
 export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   const router = useRouter();
 
+
   const handleClick = () => {
-    router.push(`/browse/${data.id}`);
+    router.push(getTitlePath(data));
   };
 
   const getImageUrl = () => {

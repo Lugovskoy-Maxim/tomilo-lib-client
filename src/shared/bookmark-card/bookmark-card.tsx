@@ -1,5 +1,6 @@
 "use client";
 
+
 import { Title } from "@/types/title";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -8,6 +9,7 @@ import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { useToast } from "@/hooks/useToast";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface BookmarkCardProps {
   title: Title;
@@ -22,8 +24,9 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
   const [imageError, setImageError] = useState(false);
   const toast = useToast();
 
+
   const handleClick = () => {
-    router.push(`/browse/${title._id}`);
+    router.push(getTitlePath(title));
   };
 
   const handleRemove = async (e: React.MouseEvent) => {
