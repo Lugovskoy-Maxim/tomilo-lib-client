@@ -10,14 +10,17 @@ import { ReaderChapter } from "@/types/chapter";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import ReaderControls from "@/shared/reader/reader-controls";
 
+
 export default function ReadChapterPage({
   title,
   chapter,
   chapters,
+  slug,
 }: {
   title: ReaderTitle;
   chapter: ReaderChapter;
   chapters: ReaderChapter[];
+  slug?: string;
 }) {
   const router = useRouter();
   const { updateChapterViews, addToReadingHistory, isAuthenticated } =
@@ -147,6 +150,17 @@ export default function ReadChapterPage({
     []
   );
 
+
+  // Функция для получения корректного пути
+  const getChapterPath = useCallback((chapterId: string) => {
+    return slug ? `/titles/${slug}/chapter/${chapterId}` : `/browse/${titleId}/chapter/${chapterId}`;
+  }, [slug, titleId]);
+
+  const getTitlePath = useCallback(() => {
+    return slug ? `/titles/${slug}` : `/browse/${titleId}`;
+  }, [slug, titleId]);
+
+
   // Навигация по клавиатуре
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -154,13 +168,13 @@ export default function ReadChapterPage({
         case "ArrowLeft":
           if (currentChapterIndex > 0) {
             const prevChapter = chapters[currentChapterIndex - 1];
-            router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
+            router.push(getChapterPath(prevChapter._id));
           }
           break;
         case "ArrowRight":
           if (currentChapterIndex < chapters.length - 1) {
             const nextChapter = chapters[currentChapterIndex + 1];
-            router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
+            router.push(getChapterPath(nextChapter._id));
           }
           break;
         case "Escape":
@@ -302,19 +316,21 @@ export default function ReadChapterPage({
         currentPage={currentPage}
         chapterImageLength={chapter.images.length}
         chapters={chapters}
+
         onChapterSelect={(chapterId) =>
-          router.push(`/browse/${titleId}/chapter/${chapterId}`)
+          router.push(getChapterPath(chapterId))
         }
+
         onPrev={() => {
           if (currentChapterIndex > 0) {
             const prevChapter = chapters[currentChapterIndex - 1];
-            router.push(`/browse/${titleId}/chapter/${prevChapter._id}`);
+            router.push(getChapterPath(prevChapter._id));
           }
         }}
         onNext={() => {
           if (currentChapterIndex < chapters.length - 1) {
             const nextChapter = chapters[currentChapterIndex + 1];
-            router.push(`/browse/${titleId}/chapter/${nextChapter._id}`);
+            router.push(getChapterPath(nextChapter._id));
           }
         }}
         canGoPrev={currentChapterIndex > 0}
@@ -337,7 +353,8 @@ export default function ReadChapterPage({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
             <div className="flex items-center space-x-4 w-full sm:w-auto">
               <button
-                onClick={() => router.push(`/browse/${titleId}`)}
+
+                onClick={() => router.push(getTitlePath())}
                 className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors flex-shrink-0 cursor-pointer"
               >
                 <ArrowBigLeft className="h-4 w-4" />
@@ -471,6 +488,7 @@ export default function ReadChapterPage({
               );
             })}
 
+
             {/* Футер главы с кнопками навигации */}
             <div className="py-6 border-t border-[var(--border)] mt-8">
               <div className="flex justify-center items-center space-x-4">
@@ -478,9 +496,7 @@ export default function ReadChapterPage({
                   onClick={() => {
                     if (currentChapterIndex > 0) {
                       const prevChapter = chapters[currentChapterIndex - 1];
-                      router.push(
-                        `/browse/${titleId}/chapter/${prevChapter._id}`
-                      );
+                      router.push(getChapterPath(prevChapter._id));
                     }
                   }}
                   disabled={currentChapterIndex === 0}
@@ -494,9 +510,7 @@ export default function ReadChapterPage({
                   onClick={() => {
                     if (currentChapterIndex < chapters.length - 1) {
                       const nextChapter = chapters[currentChapterIndex + 1];
-                      router.push(
-                        `/browse/${titleId}/chapter/${nextChapter._id}`
-                      );
+                      router.push(getChapterPath(nextChapter._id));
                     }
                   }}
                   disabled={currentChapterIndex === chapters.length - 1}
@@ -515,8 +529,9 @@ export default function ReadChapterPage({
               <p className="text-lg font-semibold mb-2">
                 Вы дочитали до конца!
               </p>
+
               <button
-                onClick={() => router.push(`/browse/${titleId}`)}
+                onClick={() => router.push(getTitlePath())}
                 className="px-6 py-2 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-lg transition-colors"
               >
                 Вернуться к тайтлу

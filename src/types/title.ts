@@ -247,6 +247,7 @@ export interface ChapterListState {
   selectedChapter: Chapter | null;
 }
 
+
 export interface ReaderTitle {
   _id: string;
   title: string;
@@ -266,3 +267,6 @@ export interface ReaderTitle {
   chapters: ReaderChapter[];
   alternativeTitles: string[];
 }
+
+// Экспорт ReaderChapter для использования в других модулях
+export type { ReaderChapter } from "./chapter";

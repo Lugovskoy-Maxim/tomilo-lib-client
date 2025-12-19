@@ -98,6 +98,7 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<{ genres: string[]; status: string[] }>) => response,
     }),
 
+
     // Получить тайтл по ID
     getTitleById: builder.query<Title, { id: string; includeChapters?: boolean }>({
       query: ({ id, includeChapters = false }) => ({
@@ -111,6 +112,29 @@ export const titlesApi = createApi({
           const wrappedResponse = apiResponse as ApiResponseDto<Title>;
           if (wrappedResponse.success === false) {
             throw new Error(wrappedResponse.message || 'Failed to fetch title');
+          }
+          if (!wrappedResponse.data) {
+            throw new Error('No data in API response');
+          }
+          return wrappedResponse.data;
+        }
+        return apiResponse as Title;
+      },
+    }),
+
+    // Получить тайтл по slug
+    getTitleBySlug: builder.query<Title, { slug: string; includeChapters?: boolean }>({
+      query: ({ slug, includeChapters = false }) => ({
+        url: `/titles/slug/${slug}`,
+        params: { populateChapters: includeChapters.toString() }
+      }),
+      providesTags: (result, error, { slug }) => [{ type: TITLES_TAG, id: `slug-${slug}` }],
+      transformResponse: (response: unknown): Title => {
+        const apiResponse = response as ApiResponseDto<Title> | Title;
+        if (typeof apiResponse === 'object' && apiResponse !== null && 'success' in apiResponse) {
+          const wrappedResponse = apiResponse as ApiResponseDto<Title>;
+          if (wrappedResponse.success === false) {
+            throw new Error(wrappedResponse.message || 'Failed to fetch title by slug');
           }
           if (!wrappedResponse.data) {
             throw new Error('No data in API response');
@@ -293,8 +317,10 @@ export const titlesApi = createApi({
 export const {
   useGetTitlesQuery,
   useSearchTitlesQuery,
+
   useGetFilterOptionsQuery,
   useGetTitleByIdQuery,
+  useGetTitleBySlugQuery,
   useCreateTitleMutation,
   useUpdateTitleMutation,
   useUpdateRatingMutation,

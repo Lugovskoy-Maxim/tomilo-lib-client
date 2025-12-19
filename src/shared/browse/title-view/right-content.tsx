@@ -26,6 +26,7 @@ import {
   checkAgeVerification,
 } from "@/shared/modal/age-verification-modal";
 
+
 interface RightContentProps {
   titleData: Title;
   activeTab: "description" | "chapters" | "comments" | "statistics";
@@ -45,7 +46,10 @@ interface RightContentProps {
   titleId: string;
   user: User | null;
   onAgeVerificationRequired?: () => void;
+  basePath?: string;
+  slug?: string;
 }
+
 
 export function RightContent({
   titleData,
@@ -64,6 +68,8 @@ export function RightContent({
   titleId,
   user,
   onAgeVerificationRequired,
+  basePath,
+  slug,
 }: RightContentProps): React.ReactElement {
   const router = useRouter();
   const [updateRating] = useUpdateRatingMutation();
@@ -72,8 +78,25 @@ export function RightContent({
   const [loadedChaptersCount, setLoadedChaptersCount] = useState(20);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
+
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
+
+  // Функция для получения корректного пути к главе
+  const getChapterPath = useCallback((chapterId: string) => {
+    if (basePath && slug) {
+      return `${basePath}/${slug}/chapter/${chapterId}`;
+    }
+    return `/browse/${titleId}/chapter/${chapterId}`;
+  }, [basePath, slug, titleId]);
+
+  // Функция для получения корректного пути к тайтлу
+  const getTitlePath = useCallback(() => {
+    if (basePath && slug) {
+      return `${basePath}/${slug}`;
+    }
+    return `/browse/${titleId}`;
+  }, [basePath, slug, titleId]);
 
   // Проверяем статус подтверждения возраста при монтировании и при изменении пользователя
   useEffect(() => {
@@ -364,7 +387,8 @@ export function RightContent({
                     </p>
                   </div>
                   <div className="flex gap-2 items-center">
-                    <div className="flex gap-2  no-warp">
+
+                    <div className="flex gap-2">
                       {"Просмотров: "}
                       {chapter.views && (
                         <span className="flex items-center gap-1">
@@ -374,7 +398,7 @@ export function RightContent({
                     </div>
                     <button
                       onClick={() =>
-                        router.push(`/browse/${titleId}/chapter/${chapter._id}`)
+                        router.push(getChapterPath(chapter._id))
                       }
                       className="px-4 py-2 bg-[var(--accent)] cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--accent)]/80 transition-colors"
                     >

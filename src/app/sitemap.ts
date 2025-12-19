@@ -51,15 +51,26 @@ export default async function sitemap() {
     // Получаем все тайтлы
     const titles = await getAllTitles()
     
-    // Страницы тайтлов
+
+    // Страницы тайтлов с новыми путями /titles/slug
     const titleRoutes = titles
+      .filter(title => title._id && title.slug) // Убедимся, что у тайтла есть ID и slug
+      .map((title) => ({
+        url: `${baseUrl}/titles/${title.slug}`,
+        lastModified: title.updatedAt ? new Date(title.updatedAt) : new Date(),
+      }))
+    
+    // Добавляем также старые URL для совместимости (временное решение)
+    const legacyTitleRoutes = titles
       .filter(title => title._id) // Убедимся, что у тайтла есть ID
       .map((title) => ({
         url: `${baseUrl}/browse/${title._id}`,
         lastModified: title.updatedAt ? new Date(title.updatedAt) : new Date(),
       }))
     
-    return [...routes, ...titleRoutes]
+
+    
+    return [...routes, ...titleRoutes, ...legacyTitleRoutes]
   } catch (error) {
     console.error('Ошибка при генерации sitemap:', error)
     // Возвращаем только базовые маршруты в случае ошибки
