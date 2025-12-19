@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   useGetPopularTitlesQuery,
@@ -11,6 +10,7 @@ import {
 import { useGetReadingHistoryQuery } from "@/store/api/authApi";
 import { Chapter } from "@/types/title";
 import { TopTitleData } from "@/types/home";
+import { normalizeGenres } from "@/lib/genre-normalizer";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
@@ -258,7 +258,7 @@ export const useHomeData = (): {
       views: item.views || 0,
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.averageRating || item.rating || 0,
-      genres: item.genres || [],
+      genres: normalizeGenres(item.genres || []),
       isAdult: item.isAdult ?? false,
     })) || [];
 
@@ -320,7 +320,7 @@ export const useHomeData = (): {
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.averageRating || item.rating || 0,
-      genres: item.genres || [],
+      genres: normalizeGenres(item.genres || []),
       isAdult: item.isAdult ?? false,
     })) || [];
 
@@ -337,7 +337,7 @@ export const useHomeData = (): {
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.averageRating || item.rating || 0,
-      genres: item.genres || [],
+      genres: normalizeGenres(item.genres || []),
       isAdult: item.isAdult ?? false,
     })) || [];
 

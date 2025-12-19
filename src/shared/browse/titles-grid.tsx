@@ -13,9 +13,10 @@ interface GridTitle {
   genres: string[];
 }
 
+
 interface TitleGridProps {
   titles: GridTitle[];
-  onCardClick: (id: string) => void;
+  onCardClick: (title: GridTitle) => void;
   isEmpty: boolean;
   onResetFilters: () => void;
 }
@@ -33,6 +34,7 @@ const titleToCardProps = (title: GridTitle): CardProps => ({
   genres: title.genres,
   isAdult: false
 });
+
 
 export default function TitleGrid({ titles, onCardClick, isEmpty, onResetFilters }: TitleGridProps) {
   if (isEmpty) {
@@ -57,7 +59,7 @@ export default function TitleGrid({ titles, onCardClick, isEmpty, onResetFilters
         <PopularCard
           key={`${title.id}-${index}`}
           data={titleToCardProps(title)}
-          onCardClick={onCardClick}
+          onCardClick={() => onCardClick(title)}
         />
       ))}
     </div>

@@ -1,4 +1,6 @@
+
 "use client";
+
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -9,9 +11,14 @@ import {
 } from "@/shared";
 import { Filters } from "@/types/browse-page";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
+import { Title } from "@/types/title";
+import { getTitlePath } from "@/lib/title-paths";
+import { normalizeGenres, filterGenresByType } from "@/lib/genre-normalizer";
+
 
 interface GridTitle {
   id: string;
+  slug?: string; 
   title: string;
   type: string;
   year: number;
@@ -74,8 +81,23 @@ function BrowseContent() {
   }, []);
 
 
+
   // Опции фильтров
   const { data: filterOptions } = useGetFilterOptionsQuery();
+  
+  // Нормализуем жанры из фильтров
+  const normalizedFilterOptions = useMemo(() => {
+    if (!filterOptions?.data) return undefined;
+    
+    return {
+      ...filterOptions,
+      data: {
+        ...filterOptions.data,
+        genres: normalizeGenres(filterOptions.data.genres || []),
+        status: filterOptions.data.status || []
+      }
+    };
+  }, [filterOptions]);
 
   // Запрос тайтлов с параметрами
   const { data: titlesData } = useSearchTitlesQuery({
@@ -92,16 +114,20 @@ function BrowseContent() {
   const totalTitles = titlesData?.data?.total ?? 0;
   const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
   const paginatedTitles = useMemo(() => titlesData?.data?.data ?? [], [titlesData]);
+
+
+
   const adaptedTitles = useMemo(
     () =>
-      paginatedTitles.map((t) => ({
+      paginatedTitles.map((t: Title) => ({
         id: (t._id || "").toString(),
+        slug: t.slug, // Добавляем поддержку slug для правильной навигации
         title: t.name || "",
         type: t.type || "Манга",
         year: t.releaseYear || new Date().getFullYear(),
         rating: t.rating || 0,
         image: t.coverImage || undefined,
-        genres: t.genres || [],
+        genres: normalizeGenres(t.genres || []),
         isAdult: t.isAdult || false,
       })),
     [paginatedTitles]
@@ -177,9 +203,12 @@ function BrowseContent() {
 
 
 
+
+
   // Обработчик клика по карточке
-  const handleCardClick = (id: string) => {
-    router.push(`/browse/${id}`);
+  const handleCardClick = (title: GridTitle) => {
+    const path = getTitlePath(title);
+    router.push(path);
   };
 
   return (
@@ -236,26 +265,28 @@ function BrowseContent() {
 
       {/* Боковая панель с фильтрами (десктоп) */}
       <div className="hidden lg:block lg:w-1/4">
+
         <FilterSidebar
           filters={appliedFilters}
           onFiltersChange={handleFiltersChange}
           filterOptions={{
-            genres: filterOptions?.data?.genres || [],
+            genres: normalizedFilterOptions?.data?.genres || [],
             types: [],
-            status: filterOptions?.data?.status || [],
+            status: normalizedFilterOptions?.data?.status || [],
           }}
           onReset={resetFilters}
         />
       </div>
+
 
       {/* Мобильный фильтр (шторка) */}
       <FilterSidebar
         filters={appliedFilters}
         onFiltersChange={handleFiltersChange}
         filterOptions={{
-          genres: filterOptions?.data?.genres || [],
+          genres: normalizedFilterOptions?.data?.genres || [],
           types: [],
-          status: filterOptions?.data?.status || [],
+          status: normalizedFilterOptions?.data?.status || [],
         }}
         onReset={resetFilters}
         isMobile={true}

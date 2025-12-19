@@ -13,8 +13,10 @@ import {
 } from "@/store/api/titlesApi";
 import { TitleStatus, TitleType } from "@/types/title";
 import { useRouter } from "next/navigation";
+
 import { CreateTitleDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
+import { normalizeGenres } from "@/lib/genre-normalizer";
 
 
 interface TitleFormData {
@@ -37,6 +39,7 @@ interface TitleFormData {
   isPublished: boolean;
 }
 
+
 const availableGenres = [
   "Фэнтези",
   "Романтика",
@@ -58,6 +61,16 @@ const availableGenres = [
   "Сёнэн",
   "Сёдзе",
   "Сейнен",
+  // Новые жанры из задания
+  "Жестокий мир",
+  "Драконы",
+  "Главная героиня",
+  "Дружба",
+  "Игровые элементы",
+  "Мурим",
+  "Всесильный главный герой",
+  "Разумные расы",
+  "Видеоигры",
 ];
 
 export default function TitleEditorPage() {
@@ -176,6 +189,7 @@ export default function TitleEditorPage() {
     }));
   };
 
+
   // Функция для подготовки данных к отправке
   const prepareSubmitData = (): Partial<CreateTitleDto> => {
     const data: Partial<CreateTitleDto> = {
@@ -184,9 +198,9 @@ export default function TitleEditorPage() {
       altNames: formData.altNames.filter(name => name.trim() !== ''),
       author: formData.author.trim(),
       description: formData.description.trim(),
-      genres: formData.genres,
+      genres: normalizeGenres(formData.genres),
       ageLimit: formData.ageLimits,
-      tags: formData.tags.filter(tag => tag.trim() !== ''),
+      tags: normalizeGenres(formData.tags.filter(tag => tag.trim() !== '')),
       releaseYear: formData.releaseYear,
       status: formData.status,
       type: formData.type,

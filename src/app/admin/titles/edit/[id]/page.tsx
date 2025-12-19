@@ -36,13 +36,16 @@ import {
 } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { UpdateTitleDto } from "@/types/title";
+
 import { useToast } from "@/hooks/useToast";
 // import Image from "next/image";
 import { CoverUploadSection } from "@/shared/admin/cover-upload-section";
+import { normalizeGenres } from "@/lib/genre-normalizer";
 
 // Конфигурация API
 const API_CONFIG = {
   baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+
   genres: [
     "Фэнтези",
     "Романтика",
@@ -64,6 +67,16 @@ const API_CONFIG = {
     "Сёнэн",
     "Сёдзе",
     "Сейнен",
+    // Новые жанры из задания
+    "Жестокий мир",
+    "Драконы",
+    "Главная героиня",
+    "Дружба",
+    "Игровые элементы",
+    "Мурим",
+    "Всесильный главный герой",
+    "Разумные расы",
+    "Видеоигры",
   ],
   tags: [
     "Магия",
@@ -251,23 +264,10 @@ const TRANSLATION_MAP: Record<string, string> = {
   // "": "",
 };
 
-// Функция нормализации жанров/тегов
+
+// Функция нормализации жанров/тегов с использованием нового нормализатора
 const normalizeGenresTags = (items: string[]): string[] => {
-  return items.map((item) => {
-    const trimmed = item.trim();
-    if (!trimmed) return trimmed;
-
-    // Приводим к нижнему регистру для поиска в словаре
-    const lowerCase = trimmed.toLowerCase();
-
-    // Ищем перевод в словаре
-    const translated = TRANSLATION_MAP[lowerCase] || trimmed;
-
-    // Делаем первую букву заглавной, остальные строчные
-    return (
-      translated.charAt(0).toUpperCase() + translated.slice(1).toLowerCase()
-    );
-  });
+  return normalizeGenres(items);
 };
 
 // Типы для пропсов компонентов
