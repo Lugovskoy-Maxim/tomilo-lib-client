@@ -4,9 +4,8 @@
 import { AuthGuard } from "@/guard/auth-guard";
 
 import { Footer, Header } from "@/widgets";
-
 import {
-  Upload,
+  // Upload,
   BookOpen,
   User,
   Tag,
@@ -38,9 +37,9 @@ import {
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { UpdateTitleDto } from "@/types/title";
 
-
 import { useToast } from "@/hooks/useToast";
-import Image from "next/image";
+// import Image from "next/image";
+import { CoverUploadSection } from "@/shared/admin/cover-upload-section";
 import { normalizeGenres } from "@/lib/genre-normalizer";
 
 // Конфигурация API
@@ -177,7 +176,6 @@ const normalizeGenresTags = (items: string[]): string[] => {
 };
 
 // Типы для пропсов компонентов
-
 interface BasicInfoSectionProps {
   formData: Title;
   titleId: string;
@@ -193,6 +191,7 @@ interface BasicInfoSectionProps {
     field: "genres" | "tags"
   ) => (values: string[]) => void;
   handleAltNamesChange: (e: ChangeEvent<HTMLInputElement>) => void;
+
   handleImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
   selectedFile: File | null;
   onCoverUpdate: (newCover: string) => void;
@@ -256,20 +255,16 @@ interface CheckboxGroupProps {
   icon?: LucideIcon;
 }
 
-
-interface ImageUploadFieldProps {
-  label: string;
-  currentImage?: string;
-  onImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  selectedFile: File | null;
-  onCoverUpdate: (newCoverUrl: string) => void;
-}
-
+// interface ImageUploadFieldProps {
+//   label: string;
+//   image?: string;
+//   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+//   selectedFile: File | null;
+// }
 
 interface ErrorStateProps {
   error: string;
 }
-
 
 export default function TitleEditorPage() {
   const params = useParams();
@@ -645,7 +640,6 @@ function HeaderSection() {
 }
 
 
-
 function BasicInfoSection({
   formData,
   titleId,
@@ -653,8 +647,6 @@ function BasicInfoSection({
   handleArrayFieldChange,
   handleInputArrayChange,
   handleAltNamesChange,
-  handleImageChange,
-  selectedFile,
   onCoverUpdate,
   onSlugGenerate,
 }: BasicInfoSectionProps) {
@@ -666,13 +658,10 @@ function BasicInfoSection({
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
         <div className="md:col-span-2">
-          <ImageUploadField
-            label="Обложка тайтла"
-            currentImage={formData.coverImage}
-            onImageChange={handleImageChange}
-            selectedFile={selectedFile}
+          <CoverUploadSection
+            titleId={titleId}
+            currentCover={formData.coverImage}
             onCoverUpdate={onCoverUpdate}
           />
 
@@ -1102,86 +1091,6 @@ function CheckboxGroup({
           placeholder={`Введите ${label.toLowerCase()} через запятую`}
           className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
         />
-      </div>
-    </div>
-  );
-}
-
-
-function ImageUploadField({
-  label,
-  currentImage,
-  onImageChange,
-  selectedFile,
-  onCoverUpdate,
-}: ImageUploadFieldProps) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
-        {label}
-      </label>
-      <div className="border border-dashed border-[var(--border)] rounded-lg p-3 text-center">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={onImageChange}
-          className="hidden"
-          id="image-upload"
-        />
-        <label
-          htmlFor="image-upload"
-          className="cursor-pointer flex flex-col items-center gap-1"
-        >
-          <Upload className="w-6 h-6 text-[var(--muted-foreground)]" />
-          <span className="text-xs text-[var(--muted-foreground)]">
-            {selectedFile
-              ? `Выбран файл: ${selectedFile.name}`
-              : "Загрузить обложку"}
-          </span>
-          <span className="text-xs text-[var(--muted-foreground)]">
-            {currentImage && !selectedFile
-              ? "Текущая обложка (загрузите новую для замены)"
-              : "Нажмите для выбора файла"}
-          </span>
-        </label>
-        {(currentImage || selectedFile) && (
-          <div className="mt-2">
-            {(() => {
-              const apiBase =
-                process.env.NEXT_PUBLIC_URL || "http://localhost:3000/";
-              const isAbsolute =
-                typeof currentImage === "string" &&
-                (currentImage.startsWith("http://") ||
-                  currentImage.startsWith("https://") ||
-                  currentImage.startsWith("data:"));
-              const resolvedSrc = currentImage
-                ? isAbsolute
-                  ? currentImage
-                  : `${apiBase}${currentImage?.startsWith("/") ? "" : "/"}${currentImage}`
-                : "";
-              // Не отображаем изображение, если resolvedSrc пустой
-              if (!resolvedSrc) {
-                return null;
-              }
-              return (
-                <Image
-                  loader={() => resolvedSrc}
-                  src={resolvedSrc}
-                  alt="Current cover"
-                  className="max-w-[200px] mx-auto rounded"
-                  width={200}
-                  height={300}
-                  unoptimized
-                />
-              );
-            })()}
-            {selectedFile && (
-              <p className="text-xs text-[var(--primary)] mt-1">
-                Новое изображение будет загружено при сохранении
-              </p>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
