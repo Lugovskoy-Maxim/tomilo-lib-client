@@ -1,3 +1,5 @@
+
+
 'use client';
 import { useRouter } from "next/navigation";
 import { BookOpen, ChevronLeft, ChevronRight, List, Maximize, Minimize, RotateCcw } from "lucide-react";
@@ -47,17 +49,19 @@ export default function ControlsPanel({
       <div className="flex items-center gap-4">
         {/* Навигация по главам */}
         <div className="flex items-center gap-2">
+
           <button
-            onClick={() => prevChapter && router.push(`/browse/${title._id}/chapter/${prevChapter._id || prevChapter.number}`)}
+            onClick={() => prevChapter && router.push(`/titles/${title.slug}/chapter/${prevChapter._id || prevChapter.number}`)}
             disabled={!prevChapter}
             className="p-2 rounded-lg bg-[var(--card)] border border-[var(--border)] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[var(--accent)] transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
+
           <select
             value={chapter._id || chapter.number}
-            onChange={(e) => router.push(`/browse/${title._id}/chapter/${e.target.value}`)}
+            onChange={(e) => router.push(`/titles/${title.slug}/chapter/${e.target.value}`)}
             className="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] min-w-[120px]"
           >
             {chapters.map((ch) => (
@@ -67,8 +71,9 @@ export default function ControlsPanel({
             ))}
           </select>
 
+
           <button
-            onClick={() => nextChapter && router.push(`/browse/${title._id}/chapter/${nextChapter._id || nextChapter.number}`)}
+            onClick={() => nextChapter && router.push(`/titles/${title.slug}chapter/${nextChapter._id || nextChapter.number}`)}
             disabled={!nextChapter}
             className="p-2 rounded-lg bg-[var(--card)] border border-[var(--border)] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[var(--accent)] transition-colors"
           >

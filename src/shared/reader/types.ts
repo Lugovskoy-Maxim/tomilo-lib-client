@@ -6,6 +6,7 @@ export interface ReaderTitle {
   originalTitle: string;
   image: string;
   description: string;
+  slug: string;
   type: string;
   year: number;
   rating: number;

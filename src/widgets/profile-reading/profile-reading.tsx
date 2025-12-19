@@ -1,5 +1,6 @@
 "use client";
 
+
 import React from 'react';
 import { BookOpen, Trash2, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +8,7 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import { getChapterPath } from "@/lib/title-paths";
 
 interface ReadingHistorySectionProps {
   readingHistory:
@@ -152,8 +154,9 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
               className="bg-[var(--background)] rounded-lg p-2 border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer group"
               onClick={() => {
                 if (item.titleId && item.chapterId) {
+
                   router.push(
-                    `/browse/${item.titleId}/chapter/${item.chapterId}`
+                    getChapterPath({ id: item.titleId, slug: undefined }, item.chapterId)
                   );
                 }
               }}

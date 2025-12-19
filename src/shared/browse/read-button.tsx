@@ -1,3 +1,4 @@
+
 import Button from "@/shared/ui/button";
 import { Play, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,6 +7,7 @@ import { Title, Chapter } from "@/types/title";
 import { ReadingHistoryEntry } from "@/types/store";
 import { checkAgeVerification } from "@/shared/modal/age-verification-modal";
 import { useState, useEffect } from "react";
+import { getChapterPath } from "@/lib/title-paths";
 
 interface ReadButtonProps {
   titleData: Title;
@@ -107,7 +109,8 @@ export function ReadButton({
         onAgeVerificationRequired?.();
         return;
       }
-      router.push(`/browse/${titleData._id}/chapter/${nextChapter._id}`);
+
+      router.push(getChapterPath(titleData, nextChapter._id));
     }
   };
 
