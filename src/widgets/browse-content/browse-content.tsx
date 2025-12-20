@@ -106,12 +106,16 @@ function BrowseContent() {
     };
   }, [filterOptions]);
 
+
+
   // Запрос тайтлов с параметрами
   const { data: titlesData } = useSearchTitlesQuery({
     search: debouncedSearch || undefined,
-    genre: appliedFilters.genres[0],
-    // types не поддерживаются сервером, пропускаем
-    status: appliedFilters.status[0],
+    genre: appliedFilters.genres[0] || undefined,
+    type: appliedFilters.types[0] || undefined,
+    status: appliedFilters.status[0] || undefined,
+    releaseYear: appliedFilters.releaseYears[0] || undefined,
+    // ageLimit не поддерживается в текущем API, но может быть добавлен позже
     sortBy: appliedFilters.sortBy,
     sortOrder: appliedFilters.sortOrder,
     page: loadMorePage,

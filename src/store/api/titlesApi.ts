@@ -57,14 +57,15 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<{ titles: Title[] }>) => response,
     }),
 
+
     // Поиск/список тайтлов с фильтрами и пагинацией
     searchTitles: builder.query<
       ApiResponseDto<{ data: Title[]; total: number; page: number; totalPages: number }>,
       {
         search?: string;
         genre?: string;
-        status?: string;
         type?: string;
+        status?: string;
         releaseYear?: number;
         sortBy?: string;
         sortOrder?: "asc" | "desc";
