@@ -1,14 +1,7 @@
-
-
-
-
-
 import { Title, Chapter, RatingStat } from "@/types/title";
 import { User } from "@/types/auth";
 import { CommentEntityType } from "@/types/comment";
 import { CommentsSection } from "@/shared/comments/comments-section";
-
-
 
 import {
   ArrowUpToLine,
@@ -35,13 +28,10 @@ import {
 } from "@/shared/modal/age-verification-modal";
 import { getChapterPath, getTitlePath } from "@/lib/title-paths";
 
-
 interface RightContentProps {
   titleData: Title;
   activeTab: "main" | "chapters" | "comments";
-  onTabChange: (
-    tab: "main" | "chapters" | "comments"
-  ) => void;
+  onTabChange: (tab: "main" | "chapters" | "comments") => void;
   isDescriptionExpanded: boolean;
   onDescriptionToggle: () => void;
   chapters: Chapter[];
@@ -58,7 +48,6 @@ interface RightContentProps {
   basePath?: string;
   slug?: string;
 }
-
 
 export function RightContent({
   titleData,
@@ -91,15 +80,14 @@ export function RightContent({
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
 
-
-
-
   // Функция для получения корректного пути к главе
-  const getChapterPathCallback = useCallback((chapterId: string) => {
-    const titleData = { _id: titleId, slug };
-    return getChapterPath(titleData, chapterId);
-  }, [titleId, slug]);
-
+  const getChapterPathCallback = useCallback(
+    (chapterId: string) => {
+      const titleData = { _id: titleId, slug };
+      return getChapterPath(titleData, chapterId);
+    },
+    [titleId, slug]
+  );
 
   // Функция для получения корректного пути к тайтлу
   const getTitlePathCallback = useCallback(() => {
@@ -123,7 +111,7 @@ export function RightContent({
     if (isAgeVerified) {
       return; // Если возраст уже подтвержден, ничего не делаем
     }
-    
+
     if (onAgeVerificationRequired) {
       onAgeVerificationRequired();
     } else {
@@ -166,7 +154,7 @@ export function RightContent({
         const sortedChapters = [...prev, ...newChapters].sort((a, b) => {
           const aNum = a.chapterNumber || 0;
           const bNum = b.chapterNumber || 0;
-          return sortOrder === 'desc' ? bNum - aNum : aNum - bNum;
+          return sortOrder === "desc" ? bNum - aNum : aNum - bNum;
         });
         return sortedChapters;
       });
@@ -202,7 +190,6 @@ export function RightContent({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -219,20 +206,20 @@ export function RightContent({
       .map(([rating, count]) => ({
         rating: parseInt(rating),
         count,
-        percentage: (count / ratings.length * 100).toFixed(1)
+        percentage: ((count / ratings.length) * 100).toFixed(1),
       }))
       .sort((a, b) => b.rating - a.rating);
   };
 
-  const ratingStats = titleData?.ratings ? getRatingStats(titleData.ratings) : [];
-  const totalRatings = titleData?.totalRatings || titleData?.ratings?.length || 0;
+  const ratingStats = titleData?.ratings
+    ? getRatingStats(titleData.ratings)
+    : [];
+  const totalRatings =
+    titleData?.totalRatings || titleData?.ratings?.length || 0;
 
-
-console.log(activeTab)
+  console.log(activeTab);
   const renderTabContent = (): React.ReactElement | null => {
     switch (activeTab) {
-
-
       case "main":
         return (
           <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl p-4 space-y-6">
@@ -276,9 +263,7 @@ console.log(activeTab)
                     ? titleData.author
                     : "Нет доступных данных"}
                 </div>
-                <div className="text-sm text-[var(--foreground)]/60">
-                  Автор
-                </div>
+                <div className="text-sm text-[var(--foreground)]/60">Автор</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-[var(--primary)]/80">
@@ -338,7 +323,7 @@ console.log(activeTab)
                       Всего оценок
                     </div>
                   </div>
-                  
+
                   {ratingStats.length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-md font-semibold text-[var(--foreground)] text-center mb-4">
@@ -346,7 +331,10 @@ console.log(activeTab)
                       </h4>
                       <div className="space-y-3">
                         {ratingStats.map((stat) => (
-                          <div key={stat.rating} className="flex items-center justify-between gap-3">
+                          <div
+                            key={stat.rating}
+                            className="flex items-center justify-between gap-3"
+                          >
                             <div className="flex items-center gap-2">
                               <span className="text-[var(--foreground)] font-medium">
                                 {stat.rating}
@@ -356,7 +344,7 @@ console.log(activeTab)
 
                             <div className="flex items-center gap-3 min-w-0 flex-1">
                               <div className="flex-1 bg-[var(--background)] rounded-full h-2 min-w-[80px]">
-                                <div 
+                                <div
                                   className="bg-[var(--chart-1)] h-2 rounded-full"
                                   style={{ width: `${stat.percentage}%` }}
                                 />
@@ -416,7 +404,6 @@ console.log(activeTab)
         return (
           <div className="rounded-xl">
             <div className="flex flex-col justify-between bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl items-center p-4">
-
               <div className="flex w-full flex-col sm:flex-row gap-4">
                 <input
                   type="text"
@@ -426,13 +413,17 @@ console.log(activeTab)
                   className="flex-1 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] placeholder-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 />
 
-
-
                 <button
-                  onClick={() => onSortChange(sortOrder === "desc" ? "asc" : "desc")}
+                  onClick={() =>
+                    onSortChange(sortOrder === "desc" ? "asc" : "desc")
+                  }
                   className="w-[160px] px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                 >
-                  <ArrowUpDown className={`w-4 h-4 transition-transform duration-300 ${sortOrder === "desc" ? "rotate-0" : "rotate-180"}`} />
+                  <ArrowUpDown
+                    className={`w-4 h-4 transition-transform duration-300 ${
+                      sortOrder === "desc" ? "rotate-0" : "rotate-180"
+                    }`}
+                  />
                   {sortOrder === "desc" ? "Сначала новые" : "Сначала старые"}
                 </button>
               </div>
@@ -456,7 +447,6 @@ console.log(activeTab)
                     </p>
                   </div>
                   <div className="flex gap-2 items-center">
-
                     <div className="flex gap-2">
                       {"Просмотров: "}
                       {chapter.views && (
@@ -489,7 +479,6 @@ console.log(activeTab)
           </div>
         );
 
-
       case "comments":
         return (
           <CommentsSection
@@ -506,7 +495,6 @@ console.log(activeTab)
   return (
     <>
       <div className="space-y-6">
-
         <div className="flex sm:flex-row justify-between sm:items-center gap-4 w-full">
           <div className="flex flex-col sm:flex-row  gap-2">
             <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
@@ -608,7 +596,9 @@ console.log(activeTab)
               key={index}
               className="px-2 py-1 cursor-pointer rounded-full text-sm font-normal bg-[var(--muted)]/50 p-1 text-[var(--foreground)]"
               onClick={() => {
-                router.push(`/browse?genres=${encodeURIComponent(genre || "")}`);
+                router.push(
+                  `/browse?genres=${encodeURIComponent(genre || "")}`
+                );
               }}
             >
               {genre}
@@ -645,10 +635,12 @@ console.log(activeTab)
 
         <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1">
           <div className="flex">
-
             {[
               { key: "main" as const, label: "Главная" },
-              { key: "chapters" as const, label: `Главы (${titleData?.chapters?.length || 0})` },
+              {
+                key: "chapters" as const,
+                label: `Главы (${titleData?.chapters?.length || 0})`,
+              },
               { key: "comments" as const, label: "Комментарии" },
             ].map((tab) => (
               <button

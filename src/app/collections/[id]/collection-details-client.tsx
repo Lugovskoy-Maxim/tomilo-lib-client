@@ -1,6 +1,6 @@
-
 "use client";
-import { useEffect, useRef, useState, useMemo } from "react";
+
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Header, Footer } from "@/widgets";
 import { useSEO } from "@/hooks/useSEO";
@@ -13,6 +13,7 @@ import { Title } from "@/types/title";
 import Image from "next/image";
 import { Eye } from "lucide-react";
 import { getTitlePath } from "@/lib/title-paths";
+import Script from "next/script";
 
 interface CollectionDetailsClientProps {
   collectionId: string;
@@ -63,12 +64,13 @@ export default function CollectionDetailsClient({
 
   if (isLoading) {
     return (
+
       <main className="flex flex-col h-full min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
-        <div className="max-w-7xl mx-auto px-2 py-4">
+        <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4">
           <LoadingSkeleton className="h-8 w-64 mb-4" />
           <LoadingSkeleton className="h-32 w-full mb-6" />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {Array.from({ length: 6 }).map((_, i) => (
               <LoadingSkeleton key={i} className="h-48 w-full" />
             ))}
@@ -81,9 +83,10 @@ export default function CollectionDetailsClient({
 
   if (error || !collection) {
     return (
+
       <main className="flex flex-col h-full min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
-        <div className="max-w-7xl mx-auto px-2 py-4 text-center">
+        <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4 text-center">
           <h1 className="text-2xl font-bold text-[var(--muted-foreground)] mb-4">
             Коллекция не найдена
           </h1>
@@ -106,26 +109,27 @@ export default function CollectionDetailsClient({
     <main className="flex flex-col h-full min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
 
-      <div className="max-w-7xl mx-auto px-2 py-4">
+
+      <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4">
         {/* Заголовок и информация о коллекции */}
-        <div className="mb-6 flex flex-col md:flex-row gap-6">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2">
+        <div className="mb-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--muted-foreground)] mb-2 break-words">
               {collection.name}
             </h1>
             {collection.description && (
-              <p className="text-[var(--muted-foreground)] mb-4">
+              <p className="text-[var(--muted-foreground)] mb-4 leading-relaxed">
                 {collection.description}
               </p>
             )}
-            <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
-              <span className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-[var(--muted-foreground)]">
+              <span className="flex items-center gap-1 whitespace-nowrap">
                 <Eye className="w-4 h-4" />
                 {collection.views} просмотров
               </span>
-              <span>{collection.titles?.length || 0} тайтлов</span>
+              <span className="whitespace-nowrap">{collection.titles?.length || 0} тайтлов</span>
               {collection.createdAt && (
-                <span>
+                <span className="whitespace-nowrap">
                   Создано:{" "}
                   {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
                 </span>
@@ -133,44 +137,42 @@ export default function CollectionDetailsClient({
             </div>
           </div>
           {collection.cover && (
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 w-full lg:w-auto flex justify-center lg:justify-end">
               <Image
                 loader={({ src, width }) => `${src}?w=${width}`}
                 src={normalizeImageUrl(collection.cover)}
                 alt={collection.name}
                 width={192}
                 height={192}
-                className="w-full max-w-sm h-48 object-cover rounded-lg shadow-lg"
+                className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 object-cover rounded-lg shadow-lg"
               />
             </div>
           )}
         </div>
 
         {/* Сетка тайтлов */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {collection.titles?.map((title: Title) => (
-
-
             <div
               key={title._id}
               onClick={() => router.push(getTitlePath({ id: title._id, slug: title.slug }))}
-              className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors cursor-pointer"
+              className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-2 sm:p-3 lg:p-4 hover:border-[var(--primary)] transition-colors cursor-pointer group"
             >
-              <div className="aspect-[3/4] mb-3 overflow-hidden rounded">
+              <div className="aspect-[3/4] mb-2 sm:mb-3 overflow-hidden rounded">
                 <Image
                   loader={() => normalizeImageUrl(title?.coverImage? title?.coverImage : "")}
                   src={normalizeImageUrl(title?.coverImage? title?.coverImage : "")}
                   alt={title.name}
                   width={280}
                   height={380}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <h3 className="font-semibold text-[var(--muted-foreground)] truncate">
+              <h3 className="font-semibold text-[var(--muted-foreground)] truncate text-sm sm:text-base">
                 {title.name}
               </h3>
               {title.description && (
-                <p className="text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2">
+                <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2 hidden sm:block">
                   {title.description}
                 </p>
               )}
@@ -184,10 +186,43 @@ export default function CollectionDetailsClient({
               В этой коллекции пока нет тайтлов.
             </p>
           </div>
+
         )}
       </div>
 
       <Footer />
+
+      {/* JSON-LD структурированные данные для SEO */}
+      <Script
+        id="collection-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Collection",
+            "name": collection.name,
+            "description": collection.description,
+            "url": `${process.env.NEXT_PUBLIC_URL}/collections/${collectionId}`,
+            "image": collection.cover ? `${process.env.NEXT_PUBLIC_URL}${collection.cover}` : `${process.env.NEXT_PUBLIC_URL}/logo/tomilo_color.svg`,
+            "numberOfItems": collection.titles?.length || 0,
+            "dateCreated": collection.createdAt,
+            "dateModified": collection.updatedAt,
+            "interactionStatistic": {
+              "@type": "InteractionCounter",
+              "interactionType": "https://schema.org/ViewAction",
+              "userInteractionCount": collection.views
+            },
+            "hasPart": collection.titles?.map((title: Title) => ({
+              "@type": "CreativeWork",
+              "name": title.name,
+              "url": `${process.env.NEXT_PUBLIC_URL}${getTitlePath({ id: title._id, slug: title.slug })}`,
+              "image": title.coverImage ? `${process.env.NEXT_PUBLIC_URL}${title.coverImage}` : undefined,
+              "author": title.author,
+              "genre": title.genres
+            }))
+          })
+        }}
+      />
     </main>
   );
 }
