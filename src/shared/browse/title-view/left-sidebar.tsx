@@ -31,8 +31,9 @@ export function LeftSidebar({
   const shouldBlurImage = isAdultContent && !isAgeVerified;
 
   return (
-    <div className="sticky top-4">
-      <div className="flex relative w-max h-max justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
+
+    <div className="sticky top-2">
+      <div className="flex relative w-full max-w-[280px] h-auto justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
         {titleData?.coverImage ? (
           <Image
             src={`${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`}
@@ -40,12 +41,13 @@ export function LeftSidebar({
             width={280}
             height={420}
             unoptimized={true}
-            className={`object-cover ${shouldBlurImage ? 'blur-sm' : ''}`}
+            className={`object-cover w-full h-auto rounded-xl ${shouldBlurImage ? 'blur-sm' : ''}`}
             priority
-            sizes="(max-width: 280px) 100vw, 33vw"
+            sizes="(max-width: 640px) 90vw, (max-width: 1024px) 25vw, 280px"
+            style={{ aspectRatio: '2/3' }}
           />
         ) : (
-          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-full" />
+          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-auto" style={{ aspectRatio: '2/3' }} />
         )}
       </div>
 

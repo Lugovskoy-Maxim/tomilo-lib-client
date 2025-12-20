@@ -79,8 +79,8 @@ export default function TitleViewClient({
 
   // Состояние для активной вкладки
   const [activeTab, setActiveTab] = useState<
-    "description" | "chapters" | "comments" | "statistics"
-  >("description");
+    "main" | "chapters" | "comments" 
+  >("main");
 
   // Состояние для раскрытого описания
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -133,7 +133,7 @@ export default function TitleViewClient({
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="relative min-h-screen bg-[var(--background)]">
       <Header />
       <div className="container mx-auto px-4 lg:py-8 pb-20">
         <div className="max-w-7xl mx-auto">
@@ -144,16 +144,20 @@ export default function TitleViewClient({
             isAdmin={displayIsAdmin}
             onAgeVerificationRequired={() => {}}
           />
-          <div className="flex-1 flex flex-col lg:flex-row gap-10">
-            {/* Десктопная версия - обложка слева */}
-            <div className="hidden lg:flex lg:w-1/4">
-              <LeftSidebar
-                titleData={titleData}
-                chapters={allChaptersData?.chapters || processedChaptersData}
-                onShare={handleShare}
-                isAdmin={displayIsAdmin}
-                onAgeVerificationRequired={() => {}}
-              />
+
+
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+            {/* Десктопная версия - sticky обложка слева */}
+            <div className="hidden lg:block lg:w-1/4">
+              <div className="sticky top-24">
+                <LeftSidebar
+                  titleData={titleData}
+                  chapters={allChaptersData?.chapters || processedChaptersData}
+                  onShare={handleShare}
+                  isAdmin={displayIsAdmin}
+                  onAgeVerificationRequired={() => {}}
+                />
+              </div>
             </div>
 
             <div className="w-full lg:w-3/4">

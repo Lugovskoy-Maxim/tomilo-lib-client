@@ -76,10 +76,17 @@ export default function TitleViewClient({
     return chaptersData.chapters;
   }, [chaptersData]);
 
+
+
   // Состояние для активной вкладки
   const [activeTab, setActiveTab] = useState<
-    "description" | "chapters" | "comments" | "statistics"
-  >("description");
+    "main" | "chapters" | "comments"
+  >("main");
+
+  // Ensure main tab is set immediately on component mount
+  useEffect(() => {
+    setActiveTab("main");
+  }, []);
 
   // Состояние для раскрытого описания
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -139,16 +146,20 @@ export default function TitleViewClient({
             isAdmin={displayIsAdmin}
             onAgeVerificationRequired={() => {}}
           />
-          <div className="flex-1 flex flex-col lg:flex-row gap-10">
-            {/* Десктопная версия - обложка слева */}
-            <div className="hidden  lg:flex lg:w-1/4">
-              <LeftSidebar
-                titleData={processedTitleData}
-                chapters={allChaptersData?.chapters || processedChaptersData}
-                onShare={handleShare}
-                isAdmin={displayIsAdmin}
-                onAgeVerificationRequired={() => {}}
-              />
+
+
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+            {/* Десктопная версия - sticky обложка слева */}
+            <div className="hidden lg:block lg:w-1/4">
+              <div className="sticky top-24">
+                <LeftSidebar
+                  titleData={processedTitleData}
+                  chapters={allChaptersData?.chapters || processedChaptersData}
+                  onShare={handleShare}
+                  isAdmin={displayIsAdmin}
+                  onAgeVerificationRequired={() => {}}
+                />
+              </div>
             </div>
 
             <div className="w-full lg:w-3/4">

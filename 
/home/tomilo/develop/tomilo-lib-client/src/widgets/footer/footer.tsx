@@ -15,7 +15,6 @@ import { useState, useEffect } from "react";
 import { Logo } from "@/shared";
 import Image from "next/image";
 import SnowCapImage from "../../../public/snow_cap/snow_cap_long.png";
-
 import SnowCapImageRight from "../../../public/snow_cap/snow_cap_small_right.png";
 
 export default function Footer() {
@@ -68,11 +67,11 @@ export default function Footer() {
         width={300}
         height={40}
 
-        className="absolute -top-5 left-1/4 hidden lg:block"
+        className="absolute -top-5 left-1/4 hidden sm:block"
       />
 
 
-      <div className="w-full bg-[var(--secondary)]/40 border-t border-[var(--border)] mt-auto hidden lg:block">
+      <div className="w-full bg-[var(--secondary)]/40 border-t border-[var(--border)] mt-auto hidden sm:block">
         <div className="w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 md:px-8">
           {/* Основной контент футера */}
           <div
@@ -168,8 +167,7 @@ export default function Footer() {
       {/* Мобильный футер */}
       <div
 
-
-        className={`fixed bottom-2 left-1/2 transform -translate-x-1/2 max-w-[360px] w-[calc(100%-16px)] sm:w-auto rounded-md bg-[var(--background)]/90 border-t border-[var(--border)] shadow-lg z-50 backdrop-blur-sm lg:hidden transition-transform duration-300 ${
+        className={`fixed bottom-2 left-1/2 transform -translate-x-1/2 max-w-[360px] w-[calc(100%-16px)] sm:w-auto rounded-md bg-[var(--background)]/90 border-t border-[var(--border)] shadow-lg z-50 backdrop-blur-sm sm:hidden transition-transform duration-300 ${
           isVisible ? "translate-y-0" : "translate-y-20"
         }`}
       >
@@ -283,3 +281,4 @@ export default function Footer() {
     </footer>
   );
 }
+

@@ -20,22 +20,26 @@ export default function MobileCover({
   isAdmin,
   onAgeVerificationRequired,
 }: MobileCoverProps) {
+
   return (
-    <div className="md:hidden mt-2 mb-6">
-      <div className="flex relative w-max h-max justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
+
+
+    <div className="lg:hidden mt-2 mb-6 overflow-hidden">
+      <div className="flex relative w-full max-w-[300px] sm:max-w-[320px] justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
         {titleData?.coverImage ? (
           <Image
             src={`${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`}
             alt={titleData?.name}
-            width={280}
-            height={420}
+            width={300}
+            height={450}
             unoptimized={true}
-            className="object-cover"
+            className="object-cover w-full h-auto rounded-xl"
             priority
-            sizes="(max-width: 280px) 100vw, 33vw"
+            sizes="(max-width: 640px) 90vw, (max-width: 768px) 50vw, 300px"
+            style={{ aspectRatio: '2/3' }}
           />
         ) : (
-          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-full" />
+          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-auto" style={{ aspectRatio: '2/3' }} />
         )}
       </div>
 

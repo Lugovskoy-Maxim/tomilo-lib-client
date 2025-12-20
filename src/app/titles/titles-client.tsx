@@ -7,13 +7,13 @@ interface TitlesPageClientProps {
   searchQuery?: string;
 }
 
-export default function TitlesPageClient({ searchQuery }: TitlesPageClientProps) {
+export default function TitlesPageClient() {
   // SEO для страницы каталога тайтлов
   const seoConfig = useMemo(() => ({
     title: "Каталог тайтлов - Tomilo-lib.ru",
     description: "Просматривайте полный каталог манги, манхвы и маньхуа. Ищите по жанрам, годам выпуска, статусу и типу.",
     keywords: "каталог манги, манхва, маньхуа, поиск по жанрам, онлайн чтение",
-  }), [searchQuery]);
+  }), []);
   useSEO(seoConfig);
 
   return (

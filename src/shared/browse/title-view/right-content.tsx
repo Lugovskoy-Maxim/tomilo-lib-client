@@ -7,8 +7,12 @@ import { Title, Chapter, RatingStat } from "@/types/title";
 import { User } from "@/types/auth";
 import { CommentEntityType } from "@/types/comment";
 import { CommentsSection } from "@/shared/comments/comments-section";
+
+
+
 import {
   ArrowUpToLine,
+  ArrowUpDown,
   BookOpen,
   Calendar,
   CheckCheck,
@@ -31,11 +35,12 @@ import {
 } from "@/shared/modal/age-verification-modal";
 import { getChapterPath, getTitlePath } from "@/lib/title-paths";
 
+
 interface RightContentProps {
   titleData: Title;
-  activeTab: "description" | "chapters" | "comments" | "statistics";
+  activeTab: "main" | "chapters" | "comments";
   onTabChange: (
-    tab: "description" | "chapters" | "comments" | "statistics"
+    tab: "main" | "chapters" | "comments"
   ) => void;
   isDescriptionExpanded: boolean;
   onDescriptionToggle: () => void;
@@ -222,94 +227,153 @@ export function RightContent({
   const ratingStats = titleData?.ratings ? getRatingStats(titleData.ratings) : [];
   const totalRatings = titleData?.totalRatings || titleData?.ratings?.length || 0;
 
-  const renderTabContent = () => {
+
+console.log(activeTab)
+  const renderTabContent = (): React.ReactElement | null => {
     switch (activeTab) {
-      case "description":
+
+
+      case "main":
         return (
-          <>
-            <div className="rounded-xl p-4">
-              <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
-                Полное описание тайтла
+          <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl p-4 space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-bold mb-6 text-[var(--foreground)]">
+                Основная информация
               </h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--primary)]/80">
-                    {titleData?.createdAt
-                      ? new Date(titleData.createdAt).toLocaleDateString()
-                      : 0}
-                  </div>
-                  <div className="text-sm text-[var(--foreground)]/60">
-                    Дата загрузки на сайте:
-                  </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-[var(--primary)]/80">
+                  {titleData?.createdAt
+                    ? new Date(titleData.createdAt).toLocaleDateString()
+                    : 0}
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--primary)]/80">
-                    {titleData?.totalChapters}
-                  </div>
-                  <div className="text-sm text-[var(--foreground)]/60">
-                    Загружено:{" "}
-                    {titleData?.totalChapters === 1
-                      ? " глава"
-                      : titleData?.totalChapters > 1 &&
-                        titleData?.totalChapters < 5
-                      ? " главы"
-                      : " глав"}
-                  </div>
+                <div className="text-sm text-[var(--foreground)]/60">
+                  Дата загрузки на сайте
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--primary)]/80">
-                    {"Нет доступных данных"}
-                  </div>
-                  <div className="text-sm text-[var(--foreground)]/60">
-                    Главные герои
-                  </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-[var(--primary)]/80">
+                  {titleData?.totalChapters}
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--primary)]/80">
-                    {"Нет доступных данных"}
-                  </div>
-                  <div className="text-sm text-[var(--foreground)]/60">
-                    Переводчики
-                  </div>
+                <div className="text-sm text-[var(--foreground)]/60">
+                  Загружено:{" "}
+                  {titleData?.totalChapters === 1
+                    ? " глава"
+                    : titleData?.totalChapters > 1 &&
+                      titleData?.totalChapters < 5
+                    ? " главы"
+                    : " глав"}
                 </div>
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--primary)]/80">
-                    {titleData?.author
-                      ? titleData.author
-                      : "Нет доступных данных"}
-                  </div>
-                  <div className="text-sm text-[var(--foreground)]/60">
-                    Автор
-                  </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-[var(--primary)]/80">
+                  {titleData?.author
+                    ? titleData.author
+                    : "Нет доступных данных"}
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--primary)]/80">
-                    {titleData?.artist
-                      ? titleData.artist
-                      : "Нет доступных данных"}
-                  </div>
-                  <div className="text-sm text-[var(--foreground)]/60">
-                    Художник(и)
-                  </div>
+                <div className="text-sm text-[var(--foreground)]/60">
+                  Автор
                 </div>
               </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-[var(--primary)]/80">
+                  {titleData?.artist
+                    ? titleData.artist
+                    : "Нет доступных данных"}
+                </div>
+                <div className="text-sm text-[var(--foreground)]/60">
+                  Художник(и)
+                </div>
+              </div>
+            </div>
 
-              <div className="text-sm text-[var(--foreground)]/60 pt-4">
+            <div className="text-center">
+              <div className="text-sm text-[var(--foreground)]/60 mb-2">
                 Альтернативные названия:
               </div>
-              <div className="text-lg font-normal text-[var(--primary)]/80 ">
+              <div className="text-lg font-normal text-[var(--primary)]/80">
                 {titleData?.altNames
                   ? titleData.altNames.join(", ")
                   : "Нет доступных данных"}
               </div>
             </div>
-          </>
+
+            <div className="border-t border-[var(--border)] pt-6">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                  Статистика тайтла
+                </h3>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-[var(--foreground)]">
+                      {titleData?.views || 0}
+                    </div>
+                    <div className="text-sm text-[var(--foreground)]/60">
+                      Просмотров
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-[var(--foreground)]">
+                      {displayedChapters.length}
+                    </div>
+                    <div className="text-sm text-[var(--foreground)]/60">
+                      Глав
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {totalRatings > 0 && (
+                <div>
+                  <div className="text-center mb-4">
+                    <div className="text-xl font-bold text-[var(--foreground)]">
+                      {totalRatings}
+                    </div>
+                    <div className="text-sm text-[var(--foreground)]/60">
+                      Всего оценок
+                    </div>
+                  </div>
+                  
+                  {ratingStats.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-md font-semibold text-[var(--foreground)] text-center mb-4">
+                        Распределение оценок
+                      </h4>
+                      <div className="space-y-3">
+                        {ratingStats.map((stat) => (
+                          <div key={stat.rating} className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[var(--foreground)] font-medium">
+                                {stat.rating}
+                              </span>
+                              <Star className="w-4 h-4 text-[var(--chart-1)]" />
+                            </div>
+
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div className="flex-1 bg-[var(--background)] rounded-full h-2 min-w-[80px]">
+                                <div 
+                                  className="bg-[var(--chart-1)] h-2 rounded-full"
+                                  style={{ width: `${stat.percentage}%` }}
+                                />
+                              </div>
+                              <span className="text-sm text-[var(--foreground)]/60 whitespace-nowrap text-xs">
+                                {stat.count} ({stat.percentage}%)
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         );
 
       case "chapters":
@@ -352,6 +416,7 @@ export function RightContent({
         return (
           <div className="rounded-xl">
             <div className="flex flex-col justify-between bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl items-center p-4">
+
               <div className="flex w-full flex-col sm:flex-row gap-4">
                 <input
                   type="text"
@@ -360,16 +425,16 @@ export function RightContent({
                   onChange={(e) => onSearchChange(e.target.value)}
                   className="flex-1 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] placeholder-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 />
-                <select
-                  value={sortOrder}
-                  onChange={(e) =>
-                    onSortChange(e.target.value as "desc" | "asc")
-                  }
-                  className="px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+
+
+
+                <button
+                  onClick={() => onSortChange(sortOrder === "desc" ? "asc" : "desc")}
+                  className="w-[160px] px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                 >
-                  <option value="desc">Сначала новые</option>
-                  <option value="asc">Сначала старые</option>
-                </select>
+                  <ArrowUpDown className={`w-4 h-4 transition-transform duration-300 ${sortOrder === "desc" ? "rotate-0" : "rotate-180"}`} />
+                  {sortOrder === "desc" ? "Сначала новые" : "Сначала старые"}
+                </button>
               </div>
             </div>
 
@@ -424,83 +489,13 @@ export function RightContent({
           </div>
         );
 
+
       case "comments":
         return (
           <CommentsSection
             entityType={CommentEntityType.TITLE}
             entityId={titleId}
           />
-        );
-
-
-      case "statistics":
-        return (
-          <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl p-4">
-            <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
-              Статистика
-            </h2>
-            
-            {/* Основная статистика */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[var(--accent)]">
-                  {titleData?.views || 0}
-                </div>
-                <div className="text-sm text-[var(--foreground)]/60">
-                  Просмотров
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[var(--accent)]">
-                  {displayedChapters.length}
-                </div>
-                <div className="text-sm text-[var(--foreground)]/60">Глав</div>
-              </div>
-            </div>
-
-            {/* Статистика рейтингов */}
-            {totalRatings > 0 && (
-              <div className="border-t border-[var(--border)] pt-4">
-                <div className="text-center mb-4">
-                  <div className="text-xl font-bold text-[var(--accent)]">
-                    {totalRatings}
-                  </div>
-                  <div className="text-sm text-[var(--foreground)]/60">
-                    Всего оценок
-                  </div>
-                </div>
-                
-                {ratingStats.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-[var(--foreground)] mb-3">
-                      Распределение оценок:
-                    </h3>
-                    {ratingStats.map((stat) => (
-                      <div key={stat.rating} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[var(--foreground)] font-medium">
-                            {stat.rating}
-                          </span>
-                          <Star className="w-4 h-4 text-[var(--chart-1)]" />
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-24 bg-[var(--background)] rounded-full h-2">
-                            <div 
-                              className="bg-[var(--chart-1)] h-2 rounded-full"
-                              style={{ width: `${stat.percentage}%` }}
-                            />
-                          </div>
-                          <span className="text-sm text-[var(--foreground)]/60 min-w-[50px]">
-                            {stat.count} шт ({stat.percentage}%)
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         );
 
       default:
@@ -511,8 +506,9 @@ export function RightContent({
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-center w-full">
-          <div className="flex gap-2">
+
+        <div className="flex sm:flex-row justify-between sm:items-center gap-4 w-full">
+          <div className="flex flex-col sm:flex-row  gap-2">
             <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
               <Calendar className="w-4 h-4" />
               <span>{titleData.releaseYear}</span>
@@ -649,11 +645,11 @@ export function RightContent({
 
         <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1">
           <div className="flex">
+
             {[
-              { key: "description" as const, label: "Описание" },
+              { key: "main" as const, label: "Главная" },
               { key: "chapters" as const, label: `Главы (${titleData?.chapters?.length || 0})` },
               { key: "comments" as const, label: "Комментарии" },
-              { key: "statistics" as const, label: "Статистика" },
             ].map((tab) => (
               <button
                 key={tab.key}
