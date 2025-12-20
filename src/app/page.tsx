@@ -189,6 +189,7 @@ export default function Home() {
         {/* Объединенная секция топ манхв, маньхуа и новинок 2025 */}
         <TopCombinedSection
           data={{
+
             topManhwa: (topManhwa.data || []).slice(0, 5).map((item) => ({
               id: item.id,
               slug: item.slug, // Добавляем slug для правильной навигации
@@ -198,7 +199,9 @@ export default function Home() {
               year: item.year,
               rating: item.rating,
               views: item.views || "0К", // Добавляем views, если нужно
+              isAdult: item.isAdult ?? false, // Добавляем поле isAdult для размытия и 18+ значка
             })),
+
             top2025: (top2025.data || []).slice(0, 5).map((item) => ({
               id: item.id,
               slug: item.slug, // Добавляем slug для правильной навигации
@@ -208,7 +211,9 @@ export default function Home() {
               year: item.year,
               rating: item.rating,
               views: item.views || "0К",
+              isAdult: item.isAdult ?? false, // Добавляем поле isAdult для размытия и 18+ значка
             })),
+
             topManhua: (topManhua.data || []).slice(0, 5).map((item) => ({
               id: item.id,
               slug: item.slug, // Добавляем slug для правильной навигации
@@ -218,6 +223,7 @@ export default function Home() {
               year: item.year,
               rating: item.rating,
               views: item.views || "0К",
+              isAdult: item.isAdult ?? false, // Добавляем поле isAdult для размытия и 18+ значка
             })),
           }}
         />

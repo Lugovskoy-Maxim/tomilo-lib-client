@@ -38,6 +38,7 @@ export interface TopTitleCombined {
   rating: number;
   coverImage: string;
   views?: number | string;
+  isAdult?: boolean;
 }
 
 
