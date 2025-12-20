@@ -27,8 +27,6 @@ export default function Logo() {
         priority={false}
         className="absolute -top-1 -right-3 z-10 rotate-30"
       />
-
-
     </Link>
   );
 }
