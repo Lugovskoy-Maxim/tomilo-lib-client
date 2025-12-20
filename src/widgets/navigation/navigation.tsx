@@ -13,7 +13,7 @@ interface NavigationProps {
 const navigationItems = [
   {
     name: "Каталог",
-    href: "/browse",
+    href: "/titles",
     icon: BookOpen,
   },
   {
