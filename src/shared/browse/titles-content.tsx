@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
@@ -12,9 +11,10 @@ import {
 import { Filters } from "@/types/browse-page";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
-import { getTitlePath } from "@/lib/title-paths";
-import { normalizeGenres, filterGenresByType } from "@/lib/genre-normalizer";
 
+import { getTitlePath } from "@/lib/title-paths";
+import { normalizeGenres } from "@/lib/genre-normalizer";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 interface GridTitle {
   id: string;
@@ -28,7 +28,7 @@ interface GridTitle {
   isAdult?: boolean;
 }
 
-function BrowseContent() {
+export default function TitlesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -62,7 +62,6 @@ function BrowseContent() {
   const [limit, setLimit] = useState(15); // Default to desktop
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-
   // Debounce for search input (1s)
   const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -80,14 +79,12 @@ function BrowseContent() {
   // Set limit based on window size
   useEffect(() => {
     const updateLimit = () => {
-      setLimit(window.innerWidth < 1024 ? 6 : 15); // 6 for mobile/tablet, 12 for desktop
+      setLimit(window.innerWidth < 1024 ? 6 : 15); // 6 for mobile/tablet, 15 for desktop
     };
     updateLimit();
     window.addEventListener('resize', updateLimit);
     return () => window.removeEventListener('resize', updateLimit);
   }, []);
-
-
 
   // Опции фильтров
   const { data: filterOptions } = useGetFilterOptionsQuery();
@@ -110,7 +107,6 @@ function BrowseContent() {
   const { data: titlesData } = useSearchTitlesQuery({
     search: debouncedSearch || undefined,
     genre: appliedFilters.genres[0],
-    // types не поддерживаются сервером, пропускаем
     status: appliedFilters.status[0],
     sortBy: appliedFilters.sortBy,
     sortOrder: appliedFilters.sortOrder,
@@ -122,15 +118,14 @@ function BrowseContent() {
   const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
   const paginatedTitles = useMemo(() => titlesData?.data?.data ?? [], [titlesData]);
 
-
-
   const adaptedTitles = useMemo(
     () =>
       paginatedTitles.map((t: Title) => ({
         id: (t._id || "").toString(),
-        slug: t.slug, // Добавляем поддержку slug для правильной навигации
+        slug: t.slug,
         title: t.name || "",
-        type: t.type || "Манга",
+
+        type: translateTitleType(t.type || "manga"),
         year: t.releaseYear || new Date().getFullYear(),
         rating: t.rating || 0,
         image: t.coverImage || undefined,
@@ -164,9 +159,6 @@ function BrowseContent() {
     }
   }, [isLoadingMore, loadMorePage, totalPages]);
 
-
-
-
   // Функция сброса фильтров
   const resetFilters = () => {
     const defaultFilters: Filters = {
@@ -183,7 +175,6 @@ function BrowseContent() {
     setAppliedFilters(defaultFilters);
     updateURL(defaultFilters, 1);
   };
-
 
   // Обновление URL параметров при изменении фильтров
   const updateURL = (filters: Filters, page: number) => {
@@ -216,12 +207,8 @@ function BrowseContent() {
     setAppliedFilters(newFilters);
     setAllTitles([]);
     setLoadMorePage(1);
-    updateURL(newFilters, 1); // Сбрасываем на первую страницу при изменении фильтров
+    updateURL(newFilters, 1);
   };
-
-
-
-
 
   // Обработчик клика по карточке
   const handleCardClick = (title: GridTitle) => {
@@ -283,8 +270,6 @@ function BrowseContent() {
 
       {/* Боковая панель с фильтрами (десктоп) */}
       <div className="hidden lg:block lg:w-1/4">
-
-
         <FilterSidebar
           filters={appliedFilters}
           onFiltersChange={handleFiltersChange}
@@ -300,8 +285,6 @@ function BrowseContent() {
           onReset={resetFilters}
         />
       </div>
-
-
 
       {/* Мобильный фильтр (шторка) */}
       <FilterSidebar
@@ -324,5 +307,3 @@ function BrowseContent() {
     </div>
   );
 }
-
-export default BrowseContent;

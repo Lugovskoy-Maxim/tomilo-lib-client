@@ -38,10 +38,12 @@ import {
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { UpdateTitleDto } from "@/types/title";
 
+
 import { useToast } from "@/hooks/useToast";
 // import Image from "next/image";
 import { CoverUploadSection } from "@/shared/admin/cover-upload-section";
 import { normalizeGenres } from "@/lib/genre-normalizer";
+import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 
 // Конфигурация API
 const API_CONFIG = {
@@ -713,15 +715,17 @@ function BasicInfoSection({
           required
         />
 
+
         <SelectField
           label="Статус *"
           value={formData.status}
           onChange={handleInputChange("status")}
           options={Object.values(TitleStatus).map((status) => ({
             value: status,
-            label: status,
+            label: translateTitleStatus(status),
           }))}
         />
+
 
         <SelectField
           label="Тип тайтла"
@@ -731,7 +735,7 @@ function BasicInfoSection({
             { value: "", label: "Не указан" },
             ...Object.values(TitleType).map((type) => ({
               value: type as string,
-              label: type as string,
+              label: translateTitleType(type as string),
             })),
           ]}
         />

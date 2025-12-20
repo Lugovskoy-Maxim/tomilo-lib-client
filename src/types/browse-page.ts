@@ -1,5 +1,7 @@
+
+
 // Типы для фильтров
-export type SortBy = "rating" | "year" | "views" | "chapters";
+export type SortBy = "createdAt" | "updatedAt" | "name" | "views" | "weekViews" | "dayViews" | "monthViews" | "averageRating" | "releaseYear" | "rating" | "year" | "chapters";
 export type SortOrder = "asc" | "desc";
 
 export interface Filters {
@@ -7,6 +9,9 @@ export interface Filters {
   genres: string[];
   types: string[];
   status: string[];
+  ageLimits: number[];
+  releaseYears: number[];
+  tags: string[];
   sortBy: SortBy;
   sortOrder: SortOrder;
 }

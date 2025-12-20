@@ -1,5 +1,8 @@
+
 "use client";
-import { BrowseContent, Footer, Header } from "@/widgets";
+
+import { Footer, Header } from "@/widgets";
+import TitlesContent from "@/shared/browse/titles-content";
 import { useSEO } from "@/hooks/useSEO";
 import { useMemo } from "react";
 
@@ -21,7 +24,7 @@ export default function TitlesPageClient() {
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 pt-6 pb-20 md:pb-6">
-        <BrowseContent />
+        <TitlesContent />
       </div>
 
       <Footer />

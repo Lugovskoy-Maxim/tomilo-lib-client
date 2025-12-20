@@ -31,7 +31,8 @@ import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
 import { LoginModal, RegisterModal } from "@/shared";
-import { translateTitleType } from "@/lib/title-type-translations";
+
+import { translateTitleType, translateTitleStatus } from "@/lib/title-type-translations";
 
 // Shared UI
 export function TabButton({
@@ -495,12 +496,8 @@ export function RightContent({
       setAgeModalOpen(true);
     }
   };
-  const statusLabels: Record<TitleStatus, string> = {
-    [TitleStatus.ONGOING]: "Онгоинг",
-    [TitleStatus.COMPLETED]: "Завершен",
-    [TitleStatus.PAUSE]: "Приостановлен",
-    [TitleStatus.CANCELLED]: "Заброшен",
-  };
+
+
   const router = useRouter();
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
@@ -722,8 +719,9 @@ export function RightContent({
                       <div className="text-xs text-[var(--primary)] mb-1">
                         Статус
                       </div>
+
                       <div className="font-bold text-[var(--primary)]">
-                        {statusLabels[titleData?.status || TitleStatus.ONGOING]}
+                        {translateTitleStatus(titleData?.status || TitleStatus.ONGOING)}
                       </div>
                     </div>
                     <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">

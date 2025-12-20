@@ -90,14 +90,42 @@ export const titlesApi = createApi({
       providesTags: [TITLES_TAG],
     }),
 
+
     // Опции фильтров
     getFilterOptions: builder.query<ApiResponseDto<{
+      ageLimits: number[];
       genres: string[];
-      // types?: string[]; // сервер пока не возвращает types
+      releaseYears: number[];
+      sortByOptions: string[];
       status: string[];
+      tags: string[];
+      types: string[];
     }>, void>({
       query: () => "/titles/filters/options",
-      transformResponse: (response: ApiResponseDto<{ genres: string[]; status: string[] }>) => response,
+      transformResponse: (response: ApiResponseDto<{
+        ageLimits?: number[];
+        genres?: string[];
+        releaseYears?: number[];
+        sortByOptions?: string[];
+        status?: string[];
+        tags?: string[];
+        types?: string[];
+      }>) => {
+        // Обеспечиваем дефолтные значения для всех полей
+        const data = response.data || {};
+        return {
+          ...response,
+          data: {
+            ageLimits: data.ageLimits || [0, 12, 16, 18],
+            genres: data.genres || [],
+            releaseYears: data.releaseYears || [],
+            sortByOptions: data.sortByOptions || ["createdAt", "updatedAt", "name", "views", "weekViews", "dayViews", "monthViews", "averageRating", "releaseYear"],
+            status: data.status || [],
+            tags: data.tags || [],
+            types: data.types || [],
+          }
+        };
+      },
     }),
 
 

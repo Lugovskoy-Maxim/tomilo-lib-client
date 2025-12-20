@@ -8,8 +8,10 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+
 import { useToast } from "@/hooks/useToast";
 import { getTitlePath } from "@/lib/title-paths";
+import { translateTitleStatus } from "@/lib/title-type-translations";
 
 interface BookmarkCardProps {
   title: Title;
@@ -110,8 +112,9 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
             {title.genres?.slice(0, 2).join(", ") || "Жанры не указаны"}
           </p>
           <div className="flex items-center justify-between">
+
             <span className="text-xs text-[var(--muted-foreground)]">
-              {title.status === "completed" ? "Завершено" : "Продолжается"}
+              {translateTitleStatus(title.status)}
             </span>
             <span className="text-xs text-[var(--muted-foreground)]">
               {title.totalChapters} гл.

@@ -6,8 +6,10 @@ import {
   useSearchTitlesQuery,
   useDeleteTitleMutation,
 } from "@/store/api/titlesApi";
+
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
+import { translateTitleStatus } from "@/lib/title-type-translations";
 
 interface TitlesSectionProps {
   onTitleSelect: (titleId: string) => void;
@@ -169,15 +171,9 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                             : title.status === "completed"
                             ? "bg-blue-100 text-blue-800"
                             : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {title.status === "ongoing"
-                          ? "Онгоинг"
-                          : title.status === "completed"
-                          ? "Завершен"
-                          : title.status === "pause"
-                          ? "Пауза"
-                          : "Отменен"}
+
+                        }`}>
+                        {translateTitleStatus(title.status)}
                       </span>
                     </td>
                     <td className="p-4 text-[var(--foreground)]">

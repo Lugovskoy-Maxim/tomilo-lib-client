@@ -1,6 +1,11 @@
+
 "use client";
+
 import { useState } from "react";
 import { Filter, X, Check, ChevronDown, ChevronUp } from "lucide-react";
+import CollapsibleGenresList from "./CollapsibleGenresList";
+import { translateTitleType, translateTitleStatus } from "@/lib/title-type-translations";
+
 
 
 
@@ -8,6 +13,10 @@ interface FilterOptions {
   genres: string[];
   types: string[];
   status: string[];
+  ageLimits: number[];
+  releaseYears: number[];
+  tags: string[];
+  sortByOptions: string[];
 }
 
 interface FilterSidebarProps<T> {
@@ -50,11 +59,15 @@ const FilterSection = ({
   );
 };
 
+
 export default function FilterSidebar<T extends {
   search: string;
   genres: string[];
   types: string[];
   status: string[];
+  ageLimits: number[];
+  releaseYears: number[];
+  tags: string[];
   sortBy: string;
   sortOrder: string;
 }>({
@@ -83,12 +96,37 @@ export default function FilterSidebar<T extends {
     onFiltersChange({ ...filters, types: newTypes });
   };
 
+
   const handleStatusChange = (status: string) => {
     const newStatus = filters.status.includes(status)
       ? filters.status.filter((s) => s !== status)
       : [...filters.status, status];
     
     onFiltersChange({ ...filters, status: newStatus });
+  };
+
+  const handleAgeLimitChange = (ageLimit: number) => {
+    const newAgeLimits = filters.ageLimits.includes(ageLimit)
+      ? filters.ageLimits.filter((a) => a !== ageLimit)
+      : [...filters.ageLimits, ageLimit];
+    
+    onFiltersChange({ ...filters, ageLimits: newAgeLimits });
+  };
+
+  const handleReleaseYearChange = (year: number) => {
+    const newReleaseYears = filters.releaseYears.includes(year)
+      ? filters.releaseYears.filter((y) => y !== year)
+      : [...filters.releaseYears, year];
+    
+    onFiltersChange({ ...filters, releaseYears: newReleaseYears });
+  };
+
+  const handleTagChange = (tag: string) => {
+    const newTags = filters.tags.includes(tag)
+      ? filters.tags.filter((t) => t !== tag)
+      : [...filters.tags, tag];
+    
+    onFiltersChange({ ...filters, tags: newTags });
   };
 
   // Контент фильтров
@@ -108,37 +146,15 @@ export default function FilterSidebar<T extends {
       </div>
 
       <div className="space-y-4">
+
         {/* Фильтр по жанрам */}
         <FilterSection title="Жанры" isOpen={true}>
-          {filterOptions.genres.map((genre) => (
-            <label
-              key={genre}
-              className="flex items-center gap-2 cursor-pointer"
-            >
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={filters.genres.includes(genre)}
-                  onChange={() => handleGenreChange(genre)}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-4 h-4 border rounded flex items-center justify-center ${
-                    filters.genres.includes(genre)
-                      ? "bg-[var(--primary)] border-[var(--primary)]"
-                      : "border-[var(--border)] bg-[var(--background)]"
-                  }`}
-                >
-                  {filters.genres.includes(genre) && (
-                    <Check className="w-3 h-3 text-[var(--muted-foreground)]" />
-                  )}
-                </div>
-              </div>
-              <span className="text-sm text-[var(--muted-foreground)]">
-                {genre}
-              </span>
-            </label>
-          ))}
+          <CollapsibleGenresList
+            genres={filterOptions.genres}
+            selectedGenres={filters.genres}
+            onGenreChange={handleGenreChange}
+            maxVisibleGenres={12}
+          />
         </FilterSection>
 
         {/* Фильтр по типам */}
@@ -167,12 +183,14 @@ export default function FilterSidebar<T extends {
                   )}
                 </div>
               </div>
+
               <span className="text-sm text-[var(--muted-foreground)]">
-                {type}
+                {translateTitleType(type)}
               </span>
             </label>
           ))}
         </FilterSection>
+
 
         {/* Фильтр по статусу */}
         <FilterSection title="Статус" isOpen={false}>
@@ -200,12 +218,114 @@ export default function FilterSidebar<T extends {
                   )}
                 </div>
               </div>
+
               <span className="text-sm text-[var(--muted-foreground)]">
-                {status}
+                {translateTitleStatus(status)}
               </span>
             </label>
           ))}
         </FilterSection>
+
+        {/* Фильтр по возрастным ограничениям */}
+        <FilterSection title="Возрастные ограничения" isOpen={false}>
+          {filterOptions.ageLimits.map((ageLimit) => (
+            <label
+              key={ageLimit}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={filters.ageLimits.includes(ageLimit)}
+                  onChange={() => handleAgeLimitChange(ageLimit)}
+                  className="sr-only"
+                />
+                <div
+                  className={`w-4 h-4 border rounded flex items-center justify-center ${
+                    filters.ageLimits.includes(ageLimit)
+                      ? "bg-[var(--primary)] border-[var(--primary)]"
+                      : "border-[var(--border)] bg-[var(--background)]"
+                  }`}
+                >
+                  {filters.ageLimits.includes(ageLimit) && (
+                    <Check className="w-3 h-3 text-[var(--muted-foreground)]" />
+                  )}
+                </div>
+              </div>
+              <span className="text-sm text-[var(--muted-foreground)]">
+                {ageLimit === 0 ? "Для всех" : `${ageLimit}+`}
+              </span>
+            </label>
+          ))}
+        </FilterSection>
+
+        {/* Фильтр по годам выпуска */}
+        <FilterSection title="Годы выпуска" isOpen={false}>
+          {filterOptions.releaseYears.map((year) => (
+            <label
+              key={year}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={filters.releaseYears.includes(year)}
+                  onChange={() => handleReleaseYearChange(year)}
+                  className="sr-only"
+                />
+                <div
+                  className={`w-4 h-4 border rounded flex items-center justify-center ${
+                    filters.releaseYears.includes(year)
+                      ? "bg-[var(--primary)] border-[var(--primary)]"
+                      : "border-[var(--border)] bg-[var(--background)]"
+                  }`}
+                >
+                  {filters.releaseYears.includes(year) && (
+                    <Check className="w-3 h-3 text-[var(--muted-foreground)]" />
+                  )}
+                </div>
+              </div>
+              <span className="text-sm text-[var(--muted-foreground)]">
+                {year}
+              </span>
+            </label>
+          ))}
+        </FilterSection>
+
+        {/* Фильтр по тегам */}
+        {filterOptions.tags.length > 0 && (
+          <FilterSection title="Теги" isOpen={false}>
+            {filterOptions.tags.map((tag) => (
+              <label
+                key={tag}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={filters.tags.includes(tag)}
+                    onChange={() => handleTagChange(tag)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`w-4 h-4 border rounded flex items-center justify-center ${
+                      filters.tags.includes(tag)
+                        ? "bg-[var(--primary)] border-[var(--primary)]"
+                        : "border-[var(--border)] bg-[var(--background)]"
+                    }`}
+                  >
+                    {filters.tags.includes(tag) && (
+                      <Check className="w-3 h-3 text-[var(--muted-foreground)]" />
+                    )}
+                  </div>
+                </div>
+                <span className="text-sm text-[var(--muted-foreground)]">
+                  {tag}
+                </span>
+              </label>
+            ))}
+          </FilterSection>
+        )}
       </div>
     </>
   );
@@ -248,10 +368,14 @@ export default function FilterSidebar<T extends {
     );
   }
 
-  // Десктоп версия
+
+
+  // Десктоп версия с фиксированной высотой
   return (
-    <div className="sticky top-20 bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
-      {filterContent}
+    <div className="sticky top-20 bg-[var(--card)] border border-[var(--border)] rounded-xl">
+      <div className="p-4 max-h-[calc(100vh-6rem)] overflow-y-auto">
+        {filterContent}
+      </div>
     </div>
   );
 }

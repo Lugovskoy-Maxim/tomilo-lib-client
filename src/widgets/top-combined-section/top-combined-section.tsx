@@ -36,7 +36,6 @@ const CardItem = ({ item }: CardItemProps) => {
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
-  console.log(item);
   useEffect(() => {
     setIsAgeVerified(checkAgeVerification(user || null));
   }, [user]);

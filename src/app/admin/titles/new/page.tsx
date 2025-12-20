@@ -15,9 +15,11 @@ import {
 import { TitleStatus, TitleType } from "@/types/title";
 import { useRouter } from "next/navigation";
 
+
 import { CreateTitleDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
 import { normalizeGenres } from "@/lib/genre-normalizer";
+import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 
 
 interface TitleFormData {
@@ -488,10 +490,11 @@ export default function TitleEditorPage() {
                   required
                   className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
                 >
-                  <option value={TitleStatus.ONGOING}>Онгоинг</option>
-                  <option value={TitleStatus.COMPLETED}>Завершен</option>
-                  <option value={TitleStatus.PAUSE}>Приостановлен</option>
-                  <option value={TitleStatus.CANCELLED}>Отменен</option>
+
+                  <option value={TitleStatus.ONGOING}>{translateTitleStatus(TitleStatus.ONGOING)}</option>
+                  <option value={TitleStatus.COMPLETED}>{translateTitleStatus(TitleStatus.COMPLETED)}</option>
+                  <option value={TitleStatus.PAUSE}>{translateTitleStatus(TitleStatus.PAUSE)}</option>
+                  <option value={TitleStatus.CANCELLED}>{translateTitleStatus(TitleStatus.CANCELLED)}</option>
                 </select>
               </div>
 
@@ -525,13 +528,14 @@ export default function TitleEditorPage() {
                   required
                   className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
                 >
-                  <option value={TitleType.MANGA}>Манга</option>
-                  <option value={TitleType.MANHWA}>Манхва</option>
-                  <option value={TitleType.MANHUA}>Маньхуа</option>
-                  <option value={TitleType.NOVEL}>Роман</option>
-                  <option value={TitleType.LIGHT_NOVEL}>Лайт-новел</option>
-                  <option value={TitleType.COMIC}>Комикс</option>
-                  <option value={TitleType.OTHER}>Другое</option>
+
+                  <option value={TitleType.MANGA}>{translateTitleType(TitleType.MANGA)}</option>
+                  <option value={TitleType.MANHWA}>{translateTitleType(TitleType.MANHWA)}</option>
+                  <option value={TitleType.MANHUA}>{translateTitleType(TitleType.MANHUA)}</option>
+                  <option value={TitleType.NOVEL}>{translateTitleType(TitleType.NOVEL)}</option>
+                  <option value={TitleType.LIGHT_NOVEL}>{translateTitleType(TitleType.LIGHT_NOVEL)}</option>
+                  <option value={TitleType.COMIC}>{translateTitleType(TitleType.COMIC)}</option>
+                  <option value={TitleType.OTHER}>{translateTitleType(TitleType.OTHER)}</option>
                 </select>
               </div>
 
