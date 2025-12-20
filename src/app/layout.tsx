@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Providers } from "./providers";
 import { ToastProvider } from "@/contexts/ToastContext";
+
 import { ToastContainer } from "@/shared/ui/Toast";
 import Script from "next/script";
 
@@ -26,7 +27,10 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <head>
         <meta name="yandex-verification" content="8f2bae575aa86202" />
-        <Script src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js" strategy="beforeInteractive" />
+        <Script
+          src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js"
+          strategy="beforeInteractive"
+        />
         <Script id="yandex-metrika-counter" strategy="beforeInteractive">
           {`
             (function(m,e,t,r,i,k,a){
@@ -39,9 +43,9 @@ export default function RootLayout({
             ym(105475213, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
           `}
         </Script>
-        <Script 
-          src="https://www.googletagmanager.com/gtag/js?id=G-95QGC7HGHE" 
-          strategy="afterInteractive" 
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-95QGC7HGHE"
+          strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
@@ -53,17 +57,23 @@ export default function RootLayout({
         </Script>
         <noscript>
           <div>
-            <img src="https://mc.yandex.ru/watch/105475213" style={{position:'absolute', left:-9999}} alt="" />
+            <img
+              src="https://mc.yandex.ru/watch/105475213"
+              style={{ position: "absolute", left: -9999 }}
+              alt=""
+            />
           </div>
         </noscript>
-        
       </head>
       <body
         className={`${exo_2.variable} ${geistMono.variable} antialiased w-full justify-center items-center`}
       >
         <ToastProvider>
           <Providers>
-            <ThemeProvider>{children}</ThemeProvider>
+            <ThemeProvider>
+                {children}
+
+            </ThemeProvider>
           </Providers>
           <ToastContainer />
         </ToastProvider>
