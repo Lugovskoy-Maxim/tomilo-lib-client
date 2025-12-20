@@ -46,7 +46,7 @@ export default function SnowEffect() {
       {snowflakes.map((flake) => (
         <div
           key={flake.id}
-          className="absolute text-white opacity-70 animate-fall"
+          className="absolute text-[var(--primary)] opacity-70 animate-fall"
           style={{
             left: `${flake.left}%`,
             fontSize: `${flake.size}px`,
