@@ -270,11 +270,67 @@ export default function TitleEditorPage() {
     }
   };
 
+
   const removeTag = (index: number) => {
     setFormData(prev => ({
       ...prev,
       tags: prev.tags.filter((_, i) => i !== index)
     }));
+  };
+
+  // Функция нормализации жанров/тегов с уведомлениями
+  const normalizeGenresTags = (items: string[]): { 
+    normalized: string[]; 
+    changes: Array<{ original: string; normalized: string }>;
+  } => {
+    const changes: Array<{ original: string; normalized: string }> = [];
+    const normalized = items.map(item => {
+      const original = item.trim();
+      const normalized = normalizeGenres([original])[0];
+      
+      if (original !== normalized) {
+        changes.push({ original, normalized });
+      }
+      
+      return normalized;
+    });
+    
+    // Удаляем дубликаты при этом сохраняя порядок
+    const uniqueGenres: string[] = [];
+    for (const genre of normalized) {
+      if (!uniqueGenres.includes(genre)) {
+        uniqueGenres.push(genre);
+      }
+    }
+    
+    return { normalized: uniqueGenres, changes };
+  };
+
+  // Обработчик нормализации жанров/тегов
+  const handleNormalize = (field: "genres" | "tags") => {
+    const result = normalizeGenresTags(formData[field]);
+    
+    // Обновляем состояние формы с нормализованными значениями
+    setFormData(prev => ({
+      ...prev,
+      [field]: result.normalized,
+    }));
+    
+    // Показываем уведомление об изменениях
+    if (result.changes.length > 0) {
+      const changesText = result.changes
+        .slice(0, 3) // Показываем только первые 3 изменения
+        .map(change => `${change.original} → ${change.normalized}`)
+        .join('\n');
+      
+      const moreText = result.changes.length > 3 ? `\nи еще ${result.changes.length - 3}...` : '';
+      
+      toast.success(
+        `Нормализовано ${result.changes.length} ${field === "genres" ? "жанров" : "тегов"}:\n${changesText}${moreText}`
+      );
+    } else {
+      toast.info(`Все ${field === "genres" ? "жанры" : "теги"} уже в нормальном формате`);
+    }
   };
 
 
@@ -624,12 +680,23 @@ export default function TitleEditorPage() {
               </div>
             </div>
 
+
             {/* Жанры */}
             <div className="mt-6">
-              <label className="text-sm font-medium mb-2 flex items-center gap-2">
-                <Tag className="w-4 h-4" />
-                Жанры *
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  Жанры *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleNormalize("genres")}
+                  className="px-2 py-1 text-xs bg-[var(--secondary)] text-[var(--muted-foreground)] rounded hover:bg-[var(--secondary)]/80 transition-colors"
+                  title="Нормализовать жанры"
+                >
+                  Нормализовать
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {availableGenres.map((genre) => (
                   <label key={genre} className="inline-flex items-center">
@@ -652,11 +719,22 @@ export default function TitleEditorPage() {
               )}
             </div>
 
+
             {/* Теги */}
             <div className="mt-6">
-              <label className="block text-sm font-medium mb-2">
-                Теги
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium">
+                  Теги
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleNormalize("tags")}
+                  className="px-2 py-1 text-xs bg-[var(--secondary)] text-[var(--muted-foreground)] rounded hover:bg-[var(--secondary)]/80 transition-colors"
+                  title="Нормализовать теги"
+                >
+                  Нормализовать
+                </button>
+              </div>
               <div className="flex gap-2 mb-2">
                 <input
                   type="text"

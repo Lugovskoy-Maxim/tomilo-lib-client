@@ -173,12 +173,37 @@ const generateSlug = (name: string): string => {
   return result || 'unknown-title';
 };
 
-// Функция нормализации жанров/тегов с использованием нового нормализатора
-const normalizeGenresTags = (items: string[]): string[] => {
-  return normalizeGenres(items);
+
+// Функция нормализации жанров/тегов с улучшенной обработкой капса
+const normalizeGenresTags = (items: string[]): { 
+  normalized: string[]; 
+  changes: Array<{ original: string; normalized: string }>;
+} => {
+  const changes: Array<{ original: string; normalized: string }> = [];
+  const normalized = items.map(item => {
+    const original = item.trim();
+    const normalized = normalizeGenres([original])[0];
+    
+    if (original !== normalized) {
+      changes.push({ original, normalized });
+    }
+    
+    return normalized;
+  });
+  
+  // Удаляем дубликаты при этом сохраняя порядок
+  const uniqueGenres: string[] = [];
+  for (const genre of normalized) {
+    if (!uniqueGenres.includes(genre)) {
+      uniqueGenres.push(genre);
+    }
+  }
+  
+  return { normalized: uniqueGenres, changes };
 };
 
 // Типы для пропсов компонентов
+
 
 interface BasicInfoSectionProps {
   formData: Title;
@@ -194,6 +219,7 @@ interface BasicInfoSectionProps {
   handleInputArrayChange: (
     field: "genres" | "tags"
   ) => (values: string[]) => void;
+  handleNormalize: (field: "genres" | "tags") => (values: string[]) => { normalized: string[]; changes: Array<{ original: string; normalized: string }> };
   handleAltNamesChange: (e: ChangeEvent<HTMLInputElement>) => void;
   handleImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
   selectedFile: File | null;
@@ -249,12 +275,14 @@ interface CheckboxFieldProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
+
 interface CheckboxGroupProps {
   label: string;
   items: string[];
   selectedItems: string[];
   onChange: (value: string, isChecked: boolean) => void;
   onInputChange?: (values: string[]) => void;
+  onNormalize?: (values: string[]) => { normalized: string[]; changes: Array<{ original: string; normalized: string }> };
   icon?: LucideIcon;
 }
 
@@ -389,6 +417,7 @@ export default function TitleEditorPage() {
       });
     };
 
+
   const handleInputArrayChange =
     (field: "genres" | "tags") => (values: string[]) => {
       setFormData((prev) => ({
@@ -396,6 +425,36 @@ export default function TitleEditorPage() {
         [field]: values,
       }));
     };
+
+
+  // Обработчик нормализации жанров/тегов с уведомлениями
+  const handleNormalize = (field: "genres" | "tags") => (values: string[]) => {
+    const result = normalizeGenresTags(values);
+    
+    // Обновляем состояние формы с нормализованными значениями
+    setFormData((prev) => ({
+      ...prev,
+      [field]: result.normalized,
+    }));
+    
+    // Показываем уведомление об изменениях
+    if (result.changes.length > 0) {
+      const changesText = result.changes
+        .slice(0, 3) // Показываем только первые 3 изменения
+        .map(change => `${change.original} → ${change.normalized}`)
+        .join('\n');
+      
+      const moreText = result.changes.length > 3 ? `\nи еще ${result.changes.length - 3}...` : '';
+      
+      toast.success(
+        `Нормализовано ${result.changes.length} ${field === "genres" ? "жанров" : "тегов"}:\n${changesText}${moreText}`
+      );
+    } else {
+      toast.info(`Все ${field === "genres" ? "жанры" : "теги"} уже в нормальном формате`);
+    }
+    
+    return result;
+  };
 
   const handleAltNamesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const names = e.target.value
@@ -503,12 +562,14 @@ export default function TitleEditorPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
 
+
               <BasicInfoSection
                 formData={formData}
                 titleId={titleId}
                 handleInputChange={handleInputChange}
                 handleArrayFieldChange={handleArrayFieldChange}
                 handleInputArrayChange={handleInputArrayChange}
+                handleNormalize={handleNormalize}
                 handleAltNamesChange={handleAltNamesChange}
                 handleImageChange={handleImageChange}
                 selectedFile={selectedFile}
@@ -615,12 +676,14 @@ function HeaderSection() {
 
 
 
+
 function BasicInfoSection({
   formData,
   titleId,
   handleInputChange,
   handleArrayFieldChange,
   handleInputArrayChange,
+  handleNormalize,
   handleAltNamesChange,
   handleImageChange,
   selectedFile,
@@ -755,6 +818,7 @@ function BasicInfoSection({
         />
       </div>
 
+
       <CheckboxGroup
         label="Жанры"
         items={API_CONFIG.genres}
@@ -763,8 +827,10 @@ function BasicInfoSection({
           handleArrayFieldChange("genres")(value, checked)
         }
         onInputChange={handleInputArrayChange("genres")}
+        onNormalize={handleNormalize("genres")}
         icon={Tag}
       />
+
 
       <CheckboxGroup
         label="Теги"
@@ -774,6 +840,7 @@ function BasicInfoSection({
           handleArrayFieldChange("tags")(value, checked)
         }
         onInputChange={handleInputArrayChange("tags")}
+        onNormalize={handleNormalize("tags")}
       />
 
       <TextareaField
@@ -997,12 +1064,14 @@ function CheckboxField({ label, ...props }: CheckboxFieldProps) {
   );
 }
 
+
 function CheckboxGroup({
   label,
   items,
   selectedItems,
   onChange,
   onInputChange,
+  onNormalize,
   icon: Icon,
 }: CheckboxGroupProps) {
   // Обеспечиваем, что selectedItems всегда является массивом
@@ -1028,6 +1097,14 @@ function CheckboxGroup({
     }
   };
 
+
+  const handleNormalize = () => {
+    if (onNormalize) {
+      // Вызываем обработчик нормализации напрямую
+      onNormalize(safeSelectedItems);
+    }
+  };
+
   return (
     <div>
       <label className="text-sm font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
@@ -1049,22 +1126,22 @@ function CheckboxGroup({
           </label>
         ))}
       </div>
+
       <div className="mt-3">
         <div className="flex items-center justify-between mb-1">
           <label className="text-sm font-medium text-[var(--foreground)]">
             Установленные {label.toLowerCase()}
           </label>
-          <button
-            type="button"
-            onClick={() =>
-              onInputChange &&
-              onInputChange(normalizeGenresTags(safeSelectedItems))
-            }
-            className="px-2 py-1 text-xs bg-[var(--accent)] text-[var(--foreground)] rounded hover:bg-[var(--accent)]/80 transition-colors"
-            title="Нормализовать жанры/теги"
-          >
-            Нормализовать
-          </button>
+          {onNormalize && (
+            <button
+              type="button"
+              onClick={handleNormalize}
+              className="px-2 py-1 text-xs bg-[var(--accent)] text-[var(--foreground)] rounded hover:bg-[var(--accent)]/80 transition-colors"
+              title="Нормализовать жанры/теги"
+            >
+              Нормализовать
+            </button>
+          )}
         </div>
         <input
           type="text"
