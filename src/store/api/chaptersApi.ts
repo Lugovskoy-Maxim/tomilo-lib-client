@@ -62,7 +62,7 @@ export const chaptersApi = createApi({
         sortOrder?: "asc" | "desc";
       }
     >({
-      query: ({ titleId, page = 1, limit = 50, sortOrder = "desc" }) => ({
+      query: ({ titleId, page = 1, limit = 1000, sortOrder = "desc" }) => ({
         url: `/chapters/title/${titleId}`,
         params: { page, limit, sortOrder },
       }),
