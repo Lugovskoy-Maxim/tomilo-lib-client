@@ -52,6 +52,7 @@ export const chaptersApi = createApi({
       query: ({ titleId, chapterNumber }) => `/chapters/by-number/${titleId}?chapterNumber=${chapterNumber}`,
     }),
 
+
     getChaptersByTitle: builder.query<
       ChaptersResponse,
       {
@@ -61,7 +62,7 @@ export const chaptersApi = createApi({
         sortOrder?: "asc" | "desc";
       }
     >({
-      query: ({ titleId, page = 1, limit = 25, sortOrder = "asc" }) => ({
+      query: ({ titleId, page = 1, limit = 50, sortOrder = "desc" }) => ({
         url: `/chapters/title/${titleId}`,
         params: { page, limit, sortOrder },
       }),
