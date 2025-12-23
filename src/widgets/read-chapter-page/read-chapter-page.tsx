@@ -18,13 +18,14 @@ import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
 
 
 
+
 import { 
   saveReadingPosition, 
   getReadingPosition, 
   scrollToPageWithCheck, 
   createDebouncedSave,
   createScrollDebounce,
-  getCurrentPage
+  getCurrentPageEnhanced
 } from "@/lib/reading-position";
 
 
@@ -67,9 +68,13 @@ export default function ReadChapterPage({
   const [, setHasTapped] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
 
+
   const [currentPage, setCurrentPage] = useState(1);
   const [imageWidth, setImageWidth] = useState(1200);
   const [isPositionRestored, setIsPositionRestored] = useState(false);
+
+  const [savedReadingPage, setSavedReadingPage] = useState<number | null>(null);
+  const [imageLoadPriority, setImageLoadPriority] = useState<Map<number, 'low' | 'medium' | 'high'>>(new Map());
 
   // Определение мобильного устройства
   const [isMobile, setIsMobile] = useState(false);
@@ -295,32 +300,58 @@ export default function ReadChapterPage({
 
 
 
+
   // Восстановление позиции чтения при загрузке компонента
   useEffect(() => {
     if (!titleId || !chapterId) return;
 
     const savedPosition = getReadingPosition(titleId, chapterId);
     if (savedPosition && savedPosition.page > 1) {
-      // Увеличенная задержка для полной загрузки изображений
+      // Сохраняем сохраненную позицию для поэтапной загрузки
+      setSavedReadingPage(savedPosition.page);
+      
+      // Быстрая прокрутка к сохраненной странице
       const timeoutId = setTimeout(async () => {
         try {
-          await scrollToPageWithCheck(savedPosition.page);
+          // Быстрая прокрутка без ожидания загрузки изображений
+          const pageElement = document.querySelector(`[data-page="${savedPosition.page}"]`);
+          if (pageElement) {
+            pageElement.scrollIntoView({
+              behavior: "auto", // Быстрая прокрутка
+              block: "center",
+            });
+          }
           setCurrentPage(savedPosition.page);
+          
+
+          // Устанавливаем приоритеты загрузки изображений
+          const priorities = new Map<number, 'low' | 'medium' | 'high'>();
+          chapter.images.forEach((_, index) => {
+            const pageNum = index + 1;
+            if (pageNum === savedPosition.page) {
+              priorities.set(pageNum, 'high'); // Текущая страница - высокий приоритет
+            } else if (pageNum < savedPosition.page) {
+              priorities.set(pageNum, 'low'); // Предыдущие страницы - низкий приоритет
+            } else {
+              priorities.set(pageNum, 'low'); // Следующие страницы - низкий приоритет (пока)
+            }
+          });
+          setImageLoadPriority(priorities);
+          
           setIsPositionRestored(true);
         } catch (error) {
           console.warn("Failed to restore reading position:", error);
-          // Fallback к обычной прокрутке
           setCurrentPage(1);
           setIsPositionRestored(true);
         }
-      }, 2000);
+      }, 100); // Значительно сокращаем задержку для быстрой прокрутки
 
       return () => clearTimeout(timeoutId);
     } else {
       // Если нет сохраненной позиции, сразу помечаем как восстановленное
       setIsPositionRestored(true);
     }
-  }, [titleId, chapterId]);
+  }, [titleId, chapterId, chapter.images]);
 
   // Создание дебаунс-функции для сохранения позиции
   const debouncedSavePosition = useMemo(
@@ -332,6 +363,7 @@ export default function ReadChapterPage({
 
 
 
+
   // Отслеживание текущей страницы с помощью улучшенного алгоритма
   useEffect(() => {
     const updateCurrentPage = () => {
@@ -340,12 +372,29 @@ export default function ReadChapterPage({
         return;
       }
 
-      const currentPageNum = getCurrentPage();
+      const currentPageNum = getCurrentPageEnhanced();
       setCurrentPage(currentPageNum);
       
       // Сохраняем позицию с debounce, только если страница больше 1
       if (currentPageNum > 1) {
         debouncedSavePosition(currentPageNum);
+      }
+      
+
+      // Обновляем приоритеты загрузки для новой текущей страницы
+      if (savedReadingPage && currentPageNum !== savedReadingPage) {
+        const priorities = new Map<number, 'low' | 'medium' | 'high'>();
+        chapter.images.forEach((_, index) => {
+          const pageNum = index + 1;
+          if (pageNum === currentPageNum) {
+            priorities.set(pageNum, 'high'); // Текущая страница - высокий приоритет
+          } else if (pageNum === savedReadingPage || Math.abs(pageNum - currentPageNum) <= 2) {
+            priorities.set(pageNum, 'medium'); // Недавно просмотренные страницы - средний приоритет
+          } else {
+            priorities.set(pageNum, 'low'); // Остальные - низкий приоритет
+          }
+        });
+        setImageLoadPriority(priorities);
       }
     };
 
@@ -366,7 +415,7 @@ export default function ReadChapterPage({
       window.removeEventListener("scroll", debouncedScrollHandler);
       window.removeEventListener("resize", updateCurrentPage);
     };
-  }, [chapter.images, debouncedSavePosition, isPositionRestored]);
+  }, [chapter.images, debouncedSavePosition, isPositionRestored, savedReadingPage]);
 
   const loading = !chapter;
 
@@ -538,15 +587,41 @@ export default function ReadChapterPage({
                         }`}
                         width={isMobile ? 1200 : imageWidth}
                         height={isMobile ? 1600 : Math.round((imageWidth * 1600) / 1200)}
+
+
                         className="w-full h-auto shadow-2xl"
-                        quality={85}
+
+                        quality={
+                          // Если есть приоритеты, используем разное качество
+                          imageLoadPriority.size > 0
+                            ? (() => {
+                                const priority = imageLoadPriority.get(imageIndex + 1);
+                                switch (priority) {
+                                  case 'high': return 85;    // Высокое качество
+                                  case 'medium': return 70;  // Среднее качество  
+                                  case 'low': return 60;     // Низкое качество
+                                  default: return 85;        // Fallback качество
+                                }
+                              })()
+                            : 85 // Fallback качество
+                        }
                         loading={
-                          imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"
+                          // Если есть приоритеты, используем их, иначе fallback к старой логике
+                          imageLoadPriority.size > 0
+                            ? imageLoadPriority.get(imageIndex + 1) === 'high' 
+                              ? "eager" 
+                              : "lazy"
+                            : imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"
                         }
                         onError={() =>
                           handleImageError(chapter._id, imageIndex)
                         }
-                        priority={imageIndex < (isMobile ? 3 : 1)}
+                        priority={
+                          // Если есть приоритеты, используем их, иначе fallback к старой логике
+                          imageLoadPriority.size > 0
+                            ? imageLoadPriority.get(imageIndex + 1) === 'high'
+                            : imageIndex < (isMobile ? 3 : 1)
+                        }
                       />
                     ) : (
                       <div className="w-full h-64 bg-[var(--card)] flex items-center justify-center">
