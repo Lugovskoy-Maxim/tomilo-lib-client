@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 
+
 import { useAuth } from "@/hooks/useAuth";
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import ReaderControls from "@/shared/reader/reader-controls";
-import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
 
 
 export default function ReadChapterPage({
@@ -26,10 +26,9 @@ export default function ReadChapterPage({
 }) {
   const router = useRouter();
 
+
   const { updateChapterViews, addToReadingHistory, isAuthenticated } =
     useAuth();
-
-  const [incrementChapterViews] = useIncrementChapterViewsMutation();
 
   const titleId = title._id;
   const chapterId = chapter._id;
@@ -112,6 +111,7 @@ export default function ReadChapterPage({
   }, [getImageUrl]);
 
 
+
   // Обновление просмотров и истории чтения
   useEffect(() => {
     if (!title?._id || !chapter?._id) return;
@@ -120,21 +120,15 @@ export default function ReadChapterPage({
 
     // Обновляем просмотры только один раз (для всех пользователей)
     if (!viewsUpdatedRef.current.has(chapterKey)) {
-      if (isAuthenticated) {
-        // Для авторизованных пользователей используем полную функцию с обновлением в БД
-        updateChapterViews(chapter._id, chapter.views)
-          .then(() => {
-            viewsUpdatedRef.current.add(chapterKey);
-          })
-          .catch(console.error);
-      } else {
-        // Для неавторизованных используем простую функцию увеличения просмотров
-        incrementChapterViews(chapter._id)
-          .then(() => {
-            viewsUpdatedRef.current.add(chapterKey);
-          })
-          .catch(console.error);
-      }
+      // Используем updateChapterViews для всех пользователей
+      updateChapterViews(chapter._id, chapter.views || 0)
+        .then(() => {
+          viewsUpdatedRef.current.add(chapterKey);
+        })
+        .catch((error) => {
+          console.error("Error updating chapter views:", error);
+          // Не перебрасываем ошибку, чтобы избежать бесконечных запросов
+        });
     }
 
     // Добавляем в историю чтения только для авторизованных пользователей
@@ -155,7 +149,6 @@ export default function ReadChapterPage({
     title._id,
     chapter.views,
     updateChapterViews,
-    incrementChapterViews,
     addToReadingHistory,
     isAuthenticated,
   ]);
