@@ -15,11 +15,16 @@ import { ReaderChapter } from "@/types/chapter";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import ReaderControls from "@/shared/reader/reader-controls";
 import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
+
+
+
 import { 
   saveReadingPosition, 
   getReadingPosition, 
-  scrollToPage, 
-  createDebouncedSave 
+  scrollToPageWithCheck, 
+  createDebouncedSave,
+  createScrollDebounce,
+  getCurrentPage
 } from "@/lib/reading-position";
 
 
@@ -61,8 +66,10 @@ export default function ReadChapterPage({
   const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
   const [, setHasTapped] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [imageWidth, setImageWidth] = useState(1200);
+  const [isPositionRestored, setIsPositionRestored] = useState(false);
 
   // Определение мобильного устройства
   const [isMobile, setIsMobile] = useState(false);
@@ -286,19 +293,32 @@ export default function ReadChapterPage({
   }, [lastScrollY]);
 
 
+
+
   // Восстановление позиции чтения при загрузке компонента
   useEffect(() => {
     if (!titleId || !chapterId) return;
 
     const savedPosition = getReadingPosition(titleId, chapterId);
     if (savedPosition && savedPosition.page > 1) {
-      // Задержка для полной загрузки изображений
-      const timeoutId = setTimeout(() => {
-        scrollToPage(savedPosition.page);
-        setCurrentPage(savedPosition.page);
-      }, 1000);
+      // Увеличенная задержка для полной загрузки изображений
+      const timeoutId = setTimeout(async () => {
+        try {
+          await scrollToPageWithCheck(savedPosition.page);
+          setCurrentPage(savedPosition.page);
+          setIsPositionRestored(true);
+        } catch (error) {
+          console.warn("Failed to restore reading position:", error);
+          // Fallback к обычной прокрутке
+          setCurrentPage(1);
+          setIsPositionRestored(true);
+        }
+      }, 2000);
 
       return () => clearTimeout(timeoutId);
+    } else {
+      // Если нет сохраненной позиции, сразу помечаем как восстановленное
+      setIsPositionRestored(true);
     }
   }, [titleId, chapterId]);
 
@@ -310,37 +330,43 @@ export default function ReadChapterPage({
     [titleId, chapterId]
   );
 
-  // Отслеживание текущей страницы с помощью scroll event + сохранение в localStorage
+
+
+  // Отслеживание текущей страницы с помощью улучшенного алгоритма
   useEffect(() => {
-    const handleScroll = () => {
-      const pageElements = document.querySelectorAll("[data-page]");
-      let maxVisible = 0;
-      let current = 1;
-      pageElements.forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        const visibleHeight = Math.max(
-          0,
-          Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0)
-        );
-        const visibleRatio = visibleHeight / rect.height;
-        if (visibleRatio > maxVisible) {
-          maxVisible = visibleRatio;
-          current = parseInt(el.getAttribute("data-page") || "1");
-        }
-      });
-      setCurrentPage(current);
+    const updateCurrentPage = () => {
+      // Не обновляем страницу сразу после восстановления позиции
+      if (!isPositionRestored) {
+        return;
+      }
+
+      const currentPageNum = getCurrentPage();
+      setCurrentPage(currentPageNum);
       
-      // Сохраняем позицию с debounce
-      if (current > 1) {
-        debouncedSavePosition(current);
+      // Сохраняем позицию с debounce, только если страница больше 1
+      if (currentPageNum > 1) {
+        debouncedSavePosition(currentPageNum);
       }
     };
 
-    handleScroll(); // initial update
+    // Обновляем сразу при загрузке, если позиция уже восстановлена
+    if (isPositionRestored) {
+      updateCurrentPage();
+    }
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [chapter.images, debouncedSavePosition]);
+    // Создаем debounced scroll handler
+    const debouncedScrollHandler = createScrollDebounce(updateCurrentPage, 150);
+
+    window.addEventListener("scroll", debouncedScrollHandler, { passive: true });
+    
+    // Также обновляем при изменении размера окна
+    window.addEventListener("resize", updateCurrentPage, { passive: true });
+    
+    return () => {
+      window.removeEventListener("scroll", debouncedScrollHandler);
+      window.removeEventListener("resize", updateCurrentPage);
+    };
+  }, [chapter.images, debouncedSavePosition, isPositionRestored]);
 
   const loading = !chapter;
 
