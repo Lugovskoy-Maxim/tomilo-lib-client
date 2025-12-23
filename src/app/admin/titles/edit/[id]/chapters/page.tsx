@@ -18,7 +18,7 @@ export default function ChaptersManagementPage() {
   const [foundChapter, setFoundChapter] = useState<Chapter | null>(null);
 
   const { data, isLoading, error } = useGetChaptersByTitleQuery(
-    { titleId, page: currentPage, limit: 50, sortOrder: "desc" },
+    { titleId, page: currentPage, limit: 100, sortOrder: "desc" },
     { skip: !titleId }
   );
   const [deleteChapter] = useDeleteChapterMutation();

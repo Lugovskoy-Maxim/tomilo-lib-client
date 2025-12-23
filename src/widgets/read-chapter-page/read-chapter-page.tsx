@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+
 
 
 
@@ -13,6 +15,12 @@ import { ReaderChapter } from "@/types/chapter";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import ReaderControls from "@/shared/reader/reader-controls";
 import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
+import { 
+  saveReadingPosition, 
+  getReadingPosition, 
+  scrollToPage, 
+  createDebouncedSave 
+} from "@/lib/reading-position";
 
 
 export default function ReadChapterPage({
@@ -277,7 +285,32 @@ export default function ReadChapterPage({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Отслеживание текущей страницы с помощью scroll event
+
+  // Восстановление позиции чтения при загрузке компонента
+  useEffect(() => {
+    if (!titleId || !chapterId) return;
+
+    const savedPosition = getReadingPosition(titleId, chapterId);
+    if (savedPosition && savedPosition.page > 1) {
+      // Задержка для полной загрузки изображений
+      const timeoutId = setTimeout(() => {
+        scrollToPage(savedPosition.page);
+        setCurrentPage(savedPosition.page);
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [titleId, chapterId]);
+
+  // Создание дебаунс-функции для сохранения позиции
+  const debouncedSavePosition = useMemo(
+    () => createDebouncedSave((page: number) => {
+      saveReadingPosition(titleId, chapterId, page);
+    }, 1000),
+    [titleId, chapterId]
+  );
+
+  // Отслеживание текущей страницы с помощью scroll event + сохранение в localStorage
   useEffect(() => {
     const handleScroll = () => {
       const pageElements = document.querySelectorAll("[data-page]");
@@ -296,13 +329,18 @@ export default function ReadChapterPage({
         }
       });
       setCurrentPage(current);
+      
+      // Сохраняем позицию с debounce
+      if (current > 1) {
+        debouncedSavePosition(current);
+      }
     };
 
     handleScroll(); // initial update
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [chapter.images]);
+  }, [chapter.images, debouncedSavePosition]);
 
   const loading = !chapter;
 
