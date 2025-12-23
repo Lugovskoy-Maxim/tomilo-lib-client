@@ -203,12 +203,24 @@ export const chaptersApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: CHAPTERS_TAG, id }],
     }),
 
+
     deleteChapter: builder.mutation<void, string>({
       query: (id) => ({ url: `/chapters/${id}`, method: "DELETE" }),
       invalidatesTags: [CHAPTERS_TAG],
     }),
+
+    // Увеличение счётчика просмотров главы (доступно без авторизации)
+    incrementChapterViews: builder.mutation<ApiResponseDto<Chapter>, string>({
+      query: (id) => ({
+        url: `/chapters/${id}/views`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, id) => [{ type: CHAPTERS_TAG, id }],
+      transformResponse: (response: ApiResponseDto<Chapter>) => response,
+    }),
   }),
 });
+
 
 export const {
   useGetChapterByIdQuery,
@@ -220,5 +232,6 @@ export const {
   useUpdateChapterMutation,
   useDeleteChapterMutation,
   useGetChapterByNumberQuery,
+  useIncrementChapterViewsMutation,
 } = chaptersApi;
 

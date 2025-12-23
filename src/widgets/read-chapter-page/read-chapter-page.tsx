@@ -4,11 +4,13 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+
 import { useAuth } from "@/hooks/useAuth";
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import ReaderControls from "@/shared/reader/reader-controls";
+import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
 
 
 export default function ReadChapterPage({
@@ -23,8 +25,11 @@ export default function ReadChapterPage({
   slug?: string;
 }) {
   const router = useRouter();
+
   const { updateChapterViews, addToReadingHistory, isAuthenticated } =
     useAuth();
+
+  const [incrementChapterViews] = useIncrementChapterViewsMutation();
 
   const titleId = title._id;
   const chapterId = chapter._id;
@@ -106,22 +111,35 @@ export default function ReadChapterPage({
     return `${imageUrl}?w=${width}`;
   }, [getImageUrl]);
 
+
   // Обновление просмотров и истории чтения
   useEffect(() => {
-    if (!title?._id || !chapter?._id || !isAuthenticated) return;
+    if (!title?._id || !chapter?._id) return;
 
     const chapterKey = `${title._id}-${chapter._id}`;
 
-    // Обновляем просмотры только один раз
+    // Обновляем просмотры только один раз (для всех пользователей)
     if (!viewsUpdatedRef.current.has(chapterKey)) {
-      updateChapterViews(chapter._id, chapter.views)
-        .then(() => {
-          viewsUpdatedRef.current.add(chapterKey);
-        })
-        .catch(console.error);
+      if (isAuthenticated) {
+        // Для авторизованных пользователей используем полную функцию с обновлением в БД
+        updateChapterViews(chapter._id, chapter.views)
+          .then(() => {
+            viewsUpdatedRef.current.add(chapterKey);
+          })
+          .catch(console.error);
+      } else {
+        // Для неавторизованных используем простую функцию увеличения просмотров
+        incrementChapterViews(chapter._id)
+          .then(() => {
+            viewsUpdatedRef.current.add(chapterKey);
+          })
+          .catch(console.error);
+      }
     }
 
-    // Добавляем в историю чтения только один раз
+    // Добавляем в историю чтения только для авторизованных пользователей
+    if (!isAuthenticated) return;
+
     if (!historyAddedRef.current.has(chapterKey)) {
       addToReadingHistory(title._id.toString(), chapter._id.toString())
         .then(() => {
@@ -137,6 +155,7 @@ export default function ReadChapterPage({
     title._id,
     chapter.views,
     updateChapterViews,
+    incrementChapterViews,
     addToReadingHistory,
     isAuthenticated,
   ]);
