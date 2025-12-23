@@ -16,7 +16,7 @@ export default function ChaptersManagementPage() {
 
   const { data: primary = [], isLoading } = useGetChaptersByTitleQuery({ titleId, sortOrder: "desc" }, { skip: !titleId });
   const { data: fallback, isLoading: isLoadingFallback } = useSearchChaptersQuery(
-    { titleId, limit: 200, sortBy: "chapterNumber", sortOrder: "desc" },
+    { titleId, sortBy: "chapterNumber", sortOrder: "desc" },
     { skip: !titleId }
   );
   const [deleteChapter] = useDeleteChapterMutation();
@@ -56,7 +56,7 @@ export default function ChaptersManagementPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Link href={`/admin/titles/edit/${titleId}`} className="px-3 py-2 rounded border">
-              Назад к тайтлу
+              Назад к редактированию тайтла
             </Link>
             <h1 className="text-2xl font-semibold text-[var(--foreground)]">Главы тайтла</h1>
           </div>
@@ -119,4 +119,3 @@ export default function ChaptersManagementPage() {
   </AuthGuard>
 );
 }
- 
