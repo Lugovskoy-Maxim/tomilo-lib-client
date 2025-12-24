@@ -26,7 +26,8 @@ import {
   scrollToPageWithCheck,
   createDebouncedSave,
   createScrollDebounce,
-  getCurrentPageEnhanced
+  getCurrentPageEnhanced,
+  clearOtherChaptersPositions
 } from "@/lib/reading-position";
 
 import AdBlockReading from "@/shared/ad-block/ad-block-reading";
@@ -215,12 +216,16 @@ export default function ReadChapterPage({
         case "ArrowLeft":
           if (currentChapterIndex > 0) {
             const prevChapter = chapters[currentChapterIndex - 1];
+            // Очищаем позиции чтения других глав перед переходом
+            clearOtherChaptersPositions(titleId, prevChapter._id);
             router.push(getChapterPath(prevChapter._id));
           }
           break;
         case "ArrowRight":
           if (currentChapterIndex < chapters.length - 1) {
             const nextChapter = chapters[currentChapterIndex + 1];
+            // Очищаем позиции чтения других глав перед переходом
+            clearOtherChaptersPositions(titleId, nextChapter._id);
             router.push(getChapterPath(nextChapter._id));
           }
           break;
@@ -464,12 +469,16 @@ export default function ReadChapterPage({
         onPrev={() => {
           if (currentChapterIndex > 0) {
             const prevChapter = chapters[currentChapterIndex - 1];
+            // Очищаем позиции чтения других глав перед переходом
+            clearOtherChaptersPositions(titleId, prevChapter._id);
             router.push(getChapterPath(prevChapter._id));
           }
         }}
         onNext={() => {
           if (currentChapterIndex < chapters.length - 1) {
             const nextChapter = chapters[currentChapterIndex + 1];
+            // Очищаем позиции чтения других глав перед переходом
+            clearOtherChaptersPositions(titleId, nextChapter._id);
             router.push(getChapterPath(nextChapter._id));
           }
         }}
@@ -665,6 +674,8 @@ export default function ReadChapterPage({
                   onClick={() => {
                     if (currentChapterIndex > 0) {
                       const prevChapter = chapters[currentChapterIndex - 1];
+                      // Очищаем позиции чтения других глав перед переходом
+                      clearOtherChaptersPositions(titleId, prevChapter._id);
                       router.push(getChapterPath(prevChapter._id));
                     }
                   }}
@@ -679,6 +690,8 @@ export default function ReadChapterPage({
                   onClick={() => {
                     if (currentChapterIndex < chapters.length - 1) {
                       const nextChapter = chapters[currentChapterIndex + 1];
+                      // Очищаем позиции чтения других глав перед переходом
+                      clearOtherChaptersPositions(titleId, nextChapter._id);
                       router.push(getChapterPath(nextChapter._id));
                     }
                   }}

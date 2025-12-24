@@ -73,6 +73,28 @@ export const clearReadingPosition = (titleId: string, chapterId: string): void =
 };
 
 /**
+ * Очистить позиции чтения для всех глав тайтла, кроме указанной главы
+ */
+export const clearOtherChaptersPositions = (titleId: string, currentChapterId: string): void => {
+  if (typeof window === "undefined") return;
+  
+  try {
+    const prefix = `reading-position-${titleId}-`;
+    const currentKey = getReadingPositionKey(titleId, currentChapterId);
+    
+    // Получаем все ключи из localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix) && key !== currentKey) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to clear other chapters positions:", error);
+  }
+};
+
+/**
  * Прокрутить до указанной страницы
  */
 export const scrollToPage = (page: number): void => {
