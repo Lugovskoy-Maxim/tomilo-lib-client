@@ -35,8 +35,8 @@ function escapeXml(unsafe: string): string {
     switch (c) {
       case '<': return '<';
       case '>': return '>';
-      case '&': return '&amp;';
-      case "'": return '&#39;';
+      case '&': return '&';
+      case "'": return "'";
       case '"': return '"';
       default: return c;
     }
@@ -244,7 +244,7 @@ export async function GET() {
     <title>TOMILO LIB - Новые тайтлы и главы</title>
     <description>RSS фид с новыми тайтлами и главами из библиотеки Tomilo-lib.ru</description>
     <link>${SITE_URL}</link>
-    <atom:link href="${SITE_URL}/api/rss" rel="self" type="application/rss+xml"/>
+    <atom:link href="${SITE_URL}/rss" rel="self" type="application/rss+xml"/>
     <language>ru</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <generator>Tomilo Library RSS Generator</generator>
