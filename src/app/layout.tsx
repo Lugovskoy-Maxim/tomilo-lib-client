@@ -25,7 +25,35 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
+
       <head>
+        {/* Favicon и иконки */}
+        <link rel="icon" type="image/x-icon" href="/favicons/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicons/favicon-48x48.png" />
+        <link rel="icon" type="image/png" sizes="64x64" href="/favicons/favicon-64x64.png" />
+        <link rel="icon" type="image/png" sizes="128x128" href="/favicons/favicon-128x128.png" />
+        <link rel="icon" type="image/png" sizes="256x256" href="/favicons/favicon-256x256.png" />
+        
+        {/* Apple Touch иконки */}
+        <link rel="apple-touch-icon" sizes="57x57" href="/favicons/apple-touch-icon-57x57.png" />
+        <link rel="apple-touch-icon" sizes="114x114" href="/favicons/apple-touch-icon-114x114.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/favicons/apple-touch-icon-120x120.png" />
+        <link rel="apple-touch-icon" href="/favicons/apple-touch-icon.png" />
+        
+        {/* PWA Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        
+        {/* Microsoft Tiles */}
+        <meta name="msapplication-TileColor" content="#000000" />
+        <meta name="msapplication-TileImage" content="/favicons/favicon-256x256.png" />
+        
+        {/* Тема и цвета */}
+        <meta name="theme-color" content="#000000" />
+        <meta name="msapplication-navbutton-color" content="#000000" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        
         <meta name="yandex-verification" content="8f2bae575aa86202" />
         <Script
           src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js"
