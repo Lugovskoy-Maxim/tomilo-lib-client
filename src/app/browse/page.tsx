@@ -1,7 +1,7 @@
 import { pageTitle } from "@/lib/page-title";
 import { Filters, SortBy, SortOrder } from "@/types/browse-page";
 import BrowsePageClient from "./browse-client";
-
+import { Metadata } from 'next';
 
 interface BrowsePageProps {
   searchParams: Promise<{
@@ -16,6 +16,72 @@ interface BrowsePageProps {
     sortOrder?: string;
     page?: string;
   }>;
+}
+
+// Функция для генерации метаданных страницы
+export async function generateMetadata({ searchParams }: BrowsePageProps): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams;
+  const initialFilters = getInitialFilters(resolvedSearchParams);
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://tomilo-lib.ru';
+  
+  // Формируем канонический URL - ведущий на /titles
+  const canonicalUrl = new URL('/titles', baseUrl);
+  
+  // Добавляем параметры поиска, если они есть
+  if (initialFilters.search) {
+    canonicalUrl.searchParams.set('search', initialFilters.search);
+  }
+  
+  // Добавляем другие параметры фильтрации
+  if (initialFilters.genres.length > 0) {
+    canonicalUrl.searchParams.set('genres', initialFilters.genres.join(','));
+  }
+  
+  if (initialFilters.types.length > 0) {
+    canonicalUrl.searchParams.set('types', initialFilters.types.join(','));
+  }
+  
+  if (initialFilters.status.length > 0) {
+    canonicalUrl.searchParams.set('status', initialFilters.status.join(','));
+  }
+  
+  if (initialFilters.ageLimits.length > 0) {
+    canonicalUrl.searchParams.set('ageLimits', initialFilters.ageLimits.join(','));
+  }
+  
+  if (initialFilters.releaseYears.length > 0) {
+    canonicalUrl.searchParams.set('releaseYears', initialFilters.releaseYears.join(','));
+  }
+  
+  if (initialFilters.tags.length > 0) {
+    canonicalUrl.searchParams.set('tags', initialFilters.tags.join(','));
+  }
+  
+  // Добавляем параметры сортировки
+  if (initialFilters.sortBy !== 'averageRating') {
+    canonicalUrl.searchParams.set('sortBy', initialFilters.sortBy);
+  }
+  
+  if (initialFilters.sortOrder !== 'desc') {
+    canonicalUrl.searchParams.set('sortOrder', initialFilters.sortOrder);
+  }
+  
+  // Добавляем номер страницы
+  if (resolvedSearchParams.page && resolvedSearchParams.page !== '1') {
+    canonicalUrl.searchParams.set('page', resolvedSearchParams.page);
+  }
+  
+  return {
+    title: initialFilters.search
+      ? `Поиск по названию: ${initialFilters.search}`
+      : "Каталог тайтлов",
+    description: initialFilters.search
+      ? `Результаты поиска по запросу: ${initialFilters.search}`
+      : "Каталог тайтлов на Tomilo-lib - читайте мангу, манхву и комиксы онлайн",
+    alternates: {
+      canonical: canonicalUrl.toString(),
+    },
+  };
 }
 
 // Основной серверный компонент страницы каталога

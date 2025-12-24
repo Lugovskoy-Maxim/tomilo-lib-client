@@ -53,6 +53,9 @@ export async function generateMetadata(
       title: `Читать ${titleName} - Tomilo-lib`,
       description: shortDescription,
       keywords: `${titleName}, ${titleData.genres?.join(', ')}, ${titleData.author}, ${titleData.artist}, манга, маньхуа, комиксы, онлайн чтение`,
+      alternates: {
+        canonical: `${baseUrl}/titles/${titleData.slug}`,
+      },
       openGraph: {
         title: `Читать ${titleName} -  Tomilo-lib`,
         description: shortDescription,
