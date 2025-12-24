@@ -1,6 +1,8 @@
 "use client";
 import { UserProfile } from "@/types/user";
 import { EditAvatarButton, ProfileAvatar, UserInfo } from "@/shared";
+import ProfileStats from "./profile-stats";
+import { CircleDollarSign } from "lucide-react";
 import { useState } from "react";
 import ProfileEditForm from "./profile-edit-form";
 import Modal from "@/shared/modal/modal";
@@ -42,40 +44,39 @@ export default function ProfileBanner({
             <EditAvatarButton onAvatarUpdate={onAvatarUpdate} />
           </div>
         </div>
-        {/* уровень пользователя */}
-        <div className="absolute flex items-center space-x-1 top-4 right-4">
-          {/* <ChevronsUp className="w-4 h-4" /> */}
-          <span className="flex justify-center items-center text-md gap-1">
-            {userProfile.level ? (
-              <div className=" flex justify-center items-center w-6 h-8 border border-[var(--border)] font-bold p-2 bg-[var(--chart-1)] rounded-lg text-[var(--primary-)] ">
-                {userProfile.level}
-              </div>
-            ) : (
-              <div className=" flex justify-center items-center w-6 h-8 border border-[var(--border)] font-bold p-2 bg-[var(--chart-1)] rounded-lg text-[var(--primary)] ">
-                0
-              </div>
-            )}{" "}
-            <p className="font-medium italic text-[var(--muted-foreground)]">
-              уровень
-            </p>
-          </span>
-        </div>
-        {/* опыт и баланс пользователя */}
-        <div className="absolute flex items-center space-x-2 top-4 left-4">
-          <span className="flex justify-center items-center text-sm gap-1">
-            <div className="flex justify-center items-center px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-2)] rounded-lg text-[var(--primary)]">
+        {/* Статистика пользователя в верхней части */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+          {/* Опыт и баланс */}
+          <div className="flex items-center space-x-2">
+            <div className="flex justify-center items-center px-3 py-1 border border-[var(--border)] font-medium bg-[var(--chart-2)] rounded-lg text-[var(--primary)] text-sm">
               {userProfile.experience || 0} XP
             </div>
-            <div className="flex justify-center items-center px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-3)] rounded-lg text-[var(--primary)]">
-              {userProfile.balance || 0} ₽
+            <div className="flex justify-center items-center px-3 py-1 border border-[var(--border)] font-medium bg-[var(--chart-3)] rounded-lg text-[var(--primary)] text-sm">
+              <CircleDollarSign className="w-4 h-4 mr-1" />
+              {userProfile.balance || 0}
             </div>
-          </span>
+          </div>
+          
+          {/* Уровень */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-[var(--muted-foreground)]">
+              Уровень
+            </span>
+            <div className="flex justify-center items-center w-8 h-8 border border-[var(--border)] font-bold bg-[var(--chart-1)] rounded-lg text-[var(--primary)]">
+              {userProfile.level || 0}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Нижняя часть - информация */}
       <div className="pt-2 pb-6 px-8">
         <UserInfo userProfile={userProfile} onEdit={handleEdit} />
+      </div>
+      
+      {/* Статистика пользователя */}
+      <div className="px-8 pb-6">
+        <ProfileStats userProfile={userProfile} />
       </div>
       
       <Modal

@@ -51,7 +51,6 @@ export default function ProfilePage() {
             onAvatarUpdate={handleAvatarUpdate}
             onUpdateProfile={handleUpdateProfile}
           />
-          {/* <ProfileStats userProfile={userProfile} /> */}
           <ProfileContent userProfile={userProfile} />
         </div>
 

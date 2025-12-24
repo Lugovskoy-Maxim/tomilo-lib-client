@@ -1,218 +1,98 @@
-import React from "react";
 import { UserProfile } from "@/types/user";
-
-// Определяем интерфейсы для всех типов данных
-interface Stats {
-  totalMangaRead: number;
-  totalChaptersRead: number;
-  readingTime: number;
-  favoriteGenres: string[];
-}
+import { BookOpen, Clock, Star, Trophy, CircleDollarSign } from "lucide-react";
 
 interface ProfileStatsProps {
-  userProfile?: UserProfile | null;
-  isLoading?: boolean;
+  userProfile: UserProfile;
 }
 
-interface SharedProfileStatsProps {
-  totalMangaRead: number;
-  totalChaptersRead: number;
-  readingTime: number;
-  favoriteGenres: string[];
-}
+export default function ProfileStats({ userProfile }: ProfileStatsProps) {
+  // Рассчитываем статистику
+  const totalReadingTime = userProfile.readingHistory?.reduce((total, item) => {
+    // Для каждого тайтла считаем количество прочитанных глав
+    return total + (item.chapters?.length || 0);
+  }, 0) || 0;
 
-interface StatCardProps {
-  title: string;
-  value: number;
-  unit: string;
-}
+  const totalBookmarks = userProfile.bookmarks?.length || 0;
+  
+  const totalChaptersRead = userProfile.readingHistory?.reduce((total, item) => {
+    return total + (item.chapters?.length || 0);
+  }, 0) || 0;
+  
+  const level = userProfile.level || 0;
+  
+  const experience = userProfile.experience || 0;
+  
+  const balance = userProfile.balance || 0;
 
-// Компонент статистики профиля
-export default function ProfileStats({ userProfile, isLoading = false }: ProfileStatsProps) {
-  const [stats, setStats] = React.useState<Stats | null>(null);
-  const [statsLoading, setStatsLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    if (userProfile && userProfile.readingHistory) {
-      calculateStatsAsync(userProfile);
+  // Форматирование времени чтения (примерное, предполагаем 2 минуты на главу)
+  const formatReadingTime = (chapters: number) => {
+    const minutes = chapters * 2; // Предполагаем 2 минуты на главу
+    if (minutes < 60) {
+      return `${minutes} мин`;
+    } else if (minutes < 1440) {
+      return `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
     } else {
-      setStats(getEmptyStats());
-    }
-  }, [userProfile]);
-
-  const calculateStatsAsync = async (userProfile: UserProfile) => {
-    setStatsLoading(true);
-    try {
-      const calculatedStats = await calculateStats(userProfile);
-      setStats(calculatedStats);
-    } catch (error) {
-      console.error('Error calculating stats:', error);
-      setStats(getEmptyStats());
-    } finally {
-      setStatsLoading(false);
+      const days = Math.floor(minutes / 1440);
+      const hours = Math.floor((minutes % 1440) / 60);
+      return `${days} д ${hours} ч`;
     }
   };
 
-  if (isLoading || statsLoading) {
-    return <ProfileStatsSkeleton />;
-  }
-
-  if (!stats) {
-    return (
-      <div className="profile-stats-empty p-6 text-center text-[var(--muted-foreground)]">
-        <p>Нет данных для отображения статистики</p>
-      </div>
-    );
-  }
-
-  return <SharedProfileStats {...stats} />;
-}
-
-// Компонент отображения статистики
-function SharedProfileStats({
-  totalMangaRead,
-  totalChaptersRead,
-  readingTime,
-  favoriteGenres
-}: SharedProfileStatsProps) {
   return (
-    <div className="profile-stats grid grid-cols-2 md:grid-cols-4 gap-4 py-2">
-      <StatCard
-        title="Прочитано манги"
-        value={totalMangaRead}
-        unit="шт"
-      />
-      <StatCard
-        title="Прочитано глав"
-        value={totalChaptersRead}
-        unit="глав"
-      />
-      <StatCard
-        title="Время чтения"
-        value={Math.round(readingTime / 60)}
-        unit="часов"
-      />
-      <div className="favorite-genres col-span-2 md:col-span-1">
-        <h3 className="text-sm font-medium text-[var(--muted-foreground)] mb-2">Любимые жанры</h3>
-        <div className="flex flex-wrap gap-1">
-          {favoriteGenres.slice(0, 3).map((genre, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 bg-[var(--primary)]/10 text-[var(--primary)] text-xs rounded-full"
-            >
-              {genre}
-            </span>
-          ))}
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 py-4">
+      {/* Уровень */}
+      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
+        <div className="flex items-center gap-2 mb-2">
+          <Trophy className="w-5 h-5 text-[var(--primary)]" />
+          <span className="text-sm font-medium text-[var(--muted-foreground)]">Уровень</span>
         </div>
+        <div className="text-2xl font-bold text-[var(--foreground)]">{level}</div>
       </div>
-    </div>
-  );
-}
 
-// Компонент карточки статистики
-function StatCard({ title, value, unit }: StatCardProps) {
-  return (
-    <div className="stat-card p-4 rounded-lg shadow-sm border border-[var(--border)]">
-      <h3 className="text-sm font-medium text-[var(--muted-foreground)] mb-1">{title}</h3>
-      <div className="flex items-baseline">
-        <span className="text-2xl font-bold text-[var(--muted-foreground)]">{value}</span>
-        <span className="text-sm text-[var(--muted-foreground)] ml-1">{unit}</span>
-      </div>
-    </div>
-  );
-}
-
-// Скелетон для состояния загрузки
-function ProfileStatsSkeleton() {
-  return (
-    <div className="profile-stats-skeleton grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-      {[...Array(4)].map((_, index) => (
-        <div key={index} className="stat-card bg-[var(--muted)] p-4 rounded-lg animate-pulse">
-          <div className="h-4 bg-[var(--muted)] rounded w-1/2 mb-2"></div>
-          <div className="h-6 bg-[var(--muted)] rounded w-1/3"></div>
+      {/* Опыт */}
+      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
+        <div className="flex items-center gap-2 mb-2">
+          <Star className="w-5 h-5 text-[var(--primary)]" />
+          <span className="text-sm font-medium text-[var(--muted-foreground)]">Опыт</span>
         </div>
-      ))}
+        <div className="text-2xl font-bold text-[var(--foreground)]">{experience}</div>
+      </div>
+
+      {/* Баланс */}
+      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
+        <div className="flex items-center gap-2 mb-2">
+          <CircleDollarSign className="w-5 h-5 text-[var(--primary)]" />
+          <span className="text-sm font-medium text-[var(--muted-foreground)]">Баланс</span>
+        </div>
+        <div className="text-2xl font-bold text-[var(--foreground)]">{balance}</div>
+      </div>
+
+      {/* Прочитанные главы */}
+      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
+        <div className="flex items-center gap-2 mb-2">
+          <BookOpen className="w-5 h-5 text-[var(--primary)]" />
+          <span className="text-sm font-medium text-[var(--muted-foreground)]">Глав</span>
+        </div>
+        <div className="text-2xl font-bold text-[var(--foreground)]">{totalChaptersRead}</div>
+      </div>
+
+      {/* Время чтения */}
+      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
+        <div className="flex items-center gap-2 mb-2">
+          <Clock className="w-5 h-5 text-[var(--primary)]" />
+          <span className="text-sm font-medium text-[var(--muted-foreground)]">Время</span>
+        </div>
+        <div className="text-2xl font-bold text-[var(--foreground)]">{formatReadingTime(totalChaptersRead)}</div>
+      </div>
+
+      {/* Закладки */}
+      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
+        <div className="flex items-center gap-2 mb-2">
+          <Star className="w-5 h-5 text-[var(--primary)]" />
+          <span className="text-sm font-medium text-[var(--muted-foreground)]">Закладки</span>
+        </div>
+        <div className="text-2xl font-bold text-[var(--foreground)]">{totalBookmarks}</div>
+      </div>
     </div>
   );
-}
-
-// Вспомогательные функции с правильной типизацией
-async function calculateStats(userProfile: UserProfile): Promise<Stats> {
-  if (!userProfile || !userProfile.readingHistory || userProfile.readingHistory.length === 0) {
-    return getEmptyStats();
-  }
-
-  const readingHistory = userProfile.readingHistory;
-
-  // Создаем Set для подсчета уникальных тайтлов
-  const uniqueMangaTitles = new Set<string>();
-  let totalChaptersRead = 0;
-  const genreCount: Record<string, number> = {};
-
-  // Проходим по истории чтения
-  for (const historyItem of readingHistory) {
-    // Определяем titleId
-    const titleId = historyItem.titleId ? (typeof historyItem.titleId === 'object' ? (historyItem.titleId as { _id: string })._id : historyItem.titleId) : null;
-    if (titleId) uniqueMangaTitles.add(titleId);
-
-    // Считаем главы
-    if (historyItem.chapters && Array.isArray(historyItem.chapters)) {
-      totalChaptersRead += historyItem.chapters.length;
-    }
-
-    // Получаем жанры для тайтла
-    try {
-      // Проверяем, что titleId не null или undefined перед выполнением запроса
-      if (!titleId) continue;
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_URL || 'http://localhost:3001'}/api/titles/${titleId}`);
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data && result.data.genres) {
-          result.data.genres.forEach((genre: string) => {
-            genreCount[genre] = (genreCount[genre] || 0) + 1;
-          });
-        }
-      }
-    } catch (error) {
-      console.error(`Error fetching genres for title ${titleId}:`, error);
-    }
-  }
-
-  // Определяем любимые жанры
-  const favoriteGenres = Object.entries(genreCount)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
-    .map(([genre]) => genre);
-
-  return {
-    totalMangaRead: uniqueMangaTitles.size,
-    totalChaptersRead,
-    readingTime: Math.round(totalChaptersRead * 15), // Предполагаем 15 минут на главу
-    favoriteGenres: favoriteGenres.length > 0 ? favoriteGenres : ["Популярное", "Новинки", "Рекомендуемое"],
-  };
-}
-
-function getEmptyStats(): Stats {
-  return {
-    totalMangaRead: 0,
-    totalChaptersRead: 0,
-    readingTime: 0,
-    favoriteGenres: [],
-  };
-}
-
-// Хук для использования статистики
-export function useProfileStats(userProfile?: UserProfile | null) {
-  const [stats, setStats] = React.useState<Stats | null>(null);
-
-  React.useEffect(() => {
-    if (userProfile && userProfile.readingHistory) {
-      calculateStats(userProfile).then(setStats).catch(() => setStats(getEmptyStats()));
-    } else {
-      setStats(getEmptyStats());
-    }
-  }, [userProfile]);
-
-  return stats;
 }
