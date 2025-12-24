@@ -31,7 +31,7 @@ export function ChaptersSection({
 
   // Get chapters for selected title
   const { data: chaptersResponse, isLoading } = useGetChaptersByTitleQuery(
-    { titleId: titleId!, page: currentPage, limit: 10000, sortOrder: "desc" },
+    { titleId: titleId!, page: currentPage, limit: 100, sortOrder: "desc" },
     { skip: !titleId }
   );
 
@@ -214,7 +214,7 @@ export function ChaptersSection({
                         <td className="p-4 text-[var(--foreground)]">
                           {chapter.title || "-"}
                         </td>
-                        {/* <td className="p-4">
+                        <td className="p-4">
                           <span
                             className={`px-2 py-1 rounded-full text-xs font-medium ${
                               chapter.status === "draft"
@@ -238,7 +238,7 @@ export function ChaptersSection({
                               ? "Скрыт"
                               : "Удален"}
                           </span>
-                        </td> */}
+                        </td>
                         <td className="p-4 text-[var(--foreground)]">
                           {chapter.isPublished ? "Да" : "Нет"}
                         </td>
@@ -285,6 +285,17 @@ export function ChaptersSection({
                   totalPages={chaptersResponse.totalPages}
                   onPageChange={handlePageChange}
                 />
+              </div>
+            )}
+            {chaptersResponse && chaptersResponse.hasMore && (
+              <div className="mt-6 p-4 bg-[var(--secondary)] rounded-lg flex justify-center">
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+                >
+                  {isLoading ? "Загрузка..." : "Загрузить ещё"}
+                </button>
               </div>
             )}
           </div>
