@@ -175,10 +175,10 @@ export const seoConfigs = {
     const titleName = titleData.name || titleData.title || 'Без названия';
     const shortDescription = titleData.description
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, '') + '...'
-      : `Читать ${titleName.toLowerCase()} онлайн. ${titleData.genres?.join(', ')}`;
+      : `Читать ${titleName} онлайн. ${titleData.genres?.join(', ')}`;
     
     return {
-      title: `${titleName} - Читать онлайн - Tomilo-lib.ru`,
+      title: `Читать ${titleName} - Tomilo-lib.ru`,
       description: shortDescription,
       keywords: `${titleName}, ${titleData.genres?.join(', ')}, ${titleData.author}, ${titleData.artist}, манга, маньхуа, комиксы, онлайн чтение`,
       image: titleData.coverImage || titleData.image,

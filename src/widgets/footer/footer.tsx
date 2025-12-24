@@ -84,7 +84,7 @@ export default function Footer() {
               <Logo />
               <p className="text-[var(--muted-foreground)] text-sm leading-relaxed md:text-base">
                 TOMILO-LIB — Современная платформа для чтения манги, манхвы и
-                маньхуя.
+                маньхуя. В случаях нарушения авторских прав - обращайтесь на почту.
               </p>
             </div>
 

@@ -1,12 +1,10 @@
 class PageTitleHelper {
-  private defaultTitle = 'Tomilo-lib.ru - Современная платформа для чтения маньхуя и комиксов';
+  private defaultTitle = 'Tomilo-lib.ru - Современная платформа для чтения манги, манхвы и маньхуя';
   private separator = ' | ';
 
   setTitle(title: string) {
     if (typeof document !== 'undefined') {
-      document.title = title;
-      // document.title = title + this.separator + this.defaultTitle;
-
+      document.title = title + this.separator + this.defaultTitle;
     }
   }
 
