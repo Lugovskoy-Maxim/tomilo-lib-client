@@ -63,6 +63,38 @@ function formatRssDate(dateString: string): string {
 // Cache for titles to avoid repeated API calls
 const titlesCache = new Map<string, TitleItem>();
 
+// Type guard to check if item is TitleItem
+function isTitleItem(item: RssItem): item is TitleItem {
+  return 'slug' in item && ('name' in item || 'title' in item);
+}
+
+// Type guard to check if item is ChapterItem
+function isChapterItem(item: RssItem): item is ChapterItem {
+  return 'chapterNumber' in item;
+}
+
+// Type for API response
+interface ApiTitleResponse {
+  _id: string;
+  name?: string;
+  title?: string;
+  slug?: string;
+  description?: string;
+  genres?: string[] | unknown[];
+  altNames?: string[] | unknown[];
+  type?: string;
+  totalChapters?: number;
+  createdAt: string;
+  chapters?: string[] | unknown[];
+}
+
+interface ApiResponse {
+  success: boolean;
+  data: {
+    titles: ApiTitleResponse[];
+  };
+}
+
 // Fetch recent titles (last 7 days)
 async function fetchRecentTitles(): Promise<TitleItem[]> {
   try {
@@ -90,7 +122,7 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
       return [];
     }
 
-    const data = await response.json();
+    const data: ApiResponse = await response.json();
     
     // Based on your curl output, the structure is: data.data.titles
     const titles = data?.data?.titles || [];
@@ -98,7 +130,7 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
 
     // Filter titles from last 7 days
     const recentTitles = titles
-      .filter((title: any) => {
+      .filter((title: ApiTitleResponse) => {
         if (!title || !title.createdAt) return false;
         
         try {
@@ -110,16 +142,34 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
           return false;
         }
       })
-      .map((title: any) => {
+      .map((title: ApiTitleResponse): TitleItem => {
+        // Normalize genres
+        let normalizedGenres: string[] = [];
+        if (Array.isArray(title.genres)) {
+          normalizedGenres = title.genres.map(g => String(g)).filter(g => g);
+        }
+        
+        // Normalize altNames
+        let normalizedAltNames: string[] = [];
+        if (Array.isArray(title.altNames)) {
+          normalizedAltNames = title.altNames.map(a => String(a)).filter(a => a);
+        }
+        
+        // Normalize type
+        let normalizedType: 'manga' | 'manhua' | 'manhwa' | undefined;
+        if (title.type === 'manga' || title.type === 'manhua' || title.type === 'manhwa') {
+          normalizedType = title.type;
+        }
+        
         const titleItem: TitleItem = {
           _id: String(title._id || ''),
           name: title.name ? String(title.name) : undefined,
           title: title.title ? String(title.title) : undefined,
           slug: title.slug ? String(title.slug) : undefined,
           description: title.description ? String(title.description) : undefined,
-          genres: Array.isArray(title.genres) ? title.genres.map(String) : undefined,
-          altNames: Array.isArray(title.altNames) ? title.altNames.map(String) : undefined,
-          type: title.type as 'manga' | 'manhua' | 'manhwa',
+          genres: normalizedGenres.length > 0 ? normalizedGenres : undefined,
+          altNames: normalizedAltNames.length > 0 ? normalizedAltNames : undefined,
+          type: normalizedType,
           totalChapters: title.totalChapters ? Number(title.totalChapters) : undefined,
           createdAt: String(title.createdAt || new Date().toISOString()),
         };
@@ -167,7 +217,7 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
       return [];
     }
 
-    const data = await response.json();
+    const data: ApiResponse = await response.json();
     const titles = data?.data?.titles || [];
     console.log('Number of titles for chapters:', titles.length);
 
@@ -179,10 +229,10 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
       if (Array.isArray(title.chapters) && title.chapters.length > 0) {
         const titleItem: TitleItem = {
           _id: String(title._id || ''),
-          name: title.name || title.title,
+          name: title.name || title.title || 'Unknown Title',
           slug: title.slug,
           description: title.description,
-          genres: title.genres,
+          genres: Array.isArray(title.genres) ? title.genres.map(g => String(g)) : undefined,
           createdAt: String(title.createdAt || new Date().toISOString()),
         };
         
@@ -192,7 +242,7 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
         // For each chapter ID, create a chapter item
         // Note: We're creating chapters based on IDs since we don't have a chapters endpoint
         // This is a limitation - we don't have actual chapter data, just IDs
-        title.chapters.slice(0, 5).forEach((chapterId: string, index: number) => {
+        title.chapters.slice(0, 5).forEach((chapterId: unknown, index: number) => {
           // Simulate chapter data (in reality, you'd need a chapters endpoint)
           const chapterItem: ChapterItem = {
             _id: String(chapterId),
@@ -319,12 +369,10 @@ export async function GET() {
     console.log('Total items in RSS feed:', allItems.length);
 
     // Generate RSS items
-    const rssItems = allItems.map((item: RssItem) => {
-      // Check if it's a title by looking for title-specific properties
-      const isTitle = 'slug' in item && ('name' in item || 'title' in item);
-      
-      if (isTitle) {
-        const title = item as TitleItem;
+    const rssItems = allItems.map((item: RssItem): string => {
+      // Use type guards to determine the type of item
+      if (isTitleItem(item)) {
+        const title = item;
         const titleName = title.name || title.title || 'Без названия';
         const titleSlug = title.slug || title._id;
         const titleUrl = `${SITE_URL}/titles/${titleSlug}`;
@@ -356,8 +404,8 @@ export async function GET() {
   ${title.type ? `<category>${escapeXml(title.type)}</category>` : ''}
   ${genres}
 </item>`;
-      } else {
-        const chapter = item as ChapterItem;
+      } else if (isChapterItem(item)) {
+        const chapter = item;
         const titleName = chapter.title?.name || 'Неизвестный тайтл';
         const titleSlug = chapter.title?.slug;
         const chapterUrl = titleSlug
@@ -384,6 +432,9 @@ export async function GET() {
   <category>${escapeXml(titleName)}</category>
 </item>`;
       }
+      
+      // This should never happen, but just in case
+      return '';
     });
 
     const rssXml = `<?xml version="1.0" encoding="UTF-8"?>
