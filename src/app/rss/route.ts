@@ -54,6 +54,7 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
   try {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    console.log('Seven days ago:', sevenDaysAgo.toISOString());
 
     const url = new URL('/titles', API_BASE);
     url.searchParams.set('sortBy', 'createdAt');
@@ -61,17 +62,28 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
     url.searchParams.set('limit', '100');
     url.searchParams.set('populate', 'true');
 
+    console.log('Fetching titles from:', url.toString());
     const response = await fetch(url.toString(), { cache: 'no-store' });
-    if (!response.ok) return [];
+    console.log('Titles response status:', response.status);
+    
+    if (!response.ok) {
+      console.warn('API not available for titles, returning empty array');
+      return [];
+    }
 
     const data = await response.json();
-    const titles = data?.data?.data || data?.data?.titles || [];
+    console.log('Titles data received:', JSON.stringify(data, null, 2));
+    const titles = data?.data?.titles || data?.data?.data || [];
+    console.log('Number of titles before filtering:', titles.length);
 
     // Filter titles from last 7 days
-    return titles
-      .filter((title: Record<string, unknown>) =>
-        title.createdAt && typeof title.createdAt === 'string' && new Date(title.createdAt) >= sevenDaysAgo
-      )
+    const recentTitles = titles
+      .filter((title: Record<string, unknown>) => {
+        const titleDate = new Date(title.createdAt as string);
+        const isRecent = title.createdAt && typeof title.createdAt === 'string' && titleDate >= sevenDaysAgo;
+        console.log(`Title ${title._id} date: ${title.createdAt}, isRecent: ${isRecent}`);
+        return isRecent;
+      })
       .map((title: Record<string, unknown>) => ({
         _id: String(title._id || ''),
         name: title.name ? String(title.name) : undefined,
@@ -81,6 +93,9 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
         genres: Array.isArray(title.genres) ? title.genres.map(String) : undefined,
         createdAt: String(title.createdAt || ''),
       }));
+      
+    console.log('Number of recent titles after filtering:', recentTitles.length);
+    return recentTitles;
   } catch (error) {
     console.error('Error fetching recent titles:', error);
     return [];
@@ -92,6 +107,7 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
   try {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    console.log('Seven days ago for chapters:', sevenDaysAgo.toISOString());
 
     const url = new URL('/chapters', API_BASE);
     url.searchParams.set('sortBy', 'createdAt');
@@ -99,19 +115,29 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
     url.searchParams.set('limit', '200');
     url.searchParams.set('populate', 'true');
 
+    console.log('Fetching chapters from:', url.toString());
     const response = await fetch(url.toString(), { cache: 'no-store' });
+    console.log('Chapters response status:', response.status);
+    
     if (!response.ok) {
       console.warn('API not available for chapters, returning empty array');
       return [];
     }
 
     const data = await response.json();
+    console.log('Chapters data received:', JSON.stringify(data, null, 2));
     const chapters = data?.data?.chapters || data?.data?.data || [];
+    console.log('Number of chapters before filtering:', chapters.length);
 
     // Filter chapters from last 7 days and get title info
-    const recentChapters = chapters.filter((chapter: Record<string, unknown>) =>
-      chapter.createdAt && typeof chapter.createdAt === 'string' && new Date(chapter.createdAt) >= sevenDaysAgo
-    );
+    const recentChapters = chapters.filter((chapter: Record<string, unknown>) => {
+      const chapterDate = new Date(chapter.createdAt as string);
+      const isRecent = chapter.createdAt && typeof chapter.createdAt === 'string' && chapterDate >= sevenDaysAgo;
+      console.log(`Chapter ${chapter._id} date: ${chapter.createdAt}, isRecent: ${isRecent}`);
+      return isRecent;
+    });
+
+    console.log('Number of recent chapters after filtering:', recentChapters.length);
 
     // Fetch title info for each chapter
     const chaptersWithTitles: ChapterItem[] = await Promise.all(
@@ -142,6 +168,7 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
       })
     );
 
+    console.log('Number of chapters with titles:', chaptersWithTitles.length);
     return chaptersWithTitles;
   } catch (error) {
     console.warn('Error fetching recent chapters, returning empty array:', error);
@@ -187,10 +214,15 @@ export async function GET() {
       ];
     }
 
+    console.log('Number of recent titles:', recentTitles.length);
+    console.log('Number of recent chapters:', recentChapters.length);
+    
     // Sort items by date (newest first) and limit to 100 most recent items
     const allItems: RssItem[] = [...recentTitles, ...recentChapters]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 100);
+      
+    console.log('Total items after sorting:', allItems.length);
 
     const sortedRssItems = allItems.map((item: RssItem) => {
       const isTitle = 'name' in item || 'title' in item;
