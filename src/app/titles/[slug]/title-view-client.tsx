@@ -30,22 +30,26 @@ export default function TitleViewClient({
 
   const titleId = titleData?._id as string;
 
-  // RTK Query hooks - загружаем все главы сразу
+  // RTK Query hooks - загружаем главы с пагинацией
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreChapters, setHasMoreChapters] = useState(true);
 
   const [incrementViews] = useIncrementViewsMutation();
 
-  // Load all chapters at once
+  // Load chapters with pagination
   const {
     data: chaptersData,
     isLoading: chaptersLoading,
     error: chaptersError,
+    isFetching,
   } = useGetChaptersByTitleQuery(
     {
       titleId,
-      page: 1,
-      limit: 10000, // Load all chapters
+      page: currentPage,
+      limit: 100, // Load 100 chapters per page
+      sortOrder,
     },
     {
       skip: !titleId, // Skip if no titleId
@@ -77,6 +81,13 @@ export default function TitleViewClient({
     return chaptersData.chapters;
   }, [chaptersData]);
 
+  // Эффект для обновления состояния hasMoreChapters
+  useEffect(() => {
+    if (chaptersData) {
+      setHasMoreChapters(chaptersData.hasMore);
+    }
+  }, [chaptersData]);
+
   // Состояние для активной вкладки
   const [activeTab, setActiveTab] = useState<
     "main" | "chapters" | "comments" 
@@ -103,7 +114,27 @@ export default function TitleViewClient({
   // Обработчик сортировки глав
   const handleSortChange = (order: "desc" | "asc") => {
     setSortOrder(order);
+    setCurrentPage(1); // Сброс на первую страницу при изменении сортировки
   };
+
+  // Обработчик загрузки еще глав
+  const handleLoadMoreChapters = () => {
+    if (hasMoreChapters && !isFetching) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  // Эффект для автоматической загрузки еще глав при прокрутке
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+        handleLoadMoreChapters();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMoreChapters, isFetching]);
 
   // Обработчик поделиться
   const handleShare = () => {
@@ -213,9 +244,9 @@ export default function TitleViewClient({
                   setIsDescriptionExpanded(!isDescriptionExpanded)
                 }
                 chapters={processedChaptersData}
-                hasMoreChapters={false}
+                hasMoreChapters={hasMoreChapters}
                 chaptersLoading={chaptersLoading}
-                onLoadMoreChapters={() => {}}
+                onLoadMoreChapters={handleLoadMoreChapters}
                 searchQuery={searchQuery}
                 onSearchChange={handleSearchChange}
                 sortOrder={sortOrder}
