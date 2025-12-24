@@ -3,22 +3,12 @@
 
 import { Footer, Header } from "@/widgets";
 import TitlesContent from "@/shared/browse/titles-content";
-import { useSEO } from "@/hooks/useSEO";
-import { useMemo } from "react";
 
 interface TitlesPageClientProps {
   searchQuery?: string;
 }
 
 export default function TitlesPageClient() {
-  // SEO для страницы каталога тайтлов
-  const seoConfig = useMemo(() => ({
-    title: "Каталог тайтлов - Tomilo-lib.ru",
-    description: "Просматривайте полный каталог манги, манхвы и маньхуа. Ищите по жанрам, годам выпуска, статусу и типу.",
-    keywords: "каталог манги, манхва, маньхуа, поиск по жанрам, онлайн чтение",
-  }), []);
-  useSEO(seoConfig);
-
   return (
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
