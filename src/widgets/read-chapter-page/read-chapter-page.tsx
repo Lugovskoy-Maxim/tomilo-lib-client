@@ -19,15 +19,17 @@ import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
 
 
 
-import { 
-  saveReadingPosition, 
-  getReadingPosition, 
-  scrollToPageWithCheck, 
+
+import {
+  saveReadingPosition,
+  getReadingPosition,
+  scrollToPageWithCheck,
   createDebouncedSave,
   createScrollDebounce,
   getCurrentPageEnhanced
 } from "@/lib/reading-position";
 
+import AdBlockReading from "@/shared/ad-block/ad-block-reading";
 
 export default function ReadChapterPage({
   title,
@@ -652,6 +654,9 @@ export default function ReadChapterPage({
               );
             })}
 
+
+            {/* Рекламный блок */}
+            <AdBlockReading />
 
             {/* Футер главы с кнопками навигации */}
             <div className="py-6 border-t border-[var(--border)] mt-8">

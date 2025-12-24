@@ -16,7 +16,7 @@ declare global {
   }
 }
 
-const AdBlock = () => {
+const AdBlockReading = () => {
   useEffect(() => {
     // Проверяем, что window.yaContextCb существует, иначе создаем
     if (typeof window !== "undefined") {
@@ -28,8 +28,9 @@ const AdBlock = () => {
           // Проверяем, что Ya.Context.AdvManager доступен
           if (typeof window.Ya !== "undefined" && window.Ya.Context && window.Ya.Context.AdvManager) {
             window.Ya.Context.AdvManager.render({
-              "blockId": "R-A-17803473-1",
-              "renderTo": "yandex_rtb_R-A-17803473-1"
+              blockId: "R-A-17803473-2",
+              renderTo: "yandex_rtb_R-A-17803473-2",
+              type: "feed"
             });
           } else {
             console.warn("Ya.Context.AdvManager is not available");
@@ -42,11 +43,11 @@ const AdBlock = () => {
   }, []);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4">
-      {/* Yandex.RTB R-A-17803473-1 */}
-      <div id="yandex_rtb_R-A-17803473-1" className="w-full"></div>
+    <div className="w-full flex justify-center my-6">
+      {/* Yandex.RTB R-A-17803473-2 */}
+      <div id="yandex_rtb_R-A-17803473-2" className="w-full max-w-2xl"></div>
     </div>
   );
 };
 
-export default AdBlock;
+export default AdBlockReading;
