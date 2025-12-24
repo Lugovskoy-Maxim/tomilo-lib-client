@@ -21,6 +21,7 @@ import { useStaticData } from "@/hooks/useStaticData";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import RandomTitlesComponent from "@/shared/random-titles/random-titles";
 import { getTitlePath } from "@/lib/title-paths";
+import AdBlock from "@/shared/ad-block/ad-block";
 
 // Компоненты скелетонов
 const CarouselSkeleton = () => (
@@ -157,6 +158,9 @@ export default function Home() {
 
           getItemPath={(item: any) => getTitlePath(item)}
         />
+
+        {/* Рекламный блок */}
+        <AdBlock />
 
         {/* Случайные тайтлы */}
         <RandomTitlesComponent
