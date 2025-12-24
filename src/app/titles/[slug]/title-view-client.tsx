@@ -132,8 +132,51 @@ export default function TitleViewClient({
     return <ErrorState error={"Тайтл не найден"} slug={slug} />;
   }
 
+  // Определяем тип тайтла для хлебных крошек
+  const titleType = titleData.type || 'other';
+  const typeLabels: Record<string, string> = {
+    'manga': 'Манга',
+    'manhwa': 'Манхва',
+    'manhua': 'Маньхуа',
+    'novel': 'Ранобэ',
+    'light_novel': 'Лайт-новелла',
+    'comic': 'Комикс',
+    'other': 'Другое'
+  };
+  const typeLabel = typeLabels[titleType] || 'Другое';
+
   return (
     <main className="relative min-h-screen bg-[var(--background)]">
+      {/* Микроразметка BreadcrumbList в формате JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Tomilo-lib.ru",
+                "item": "https://tomilo-lib.ru"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": typeLabel,
+                "item": `https://tomilo-lib.ru/titles?type=${titleType}`
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": titleData.name,
+                "item": `https://tomilo-lib.ru/titles/${titleData.slug}`
+              }
+            ]
+          })
+        }}
+      />
       <Header />
       <div className="container mx-auto px-4 lg:py-8 pb-20">
         <div className="max-w-7xl mx-auto">
