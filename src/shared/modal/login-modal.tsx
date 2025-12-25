@@ -146,7 +146,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           {
             client_id: "ffd24e1c16544069bc7a1e8c66316f37",
             response_type: "token",
-            redirect_uri: "https://tomilo-lib.ru/api/auth/yandex",
+            redirect_uri: "/auth/yandex",
           },
           tokenPageOrigin,
           {
