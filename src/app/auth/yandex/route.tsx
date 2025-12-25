@@ -15,7 +15,7 @@ export async function GET() {
         
         if (accessToken) {
             // Отправляем токен на сервер
-            fetch('api/auth/yandex-token', {
+            fetch('https://tomilo-lib.ru/api/auth/yandex-token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
