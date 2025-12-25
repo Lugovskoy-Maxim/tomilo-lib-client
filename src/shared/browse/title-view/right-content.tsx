@@ -2,6 +2,7 @@ import { Title, Chapter, RatingStat } from "@/types/title";
 import { User } from "@/types/auth";
 import { CommentEntityType } from "@/types/comment";
 import { CommentsSection } from "@/shared/comments/comments-section";
+import { timeAgo } from "@/lib/date-utils";
 
 import {
   ArrowUpToLine,
@@ -227,6 +228,13 @@ export function RightContent({
               <h2 className="text-xl font-bold mb-6 text-[var(--foreground)]">
                 Основная информация
               </h2>
+            </div>
+
+            <div className="text-center py-2 border-b border-[var(--border)]">
+              <p className="text-[var(--foreground)]/60">
+                Последнее обновление{" "}
+                {titleData?.updatedAt ? timeAgo(titleData.updatedAt) : "неизвестно"}
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
