@@ -29,36 +29,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const yandexButtonRef = useRef<HTMLDivElement>(null);
   const vkButtonRef = useRef<HTMLDivElement>(null);
-
-  // Обработчик для кастомной кнопки Яндекс авторизации
-  const handleYandexLogin = () => {
-    if (typeof window !== "undefined" && window.YaAuthSuggest) {
-      const tokenPageOrigin = window.location.origin;
-
-      window.YaAuthSuggest.init(
-        {
-          client_id: "ffd24e1c16544069bc7a1e8c66316f37",
-          response_type: "token",
-          redirect_uri: "https://tomilo-lib.ru/auth/yandex",
-        },
-        tokenPageOrigin,
-        {
-          view: "button",
-          parentId: "buttonContainerId",
-          buttonSize: "m",
-          buttonView: "main",
-          buttonTheme: "light",
-          buttonBorderRadius: "22",
-          buttonIcon: "ya",
-        }
-      )
-        .then(({ handler }) => handler())
-        .then((data) => console.log("Сообщение с токеном", data))
-        .catch((error) => console.log("Обработка ошибки", error));
-    } else {
-      console.log("YaAuthSuggest не доступен");
-    }
-  };
   const [touched, setTouched] = useState<FormTouched<LoginForm>>({
     email: false,
     password: false,
@@ -189,14 +159,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             buttonIcon: "ya",
           }
         )
-          .then((result: { handler: () => Promise<unknown> }) => {
-            // Создаем контейнер для кнопки
-            const container = document.createElement("div");
-            container.id = "yandexButtonContainer";
-            yandexButtonRef.current?.appendChild(container);
-
-            return result.handler();
-          })
+          .then(({ handler }) => handler())
           .then((data: unknown) => {
             // Явно типизируем data как объект с нужными полями
             const tokenData = data as {
@@ -209,19 +172,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
           .catch((error: { error: string; error_description: string }) => {
             console.log("Обработка ошибки", error);
           });
-      } else {
-        // Для локальной разработки показываем тестовую кнопку
-        if (yandexButtonRef.current) {
-          const testButton = document.createElement("button");
-          testButton.textContent = "Войти через Яндекс (локально)";
-          testButton.className =
-            "w-full py-3 bg-[var(--chart-5)] text-black rounded-lg font-medium hover:bg-red-700 transition-colors";
-          testButton.onclick = () => {
-            console.log("Тестовая авторизация через Яндекс");
-            // Здесь можно добавить тестовую авторизацию для локальной разработки
-          };
-          yandexButtonRef.current.appendChild(testButton);
-        }
       }
     }
   }, [isOpen]);
@@ -288,20 +238,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         } catch (error) {
           console.log("Ошибка инициализации VKID", error);
         }
-      } else {
-        // Для локальной разработки показываем тестовую кнопку
-        if (vkButtonRef.current) {
-          const testButton = document.createElement("button");
-          testButton.textContent = "Войти через ВКонтакте (локально)";
-          testButton.className =
-            "w-full py-3 bg-[#4A76A8] text-white rounded-lg font-medium hover:bg-[#426A95] transition-colors";
-          testButton.onclick = () => {
-            console.log("Тестовая авторизация через ВКонтакте");
-            // Здесь можно добавить тестовую авторизацию для локальной разработки
-          };
-          vkButtonRef.current.appendChild(testButton);
-        }
-      }
+      } 
     }
   }, [isOpen]);
 
@@ -472,8 +409,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
       {/* Контейнеры для кнопок авторизации */}
       <div className="px-6 py-2 space-y-3 relative">
-        <div id="buttonContainerId" className="flex justify-center"></div>
-        {/* <div ref={vkButtonRef} className="flex justify-center" /> */}
+        <div ref={yandexButtonRef} id="yandexButtonContainer" className="flex justify-center"></div>
+        <div ref={vkButtonRef} className="flex justify-center" />
       </div>
 
       <div className="p-6 border-t border-[var(--border)] text-center">
