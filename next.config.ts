@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     // Allow common mock/demo hosts
-    domains: ["127.0.0.1", "localhost", "tomilo-lib.ru"],
+    domains: [],
     qualities: [85],
     remotePatterns: [
       {
@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "mirai.senkuro.net",
+        hostname: "tomilo-lib.ru",
         pathname: "/**",
       },
     ],

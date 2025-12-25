@@ -29,6 +29,65 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const yandexButtonRef = useRef<HTMLDivElement>(null);
   const vkButtonRef = useRef<HTMLDivElement>(null);
+
+  // Обработчик для кастомной кнопки Яндекс авторизации
+  const handleYandexLogin = () => {
+    if (typeof window !== "undefined" && window.YaAuthSuggest) {
+      const tokenPageOrigin = window.location.origin;
+
+      window.YaAuthSuggest.init(
+        {
+          client_id: "ffd24e1c16544069bc7a1e8c66316f37",
+          response_type: "token",
+          redirect_uri: "https://tomilo-lib.ru/auth/yandex",
+        },
+        tokenPageOrigin,
+        {
+          view: "button",
+          parentId: "yandexButtonContainer",
+          buttonSize: "m",
+          buttonView: "main",
+          buttonTheme: "light",
+          buttonBorderRadius: "22",
+          buttonIcon: "ya",
+        }
+      )
+        .then((result: { handler: () => Promise<unknown> }) => {
+          // Создаем временный контейнер для кнопки
+          const container = document.createElement("div");
+          container.id = "yandexButtonContainer";
+          document.body.appendChild(container);
+
+          return result.handler();
+        })
+        .then((data: unknown) => {
+          // Явно типизируем data как объект с нужными полями
+          const tokenData = data as {
+            access_token: string;
+            expires_in: string;
+          };
+          console.log("Сообщение с токеном", tokenData);
+          // Здесь будет обработка токена авторизации
+          
+          // Удаляем временный контейнер
+          const container = document.getElementById("yandexButtonContainer");
+          if (container) {
+            container.remove();
+          }
+        })
+        .catch((error: { error: string; error_description: string }) => {
+          console.log("Обработка ошибки", error);
+          
+          // Удаляем временный контейнер в случае ошибки
+          const container = document.getElementById("yandexButtonContainer");
+          if (container) {
+            container.remove();
+          }
+        });
+    } else {
+      console.log("YaAuthSuggest не доступен");
+    }
+  };
   const [touched, setTouched] = useState<FormTouched<LoginForm>>({
     email: false,
     password: false,
@@ -185,7 +244,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           const testButton = document.createElement("button");
           testButton.textContent = "Войти через Яндекс (локально)";
           testButton.className =
-            "w-full py-3 bg-[#FFDB4D] text-black rounded-lg font-medium hover:bg-[#F0CA4D] transition-colors";
+            "w-full py-3 bg-[var(--chart-5)] text-black rounded-lg font-medium hover:bg-red-700 transition-colors";
           testButton.onclick = () => {
             console.log("Тестовая авторизация через Яндекс");
             // Здесь можно добавить тестовую авторизацию для локальной разработки
@@ -439,8 +498,20 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
       {/* Контейнеры для кнопок авторизации */}
       <div className="px-6 py-2 space-y-3 relative">
-        {/* <div ref={yandexButtonRef} className="flex justify-center" />
-        <div ref={vkButtonRef} className="flex justify-center" /> */}
+        <button
+          type="button"
+          onClick={handleYandexLogin}
+          className="w-full py-3 bg-red-500 text-[var(--secondary)] font-bold rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 0C5.376 0 0 5.376 0 12C0 18.624 5.376 24 12 24C18.624 24 24 18.624 24 12C24 5.376 18.624 0 12 0ZM12 21.6C6.696 21.6 2.4 17.304 2.4 12C2.4 6.696 6.696 2.4 12 2.4C17.304 2.4 21.6 6.696 21.6 12C21.6 17.304 17.304 21.6 12 21.6ZM12 6C8.688 6 6 8.688 6 12C6 15.312 8.688 18 12 18C15.312 18 18 15.312 18 12C18 8.688 15.312 6 12 6ZM12 15.6C9.984 15.6 8.4 14.016 8.4 12C8.4 9.984 9.984 8.4 12 8.4C14.016 8.4 15.6 9.984 15.6 12C15.6 14.016 14.016 15.6 12 15.6Z"
+              fill="black"
+            />
+          </svg>
+          Войти через Яндекс
+        </button>
+        {/* <div ref={vkButtonRef} className="flex justify-center" /> */}
       </div>
 
       <div className="p-6 border-t border-[var(--border)] text-center">
