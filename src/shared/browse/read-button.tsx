@@ -162,14 +162,16 @@ export function ReadButton({
   const displayShowIcon = isClient ? showIcon : true;
 
   return (
-    <Button
-      variant="primary"
-      className={`w-full cursor-pointer rounded-full hover:bg-[var(--chart-1)]/80 justify-center bg-[var(--chart-1)] text-[var(--foreground)] ${className}`}
-      onClick={handleClick}
-      disabled={isDisabled}
-    >
-      {displayShowIcon && <Play className="mr-2 h-5 w-5" />}
-      {displayButtonText}
-    </Button>
+    <>
+      <Button
+        variant="primary"
+        className={`w-full cursor-pointer rounded-full hover:bg-[var(--chart-1)]/80 justify-center bg-[var(--chart-1)] text-[var(--foreground)] ${className}`}
+        onClick={handleClick}
+        disabled={isDisabled}
+      >
+        {displayShowIcon && <Play className="mr-2 h-5 w-5" />}
+        {displayButtonText}
+      </Button>
+    </>
   );
 }

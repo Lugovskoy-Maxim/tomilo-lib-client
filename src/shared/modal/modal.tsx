@@ -35,7 +35,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-72px)]">
+        <div className="p-4 overflow-y-auto max-h-[calc(85vh-72px)]">
           {children}
         </div>
       </div>

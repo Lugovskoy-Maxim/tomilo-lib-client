@@ -382,10 +382,10 @@ export function RightContent({
               <button
                 onClick={handleAgeVerificationClick}
                 disabled={isAgeVerified}
-                className={`px-4 py-2 rounded-full transition-colors flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-full transition-colors flex items-center gap-2 animate-bounce bg-[var(--chart-1)] ${
                   isAgeVerified
                     ? "bg-[var(--muted)] text-[var(--muted-foreground)] cursor-not-allowed"
-                    : "bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--accent)]/80 cursor-pointer"
+                    : "bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--chart-5)]/80 cursor-pointer"
                 }`}
               >
                 {isAgeVerified ? (

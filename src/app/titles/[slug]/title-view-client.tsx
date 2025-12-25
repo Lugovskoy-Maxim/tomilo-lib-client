@@ -13,6 +13,7 @@ import ErrorState from "./error";
 import MobileCover from "@/shared/browse/title-view/mobile-cover";
 import { LeftSidebar } from "@/shared/browse/title-view/left-sidebar";
 import { RightContent } from "@/shared/browse/title-view/right-content";
+import { AgeVerificationModal } from "@/shared/modal/age-verification-modal";
 
 export default function TitleViewClient({
   slug,
@@ -20,6 +21,7 @@ export default function TitleViewClient({
   slug: string;
 }) {
   const { user } = useAuth();
+  const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
 
   // Получаем данные тайтла по slug
   const {
@@ -216,7 +218,7 @@ export default function TitleViewClient({
             chapters={allChaptersData?.chapters || processedChaptersData}
             onShare={handleShare}
             isAdmin={displayIsAdmin}
-            onAgeVerificationRequired={() => {}}
+            onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
           />
 
 
@@ -229,7 +231,7 @@ export default function TitleViewClient({
                   chapters={allChaptersData?.chapters || processedChaptersData}
                   onShare={handleShare}
                   isAdmin={displayIsAdmin}
-                  onAgeVerificationRequired={() => {}}
+                  onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
                 />
               </div>
             </div>
@@ -262,6 +264,17 @@ export default function TitleViewClient({
         </div>
       </div>
       <Footer />
+      
+      {/* Модальное окно для подтверждения возраста */}
+      <AgeVerificationModal
+        isOpen={isAgeModalOpen}
+        onConfirm={() => {
+          setIsAgeModalOpen(false);
+          // После подтверждения возраста, можно продолжить действие, которое требовало подтверждения
+          console.log("Возраст подтвержден");
+        }}
+        onCancel={() => setIsAgeModalOpen(false)}
+      />
     </main>
   );
 }

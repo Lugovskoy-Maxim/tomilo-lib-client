@@ -4,6 +4,8 @@ import Image from "next/image";
 import { Title, Chapter } from "@/types/title";
 import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
+import { useAuth } from "@/hooks/useAuth";
+import { checkAgeVerification } from "@/shared/modal/age-verification-modal";
 
 interface MobileCoverProps {
   titleData: Title;
@@ -20,6 +22,10 @@ export default function MobileCover({
   isAdmin,
   onAgeVerificationRequired,
 }: MobileCoverProps) {
+  const { user } = useAuth();
+  const isAdultContent = titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);
+  const isAgeVerified = checkAgeVerification(user);
+  const shouldBlurImage = isAdultContent && !isAgeVerified;
 
   return (
 
@@ -33,7 +39,7 @@ export default function MobileCover({
             width={300}
             height={450}
             unoptimized={true}
-            className="object-cover w-full h-auto rounded-xl"
+            className={`object-cover w-full h-auto rounded-xl ${shouldBlurImage ? 'blur-sm' : ''}`}
             priority
             sizes="(max-width: 640px) 90vw, (max-width: 768px) 50vw, 300px"
             style={{ aspectRatio: '2/3' }}
