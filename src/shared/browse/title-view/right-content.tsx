@@ -468,14 +468,14 @@ export function RightContent({
                 </div>
               ))}
             </div>
-
+            {/* 
             <button
               onClick={scrollToTop}
               className="fixed bottom-14 left-4 w-14 h-14 animate-pulse transition-all duration-800 flex items-center justify-center  bg-[var(--chart-1)] text-[var(--accent-foreground)] rounded-full shadow-lg hover:bg-[var(--accent)]/80"
               aria-label="Перемотать в верх"
             >
               <ArrowUpToLine className="w-6 h-6" />
-            </button>
+            </button> */}
           </div>
         );
 
