@@ -302,19 +302,6 @@ export function RightContent({
                       Просмотров
                     </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-[var(--foreground)]">
-                      {displayedChapters.length}
-                    </div>
-                    <div className="text-sm text-[var(--foreground)]/60">
-                      Глав
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {totalRatings > 0 && (
-                <div>
                   <div className="text-center mb-4">
                     <div className="text-xl font-bold text-[var(--foreground)]">
                       {totalRatings}
@@ -323,6 +310,12 @@ export function RightContent({
                       Всего оценок
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {totalRatings > 0 && (
+                <div>
+
 
                   {ratingStats.length > 0 && (
                     <div className="space-y-3">
