@@ -460,7 +460,7 @@ export function RightContent({
                       onClick={() =>
                         router.push(getChapterPathCallback(chapter._id))
                       }
-                      className="px-4 py-2 bg-[var(--accent)] cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--accent)]/80 transition-colors"
+                      className="px-4 py-2 bg-[var(--chart-1)]/80 cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)]/80 transition-colors"
                     >
                       Читать
                     </button>
@@ -471,7 +471,7 @@ export function RightContent({
 
             <button
               onClick={scrollToTop}
-              className="fixed bottom-4 right-4 w-14 h-14 animate-pulse transition-all duration-800 flex items-center justify-center  bg-[var(--chart-1)] text-[var(--accent-foreground)] rounded-full shadow-lg hover:bg-[var(--accent)]/80"
+              className="fixed bottom-14 left-4 w-14 h-14 animate-pulse transition-all duration-800 flex items-center justify-center  bg-[var(--chart-1)] text-[var(--accent-foreground)] rounded-full shadow-lg hover:bg-[var(--accent)]/80"
               aria-label="Перемотать в верх"
             >
               <ArrowUpToLine className="w-6 h-6" />
