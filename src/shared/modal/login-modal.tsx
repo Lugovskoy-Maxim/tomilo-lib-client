@@ -155,7 +155,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             parentId: "yandexButtonContainer",
             buttonSize: "m",
             buttonView: "main",
-            buttonTheme: "light",
+            buttonTheme: "dark",
             buttonBorderRadius: "22",
             buttonIcon: "ya",
           }
