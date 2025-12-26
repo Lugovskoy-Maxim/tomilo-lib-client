@@ -2,6 +2,7 @@
 import PopularCard, { CardProps } from "@/shared/popular-card/popular-card";
 
 
+
 interface GridTitle {
   id: string;
   slug?: string;
@@ -11,6 +12,7 @@ interface GridTitle {
   rating: number;
   image?: string;
   genres: string[];
+  isAdult?: boolean;
 }
 
 
@@ -20,6 +22,7 @@ interface TitleGridProps {
   isEmpty: boolean;
   onResetFilters: () => void;
 }
+
 
 
 // Функция для преобразования Title в CardProps
@@ -32,7 +35,7 @@ const titleToCardProps = (title: GridTitle): CardProps => ({
   rating: title.rating,
   image: title.image || '',
   genres: title.genres,
-  isAdult: false
+  isAdult: title.isAdult || false
 });
 
 
