@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     });
     
     // Устанавливаем cookie с токеном (в продакшене нужно настроить secure и httpOnly флаги)
-    response.cookies.set('access_token', access_token, {
+    response.cookies.set('tomilo_lib_token', access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24 * 7, // 1 неделя

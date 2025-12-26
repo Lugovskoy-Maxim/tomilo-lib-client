@@ -26,9 +26,15 @@ export async function GET() {
             .then(data => {
                 if (data.success) {
                     // Сохраняем токен в localStorage
-                    localStorage.setItem('access_token', data.data.access_token);
-                    // Перенаправляем пользователя в основное приложение
-                    window.location.href = '/'; // или другой URL вашего приложения
+                    localStorage.setItem('tomilo_lib_token', data.data.access_token);
+                    // Закрываем окно и обновляем opener
+                    if (window.opener) {
+                        window.opener.postMessage({ type: 'YANDEX_LOGIN_SUCCESS', token: data.data.access_token }, window.location.origin);
+                        window.close();
+                    } else {
+                        // Если нет opener, перенаправляем в основное приложение
+                        window.location.href = '/';
+                    }
                 } else {
                     console.error('Ошибка авторизации:', data.message);
                     // Отобразить ошибку пользователю

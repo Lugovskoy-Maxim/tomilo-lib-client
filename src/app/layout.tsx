@@ -155,7 +155,25 @@ export default function RootLayout({
       >
         <ToastProvider>
           <Providers>
-            <ThemeProvider>{children}</ThemeProvider>
+            <ThemeProvider>
+              {children}
+              {/* Обработчик сообщений от окна авторизации через Яндекс */}
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    window.addEventListener('message', function(event) {
+                      if (event.origin !== window.location.origin) return;
+                      if (event.data.type === 'YANDEX_LOGIN_SUCCESS') {
+                        // Обновляем localStorage с токеном
+                        localStorage.setItem('tomilo_lib_token', event.data.token);
+                        // Перезагружаем страницу для обновления состояния авторизации
+                        window.location.reload();
+                      }
+                    });
+                  `,
+                }}
+              />
+            </ThemeProvider>
           </Providers>
           <ToastContainer />
         </ToastProvider>
