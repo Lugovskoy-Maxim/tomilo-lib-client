@@ -9,7 +9,10 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { timeAgo } from "@/lib/date-utils";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
-import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import {
+  AgeVerificationModal,
+  checkAgeVerification,
+} from "@/shared/modal/age-verification-modal";
 
 interface LatestUpdateCardProps {
   data: {
@@ -91,7 +94,9 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               src={imageUrl}
               alt={data.title}
               fill
-              className={`object-cover ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
+              className={`object-cover ${
+                data.isAdult && !isAgeVerified ? "blur-sm" : ""
+              }`}
               sizes="64px"
               unoptimized
               onError={(e) => {
@@ -107,8 +112,6 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               </div>
             )}
           </div>
-
-
         </div>
 
         {/* Контент справа */}
@@ -123,7 +126,11 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
             </span>
           </div>
           {/* Заголовок */}
-          <h3 className={`font-medium text-[var(--primary)] line-clamp-1 leading-tight text-sm group-hover:text-[var(--chart-1)]/80 transition-colors ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}>
+          <h3
+            className={`font-medium text-[var(--primary)] line-clamp-1 leading-tight text-sm group-hover:text-[var(--chart-1)]/80 transition-colors ${
+              data.isAdult && !isAgeVerified ? "blur-sm" : ""
+            }`}
+          >
             {data.title}
           </h3>
 

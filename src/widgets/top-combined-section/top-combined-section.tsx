@@ -131,7 +131,11 @@ const CardItem = ({ item }: CardItemProps) => {
                 {item.year || "2025"}
               </span>
             </div>
-            <h4 className="text-[var(--primary)] font-medium group-hover:text-[var(--chart-1)]/80 transition-colors line-clamp-2">
+            <h4
+              className={`text-[var(--primary)] font-medium group-hover:text-[var(--chart-1)]/80 transition-colors line-clamp-2 ${
+                item.isAdult && !isAgeVerified ? "blur-sm" : ""
+              }`}
+            >
               {item.title}
             </h4>
             <div className="flex items-center justify-between mt-1">
@@ -184,7 +188,6 @@ const Column = ({
   showRating = false,
   showViews = true,
 }: ColumnProps) => {
-
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between mb-6">
@@ -217,7 +220,6 @@ const Column = ({
  * Компонент для отображения трех отдельных колонок: Топ 2025, Топ Манхв, Топ Маньхуа
  */
 export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
-
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-6">
       {/* Три отдельные колонки */}

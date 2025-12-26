@@ -139,7 +139,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           <span className="text-[9px] sm:text-[10px]">{data.year}</span>
         </div>
 
-        <h3 className="font-semibold text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-2 leading-tight mb-1">
+        <h3 className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-2 leading-tight mb-1`}>
           {data.title}
         </h3>
       </div>
