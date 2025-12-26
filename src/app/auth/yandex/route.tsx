@@ -35,27 +35,6 @@ export async function GET() {
                         // Если нет opener, перенаправляем в основное приложение
                         window.location.href = window.location.origin;
                     }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                    // Отправляем сообщение об ошибке в opener
-                    if (window.opener) {
-                        window.opener.postMessage({ type: 'YANDEX_LOGIN_ERROR', error: error.message }, '*');
-                        window.close();
-                    } else {
-                        document.body.innerHTML = '<h1>Ошибка авторизации</h1><p>Произошла ошибка при обработке авторизации.</p>';
-                    }
-                });
-            } else {
-                // Отправляем сообщение об ошибке в opener
-                if (window.opener) {
-                    window.opener.postMessage({ type: 'YANDEX_LOGIN_ERROR', error: 'Токен доступа не найден' }, '*');
-                    window.close();
-                } else {
-                    document.body.innerHTML = '<h1>Ошибка авторизации</h1><p>Токен доступа не найден.</p>';
-                }
-            }
-                    }
                 } else {
                     console.error('Ошибка авторизации:', data.message);
                     // Отобразить ошибку пользователю
