@@ -84,7 +84,7 @@ export default function Footer() {
               <Logo />
               <p className="text-[var(--muted-foreground)] text-sm leading-relaxed md:text-base">
                 TOMILO-LIB — Современная платформа для чтения манги, манхвы и
-                маньхуя. В случаях нарушения авторских прав - обращайтесь на почту.
+                маньхуя.
               </p>
             </div>
 
@@ -159,7 +159,7 @@ export default function Footer() {
                 <span>{currentYear} «Tomilo-lib.ru»</span>
               </div>
               <div className="text-xs bg-[var(--accent)] px-2 py-1 rounded border border-[var(--border)] whitespace-nowrap">
-                Версия 201225.072
+                Версия 261225.075
               </div>
             </div>
           </div>
