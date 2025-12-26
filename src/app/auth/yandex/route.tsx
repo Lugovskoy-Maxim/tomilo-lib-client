@@ -29,7 +29,7 @@ export async function GET() {
                     localStorage.setItem('tomilo_lib_token', data.data.access_token);
                     // Закрываем окно и обновляем opener
                     if (window.opener) {
-                        window.opener.postMessage({ type: 'YANDEX_LOGIN_SUCCESS', token: data.data.access_token }, window.location.origin);
+                        window.opener.postMessage({ type: 'YANDEX_LOGIN_SUCCESS', token: data.data.access_token }, '*');
                         window.close();
                     } else {
                         // Если нет opener, перенаправляем в основное приложение
@@ -40,7 +40,7 @@ export async function GET() {
                     console.error('Ошибка:', error);
                     // Отправляем сообщение об ошибке в opener
                     if (window.opener) {
-                        window.opener.postMessage({ type: 'YANDEX_LOGIN_ERROR', error: error.message }, window.location.origin);
+                        window.opener.postMessage({ type: 'YANDEX_LOGIN_ERROR', error: error.message }, '*');
                         window.close();
                     } else {
                         document.body.innerHTML = '<h1>Ошибка авторизации</h1><p>Произошла ошибка при обработке авторизации.</p>';
@@ -49,7 +49,7 @@ export async function GET() {
             } else {
                 // Отправляем сообщение об ошибке в opener
                 if (window.opener) {
-                    window.opener.postMessage({ type: 'YANDEX_LOGIN_ERROR', error: 'Токен доступа не найден' }, window.location.origin);
+                    window.opener.postMessage({ type: 'YANDEX_LOGIN_ERROR', error: 'Токен доступа не найден' }, '*');
                     window.close();
                 } else {
                     document.body.innerHTML = '<h1>Ошибка авторизации</h1><p>Токен доступа не найден.</p>';
