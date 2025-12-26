@@ -11,9 +11,11 @@ import {
 import { LoadingSkeleton } from "@/shared";
 import { Title } from "@/types/title";
 import Image from "next/image";
-import { Eye } from "lucide-react";
+import { Eye, Star } from "lucide-react";
 import { getTitlePath } from "@/lib/title-paths";
+
 import Script from "next/script";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 interface CollectionDetailsClientProps {
   collectionId: string;
@@ -106,7 +108,7 @@ export default function CollectionDetailsClient({
   }
 
   return (
-    <main className="flex flex-col h-full min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+    <main className="flex flex-col h-full min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] mb-10">
       <Header />
 
 
@@ -150,30 +152,83 @@ export default function CollectionDetailsClient({
           )}
         </div>
 
+
         {/* Сетка тайтлов */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+        <div className="pb-6 grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5">
           {collection.titles?.map((title: Title) => (
             <div
               key={title._id}
               onClick={() => router.push(getTitlePath({ id: title._id, slug: title.slug }))}
-              className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-2 sm:p-3 lg:p-4 hover:border-[var(--primary)] transition-colors cursor-pointer group"
+              className="bg-[var(--card)] max-h-[580px] overflow-hidden rounded-lg border border-[var(--border)] p-2 sm:p-3 lg:p-4 hover:border-[var(--primary)] transition-colors cursor-pointer group relative"
             >
-              <div className="aspect-[3/4] mb-2 sm:mb-3 overflow-hidden rounded">
+              {/* Рейтинг */}
+              {(
+                <div className="absolute flex gap-1 top-2 left-2 z-10 bg-[var(--muted)] text-[var(--primary)]  text-xs font-bold px-2 py-1 rounded-md shadow-lg">
+                  <Eye className="w-4 h-4" />
+                  {title.views?.toFixed(0) || 0}
+                </div>
+              )}
+
+
+              {/* Рейтинг */}
+              {(
+                <div className="absolute gap-1 flex top-2 right-2 z-10 bg-[var(--muted)] text-[var(--primary)] text-xs font-bold p-1 rounded-md shadow-lg">
+                  <Star className="w-4 h-4" />
+                  {title.averageRating?.toFixed(1) || 0}
+                </div>
+              )}
+              
+              <div className="aspect-[3/4] mb-2 sm:mb-3 overflow-hidden rounded relative">
                 <Image
                   loader={() => normalizeImageUrl(title?.coverImage? title?.coverImage : "")}
                   src={normalizeImageUrl(title?.coverImage? title?.coverImage : "")}
                   alt={title.name}
                   width={280}
                   height={380}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                    title.ageLimit == 18  ? "blur-md" : ""
+                  }`}
                 />
+                {/* Overlay для блюра взрослого контента */}
+                {title.ageLimit == 18  && (
+                  <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] flex items-center justify-center">
+                    <div className="text-white text-sm font-bold bg-red-600 px-3 py-1 rounded">
+                      18+
+                    </div>
+                  </div>
+                )}
               </div>
-              <h3 className="font-semibold text-[var(--muted-foreground)] truncate text-sm sm:text-base">
+              
+              <h3 className={`font-semibold text-[var(--muted-foreground)] truncate text-sm sm:text-base ${
+                title.ageLimit == 18  ? "blur-sm" : ""
+              }`}>
                 {title.name}
               </h3>
+              
+              {/* Метаданные тайтла */}
+              <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-1">
+                {title.releaseYear && (
+                  <span className="bg-[var(--secondary)] px-2 py-0.5 rounded">
+                    {title.releaseYear}
+                  </span>
+                )}
+
+
+                {title.type && (
+                  <span className="bg-[var(--secondary)] px-2 py-0.5 rounded">
+                    {translateTitleType(String(title.type))}
+                  </span>
+                )}
+              </div>
+              
               {title.description && (
-                <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2 hidden sm:block">
-                  {title.description}
+                <p className={`text-xs sm:text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2 hidden sm:block ${
+                  title.ageLimit == 18  ? "blur-sm" : ""
+                }`}>
+                  {title.description.length > 100 
+                    ? `${title.description.substring(0, 100)}...` 
+                    : title.description
+                  }
                 </p>
               )}
             </div>
