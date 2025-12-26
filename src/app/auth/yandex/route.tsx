@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function GET() {
   const html = `<!DOCTYPE html>
@@ -25,6 +25,8 @@ export async function GET() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                // Сохраняем токен в localStorage
+                    localStorage.setItem('tomilo_lib_token', data.data.access_token);
                     // Закрываем окно и обновляем opener
                     if (window.opener) {
                         window.opener.postMessage({ type: 'YANDEX_LOGIN_SUCCESS', token: data.data.access_token }, '*');
@@ -52,7 +54,7 @@ export async function GET() {
 
   return new NextResponse(html, {
     headers: {
-      'Content-Type': 'text/html; charset=utf-8',
+      "Content-Type": "text/html; charset=utf-8",
     },
   });
 }
