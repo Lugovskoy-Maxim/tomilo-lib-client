@@ -46,12 +46,12 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
 
     // Формируем метаданные
     const metadata: Metadata = {
-      title: `${collectionName} - Tomilo-lib.ru`,
+      title: `Посмотрите коллекцию "${collectionName}" - Tomilo-lib.ru`,
       description: description,
 
       keywords: `${collectionName}, коллекция, тайтлы, манга, маньхуа, комиксы, онлайн чтение, ${collectionData.titles?.slice(0, 5).map((title: { name: string }) => title.name).join(', ')}`,
       openGraph: {
-        title: `${collectionName} - Tomilo-lib.ru`,
+        title: `Посмотрите коллекцию "${collectionName}" - Tomilo-lib.ru`,
         description: description,
         type: 'website',
         url: `${baseUrl}/collections/${id}`,
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${collectionName} - Tomilo-lib.ru`,
+        title: `Посмотрите коллекцию "${collectionName}" - Tomilo-lib.ru`,
         description: description,
         images: [image],
       },

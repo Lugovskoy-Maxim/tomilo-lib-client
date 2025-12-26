@@ -152,6 +152,7 @@ export default function HomeClient() {
           error={randomTitles.error}
         />
 
+
         {/* Коллекции */}
         <DataCarousel
           title="Коллекции по темам"
@@ -166,6 +167,7 @@ export default function HomeClient() {
           icon={<LibraryIcon className="w-6 h-6" />}
           showNavigation={false}
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
+          // getItemPath={(item: any) => `/collections/${item.id}`}
         />
 
         {/* Объединенная секция топ манхв, маньхуа и новинок 2025 */}

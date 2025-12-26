@@ -18,7 +18,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
   pageTitle.setTitlePage(
     initialFilters.search
       ? `Поиск коллекций: ${initialFilters.search}`
-      : "Коллекции"
+      : "Просмотрите все доступные коллекции тайтлов - Tomilo-lib.ru"
   );
 
   return <CollectionsPageClient searchQuery={initialFilters.search} />;
