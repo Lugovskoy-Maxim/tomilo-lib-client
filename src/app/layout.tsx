@@ -166,6 +166,11 @@ export default function RootLayout({
                       if (event.data.type === 'YANDEX_LOGIN_SUCCESS') {
                         // Обновляем localStorage с токеном
                         localStorage.setItem('tomilo_lib_token', event.data.token);
+                        // Закрываем модальные окна логина и регистрации если они открыты
+                        const loginModal = document.getElementById('login-modal');
+                        const registerModal = document.getElementById('register-modal');
+                        if (loginModal) loginModal.style.display = 'none';
+                        if (registerModal) registerModal.style.display = 'none';
                         // Перезагружаем страницу для обновления состояния авторизации
                         window.location.reload();
                       } else if (event.data.type === 'YANDEX_LOGIN_ERROR') {
