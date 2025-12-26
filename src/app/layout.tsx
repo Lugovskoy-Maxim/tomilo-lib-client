@@ -168,6 +168,10 @@ export default function RootLayout({
                         localStorage.setItem('tomilo_lib_token', event.data.token);
                         // Перезагружаем страницу для обновления состояния авторизации
                         window.location.reload();
+                      } else if (event.data.type === 'YANDEX_LOGIN_ERROR') {
+                        // Обрабатываем ошибку авторизации
+                        console.error('Ошибка авторизации через Яндекс:', event.data.error);
+                        // Здесь можно добавить отображение ошибки пользователю
                       }
                     });
                   `,
