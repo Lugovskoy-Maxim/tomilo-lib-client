@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { useLoginMutation } from "@/store/api/authApi";
+import { useLoginMutation, useYandexAuthMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm, FormErrors, FormTouched } from "../../types/form";
 import { Input, Modal } from "..";
@@ -36,6 +36,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
   // Используем RTK Query для логина
   const [loginMutation, { isLoading, error }] = useLoginMutation();
+  const [yandexAuthMutation] = useYandexAuthMutation();
   const { login: authLogin } = useAuth();
 
   const validate = {
@@ -160,14 +161,31 @@ const LoginModal: React.FC<LoginModalProps> = ({
           }
         )
           .then(({ handler }) => handler())
-          .then((data: unknown) => {
+          .then(async (data: unknown) => {
             // Явно типизируем data как объект с нужными полями
             const tokenData = data as {
               access_token: string;
               expires_in: string;
             };
             console.log("Сообщение с токеном", tokenData);
-            // Здесь будет обработка токена авторизации
+
+            try {
+              // Отправляем токен на сервер для авторизации
+              const response = await yandexAuthMutation({
+                access_token: tokenData.access_token,
+              }).unwrap();
+
+              // Сохраняем в Redux store и localStorage через useAuth хук
+              authLogin(response);
+
+              // Вызываем колбэк успешной авторизации
+              onAuthSuccess(response);
+
+              // Закрываем модальное окно
+              onClose();
+            } catch (error) {
+              console.error("Ошибка авторизации через Яндекс:", error);
+            }
           })
           .catch((error: { error: string; error_description: string }) => {
             console.log("Обработка ошибки", error);

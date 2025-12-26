@@ -49,6 +49,15 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
+    yandexAuth: builder.mutation<ApiResponseDto<AuthResponse>, { access_token: string }>({
+      query: ({ access_token }) => ({
+        url: "/auth/yandex-token",
+        method: "POST",
+        body: { access_token },
+      }),
+      invalidatesTags: ["Auth"],
+    }),
+
     // Профиль пользователя
     getProfile: builder.query<ApiResponseDto<User>, void>({
       query: () => "/users/profile",
@@ -149,6 +158,7 @@ export const authApi = createApi({
 export const {
   useLoginMutation,
   useRegisterMutation,
+  useYandexAuthMutation,
   useGetProfileQuery,
   useUpdateProfileMutation,
   useUpdateAvatarMutation,
