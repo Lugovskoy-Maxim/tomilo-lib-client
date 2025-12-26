@@ -194,6 +194,27 @@ const LoginModal: React.FC<LoginModalProps> = ({
     }
   }, [isOpen]);
 
+  // Проверка наличия токена в localStorage для автоматического закрытия модального окна
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const checkToken = () => {
+      const token = localStorage.getItem("tomilo_lib_token");
+      if (token) {
+        // Токен появился, закрываем модальное окно
+        onClose();
+      }
+    };
+
+    // Проверяем токен сразу
+    checkToken();
+
+    // Устанавливаем интервал для периодической проверки
+    const interval = setInterval(checkToken, 1000); // Проверяем каждую секунду
+
+    return () => clearInterval(interval);
+  }, [isOpen, onClose]);
+
   // Инициализация виджета VK авторизации
   useEffect(() => {
     if (isOpen && vkButtonRef.current) {
@@ -256,7 +277,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         } catch (error) {
           console.log("Ошибка инициализации VKID", error);
         }
-      } 
+      }
     }
   }, [isOpen]);
 
@@ -427,7 +448,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
       {/* Контейнеры для кнопок авторизации */}
       <div className="px-6 py-2 space-y-3 relative">
-        <div ref={yandexButtonRef} id="yandexButtonContainer" className="flex justify-center"></div>
+        <div
+          ref={yandexButtonRef}
+          id="yandexButtonContainer"
+          className="flex justify-center"
+        ></div>
         <div ref={vkButtonRef} className="flex justify-center" />
       </div>
 
