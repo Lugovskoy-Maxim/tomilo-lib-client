@@ -4,7 +4,10 @@ import { Footer, Header } from "@/widgets";
 import { useState, useEffect, useMemo } from "react";
 import { Title } from "@/types/title";
 
-import { useIncrementViewsMutation, useGetTitleBySlugQuery } from "@/store/api/titlesApi";
+import {
+  useIncrementViewsMutation,
+  useGetTitleBySlugQuery,
+} from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,11 +18,7 @@ import { LeftSidebar } from "@/shared/browse/title-view/left-sidebar";
 import { RightContent } from "@/shared/browse/title-view/right-content";
 import { AgeVerificationModal } from "@/shared/modal/age-verification-modal";
 
-export default function TitleViewClient({
-  slug,
-}: {
-  slug: string;
-}) {
+export default function TitleViewClient({ slug }: { slug: string }) {
   const { user } = useAuth();
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
 
@@ -32,29 +31,75 @@ export default function TitleViewClient({
 
   const titleId = titleData?._id as string;
 
-  // RTK Query hooks - загружаем главы с пагинацией
+  // RTK Query hooks - загружаем все главы сразу
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMoreChapters, setHasMoreChapters] = useState(true);
 
   const [incrementViews] = useIncrementViewsMutation();
 
-  // Load chapters with pagination
+  // Load all chapters - try multiple pages if needed
   const {
     data: chaptersData,
     isLoading: chaptersLoading,
     error: chaptersError,
-    isFetching,
   } = useGetChaptersByTitleQuery(
     {
       titleId,
-      page: currentPage,
-      limit: 100, // Load 100 chapters per page
+      page: 1,
+      limit: 10000, // Use backend's max limit per page
       sortOrder,
     },
     {
       skip: !titleId, // Skip if no titleId
+    }
+  );
+
+  // Load additional pages if there are more chapters
+  const { data: chaptersDataPage2 } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: 2,
+      limit: 100,
+      sortOrder,
+    },
+    {
+      skip: !titleId || !chaptersData?.hasMore,
+    }
+  );
+
+  const { data: chaptersDataPage3 } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: 3,
+      limit: 100,
+      sortOrder,
+    },
+    {
+      skip: !titleId || !chaptersDataPage2?.hasMore,
+    }
+  );
+
+  const { data: chaptersDataPage4 } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: 4,
+      limit: 100,
+      sortOrder,
+    },
+    {
+      skip: !titleId || !chaptersDataPage3?.hasMore,
+    }
+  );
+
+  const { data: chaptersDataPage5 } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: 5,
+      limit: 100,
+      sortOrder,
+    },
+    {
+      skip: !titleId || !chaptersDataPage4?.hasMore,
     }
   );
 
@@ -63,11 +108,59 @@ export default function TitleViewClient({
     {
       titleId: titleId as string,
       page: 1,
-      limit: 1000, // Load all chapters for ReadButton
+      limit: 100, // Use backend's max limit per page
       sortOrder: "asc",
     },
     {
       skip: !titleId, // Skip if no titleId
+    }
+  );
+
+  const { data: allChaptersDataPage2 } = useGetChaptersByTitleQuery(
+    {
+      titleId: titleId as string,
+      page: 2,
+      limit: 100,
+      sortOrder: "asc",
+    },
+    {
+      skip: !titleId || !allChaptersData?.hasMore,
+    }
+  );
+
+  const { data: allChaptersDataPage3 } = useGetChaptersByTitleQuery(
+    {
+      titleId: titleId as string,
+      page: 3,
+      limit: 100,
+      sortOrder: "asc",
+    },
+    {
+      skip: !titleId || !allChaptersDataPage2?.hasMore,
+    }
+  );
+
+  const { data: allChaptersDataPage4 } = useGetChaptersByTitleQuery(
+    {
+      titleId: titleId as string,
+      page: 4,
+      limit: 100,
+      sortOrder: "asc",
+    },
+    {
+      skip: !titleId || !allChaptersDataPage3?.hasMore,
+    }
+  );
+
+  const { data: allChaptersDataPage5 } = useGetChaptersByTitleQuery(
+    {
+      titleId: titleId as string,
+      page: 5,
+      limit: 100,
+      sortOrder: "asc",
+    },
+    {
+      skip: !titleId || !allChaptersDataPage4?.hasMore,
     }
   );
 
@@ -77,23 +170,57 @@ export default function TitleViewClient({
     { skip: !user || !titleId }
   );
 
-  // Обработка данных глав
+  // Обработка данных глав - комбинируем все загруженные страницы
   const processedChaptersData = useMemo(() => {
-    if (!chaptersData?.chapters) return [];
-    return chaptersData.chapters;
-  }, [chaptersData]);
+    const allChapters = [
+      ...(chaptersData?.chapters || []),
+      ...(chaptersDataPage2?.chapters || []),
+      ...(chaptersDataPage3?.chapters || []),
+      ...(chaptersDataPage4?.chapters || []),
+      ...(chaptersDataPage5?.chapters || []),
+    ];
 
-  // Эффект для обновления состояния hasMoreChapters
-  useEffect(() => {
-    if (chaptersData) {
-      setHasMoreChapters(chaptersData.hasMore);
-    }
-  }, [chaptersData]);
+    // Сортируем по chapterNumber в порядке убывания (новые главы сверху)
+    return allChapters.sort((a, b) => {
+      const aNum = a.chapterNumber || 0;
+      const bNum = b.chapterNumber || 0;
+      return bNum - aNum; // desc order
+    });
+  }, [
+    chaptersData,
+    chaptersDataPage2,
+    chaptersDataPage3,
+    chaptersDataPage4,
+    chaptersDataPage5,
+  ]);
+
+  // Проверяем, есть ли еще главы для загрузки
+  const hasMoreChapters = useMemo(() => {
+    return (
+      chaptersData?.hasMore ||
+      chaptersDataPage2?.hasMore ||
+      chaptersDataPage3?.hasMore ||
+      chaptersDataPage4?.hasMore ||
+      chaptersDataPage5?.hasMore ||
+      false
+    );
+  }, [
+    chaptersData?.hasMore,
+    chaptersDataPage2?.hasMore,
+    chaptersDataPage3?.hasMore,
+    chaptersDataPage4?.hasMore,
+    chaptersDataPage5?.hasMore,
+  ]);
+
+  // Функция для загрузки дополнительных глав (заглушка, так как мы загружаем все сразу)
+  const handleLoadMoreChapters = () => {
+    // Все главы уже загружены автоматически
+  };
 
   // Состояние для активной вкладки
-  const [activeTab, setActiveTab] = useState<
-    "main" | "chapters" | "comments" 
-  >("main");
+  const [activeTab, setActiveTab] = useState<"main" | "chapters" | "comments">(
+    "main"
+  );
 
   // Состояние для раскрытого описания
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -116,27 +243,7 @@ export default function TitleViewClient({
   // Обработчик сортировки глав
   const handleSortChange = (order: "desc" | "asc") => {
     setSortOrder(order);
-    setCurrentPage(1); // Сброс на первую страницу при изменении сортировки
   };
-
-  // Обработчик загрузки еще глав
-  const handleLoadMoreChapters = () => {
-    if (hasMoreChapters && !isFetching) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
-
-  // Эффект для автоматической загрузки еще глав при прокрутке
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
-        handleLoadMoreChapters();
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMoreChapters, isFetching]);
 
   // Обработчик поделиться
   const handleShare = () => {
@@ -166,17 +273,17 @@ export default function TitleViewClient({
   }
 
   // Определяем тип тайтла для хлебных крошек
-  const titleType = titleData.type || 'other';
+  const titleType = titleData.type || "other";
   const typeLabels: Record<string, string> = {
-    'manga': 'Манга',
-    'manhwa': 'Манхва',
-    'manhua': 'Маньхуа',
-    'novel': 'Ранобэ',
-    'light_novel': 'Лайт-новелла',
-    'comic': 'Комикс',
-    'other': 'Другое'
+    manga: "Манга",
+    manhwa: "Манхва",
+    manhua: "Маньхуа",
+    novel: "Ранобэ",
+    light_novel: "Лайт-новелла",
+    comic: "Комикс",
+    other: "Другое",
   };
-  const typeLabel = typeLabels[titleType] || 'Другое';
+  const typeLabel = typeLabels[titleType] || "Другое";
 
   return (
     <main className="relative min-h-screen bg-[var(--background)]">
@@ -187,27 +294,27 @@ export default function TitleViewClient({
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
-            "itemListElement": [
+            itemListElement: [
               {
                 "@type": "ListItem",
-                "position": 1,
-                "name": "Tomilo-lib.ru",
-                "item": "https://tomilo-lib.ru"
+                position: 1,
+                name: "Tomilo-lib.ru",
+                item: "https://tomilo-lib.ru",
               },
               {
                 "@type": "ListItem",
-                "position": 2,
-                "name": typeLabel,
-                "item": `https://tomilo-lib.ru/titles?type=${titleType}`
+                position: 2,
+                name: typeLabel,
+                item: `https://tomilo-lib.ru/titles?type=${titleType}`,
               },
               {
                 "@type": "ListItem",
-                "position": 3,
-                "name": titleData.name,
-                "item": `https://tomilo-lib.ru/titles/${titleData.slug}`
-              }
-            ]
-          })
+                position: 3,
+                name: titleData.name,
+                item: `https://tomilo-lib.ru/titles/${titleData.slug}`,
+              },
+            ],
+          }),
         }}
       />
       <Header />
@@ -215,12 +322,18 @@ export default function TitleViewClient({
         <div className="max-w-7xl mx-auto">
           <MobileCover
             titleData={titleData}
-            chapters={allChaptersData?.chapters || processedChaptersData}
+            chapters={[
+              ...(allChaptersData?.chapters || []),
+              ...(allChaptersDataPage2?.chapters || []),
+              ...(allChaptersDataPage3?.chapters || []),
+              ...(allChaptersDataPage4?.chapters || []),
+              ...(allChaptersDataPage5?.chapters || []),
+              ...processedChaptersData,
+            ]}
             onShare={handleShare}
             isAdmin={displayIsAdmin}
             onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
           />
-
 
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
             {/* Десктопная версия - sticky обложка слева */}
@@ -228,7 +341,14 @@ export default function TitleViewClient({
               <div className="sticky top-24">
                 <LeftSidebar
                   titleData={titleData}
-                  chapters={allChaptersData?.chapters || processedChaptersData}
+                  chapters={[
+                    ...(allChaptersData?.chapters || []),
+                    ...(allChaptersDataPage2?.chapters || []),
+                    ...(allChaptersDataPage3?.chapters || []),
+                    ...(allChaptersDataPage4?.chapters || []),
+                    ...(allChaptersDataPage5?.chapters || []),
+                    ...processedChaptersData,
+                  ]}
                   onShare={handleShare}
                   isAdmin={displayIsAdmin}
                   onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
@@ -246,9 +366,9 @@ export default function TitleViewClient({
                   setIsDescriptionExpanded(!isDescriptionExpanded)
                 }
                 chapters={processedChaptersData}
-                hasMoreChapters={hasMoreChapters}
+                hasMoreChapters={false}
                 chaptersLoading={chaptersLoading}
-                onLoadMoreChapters={handleLoadMoreChapters}
+                onLoadMoreChapters={() => {}}
                 searchQuery={searchQuery}
                 onSearchChange={handleSearchChange}
                 sortOrder={sortOrder}
@@ -264,7 +384,7 @@ export default function TitleViewClient({
         </div>
       </div>
       <Footer />
-      
+
       {/* Модальное окно для подтверждения возраста */}
       <AgeVerificationModal
         isOpen={isAgeModalOpen}

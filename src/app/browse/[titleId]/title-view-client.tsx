@@ -37,7 +37,7 @@ export default function TitleViewClient({
 
   const [incrementViews] = useIncrementViewsMutation();
 
-  // Load all chapters at once
+  // Load all chapters - try multiple pages if needed
   const {
     data: chaptersData,
     isLoading: chaptersLoading,
@@ -46,10 +46,55 @@ export default function TitleViewClient({
     {
       titleId,
       page: 1,
-      limit: 10000, // Load all chapters
+      limit: 10000, // Use backend's max limit per page
     },
     {
       skip: false,
+    }
+  );
+
+  // Load additional pages if there are more chapters
+  const { data: chaptersDataPage2 } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: 2,
+      limit: 100,
+    },
+    {
+      skip: !chaptersData?.hasMore,
+    }
+  );
+
+  const { data: chaptersDataPage3 } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: 3,
+      limit: 100,
+    },
+    {
+      skip: !chaptersDataPage2?.hasMore,
+    }
+  );
+
+  const { data: chaptersDataPage4 } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: 4,
+      limit: 100,
+    },
+    {
+      skip: !chaptersDataPage3?.hasMore,
+    }
+  );
+
+  const { data: chaptersDataPage5 } = useGetChaptersByTitleQuery(
+    {
+      titleId,
+      page: 5,
+      limit: 100,
+    },
+    {
+      skip: !chaptersDataPage4?.hasMore,
     }
   );
 
@@ -58,11 +103,59 @@ export default function TitleViewClient({
     {
       titleId: titleId as string,
       page: 1,
-      limit: 1000, // Load all chapters for ReadButton
+      limit: 100, // Use backend's max limit per page
       sortOrder: "asc",
     },
     {
       skip: !titleId, // Skip if no titleId
+    }
+  );
+
+  const { data: allChaptersDataPage2 } = useGetChaptersByTitleQuery(
+    {
+      titleId: titleId as string,
+      page: 2,
+      limit: 100,
+      sortOrder: "asc",
+    },
+    {
+      skip: !titleId || !allChaptersData?.hasMore,
+    }
+  );
+
+  const { data: allChaptersDataPage3 } = useGetChaptersByTitleQuery(
+    {
+      titleId: titleId as string,
+      page: 3,
+      limit: 100,
+      sortOrder: "asc",
+    },
+    {
+      skip: !titleId || !allChaptersDataPage2?.hasMore,
+    }
+  );
+
+  const { data: allChaptersDataPage4 } = useGetChaptersByTitleQuery(
+    {
+      titleId: titleId as string,
+      page: 4,
+      limit: 100,
+      sortOrder: "asc",
+    },
+    {
+      skip: !titleId || !allChaptersDataPage3?.hasMore,
+    }
+  );
+
+  const { data: allChaptersDataPage5 } = useGetChaptersByTitleQuery(
+    {
+      titleId: titleId as string,
+      page: 5,
+      limit: 100,
+      sortOrder: "asc",
+    },
+    {
+      skip: !titleId || !allChaptersDataPage4?.hasMore,
     }
   );
 
@@ -78,12 +171,10 @@ export default function TitleViewClient({
     return chaptersData.chapters;
   }, [chaptersData]);
 
-
-
   // Состояние для активной вкладки
-  const [activeTab, setActiveTab] = useState<
-    "main" | "chapters" | "comments"
-  >("main");
+  const [activeTab, setActiveTab] = useState<"main" | "chapters" | "comments">(
+    "main"
+  );
 
   // Ensure main tab is set immediately on component mount
   useEffect(() => {
@@ -143,12 +234,18 @@ export default function TitleViewClient({
         <div className="max-w-7xl mx-auto">
           <MobileCover
             titleData={processedTitleData}
-            chapters={allChaptersData?.chapters || processedChaptersData}
+            chapters={[
+              ...(allChaptersData?.chapters || []),
+              ...(allChaptersDataPage2?.chapters || []),
+              ...(allChaptersDataPage3?.chapters || []),
+              ...(allChaptersDataPage4?.chapters || []),
+              ...(allChaptersDataPage5?.chapters || []),
+              ...processedChaptersData,
+            ]}
             onShare={handleShare}
             isAdmin={displayIsAdmin}
             onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
           />
-
 
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
             {/* Десктопная версия - sticky обложка слева */}
@@ -189,7 +286,7 @@ export default function TitleViewClient({
         </div>
       </div>
       <Footer />
-      
+
       {/* Модальное окно для подтверждения возраста */}
       <AgeVerificationModal
         isOpen={isAgeModalOpen}
