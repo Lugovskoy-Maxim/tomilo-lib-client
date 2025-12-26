@@ -32,6 +32,7 @@ export function AgeVerificationModal({
         localStorage.setItem(AGE_VERIFICATION_KEY, "true");
       }
       onConfirm();
+      window.location.reload();
     }
   };
 
