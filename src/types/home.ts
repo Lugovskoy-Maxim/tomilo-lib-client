@@ -79,6 +79,7 @@ export interface LatestUpdateCardData {
   releaseYear?: number;
   type?: string;
   newChapters?: number;
+  isAdult?: boolean;
 }
 
 export interface TopTitle extends TitleCard {

@@ -3,10 +3,13 @@
 import { Clock, Plus } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { timeAgo } from "@/lib/date-utils";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
+import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
 
 interface LatestUpdateCardProps {
   data: {
@@ -20,14 +23,34 @@ interface LatestUpdateCardProps {
     newChapters?: number;
     cover: string;
     type?: string;
+    isAdult?: boolean;
   };
 }
 
 export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   const router = useRouter();
+  const { user } = useAuth();
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [isAgeVerified, setIsAgeVerified] = useState(false);
 
+  useEffect(() => {
+    setIsAgeVerified(checkAgeVerification(user || null));
+  }, [user]);
+
+  const handleAgeConfirm = () => {
+    setIsAgeVerified(true);
+    setShowAgeModal(false);
+  };
+
+  const handleAgeCancel = () => {
+    setShowAgeModal(false);
+  };
 
   const handleClick = () => {
+    if (data.isAdult && !isAgeVerified) {
+      setShowAgeModal(true);
+      return;
+    }
     router.push(getTitlePath(data));
   };
 
@@ -68,7 +91,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               src={imageUrl}
               alt={data.title}
               fill
-              className="object-cover"
+              className={`object-cover ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
               sizes="64px"
               unoptimized
               onError={(e) => {
@@ -76,6 +99,13 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
                 target.src = IMAGE_HOLDER.src;
               }}
             />
+            {data.isAdult && (
+              <div className="absolute top-1 right-1 flex items-center justify-center">
+                <div className="bg-red-500/90 text-white px-1 rounded-full font-bold text-xs">
+                  18+
+                </div>
+              </div>
+            )}
           </div>
 
 
@@ -93,7 +123,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
             </span>
           </div>
           {/* Заголовок */}
-          <h3 className="font-medium text-[var(--primary)] line-clamp-1 leading-tight text-sm group-hover:text-[var(--chart-1)]/80 transition-colors">
+          <h3 className={`font-medium text-[var(--primary)] line-clamp-1 leading-tight text-sm group-hover:text-[var(--chart-1)]/80 transition-colors ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}>
             {data.title}
           </h3>
 
@@ -124,6 +154,12 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
           </div>
         </div>
       </div>
+
+      <AgeVerificationModal
+        isOpen={showAgeModal}
+        onConfirm={handleAgeConfirm}
+        onCancel={handleAgeCancel}
+      />
     </div>
   );
 }
