@@ -164,6 +164,7 @@ export const useHomeData = (): {
     error: topTitlesMonthError,
   } = useGetTopTitlesMonthQuery({ limit: 10 });
 
+
   // Топ тайтлы Маньхуа
   const {
     data: topManhuaData,
@@ -171,11 +172,12 @@ export const useHomeData = (): {
     error: topManhuaError,
   } = useSearchTitlesQuery({
     search: "",
-    type: "manhua",
+    types: "manhua",
     sortBy: "views",
     sortOrder: "desc",
     limit: 5,
   });
+
 
   // Топ тайтлы Манхва
   const {
@@ -184,7 +186,7 @@ export const useHomeData = (): {
     error: topManhwaError,
   } = useSearchTitlesQuery({
     search: "",
-    type: "manhwa",
+    types: "manhwa",
     sortBy: "views",
     sortOrder: "desc",
     limit: 5,

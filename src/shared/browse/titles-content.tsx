@@ -102,6 +102,7 @@ export default function TitlesContent() {
     };
   }, [filterOptions]);
 
+
   // Запрос тайтлов с параметрами
   const { data: titlesData } = useSearchTitlesQuery({
     search: debouncedSearch || undefined,
@@ -110,7 +111,7 @@ export default function TitlesContent() {
     status: appliedFilters.status[0] || undefined,
     releaseYear: appliedFilters.releaseYears[0] || undefined,
     ageLimits: appliedFilters.ageLimits.length > 0 
-      ? appliedFilters.ageLimits.toString() // Отправляем массив значений
+      ? appliedFilters.ageLimits.toString() // Отправляем массив значений как строку
       : undefined,
     sortBy: appliedFilters.sortBy,
     sortOrder: appliedFilters.sortOrder,

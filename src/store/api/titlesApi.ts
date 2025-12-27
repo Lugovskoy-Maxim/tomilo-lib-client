@@ -65,6 +65,7 @@ export const titlesApi = createApi({
     }),
 
 
+
     // Поиск/список тайтлов с фильтрами и пагинацией
     searchTitles: builder.query<
       ApiResponseDto<{
@@ -80,7 +81,8 @@ export const titlesApi = createApi({
         types?: string;
         status?: string;
         releaseYear?: number;
-        ageLimit?: string; // Теперь всегда строка
+
+        ageLimits?: string; // Используем множественное число для соответствия типам
         sortBy?: string;
         sortOrder?: "asc" | "desc";
         page?: number;
@@ -100,13 +102,14 @@ export const titlesApi = createApi({
 
 
 
-        // Специальная обработка ageLimit для отправки как ageLimits строка
-        if (params.ageLimit) {
+
+        // Специальная обработка ageLimits для отправки как ageLimits строка
+        if (params.ageLimits) {
           // Всегда отправляем как ageLimits строка с запятыми
-          if (Array.isArray(params.ageLimit)) {
-            queryParams.ageLimits = params.ageLimit.join(',');
+          if (Array.isArray(params.ageLimits)) {
+            queryParams.ageLimits = params.ageLimits.join(',');
           } else {
-            queryParams.ageLimits = params.ageLimit;
+            queryParams.ageLimits = params.ageLimits;
           }
         }
 

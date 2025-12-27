@@ -119,7 +119,8 @@ function BrowseContent() {
     types: appliedFilters.types.length > 0 ? appliedFilters.types.join(',') : undefined,
     status: appliedFilters.status[0] || undefined,
     releaseYear: appliedFilters.releaseYears[0] || undefined,
-    ageLimit: appliedFilters.ageLimits.length > 0 ? appliedFilters.ageLimits.join(',') : undefined,
+
+    ageLimits: appliedFilters.ageLimits.length > 0 ? appliedFilters.ageLimits.join(',') : undefined,
     sortBy: appliedFilters.sortBy,
     sortOrder: appliedFilters.sortOrder,
     page: loadMorePage,
