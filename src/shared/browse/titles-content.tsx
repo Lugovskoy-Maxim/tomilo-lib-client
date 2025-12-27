@@ -105,12 +105,12 @@ export default function TitlesContent() {
   // Запрос тайтлов с параметрами
   const { data: titlesData } = useSearchTitlesQuery({
     search: debouncedSearch || undefined,
-    genre: appliedFilters.genres[0] || undefined,
-    type: appliedFilters.types[0] || undefined,
+    genres: appliedFilters.genres[0] || undefined,
+    types: appliedFilters.types[0] || undefined,
     status: appliedFilters.status[0] || undefined,
     releaseYear: appliedFilters.releaseYears[0] || undefined,
-    ageLimit: appliedFilters.ageLimits.length > 0 
-      ? appliedFilters.ageLimits // Отправляем массив значений
+    ageLimits: appliedFilters.ageLimits.length > 0 
+      ? appliedFilters.ageLimits.toString() // Отправляем массив значений
       : undefined,
     sortBy: appliedFilters.sortBy,
     sortOrder: appliedFilters.sortOrder,

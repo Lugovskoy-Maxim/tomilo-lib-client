@@ -64,6 +64,7 @@ export const titlesApi = createApi({
         response,
     }),
 
+
     // Поиск/список тайтлов с фильтрами и пагинацией
     searchTitles: builder.query<
       ApiResponseDto<{
@@ -72,13 +73,14 @@ export const titlesApi = createApi({
         page: number;
         totalPages: number;
       }>,
+
       {
         search?: string;
-        genre?: string;
-        type?: string;
+        genres?: string;
+        types?: string;
         status?: string;
         releaseYear?: number;
-        ageLimit?: number | number[]; // Изменено: может быть число или массив
+        ageLimit?: string; // Теперь всегда строка
         sortBy?: string;
         sortOrder?: "asc" | "desc";
         page?: number;
@@ -97,13 +99,15 @@ export const titlesApi = createApi({
         });
 
 
+
         // Специальная обработка ageLimit для отправки как ageLimits строка
-        if (params.ageLimit && Array.isArray(params.ageLimit)) {
-          // Удаляем одиночный параметр ageLimit
-          delete queryParams.ageLimit;
-          
-          // Добавляем как ageLimits строка с запятыми
-          queryParams.ageLimits = params.ageLimit.join(',');
+        if (params.ageLimit) {
+          // Всегда отправляем как ageLimits строка с запятыми
+          if (Array.isArray(params.ageLimit)) {
+            queryParams.ageLimits = params.ageLimit.join(',');
+          } else {
+            queryParams.ageLimits = params.ageLimit;
+          }
         }
 
         return {
