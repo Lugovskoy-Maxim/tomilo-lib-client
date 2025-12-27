@@ -12,7 +12,8 @@ import { Filters } from "@/types/browse-page";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 import { getTitlePath } from "@/lib/title-paths";
-import { normalizeGenres } from "@/lib/genre-normalizer";
+
+
 import { translateTitleType } from "@/lib/title-type-translations";
 
 interface GridTitle {
@@ -88,15 +89,16 @@ export default function TitlesContent() {
   // Опции фильтров
   const { data: filterOptions } = useGetFilterOptionsQuery();
   
-  // Нормализуем жанры из фильтров
-  const normalizedFilterOptions = useMemo(() => {
+
+  // Получаем оригинальные жанры без перевода для фильтров
+  const originalFilterOptions = useMemo(() => {
     if (!filterOptions?.data) return undefined;
     
     return {
       ...filterOptions,
       data: {
         ...filterOptions.data,
-        genres: normalizeGenres(filterOptions.data.genres || []),
+        genres: filterOptions.data.genres || [],
         status: filterOptions.data.status || []
       }
     };
@@ -134,7 +136,8 @@ export default function TitlesContent() {
 
 rating: t.averageRating ?? t.rating ?? 0,
         image: t.coverImage || undefined,
-        genres: normalizeGenres(t.genres || []),
+
+        genres: t.genres || [],
         isAdult: t.isAdult || false,
       })),
     [paginatedTitles]
@@ -275,34 +278,36 @@ rating: t.averageRating ?? t.rating ?? 0,
 
       {/* Боковая панель с фильтрами (десктоп) */}
       <div className="hidden lg:block lg:w-1/4">
+
         <FilterSidebar
           filters={appliedFilters}
           onFiltersChange={handleFiltersChange}
           filterOptions={{
-            genres: normalizedFilterOptions?.data?.genres || [],
-            types: normalizedFilterOptions?.data?.types || [],
-            status: normalizedFilterOptions?.data?.status || [],
-            ageLimits: normalizedFilterOptions?.data?.ageLimits || [],
-            releaseYears: normalizedFilterOptions?.data?.releaseYears || [],
-            tags: normalizedFilterOptions?.data?.tags || [],
-            sortByOptions: normalizedFilterOptions?.data?.sortByOptions || [],
+            genres: originalFilterOptions?.data?.genres || [],
+            types: originalFilterOptions?.data?.types || [],
+            status: originalFilterOptions?.data?.status || [],
+            ageLimits: originalFilterOptions?.data?.ageLimits || [],
+            releaseYears: originalFilterOptions?.data?.releaseYears || [],
+            tags: originalFilterOptions?.data?.tags || [],
+            sortByOptions: originalFilterOptions?.data?.sortByOptions || [],
           }}
           onReset={resetFilters}
         />
       </div>
+
 
       {/* Мобильный фильтр (шторка) */}
       <FilterSidebar
         filters={appliedFilters}
         onFiltersChange={handleFiltersChange}
         filterOptions={{
-          genres: normalizedFilterOptions?.data?.genres || [],
-          types: normalizedFilterOptions?.data?.types || [],
-          status: normalizedFilterOptions?.data?.status || [],
-          ageLimits: normalizedFilterOptions?.data?.ageLimits || [],
-          releaseYears: normalizedFilterOptions?.data?.releaseYears || [],
-          tags: normalizedFilterOptions?.data?.tags || [],
-          sortByOptions: normalizedFilterOptions?.data?.sortByOptions || [],
+          genres: originalFilterOptions?.data?.genres || [],
+          types: originalFilterOptions?.data?.types || [],
+          status: originalFilterOptions?.data?.status || [],
+          ageLimits: originalFilterOptions?.data?.ageLimits || [],
+          releaseYears: originalFilterOptions?.data?.releaseYears || [],
+          tags: originalFilterOptions?.data?.tags || [],
+          sortByOptions: originalFilterOptions?.data?.sortByOptions || [],
         }}
         onReset={resetFilters}
         isMobile={true}
