@@ -11,7 +11,6 @@ import {
 import { Filters } from "@/types/browse-page";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
-
 import { getTitlePath } from "@/lib/title-paths";
 import { normalizeGenres } from "@/lib/genre-normalizer";
 import { translateTitleType } from "@/lib/title-type-translations";
@@ -103,7 +102,6 @@ export default function TitlesContent() {
     };
   }, [filterOptions]);
 
-
   // Запрос тайтлов с параметрами
   const { data: titlesData } = useSearchTitlesQuery({
     search: debouncedSearch || undefined,
@@ -111,6 +109,9 @@ export default function TitlesContent() {
     type: appliedFilters.types[0] || undefined,
     status: appliedFilters.status[0] || undefined,
     releaseYear: appliedFilters.releaseYears[0] || undefined,
+    ageLimit: appliedFilters.ageLimits.length > 0 
+      ? appliedFilters.ageLimits // Отправляем массив значений
+      : undefined,
     sortBy: appliedFilters.sortBy,
     sortOrder: appliedFilters.sortOrder,
     page: loadMorePage,
@@ -127,7 +128,6 @@ export default function TitlesContent() {
         id: (t._id || "").toString(),
         slug: t.slug,
         title: t.name || "",
-
         type: translateTitleType(t.type || "manga"),
         year: t.releaseYear || new Date().getFullYear(),
         rating: t.rating || 0,

@@ -1,12 +1,18 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Title, CreateTitleDto, UpdateTitleDto, ApiResponseDto } from "@/types/title";
+import {
+  Title,
+  CreateTitleDto,
+  UpdateTitleDto,
+  ApiResponseDto,
+} from "@/types/title";
 
 const TITLES_TAG = "Titles";
 
 // 🔧 Утилита для преобразования объекта в FormData
-function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormData {
+function toFormData<T extends Record<string, unknown>>(
+  data: Partial<T>
+): FormData {
   const formData = new FormData();
 
   Object.entries(data).forEach(([key, value]) => {
@@ -14,16 +20,16 @@ function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormDa
 
     if (Array.isArray(value)) {
       // Для массивов добавляем каждый элемент как отдельное поле с тем же именем
-      value.forEach(item => {
+      value.forEach((item) => {
         formData.append(key, String(item));
       });
     } else if (value instanceof Blob) {
       // File наследуется от Blob — это корректная и безопасная проверка
       formData.append(key, value);
-    } else if (typeof value === 'number') {
+    } else if (typeof value === "number") {
       // Для числовых значений отправляем как числа
       formData.append(key, value.toString());
-    } else if (typeof value === 'boolean') {
+    } else if (typeof value === "boolean") {
       // Для булевых значений отправляем как строки "true" или "false"
       formData.append(key, value.toString());
     } else {
@@ -54,64 +60,120 @@ export const titlesApi = createApi({
     getTitles: builder.query<ApiResponseDto<{ titles: Title[] }>, void>({
       query: () => "/titles",
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ titles: Title[] }>) => response,
+      transformResponse: (response: ApiResponseDto<{ titles: Title[] }>) =>
+        response,
     }),
-
 
     // Поиск/список тайтлов с фильтрами и пагинацией
     searchTitles: builder.query<
-      ApiResponseDto<{ data: Title[]; total: number; page: number; totalPages: number }>,
+      ApiResponseDto<{
+        data: Title[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>,
       {
         search?: string;
         genre?: string;
         type?: string;
         status?: string;
         releaseYear?: number;
+        ageLimit?: number | number[]; // Изменено: может быть число или массив
         sortBy?: string;
         sortOrder?: "asc" | "desc";
         page?: number;
         limit?: number;
       }
     >({
-      query: (params) => ({
-        url: "/titles",
-        params,
-      }),
-      transformResponse: (response: ApiResponseDto<{ titles?: Title[]; data?: Title[]; pagination?: { total: number; page: number; pages: number; limit: number }; total?: number; page?: number; totalPages?: number }>) => {
+      query: (params) => {
+        const queryParams: Record<string, any> = {};
+        
+        // Копируем все параметры
+        Object.keys(params).forEach(key => {
+          const value = params[key as keyof typeof params];
+          if (value !== undefined && value !== null) {
+            queryParams[key] = value;
+          }
+        });
+
+
+        // Специальная обработка ageLimit для отправки как ageLimits строка
+        if (params.ageLimit && Array.isArray(params.ageLimit)) {
+          // Удаляем одиночный параметр ageLimit
+          delete queryParams.ageLimit;
+          
+          // Добавляем как ageLimits строка с запятыми
+          queryParams.ageLimits = params.ageLimit.join(',');
+        }
+
+        return {
+          url: "/titles",
+          params: queryParams,
+        };
+      },
+      transformResponse: (
+        response: ApiResponseDto<{
+          titles?: Title[];
+          data?: Title[];
+          pagination?: {
+            total: number;
+            page: number;
+            pages: number;
+            limit: number;
+          };
+          total?: number;
+          page?: number;
+          totalPages?: number;
+        }>
+      ) => {
         // Нормализуем серверный ответ { titles, pagination }
-        const data: Title[] = response?.data?.titles ?? response?.data?.data ?? [];
-        const total: number = response?.data?.pagination?.total ?? response?.data?.total ?? data.length ?? 0;
-        const page: number = response?.data?.pagination?.page ?? response?.data?.page ?? 1;
-        const totalPages: number = response?.data?.pagination?.pages ?? response?.data?.totalPages ?? Math.ceil(total / (response?.data?.pagination?.limit ?? 12)) ?? 1;
+        const data: Title[] =
+          response?.data?.titles ?? response?.data?.data ?? [];
+        const total: number =
+          response?.data?.pagination?.total ??
+          response?.data?.total ??
+          data.length ??
+          0;
+        const page: number =
+          response?.data?.pagination?.page ?? response?.data?.page ?? 1;
+        const totalPages: number =
+          response?.data?.pagination?.pages ??
+          response?.data?.totalPages ??
+          Math.ceil(total / (response?.data?.pagination?.limit ?? 12)) ??
+          1;
         return {
           ...response,
-          data: { data, total, page, totalPages }
+          data: { data, total, page, totalPages },
         };
       },
       providesTags: [TITLES_TAG],
     }),
 
-
     // Опции фильтров
-    getFilterOptions: builder.query<ApiResponseDto<{
-      ageLimits: number[];
-      genres: string[];
-      releaseYears: number[];
-      sortByOptions: string[];
-      status: string[];
-      tags: string[];
-      types: string[];
-    }>, void>({
+    getFilterOptions: builder.query<
+      ApiResponseDto<{
+        ageLimits: number[];
+        genres: string[];
+        releaseYears: number[];
+        sortByOptions: string[];
+        status: string[];
+        tags: string[];
+        types: string[];
+      }>,
+      void
+    >({
       query: () => "/titles/filters/options",
-      transformResponse: (response: ApiResponseDto<{
-        ageLimits?: number[];
-        genres?: string[];
-        releaseYears?: number[];
-        sortByOptions?: string[];
-        status?: string[];
-        tags?: string[];
-        types?: string[];
-      }>) => {
+      transformResponse: (
+        response: ApiResponseDto<{
+          ageLimits?: number[];
+          genres?: string[];
+          releaseYears?: number[];
+          sortByOptions?: string[];
+          status?: string[];
+          tags?: string[];
+          types?: string[];
+        }>
+      ) => {
         // Обеспечиваем дефолтные значения для всех полей
         const data = response.data || {};
         return {
@@ -120,32 +182,48 @@ export const titlesApi = createApi({
             ageLimits: data.ageLimits || [0, 12, 16, 18],
             genres: data.genres || [],
             releaseYears: data.releaseYears || [],
-            sortByOptions: data.sortByOptions || ["createdAt", "updatedAt", "name", "views", "weekViews", "dayViews", "monthViews", "averageRating", "releaseYear"],
+            sortByOptions: data.sortByOptions || [
+              "createdAt",
+              "updatedAt",
+              "name",
+              "views",
+              "weekViews",
+              "dayViews",
+              "monthViews",
+              "averageRating",
+              "releaseYear",
+            ],
             status: data.status || [],
             tags: data.tags || [],
             types: data.types || [],
-          }
+          },
         };
       },
     }),
 
-
     // Получить тайтл по ID
-    getTitleById: builder.query<Title, { id: string; includeChapters?: boolean }>({
+    getTitleById: builder.query<
+      Title,
+      { id: string; includeChapters?: boolean }
+    >({
       query: ({ id, includeChapters = false }) => ({
         url: `/titles/${id}`,
-        params: { populateChapters: includeChapters.toString() }
+        params: { populateChapters: includeChapters.toString() },
       }),
       providesTags: (result, error, { id }) => [{ type: TITLES_TAG, id }],
       transformResponse: (response: unknown): Title => {
         const apiResponse = response as ApiResponseDto<Title> | Title;
-        if (typeof apiResponse === 'object' && apiResponse !== null && 'success' in apiResponse) {
+        if (
+          typeof apiResponse === "object" &&
+          apiResponse !== null &&
+          "success" in apiResponse
+        ) {
           const wrappedResponse = apiResponse as ApiResponseDto<Title>;
           if (wrappedResponse.success === false) {
-            throw new Error(wrappedResponse.message || 'Failed to fetch title');
+            throw new Error(wrappedResponse.message || "Failed to fetch title");
           }
           if (!wrappedResponse.data) {
-            throw new Error('No data in API response');
+            throw new Error("No data in API response");
           }
           return wrappedResponse.data;
         }
@@ -154,21 +232,32 @@ export const titlesApi = createApi({
     }),
 
     // Получить тайтл по slug
-    getTitleBySlug: builder.query<Title, { slug: string; includeChapters?: boolean }>({
+    getTitleBySlug: builder.query<
+      Title,
+      { slug: string; includeChapters?: boolean }
+    >({
       query: ({ slug, includeChapters = false }) => ({
         url: `/titles/slug/${slug}`,
-        params: { populateChapters: includeChapters.toString() }
+        params: { populateChapters: includeChapters.toString() },
       }),
-      providesTags: (result, error, { slug }) => [{ type: TITLES_TAG, id: `slug-${slug}` }],
+      providesTags: (result, error, { slug }) => [
+        { type: TITLES_TAG, id: `slug-${slug}` },
+      ],
       transformResponse: (response: unknown): Title => {
         const apiResponse = response as ApiResponseDto<Title> | Title;
-        if (typeof apiResponse === 'object' && apiResponse !== null && 'success' in apiResponse) {
+        if (
+          typeof apiResponse === "object" &&
+          apiResponse !== null &&
+          "success" in apiResponse
+        ) {
           const wrappedResponse = apiResponse as ApiResponseDto<Title>;
           if (wrappedResponse.success === false) {
-            throw new Error(wrappedResponse.message || 'Failed to fetch title by slug');
+            throw new Error(
+              wrappedResponse.message || "Failed to fetch title by slug"
+            );
           }
           if (!wrappedResponse.data) {
-            throw new Error('No data in API response');
+            throw new Error("No data in API response");
           }
           return wrappedResponse.data;
         }
@@ -177,23 +266,28 @@ export const titlesApi = createApi({
     }),
 
     // Создание тайтла
-    createTitle: builder.mutation<ApiResponseDto<Title>, Partial<CreateTitleDto>>({
+    createTitle: builder.mutation<
+      ApiResponseDto<Title>,
+      Partial<CreateTitleDto>
+    >({
       query: (data) => ({
         url: "/titles",
         method: "POST",
-        body: data
-        // body: toFormData<CreateTitleDto>(data),
+        body: data,
       }),
       invalidatesTags: [TITLES_TAG],
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
     // Создание тайтла с обложкой
-    createTitleWithCover: builder.mutation<ApiResponseDto<Title>, { data: Partial<CreateTitleDto>; coverImage: File }>({
+    createTitleWithCover: builder.mutation<
+      ApiResponseDto<Title>,
+      { data: Partial<CreateTitleDto>; coverImage: File }
+    >({
       query: ({ data, coverImage }) => {
         const formData = new FormData();
-        formData.append('data', JSON.stringify(data));
-        formData.append('coverImage', coverImage);
+        formData.append("data", JSON.stringify(data));
+        formData.append("coverImage", coverImage);
         return {
           url: "/titles/with-cover",
           method: "POST",
@@ -205,7 +299,10 @@ export const titlesApi = createApi({
     }),
 
     // Обновление тайтла (без обложки)
-    updateTitle: builder.mutation<ApiResponseDto<Title>, { id: string; data: Partial<UpdateTitleDto> }>({
+    updateTitle: builder.mutation<
+      ApiResponseDto<Title>,
+      { id: string; data: Partial<UpdateTitleDto> }
+    >({
       query: ({ id, data }) => ({
         url: `/titles/${id}`,
         method: "PUT",
@@ -216,10 +313,13 @@ export const titlesApi = createApi({
     }),
 
     // Обновление обложки тайтла
-    updateTitleCover: builder.mutation<ApiResponseDto<Title>, { id: string; coverImage: File }>({
+    updateTitleCover: builder.mutation<
+      ApiResponseDto<Title>,
+      { id: string; coverImage: File }
+    >({
       query: ({ id, coverImage }) => {
         const formData = new FormData();
-        formData.append('coverImage', coverImage);
+        formData.append("coverImage", coverImage);
         return {
           url: `/titles/${id}`,
           method: "PUT",
@@ -231,7 +331,10 @@ export const titlesApi = createApi({
     }),
 
     // Обновление рейтинга тайтла
-    updateRating: builder.mutation<ApiResponseDto<Title>, { id: string; rating: number }>({
+    updateRating: builder.mutation<
+      ApiResponseDto<Title>,
+      { id: string; rating: number }
+    >({
       query: ({ id, rating }) => ({
         url: `/titles/${id}/rating`,
         method: "POST",
@@ -252,119 +355,245 @@ export const titlesApi = createApi({
     }),
 
     // Получить популярные тайтлы
-    getPopularTitles: builder.query<ApiResponseDto<{
-      [x: string]: any;
-      type: string;
-      releaseYear: number; id: string; title: string; cover?: string; description?: string; rating?: number; isAdult?: boolean
-}[]>, void>({
+    getPopularTitles: builder.query<
+      ApiResponseDto<
+        {
+          [x: string]: any;
+          type: string;
+          releaseYear: number;
+          id: string;
+          title: string;
+          cover?: string;
+          description?: string;
+          rating?: number;
+          isAdult?: boolean;
+        }[]
+      >,
+      void
+    >({
       query: () => "/titles/popular",
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover?: string; description?: string; rating?: number; type: string; releaseYear: number; isAdult?: boolean }[]>) => response,
+      transformResponse: (
+        response: ApiResponseDto<
+          {
+            id: string;
+            title: string;
+            cover?: string;
+            description?: string;
+            rating?: number;
+            type: string;
+            releaseYear: number;
+            isAdult?: boolean;
+          }[]
+        >
+      ) => response,
     }),
 
     // Получить топ тайтлы за день
-    getTopTitlesDay: builder.query<ApiResponseDto<{
-      id: string;
-      title: string;
-      cover: string;
-      rating: number;
-      type: string;
-      releaseYear: number;
-      description: string;
-      isAdult?: boolean;
-      ratingCount?: number;
-    }[]>, { limit?: number }>({
+    getTopTitlesDay: builder.query<
+      ApiResponseDto<
+        {
+          id: string;
+          title: string;
+          cover: string;
+          rating: number;
+          type: string;
+          releaseYear: number;
+          description: string;
+          isAdult?: boolean;
+          ratingCount?: number;
+        }[]
+      >,
+      { limit?: number }
+    >({
       query: (params) => ({
         url: "/titles/top/day",
         params,
       }),
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; isAdult?: boolean; ratingCount?: number }[]>) => response,
+      transformResponse: (
+        response: ApiResponseDto<
+          {
+            id: string;
+            title: string;
+            cover: string;
+            rating: number;
+            type: string;
+            releaseYear: number;
+            description: string;
+            isAdult?: boolean;
+            ratingCount?: number;
+          }[]
+        >
+      ) => response,
     }),
 
     // Получить топ тайтлы за неделю
-    getTopTitlesWeek: builder.query<ApiResponseDto<{
-      id: string;
-      title: string;
-      cover: string;
-      rating: number;
-      type: string;
-      releaseYear: number;
-      description: string;
-      isAdult?: boolean;
-      ratingCount?: number;
-    }[]>, { limit?: number }>({
+    getTopTitlesWeek: builder.query<
+      ApiResponseDto<
+        {
+          id: string;
+          title: string;
+          cover: string;
+          rating: number;
+          type: string;
+          releaseYear: number;
+          description: string;
+          isAdult?: boolean;
+          ratingCount?: number;
+        }[]
+      >,
+      { limit?: number }
+    >({
       query: (params) => ({
         url: "/titles/top/week",
         params,
       }),
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; isAdult?: boolean; ratingCount?: number }[]>) => response,
+      transformResponse: (
+        response: ApiResponseDto<
+          {
+            id: string;
+            title: string;
+            cover: string;
+            rating: number;
+            type: string;
+            releaseYear: number;
+            description: string;
+            isAdult?: boolean;
+            ratingCount?: number;
+          }[]
+        >
+      ) => response,
     }),
 
     // Получить топ тайтлы за месяц
-    getTopTitlesMonth: builder.query<ApiResponseDto<{
-      id: string;
-      title: string;
-      cover: string;
-      rating: number;
-      type: string;
-      releaseYear: number;
-      description: string;
-      isAdult?: boolean;
-      ratingCount?: number;
-    }[]>, { limit?: number }>({
+    getTopTitlesMonth: builder.query<
+      ApiResponseDto<
+        {
+          id: string;
+          title: string;
+          cover: string;
+          rating: number;
+          type: string;
+          releaseYear: number;
+          description: string;
+          isAdult?: boolean;
+          ratingCount?: number;
+        }[]
+      >,
+      { limit?: number }
+    >({
       query: (params) => ({
         url: "/titles/top/month",
         params,
       }),
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; rating: number; type: string; releaseYear: number; description: string; isAdult?: boolean; ratingCount?: number }[]>) => response,
+      transformResponse: (
+        response: ApiResponseDto<
+          {
+            id: string;
+            title: string;
+            cover: string;
+            rating: number;
+            type: string;
+            releaseYear: number;
+            description: string;
+            isAdult?: boolean;
+            ratingCount?: number;
+          }[]
+        >
+      ) => response,
     }),
 
     // Получить коллекции
-    getCollections: builder.query<ApiResponseDto<{ id: string; name: string; image: string; link: string }[]>, void>({
+    getCollections: builder.query<
+      ApiResponseDto<
+        { id: string; name: string; image: string; link: string }[]
+      >,
+      void
+    >({
       query: () => "/collections",
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; name: string; image: string; link: string }[]>) => response,
+      transformResponse: (
+        response: ApiResponseDto<
+          { id: string; name: string; image: string; link: string }[]
+        >
+      ) => response,
     }),
 
     // Получить случайные тайтлы
-    getRandomTitles: builder.query<ApiResponseDto<{
-      [x: string]: any;
-      id: string;
-      title: string;
-      cover: string;
-      rating: number;
-      type: string;
-      releaseYear: number;
-      description: string;
-      isAdult: boolean;
-      ratingCount?: number;
-    }[]>, { limit?: number }>({
+    getRandomTitles: builder.query<
+      ApiResponseDto<
+        {
+          [x: string]: any;
+          id: string;
+          title: string;
+          cover: string;
+          rating: number;
+          type: string;
+          releaseYear: number;
+          description: string;
+          isAdult: boolean;
+          ratingCount?: number;
+        }[]
+      >,
+      { limit?: number }
+    >({
       query: (params) => ({
         url: "/titles/random",
         params,
       }),
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{
-        id: string;
-        title: string;
-        cover: string;
-        rating: number;
-        type: string;
-        releaseYear: number;
-        description: string;
-        isAdult: boolean;
-        ratingCount?: number;
-      }[]>) => response,
+      transformResponse: (
+        response: ApiResponseDto<
+          {
+            id: string;
+            title: string;
+            cover: string;
+            rating: number;
+            type: string;
+            releaseYear: number;
+            description: string;
+            isAdult: boolean;
+            ratingCount?: number;
+          }[]
+        >
+      ) => response,
     }),
 
     // Получить последние обновления
-    getLatestUpdates: builder.query<ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string; releaseYear?: number; type?: string }[]>, void>({
+    getLatestUpdates: builder.query<
+      ApiResponseDto<
+        {
+          id: string;
+          title: string;
+          cover: string;
+          chapter: string;
+          chapterNumber: number;
+          timeAgo: string;
+          releaseYear?: number;
+          type?: string;
+        }[]
+      >,
+      void
+    >({
       query: () => "/titles/latest-updates",
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ id: string; title: string; cover: string; chapter: string; chapterNumber: number; timeAgo: string; releaseYear?: number; type?: string }[]>) => response,
+      transformResponse: (
+        response: ApiResponseDto<
+          {
+            id: string;
+            title: string;
+            cover: string;
+            chapter: string;
+            chapterNumber: number;
+            timeAgo: string;
+            releaseYear?: number;
+            type?: string;
+          }[]
+        >
+      ) => response,
     }),
 
     // Удаление тайтла
@@ -381,7 +610,6 @@ export const titlesApi = createApi({
 export const {
   useGetTitlesQuery,
   useSearchTitlesQuery,
-
   useGetFilterOptionsQuery,
   useGetTitleByIdQuery,
   useGetTitleBySlugQuery,

@@ -108,6 +108,7 @@ function BrowseContent() {
 
 
 
+
   // Запрос тайтлов с параметрами
   const { data: titlesData } = useSearchTitlesQuery({
     search: debouncedSearch || undefined,
@@ -115,7 +116,7 @@ function BrowseContent() {
     type: appliedFilters.types[0] || undefined,
     status: appliedFilters.status[0] || undefined,
     releaseYear: appliedFilters.releaseYears[0] || undefined,
-    // ageLimit не поддерживается в текущем API, но может быть добавлен позже
+    ageLimit: appliedFilters.ageLimits.length > 0 ? appliedFilters.ageLimits : undefined,
     sortBy: appliedFilters.sortBy,
     sortOrder: appliedFilters.sortOrder,
     page: loadMorePage,
