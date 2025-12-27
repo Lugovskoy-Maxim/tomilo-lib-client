@@ -131,7 +131,8 @@ export default function TitlesContent() {
         title: t.name || "",
         type: translateTitleType(t.type || "manga"),
         year: t.releaseYear || new Date().getFullYear(),
-        rating: t.rating || 0,
+
+rating: t.averageRating ?? t.rating ?? 0,
         image: t.coverImage || undefined,
         genres: normalizeGenres(t.genres || []),
         isAdult: t.isAdult || false,

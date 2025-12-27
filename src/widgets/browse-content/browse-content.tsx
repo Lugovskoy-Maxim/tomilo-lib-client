@@ -141,7 +141,8 @@ function BrowseContent() {
         title: t.name || "",
         type: t.type || "Манга",
         year: t.releaseYear || new Date().getFullYear(),
-        rating: t.rating || 0,
+
+rating: t.averageRating ?? t.rating ?? 0,
         image: t.coverImage || undefined,
         genres: normalizeGenres(t.genres || []),
         isAdult: t.isAdult || false,
