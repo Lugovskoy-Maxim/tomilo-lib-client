@@ -283,7 +283,19 @@ export default function TitleViewClient({ slug }: { slug: string }) {
     comic: "Комикс",
     other: "Другое",
   };
+
   const typeLabel = typeLabels[titleType] || "Другое";
+
+  // Определяем тип контента для микроразметки
+  const contentType =
+    titleData.type === "novel" || titleData.type === "light_novel"
+      ? "Book"
+      : "Article";
+
+  // Формируем полный URL для изображения
+  const image = titleData.coverImage
+    ? `${window.location.origin}${titleData.coverImage}`
+    : undefined;
 
   return (
     <main className="relative min-h-screen bg-[var(--background)]">
@@ -314,6 +326,81 @@ export default function TitleViewClient({ slug }: { slug: string }) {
                 item: `https://tomilo-lib.ru/titles/${titleData.slug}`,
               },
             ],
+          }),
+        }}
+      />
+
+      {/* Структурированная разметка Article для поисковых систем */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            // "@type": contentType === "Book" ? "Book" : "Article",
+            headline: titleData.name,
+            description: titleData.description
+              ? titleData.description.replace(/<[^>]*>/g, "").substring(0, 500)
+              : `Читать ${titleData.name} онлайн на Tomilo-lib.ru`,
+            image: image,
+            author: {
+              "@type": "Person",
+              name: titleData.author || "Неизвестен",
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "Tomilo-lib.ru",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://tomilo-lib.ru/logo/tomilo_color.svg",
+                width: 200,
+                height: 60,
+              },
+            },
+
+            datePublished: titleData.createdAt,
+            dateModified: titleData.updatedAt,
+            keywords: [
+              titleData.name,
+              ...(titleData.genres || []),
+              titleData.author,
+              "манга",
+              "маньхуа",
+              "манхва",
+              "комиксы",
+              "онлайн чтение",
+            ]
+              .filter(Boolean)
+              .join(", "),
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `https://tomilo-lib.ru/titles/${titleData.slug}`,
+            },
+            url: `https://tomilo-lib.ru/titles/${titleData.slug}`,
+            wordCount: titleData.description
+              ? titleData.description.replace(/<[^>]*>/g, "").split(" ").length
+              : 0,
+            inLanguage: "ru",
+            about:
+              titleData.genres?.map((genre) => ({
+                "@type": "Thing",
+                name: genre,
+              })) || [],
+
+            contentRating: titleData.rating || "general",
+            ...(titleData.type === "novel" || titleData.type === "light_novel"
+              ? {
+                  bookFormat: "EBook",
+                  numberOfPages: processedChaptersData?.length || 0,
+                  "@type": "Book",
+                }
+              : {
+                  articleSection: titleData.type,
+                  wordCount: titleData.description
+                    ? titleData.description.replace(/<[^>]*>/g, "").split(" ")
+                        .length
+                    : 0,
+                  "@type": "Article",
+                }),
           }),
         }}
       />

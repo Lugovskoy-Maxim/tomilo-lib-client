@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -6,6 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { LoginForm, FormErrors, FormTouched } from "../../types/form";
 import { Input, Modal } from "..";
 import { AuthResponse, ApiResponseDto } from "@/types/auth";
+import { VALIDATION_MESSAGES } from "@/constants/validation";
+import { MESSAGES } from "@/constants/messages";
 
 // Типы для обработки ошибок RTK Query
 interface ServerError {
@@ -39,15 +42,16 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [yandexAuthMutation] = useYandexAuthMutation();
   const { login: authLogin } = useAuth();
 
+
   const validate = {
     email: (email: string): string | null => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!email) return "Email обязателен";
-      if (!emailRegex.test(email)) return "Неверный формат email";
+      if (!email) return VALIDATION_MESSAGES.EMAIL_REQUIRED;
+      if (!emailRegex.test(email)) return VALIDATION_MESSAGES.EMAIL_INVALID;
       return null;
     },
     password: (password: string): string | null => {
-      if (!password) return "Пароль обязателен";
+      if (!password) return VALIDATION_MESSAGES.PASSWORD_REQUIRED;
       return null;
     },
   };
@@ -76,10 +80,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
     // Проверяем тип ошибки и извлекаем сообщение безопасно
     if (typeof error === "object") {
+
       // Ошибка с данными от сервера (FetchBaseQueryError)
       if ("data" in error && error.data && typeof error.data === "object") {
         const serverError = error.data as ServerError;
-        return serverError.message || "Произошла ошибка при входе";
+        return serverError.message || MESSAGES.ERROR_MESSAGES.LOGIN_ERROR;
       }
 
       // Сериализованная ошибка (SerializedError)
@@ -91,13 +96,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
       if ("status" in error) {
         switch (error.status) {
           case 404:
-            return "Сервер не найден или endpoint недоступен";
+            return MESSAGES.ERROR_MESSAGES.SERVER_NOT_FOUND;
           case 401:
-            return "Неверные учетные данные";
+            return MESSAGES.ERROR_MESSAGES.INVALID_CREDENTIALS;
           case 500:
-            return "Ошибка на сервере";
+            return MESSAGES.ERROR_MESSAGES.SERVER_ERROR;
           default:
-            return "Ошибка соединения с сервером";
+            return MESSAGES.ERROR_MESSAGES.NETWORK_ERROR;
         }
       }
     }
@@ -107,7 +112,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
       return error;
     }
 
-    return "Произошла неизвестная ошибка";
+
+    return MESSAGES.ERROR_MESSAGES.UNKNOWN_ERROR;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -192,7 +198,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           });
       }
     }
-  }, [isOpen]);
+  }, [authLogin, isOpen, onAuthSuccess, onClose, yandexAuthMutation]);
 
   // Проверка наличия токена в localStorage для автоматического закрытия модального окна
   useEffect(() => {
@@ -289,10 +295,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
     }
   }, [isOpen]);
 
+
   const errorMessage = getErrorMessage();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Вход в аккаунт">
+    <Modal isOpen={isOpen} onClose={onClose} title={MESSAGES.UI_ELEMENTS.LOGIN_TITLE}>
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* Показываем ошибку от сервера */}
         {errorMessage && (
@@ -321,10 +328,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
                 errors.email ? "text-red-500" : "text-[var(--muted-foreground)]"
               }`}
             />
+
             <input
               id="email"
               type="email"
-              placeholder="email@domen.ru"
+              placeholder={MESSAGES.UI_ELEMENTS.EMAIL_PLACEHOLDER}
               value={form.email}
               onChange={handleChange("email")}
               onBlur={handleBlur("email")}
@@ -360,13 +368,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
             >
               Пароль
             </label>
+
             <button
               type="button"
               disabled
               className="text-xs text-[var(--primary)] hover:underline"
-              onClick={() => console.log("Запрос на восстановление пароля")}
+              onClick={() => console.log(MESSAGES.CONTEXT.RESTORE_PASSWORD_REQUEST)}
             >
-              Забыли пароль?
+              {MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD}
             </button>
           </div>
           <div className="relative">
@@ -377,10 +386,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
                   : "text-[var(--muted-foreground)]"
               }`}
             />
+
             <input
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Введите пароль"
+              placeholder={MESSAGES.UI_ELEMENTS.PASSWORD_PLACEHOLDER}
               value={form.password}
               onChange={handleChange("password")}
               onBlur={handleBlur("password")}
@@ -396,12 +406,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? "password-error" : undefined}
             />
+
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
               disabled={isLoading}
-              aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+              aria-label={showPassword ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD}
             >
               {showPassword ? (
                 <EyeOff className="w-4 h-4" />
@@ -426,13 +437,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
           disabled={!isFormValid() || isLoading}
           className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-all duration-300 disabled:opacity-50 disabled:bg-[var(--muted)] disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
         >
+
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              Загрузка...
+              {MESSAGES.UI_ELEMENTS.LOADING}
             </span>
           ) : (
-            "Войти"
+            MESSAGES.UI_ELEMENTS.LOGIN
           )}
         </button>
       </form>
@@ -440,8 +452,9 @@ const LoginModal: React.FC<LoginModalProps> = ({
       {/* Разделитель */}
       <div className="px-6 py-2 flex items-center">
         <div className="flex-grow border-t border-[var(--border)]"></div>
+
         <span className="flex-shrink mx-4 text-xs text-[var(--muted-foreground)]">
-          или
+          {MESSAGES.UI_ELEMENTS.OR}
         </span>
         <div className="flex-grow border-t border-[var(--border)]"></div>
       </div>
@@ -457,15 +470,16 @@ const LoginModal: React.FC<LoginModalProps> = ({
       </div>
 
       <div className="p-6 border-t border-[var(--border)] text-center">
+
         <p className="text-sm text-[var(--muted-foreground)]">
-          Ещё нет аккаунта?{" "}
+          {MESSAGES.UI_ELEMENTS.ALREADY_HAVE_ACCOUNT}{" "}
           <button
             type="button"
             onClick={onSwitchToRegister}
             className="cursor-pointer text-[var(--primary)] hover:underline font-medium disabled:opacity-50 transition-colors"
             // disabled={isLoading}
           >
-            Зарегистрироваться
+            {MESSAGES.UI_ELEMENTS.REGISTER}
           </button>
         </p>
       </div>

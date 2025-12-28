@@ -15,12 +15,17 @@ import {
 import { TitleStatus, TitleType } from "@/types/title";
 import { useRouter } from "next/navigation";
 
-
 import { CreateTitleDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
 import { normalizeGenres } from "@/lib/genre-normalizer";
-import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
-
+import {
+  translateTitleStatus,
+  translateTitleType,
+} from "@/lib/title-type-translations";
+import { VALIDATION_MESSAGES } from "@/constants/validation";
+import { MESSAGES } from "@/constants/messages";
+import { GENRES } from "@/constants/genres";
+import { UI_ELEMENTS } from "@/constants/uiElements";
 
 interface TitleFormData {
   name: string;
@@ -53,7 +58,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ onCoverChange }) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     onCoverChange(file);
-    
+
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -67,7 +72,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ onCoverChange }) => {
 
   const handleRemove = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
     onCoverChange(null);
     setPreviewUrl(null);
@@ -76,9 +81,9 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ onCoverChange }) => {
   return (
     <div className="space-y-4">
       <label className="block text-sm font-medium mb-2">
-        Обложка
+        {MESSAGES.ADMIN_ACTIONS.COVER}
       </label>
-      
+
       {previewUrl && (
         <div className="relative inline-block">
           <img
@@ -95,7 +100,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ onCoverChange }) => {
           </button>
         </div>
       )}
-      
+
       <div>
         <input
           ref={fileInputRef}
@@ -109,7 +114,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ onCoverChange }) => {
           htmlFor="cover-upload"
           className="px-4 py-2 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg cursor-pointer hover:bg-[var(--secondary)]/80 transition-colors inline-block"
         >
-          Выбрать файл
+          {MESSAGES.ADMIN_ACTIONS.COVER_UPLOAD}
         </label>
         {previewUrl && (
           <button
@@ -117,47 +122,13 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ onCoverChange }) => {
             onClick={handleRemove}
             className="ml-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
           >
-            Удалить
+            {MESSAGES.ADMIN_ACTIONS.DELETE}
           </button>
         )}
       </div>
     </div>
   );
 };
-
-
-const availableGenres = [
-  "Фэнтези",
-  "Романтика",
-  "Приключения",
-  "Драма",
-  "Комедия",
-  "Боевик",
-  "Детектив",
-  "Ужасы",
-  "Научная фантастика",
-  "Повседневность",
-  "Психологическое",
-  "Исторический",
-  "Спокон",
-  "Гарем",
-  "Исекай",
-  "Махва",
-  "Манхва",
-  "Сёнэн",
-  "Сёдзе",
-  "Сейнен",
-  // Новые жанры из задания
-  "Жестокий мир",
-  "Драконы",
-  "Главная героиня",
-  "Дружба",
-  "Игровые элементы",
-  "Мурим",
-  "Всесильный главный герой",
-  "Разумные расы",
-  "Видеоигры",
-];
 
 export default function TitleEditorPage() {
   const params = useParams();
@@ -167,12 +138,16 @@ export default function TitleEditorPage() {
   const isEditMode = Boolean(titleId);
 
   // API hooks
-  const { data: existingTitle } = useGetTitleByIdQuery({ id: titleId! }, {
-    skip: !isEditMode,
-  });
+  const { data: existingTitle } = useGetTitleByIdQuery(
+    { id: titleId! },
+    {
+      skip: !isEditMode,
+    }
+  );
   const [createTitle, { isLoading: isCreating }] = useCreateTitleMutation();
   const [updateTitle, { isLoading: isUpdating }] = useUpdateTitleMutation();
-  const [createTitleWithCover, { isLoading: isCreatingWithCover }] = useCreateTitleWithCoverMutation();
+  const [createTitleWithCover, { isLoading: isCreatingWithCover }] =
+    useCreateTitleWithCoverMutation();
 
   // local form state
   const [formData, setFormData] = useState<TitleFormData>({
@@ -195,10 +170,9 @@ export default function TitleEditorPage() {
     isPublished: false,
   });
 
-  
-    const [altNameInput, setAltNameInput] = useState("");
-    const [tagInput, setTagInput] = useState("");
-    const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [altNameInput, setAltNameInput] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   useEffect(() => {
     if (existingTitle) {
       setFormData({
@@ -244,57 +218,61 @@ export default function TitleEditorPage() {
   };
 
   const addAltName = () => {
-    if (altNameInput.trim() && !formData.altNames.includes(altNameInput.trim())) {
-      setFormData(prev => ({
+    if (
+      altNameInput.trim() &&
+      !formData.altNames.includes(altNameInput.trim())
+    ) {
+      setFormData((prev) => ({
         ...prev,
-        altNames: [...prev.altNames, altNameInput.trim()]
+        altNames: [...prev.altNames, altNameInput.trim()],
       }));
       setAltNameInput("");
     }
   };
 
   const removeAltName = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      altNames: prev.altNames.filter((_, i) => i !== index)
+      altNames: prev.altNames.filter((_, i) => i !== index),
     }));
   };
 
   const addTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        tags: [...prev.tags, tagInput.trim()]
+        tags: [...prev.tags, tagInput.trim()],
       }));
       setTagInput("");
     }
   };
 
-
   const removeTag = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter((_, i) => i !== index)
+      tags: prev.tags.filter((_, i) => i !== index),
     }));
   };
 
   // Функция нормализации жанров/тегов с уведомлениями
-  const normalizeGenresTags = (items: string[]): { 
-    normalized: string[]; 
+  const normalizeGenresTags = (
+    items: string[]
+  ): {
+    normalized: string[];
     changes: Array<{ original: string; normalized: string }>;
   } => {
     const changes: Array<{ original: string; normalized: string }> = [];
-    const normalized = items.map(item => {
+    const normalized = items.map((item) => {
       const original = item.trim();
       const normalized = normalizeGenres([original])[0];
-      
+
       if (original !== normalized) {
         changes.push({ original, normalized });
       }
-      
+
       return normalized;
     });
-    
+
     // Удаляем дубликаты при этом сохраняя порядок
     const uniqueGenres: string[] = [];
     for (const genre of normalized) {
@@ -302,49 +280,69 @@ export default function TitleEditorPage() {
         uniqueGenres.push(genre);
       }
     }
-    
+
     return { normalized: uniqueGenres, changes };
   };
 
   // Обработчик нормализации жанров/тегов
   const handleNormalize = (field: "genres" | "tags") => {
     const result = normalizeGenresTags(formData[field]);
-    
+
     // Обновляем состояние формы с нормализованными значениями
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: result.normalized,
     }));
-    
+
     // Показываем уведомление об изменениях
     if (result.changes.length > 0) {
       const changesText = result.changes
         .slice(0, 3) // Показываем только первые 3 изменения
-        .map(change => `${change.original} → ${change.normalized}`)
-        .join('\n');
-      
-      const moreText = result.changes.length > 3 ? `\nи еще ${result.changes.length - 3}...` : '';
-      
-      toast.success(
-        `Нормализовано ${result.changes.length} ${field === "genres" ? "жанров" : "тегов"}:\n${changesText}${moreText}`
-      );
+        .map((change) => `${change.original} → ${change.normalized}`)
+        .join("\n");
+
+      const moreText =
+        result.changes.length > 3
+          ? `\nи еще ${result.changes.length - 3}...`
+          : "";
+
+      if (field === "genres") {
+        toast.success(
+          UI_ELEMENTS.GENRES_NORMALIZED(
+            result.changes.length,
+            changesText,
+            moreText
+          )
+        );
+      } else {
+        toast.success(
+          UI_ELEMENTS.TAGS_NORMALIZED(
+            result.changes.length,
+            changesText,
+            moreText
+          )
+        );
+      }
     } else {
-      toast.info(`Все ${field === "genres" ? "жанры" : "теги"} уже в нормальном формате`);
+      if (field === "genres") {
+        toast.info(UI_ELEMENTS.ALL_GENRES_NORMALIZED);
+      } else {
+        toast.info(UI_ELEMENTS.ALL_TAGS_NORMALIZED);
+      }
     }
   };
-
 
   // Функция для подготовки данных к отправке
   const prepareSubmitData = (): Partial<CreateTitleDto> => {
     const data: Partial<CreateTitleDto> = {
       name: formData.name.trim(),
       slug: formData.slug?.trim() || undefined,
-      altNames: formData.altNames.filter(name => name.trim() !== ''),
+      altNames: formData.altNames.filter((name) => name.trim() !== ""),
       author: formData.author.trim(),
       description: formData.description.trim(),
       genres: normalizeGenres(formData.genres),
       ageLimit: formData.ageLimits,
-      tags: normalizeGenres(formData.tags.filter(tag => tag.trim() !== '')),
+      tags: normalizeGenres(formData.tags.filter((tag) => tag.trim() !== "")),
       releaseYear: formData.releaseYear,
       status: formData.status,
       type: formData.type,
@@ -369,7 +367,9 @@ export default function TitleEditorPage() {
     }
 
     if (formData.relatedTitles && formData.relatedTitles.length > 0) {
-      data.relatedTitles = formData.relatedTitles.filter(title => title.trim() !== '');
+      data.relatedTitles = formData.relatedTitles.filter(
+        (title) => title.trim() !== ""
+      );
     }
 
     return data;
@@ -380,29 +380,29 @@ export default function TitleEditorPage() {
 
     // Валидация обязательных полей
     if (!formData.name.trim()) {
-      toast.error("Название обязательно для заполнения");
+      toast.error(VALIDATION_MESSAGES.TITLE_REQUIRED);
       return;
     }
 
     if (!formData.author.trim()) {
-      toast.error("Автор обязателен для заполнения");
+      toast.error(VALIDATION_MESSAGES.AUTHOR_REQUIRED);
       return;
     }
 
     if (!formData.description.trim()) {
-      toast.error("Описание обязательно для заполнения");
+      toast.error(VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
       return;
     }
 
     if (formData.genres.length === 0) {
-      toast.error("Выберите хотя бы один жанр");
+      toast.error(VALIDATION_MESSAGES.GENRE_REQUIRED);
       return;
     }
 
     // Валидация releaseYear
     const currentYear = new Date().getFullYear();
     if (formData.releaseYear < 1900 || formData.releaseYear > currentYear) {
-      toast.error(`Год выпуска должен быть между 1900 и ${currentYear}`);
+      toast.error(MESSAGES.ERROR_MESSAGES.YEAR_VALIDATION(currentYear));
       return;
     }
 
@@ -414,20 +414,30 @@ export default function TitleEditorPage() {
       } else {
         // При создании нового тайтла используем новый эндпоинт с обложкой
         if (coverFile) {
-          await createTitleWithCover({ data: dataToSend, coverImage: coverFile }).unwrap();
+          await createTitleWithCover({
+            data: dataToSend,
+            coverImage: coverFile,
+          }).unwrap();
         } else {
           await createTitle(dataToSend).unwrap();
         }
       }
 
       router.push("/admin");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       // Handle error silently in production
       if (err.data?.message) {
-        toast.error(`Ошибка: ${Array.isArray(err.data.message) ? err.data.message.join(', ') : err.data.message}`);
+        toast.error(
+          `${MESSAGES.ERROR_MESSAGES.UNKNOWN_ERROR}: ${
+            Array.isArray(err.data.message)
+              ? err.data.message.join(", ")
+              : err.data.message
+          }`
+        );
       } else {
-        toast.error("Произошла ошибка при сохранении. Проверьте консоль для подробностей.");
+        toast.error(MESSAGES.ERROR_MESSAGES.SERVER_ERROR);
       }
     }
   };
@@ -437,389 +447,432 @@ export default function TitleEditorPage() {
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
-            {isEditMode ? (
-              <Edit className="w-8 h-8" />
-            ) : (
-              <Plus className="w-8 h-8" />
-            )}
-            {isEditMode ? "Редактировать тайтл" : "Добавить новый тайтл"}
-          </h1>
-          <p className="text-[var(--muted-foreground)]">
-            {isEditMode
-              ? "Обновите информацию о тайтле"
-              : "Заполните информацию о тайтле"}
-          </p>
-        </div>
-
-        <form className="space-y-8" onSubmit={handleSubmit}>
-          {/* Основная информация */}
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-            <h2 className="text-xl font-semibold text-[var(--muted-foreground)] mb-6 flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
-              Основная информация
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Название *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Slug
-                </label>
-                <input
-                  type="text"
-                  name="slug"
-                  value={formData.slug || ""}
-                  onChange={handleChange}
-                  placeholder="Введите slug тайтла"
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Автор *
-                </label>
-                <input
-                  type="text"
-                  name="author"
-                  value={formData.author}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Художник
-                </label>
-                <input
-                  type="text"
-                  name="artist"
-                  value={formData.artist}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Год выпуска *
-                </label>
-                <input
-                  type="number"
-                  name="releaseYear"
-                  value={formData.releaseYear}
-                  onChange={handleChange}
-                  min="1900"
-                  max={new Date().getFullYear()}
-                  required
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
-                />
-                <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                  Должен быть между 1900 и {new Date().getFullYear()}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Статус *</label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
-                >
-
-                  <option value={TitleStatus.ONGOING}>{translateTitleStatus(TitleStatus.ONGOING)}</option>
-                  <option value={TitleStatus.COMPLETED}>{translateTitleStatus(TitleStatus.COMPLETED)}</option>
-                  <option value={TitleStatus.PAUSE}>{translateTitleStatus(TitleStatus.PAUSE)}</option>
-                  <option value={TitleStatus.CANCELLED}>{translateTitleStatus(TitleStatus.CANCELLED)}</option>
-                </select>
-              </div>
-
-              
-              <div>
-                <label className="block text-sm font-medium mb-2">Статус *</label>
-                <select
-                  name="ageLimit"
-                  value={formData.ageLimits}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
-                >
-                  <option value={0}>{"0+ Для всех возрастов"}</option>
-                  <option value={12}>{"12+ Для детей старше 12"}</option>
-                  <option value={16}>{"16+ Для детей старше 16"}</option>
-                  <option value={18}>{"18+ Только для взрослых"}</option>
-                </select>
-              </div>
-
-              <div>
-                <CoverUpload onCoverChange={setCoverFile} />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Тип тайтла *</label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
-                >
-
-                  <option value={TitleType.MANGA}>{translateTitleType(TitleType.MANGA)}</option>
-                  <option value={TitleType.MANHWA}>{translateTitleType(TitleType.MANHWA)}</option>
-                  <option value={TitleType.MANHUA}>{translateTitleType(TitleType.MANHUA)}</option>
-                  <option value={TitleType.NOVEL}>{translateTitleType(TitleType.NOVEL)}</option>
-                  <option value={TitleType.LIGHT_NOVEL}>{translateTitleType(TitleType.LIGHT_NOVEL)}</option>
-                  <option value={TitleType.COMIC}>{translateTitleType(TitleType.COMIC)}</option>
-                  <option value={TitleType.OTHER}>{translateTitleType(TitleType.OTHER)}</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Издатель
-                </label>
-                <input
-                  type="text"
-                  name="publisher"
-                  value={formData.publisher || ''}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Сериализация
-                </label>
-                <input
-                  type="text"
-                  name="serialization"
-                  value={formData.serialization || ''}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="isPublished"
-                    checked={formData.isPublished}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isPublished: e.target.checked }))}
-                  />
-                  <span>Опубликован</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Альтернативные названия */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium mb-2">
-                Альтернативные названия
-              </label>
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={altNameInput}
-                  onChange={(e) => setAltNameInput(e.target.value)}
-                  placeholder="Введите альтернативное название"
-                  className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addAltName();
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={addAltName}
-                  className="px-4 py-2 cursor-pointer bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg hover:bg-[var(--secondary)]/90"
-                >
-                  Добавить
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.altNames.map((name, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[var(--secondary)] border border-[var(--border)]"
-                  >
-                    {name}
-                    <button
-                      type="button"
-                      onClick={() => removeAltName(index)}
-                      className="ml-2 text-red-500 hover:text-red-700"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-
-            {/* Жанры */}
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Tag className="w-4 h-4" />
-                  Жанры *
-                </label>
-                <button
-                  type="button"
-                  onClick={() => handleNormalize("genres")}
-                  className="px-2 py-1 text-xs bg-[var(--secondary)] text-[var(--muted-foreground)] rounded hover:bg-[var(--secondary)]/80 transition-colors"
-                  title="Нормализовать жанры"
-                >
-                  Нормализовать
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {availableGenres.map((genre) => (
-                  <label key={genre} className="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.genres.includes(genre)}
-                      onChange={() => handleGenreToggle(genre)}
-                      className="hidden peer"
-                    />
-                    <span className="px-3 py-1 rounded-full text-sm border border-[var(--border)] bg-[var(--accent)] text-[var(--muted-foreground)] hover:border-[var(--primary)] transition-colors peer-checked:bg-[var(--secondary)] peer-checked:text-[var(--primary-foreground)] cursor-pointer">
-                      {genre}
-                    </span>
-                  </label>
-                ))}
-              </div>
-              {formData.genres.length > 0 && (
-                <p className="text-xs text-[var(--muted-foreground)] mt-2">
-                  Выбрано: {formData.genres.join(', ')}
-                </p>
-              )}
-            </div>
-
-
-            {/* Теги */}
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium">
-                  Теги
-                </label>
-                <button
-                  type="button"
-                  onClick={() => handleNormalize("tags")}
-                  className="px-2 py-1 text-xs bg-[var(--secondary)] text-[var(--muted-foreground)] rounded hover:bg-[var(--secondary)]/80 transition-colors"
-                  title="Нормализовать теги"
-                >
-                  Нормализовать
-                </button>
-              </div>
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  placeholder="Введите тег"
-                  className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addTag();
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={addTag}
-                  className="px-4 py-2 bg-[var(--secondary)] cursor-pointer text-[var(--muted-foreground)] rounded-lg hover:bg-[var(--secondary)]/90"
-                >
-                  Добавить
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[var(--secondary)] border border-[var(--border)]"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(index)}
-                      className="ml-2 text-red-500 hover:text-red-700"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <label className="block text-sm font-medium mb-2">Описание *</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={4}
-                required
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] resize-none"
-                placeholder="Подробное описание тайтла..."
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-4">
-            <Link
-              href="/admin"
-              className="px-6 py-3 bg-[var(--accent)] text-[var(--muted-foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
-            >
-              Отмена
-            </Link>
-            <button
-              type="submit"
-              disabled={isCreating || isUpdating || isCreatingWithCover}
-              className="px-8 py-3 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--secondary-foreground)]/10 transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
               {isEditMode ? (
-                <Save className="w-5 h-5" />
+                <Edit className="w-8 h-8" />
               ) : (
-                <Plus className="w-5 h-5" />
+                <Plus className="w-8 h-8" />
               )}
               {isEditMode
-                ? isUpdating
-                  ? "Сохраняем..."
-                  : "Сохранить изменения"
-                : isCreating || isCreatingWithCover
-                ? "Добавляем..."
-                : "Добавить тайтл"}
-            </button>
+                ? UI_ELEMENTS.EDIT_TITLE
+                : UI_ELEMENTS.ADMIN_CREATE_TITLE}
+            </h1>
+            <p className="text-[var(--muted-foreground)]">
+              {isEditMode
+                ? UI_ELEMENTS.ADMIN_EDIT_DESCRIPTION
+                : UI_ELEMENTS.ADMIN_CREATE_DESCRIPTION}
+            </p>
           </div>
-        </form>
-      </div>
-<Footer />
-</main>
-</AuthGuard>
-);
+
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            {/* Основная информация */}
+            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+              <h2 className="text-xl font-semibold text-[var(--muted-foreground)] mb-6 flex items-center gap-2">
+                <BookOpen className="w-5 h-5" />
+                {MESSAGES.ADMIN_ACTIONS.BASIC_INFO}
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.NAME_REQUIRED}
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.SLUG}
+                  </label>
+                  <input
+                    type="text"
+                    name="slug"
+                    value={formData.slug || ""}
+                    onChange={handleChange}
+                    placeholder={MESSAGES.PLACEHOLDERS.SLUG}
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.AUTHOR_REQUIRED}
+                  </label>
+                  <input
+                    type="text"
+                    name="author"
+                    value={formData.author}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.ARTIST}
+                  </label>
+                  <input
+                    type="text"
+                    name="artist"
+                    value={formData.artist}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.RELEASE_YEAR_REQUIRED}
+                  </label>
+                  <input
+                    type="number"
+                    name="releaseYear"
+                    value={formData.releaseYear}
+                    onChange={handleChange}
+                    min="1900"
+                    max={new Date().getFullYear()}
+                    required
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
+                  />
+
+                  <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                    {UI_ELEMENTS.VALIDATION.YEAR_RANGE(
+                      new Date().getFullYear()
+                    )}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.STATUS_REQUIRED}
+                  </label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
+                  >
+                    <option value={TitleStatus.ONGOING}>
+                      {translateTitleStatus(TitleStatus.ONGOING)}
+                    </option>
+                    <option value={TitleStatus.COMPLETED}>
+                      {translateTitleStatus(TitleStatus.COMPLETED)}
+                    </option>
+                    <option value={TitleStatus.PAUSE}>
+                      {translateTitleStatus(TitleStatus.PAUSE)}
+                    </option>
+                    <option value={TitleStatus.CANCELLED}>
+                      {translateTitleStatus(TitleStatus.CANCELLED)}
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.AGE_LIMIT}
+                  </label>
+                  <select
+                    name="ageLimit"
+                    value={formData.ageLimits}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
+                  >
+                    <option value={0}>{MESSAGES.AGE_LIMITS.ALL_AGES}</option>
+                    <option value={12}>{MESSAGES.AGE_LIMITS.PLUS_12}</option>
+                    <option value={16}>{MESSAGES.AGE_LIMITS.PLUS_16}</option>
+                    <option value={18}>{MESSAGES.AGE_LIMITS.PLUS_18}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <CoverUpload onCoverChange={setCoverFile} />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.TITLE_TYPE_REQUIRED}
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
+                  >
+                    <option value={TitleType.MANGA}>
+                      {translateTitleType(TitleType.MANGA)}
+                    </option>
+                    <option value={TitleType.MANHWA}>
+                      {translateTitleType(TitleType.MANHWA)}
+                    </option>
+                    <option value={TitleType.MANHUA}>
+                      {translateTitleType(TitleType.MANHUA)}
+                    </option>
+                    <option value={TitleType.NOVEL}>
+                      {translateTitleType(TitleType.NOVEL)}
+                    </option>
+                    <option value={TitleType.LIGHT_NOVEL}>
+                      {translateTitleType(TitleType.LIGHT_NOVEL)}
+                    </option>
+                    <option value={TitleType.COMIC}>
+                      {translateTitleType(TitleType.COMIC)}
+                    </option>
+                    <option value={TitleType.OTHER}>
+                      {translateTitleType(TitleType.OTHER)}
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.PUBLISHER}
+                  </label>
+                  <input
+                    type="text"
+                    name="publisher"
+                    value={formData.publisher || ""}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {UI_ELEMENTS.FIELD_LABELS.SERIALIZATION}
+                  </label>
+                  <input
+                    type="text"
+                    name="serialization"
+                    value={formData.serialization || ""}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      name="isPublished"
+                      checked={formData.isPublished}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isPublished: e.target.checked,
+                        }))
+                      }
+                    />
+
+                    <span>{MESSAGES.ADMIN_ACTIONS.PUBLISHED}</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Альтернативные названия */}
+              <div className="mt-6">
+                <label className="block text-sm font-medium mb-2">
+                  {UI_ELEMENTS.FIELD_LABELS.ALT_NAMES}
+                </label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={altNameInput}
+                    onChange={(e) => setAltNameInput(e.target.value)}
+                    placeholder={MESSAGES.PLACEHOLDERS.ALT_NAME}
+                    className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addAltName();
+                      }
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={addAltName}
+                    className="px-4 py-2 cursor-pointer bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg hover:bg-[var(--secondary)]/90"
+                  >
+                    {MESSAGES.ADMIN_ACTIONS.ADD}
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.altNames.map((name, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[var(--secondary)] border border-[var(--border)]"
+                    >
+                      {name}
+                      <button
+                        type="button"
+                        onClick={() => removeAltName(index)}
+                        className="ml-2 text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Жанры */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Tag className="w-4 h-4" />
+                    {UI_ELEMENTS.FIELD_LABELS.GENRES_REQUIRED}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleNormalize("genres")}
+                    className="px-2 py-1 text-xs bg-[var(--secondary)] text-[var(--muted-foreground)] rounded hover:bg-[var(--secondary)]/80 transition-colors"
+                    title={UI_ELEMENTS.ADMIN_ACTIONS.NORMALIZE_GENRES}
+                  >
+                    {UI_ELEMENTS.ADMIN_ACTIONS.NORMALIZE}
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {GENRES.map((genre) => (
+                    <label key={genre} className="inline-flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.genres.includes(genre)}
+                        onChange={() => handleGenreToggle(genre)}
+                        className="hidden peer"
+                      />
+                      <span className="px-3 py-1 rounded-full text-sm border border-[var(--border)] bg-[var(--accent)] text-[var(--muted-foreground)] hover:border-[var(--primary)] transition-colors peer-checked:bg-[var(--secondary)] peer-checked:text-[var(--primary-foreground)] cursor-pointer">
+                        {genre}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {formData.genres.length > 0 && (
+                  <p className="text-xs text-[var(--muted-foreground)] mt-2">
+                    {UI_ELEMENTS.VALIDATION.SELECTED_COUNT(
+                      formData.genres.length,
+                      formData.genres
+                    )}
+                  </p>
+                )}
+              </div>
+
+              {/* Теги */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium">
+                    {UI_ELEMENTS.FIELD_LABELS.TAGS}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleNormalize("tags")}
+                    className="px-2 py-1 text-xs bg-[var(--secondary)] text-[var(--muted-foreground)] rounded hover:bg-[var(--secondary)]/80 transition-colors"
+                    title={UI_ELEMENTS.ADMIN_ACTIONS.NORMALIZE_TAGS}
+                  >
+                    {UI_ELEMENTS.ADMIN_ACTIONS.NORMALIZE}
+                  </button>
+                </div>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    placeholder={MESSAGES.PLACEHOLDERS.TAG}
+                    className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addTag();
+                      }
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={addTag}
+                    className="px-4 py-2 bg-[var(--secondary)] cursor-pointer text-[var(--muted-foreground)] rounded-lg hover:bg-[var(--secondary)]/90"
+                  >
+                    {MESSAGES.ADMIN_ACTIONS.ADD}
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[var(--secondary)] border border-[var(--border)]"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(index)}
+                        className="ml-2 text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <label className="block text-sm font-medium mb-2">
+                  {UI_ELEMENTS.FIELD_LABELS.DESCRIPTION_REQUIRED}
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={4}
+                  required
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] resize-none"
+                  placeholder={MESSAGES.PLACEHOLDERS.DESCRIPTION}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <Link
+                href="/admin"
+                className="px-6 py-3 bg-[var(--accent)] text-[var(--muted-foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
+              >
+                {UI_ELEMENTS.FIELD_LABELS.CANCEL}
+              </Link>
+              <button
+                type="submit"
+                disabled={isCreating || isUpdating || isCreatingWithCover}
+                className="px-8 py-3 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--secondary-foreground)]/10 transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {isEditMode ? (
+                  <Save className="w-5 h-5" />
+                ) : (
+                  <Plus className="w-5 h-5" />
+                )}
+
+                {isEditMode
+                  ? isUpdating
+                    ? UI_ELEMENTS.SAVING
+                    : UI_ELEMENTS.SAVE_CHANGES
+                  : isCreating || isCreatingWithCover
+                  ? UI_ELEMENTS.ADDING
+                  : UI_ELEMENTS.ADD_TITLE}
+              </button>
+            </div>
+          </form>
+        </div>
+        <Footer />
+      </main>
+    </AuthGuard>
+  );
 }
