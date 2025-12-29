@@ -48,10 +48,13 @@ export const chaptersApi = createApi({
       providesTags: (result, error, id) => [{ type: CHAPTERS_TAG, id }],
     }),
 
-    getChapterByNumber: builder.query<Chapter, { titleId: string; chapterNumber: number }>({
-      query: ({ titleId, chapterNumber }) => `/chapters/by-number/${titleId}?chapterNumber=${chapterNumber}`,
+    getChapterByNumber: builder.query<
+      Chapter,
+      { titleId: string; chapterNumber: number }
+    >({
+      query: ({ titleId, chapterNumber }) =>
+        `/chapters/by-number/${titleId}?chapterNumber=${chapterNumber}`,
     }),
-
 
     getChaptersByTitle: builder.query<
       ChaptersResponse,
@@ -204,14 +207,10 @@ export const chaptersApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: CHAPTERS_TAG, id }],
     }),
 
-
-
-
     deleteChapter: builder.mutation<void, string>({
       query: (id) => ({ url: `/chapters/${id}`, method: "DELETE" }),
       invalidatesTags: [CHAPTERS_TAG],
     }),
-
 
     // Увеличение счётчика просмотров главы (доступно без авторизации)
     incrementChapterViews: builder.mutation<ApiResponseDto<Chapter>, string>({
@@ -225,9 +224,6 @@ export const chaptersApi = createApi({
   }),
 });
 
-
-
-
 export const {
   useGetChapterByIdQuery,
   useGetChaptersByTitleQuery,
@@ -240,4 +236,3 @@ export const {
   useGetChapterByNumberQuery,
   useIncrementChapterViewsMutation,
 } = chaptersApi;
-
