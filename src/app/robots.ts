@@ -1,4 +1,3 @@
-
 export default function robots() {
   return {
     rules: [
@@ -7,17 +6,18 @@ export default function robots() {
         allow: [
           "/",
           "/titles/",
-          "/collections/", 
+          "/collections/",
           "/top/",
           "/updates/",
           "/copyright/",
           "/terms-of-use/",
           "/about/",
-          "/contact/"
+          "/contact/",
+          "/rss/",
         ],
         disallow: [
           "/admin/",
-          "/profile/", 
+          "/profile/",
           "/tomilo-shop/",
           "/api/",
           "/settings/",
@@ -25,23 +25,44 @@ export default function robots() {
           "/history/",
           "/bookmarks/",
           "/auth/",
-          "/rss/"
         ],
       },
       {
         userAgent: "Googlebot",
-        allow: ["/titles/", "/collections/"],
-        disallow: ["/admin/", "/profile/", "/api/"],
+        allow: ["/rss/", "/titles/", "/collections/"],
+        disallow: ["/admin/", "/profile/", "/api/", "/browse/"],
       },
       {
-        userAgent: "YandexBot",
-        allow: ["/titles/", "/collections/"],
-        disallow: ["/admin/", "/profile/", "/api/"],
+        userAgent: "Yandex",
+        allow: [
+          "/",
+          "/titles/",
+          "/collections/",
+          "/top/",
+          "/updates/",
+          "/copyright/",
+          "/terms-of-use/",
+          "/about/",
+          "/contact/",
+          "/rss/",
+        ],
+        disallow: [
+          "/admin/",
+          "/browse/",
+          "/profile/",
+          "/tomilo-shop/",
+          "/api/",
+          "/settings/",
+          "/notifications/",
+          "/history/",
+          "/bookmarks/",
+          "/auth/",
+        ],
       },
       {
         userAgent: "Bingbot",
-        allow: ["/titles/", "/collections/"],
-        disallow: ["/admin/", "/profile/", "/api/"],
+        allow: ["/rss/", "/titles/", "/collections/"],
+        disallow: ["/admin/", "/profile/", "/api/", "/browse/"],
       },
     ],
     sitemap: `${
