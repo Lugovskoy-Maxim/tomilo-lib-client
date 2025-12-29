@@ -83,7 +83,7 @@ export default function ChapterCreatePage() {
           Назад к тайтлу
         </button>
       </div>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form method="post" onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="flex flex-col gap-1">
             <span className="text-sm">Номер главы</span>
