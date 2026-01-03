@@ -1,10 +1,11 @@
-
 "use client";
 
 import { SearchResult } from "@/types/search";
 import Link from "next/link";
 import Image from "next/image";
 import { getTitlePath } from "@/lib/title-paths";
+import { translateTitleType } from "@/lib/title-type-translations";
+import { Star } from "lucide-react";
 
 interface SearchResultsProps {
   results: SearchResult[];
@@ -76,9 +77,11 @@ export default function SearchResults({
 
   return (
     <Container>
-      <div className="max-h-80 overflow-y-auto flex flex-col gap-1 " data-testid="search-results">
+      <div
+        className="max-h-80 overflow-y-auto flex flex-col gap-1 "
+        data-testid="search-results"
+      >
         {results.map((result) => (
-
           <Link
             key={result.id}
             href={getTitlePath(result)}
@@ -107,7 +110,7 @@ export default function SearchResults({
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   {result.type && (
                     <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
-                      {result.type}
+                      {translateTitleType(result.type)}
                     </span>
                   )}
                   {result.releaseYear && (
@@ -116,8 +119,9 @@ export default function SearchResults({
                     </span>
                   )}
                   {result.rating !== undefined && (
-                    <span className="text-xs text-muted-foreground">
-                      ⭐ {result.rating.toFixed(1)}
+                    <span className="flex gap-1 text-xs text-muted-foreground">
+                      <Star className="w-4 h-4" />
+                      {result.rating.toFixed(1)}
                     </span>
                   )}
                   {result.totalChapters !== undefined && (
