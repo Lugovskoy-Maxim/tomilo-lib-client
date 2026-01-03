@@ -16,11 +16,11 @@ const navigationItems = [
     href: "/titles",
     icon: BookOpen,
   },
-  {
-    name: "Топ",
-    href: "/top",
-    icon: Trophy,
-  },
+  // {
+  //   name: "Топ",
+  //   href: "/top",
+  //   icon: Trophy,
+  // },
 ];
 
 export default function Navigation({
