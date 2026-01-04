@@ -13,6 +13,7 @@ interface MobileCoverProps {
   onShare: () => void;
   isAdmin: boolean;
   onAgeVerificationRequired: () => void;
+  onTabChange?: (tab: "main" | "chapters" | "comments") => void;
 }
 
 export default function MobileCover({
@@ -21,6 +22,7 @@ export default function MobileCover({
   onShare,
   isAdmin,
   onAgeVerificationRequired,
+  onTabChange,
 }: MobileCoverProps) {
   const { user } = useAuth();
   const isAdultContent = titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);

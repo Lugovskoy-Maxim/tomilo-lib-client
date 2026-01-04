@@ -245,6 +245,7 @@ export default function TitleViewClient({
             onShare={handleShare}
             isAdmin={displayIsAdmin}
             onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
+            onTabChange={setActiveTab}
           />
 
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
