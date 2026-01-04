@@ -219,7 +219,7 @@ export default function TitleViewClient({ slug }: { slug: string }) {
 
   // Состояние для активной вкладки
   const [activeTab, setActiveTab] = useState<"main" | "chapters" | "comments">(
-    "main"
+    "chapters"
   );
 
   // Состояние для раскрытого описания
