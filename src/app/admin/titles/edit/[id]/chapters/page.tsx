@@ -3,8 +3,8 @@
 import { AuthGuard } from "@/guard/auth-guard";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useGetChaptersByTitleQuery, useDeleteChapterMutation } from "@/store/api/chaptersApi";
-import { useMemo, useCallback, useState } from "react";
+import { useGetChaptersByTitleQuery, useDeleteChapterMutation, useUpdateChapterMutation } from "@/store/api/chaptersApi";
+import { useMemo, useCallback, useState, useRef } from "react";
 import { Header, Footer } from "@/widgets";
 import { useToast } from "@/hooks/useToast";
 import { Chapter } from "@/types/title";
@@ -16,12 +16,16 @@ export default function ChaptersManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchChapterNumber, setSearchChapterNumber] = useState("");
   const [foundChapter, setFoundChapter] = useState<Chapter | null>(null);
+  const [draggedChapter, setDraggedChapter] = useState<Chapter | null>(null);
+  const dragItem = useRef<number | null>(null);
+  const dragOverItem = useRef<number | null>(null);
 
   const { data, isLoading, error } = useGetChaptersByTitleQuery(
     { titleId, page: currentPage, limit: 10000, sortOrder: "desc" },
     { skip: !titleId }
   );
   const [deleteChapter] = useDeleteChapterMutation();
+  const [updateChapter] = useUpdateChapterMutation();
 
 
   const chapters = useMemo(() => data?.chapters || [], [data]);
@@ -82,6 +86,66 @@ export default function ChaptersManagementPage() {
   const sortedChapters = useMemo(() => {
     return [...chapters].sort((a, b) => (b.chapterNumber ?? 0) - (a.chapterNumber ?? 0));
   }, [chapters]);
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    dragItem.current = index;
+    setDraggedChapter(sortedChapters[index]);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    dragOverItem.current = index;
+    e.preventDefault();
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async () => {
+    if (dragItem.current === null || dragOverItem.current === null) return;
+    if (dragItem.current === dragOverItem.current) return;
+
+    const newChapters = [...sortedChapters];
+    const draggedItem = newChapters[dragItem.current];
+    
+    // Удаляем элемент из старой позиции
+    newChapters.splice(dragItem.current, 1);
+    // Вставляем в новую позицию
+    newChapters.splice(dragOverItem.current, 0, draggedItem);
+
+    // Обновляем номера глав
+    try {
+      const updatePromises = newChapters.map((chapter, index) => {
+        const newChapterNumber = newChapters.length - index;
+        if (chapter.chapterNumber !== newChapterNumber) {
+          return updateChapter({
+            id: chapter._id,
+            data: { chapterNumber: newChapterNumber }
+          }).unwrap();
+        }
+        return Promise.resolve();
+      });
+
+      await Promise.all(updatePromises);
+      toast.success("Порядок глав успешно изменен");
+    } catch (error) {
+      toast.error("Ошибка при изменении порядка глав");
+      console.error(error);
+    }
+
+    // Сбрасываем значения
+    dragItem.current = null;
+    dragOverItem.current = null;
+    setDraggedChapter(null);
+  };
+
+  const handleDragEnd = () => {
+    dragItem.current = null;
+    dragOverItem.current = null;
+    setDraggedChapter(null);
+  };
 
   return (
     <AuthGuard requiredRole="admin">
@@ -162,13 +226,19 @@ export default function ChaptersManagementPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedChapters.map((ch: Chapter) => (
+                    {sortedChapters.map((ch: Chapter, index: number) => (
                       <tr 
                         key={ch._id} 
                         data-chapter-id={ch._id}
                         className={`border-b border-[var(--border)] hover:bg-[var(--accent)]/30 ${
                           foundChapter?._id === ch._id ? 'bg-yellow-100 border-yellow-300' : ''
-                        }`}
+                        } ${draggedChapter?._id === ch._id ? 'opacity-50' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragEnter={(e) => handleDragEnter(e, index)}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        onDragEnd={handleDragEnd}
                       >
                         <td className="p-3">#{ch.chapterNumber}</td>
                         <td className="p-3">{ch.title || "-"}</td>
