@@ -1,7 +1,7 @@
 "use client";
 
 import { AuthGuard } from "@/guard/auth-guard";
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Edit, Save, AlertCircle, Eye, Trash2 } from "lucide-react";
@@ -40,6 +40,10 @@ export default function ChapterEditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; index: number } | null>(null);
   const [imagesToDelete, setImagesToDelete] = useState<number[]>([]);
+  
+  // Drag and drop state
+  const dragItem = useRef<number | null>(null);
+  const dragOverItem = useRef<number | null>(null);
 
   const [updateChapterMutation, { isLoading: isUpdating }] = useUpdateChapterMutation();
   const [deleteChapter] = useDeleteChapterMutation();
@@ -74,6 +78,49 @@ export default function ChapterEditorPage() {
 
   const handleRestoreImage = (index: number) => {
     setImagesToDelete(prev => prev.filter(i => i !== index));
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    dragItem.current = index;
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    dragOverItem.current = index;
+    e.preventDefault();
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = () => {
+    if (dragItem.current === null || dragOverItem.current === null) return;
+    if (dragItem.current === dragOverItem.current) return;
+
+    const newPages = [...(formData.pages || [])];
+    const draggedItem = newPages[dragItem.current];
+    
+    // Удаляем элемент из старой позиции
+    newPages.splice(dragItem.current, 1);
+    // Вставляем в новую позицию
+    newPages.splice(dragOverItem.current, 0, draggedItem);
+
+    // Обновляем состояние
+    setFormData(prev => ({
+      ...prev,
+      pages: newPages
+    }));
+
+    // Сбрасываем значения
+    dragItem.current = null;
+    dragOverItem.current = null;
+  };
+
+  const handleDragEnd = () => {
+    dragItem.current = null;
+    dragOverItem.current = null;
   };
 
   const handleSaveChanges = async () => {
@@ -204,6 +251,12 @@ export default function ChapterEditorPage() {
                     <div 
                       key={index} 
                       className={`relative group border rounded-lg overflow-hidden ${isMarkedForDeletion ? 'opacity-50' : ''}`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragEnter={(e) => handleDragEnter(e, index)}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      onDragEnd={handleDragEnd}
                     >
                       <div 
                         className="aspect-[2/3] bg-gray-200 cursor-pointer relative"
@@ -292,7 +345,7 @@ export default function ChapterEditorPage() {
   </AuthGuard>
 );
 }
- 
+
 function LoadingState() {
   return (
     <div className="flex items-center justify-center min-h-[50vh]">
