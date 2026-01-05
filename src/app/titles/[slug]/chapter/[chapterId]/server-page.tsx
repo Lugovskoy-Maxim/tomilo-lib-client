@@ -3,6 +3,7 @@ import {
   ReaderTitle as ReadTitle,
   ReaderChapter as ReadChapter,
 } from "@/shared/reader/types";
+import ChapterErrorState from "@/shared/error-state/chapter-error-state";
 
 function normalizeAssetUrl(p: string): string {
   if (!p) return "";
@@ -23,11 +24,12 @@ export default async function ServerChapterPage({
 }: {
   params: Promise<{ slug: string; chapterId: string }>;
 }) {
+  const resolvedParams = await params;
+  const { slug, chapterId } = resolvedParams;
+  const apiUrl =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  
   try {
-    const resolvedParams = await params;
-    const { slug, chapterId } = resolvedParams;
-    const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
     // Получаем данные тайтла по slug
     const titleResponse = await fetch(
@@ -39,18 +41,11 @@ export default async function ServerChapterPage({
 
     if (!titleResponse.ok) {
       if (titleResponse.status === 404) {
-        return (
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-                Тайтл не найден
-              </h1>
-              <p className="text-[var(--muted-foreground)]">
-                Запрашиваемый тайтл не существует или был удален.
-              </p>
-            </div>
-          </div>
-        );
+        return <ChapterErrorState
+          title="Тайтл не найден"
+          message="Запрашиваемый тайтл не существует или был удален."
+          slug={slug}
+        />;
       }
       throw new Error(`API error: ${titleResponse.status}`);
     }
@@ -58,18 +53,11 @@ export default async function ServerChapterPage({
     const titleApiResponse = await titleResponse.json();
 
     if (!titleApiResponse.success || !titleApiResponse.data) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-              Тайтл не найден
-              </h1>
-            <p className="text-[var(--muted-foreground)]">
-              Запрашиваемый тайтл не существует или был удален.
-            </p>
-          </div>
-        </div>
-      );
+      return <ChapterErrorState
+        title="Тайтл не найден"
+        message="Запрашиваемый тайтл не существует или был удален."
+        slug={slug}
+      />;
     }
 
     const titleData: import("@/types/title").Title = titleApiResponse.data;
@@ -82,18 +70,11 @@ export default async function ServerChapterPage({
 
     if (!chapterResponse.ok) {
       if (chapterResponse.status === 404) {
-        return (
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-                Глава не найдена
-              </h1>
-              <p className="text-[var(--muted-foreground)]">
-                Запрашиваемая глава не существует или была удалена.
-              </p>
-            </div>
-          </div>
-        );
+        return <ChapterErrorState
+          title="Глава не найдена"
+          message="Запрашиваемая глава не существует или была удалена."
+          slug={slug}
+        />;
       }
       throw new Error(`API error: ${chapterResponse.status}`);
     }
@@ -101,18 +82,11 @@ export default async function ServerChapterPage({
     const chapterApiResponse = await chapterResponse.json();
 
     if (!chapterApiResponse.success || !chapterApiResponse.data) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-              Глава не найдена
-            </h1>
-            <p className="text-[var(--muted-foreground)]">
-              Запрашиваемая глава не существует или была удалена.
-            </p>
-          </div>
-        </div>
-      );
+      return <ChapterErrorState
+        title="Глава не найдена"
+        message="Запрашиваемая глава не существует или была удалена."
+        slug={slug}
+      />;
     }
 
     const chapterData: import("@/types/title").Chapter =
@@ -127,18 +101,11 @@ export default async function ServerChapterPage({
     if (chapterTitleId !== titleId) {
       // В серверной версии мы не можем делать редирект через router.push
       // Вместо этого возвращаем сообщение об ошибке
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-              Глава перемещена
-            </h1>
-            <p className="text-[var(--muted-foreground)]">
-              Эта глава была перемещена в другой тайтл.
-            </p>
-          </div>
-        </div>
-      );
+      return <ChapterErrorState
+        title="Глава перемещена"
+        message="Эта глава была перемещена в другой тайтл."
+        slug={slug}
+      />;
     }
 
     // Получаем список всех глав тайтла
@@ -197,18 +164,11 @@ export default async function ServerChapterPage({
     const currentChapter = mappedChapters.find((c) => c._id === chapterId);
 
     if (!currentChapter) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-              Глава не найдена
-            </h1>
-            <p className="text-[var(--muted-foreground)]">
-              Запрошенная глава не существует или была удалена.
-            </p>
-          </div>
-        </div>
-      );
+      return <ChapterErrorState
+        title="Глава не найдена"
+        message="Запрошенная глава не существует или была удалена."
+        slug={slug}
+      />;
     }
 
     return (
@@ -221,17 +181,10 @@ export default async function ServerChapterPage({
     );
   } catch (error) {
     console.error("Error in ServerChapterPage:", error);
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-            Ошибка загрузки
-          </h1>
-          <p className="text-[var(--muted-foreground)]">
-            Не удалось загрузить данные главы.
-          </p>
-        </div>
-      </div>
-    );
+    return <ChapterErrorState
+      title="Ошибка загрузки"
+      message="Не удалось загрузить данные главы."
+      slug={slug}
+    />;
   }
 }

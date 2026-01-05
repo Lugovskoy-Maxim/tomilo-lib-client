@@ -22,6 +22,7 @@ import {
 } from "@/lib/reading-position";
 
 import AdBlockReading from "@/shared/ad-block/ad-block-reading";
+import ChapterErrorState from "@/shared/error-state/chapter-error-state";
 
 export default function ReadChapterPage({
   title,
@@ -428,25 +429,18 @@ export default function ReadChapterPage({
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-          <p className="text-[var(--foreground)]">Загрузка...</p>
+          <p className="text-[var(--foreground)]">Загрузка главы...</p>
         </div>
       </div>
     );
   }
 
   if (!chapter) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-            Глава не найдена
-          </h1>
-          <p className="text-[var(--muted-foreground)]">
-            Попробуйте обновить страницу или выбрать другую главу
-          </p>
-        </div>
-      </div>
-    );
+    return <ChapterErrorState
+      title="Глава не найдена"
+      message="Попробуйте обновить страницу или выбрать другую главу"
+      slug={slug}
+    />;
   }
 
   return (
