@@ -1,6 +1,6 @@
-import { BarChart3, Download, BookOpen, FileText, Users, FolderOpen, Clock } from "lucide-react";
+import { BarChart3, Download, BookOpen, FileText, Users, FolderOpen, Clock, MessageCircle } from "lucide-react";
 
-type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users";
+type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users" | "comments";
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -37,6 +37,11 @@ const tabs = [
     id: "collections" as AdminTab,
     label: "Коллекции",
     icon: FolderOpen,
+  },
+  {
+    id: "comments" as AdminTab,
+    label: "Комментарии",
+    icon: MessageCircle,
   },
   {
     id: "users" as AdminTab,
