@@ -64,7 +64,7 @@ export function ReportModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-99 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] w-full max-w-md mx-4 p-6 relative">
         <button
           onClick={onClose}
