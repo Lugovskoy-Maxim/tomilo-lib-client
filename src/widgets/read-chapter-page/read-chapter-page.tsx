@@ -550,9 +550,13 @@ export default function ReadChapterPage({
             <div className="ml-4">
               <button
                 onClick={() => setIsReportModalOpen(true)}
-                className="px-3 py-2 bg-[var(--background)]/20 text-[var(--primary)] rounded-full text-sm hover:bg-[var(--background)]/30 transition-colors whitespace-nowrap"
+                className="px-3 py-2 bg-[var(--background)]/20 text-[var(--primary)] rounded-full text-sm hover:bg-[var(--background)]/30 transition-colors whitespace-nowrap flex items-center gap-1"
               >
-                Сообщить
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 3h18v18H3z" opacity="0.3"/>
+                  <path d="M12 8v4M12 16h.01"/>
+                </svg>
+                Сообщить о проблеме
               </button>
             </div>
           </div>

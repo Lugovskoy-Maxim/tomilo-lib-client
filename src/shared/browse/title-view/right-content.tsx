@@ -514,16 +514,19 @@ export function RightContent({
                 <span>{translateTitleStatus(titleData.status || "")}</span>
               )}
             </div>
+            <button
+              onClick={() => setIsReportModalOpen(true)}
+              className="flex items-center gap-1 px-3 py-1 bg-[var(--background)]/20 text-[var(--primary)] rounded-full text-sm hover:bg-[var(--background)]/30 transition-colors whitespace-nowrap"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 3h18v18H3z" opacity="0.3"/>
+                <path d="M12 8v4M12 16h.01"/>
+              </svg>
+              Нашел ошибку?
+            </button>
           </div>
 
           <div className="flex gap-2">
-            <button
-              onClick={() => setIsReportModalOpen(true)}
-              className="px-3 py-2 bg-[var(--background)]/20 text-[var(--primary)] rounded-full text-sm hover:bg-[var(--background)]/30 transition-colors whitespace-nowrap"
-            >
-              Сообщить
-            </button>
-
             <div className="relative flex flex-col items-end gap-1 bg-[var(--background)]/20 px-3 py-2 rounded-full min-w-[80px]">
               <div className="flex flex-col items-end">
                 <span className="text-lg font-bold text-[var(--chart-1)]">
