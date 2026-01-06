@@ -514,7 +514,7 @@ export function RightContent({
                 <span>{translateTitleStatus(titleData.status || "")}</span>
               )}
             </div>
-            <button
+            {/* <button
               onClick={() => setIsReportModalOpen(true)}
               className="flex items-center gap-1 px-3 py-1 bg-[var(--background)]/20 text-[var(--primary)] rounded-full text-sm hover:bg-[var(--background)]/30 transition-colors whitespace-nowrap"
             >
@@ -523,7 +523,7 @@ export function RightContent({
                 <path d="M12 8v4M12 16h.01"/>
               </svg>
               Нашел ошибку?
-            </button>
+            </button> */}
           </div>
 
           <div className="flex gap-2">
