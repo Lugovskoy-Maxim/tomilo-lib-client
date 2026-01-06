@@ -1,8 +1,7 @@
 export enum ReportType {
-  CONTENT = 'content',
-  COPYRIGHT = 'copyright',
-  TECHNICAL = 'technical',
-  OTHER = 'other'
+  ERROR = 'error',
+  TYPO = 'typo',
+  COMPLAINT = 'complaint'
 }
 
 export interface Report {

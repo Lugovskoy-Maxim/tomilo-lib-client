@@ -6,31 +6,23 @@ import { useState, useEffect } from "react";
 import {
   useGetReportsQuery,
   useUpdateReportStatusMutation,
-  useDeleteReportMutation
+  useDeleteReportMutation,
 } from "@/store/api/reportsApi";
 import { Report, ReportType } from "@/types/report";
 import Button from "@/shared/ui/button";
-import {
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Eye,
-  Trash2
-} from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle, Eye, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 
 const reportTypeLabels = {
-  [ReportType.CONTENT]: "Проблемы с контентом",
-  [ReportType.COPYRIGHT]: "Нарушение авторских прав",
-  [ReportType.TECHNICAL]: "Техническая проблема",
-  [ReportType.OTHER]: "Другое",
+  [ReportType.ERROR]: "Ошибка",
+  [ReportType.TYPO]: "Опечатка",
+  [ReportType.COMPLAINT]: "Жалоба",
 };
 
 const reportTypeColors = {
-  [ReportType.CONTENT]: "bg-blue-500",
-  [ReportType.COPYRIGHT]: "bg-red-500",
-  [ReportType.TECHNICAL]: "bg-yellow-500",
-  [ReportType.OTHER]: "bg-gray-500",
+  [ReportType.ERROR]: "bg-red-500",
+  [ReportType.TYPO]: "bg-blue-500",
+  [ReportType.COMPLAINT]: "bg-yellow-500",
 };
 
 export function ReportsSection() {
@@ -38,28 +30,28 @@ export function ReportsSection() {
   const [limit, setLimit] = useState(20);
   const [reportTypeFilter, setReportTypeFilter] = useState<string>("");
   const [isResolvedFilter, setIsResolvedFilter] = useState<string>("");
-  
+
   const { data, error, isLoading, refetch } = useGetReportsQuery({
     page,
     limit,
     reportType: reportTypeFilter || undefined,
     isResolved: isResolvedFilter || undefined,
   });
-  
+
   const [updateReportStatus] = useUpdateReportStatusMutation();
   const [deleteReport] = useDeleteReportMutation();
   const toast = useToast();
-  
+
   const handleStatusChange = async (id: string, isResolved: boolean) => {
     try {
       await updateReportStatus({ id, data: { isResolved } }).unwrap();
-      toast.success(`Жалоба ${isResolved ? 'закрыта' : 'открыта'} успешно`);
+      toast.success(`Жалоба ${isResolved ? "закрыта" : "открыта"} успешно`);
       refetch();
     } catch (error) {
       toast.error("Не удалось обновить статус жалобы");
     }
   };
-  
+
   const handleDelete = async (id: string) => {
     try {
       await deleteReport(id).unwrap();
@@ -69,7 +61,7 @@ export function ReportsSection() {
       toast.error("Не удалось удалить жалобу");
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -77,15 +69,17 @@ export function ReportsSection() {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)] rounded-lg p-4">
-        <p className="text-[var(--destructive)]">Ошибка загрузки жалоб: {JSON.stringify(error)}</p>
+        <p className="text-[var(--destructive)]">
+          Ошибка загрузки жалоб: {JSON.stringify(error)}
+        </p>
       </div>
     );
   }
-  
+
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
       <div className="mb-6">
@@ -96,7 +90,7 @@ export function ReportsSection() {
           Просмотр и управление всеми жалобами пользователей
         </p>
       </div>
-      
+
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div>
@@ -116,7 +110,7 @@ export function ReportsSection() {
             ))}
           </select>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
             Статус
@@ -131,33 +125,52 @@ export function ReportsSection() {
             <option value="false">Нерешенные</option>
           </select>
         </div>
-        
+
         <div className="flex items-end">
           <Button onClick={refetch} variant="outline" className="w-full">
             Обновить
           </Button>
         </div>
       </div>
-      
+
       {/* Reports Table */}
       {data?.data?.reports && data.data.reports.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-[var(--border)]">
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Тип</th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Описание</th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Сущность</th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Статус</th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Дата</th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Действия</th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                  Тип
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                  Описание
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                  Сущность
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                  Статус
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                  Дата
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                  Действия
+                </th>
               </tr>
             </thead>
             <tbody>
               {data.data.reports.map((report: Report) => (
-                <tr key={report._id} className="border-b border-[var(--border)] hover:bg-[var(--accent)]">
+                <tr
+                  key={report._id}
+                  className="border-b border-[var(--border)] hover:bg-[var(--accent)]"
+                >
                   <td className="py-3 px-4">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs text-white ${reportTypeColors[report.reportType]}`}>
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs text-white ${
+                        reportTypeColors[report.reportType]
+                      }`}
+                    >
                       {reportTypeLabels[report.reportType]}
                     </span>
                   </td>
@@ -166,7 +179,8 @@ export function ReportsSection() {
                   </td>
                   <td className="py-3 px-4">
                     <span className="capitalize">
-                      {report.entityType === 'title' ? 'Тайтл' : 'Глава'}: {report.entityId}
+                      {report.entityType === "title" ? "Тайтл" : "Глава"}:{" "}
+                      {report.entityId}
                     </span>
                   </td>
                   <td className="py-3 px-4">
@@ -190,7 +204,9 @@ export function ReportsSection() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleStatusChange(report._id, !report.isResolved)}
+                        onClick={() =>
+                          handleStatusChange(report._id, !report.isResolved)
+                        }
                       >
                         {report.isResolved ? (
                           <>
@@ -229,7 +245,7 @@ export function ReportsSection() {
           </p>
         </div>
       )}
-      
+
       {/* Pagination */}
       {data?.data?.totalPages && data.data.totalPages > 1 && (
         <div className="flex justify-between items-center mt-6">
@@ -240,11 +256,11 @@ export function ReportsSection() {
           >
             Назад
           </Button>
-          
+
           <span className="text-[var(--muted-foreground)]">
             Страница {page} из {data.data.totalPages}
           </span>
-          
+
           <Button
             onClick={() => setPage((prev) => prev + 1)}
             disabled={page === data.data.totalPages}

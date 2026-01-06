@@ -22,16 +22,15 @@ export function ReportModal({
   entityId,
   entityTitle,
 }: ReportModalProps) {
-  const [reportType, setReportType] = useState<ReportType>(ReportType.CONTENT);
+  const [reportType, setReportType] = useState<ReportType>(ReportType.ERROR);
   const [description, setDescription] = useState("");
   const [createReport, { isLoading }] = useCreateReportMutation();
   const toast = useToast();
 
   const reportTypeLabels = {
-    [ReportType.CONTENT]: "Проблемы с контентом",
-    [ReportType.COPYRIGHT]: "Нарушение авторских прав",
-    [ReportType.TECHNICAL]: "Техническая проблема",
-    [ReportType.OTHER]: "Другое",
+    [ReportType.ERROR]: "Ошибка",
+    [ReportType.TYPO]: "Опечатка",
+    [ReportType.COMPLAINT]: "Жалоба"
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
