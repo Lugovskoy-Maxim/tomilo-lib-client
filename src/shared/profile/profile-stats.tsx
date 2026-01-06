@@ -39,59 +39,59 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 py-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 py-4">
       {/* Уровень */}
-      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
-        <div className="flex items-center gap-2 mb-2">
-          <Trophy className="w-5 h-5 text-[var(--primary)]" />
-          <span className="text-sm font-medium text-[var(--muted-foreground)]">Уровень</span>
+      <div className="bg-[var(--secondary)] rounded-xl p-3 border border-[var(--border)] hover:border-[var(--primary)] transition-colors flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2 mb-1">
+          <Trophy className="w-4 h-4 text-[var(--primary)]" />
+          <span className="text-xs font-medium text-[var(--muted-foreground)]">Уровень</span>
         </div>
-        <div className="text-2xl font-bold text-[var(--foreground)]">{level}</div>
+        <div className="text-xl font-bold text-[var(--foreground)]">{level}</div>
       </div>
 
       {/* Опыт */}
-      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
-        <div className="flex items-center gap-2 mb-2">
-          <Star className="w-5 h-5 text-[var(--primary)]" />
-          <span className="text-sm font-medium text-[var(--muted-foreground)]">Опыт</span>
+      <div className="bg-[var(--secondary)] rounded-xl p-3 border border-[var(--border)] hover:border-[var(--primary)] transition-colors flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2 mb-1">
+          <Star className="w-4 h-4 text-[var(--primary)]" />
+          <span className="text-xs font-medium text-[var(--muted-foreground)]">Опыт</span>
         </div>
-        <div className="text-2xl font-bold text-[var(--foreground)]">{experience}</div>
+        <div className="text-xl font-bold text-[var(--foreground)]">{experience}</div>
       </div>
 
       {/* Баланс */}
-      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
-        <div className="flex items-center gap-2 mb-2">
-          <CircleDollarSign className="w-5 h-5 text-[var(--primary)]" />
-          <span className="text-sm font-medium text-[var(--muted-foreground)]">Баланс</span>
+      <div className="bg-[var(--secondary)] rounded-xl p-3 border border-[var(--border)] hover:border-[var(--primary)] transition-colors flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2 mb-1">
+          <CircleDollarSign className="w-4 h-4 text-[var(--primary)]" />
+          <span className="text-xs font-medium text-[var(--muted-foreground)]">Баланс</span>
         </div>
-        <div className="text-2xl font-bold text-[var(--foreground)]">{balance}</div>
+        <div className="text-xl font-bold text-[var(--foreground)]">{balance}</div>
       </div>
 
       {/* Прочитанные главы */}
-      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
-        <div className="flex items-center gap-2 mb-2">
-          <BookOpen className="w-5 h-5 text-[var(--primary)]" />
-          <span className="text-sm font-medium text-[var(--muted-foreground)]">Глав</span>
+      <div className="bg-[var(--secondary)] rounded-xl p-3 border border-[var(--border)] hover:border-[var(--primary)] transition-colors flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2 mb-1">
+          <BookOpen className="w-4 h-4 text-[var(--primary)]" />
+          <span className="text-xs font-medium text-[var(--muted-foreground)]">Глав</span>
         </div>
-        <div className="text-2xl font-bold text-[var(--foreground)]">{totalChaptersRead}</div>
+        <div className="text-xl font-bold text-[var(--foreground)]">{totalChaptersRead}</div>
       </div>
 
       {/* Время чтения */}
-      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
-        <div className="flex items-center gap-2 mb-2">
-          <Clock className="w-5 h-5 text-[var(--primary)]" />
-          <span className="text-sm font-medium text-[var(--muted-foreground)]">Время</span>
+      <div className="bg-[var(--secondary)] rounded-xl p-3 border border-[var(--border)] hover:border-[var(--primary)] transition-colors flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2 mb-1">
+          <Clock className="w-4 h-4 text-[var(--primary)]" />
+          <span className="text-xs font-medium text-[var(--muted-foreground)]">Время</span>
         </div>
-        <div className="text-2xl font-bold text-[var(--foreground)]">{formatReadingTime(totalChaptersRead)}</div>
+        <div className="text-xl font-bold text-[var(--foreground)]">{formatReadingTime(totalChaptersRead)}</div>
       </div>
 
       {/* Закладки */}
-      <div className="bg-[var(--secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition-colors">
-        <div className="flex items-center gap-2 mb-2">
-          <Star className="w-5 h-5 text-[var(--primary)]" />
-          <span className="text-sm font-medium text-[var(--muted-foreground)]">Закладки</span>
+      <div className="bg-[var(--secondary)] rounded-xl p-3 border border-[var(--border)] hover:border-[var(--primary)] transition-colors flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2 mb-1">
+          <Star className="w-4 h-4 text-[var(--primary)]" />
+          <span className="text-xs font-medium text-[var(--muted-foreground)]">Закладки</span>
         </div>
-        <div className="text-2xl font-bold text-[var(--foreground)]">{totalBookmarks}</div>
+        <div className="text-xl font-bold text-[var(--foreground)]">{totalBookmarks}</div>
       </div>
     </div>
   );

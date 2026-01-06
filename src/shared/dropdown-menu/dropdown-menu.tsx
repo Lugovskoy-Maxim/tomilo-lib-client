@@ -1,12 +1,13 @@
 // components/UserDropdown.tsx
 "use client";
 import { useState } from "react";
-import { 
-  User, 
-  Settings,  
-  Bookmark, 
-  History, 
+import {
+  User,
+  Settings,
+  Bookmark,
+  History,
   LogOut,
+  CircleDollarSign
 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { UserAvatar } from "..";
@@ -97,7 +98,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
                 {user?.experience || 0} XP
               </div>
               <div className="px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-3)] rounded-lg text-[var(--primary)] text-xs">
-                {user?.balance || 0} ₽
+                {user?.balance || 0} <CircleDollarSign className="w-3 h-3 inline" />
               </div>
             </div>
           </div>
