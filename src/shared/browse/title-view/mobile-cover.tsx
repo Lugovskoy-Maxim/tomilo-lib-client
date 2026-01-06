@@ -1,4 +1,4 @@
-import { Share, Edit } from "lucide-react";
+import { Share, Edit, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Title, Chapter } from "@/types/title";
@@ -6,6 +6,8 @@ import { ReadButton } from "@/shared/browse/read-button";
 import { BookmarkButton } from "@/shared/bookmark-button";
 import { useAuth } from "@/hooks/useAuth";
 import { checkAgeVerification } from "@/shared/modal/age-verification-modal";
+import { useState } from "react";
+import { ReportModal } from "@/shared/report/report-modal";
 
 interface MobileCoverProps {
   titleData: Title;
@@ -28,6 +30,9 @@ export default function MobileCover({
   const isAdultContent = titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);
   const isAgeVerified = checkAgeVerification(user);
   const shouldBlurImage = isAdultContent && !isAgeVerified;
+
+  // Report state
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   return (
 
@@ -61,6 +66,13 @@ export default function MobileCover({
         />
         <BookmarkButton titleId={titleData._id as string} initialBookmarked={false} />
         <button
+          onClick={() => setIsReportModalOpen(true)}
+          className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
+          aria-label="Сообщить о проблеме"
+        >
+          <AlertTriangle className="w-4 h-4 text-[var(--foreground)]" />
+        </button>
+        <button
           onClick={onShare}
           className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
           aria-label="Поделиться"
@@ -81,6 +93,15 @@ export default function MobileCover({
       <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-3 p-2 text-center break-words">
         {titleData?.name}
       </h1>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        entityType="title"
+        entityId={titleData._id as string}
+        entityTitle={titleData.name}
+      />
     </div>
   );
 }

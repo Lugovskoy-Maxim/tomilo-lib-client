@@ -16,6 +16,7 @@ import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/hooks/useAuth";
+import { ReportModal } from "@/shared/report/report-modal";
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -51,6 +52,7 @@ export default function ReaderControls({
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
   const [isWidthControlOpen, setIsWidthControlOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const toast = useToast();
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
   const [isBookmarked, setIsBookmarked] = useState(
@@ -209,9 +211,7 @@ export default function ReaderControls({
 
           {/* Сообщение об ошибке */}
           <button
-            onClick={() =>
-              toast.info("Функция сообщения об ошибке будет реализована позже")
-            }
+            onClick={() => setIsReportModalOpen(true)}
             className="p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
             title="Сообщить об ошибке"
           >
@@ -341,11 +341,7 @@ export default function ReaderControls({
 
             {/* Сообщение об ошибке */}
             <button
-              onClick={() =>
-                toast.info(
-                  "Функция сообщения об ошибке будет реализована позже"
-                )
-              }
+              onClick={() => setIsReportModalOpen(true)}
               className="flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[64px] active:scale-95"
               title="Сообщить об ошибке"
             >
@@ -540,6 +536,15 @@ export default function ReaderControls({
           </div>
         </>
       )}
+      
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        entityType="chapter"
+        entityId={currentChapter._id}
+        entityTitle={`Глава ${currentChapter.number}${currentChapter.title ? ` - ${currentChapter.title}` : ''}`}
+      />
     </>
   );
 }

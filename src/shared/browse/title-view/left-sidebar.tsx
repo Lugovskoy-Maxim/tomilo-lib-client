@@ -1,4 +1,4 @@
-import { Share, Edit } from "lucide-react";
+import { Share, Edit, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Title, Chapter } from "@/types/title";
@@ -7,6 +7,8 @@ import { BookmarkButton } from "@/shared/bookmark-button";
 import { useRouter } from "next/navigation";
 import { checkAgeVerification } from "@/shared/modal/age-verification-modal";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { ReportModal } from "@/shared/report/report-modal";
 
 
 interface LeftSidebarProps {
@@ -29,6 +31,9 @@ export function LeftSidebar({
   const isAdultContent = titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);
   const isAgeVerified = checkAgeVerification(user);
   const shouldBlurImage = isAdultContent && !isAgeVerified;
+
+  // Report state
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   return (
 
@@ -61,6 +66,14 @@ export function LeftSidebar({
         />
         <BookmarkButton titleId={titleData._id as string} initialBookmarked={false} />
         <button
+          onClick={() => setIsReportModalOpen(true)}
+          className="flex items-center justify-center gap-2 lg:p-1 p-4 rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer"
+          aria-label="Сообщить о проблеме"
+        >
+          <AlertTriangle className="w-4 h-4 text-[var(--foreground)]" />
+          <span className="text-sm">Сообщить</span>
+        </button>
+        <button
           onClick={onShare}
           className="flex items-center justify-center gap-2 lg:p-1 p-4 rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer"
           aria-label="Поделиться"
@@ -68,20 +81,30 @@ export function LeftSidebar({
           <Share className="w-4 h-4 text-[var(--foreground)]" />
           <span className="text-sm">Поделиться</span>
         </button>
+        {isAdmin && (
           <button
             onClick={() => router.push(`/admin/titles/edit/${titleData._id}`)}
-            className={`${isAdmin ? "" : "hidden"} flex items-center justify-center gap-2 lg:p-1 p-4  rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer`}
+            className="flex items-center justify-center gap-2 lg:p-1 p-4 rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer"
             aria-label="Редактировать"
-            disabled={isAdmin ? false : true}
           >
             <Edit className="w-4 h-4 text-[var(--foreground)]" />
             <span className="text-sm">Редактировать</span>
           </button>
+        )}
       </div>
       {/* Название тайтла в десктопной версии */}
       {/* <h1 className="text-2xl font-bold mt-4 text-center text-[var(--foreground)] px-2">
         {titleData?.name}
       </h1> */}
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        entityType="title"
+        entityId={titleData._id as string}
+        entityTitle={titleData.name}
+      />
     </div>
   );
 }
