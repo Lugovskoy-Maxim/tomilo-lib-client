@@ -1,6 +1,6 @@
-import { BarChart3, Download, BookOpen, FileText, Users, FolderOpen, Clock, MessageCircle } from "lucide-react";
+import { BarChart3, Download, BookOpen, FileText, Users, FolderOpen, Clock, MessageCircle, AlertTriangle } from "lucide-react";
 
-type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users" | "comments";
+type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users" | "comments" | "reports";
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -47,6 +47,11 @@ const tabs = [
     id: "users" as AdminTab,
     label: "Пользователи",
     icon: Users,
+  },
+  {
+    id: "reports" as AdminTab,
+    label: "Жалобы",
+    icon: AlertTriangle,
   },
 ];
 

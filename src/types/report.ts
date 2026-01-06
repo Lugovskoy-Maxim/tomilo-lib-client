@@ -1,0 +1,49 @@
+export enum ReportType {
+  CONTENT = 'content',
+  COPYRIGHT = 'copyright',
+  TECHNICAL = 'technical',
+  OTHER = 'other'
+}
+
+export interface Report {
+  _id: string;
+  reporterId: string;
+  entityType: 'title' | 'chapter';
+  entityId: string;
+  reportType: ReportType;
+  description: string;
+  isResolved: boolean;
+  resolvedBy?: string;
+  resolvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateReportDto {
+  entityType: 'title' | 'chapter';
+  entityId: string;
+  reportType: ReportType;
+  description: string;
+}
+
+export interface UpdateReportStatusDto {
+  isResolved: boolean;
+}
+
+export interface ReportsResponse {
+  reports: Report[];
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+}
+
+export interface ApiResponseDto<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  errors?: string[];
+  timestamp: string;
+  path: string;
+  method?: string;
+}

@@ -9,13 +9,14 @@ import { ParserSection } from "@/shared/admin/parser-section";
 import { TitlesSection } from "@/shared/admin/titles-section";
 import { UsersSection } from "@/shared/admin/users-section";
 import { CommentsSection } from "@/shared/admin/comments-section";
+import { ReportsSection } from "@/shared/admin/reports-section";
 import { Footer, Header } from "@/widgets";
 import { AuthGuard } from "@/guard/auth-guard";
 import { useState } from "react";
 import { Cog } from "lucide-react";
 
 
-type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users" | "comments";
+type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users" | "comments" | "reports";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
@@ -51,6 +52,8 @@ export default function AdminPage() {
         return <CommentsSection />;
       case "users":
         return <UsersSection />;
+      case "reports":
+        return <ReportsSection />;
       default:
         return <OverviewSection onTabChange={setActiveTab} />;
     }

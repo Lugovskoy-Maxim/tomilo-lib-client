@@ -8,6 +8,7 @@ import { statsApi } from "./api/statsApi";
 import { usersApi } from "./api/usersApi";
 import { collectionsApi } from "./api/collectionsApi";
 import { commentsApi } from "./api/commentsApi";
+import { reportsApi } from "./api/reportsApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
 import { autoParsingApi } from "./api/autoParsingApi";
@@ -25,6 +26,7 @@ export const store = configureStore({
     [usersApi.reducerPath]: usersApi.reducer,
     [collectionsApi.reducerPath]: collectionsApi.reducer,
     [commentsApi.reducerPath]: commentsApi.reducer,
+    [reportsApi.reducerPath]: reportsApi.reducer,
     [autoParsingApi.reducerPath]: autoParsingApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -38,6 +40,7 @@ export const store = configureStore({
       .concat(usersApi.middleware)
       .concat(collectionsApi.middleware)
       .concat(commentsApi.middleware)
+      .concat(reportsApi.middleware)
       .concat(autoParsingApi.middleware),
 });
 

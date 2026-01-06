@@ -3,6 +3,7 @@ import { User } from "@/types/auth";
 import { CommentEntityType } from "@/types/comment";
 import { CommentsSection } from "@/shared/comments/comments-section";
 import { timeAgo } from "@/lib/date-utils";
+import { ReportModal } from "@/shared/report/report-modal";
 
 import {
   ArrowUpToLine,
@@ -77,6 +78,7 @@ export function RightContent({
   const [loadedChaptersCount, setLoadedChaptersCount] = useState(20);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
@@ -514,64 +516,73 @@ export function RightContent({
             </div>
           </div>
 
-          <div className="relative flex flex-col items-end gap-1 bg-[var(--background)]/20 px-3 py-2 rounded-full min-w-[80px]">
-            <div className="flex flex-col items-end">
-              <span className="text-lg font-bold text-[var(--chart-1)]">
-                {titleData?.averageRating
-                  ? titleData?.averageRating.toFixed(2)
-                  : "0"}
-              </span>
-              {totalRatings > 0 && (
-                <span className="text-xs text-[var(--foreground)]/60">
-                  ({totalRatings} оценок)
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsReportModalOpen(true)}
+              className="px-3 py-2 bg-[var(--background)]/20 text-[var(--primary)] rounded-full text-sm hover:bg-[var(--background)]/30 transition-colors whitespace-nowrap"
+            >
+              Сообщить
+            </button>
+
+            <div className="relative flex flex-col items-end gap-1 bg-[var(--background)]/20 px-3 py-2 rounded-full min-w-[80px]">
+              <div className="flex flex-col items-end">
+                <span className="text-lg font-bold text-[var(--chart-1)]">
+                  {titleData?.averageRating
+                    ? titleData?.averageRating.toFixed(2)
+                    : "0"}
                 </span>
+                {totalRatings > 0 && (
+                  <span className="text-xs text-[var(--foreground)]/60">
+                    ({totalRatings} оценок)
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsRatingOpen((v) => !v)}
+                className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Оценить
+              </button>
+              {isRatingOpen && (
+                <div className="absolute top-4 right-0 flex flex-col w-max bg-[var(--accent)] rounded-lg p-4">
+                  <div className="flex items-end justify-between mb-2">
+                    <span className="text-sm text-[var(--primary)]">
+                      Ваша оценка
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsRatingOpen(false)}
+                      className="p-1 rounded hover:bg-[var(--accent)]"
+                      aria-label="Закрыть"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto">
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => {
+                          setPendingRating(n);
+                          setIsRatingOpen(false);
+                          updateRating({ id: titleData?._id || "", rating: n });
+                        }}
+                        className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer flex items-center justify-center ${
+                          pendingRating === n
+                            ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                            : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
+                        }`}
+                        title={`Оценка ${n}`}
+                      >
+                        <Star className="w-4 h-4" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => setIsRatingOpen((v) => !v)}
-              className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer whitespace-nowrap"
-            >
-              Оценить
-            </button>
-            {isRatingOpen && (
-              <div className="absolute top-4 right-0 flex flex-col w-max bg-[var(--accent)] rounded-lg p-4">
-                <div className="flex items-end justify-between mb-2">
-                  <span className="text-sm text-[var(--primary)]">
-                    Ваша оценка
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsRatingOpen(false)}
-                    className="p-1 rounded hover:bg-[var(--accent)]"
-                    aria-label="Закрыть"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="flex gap-2 overflow-x-auto">
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => {
-                        setPendingRating(n);
-                        setIsRatingOpen(false);
-                        updateRating({ id: titleData?._id || "", rating: n });
-                      }}
-                      className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer flex items-center justify-center ${
-                        pendingRating === n
-                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                          : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
-                      }`}
-                      title={`Оценка ${n}`}
-                    >
-                      <Star className="w-4 h-4" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -661,6 +672,14 @@ export function RightContent({
 
         {renderTabContent()}
       </div>
+
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        entityType="title"
+        entityId={titleId}
+        entityTitle={titleData?.name || "Неизвестный тайтл"}
+      />
 
       {/* Модальное окно для подтверждения возраста */}
       <AgeVerificationModal

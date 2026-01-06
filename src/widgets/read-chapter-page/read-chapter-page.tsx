@@ -3,6 +3,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useToast } from "@/hooks/useToast";
+import { ReportModal } from "@/shared/report/report-modal";
+import { ReportType } from "@/types/report";
 
 import { useAuth } from "@/hooks/useAuth";
 import { ReaderTitle } from "@/types/title";
@@ -69,6 +72,10 @@ export default function ReadChapterPage({
   const [imageLoadPriority, setImageLoadPriority] = useState<
     Map<number, "low" | "medium" | "high">
   >(new Map());
+
+  // Report state
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const toast = useToast();
 
   // Определение мобильного устройства
   const [isMobile, setIsMobile] = useState(false);
@@ -538,6 +545,16 @@ export default function ReadChapterPage({
                 ))}
               </select>
             </div> */}
+
+            {/* Report button */}
+            <div className="ml-4">
+              <button
+                onClick={() => setIsReportModalOpen(true)}
+                className="px-3 py-2 bg-[var(--background)]/20 text-[var(--primary)] rounded-full text-sm hover:bg-[var(--background)]/30 transition-colors whitespace-nowrap"
+              >
+                Сообщить
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -725,6 +742,15 @@ export default function ReadChapterPage({
           <p>Используйте ← → для навигации между главами</p>
         </div>
       </footer>
+      
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        entityType="chapter"
+        entityId={chapterId}
+        entityTitle={`Глава ${chapter.number}${chapter.title ? ` - ${chapter.title}` : ''}`}
+      />
     </div>
   );
 }
