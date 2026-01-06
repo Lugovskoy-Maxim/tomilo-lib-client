@@ -41,7 +41,7 @@ export function ReportModal({
         entityType,
         entityId,
         reportType,
-        description,
+        content: description,
       }).unwrap();
       
       if (result.success) {

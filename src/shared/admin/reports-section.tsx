@@ -175,7 +175,7 @@ export function ReportsSection() {
                     </span>
                   </td>
                   <td className="py-3 px-4 max-w-xs truncate">
-                    {report.description}
+                    {report.content}
                   </td>
                   <td className="py-3 px-4">
                     <span className="capitalize">

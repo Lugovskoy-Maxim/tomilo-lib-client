@@ -10,7 +10,7 @@ export interface Report {
   entityType: 'title' | 'chapter';
   entityId: string;
   reportType: ReportType;
-  description: string;
+  content: string;
   isResolved: boolean;
   resolvedBy?: string;
   resolvedAt?: string;
@@ -22,7 +22,7 @@ export interface CreateReportDto {
   entityType: 'title' | 'chapter';
   entityId: string;
   reportType: ReportType;
-  description: string;
+  content: string;
 }
 
 export interface UpdateReportStatusDto {
