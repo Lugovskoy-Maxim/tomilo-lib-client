@@ -413,7 +413,7 @@ export function RightContent({
                   placeholder="Поиск глав..."
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="flex-1 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] placeholder-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] relative z-10"
+                  className="flex-1 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] placeholder-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] relative"
                 />
 
                 <button
@@ -648,7 +648,7 @@ export function RightContent({
           )}
         </div>
 
-        <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1 relative z-10">
+        <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1 relative">
           <div className="flex">
             {[
               { key: "main" as const, label: "Главная" },
