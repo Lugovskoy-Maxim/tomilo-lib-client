@@ -149,7 +149,7 @@ export default function ReaderControls({
 
             {/* Ползунок ширины (абсолютное позиционирование слева) */}
             {isWidthControlOpen && (
-              <div className="absolute left-0 top-0 -translate-x-full mr-2 flex flex-col items-center space-y-2 p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg z-50">
+              <div className="absolute left-0 top-0 -translate-x-full mr-2 flex flex-col items-center space-y-2 p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg z-[60]">
                 <div className="text-[var(--muted-foreground)] text-xs font-medium">
                   Ширина: {imageWidth}px
                 </div>
@@ -274,7 +274,7 @@ export default function ReaderControls({
 
       {/* Мобильное меню - стиль смартфонного меню */}
       <div
-        className={`sm:hidden h-max fixed bottom-20 left-0 right-0 z-40 transition-transform duration-300 ease-out will-change-transform ${
+        className={`sm:hidden h-max fixed bottom-20 left-0 right-0 z-[55] transition-transform duration-300 ease-out will-change-transform ${
           isMobileControlsVisible ? "translate-y-0" : "translate-y-20"
         }`}
       >
@@ -287,7 +287,7 @@ export default function ReaderControls({
       </div>
 
       <div
-        className={`sm:hidden h-max fixed bottom-2 left-0 right-0 z-40 transition-transform duration-300 ease-out will-change-transform ${
+        className={`sm:hidden h-max fixed bottom-2 left-0 right-0 z-[55] transition-transform duration-300 ease-out will-change-transform ${
           isMobileControlsVisible ? "translate-y-0" : "translate-y-20"
         }`}
       >
@@ -432,7 +432,7 @@ export default function ReaderControls({
 
       {/* Выпадающее меню выбора главы */}
       {isMenuOpen && (
-        <div className="fixed sm:right-14 sm:top-1/2 sm:-translate-y-1/2 bottom-20 left-4 right-4 sm:left-auto sm:w-80 w-auto max-h-96 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-50 overflow-hidden">
+        <div className="fixed sm:right-14 sm:top-1/2 sm:-translate-y-1/2 bottom-20 left-4 right-4 sm:left-auto sm:w-80 w-auto max-h-96 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-[60] overflow-hidden">
           <div className="p-4 border-b border-[var(--border)]">
             <input
               type="text"
@@ -472,7 +472,7 @@ export default function ReaderControls({
       {/* Overlay для закрытия меню */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 z-30"
+          className="fixed inset-0 z-[55]"
           onClick={() => {
             setIsMenuOpen(false);
             setChapterSearch("");
@@ -485,12 +485,12 @@ export default function ReaderControls({
         <>
           {/* Overlay для закрытия панели комментариев */}
           <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm sm:hidden"
+            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm sm:hidden"
             onClick={() => setIsCommentsOpen(false)}
           />
 
           {/* Боковая панель комментариев (десктоп) */}
-          <div className="hidden sm:block fixed right-14 top-1/2 -translate-y-1/2 w-96 max-h-[80vh] bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-50 overflow-hidden">
+          <div className="hidden sm:block fixed right-14 top-1/2 -translate-y-1/2 w-96 max-h-[80vh] bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-[60] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
               <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-[var(--primary)]" />
@@ -513,7 +513,7 @@ export default function ReaderControls({
           </div>
 
           {/* Мобильная панель комментариев */}
-          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--card)] border-t border-[var(--border)] shadow-lg max-h-[80vh] flex flex-col">
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)] border-t border-[var(--border)] shadow-lg max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
               <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-[var(--primary)]" />

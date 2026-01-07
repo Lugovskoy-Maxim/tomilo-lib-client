@@ -413,7 +413,7 @@ export function RightContent({
                   placeholder="Поиск глав..."
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="flex-1 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] placeholder-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                  className="flex-1 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] placeholder-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] relative z-10"
                 />
 
                 <button
@@ -548,7 +548,7 @@ export function RightContent({
                 Оценить
               </button>
               {isRatingOpen && (
-                <div className="absolute top-4 right-0 flex flex-col w-max bg-[var(--accent)] rounded-lg p-4">
+                <div className="absolute top-4 right-0 flex flex-col w-max bg-[var(--accent)] rounded-lg p-4 z-20">
                   <div className="flex items-end justify-between mb-2">
                     <span className="text-sm text-[var(--primary)]">
                       Ваша оценка
@@ -648,7 +648,7 @@ export function RightContent({
           )}
         </div>
 
-        <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1">
+        <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1 relative z-10">
           <div className="flex">
             {[
               { key: "main" as const, label: "Главная" },
