@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/shared/ui/button';
+import { Footer, Header } from '@/widgets';
 
 function VerifyEmailPageContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -49,6 +50,8 @@ function VerifyEmailPageContent() {
   };
 
   return (
+    <>
+    <Header/>
     <div className="container mx-auto py-8 flex justify-center">
       <div className="w-full max-w-md bg-background border border-border rounded-lg p-6">
         <div className="text-center mb-6">
@@ -85,7 +88,9 @@ function VerifyEmailPageContent() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
+    </>
   );
 }
 
