@@ -15,6 +15,7 @@ function transformStoredUserToProfile(
     _id: storedUser._id || storedUser.id,
     username: storedUser.username,
     email: storedUser.email,
+    emailVerified: storedUser.emailVerified,
     avatar: storedUser.avatar || "",
     role: storedUser.role,
     level: storedUser.level,
