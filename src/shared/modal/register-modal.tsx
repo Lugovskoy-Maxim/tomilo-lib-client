@@ -107,6 +107,20 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         username: form.username,
       }).unwrap(); // unwrap() для получения данных или ошибки
       
+      // Отправляем приветственное письмо после успешной регистрации
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/send-verification-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: form.email }),
+        });
+      } catch (emailError) {
+        console.error("Ошибка отправки приветственного письма:", emailError);
+        // Не прерываем основной процесс регистрации из-за ошибки отправки письма
+      }
+      
       // Передаем данные в родительский компонент
       onAuthSuccess(response);
     } catch (error) {

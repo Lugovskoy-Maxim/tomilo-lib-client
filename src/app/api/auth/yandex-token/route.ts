@@ -16,15 +16,29 @@ export async function POST(request: Request) {
     // и получения информации о пользователе
     
     // Пример проверки токена (псевдокод):
-    // const userInfo = await fetch('https://login.yandex.ru/info?format=json', {
-    //   headers: {
-    //     'Authorization': `OAuth ${access_token}`
-    //   }
-    // }).then(res => res.json());
+    const userInfo = await fetch('https://login.yandex.ru/info?format=json', {
+      headers: {
+        'Authorization': `OAuth ${access_token}`
+      }
+    }).then(res => res.json());
     
     // Если токен действителен, создаем сессию для пользователя
     // В реальной реализации здесь должна быть логика создания/получения пользователя в БД
     
+    // Отправляем приветственное письмо при OAuth авторизации
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/send-verification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: userInfo.email }), // Здесь должен быть email пользователя из userInfo
+      });
+    } catch (emailError) {
+      console.error('Ошибка отправки приветственного письма:', emailError);
+      // Не прерываем основной процесс авторизации из-за ошибки отправки письма
+    }
+
     // Устанавливаем токен в cookies (или используем другую систему сессий)
     const response = NextResponse.json({
       success: true,

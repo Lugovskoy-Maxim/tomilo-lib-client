@@ -371,9 +371,29 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
             <button
               type="button"
-              disabled
               className="text-xs text-[var(--primary)] hover:underline"
-              onClick={() => console.log(MESSAGES.CONTEXT.RESTORE_PASSWORD_REQUEST)}
+              onClick={() => {
+                // Отправляем запрос на сброс пароля
+                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/forgot-password`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ email: form.email }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                  if (data.success) {
+                    console.log("Письмо для сброса пароля отправлено");
+                    // Здесь можно показать уведомление пользователю
+                  } else {
+                    console.error("Ошибка отправки письма для сброса пароля:", data.message);
+                  }
+                })
+                .catch(error => {
+                  console.error("Ошибка сети при отправке запроса на сброс пароля:", error);
+                });
+              }}
             >
               {MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD}
             </button>
