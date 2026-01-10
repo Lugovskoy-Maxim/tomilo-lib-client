@@ -26,6 +26,7 @@ export interface StoredUser {
   _id: string;
   id: string;
   email: string;
+  emailVerified?: boolean;
   username: string;
   avatar?: string;
   role: string;
