@@ -123,7 +123,7 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
       <div className="mt-4 flex justify-center">
         <button
           onClick={handleSendVerificationEmail}
-          className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 transition-colors text-sm"
+          className="px-4 py-2 bg-[var(--chart-1)] text-[var(--primary)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors text-sm"
         >
           Отправить письмо подтверждения email
         </button>
