@@ -7,11 +7,6 @@ interface ProfileStatsProps {
 
 export default function ProfileStats({ userProfile }: ProfileStatsProps) {
   // Рассчитываем статистику
-  const totalReadingTime = userProfile.readingHistory?.reduce((total, item) => {
-    // Для каждого тайтла считаем количество прочитанных глав
-    return total + (item.chapters?.length || 0);
-  }, 0) || 0;
-
   const totalBookmarks = userProfile.bookmarks?.length || 0;
   
   const totalChaptersRead = userProfile.readingHistory?.reduce((total, item) => {
@@ -40,6 +35,11 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
 
   // Функция для отправки письма подтверждения email
   const handleSendVerificationEmail = () => {
+    if (!userProfile.email) {
+      console.error("Email не найден в профиле пользователя");
+      return;
+    }
+    
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/send-verification-email`, {
       method: 'POST',
       headers: {
