@@ -56,7 +56,7 @@ function VerifyEmailPageContent() {
   };
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Header />
       <div className="container mx-auto py-8 flex justify-center">
         <div className="w-full max-w-md bg-background border border-border rounded-lg p-6">
@@ -93,7 +93,7 @@ function VerifyEmailPageContent() {
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 }
 
