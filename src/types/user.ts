@@ -14,6 +14,7 @@ export interface UserProfile {
   birthDate?: string;
   createdAt: string;
   updatedAt: string;
+  emailVerified?: boolean;
 }
 
 // Дополнительные интерфейсы для расширенной функциональности
