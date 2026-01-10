@@ -119,15 +119,21 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
         </div>
       </div>
       
-      {/* Кнопка для отправки письма подтверждения email */}
-      {emailVerified === false && <div className="mt-4 flex justify-center">
-        <button
-          onClick={handleSendVerificationEmail}
-          className="px-4 py-2 bg-[var(--chart-1)] text-[var(--primary)] rounded-lg hover:bg-[var(--chart-1)]/90 transition-colors text-sm"
-        >
-          Отправить письмо подтверждения email
-        </button>
-      </div>}
+      {/* Сообщение о статусе подтверждения email */}
+      <div className="mt-4 flex justify-center">
+        {emailVerified ? (
+          <div className="px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-medium">
+            Почта подтверждена
+          </div>
+        ) : (
+          <button
+            onClick={handleSendVerificationEmail}
+            className="px-4 py-2 bg-[var(--chart-1)] text-[var(--primary)] rounded-lg hover:bg-[var(--chart-1)]/90 transition-colors text-sm"
+          >
+            Отправить письмо подтверждения email
+          </button>
+        )}
+      </div>
     </div>
   );
 }
