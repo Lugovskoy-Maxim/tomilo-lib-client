@@ -20,7 +20,7 @@ function VerifyEmailPageContent() {
 
     const verifyEmail = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/verify-email?token=${token}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/verify-email?token=${token}`);
         const data = await response.json();
         
         if (data.success) {
