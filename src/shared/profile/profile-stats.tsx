@@ -9,6 +9,7 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
   // Рассчитываем статистику
   const totalBookmarks = userProfile.bookmarks?.length || 0;
   const emailVerified = userProfile.emailVerified || false;
+  console.log(emailVerified)
   const totalChaptersRead = userProfile.readingHistory?.reduce((total, item) => {
     return total + (item.chapters?.length || 0);
   }, 0) || 0;
