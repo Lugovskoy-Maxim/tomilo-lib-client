@@ -15,6 +15,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       day: "numeric"
     });
   };
+  console.log(userProfile)
 
   // Форматирование последнего входа
   const formatLastLogin = (dateString: string) => {
