@@ -61,6 +61,8 @@ export interface User {
   avatar?: string;
   role: string;
   level?: number;
+  experience?: number;
+  balance?: number;
   bookmarks?: string[];
   readingHistory?: import("@/types/store").ReadingHistoryEntry[];
   birthDate?: string;

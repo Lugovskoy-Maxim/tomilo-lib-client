@@ -1,29 +1,27 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
+import { User } from "@/types/auth";
 import { pageTitle } from "@/lib/page-title";
-import { StoredUser } from "@/types/auth";
-import { useGetReadingHistoryQuery } from "@/store/api/authApi";
+import { useGetProfileQuery, useGetReadingHistoryQuery } from "@/store/api/authApi";
 
-// Преобразование StoredUser в UserProfile
-function transformStoredUserToProfile(
-  storedUser: StoredUser | null
-): UserProfile | null {
-  if (!storedUser) return null;
+// Преобразование User из API в UserProfile
+function transformUserToProfile(user: User): UserProfile | null {
+  if (!user) return null;
 
   return {
-    _id: storedUser._id || storedUser.id,
-    username: storedUser.username,
-    email: storedUser.email,
-    emailVerified: storedUser.emailVerified,
-    avatar: storedUser.avatar || "",
-    role: storedUser.role,
-    level: storedUser.level,
-    experience: storedUser.experience,
-    balance: storedUser.balance,
-    bookmarks: storedUser.bookmarks || [],
-    readingHistory: Array.isArray(storedUser.readingHistory)
-      ? storedUser.readingHistory.map((item) => ({
+    _id: user._id || user.id,
+    username: user.username,
+    email: user.email,
+    emailVerified: user.emailVerified,
+    avatar: user.avatar || "",
+    role: user.role,
+    level: user.level,
+    experience: user.experience,
+    balance: user.balance,
+    bookmarks: user.bookmarks || [],
+    readingHistory: Array.isArray(user.readingHistory)
+      ? user.readingHistory.map((item) => ({
           ...item,
           titleId: item.titleId, // Preserve the original titleId (can be string, null, or object)
           chapters: Array.isArray(item.chapters)
@@ -39,35 +37,36 @@ function transformStoredUserToProfile(
             : [],
         }))
       : [],
-    birthDate: storedUser.birthDate,
-    createdAt: storedUser.createdAt,
-    updatedAt: storedUser.updatedAt,
+    birthDate: user.birthDate,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 }
 
 export function useProfile() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Получаем профиль пользователя напрямую из API
+  const { data: profileData, isLoading: profileLoading } = useGetProfileQuery();
 
   // Получаем историю чтения напрямую из API
   const { data: readingHistoryData, isLoading: readingHistoryLoading } =
     useGetReadingHistoryQuery();
 
-  // Обновление userProfile при изменении user из useAuth
+  // Обновление userProfile при получении данных из API
   useEffect(() => {
-    if (user) {
-      const profile = transformStoredUserToProfile(user);
+    if (profileData?.success && profileData.data) {
+      const profile = transformUserToProfile(profileData.data);
       // Если есть данные из API истории чтения, используем их
       if (profile && readingHistoryData?.success && readingHistoryData.data) {
         profile.readingHistory = readingHistoryData.data;
       }
       setUserProfile(profile);
-    } else {
+    } else if (!isAuthenticated) {
       setUserProfile(null);
     }
-    setIsLoading(false);
-  }, [user, readingHistoryData]);
+  }, [profileData, readingHistoryData, isAuthenticated]);
 
   // Обработчик обновления аватара
   const handleAvatarUpdate = (newAvatarUrl: string) => {
@@ -86,7 +85,7 @@ export function useProfile() {
 
   return {
     userProfile,
-    isLoading: isLoading || authLoading,
+    isLoading: profileLoading || readingHistoryLoading || authLoading,
     authLoading,
     handleAvatarUpdate,
   };
