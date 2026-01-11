@@ -70,24 +70,6 @@ export function ChaptersSection({
     }
   };
 
-  const handleCleanupOrphanedChapters = async () => {
-    if (!confirm("Вы уверены, что хотите удалить все осиротевшие главы (главы без тайтлов)? Это действие нельзя отменить.")) return;
-    try {
-      const result = await cleanupOrphanedChapters().unwrap();
-      setModalContent({
-        title: "Очистка завершена",
-        message: `Удалено ${result.data?.deletedCount || 0} осиротевших глав`
-      });
-      setIsModalOpen(true);
-    } catch (error) {
-      setModalContent({
-        title: "Ошибка очистки",
-        message: "Произошла ошибка при удалении осиротевших глав"
-      });
-      setIsModalOpen(true);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Result Modal */}
@@ -159,13 +141,6 @@ export function ChaptersSection({
               Главы тайтла
             </h2>
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleCleanupOrphanedChapters}
-                className="px-4 py-2 bg-red-600 text-white border border-red-700 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Очистить осиротевшие главы
-              </button>
               <Link
                 href={`/admin/titles/edit/${titleId}`}
                 className="px-4 py-2 bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--accent)] transition-colors flex items-center gap-2"
