@@ -2,10 +2,11 @@
 import { useState, useEffect } from "react";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { useRegisterMutation } from "@/store/api/authApi";
-import { RegisterForm, FormErrors, FormTouched } from "../../types/form";
+import { RegisterData, FormErrors, FormTouched } from "../../types/form";
 import { Modal } from "..";
 import termsOfUse from "@/constants/terms-of-use";
-import { AuthResponse, ApiResponseDto } from "@/types/auth";
+import { AuthResponse } from "@/types/auth";
+import { ApiResponseDto } from "@/types/api";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   onSwitchToLogin,
   onAuthSuccess,
 }) => {
-  const [form, setForm] = useState<RegisterForm>({
+  const [form, setForm] = useState<RegisterData>({
     email: "",
     password: "",
     username: "",
@@ -29,7 +30,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
-  const [touched, setTouched] = useState<FormTouched<RegisterForm>>({
+  const [touched, setTouched] = useState<FormTouched<RegisterData>>({
     email: false,
     password: false,
     username: false,
@@ -63,7 +64,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     },
   };
 
-  const errors: FormErrors<RegisterForm> = {
+  const errors: FormErrors<RegisterData> = {
     email: touched.email ? validate.email(form.email) : null,
     password: touched.password ? validate.password(form.password) : null,
     username: touched.username ? validate.username(form.username) : null,
@@ -80,12 +81,12 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     !!form.confirmPassword;
 
   const handleChange =
-    (field: keyof RegisterForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof RegisterData) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
       setTouched((prev) => ({ ...prev, [field]: true }));
     };
 
-  const handleBlur = (field: keyof RegisterForm) => () => {
+  const handleBlur = (field: keyof RegisterData) => () => {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
@@ -105,7 +106,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         email: form.email,
         password: form.password,
         username: form.username,
-      }).unwrap(); // unwrap() для получения данных или ошибки
+        confirmPassword: form.confirmPassword,
+      }).unwrap();
       
       // Отправляем приветственное письмо после успешной регистрации
       try {

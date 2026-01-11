@@ -1,3 +1,5 @@
+import { ApiResponseDto } from './api';
+
 export enum CommentEntityType {
   TITLE = 'title',
   CHAPTER = 'chapter',
@@ -46,13 +48,5 @@ export interface UpdateCommentDto {
   content: string;
 }
 
-export interface ApiResponseDto<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  errors?: string[];
-  timestamp: string;
-  path: string;
-  method?: string;
-}
+
 

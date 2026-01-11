@@ -3,7 +3,8 @@ import { Footer, Header } from "@/widgets";
 import Link from "next/link";
 import { LoginModal, RegisterModal } from "@/shared";
 import { useEffect, useRef, useState } from "react";
-import { ApiResponseDto, AuthResponse } from "@/types/auth";
+import { ApiResponseDto } from "@/types/api";
+import { AuthResponse } from "@/types/auth";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function AdultContentWarning() {

@@ -1,11 +1,11 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { ApiResponseDto } from "@/types/api";
 import {
   Collection,
   CollectionWithTitles,
   CreateCollectionDto,
   UpdateCollectionDto,
   CollectionsQuery,
-  ApiResponseDto
 } from "@/types/collection";
 import { Title } from "@/types/title";
 

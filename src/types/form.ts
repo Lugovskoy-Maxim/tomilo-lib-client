@@ -1,14 +1,7 @@
-export interface LoginForm {
-  email: string;
-  password: string;
-}
-
-export interface RegisterForm {
-  email: string;
-  password: string;
-  username: string;
-  confirmPassword: string;
-}
+import { LoginData, RegisterData } from './auth';
 
 export type FormErrors<T> = Partial<Record<keyof T, string | null>>;
 export type FormTouched<T> = Partial<Record<keyof T, boolean>>;
+
+// Re-export for convenience
+export type { LoginData, RegisterData } from './auth';

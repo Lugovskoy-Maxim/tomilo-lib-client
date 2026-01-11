@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useLoginMutation, useYandexAuthMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
-import { LoginForm, FormErrors, FormTouched } from "../../types/form";
+import { LoginData, FormErrors, FormTouched } from "../../types/form";
 import { Input, Modal } from "..";
-import { AuthResponse, ApiResponseDto } from "@/types/auth";
+import { ApiResponseDto } from "@/types/api";
+import { AuthResponse } from "@/types/auth";
 import { VALIDATION_MESSAGES } from "@/constants/validation";
 import { MESSAGES } from "@/constants/messages";
 
@@ -28,11 +29,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
   onSwitchToRegister,
   onAuthSuccess,
 }) => {
-  const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
+  const [form, setForm] = useState<LoginData>({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const yandexButtonRef = useRef<HTMLDivElement>(null);
   const vkButtonRef = useRef<HTMLDivElement>(null);
-  const [touched, setTouched] = useState<FormTouched<LoginForm>>({
+  const [touched, setTouched] = useState<FormTouched<LoginData>>({
     email: false,
     password: false,
   });
@@ -56,7 +57,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
     },
   };
 
-  const errors: FormErrors<LoginForm> = {
+  const errors: FormErrors<LoginData> = {
     email: touched.email ? validate.email(form.email) : null,
     password: touched.password ? validate.password(form.password) : null,
   };
@@ -65,12 +66,12 @@ const LoginModal: React.FC<LoginModalProps> = ({
     !errors.email && !errors.password && !!form.email && !!form.password;
 
   const handleChange =
-    (field: keyof LoginForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof LoginData) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
       setTouched((prev) => ({ ...prev, [field]: true }));
     };
 
-  const handleBlur = (field: keyof LoginForm) => () => {
+  const handleBlur = (field: keyof LoginData) => () => {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 

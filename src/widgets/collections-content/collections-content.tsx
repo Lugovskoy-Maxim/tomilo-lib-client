@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Pagination } from "@/shared";
 import { useGetCollectionsQuery } from "@/store/api/collectionsApi";
 import Image from "next/image";
-import { CollectionsQuery } from "@/types/collection";
+import { CollectionsQuery, Collection } from "@/types/collection";
 
 export type CollectionsFilters = CollectionsQuery;
 
@@ -88,7 +88,7 @@ function CollectionsContent() {
 
         {/* Сетка коллекций */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {collections.map((collection) => (
+          {collections.map((collection: Collection) => (
             <div
               key={collection.id}
               onClick={() => handleCardClick(collection.id)}

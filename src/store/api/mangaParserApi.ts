@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ApiResponseDto } from "@/types/title";
+import { ApiResponseDto } from "@/types/api";
 import {
   ParseTitleDto,
   ParseChaptersDto,

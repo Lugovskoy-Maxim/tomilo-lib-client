@@ -1,13 +1,5 @@
 // ApiResponseDto - стандартный формат ответа API
-export interface ApiResponseDto<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  errors?: string[];
-  timestamp: string;
-  path: string;
-  method?: string;
-}
+export type { ApiResponseDto } from './api';
 
 export interface LoginData {
   email: string;
@@ -18,6 +10,7 @@ export interface RegisterData {
   email: string;
   password: string;
   username: string;
+  confirmPassword: string;
 }
 
 export interface StoredUser {
@@ -50,21 +43,5 @@ export interface AuthState {
 }
 
 // RTK Query
-export interface User {
-  updatedAt: string;
-  createdAt: string;
-  _id: string;
-  id: string;
-  email: string;
-  emailVerified?: boolean;
-  username: string;
-  avatar?: string;
-  role: string;
-  level?: number;
-  experience?: number;
-  balance?: number;
-  bookmarks?: string[];
-  readingHistory?: import("@/types/store").ReadingHistoryEntry[];
-  birthDate?: string;
-}
+export type User = StoredUser;
   

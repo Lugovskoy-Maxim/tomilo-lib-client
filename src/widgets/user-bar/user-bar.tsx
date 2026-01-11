@@ -11,7 +11,8 @@ import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-import { AuthResponse, ApiResponseDto } from "@/types/auth";
+import { ApiResponseDto } from "@/types/api";
+import { AuthResponse } from "@/types/auth";
 
 interface UserDropdownUser {
   id?: string;

@@ -1,10 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { ApiResponseDto } from "@/types/api";
 import {
   Chapter,
   ChaptersResponse,
   CreateChapterDto,
   UpdateChapterDto,
-  ApiResponseDto,
 } from "@/types/title";
 
 const CHAPTERS_TAG = "Chapters";

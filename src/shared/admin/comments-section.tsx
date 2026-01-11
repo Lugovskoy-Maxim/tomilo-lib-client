@@ -41,7 +41,7 @@ export function CommentsSection() {
   // Фильтрация комментариев по поисковому запросу
   const filteredComments =
     data?.data?.comments.filter(
-      (comment) =>
+      (comment: Comment) =>
         comment.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (typeof comment.userId !== "string" &&
           comment.userId.username
@@ -101,7 +101,7 @@ export function CommentsSection() {
       {/* Список комментариев */}
       <div className="space-y-4">
         {filteredComments.length > 0 ? (
-          filteredComments.map((comment) => (
+          filteredComments.map((comment: Comment) => (
             <div
               key={comment._id}
               className="border border-[var(--border)] rounded-lg p-4 bg-[var(--background)]"

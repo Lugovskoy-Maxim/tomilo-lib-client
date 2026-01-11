@@ -4,8 +4,19 @@ import {
   Title,
   CreateTitleDto,
   UpdateTitleDto,
-  ApiResponseDto,
 } from "@/types/title";
+import { ApiResponseDto } from "@/types/api";
+
+interface PopularTitle {
+  id: string;
+  title: string;
+  cover?: string;
+  description?: string;
+  rating?: number;
+  type: string;
+  releaseYear: number;
+  isAdult?: boolean;
+}
 
 const TITLES_TAG = "Titles";
 
@@ -363,36 +374,13 @@ export const titlesApi = createApi({
 
     // Получить популярные тайтлы
     getPopularTitles: builder.query<
-      ApiResponseDto<
-        {
-          [x: string]: any;
-          type: string;
-          releaseYear: number;
-          id: string;
-          title: string;
-          cover?: string;
-          description?: string;
-          rating?: number;
-          isAdult?: boolean;
-        }[]
-      >,
+      ApiResponseDto<PopularTitle[]>,
       void
     >({
       query: () => "/titles/popular",
       providesTags: [TITLES_TAG],
       transformResponse: (
-        response: ApiResponseDto<
-          {
-            id: string;
-            title: string;
-            cover?: string;
-            description?: string;
-            rating?: number;
-            type: string;
-            releaseYear: number;
-            isAdult?: boolean;
-          }[]
-        >
+        response: ApiResponseDto<PopularTitle[]>
       ) => response,
     }),
 

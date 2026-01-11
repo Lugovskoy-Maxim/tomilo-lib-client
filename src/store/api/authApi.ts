@@ -1,11 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
   AuthResponse,
-  LoginData,
-  RegisterData,
   User,
-  ApiResponseDto,
 } from "@/types/auth";
+import { LoginData, RegisterData } from "@/types/form";
+import { ApiResponseDto } from "@/types/api";
 import {
   ReadingHistoryEntry,
   BookmarkItem,

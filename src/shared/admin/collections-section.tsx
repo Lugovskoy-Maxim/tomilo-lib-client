@@ -426,7 +426,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             </p>
           </div>
         ) : (
-          collections.map((collection: Collection, index) => (
+          collections.map((collection: Collection, index: number) => (
             <div
               key={`${collection.id}-${index}`}
               className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors"
@@ -844,7 +844,7 @@ function TitlesModal({
   const availableTitles = titles.filter(
     (title: Title) =>
       !collectionTitles.some(
-        (ct) => (typeof ct === "string" ? ct : ct._id) === title._id
+        (ct: string | Title) => (typeof ct === "string" ? ct : ct._id) === title._id
       )
   );
 
@@ -872,7 +872,7 @@ function TitlesModal({
             Текущие тайтлы ({collectionTitles.length})
           </h3>
           <div className="space-y-2 max-h-40 overflow-y-auto">
-            {collectionTitles.map((title, index) => {
+            {collectionTitles.map((title: string | Title, index: number) => {
               const titleData =
                 typeof title === "string"
                   ? { _id: title, name: `Title ${title}` }

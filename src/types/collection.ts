@@ -1,15 +1,7 @@
 import { Title } from "./title";
 
 // ApiResponseDto - стандартный формат ответа API
-export interface ApiResponseDto<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  errors?: string[];
-  timestamp: string;
-  path: string;
-  method?: string;
-}
+import { ApiResponseDto } from './api';
 
 export interface Collection {
   id: string;
