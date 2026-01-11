@@ -227,7 +227,7 @@ export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
         {/* Колонка 1: Топ 2025 года */}
         <Column
           title="Топ 2025 года"
-          href="/browse?year=2025"
+          href="/titles?year=2025"
           items={data.top2025 || []}
           showRating={true}
           showViews={false}
@@ -236,7 +236,7 @@ export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
         {/* Колонка 2: Топ Манхв */}
         <Column
           title="Топ Манхв"
-          href="/browse?types=manhwa"
+          href="/titles?types=manhwa"
           items={data.topManhwa || []}
           showRating={true}
           showViews={true}
@@ -245,7 +245,7 @@ export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
         {/* Колонка 3: Топ Маньхуа */}
         <Column
           title="Топ Маньхуа"
-          href="/browse?types=manhua"
+          href="/titles?types=manhua"
           items={data.topManhua || []}
           showRating={true}
           showViews={true}
