@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AuthGuard } from "@/guard/auth-guard";
@@ -18,7 +17,6 @@ import {
   Star,
   Users,
   AlertTriangle,
-
   Globe,
   LucideIcon,
   Wand2,
@@ -38,12 +36,14 @@ import {
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { UpdateTitleDto } from "@/types/title";
 
-
 import { useToast } from "@/hooks/useToast";
 // import Image from "next/image";
 import { CoverUploadSection } from "@/shared/admin/cover-upload-section";
 import { normalizeGenres } from "@/lib/genre-normalizer";
-import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
+import {
+  translateTitleStatus,
+  translateTitleType,
+} from "@/lib/title-type-translations";
 
 // Конфигурация API
 const API_CONFIG = {
@@ -111,49 +111,48 @@ const API_CONFIG = {
   ],
 };
 
-
 // Функция генерации slug из названия
 const generateSlug = (name: string): string => {
-  if (!name) return 'unknown-title';
+  if (!name) return "unknown-title";
 
   // Транслитерация кириллических символов
   const translitMap: { [key: string]: string } = {
-    а: 'a',
-    б: 'b',
-    в: 'v',
-    г: 'g',
-    д: 'd',
-    е: 'e',
-    ё: 'e',
-    ж: 'zh',
-    з: 'z',
-    и: 'i',
-    й: 'y',
-    к: 'k',
-    л: 'l',
-    м: 'm',
-    н: 'n',
-    о: 'o',
-    п: 'p',
-    р: 'r',
-    с: 's',
-    т: 't',
-    у: 'u',
-    ф: 'f',
-    х: 'h',
-    ц: 'ts',
-    ч: 'ch',
-    ш: 'sh',
-    щ: 'sch',
-    ъ: 'y',
-    ы: 'y',
+    а: "a",
+    б: "b",
+    в: "v",
+    г: "g",
+    д: "d",
+    е: "e",
+    ё: "e",
+    ж: "zh",
+    з: "z",
+    и: "i",
+    й: "y",
+    к: "k",
+    л: "l",
+    м: "m",
+    н: "n",
+    о: "o",
+    п: "p",
+    р: "r",
+    с: "s",
+    т: "t",
+    у: "u",
+    ф: "f",
+    х: "h",
+    ц: "ts",
+    ч: "ch",
+    ш: "sh",
+    щ: "sch",
+    ъ: "y",
+    ы: "y",
     ь: "'",
-    э: 'e',
-    ю: 'yu',
-    я: 'ya',
+    э: "e",
+    ю: "yu",
+    я: "ya",
   };
 
-  let result = '';
+  let result = "";
   for (let i = 0; i < name.length; i++) {
     const char = name[i].toLowerCase();
     if (translitMap[char]) {
@@ -163,34 +162,35 @@ const generateSlug = (name: string): string => {
     } else if (/[а-яё]/.test(char)) {
       result += translitMap[char] || char;
     } else if (/\s/.test(char)) {
-      result += '-';
+      result += "-";
     }
   }
 
   // Удаляем множественные дефисы и дефисы в начале/конце
-  result = result.replace(/-+/g, '-').replace(/^-|-$/g, '');
+  result = result.replace(/-+/g, "-").replace(/^-|-$/g, "");
 
-  return result || 'unknown-title';
+  return result || "unknown-title";
 };
 
-
 // Функция нормализации жанров/тегов с улучшенной обработкой капса
-const normalizeGenresTags = (items: string[]): { 
-  normalized: string[]; 
+const normalizeGenresTags = (
+  items: string[]
+): {
+  normalized: string[];
   changes: Array<{ original: string; normalized: string }>;
 } => {
   const changes: Array<{ original: string; normalized: string }> = [];
-  const normalized = items.map(item => {
+  const normalized = items.map((item) => {
     const original = item.trim();
     const normalized = normalizeGenres([original])[0];
-    
+
     if (original !== normalized) {
       changes.push({ original, normalized });
     }
-    
+
     return normalized;
   });
-  
+
   // Удаляем дубликаты при этом сохраняя порядок
   const uniqueGenres: string[] = [];
   for (const genre of normalized) {
@@ -198,12 +198,11 @@ const normalizeGenresTags = (items: string[]): {
       uniqueGenres.push(genre);
     }
   }
-  
+
   return { normalized: uniqueGenres, changes };
 };
 
 // Типы для пропсов компонентов
-
 
 interface BasicInfoSectionProps {
   formData: Title;
@@ -219,7 +218,12 @@ interface BasicInfoSectionProps {
   handleInputArrayChange: (
     field: "genres" | "tags"
   ) => (values: string[]) => void;
-  handleNormalize: (field: "genres" | "tags") => (values: string[]) => { normalized: string[]; changes: Array<{ original: string; normalized: string }> };
+  handleNormalize: (
+    field: "genres" | "tags"
+  ) => (values: string[]) => {
+    normalized: string[];
+    changes: Array<{ original: string; normalized: string }>;
+  };
   handleAltNamesChange: (e: ChangeEvent<HTMLInputElement>) => void;
   handleImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
   selectedFile: File | null;
@@ -275,14 +279,16 @@ interface CheckboxFieldProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-
 interface CheckboxGroupProps {
   label: string;
   items: string[];
   selectedItems: string[];
   onChange: (value: string, isChecked: boolean) => void;
   onInputChange?: (values: string[]) => void;
-  onNormalize?: (values: string[]) => { normalized: string[]; changes: Array<{ original: string; normalized: string }> };
+  onNormalize?: (values: string[]) => {
+    normalized: string[];
+    changes: Array<{ original: string; normalized: string }>;
+  };
   icon?: LucideIcon;
 }
 
@@ -417,7 +423,6 @@ export default function TitleEditorPage() {
       });
     };
 
-
   const handleInputArrayChange =
     (field: "genres" | "tags") => (values: string[]) => {
       setFormData((prev) => ({
@@ -426,33 +431,39 @@ export default function TitleEditorPage() {
       }));
     };
 
-
   // Обработчик нормализации жанров/тегов с уведомлениями
   const handleNormalize = (field: "genres" | "tags") => (values: string[]) => {
     const result = normalizeGenresTags(values);
-    
+
     // Обновляем состояние формы с нормализованными значениями
     setFormData((prev) => ({
       ...prev,
       [field]: result.normalized,
     }));
-    
+
     // Показываем уведомление об изменениях
     if (result.changes.length > 0) {
       const changesText = result.changes
         .slice(0, 3) // Показываем только первые 3 изменения
-        .map(change => `${change.original} → ${change.normalized}`)
-        .join('\n');
-      
-      const moreText = result.changes.length > 3 ? `\nи еще ${result.changes.length - 3}...` : '';
-      
+        .map((change) => `${change.original} → ${change.normalized}`)
+        .join("\n");
+
+      const moreText =
+        result.changes.length > 3
+          ? `\nи еще ${result.changes.length - 3}...`
+          : "";
+
       toast.success(
-        `Нормализовано ${result.changes.length} ${field === "genres" ? "жанров" : "тегов"}:\n${changesText}${moreText}`
+        `Нормализовано ${result.changes.length} ${
+          field === "genres" ? "жанров" : "тегов"
+        }:\n${changesText}${moreText}`
       );
     } else {
-      toast.info(`Все ${field === "genres" ? "жанры" : "теги"} уже в нормальном формате`);
+      toast.info(
+        `Все ${field === "genres" ? "жанры" : "теги"} уже в нормальном формате`
+      );
     }
-    
+
     return result;
   };
 
@@ -541,7 +552,6 @@ export default function TitleEditorPage() {
     }
   };
 
-
   // Состояния загрузки и ошибок
   if (isLoading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
@@ -549,7 +559,7 @@ export default function TitleEditorPage() {
   // Функция для генерации slug из названия
   const handleSlugGenerate = () => {
     const newSlug = generateSlug(formData.name);
-    setFormData(prev => ({ ...prev, slug: newSlug }));
+    setFormData((prev) => ({ ...prev, slug: newSlug }));
     toast.success("Slug успешно сгенерирован!");
   };
 
@@ -561,8 +571,6 @@ export default function TitleEditorPage() {
           <HeaderSection />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
-
-
               <BasicInfoSection
                 formData={formData}
                 titleId={titleId}
@@ -588,7 +596,7 @@ export default function TitleEditorPage() {
               /> */}
               <div className="flex items-center justify-between gap-3">
                 <Link
-                  href={`/browse/${titleId}`}
+                  href={`/titles/${formData.slug}`}
                   className="px-4 py-2 rounded border"
                 >
                   Открыть страницу тайтла
@@ -674,9 +682,6 @@ function HeaderSection() {
   );
 }
 
-
-
-
 function BasicInfoSection({
   formData,
   titleId,
@@ -699,7 +704,6 @@ function BasicInfoSection({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
-
           <CoverUploadSection
             titleId={titleId}
             currentCover={formData.coverImage}
@@ -708,38 +712,38 @@ function BasicInfoSection({
             onImageChange={handleImageChange}
           />
 
-        <InputField
-          label="Название *"
-          value={formData.name}
-          onChange={handleInputChange("name")}
-          placeholder="Введите название тайтла"
-          required
-        />
+          <InputField
+            label="Название *"
+            value={formData.name}
+            onChange={handleInputChange("name")}
+            placeholder="Введите название тайтла"
+            required
+          />
 
-        <div>
-          <label className="text-sm font-medium text-[var(--foreground)] mb-1 flex items-center gap-2">
-            <Globe className="w-3 h-3" />
-            Slug
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={formData.slug || ""}
-              onChange={handleInputChange("slug")}
-              placeholder="Введите slug тайтла"
-              className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
-            />
-            <button
-              type="button"
-              onClick={onSlugGenerate}
-              className="px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-1 text-sm"
-              title="Генерировать slug из названия"
-            >
-              <Wand2 className="w-3 h-3" />
-              Генерировать
-            </button>
+          <div>
+            <label className="text-sm font-medium text-[var(--foreground)] mb-1 flex items-center gap-2">
+              <Globe className="w-3 h-3" />
+              Slug
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={formData.slug || ""}
+                onChange={handleInputChange("slug")}
+                placeholder="Введите slug тайтла"
+                className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+              />
+              <button
+                type="button"
+                onClick={onSlugGenerate}
+                className="px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-1 text-sm"
+                title="Генерировать slug из названия"
+              >
+                <Wand2 className="w-3 h-3" />
+                Генерировать
+              </button>
+            </div>
           </div>
-        </div>
         </div>
 
         <div className="md:col-span-2">
@@ -778,7 +782,6 @@ function BasicInfoSection({
           required
         />
 
-
         <SelectField
           label="Статус *"
           value={formData.status}
@@ -788,7 +791,6 @@ function BasicInfoSection({
             label: translateTitleStatus(status),
           }))}
         />
-
 
         <SelectField
           label="Тип тайтла"
@@ -818,7 +820,6 @@ function BasicInfoSection({
         />
       </div>
 
-
       <CheckboxGroup
         label="Жанры"
         items={API_CONFIG.genres}
@@ -830,7 +831,6 @@ function BasicInfoSection({
         onNormalize={handleNormalize("genres")}
         icon={Tag}
       />
-
 
       <CheckboxGroup
         label="Теги"
@@ -1064,7 +1064,6 @@ function CheckboxField({ label, ...props }: CheckboxFieldProps) {
   );
 }
 
-
 function CheckboxGroup({
   label,
   items,
@@ -1096,7 +1095,6 @@ function CheckboxGroup({
       onChange(item, isChecked);
     }
   };
-
 
   const handleNormalize = () => {
     if (onNormalize) {
