@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -59,6 +59,31 @@ export default function ReaderControls({
     user?.bookmarks?.includes(titleId) ?? false
   );
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+  
+  // Ref для панели настроек ширины
+  const widthControlRef = useRef<HTMLDivElement>(null);
+
+  // Обработчик закрытия панели настроек при клике вне её
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (
+      isWidthControlOpen &&
+      widthControlRef.current &&
+      !widthControlRef.current.contains(event.target as Node)
+    ) {
+      // Проверяем, что клик не был по самой кнопке настроек
+      const target = event.target as HTMLElement;
+      if (!target.closest('button[title="Настройки ширины изображений"]')) {
+        setIsWidthControlOpen(false);
+      }
+    }
+  }, [isWidthControlOpen]);
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [handleClickOutside]);
 
   const filteredChapters = chapters.filter(
     (chapter) =>
@@ -102,26 +127,52 @@ export default function ReaderControls({
 
   return (
     <>
-      {/* Стили для ползунка */}
+      {/* Стили для ползунка и анимаций */}
       <style jsx>{`
         .slider::-webkit-slider-thumb {
           appearance: none;
-          width: 16px;
-          height: 16px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
           background: var(--primary);
           cursor: pointer;
-          border: 2px solid var(--background);
-          box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+          border: 3px solid var(--background);
+          box-shadow: 0 0 0 2px var(--primary), 0 2px 8px rgba(0, 0, 0, 0.2);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .slider::-webkit-slider-thumb:hover {
+          transform: scale(1.15);
+          box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(0, 0, 0, 0.3);
         }
         .slider::-moz-range-thumb {
-          width: 16px;
-          height: 16px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
           background: var(--primary);
           cursor: pointer;
-          border: 2px solid var(--background);
-          box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+          border: 3px solid var(--background);
+          box-shadow: 0 0 0 2px var(--primary), 0 2px 8px rgba(0, 0, 0, 0.2);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .slider::-moz-range-thumb:hover {
+          transform: scale(1.15);
+          box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .slider:focus {
+          outline: none;
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateX(-10px) translateY(-50%);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0) translateY(-50%);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out forwards;
         }
       `}</style>
 
@@ -139,19 +190,31 @@ export default function ReaderControls({
           <div className="relative w-full flex justify-center mb-4">
             <button
               onClick={() => setIsWidthControlOpen(!isWidthControlOpen)}
-              className={`p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 ${
-                isWidthControlOpen ? 'text-[var(--primary)] bg-[var(--accent)]' : ''
+              className={`group relative p-3 bg-gradient-to-br from-[var(--primary)]/10 to-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+                isWidthControlOpen
+                  ? "text-[var(--primary)] bg-[var(--primary)]/20 border-[var(--primary)]"
+                  : ""
               }`}
               title="Настройки ширины изображений"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" />
+              {/* Активный индикатор */}
+              {isWidthControlOpen && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[var(--primary)] rounded-full animate-pulse" />
+              )}
             </button>
 
             {/* Ползунок ширины (абсолютное позиционирование слева) */}
             {isWidthControlOpen && (
-              <div className="absolute left-0 top-0 -translate-x-full mr-2 flex flex-col items-center space-y-2 p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg z-[60]">
-                <div className="text-[var(--muted-foreground)] text-xs font-medium">
-                  Ширина: {imageWidth}px
+              <div
+                ref={widthControlRef}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full mr-3 flex flex-col items-center space-y-3 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl z-[60] animate-fade-in"
+              >
+                <div className="flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-[var(--primary)]" />
+                  <span className="text-[var(--foreground)] font-medium">
+                    {imageWidth}px
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -160,14 +223,14 @@ export default function ReaderControls({
                   step="64"
                   value={imageWidth}
                   onChange={(e) => onImageWidthChange(Number(e.target.value))}
-                  className="w-32 h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
+                  className="w-40 h-3 bg-[var(--muted)] rounded-full appearance-none cursor-pointer slider"
                   style={{
-                    background: 'var(--muted)',
-                    outline: 'none',
+                    background: "var(--muted)",
+                    outline: "none",
                   }}
                   title="Изменить ширину изображений"
                 />
-                <div className="flex justify-between w-32 text-[var(--muted-foreground)] text-xs">
+                <div className="flex justify-between w-40 text-[var(--muted-foreground)] text-xs">
                   <span>768</span>
                   <span>1440</span>
                 </div>
@@ -536,15 +599,18 @@ export default function ReaderControls({
           </div>
         </>
       )}
-      
+
       {/* Report Modal */}
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         entityType="chapter"
         entityId={currentChapter._id}
-        entityTitle={`Глава ${currentChapter.number}${currentChapter.title ? ` - ${currentChapter.title}` : ''}`}
+        entityTitle={`Глава ${currentChapter.number}${
+          currentChapter.title ? ` - ${currentChapter.title}` : ""
+        }`}
       />
     </>
   );
 }
+
