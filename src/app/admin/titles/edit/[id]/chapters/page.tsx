@@ -4,10 +4,12 @@ import { AuthGuard } from "@/guard/auth-guard";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useGetChaptersByTitleQuery, useDeleteChapterMutation, useUpdateChapterMutation } from "@/store/api/chaptersApi";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useMemo, useCallback, useState, useRef } from "react";
 import { Header, Footer } from "@/widgets";
 import { useToast } from "@/hooks/useToast";
 import { Chapter } from "@/types/title";
+import { getChapterPath } from "@/lib/title-paths";
 
 export default function ChaptersManagementPage() {
   const params = useParams();
@@ -20,6 +22,7 @@ export default function ChaptersManagementPage() {
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
 
+  const { data: titleData } = useGetTitleByIdQuery({ id: titleId }, { skip: !titleId });
   const { data, isLoading, error } = useGetChaptersByTitleQuery(
     { titleId, page: currentPage, limit: 10000, sortOrder: "desc" },
     { skip: !titleId }

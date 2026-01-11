@@ -1,4 +1,13 @@
-import { Plus, Search, Edit, Trash2, Eye, BookOpen, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  BookOpen,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { useGetTitlesQuery } from "@/store/api/titlesApi";
@@ -9,6 +18,7 @@ import {
 } from "@/store/api/chaptersApi";
 import { useToast } from "@/hooks/useToast";
 import Pagination from "@/shared/browse/pagination";
+import { getChapterPath } from "@/lib/title-paths";
 
 interface ChaptersSectionProps {
   titleId: string | null;
@@ -24,7 +34,10 @@ export function ChaptersSection({
   const [cleanupOrphanedChapters] = useCleanupOrphanedChaptersMutation();
   const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<{title: string, message: string} | null>(null);
+  const [modalContent, setModalContent] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Get titles for selection
   const { data: titlesResponse } = useGetTitlesQuery();
@@ -57,14 +70,14 @@ export function ChaptersSection({
       // Показываем модальное окно с результатом
       setModalContent({
         title: "Удаление завершено",
-        message: "Глава успешно удалена"
+        message: "Глава успешно удалена",
       });
       setIsModalOpen(true);
     } catch (error) {
       // Показываем модальное окно с ошибкой
       setModalContent({
         title: "Ошибка удаления",
-        message: "Произошла ошибка при удалении главы"
+        message: "Произошла ошибка при удалении главы",
       });
       setIsModalOpen(true);
     }
@@ -250,7 +263,7 @@ export function ChaptersSection({
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-2">
                             <Link
-                              href={`/browse/${titleId}/chapter/${chapter._id}`}
+                              href={getChapterPath(selectedTitle || { _id: titleId }, chapter._id)}
                               className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
                               title="Просмотреть"
                             >

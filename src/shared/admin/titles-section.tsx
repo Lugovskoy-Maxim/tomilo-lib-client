@@ -10,6 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 import { translateTitleStatus } from "@/lib/title-type-translations";
+import { getTitlePath } from "@/lib/title-paths";
 
 interface TitlesSectionProps {
   onTitleSelect: (titleId: string) => void;
@@ -185,7 +186,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
                         <Link
-                          href={`/browse/${title._id}`}
+                          href={getTitlePath(title)}
                           className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
                           title="Просмотреть"
                         >
