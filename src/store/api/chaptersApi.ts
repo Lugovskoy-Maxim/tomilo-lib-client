@@ -221,6 +221,15 @@ export const chaptersApi = createApi({
       invalidatesTags: (result, error, id) => [{ type: CHAPTERS_TAG, id }],
       transformResponse: (response: ApiResponseDto<Chapter>) => response,
     }),
+
+    // Очистка осиротевших глав (глав без тайтлов)
+    cleanupOrphanedChapters: builder.mutation<ApiResponseDto<{ deletedCount: number }>, void>({
+      query: () => ({
+        url: "/chapters/cleanup-orphaned",
+        method: "POST",
+      }),
+      invalidatesTags: [CHAPTERS_TAG],
+    }),
   }),
 });
 
@@ -235,4 +244,5 @@ export const {
   useDeleteChapterMutation,
   useGetChapterByNumberQuery,
   useIncrementChapterViewsMutation,
+  useCleanupOrphanedChaptersMutation,
 } = chaptersApi;
