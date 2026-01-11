@@ -96,9 +96,9 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
         {/* Вкладка "Обзор" */}
         {activeTab === "overview" && (
           <div className="space-y-6">
-            <ProfileContent userProfile={userProfile} />
-            <ProfileStats userProfile={userProfile} />
+            {/* <ProfileStats userProfile={userProfile} /> */}
             <ProfileAdditionalInfo userProfile={userProfile} />
+            <ProfileContent userProfile={userProfile} />
           </div>
         )}
 
@@ -162,4 +162,3 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 }
 
 export default ProfileTabs;
-
