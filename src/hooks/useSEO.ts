@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from 'react';
+import { translateTitleType } from '@/lib/title-type-translations';
 
 interface SEOProps {
   title?: string;
@@ -167,6 +168,7 @@ export const seoConfigs = {
     genres?: string[];
     author?: string;
     artist?: string;
+    type?: string;
     status?: string;
     releaseYear?: number;
     coverImage?: string;
@@ -178,7 +180,7 @@ export const seoConfigs = {
       : `Читать ${titleName} онлайн. ${titleData.genres?.join(', ')}`;
     
     return {
-      title: `Читать ${titleName} - Tomilo-lib.ru`,
+      title: `Читать ${titleName} - ${titleData.type ? ` ${translateTitleType(titleData.type)}` : ''} - Tomilo-lib.ru`,
       description: shortDescription,
       keywords: `${titleName}, ${titleData.genres?.join(', ')}, ${titleData.author}, ${titleData.artist}, манга, маньхуа, комиксы, онлайн чтение`,
       image: titleData.coverImage || titleData.image,

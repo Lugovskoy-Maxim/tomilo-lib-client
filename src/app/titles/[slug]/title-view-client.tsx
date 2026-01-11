@@ -3,6 +3,7 @@
 import { Footer, Header } from "@/widgets";
 import { useState, useEffect, useMemo } from "react";
 import { Title } from "@/types/title";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 import {
   useIncrementViewsMutation,
@@ -285,6 +286,8 @@ export default function TitleViewClient({ slug }: { slug: string }) {
   };
 
   const typeLabel = typeLabels[titleType] || "Другое";
+  const translatedType = translateTitleType(titleType);
+  const titleWithType = `${titleData.name} - ${translatedType ? ` ${translatedType}` : ''}`;
 
   // Определяем тип контента для микроразметки
   const contentType =
@@ -337,10 +340,10 @@ export default function TitleViewClient({ slug }: { slug: string }) {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             // "@type": contentType === "Book" ? "Book" : "Article",
-            headline: titleData.name,
+            headline: titleWithType,
             description: titleData.description
               ? titleData.description.replace(/<[^>]*>/g, "").substring(0, 500)
-              : `Читать ${titleData.name} онлайн на Tomilo-lib.ru`,
+              : `Читать ${titleWithType} онлайн на Tomilo-lib.ru`,
             image: image,
             author: {
               "@type": "Person",
