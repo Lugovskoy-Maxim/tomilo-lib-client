@@ -159,7 +159,7 @@ export default function Footer() {
                 <span>{currentYear} «Tomilo-lib.ru»</span>
               </div>
               <div className="text-xs bg-[var(--accent)] px-2 py-1 rounded border border-[var(--border)] whitespace-nowrap">
-                Версия 261225.075
+                Версия 11012026.084
               </div>
             </div>
           </div>
@@ -183,7 +183,7 @@ export default function Footer() {
 
         <div className="flex items-center justify-around p-0 rounded-md">
           <Link
-            href="/browse"
+            href="/titles"
             className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
             aria-label="Каталог"
           >
