@@ -56,6 +56,15 @@ export function LeftSidebar({
         )}
       </div>
 
+      {/* Admin ID display */}
+      {isAdmin && (
+        <div className="text-center mt-4">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            ID: {titleData._id}
+          </p>
+        </div>
+      )}
+
       {/* Десктопные кнопки действий */}
       <div className="flex flex-col gap-2 mt-6">
         <ReadButton

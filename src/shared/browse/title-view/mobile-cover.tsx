@@ -56,6 +56,15 @@ export default function MobileCover({
         )}
       </div>
 
+      {/* Admin ID display */}
+      {isAdmin && (
+        <div className="text-center mt-2">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            ID: {titleData._id}
+          </p>
+        </div>
+      )}
+
       {/* Мобильные кнопки действий */}
       <div className="flex justify-center gap-2 mt-4 rounded-full">
         <ReadButton
