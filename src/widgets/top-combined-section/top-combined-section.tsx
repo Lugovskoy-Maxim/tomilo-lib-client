@@ -227,7 +227,7 @@ export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
         {/* Колонка 1: Топ 2025 года */}
         <Column
           title="Топ 2025 года"
-          href="/titles?year=2025"
+          href="/titles?releaseYears=2025"
           items={data.top2025 || []}
           showRating={true}
           showViews={false}
