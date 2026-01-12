@@ -1,11 +1,17 @@
 import { UserProfile } from "@/types/user";
 import { Calendar, Clock, UserCheck } from "lucide-react";
-
+import { useToast } from "@/hooks/useToast";
+import { useState } from "react";
 interface ProfileAdditionalInfoProps {
   userProfile: UserProfile;
 }
 
 export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditionalInfoProps) {
+  const toast = useToast();
+  // Состояние для таймера
+  const [isCooldown, setIsCooldown] = useState(false);
+  const [cooldownTime, setCooldownTime] = useState(60);
+
   // Форматирование даты регистрации
   const formatRegistrationDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -32,7 +38,12 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
   // Функция для отправки письма подтверждения email
   const handleSendVerificationEmail = () => {
     if (!userProfile.email) {
-      console.error("Email не найден в профиле пользователя");
+      toast.error("Email не найден в профиле пользователя");
+      return;
+    }
+
+    if (isCooldown) {
+      toast.warning(`Пожалуйста, подождите ${cooldownTime} секунд перед повторной отправкой`);
       return;
     }
 
@@ -46,15 +57,34 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        console.log("Письмо подтверждения отправлено");
-        // Здесь можно показать уведомление пользователю
+        toast.success("Письмо подтверждения отправлено на ваш email");
+        // Запуск таймера перезарядки
+        startCooldown();
       } else {
-        console.error("Ошибка отправки письма подтверждения:", data.message);
+        toast.error(data.message || "Ошибка отправки письма подтверждения");
       }
     })
     .catch(error => {
+      toast.error("Ошибка сети при отправке письма подтверждения");
       console.error("Ошибка сети при отправке письма подтверждения:", error);
     });
+  };
+
+  // Функция для запуска таймера перезарядки
+  const startCooldown = () => {
+    setIsCooldown(true);
+    setCooldownTime(60);
+    
+    const timer = setInterval(() => {
+      setCooldownTime((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(timer);
+          setIsCooldown(false);
+          return 60;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
   };
 
   return (
@@ -110,9 +140,14 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         <div className="mt-4 flex justify-center">
           <button
             onClick={handleSendVerificationEmail}
-            className="px-4 py-2 bg-[var(--chart-1)] text-[var(--primary)] rounded-lg hover:bg-[var(--chart-1)]/90 transition-colors text-sm"
+            disabled={isCooldown}
+            className={`px-4 py-2 rounded-lg transition-colors text-sm ${
+              isCooldown
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-[var(--chart-1)] text-[var(--primary)] hover:bg-[var(--chart-1)]/90"
+            }`}
           >
-            Отправить письмо подтверждения email
+            {isCooldown ? `Отправить повторно через ${cooldownTime} сек` : "Отправить письмо подтверждения email"}
           </button>
         </div>
       )}
