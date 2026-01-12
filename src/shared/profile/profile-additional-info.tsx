@@ -35,6 +35,9 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     });
   };
 
+  // Состояние для отслеживания загрузки
+  const [isLoading, setIsLoading] = useState(false);
+
   // Функция для отправки письма подтверждения email
   const handleSendVerificationEmail = () => {
     if (!userProfile.email) {
@@ -46,6 +49,15 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       toast.warning(`Пожалуйста, подождите ${cooldownTime} секунд перед повторной отправкой`);
       return;
     }
+
+    // Проверяем, не выполняется ли уже запрос
+    if (isLoading) {
+      toast.warning("Письмо уже отправляется, пожалуйста, подождите");
+      return;
+    }
+
+    // Устанавливаем состояние загрузки
+    setIsLoading(true);
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/send-verification-email`, {
       method: 'POST',
@@ -67,6 +79,10 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     .catch(error => {
       toast.error("Ошибка сети при отправке письма подтверждения");
       console.error("Ошибка сети при отправке письма подтверждения:", error);
+    })
+    .finally(() => {
+      // Сбрасываем состояние загрузки после завершения запроса
+      setIsLoading(false);
     });
   };
 
@@ -140,14 +156,18 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         <div className="mt-4 flex justify-center">
           <button
             onClick={handleSendVerificationEmail}
-            disabled={isCooldown}
+            disabled={isCooldown || isLoading}
             className={`px-4 py-2 rounded-lg transition-colors text-sm ${
-              isCooldown
+              isCooldown || isLoading
                 ? "bg-[var(--muted)] cursor-not-allowed text-[var(--primary)]"
                 : "bg-[var(--chart-1)] text-[var(--primary)] hover:bg-[var(--chart-1)]/90"
             }`}
           >
-            {isCooldown ? `Отправить повторно через ${cooldownTime} сек` : "Отправить письмо подтверждения email"}
+            {isLoading
+              ? "Отправка..."
+              : isCooldown
+              ? `Отправить повторно через ${cooldownTime} сек`
+              : "Отправить письмо подтверждения email"}
           </button>
         </div>
       )}
