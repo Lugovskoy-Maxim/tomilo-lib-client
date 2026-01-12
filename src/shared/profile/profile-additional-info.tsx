@@ -143,7 +143,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
             disabled={isCooldown}
             className={`px-4 py-2 rounded-lg transition-colors text-sm ${
               isCooldown
-                ? "bg-gray-400 cursor-not-allowed"
+                ? "bg-[var(--muted)] cursor-not-allowed text-[var(--primary)]"
                 : "bg-[var(--chart-1)] text-[var(--primary)] hover:bg-[var(--chart-1)]/90"
             }`}
           >
