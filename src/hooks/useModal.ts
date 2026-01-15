@@ -32,4 +32,4 @@ export function useModal(isOpen: boolean, onClose: () => void) {
   }, [isOpen, onClose]);
 
   return modalRef;
-};
+}

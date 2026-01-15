@@ -104,4 +104,3 @@ export function CoverUploadSection({
     </div>
   );
 }
-

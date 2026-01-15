@@ -45,7 +45,7 @@ export function ShopSection({ type }: ShopSectionProps) {
       } else {
         setError(response.message || "Ошибка при загрузке товаров");
       }
-    } catch     {
+    } catch {
       setError("Ошибка при загрузке товаров");
       console.error("Error loading decorations:");
     } finally {
@@ -71,8 +71,8 @@ export function ShopSection({ type }: ShopSectionProps) {
           equipped: response.data.filter(d => d.isEquipped).map(d => d.id),
         });
       }
-    } catch     {
-      console.error("Error loading user decorations:"  );
+    } catch {
+      console.error("Error loading user decorations:");
     }
   }, [isAuthenticated]);
 
@@ -109,7 +109,7 @@ export function ShopSection({ type }: ShopSectionProps) {
       } else {
         throw new Error(response.message || "Ошибка при покупке");
       }
-    } catch (error)  {
+    } catch (error) {
       throw error; // Перебрасываем ошибку для обработки в компоненте
     } finally {
       setActionLoading(null);
@@ -131,7 +131,7 @@ export function ShopSection({ type }: ShopSectionProps) {
       } else {
         throw new Error(response.message || "Ошибка при экипировке");
       }
-   } catch (error)  {
+    } catch (error) {
       throw error;
     } finally {
       setActionLoading(null);
@@ -153,7 +153,7 @@ export function ShopSection({ type }: ShopSectionProps) {
       } else {
         throw new Error(response.message || "Ошибка при снятии");
       }
-   } catch (error)  {
+    } catch (error) {
       throw error;
     } finally {
       setActionLoading(null);

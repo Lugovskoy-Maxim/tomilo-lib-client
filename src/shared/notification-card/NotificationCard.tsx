@@ -38,7 +38,7 @@ export default function NotificationCard({ notification }: NotificationCardProps
     if (!notification.isRead) {
       try {
         await markAsRead(notification._id).unwrap();
-      } catch  {
+      } catch {
         // Error handling is done by the RTK Query
       }
     }

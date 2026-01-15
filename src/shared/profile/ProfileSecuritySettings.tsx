@@ -8,7 +8,7 @@ interface ProfileSecuritySettingsProps {
   userProfile: UserProfile;
 }
 
-export default function ProfileSecuritySettings({ }: ProfileSecuritySettingsProps) {
+export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

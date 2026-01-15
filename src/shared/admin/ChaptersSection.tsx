@@ -2,10 +2,7 @@ import { Plus, Search, Edit, Trash2, Eye, BookOpen, AlertCircle, CheckCircle } f
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { useGetTitlesQuery } from "@/store/api/titlesApi";
-import {
-  useGetChaptersByTitleQuery,
-  useDeleteChapterMutation,
-} from "@/store/api/chaptersApi";
+import { useGetChaptersByTitleQuery, useDeleteChapterMutation } from "@/store/api/chaptersApi";
 import Pagination from "@/shared/browse/pagination";
 import { getChapterPath } from "@/lib/title-paths";
 import { Chapter, Title } from "@/types/title";
@@ -121,7 +118,8 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
               {titles.find(t => t._id === titleId)?.name}
             </h3>
             <p className="text-sm text-[var(--muted-foreground)]">
-              Автор: {titles.find(t => t._id === titleId)?.author} • Глав: {chaptersResponse?.total || 0}
+              Автор: {titles.find(t => t._id === titleId)?.author} • Глав:{" "}
+              {chaptersResponse?.total || 0}
             </p>
           </div>
         )}
@@ -189,7 +187,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
                     </tr>
                   </thead>
                   <tbody>
-                    {chapters.map((chapter) => (
+                    {chapters.map(chapter => (
                       <tr
                         key={chapter._id}
                         className="border-t border-[var(--border)] hover:bg-[var(--accent)]/30"
@@ -287,4 +285,3 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
     </div>
   );
 }
-

@@ -1,15 +1,6 @@
 "use client";
 import Link from "next/link";
-import {
-  MoreVertical,
-  Library,
-  Home,
-  Mail,
-  Copyright,
-  Bookmark,
-  Bell,
-  Send,
-} from "lucide-react";
+import { MoreVertical, Library, Home, Mail, Copyright, Bookmark, Bell, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Logo } from "@/shared";
 import Image from "next/image";

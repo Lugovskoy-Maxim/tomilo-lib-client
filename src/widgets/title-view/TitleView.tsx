@@ -35,10 +35,7 @@ export default function TitleView({ slug }: { slug: string }) {
   const [incrementViews] = useIncrementViewsMutation();
 
   // Load all chapters - try multiple pages if needed
-  const {
-    data: chaptersData,
-    isLoading: chaptersLoading,
-  } = useGetChaptersByTitleQuery(
+  const { data: chaptersData, isLoading: chaptersLoading } = useGetChaptersByTitleQuery(
     {
       titleId,
       page: 1,
@@ -177,7 +174,6 @@ export default function TitleView({ slug }: { slug: string }) {
       return bNum - aNum; // desc order
     });
   }, [chaptersData, chaptersDataPage2, chaptersDataPage3, chaptersDataPage4, chaptersDataPage5]);
-
 
   // Состояние для активной вкладки
   const [activeTab, setActiveTab] = useState<"main" | "chapters" | "comments">("chapters");

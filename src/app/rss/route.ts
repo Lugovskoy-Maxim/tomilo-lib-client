@@ -286,8 +286,6 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
   }
 }
 
-
-
 export async function GET() {
   try {
     let recentTitles: TitleItem[] = [];
@@ -298,8 +296,6 @@ export async function GET() {
         fetchRecentTitles(),
         fetchRecentChapters(),
       ]);
-
-
     } catch (apiError) {
       console.warn("API request failed, using sample data:", apiError);
     }

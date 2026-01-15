@@ -644,7 +644,7 @@ function CollectionModal({
         formDataToSend.append("description", formData.description || "");
 
         // For now, we'll submit with the file - the API will handle it
-        await onSubmit(formDataToSend as unknown as CreateCollectionDto);
+        await onSubmit(formDataToSend);
       } catch {
         // Handle error silently in production
       } finally {

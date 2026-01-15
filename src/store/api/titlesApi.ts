@@ -16,8 +16,6 @@ interface PopularTitle {
 
 const TITLES_TAG = "Titles";
 
-
-
 export const titlesApi = createApi({
   reducerPath: "titlesApi",
   baseQuery: fetchBaseQuery({
