@@ -61,7 +61,7 @@ function formatRssDate(dateString: string): string {
       return new Date().toUTCString();
     }
     return date.toUTCString();
-  } catch (error) {
+  } catch {
     return new Date().toUTCString();
   }
 }

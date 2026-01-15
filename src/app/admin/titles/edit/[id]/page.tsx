@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import { ChangeEvent as ReactChangeEvent } from "react";
 import { useDispatch } from "react-redux";
 import { Title, TitleStatus, TitleType } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";

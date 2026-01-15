@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   try {
@@ -58,8 +57,8 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch (error) {
-    console.error("Ошибка обработки токена Яндекса:", error);
+  } catch {
+    console.error("Ошибка обработки токена Яндекса:");
     return NextResponse.json(
       { success: false, message: "Ошибка обработки токена" },
       { status: 500 },
