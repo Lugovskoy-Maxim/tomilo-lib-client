@@ -3,7 +3,7 @@
 import React from "react";
 import { Trophy, Eye, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import OptimizedImage from "@/shared/OptimizedImage";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";

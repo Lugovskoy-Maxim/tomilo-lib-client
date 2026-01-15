@@ -2,7 +2,7 @@ import { Share, Edit, AlertTriangle } from "lucide-react";
 import Image from "next/image";
 import { Title, Chapter } from "@/types/title";
 import { ReadButton } from "@/shared/browse/ReadButton";
-import { BookmarkButton } from "@/shared/BookmarkButton";
+import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
 import { useRouter } from "next/navigation";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useAuth } from "@/hooks/useAuth";

@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
-import OptimizedImage from "@/shared/OptimizedImage";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useState, useEffect } from "react";
@@ -111,7 +111,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           height={220}
           quality={85}
           priority={false}
-          onDragStart={e => e.preventDefault()}
+onDragStart={(e: React.DragEvent) => e.preventDefault()}
           draggable={false}
           style={{ width: "100%", height: "100%" }}
         />

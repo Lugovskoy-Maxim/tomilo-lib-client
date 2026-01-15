@@ -1,6 +1,6 @@
 "use client";
 
-import OptimizedImage from "@/shared/OptimizedImage";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { useEffect, useRef, useState } from "react";
 import { ReaderChapter as Chapter } from "@/shared/reader/types";
 

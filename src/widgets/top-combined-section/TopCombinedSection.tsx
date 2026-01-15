@@ -2,7 +2,7 @@
 import { ArrowRight, Eye, Star } from "lucide-react";
 import Link from "next/link";
 import { TopTitleCombined } from "@/types/constants";
-import OptimizedImage from "@/shared/OptimizedImage";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
 import { useState, useEffect } from "react";

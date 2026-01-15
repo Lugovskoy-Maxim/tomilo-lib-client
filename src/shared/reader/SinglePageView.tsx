@@ -1,4 +1,4 @@
-import OptimizedImage from "@/shared/OptimizedImage";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ReaderChapter as Chapter } from "@/shared/reader/types";
 

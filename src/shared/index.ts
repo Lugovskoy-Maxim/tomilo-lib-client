@@ -53,10 +53,10 @@ export { default as ProfileAvatar } from "./profile/ProfileAvatar";
 
 // Utilities
 export { default as PeriodFilter } from "./period-filter/PeriodFilter";
-export { default as LoadingSkeleton } from "./skeleton";
+export { default as LoadingSkeleton } from "./skeleton/skeleton";
 export { default as SharedErrorState } from "./error-state/ErrorState";
 export { default as DataCarousel } from "./data-carousel/DataCarousel";
 export { default as SnowEffect } from "./snow-cap/SnowCap";
 export { default as Breadcrumbs } from "./breadcrumbs/breadcrumbs";
-export { default as OptimizedImage } from "./OptimizedImage";
+export { default as OptimizedImage } from "./optimized-image/OptimizedImage";
 

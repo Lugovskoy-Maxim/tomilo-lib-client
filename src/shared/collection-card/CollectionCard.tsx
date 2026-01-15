@@ -2,7 +2,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
-import OptimizedImage from "@/shared/OptimizedImage";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { Collection } from "@/types/collection";
 
 interface CollectionCardProps {

@@ -4,7 +4,7 @@ import React from "react";
 import { BookOpen, Trash2, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useMemo } from "react";
-import OptimizedImage from "@/shared/OptimizedImage";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getChapterPath } from "@/lib/title-paths";

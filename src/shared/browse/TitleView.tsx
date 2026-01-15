@@ -25,7 +25,7 @@ import { ReadingHistoryEntry } from "@/types/store";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ReadButton } from "@/shared/browse/ReadButton";
-import { BookmarkButton } from "@/shared/BookmarkButton";
+import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
 import { useAuth } from "@/hooks/useAuth";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";

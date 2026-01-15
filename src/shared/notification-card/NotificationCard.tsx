@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import OptimizedImage from "@/shared/OptimizedImage";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { Check, X, Clock } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 

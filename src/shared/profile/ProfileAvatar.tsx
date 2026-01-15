@@ -1,5 +1,5 @@
 import { UserProfile } from "@/types/user";
-import OptimizedImage from "@/shared/OptimizedImage";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 const API_CONFIG = {
   basePublicUrl: process.env.NEXT_PUBLIC_URL || "http://localhost:3001",

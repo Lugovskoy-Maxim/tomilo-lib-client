@@ -30,7 +30,7 @@ import { Collection, CreateCollectionDto, UpdateCollectionDto } from "@/types/co
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 import Modal from "@/shared/modal/modal";
-import LoadingSkeleton from "@/shared/skeleton";
+import LoadingSkeleton from "@/shared/skeleton/skeleton";
 import { ErrorState as SharedErrorState } from "@/shared/error-state";
 import Image from "next/image";
 

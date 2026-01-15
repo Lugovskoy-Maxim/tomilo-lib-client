@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Title, Chapter } from "@/types/title";
 import { ReadButton } from "@/shared/browse/ReadButton";
-import { BookmarkButton } from "@/shared/BookmarkButton";
+import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
 import { useAuth } from "@/hooks/useAuth";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useState } from "react";
