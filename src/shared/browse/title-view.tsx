@@ -345,7 +345,7 @@ export function ChapterItem({
 
   return (
     <Link
-      href={`/browse/${titleId}/chapter/${chapter._id}`}
+      href={`/titles/${titleId}/chapter/${chapter._id}`}
       className="flex items-center bg-[var(--background)]/50 justify-between px-2 py-2 border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors rounded-xl"
     >
       <div className="flex items-center gap-3">
@@ -600,7 +600,7 @@ export function RightContent({
               className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-xs font-semibold bg-[var(--background)]/60"
               onClick={() => {
                 router.push(
-                  `/browse?ageLimit=${encodeURIComponent(
+                  `/titles?ageLimit=${encodeURIComponent(
                     titleData?.ageLimit || ""
                   )}`
                 );
@@ -614,7 +614,7 @@ export function RightContent({
                 className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
                 onClick={() => {
                   router.push(
-                    `/browse?genres=${encodeURIComponent(genre || "")}`
+                    `/titles?genres=${encodeURIComponent(genre || "")}`
                   );
                 }}
               >
@@ -626,7 +626,7 @@ export function RightContent({
                 key={index}
                 className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
                 onClick={() => {
-                  router.push(`/browse?tags=${encodeURIComponent(tag || "")}`);
+                  router.push(`/titles?tags=${encodeURIComponent(tag || "")}`);
                 }}
               >
                 {tag}

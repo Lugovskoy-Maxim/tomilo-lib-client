@@ -201,13 +201,13 @@ export default function ReadChapterPage({
     (chapterId: string) => {
       return slug
         ? `/titles/${slug}/chapter/${chapterId}`
-        : `/browse/${titleId}/chapter/${chapterId}`;
+        : `/titles/${titleId}/chapter/${chapterId}`;
     },
     [slug, titleId]
   );
 
   const getTitlePath = useCallback(() => {
-    return slug ? `/titles/${slug}` : `/browse/${titleId}`;
+    return slug ? `/titles/${slug}` : `/titles/${titleId}`;
   }, [slug, titleId]);
 
   // Навигация по клавиатуре
@@ -597,7 +597,7 @@ export default function ReadChapterPage({
               <select
                 value={chapter._id}
                 onChange={(e) =>
-                  router.push(`/browse/${titleId}/chapter/${e.target.value}`)
+                  router.push(`/titles/${slug || titleId}/chapter/${e.target.value}`)
                 }
                 className="bg-[var(--muted)] border border-[var(--border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] w-full sm:min-w-[200px]"
               >

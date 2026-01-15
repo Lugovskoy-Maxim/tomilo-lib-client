@@ -250,7 +250,7 @@ export default function ChaptersManagementPage() {
                         <td className="p-3">{ch.views ?? 0}</td>
                         <td className="p-3 text-right">
                           <div className="inline-flex gap-2">
-                            <Link href={`/browse/${titleId}/chapter/${ch._id}`} className="px-2 py-1 border rounded">
+                            <Link href={`/titles/${titleData?.slug || titleId}/chapter/${ch._id}`} className="px-2 py-1 border rounded">
                               Открыть
                             </Link>
                             <Link href={`/admin/titles/edit/${titleId}/chapters/${ch._id}`} className="px-2 py-1 border rounded">

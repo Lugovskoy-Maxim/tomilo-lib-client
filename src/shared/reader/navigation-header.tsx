@@ -30,7 +30,7 @@ export default function NavigationHeader({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
-              href={`/browse/${title._id}`}
+              href={`/titles/${title.slug || title._id}`}
               className="flex items-center gap-2 text-[var(--foreground)] hover:text-[var(--primary)] transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />

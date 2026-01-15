@@ -591,7 +591,7 @@ export function RightContent({
             className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-sm font-semibold bg-[var(--muted)]/60 p-1"
             onClick={() => {
               router.push(
-                `/browse?ageLimit=${encodeURIComponent(
+                `/titles?ageLimit=${encodeURIComponent(
                   titleData?.ageLimit || ""
                 )}`
               );
@@ -605,7 +605,7 @@ export function RightContent({
               className="px-2 py-1 cursor-pointer rounded-full text-sm font-normal bg-[var(--muted)]/50 p-1 text-[var(--foreground)]"
               onClick={() => {
                 router.push(
-                  `/browse?genres=${encodeURIComponent(genre || "")}`
+                  `/titles?genres=${encodeURIComponent(genre || "")}`
                 );
               }}
             >
@@ -617,7 +617,7 @@ export function RightContent({
               key={index}
               className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
               onClick={() => {
-                router.push(`/browse?tags=${encodeURIComponent(tag || "")}`);
+                router.push(`/titles?tags=${encodeURIComponent(tag || "")}`);
               }}
             >
               {tag}

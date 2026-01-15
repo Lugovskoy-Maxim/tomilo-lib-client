@@ -90,7 +90,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
   const isAdultContent = data.isAdult;
   const pathname = usePathname();
-  const isBrowsePage = pathname.startsWith("/browse");
+  // const isBrowsePage = pathname.startsWith("/browse");
 
   const imageSrc = data.image
     ? `${process.env.NEXT_PUBLIC_URL}${data.image}`
