@@ -50,9 +50,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
     }
 
     // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${
-      data.cover
-    }`;
+    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${data.cover}`;
   };
 
   const imageUrl = getImageUrl();
@@ -124,7 +122,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
                   style={{
                     width: `${getProgressPercentage(
                       data.readingHistory?.chapterNumber || data.currentChapter,
-                      data.totalChapters
+                      data.totalChapters,
                     )}%`,
                   }}
                 />

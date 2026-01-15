@@ -220,8 +220,8 @@ export function ChaptersTab({
   onLoadMore: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
-  sortOrder: 'desc' | 'asc';
-  onSortChange: (order: 'desc' | 'asc') => void;
+  sortOrder: "desc" | "asc";
+  onSortChange: (order: "desc" | "asc") => void;
   loading: boolean;
   user: User | null;
   titleData?: Title;
@@ -232,7 +232,7 @@ export function ChaptersTab({
 
   useEffect(() => {
     if (loading || !hasMore) return;
-    observerRef.current = new IntersectionObserver((entries) => {
+    observerRef.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) onLoadMore();
     });
     if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
@@ -248,14 +248,14 @@ export function ChaptersTab({
             type="text"
             placeholder="Номер или название главы"
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={e => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-3 py-2 bg-[var(--background)]/50 rounded-full focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--primary)] text-sm sm:text-base"
           />
         </div>
         <button
-          onClick={() => onSortChange(sortOrder === 'desc' ? 'asc' : 'desc')}
+          onClick={() => onSortChange(sortOrder === "desc" ? "asc" : "desc")}
           className="flex items-center gap-2 px-3 py-2 bg-[var(--background)]/50 rounded-full hover:bg-[var(--accent)]/30 transition-colors text-[var(--primary)] text-sm"
-          title={`Сортировка: ${sortOrder === 'desc' ? 'по убыванию' : 'по возрастанию'}`}
+          title={`Сортировка: ${sortOrder === "desc" ? "по убыванию" : "по возрастанию"}`}
         >
           <ArrowUpDown className="w-4 h-4" />
           {/* {sortOrder === 'desc' ? '↓' : '↑'} */}
@@ -269,11 +269,7 @@ export function ChaptersTab({
             className="animate-in fade-in slide-in-from-bottom-4 duration-500"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            <ChapterItem
-              chapter={chapter}
-              titleId={titleId}
-              user={user}
-            />
+            <ChapterItem chapter={chapter} titleId={titleId} user={user} />
           </div>
         ))}
 
@@ -287,9 +283,7 @@ export function ChaptersTab({
       </div>
 
       {chapters.length === 0 && !loading && (
-        <div className="text-center py-8 text-[var(--primary)]">
-          Главы не найдены
-        </div>
+        <div className="text-center py-8 text-[var(--primary)]">Главы не найдены</div>
       )}
     </div>
   );
@@ -310,22 +304,23 @@ export function ChapterItem({
 
   // Получаем историю чтения только для текущего тайтла
   const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
-  
+
   // Проверяем, прочитана ли глава
-  const isRead = readingHistoryData?.data?.chapters?.some((ch) => {
-    if (ch.chapterId == null) return false;
-    
-    let historyChapterId: string;
-    if (typeof ch.chapterId === 'string') {
-      historyChapterId = ch.chapterId;
-    } else if (ch.chapterId && typeof ch.chapterId === 'object' && '_id' in ch.chapterId) {
-      historyChapterId = (ch.chapterId as { _id: string })._id;
-    } else {
-      return false;
-    }
-    
-    return historyChapterId === chapter._id;
-  }) || false;
+  const isRead =
+    readingHistoryData?.data?.chapters?.some(ch => {
+      if (ch.chapterId == null) return false;
+
+      let historyChapterId: string;
+      if (typeof ch.chapterId === "string") {
+        historyChapterId = ch.chapterId;
+      } else if (ch.chapterId && typeof ch.chapterId === "object" && "_id" in ch.chapterId) {
+        historyChapterId = (ch.chapterId as { _id: string })._id;
+      } else {
+        return false;
+      }
+
+      return historyChapterId === chapter._id;
+    }) || false;
 
   // Функция для удаления из истории чтения
   const handleRemoveFromHistory = async (e: React.MouseEvent) => {
@@ -366,25 +361,16 @@ export function ChapterItem({
               }`}
               title="Удалить из истории чтения"
             >
-              {isRemoving ? (
-                <div className="w-5 h-5" />
-              ) : (
-                <EyeOff className="w-5 h-5" />
-              )}
+              {isRemoving ? <div className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
             </button>
           ) : (
-            <Eye
-              className={`w-5 h-5 ${
-                isRead ? "text-green-500" : "text-[var(--primary)]"
-              }`}
-            />
+            <Eye className={`w-5 h-5 ${isRead ? "text-green-500" : "text-[var(--primary)]"}`} />
           )}
         </div>
         <div className="flex gap-1 justify-center items-center">
           <div className="font-medium text-[var(--primary)] text-sm sm:text-sm">
             Глава {chapter.chapterNumber}
-            {chapter.name != `Глава ${chapter.chapterNumber.toString()}` &&
-              `: ${chapter.name}`}
+            {chapter.name != `Глава ${chapter.chapterNumber.toString()}` && `: ${chapter.name}`}
           </div>
           {chapter.releaseDate && (
             <div className="flex items-center gap-1 font-medium text-[var(--primary)] text-sm sm:text-sm">
@@ -411,9 +397,7 @@ export function ChapterItem({
 }
 
 export function CommentsTab({ titleId }: { titleId: string }) {
-  return (
-    <CommentsSection entityType={CommentEntityType.TITLE} entityId={titleId} />
-  );
+  return <CommentsSection entityType={CommentEntityType.TITLE} entityId={titleId} />;
 }
 
 // Right Content
@@ -437,9 +421,7 @@ export function RightContent({
 }: {
   titleData: Title;
   activeTab: "description" | "chapters" | "comments" | "statistics";
-  onTabChange: (
-    tab: "description" | "chapters" | "comments" | "statistics"
-  ) => void;
+  onTabChange: (tab: "description" | "chapters" | "comments" | "statistics") => void;
   isDescriptionExpanded: boolean;
   onDescriptionToggle: () => void;
   chapters: Chapter[];
@@ -448,8 +430,8 @@ export function RightContent({
   onLoadMoreChapters: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  sortOrder: 'desc' | 'asc';
-  onSortChange: (order: 'desc' | 'asc') => void;
+  sortOrder: "desc" | "asc";
+  onSortChange: (order: "desc" | "asc") => void;
   titleId: string;
   user: User | null;
   onAgeVerificationRequired?: () => void;
@@ -497,7 +479,6 @@ export function RightContent({
     }
   };
 
-
   const router = useRouter();
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
@@ -529,14 +510,12 @@ export function RightContent({
             <div className="flex items-center gap-3 bg-[var(--background)]/20 px-3 py-1 rounded-full">
               <span className="text-lg font-bold text-[var(--chart-1)]">
                 {formatRating(
-                  typeof pendingRating === "number"
-                    ? pendingRating
-                    : titleData?.averageRating
+                  typeof pendingRating === "number" ? pendingRating : titleData?.averageRating,
                 )}
               </span>
               <button
                 type="button"
-                onClick={() => setIsRatingOpen((v) => !v)}
+                onClick={() => setIsRatingOpen(v => !v)}
                 className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer"
               >
                 Оценить
@@ -549,9 +528,7 @@ export function RightContent({
             <div className="relative flex flex-col justify-center items-end w-full ">
               <div className="absolute top-0 right-0 flex flex-col w-max bg-[var(--background)]/80 rounded-lg p-2">
                 <div className="flex items-end justify-between mb-2">
-                  <span className="text-sm text-[var(--primary)]">
-                    Ваша оценка
-                  </span>
+                  <span className="text-sm text-[var(--primary)]">Ваша оценка</span>
                   <button
                     type="button"
                     onClick={() => setIsRatingOpen(false)}
@@ -562,7 +539,7 @@ export function RightContent({
                   </button>
                 </div>
                 <div className="flex gap-2 overflow-x-auto">
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
                     <button
                       key={n}
                       type="button"
@@ -591,7 +568,6 @@ export function RightContent({
               {titleData?.name}
             </h1>
           </div>
-
         </div>
 
         <div className="mt-2">
@@ -599,11 +575,7 @@ export function RightContent({
             <span
               className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-xs font-semibold bg-[var(--background)]/60"
               onClick={() => {
-                router.push(
-                  `/titles?ageLimit=${encodeURIComponent(
-                    titleData?.ageLimit || ""
-                  )}`
-                );
+                router.push(`/titles?ageLimit=${encodeURIComponent(titleData?.ageLimit || "")}`);
               }}
             >
               {titleData?.ageLimit}+
@@ -613,9 +585,7 @@ export function RightContent({
                 key={index}
                 className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
                 onClick={() => {
-                  router.push(
-                    `/titles?genres=${encodeURIComponent(genre || "")}`
-                  );
+                  router.push(`/titles?genres=${encodeURIComponent(genre || "")}`);
                 }}
               >
                 {genre}
@@ -637,11 +607,7 @@ export function RightContent({
 
         {titleData.description && (
           <div className="mt-5">
-            <div
-              className={`relative ${
-                !isDescriptionExpanded ? "max-h-40 overflow-hidden" : ""
-              }`}
-            >
+            <div className={`relative ${!isDescriptionExpanded ? "max-h-40 overflow-hidden" : ""}`}>
               <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap bg-[var(--card)]/40 rounded-xl p-4">
                 {titleData?.description}
               </p>
@@ -716,42 +682,30 @@ export function RightContent({
                 <div className="flex flex-col gap-3">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
-                      <div className="text-xs text-[var(--primary)] mb-1">
-                        Статус
-                      </div>
+                      <div className="text-xs text-[var(--primary)] mb-1">Статус</div>
 
                       <div className="font-bold text-[var(--primary)]">
                         {translateTitleStatus(titleData?.status || TitleStatus.ONGOING)}
                       </div>
                     </div>
                     <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
-                      <div className="text-xs text-[var(--primary)] mb-1">
-                        Глав
-                      </div>
+                      <div className="text-xs text-[var(--primary)] mb-1">Глав</div>
                       <div className="font-bold text-[var(--primary)]">
                         {titleData?.totalChapters?.toLocaleString() || "0"}
                       </div>
                     </div>
                     <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
-                      <div className="text-xs text-[var(--primary)] mb-1">
-                        Формат
-                      </div>
-                      <div className="font-bold text-[var(--primary)]">
-                        В цвете
-                      </div>
+                      <div className="text-xs text-[var(--primary)] mb-1">Формат</div>
+                      <div className="font-bold text-[var(--primary)]">В цвете</div>
                     </div>
                     <div className="bg-[var(--background)]/50 rounded-lg p-4 text-center">
-                      <div className="text-xs text-[var(--primary)] mb-1">
-                        Просмотры
-                      </div>
+                      <div className="text-xs text-[var(--primary)] mb-1">Просмотры</div>
                       <div className="font-bold text-[var(--primary)]">
                         {titleData?.views?.toLocaleString() || "0"}
                       </div>
                     </div>
                   </div>
-                  <h3 className="font-semibold text-[var(--primary)] mb-3 ">
-                    Полное описание
-                  </h3>
+                  <h3 className="font-semibold text-[var(--primary)] mb-3 ">Полное описание</h3>
                   <div className="bg-[var(--background)]/50 rounded-lg p-4">
                     <p className="text-[var(--primary)] leading-relaxed whitespace-pre-wrap">
                       {titleData?.description}
@@ -779,22 +733,10 @@ export function RightContent({
           {activeTab === "comments" && <CommentsTab titleId={titleId} />}
           {activeTab === "statistics" && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <StatItem
-                label="Просмотры"
-                value={titleData?.views?.toLocaleString() || "0"}
-              />
-              <StatItem
-                label="Оценка"
-                value={formatRating(titleData?.rating)}
-              />
-              <StatItem
-                label="Год релиза"
-                value={String(titleData?.releaseYear || "")}
-              />
-              <StatItem
-                label="Глав"
-                value={titleData?.totalChapters?.toLocaleString() || "0"}
-              />
+              <StatItem label="Просмотры" value={titleData?.views?.toLocaleString() || "0"} />
+              <StatItem label="Оценка" value={formatRating(titleData?.rating)} />
+              <StatItem label="Год релиза" value={String(titleData?.releaseYear || "")} />
+              <StatItem label="Глав" value={titleData?.totalChapters?.toLocaleString() || "0"} />
             </div>
           )}
         </div>

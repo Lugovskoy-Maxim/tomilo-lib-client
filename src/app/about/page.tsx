@@ -4,7 +4,8 @@ import { pageTitle } from "@/lib/page-title";
 import { Breadcrumbs } from "@/shared";
 export const metadata: Metadata = {
   title: "О нас - Tomilo-lib.ru",
-  description: "Узнайте больше о платформе Tomilo-lib.ru - современной платформе для чтения маньхуа и комиксов.",
+  description:
+    "Узнайте больше о платформе Tomilo-lib.ru - современной платформе для чтения маньхуа и комиксов.",
 };
 
 export default function AboutPage() {
@@ -16,25 +17,21 @@ export default function AboutPage() {
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pb-20 md:pb-2">
         <div className="prose prose-lg max-w-none">
           <Breadcrumbs className="mb-6" />
-          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-6">
-            О нас
-          </h1>
+          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-6">О нас</h1>
 
           <div className="space-y-6 text-[var(--foreground)]">
             <p className="text-lg leading-relaxed">
-              <strong className="text-[var(--primary)]">TOMILO-LIB</strong> — это современная платформа,
-              созданная для любителей манги, манхвы и маньхуа. Мы стремимся предоставить удобный и качественный
-              сервис для чтения и изучения азиатской комиксной культуры.
+              <strong className="text-[var(--primary)]">TOMILO-LIB</strong> — это современная
+              платформа, созданная для любителей манги, манхвы и маньхуа. Мы стремимся предоставить
+              удобный и качественный сервис для чтения и изучения азиатской комиксной культуры.
             </p>
 
             <div className="bg-[var(--secondary)] p-6 rounded-lg border border-[var(--border)]">
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">
-                Наша задача
-              </h2>
+              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">Наша задача</h2>
               <p className="leading-relaxed">
-                Мы верим, что каждый человек должен иметь доступ к качественному контенту.
-                Наша платформа объединяет сотни произведений, делая их доступными для читателей
-                по всему миру. Мы заботимся о комфорте пользователей и постоянно улучшаем наш сервис.
+                Мы верим, что каждый человек должен иметь доступ к качественному контенту. Наша
+                платформа объединяет сотни произведений, делая их доступными для читателей по всему
+                миру. Мы заботимся о комфорте пользователей и постоянно улучшаем наш сервис.
               </p>
             </div>
 
@@ -53,12 +50,10 @@ export default function AboutPage() {
             </div>
 
             <div className="bg-[var(--secondary)] p-6 rounded-lg border border-[var(--border)]">
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">
-                Наша команда
-              </h2>
+              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">Наша команда</h2>
               <p className="leading-relaxed">
-                Каждый член нашей команды вносит свой вклад в развитие платформы,
-                чтобы сделать ваше чтение максимально комфортным и приятным.
+                Каждый член нашей команды вносит свой вклад в развитие платформы, чтобы сделать ваше
+                чтение максимально комфортным и приятным.
               </p>
             </div>
 
@@ -67,9 +62,9 @@ export default function AboutPage() {
                 Свяжитесь с нами
               </h2>
               <p className="leading-relaxed">
-                Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме,
-                пожалуйста, свяжитесь с нами по электронной почте или в группе в Telegram.
-                Мы всегда рады услышать ваше мнение и готовы помочь!
+                Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме, пожалуйста,
+                свяжитесь с нами по электронной почте или в группе в Telegram. Мы всегда рады
+                услышать ваше мнение и готовы помочь!
               </p>
             </div>
           </div>

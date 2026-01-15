@@ -15,8 +15,16 @@ import { AuthGuard } from "@/guard/auth-guard";
 import { useState } from "react";
 import { Cog } from "lucide-react";
 
-
-type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users" | "comments" | "reports";
+type AdminTab =
+  | "overview"
+  | "parser"
+  | "auto-parsing"
+  | "titles"
+  | "chapters"
+  | "collections"
+  | "users"
+  | "comments"
+  | "reports";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
@@ -33,19 +41,14 @@ export default function AdminPage() {
       case "titles":
         return (
           <TitlesSection
-            onTitleSelect={(titleId) => {
+            onTitleSelect={titleId => {
               setSelectedTitleId(titleId);
               setActiveTab("chapters");
             }}
           />
         );
       case "chapters":
-        return (
-          <ChaptersSection
-            titleId={selectedTitleId}
-            onTitleChange={setSelectedTitleId}
-          />
-        );
+        return <ChaptersSection titleId={selectedTitleId} onTitleChange={setSelectedTitleId} />;
       case "collections":
         return <CollectionsSection onTabChange={(tab: string) => setActiveTab(tab as AdminTab)} />;
       case "comments":
@@ -77,9 +80,7 @@ export default function AdminPage() {
 
           <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-          <div className="mt-4 sm:mt-6">
-            {renderTabContent()}
-          </div>
+          <div className="mt-4 sm:mt-6">{renderTabContent()}</div>
         </div>
 
         <Footer />

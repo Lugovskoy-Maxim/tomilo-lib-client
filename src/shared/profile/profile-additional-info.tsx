@@ -18,10 +18,10 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     return date.toLocaleDateString("ru-RU", {
       year: "numeric",
       month: "long",
-      day: "numeric"
+      day: "numeric",
     });
   };
-  console.log(userProfile)
+  console.log(userProfile);
 
   // Форматирование последнего входа
   const formatLastLogin = (dateString: string) => {
@@ -31,7 +31,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       month: "long",
       day: "numeric",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     });
   };
 
@@ -59,40 +59,43 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     // Устанавливаем состояние загрузки
     setIsLoading(true);
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/send-verification-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/auth/send-verification-email`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: userProfile.email }),
       },
-      body: JSON.stringify({ email: userProfile.email }),
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        toast.success("Письмо подтверждения отправлено на ваш email");
-        // Запуск таймера перезарядки
-        startCooldown();
-      } else {
-        toast.error(data.message || "Ошибка отправки письма подтверждения");
-      }
-    })
-    .catch(error => {
-      toast.error("Ошибка сети при отправке письма подтверждения");
-      console.error("Ошибка сети при отправке письма подтверждения:", error);
-    })
-    .finally(() => {
-      // Сбрасываем состояние загрузки после завершения запроса
-      setIsLoading(false);
-    });
+    )
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          toast.success("Письмо подтверждения отправлено на ваш email");
+          // Запуск таймера перезарядки
+          startCooldown();
+        } else {
+          toast.error(data.message || "Ошибка отправки письма подтверждения");
+        }
+      })
+      .catch(error => {
+        toast.error("Ошибка сети при отправке письма подтверждения");
+        console.error("Ошибка сети при отправке письма подтверждения:", error);
+      })
+      .finally(() => {
+        // Сбрасываем состояние загрузки после завершения запроса
+        setIsLoading(false);
+      });
   };
 
   // Функция для запуска таймера перезарядки
   const startCooldown = () => {
     setIsCooldown(true);
     setCooldownTime(60);
-    
+
     const timer = setInterval(() => {
-      setCooldownTime((prevTime) => {
+      setCooldownTime(prevTime => {
         if (prevTime <= 1) {
           clearInterval(timer);
           setIsCooldown(false);
@@ -108,7 +111,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       <h2 className="text-lg font-semibold text-[var(--muted-foreground)] mb-4">
         Дополнительная информация
       </h2>
-      
+
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -119,7 +122,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
             {userProfile.createdAt ? formatRegistrationDate(userProfile.createdAt) : "Не указана"}
           </span>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -129,7 +132,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
             {userProfile.updatedAt ? formatLastLogin(userProfile.updatedAt) : "Не указана"}
           </span>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <UserCheck className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -166,8 +169,8 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
             {isLoading
               ? "Отправка..."
               : isCooldown
-              ? `Отправить повторно через ${cooldownTime} сек`
-              : "Отправить письмо подтверждения email"}
+                ? `Отправить повторно через ${cooldownTime} сек`
+                : "Отправить письмо подтверждения email"}
           </button>
         </div>
       )}

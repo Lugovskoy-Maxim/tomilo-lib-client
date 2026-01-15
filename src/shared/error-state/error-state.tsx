@@ -14,9 +14,7 @@ export default function ErrorState({
 }: ErrorStateProps) {
   return (
     <div className={`text-center py-12 ${className}`}>
-      <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">
-        {title}
-      </h3>
+      <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">{title}</h3>
       <p className="text-[var(--muted-foreground)]">{message}</p>
     </div>
   );

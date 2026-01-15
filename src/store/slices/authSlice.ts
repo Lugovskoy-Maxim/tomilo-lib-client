@@ -1,12 +1,12 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AuthState, StoredUser } from '@/types/auth';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { AuthState, StoredUser } from "@/types/auth";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
 
 // Функция для получения начального состояния из localStorage
 const getInitialState = (): AuthState => {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return {
       user: null,
       isAuthenticated: false,
@@ -17,7 +17,7 @@ const getInitialState = (): AuthState => {
   try {
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     const userData = localStorage.getItem(USER_DATA_KEY);
-    
+
     if (token && userData) {
       const user: StoredUser = JSON.parse(userData);
       return {
@@ -27,7 +27,7 @@ const getInitialState = (): AuthState => {
       };
     }
   } catch (error) {
-    console.error('Error reading auth data from localStorage:', error);
+    console.error("Error reading auth data from localStorage:", error);
   }
 
   return {
@@ -40,7 +40,7 @@ const getInitialState = (): AuthState => {
 const initialState: AuthState = getInitialState();
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -50,15 +50,14 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.isAuthenticated = true;
       state.isLoading = false;
-
     },
-    logout: (state) => {
+    logout: state => {
       state.user = null;
       state.isAuthenticated = false;
       state.isLoading = false;
 
       // Очищаем localStorage
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem(AUTH_TOKEN_KEY);
         localStorage.removeItem(USER_DATA_KEY);
       }
@@ -66,9 +65,9 @@ const authSlice = createSlice({
     updateUser: (state, action: PayloadAction<Partial<StoredUser>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
-        
+
         // Обновляем в localStorage
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           localStorage.setItem(USER_DATA_KEY, JSON.stringify(state.user));
         }
       }

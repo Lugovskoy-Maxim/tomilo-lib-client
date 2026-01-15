@@ -2,23 +2,17 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  MobileFilterButton,
-  SortAndSearch,
-  TitleGrid,
-  FilterSidebar,
-} from "@/shared";
+import { MobileFilterButton, SortAndSearch, TitleGrid, FilterSidebar } from "@/shared";
 import { Filters } from "@/types/browse-page";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 import { getTitlePath } from "@/lib/title-paths";
 
-
 import { translateTitleType } from "@/lib/title-type-translations";
 
 interface GridTitle {
   id: string;
-  slug?: string; 
+  slug?: string;
   title: string;
   type: string;
   year: number;
@@ -38,8 +32,10 @@ export default function TitlesContent() {
     const urlGenres = searchParams.get("genres")?.split(",").filter(Boolean) || [];
     const urlTypes = searchParams.get("types")?.split(",").filter(Boolean) || [];
     const urlStatus = searchParams.get("status")?.split(",").filter(Boolean) || [];
-    const urlAgeLimits = searchParams.get("ageLimits")?.split(",").filter(Boolean).map(Number) || [];
-    const urlReleaseYears = searchParams.get("releaseYears")?.split(",").filter(Boolean).map(Number) || [];
+    const urlAgeLimits =
+      searchParams.get("ageLimits")?.split(",").filter(Boolean).map(Number) || [];
+    const urlReleaseYears =
+      searchParams.get("releaseYears")?.split(",").filter(Boolean).map(Number) || [];
     const urlTags = searchParams.get("tags")?.split(",").filter(Boolean) || [];
     const urlSortBy = (searchParams.get("sortBy") || "averageRating") as Filters["sortBy"];
     const urlSortOrder = (searchParams.get("sortOrder") || "desc") as Filters["sortOrder"];
@@ -82,28 +78,26 @@ export default function TitlesContent() {
       setLimit(window.innerWidth < 1024 ? 6 : 15); // 6 for mobile/tablet, 15 for desktop
     };
     updateLimit();
-    window.addEventListener('resize', updateLimit);
-    return () => window.removeEventListener('resize', updateLimit);
+    window.addEventListener("resize", updateLimit);
+    return () => window.removeEventListener("resize", updateLimit);
   }, []);
 
   // Опции фильтров
   const { data: filterOptions } = useGetFilterOptionsQuery();
-  
 
   // Получаем оригинальные жанры без перевода для фильтров
   const originalFilterOptions = useMemo(() => {
     if (!filterOptions?.data) return undefined;
-    
+
     return {
       ...filterOptions,
       data: {
         ...filterOptions.data,
         genres: filterOptions.data.genres || [],
-        status: filterOptions.data.status || []
-      }
+        status: filterOptions.data.status || [],
+      },
     };
   }, [filterOptions]);
-
 
   // Запрос тайтлов с параметрами
   const { data: titlesData } = useSearchTitlesQuery({
@@ -112,15 +106,16 @@ export default function TitlesContent() {
     types: appliedFilters.types[0] || undefined,
     status: appliedFilters.status[0] || undefined,
     releaseYear: appliedFilters.releaseYears[0] || undefined,
-    ageLimits: appliedFilters.ageLimits.length > 0 
-      ? appliedFilters.ageLimits.toString() // Отправляем массив значений как строку
-      : undefined,
+    ageLimits:
+      appliedFilters.ageLimits.length > 0
+        ? appliedFilters.ageLimits.toString() // Отправляем массив значений как строку
+        : undefined,
     sortBy: appliedFilters.sortBy,
     sortOrder: appliedFilters.sortOrder,
     page: loadMorePage,
     limit,
   });
-  
+
   const totalTitles = titlesData?.data?.total ?? 0;
   const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
   const paginatedTitles = useMemo(() => titlesData?.data?.data ?? [], [titlesData]);
@@ -134,13 +129,13 @@ export default function TitlesContent() {
         type: translateTitleType(t.type || "manga"),
         year: t.releaseYear || new Date().getFullYear(),
 
-rating: t.averageRating ?? t.rating ?? 0,
+        rating: t.averageRating ?? t.rating ?? 0,
         image: t.coverImage || undefined,
 
         genres: t.genres || [],
         isAdult: t.isAdult || false,
       })),
-    [paginatedTitles]
+    [paginatedTitles],
   );
 
   // Append new titles to allTitles when data loads
@@ -189,25 +184,17 @@ rating: t.averageRating ?? t.rating ?? 0,
     const params = new URLSearchParams();
 
     if (filters.search) params.set("search", filters.search);
-    if (filters.genres.length > 0)
-      params.set("genres", filters.genres.join(","));
+    if (filters.genres.length > 0) params.set("genres", filters.genres.join(","));
     if (filters.types.length > 0) params.set("types", filters.types.join(","));
-    if (filters.status.length > 0)
-      params.set("status", filters.status.join(","));
-    if (filters.ageLimits.length > 0)
-      params.set("ageLimits", filters.ageLimits.join(","));
-    if (filters.releaseYears.length > 0)
-      params.set("releaseYears", filters.releaseYears.join(","));
-    if (filters.tags.length > 0)
-      params.set("tags", filters.tags.join(","));
+    if (filters.status.length > 0) params.set("status", filters.status.join(","));
+    if (filters.ageLimits.length > 0) params.set("ageLimits", filters.ageLimits.join(","));
+    if (filters.releaseYears.length > 0) params.set("releaseYears", filters.releaseYears.join(","));
+    if (filters.tags.length > 0) params.set("tags", filters.tags.join(","));
     if (filters.sortBy !== "averageRating") params.set("sortBy", filters.sortBy);
-    if (filters.sortOrder !== "desc")
-      params.set("sortOrder", filters.sortOrder);
+    if (filters.sortOrder !== "desc") params.set("sortOrder", filters.sortOrder);
     if (page > 1) params.set("page", page.toString());
 
-    const newUrl = params.toString()
-      ? `/titles?${params.toString()}`
-      : "/titles";
+    const newUrl = params.toString() ? `/titles?${params.toString()}` : "/titles";
     router.replace(newUrl, { scroll: false });
   };
 
@@ -234,17 +221,12 @@ rating: t.averageRating ?? t.rating ?? 0,
             <h1 className="text-2xl lg:text-3xl font-bold text-[var(--muted-foreground)] mb-2">
               Каталог тайтлов
             </h1>
-            <p className="text-[var(--muted-foreground)]">
-              Найдено {totalTitles} тайтлов
-            </p>
+            <p className="text-[var(--muted-foreground)]">Найдено {totalTitles} тайтлов</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
             <MobileFilterButton onClick={() => setIsMobileFilterOpen(true)} />
-            <SortAndSearch
-              filters={appliedFilters}
-              onFiltersChange={handleFiltersChange}
-            />
+            <SortAndSearch filters={appliedFilters} onFiltersChange={handleFiltersChange} />
           </div>
         </div>
 
@@ -278,7 +260,6 @@ rating: t.averageRating ?? t.rating ?? 0,
 
       {/* Боковая панель с фильтрами (десктоп) */}
       <div className="hidden lg:block lg:w-1/4">
-
         <FilterSidebar
           filters={appliedFilters}
           onFiltersChange={handleFiltersChange}
@@ -294,7 +275,6 @@ rating: t.averageRating ?? t.rating ?? 0,
           onReset={resetFilters}
         />
       </div>
-
 
       {/* Мобильный фильтр (шторка) */}
       <FilterSidebar

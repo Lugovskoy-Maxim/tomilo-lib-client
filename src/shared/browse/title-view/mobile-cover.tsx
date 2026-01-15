@@ -35,8 +35,6 @@ export default function MobileCover({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   return (
-
-
     <div className="lg:hidden mt-2 mb-6 overflow-hidden">
       <div className="flex relative w-full max-w-[300px] sm:max-w-[320px] justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
         {titleData?.coverImage ? (
@@ -46,22 +44,23 @@ export default function MobileCover({
             width={300}
             height={450}
             unoptimized={true}
-            className={`object-cover w-full h-auto rounded-xl ${shouldBlurImage ? 'blur-sm' : ''}`}
+            className={`object-cover w-full h-auto rounded-xl ${shouldBlurImage ? "blur-sm" : ""}`}
             priority
             sizes="(max-width: 640px) 90vw, (max-width: 768px) 50vw, 300px"
-            style={{ aspectRatio: '2/3' }}
+            style={{ aspectRatio: "2/3" }}
           />
         ) : (
-          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-auto" style={{ aspectRatio: '2/3' }} />
+          <div
+            className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-auto"
+            style={{ aspectRatio: "2/3" }}
+          />
         )}
       </div>
 
       {/* Admin ID display */}
       {isAdmin && (
         <div className="text-center mt-2">
-          <p className="text-sm text-[var(--muted-foreground)]">
-            ID: {titleData._id}
-          </p>
+          <p className="text-sm text-[var(--muted-foreground)]">ID: {titleData._id}</p>
         </div>
       )}
 

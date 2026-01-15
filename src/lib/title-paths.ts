@@ -17,22 +17,19 @@ export interface TitleWithId {
  * Генерирует правильный путь к тайтлу
  */
 export function getTitlePath(title: TitleWithSlug | TitleWithId): string {
-  const id = 'id' in title ? title.id : title._id;
+  const id = "id" in title ? title.id : title._id;
   const slug = title.slug;
-  
+
   return slug ? `/titles/${slug}` : `/browse/${id}`;
 }
 
 /**
  * Генерирует правильный путь к главе тайтла
  */
-export function getChapterPath(
-  title: TitleWithSlug | TitleWithId, 
-  chapterId: string
-): string {
-  const id = 'id' in title ? title.id : title._id;
+export function getChapterPath(title: TitleWithSlug | TitleWithId, chapterId: string): string {
+  const id = "id" in title ? title.id : title._id;
   const slug = title.slug;
-  
+
   return slug ? `/titles/${slug}/chapter/${chapterId}` : `/browse/${id}/chapter/${chapterId}`;
 }
 
@@ -54,14 +51,14 @@ export function hasSlug(title: TitleWithSlug | TitleWithId): boolean {
  * Создает объект с правильными путями для тайтла
  */
 export function createTitlePaths(title: TitleWithSlug | TitleWithId) {
-  const id = 'id' in title ? title.id : title._id;
+  const id = "id" in title ? title.id : title._id;
   const slug = title.slug;
-  
+
   return {
     id,
     slug,
     titlePath: getTitlePath(title),
     chapterPath: (chapterId: string) => getChapterPath(title, chapterId),
-    hasSlug: !!slug
+    hasSlug: !!slug,
   };
 }

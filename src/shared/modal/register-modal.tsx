@@ -36,10 +36,9 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     username: false,
     confirmPassword: false,
   });
-  
+
   // Используем хук мутации из RTK Query
   const [register, { isLoading, error: apiError }] = useRegisterMutation();
-  
 
   const validate = {
     email: (email: string): string | null => {
@@ -74,20 +73,19 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   };
 
   const isFormValid = (): boolean =>
-    !Object.values(errors).some((error) => error) &&
+    !Object.values(errors).some(error => error) &&
     !!form.email &&
     !!form.password &&
     !!form.username &&
     !!form.confirmPassword;
 
-  const handleChange =
-    (field: keyof RegisterData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
-      setTouched((prev) => ({ ...prev, [field]: true }));
-    };
+  const handleChange = (field: keyof RegisterData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(prev => ({ ...prev, [field]: e.target.value }));
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
 
   const handleBlur = (field: keyof RegisterData) => () => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
+    setTouched(prev => ({ ...prev, [field]: true }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,21 +106,24 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         username: form.username,
         confirmPassword: form.confirmPassword,
       }).unwrap();
-      
+
       // Отправляем приветственное письмо после успешной регистрации
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/send-verification-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/auth/send-verification-email`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: form.email }),
           },
-          body: JSON.stringify({ email: form.email }),
-        });
+        );
       } catch (emailError) {
         console.error("Ошибка отправки приветственного письма:", emailError);
         // Не прерываем основной процесс регистрации из-за ошибки отправки письма
       }
-      
+
       // Передаем данные в родительский компонент
       onAuthSuccess(response);
     } catch (error) {
@@ -150,17 +151,16 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* Показываем ошибку API если есть */}
         {apiError && (
-          <div 
+          <div
             className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg animate-fadeIn"
             role="alert"
             aria-live="assertive"
           >
             <p className="text-red-600 text-sm flex items-center gap-2">
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              {"data" in apiError 
+              {"data" in apiError
                 ? (apiError.data as { message?: string })?.message || "Ошибка регистрации"
-                : "Ошибка регистрации"
-              }
+                : "Ошибка регистрации"}
             </p>
           </div>
         )}
@@ -170,12 +170,10 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
             Имя пользователя
           </label>
           <div className="relative">
-            <User 
+            <User
               className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                errors.username 
-                  ? "text-red-500" 
-                  : "text-[var(--muted-foreground)]"
-              }`} 
+                errors.username ? "text-red-500" : "text-[var(--muted-foreground)]"
+              }`}
             />
             <input
               id="username"
@@ -185,8 +183,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               onChange={handleChange("username")}
               onBlur={handleBlur("username")}
               className={`w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                errors.username 
-                  ? "border-red-500 focus:ring-red-500/20" 
+                errors.username
+                  ? "border-red-500 focus:ring-red-500/20"
                   : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
               }`}
               required
@@ -206,16 +204,17 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="email-register" className="block text-sm font-medium text-[var(--foreground)]">
+          <label
+            htmlFor="email-register"
+            className="block text-sm font-medium text-[var(--foreground)]"
+          >
             Email
           </label>
           <div className="relative">
-            <Mail 
+            <Mail
               className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                errors.email 
-                  ? "text-red-500" 
-                  : "text-[var(--muted-foreground)]"
-              }`} 
+                errors.email ? "text-red-500" : "text-[var(--muted-foreground)]"
+              }`}
             />
             <input
               id="email-register"
@@ -225,8 +224,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               onChange={handleChange("email")}
               onBlur={handleBlur("email")}
               className={`w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                errors.email 
-                  ? "border-red-500 focus:ring-red-500/20" 
+                errors.email
+                  ? "border-red-500 focus:ring-red-500/20"
                   : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
               }`}
               required
@@ -246,16 +245,17 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="password-register" className="block text-sm font-medium text-[var(--foreground)]">
+          <label
+            htmlFor="password-register"
+            className="block text-sm font-medium text-[var(--foreground)]"
+          >
             Пароль
           </label>
           <div className="relative">
-            <Lock 
+            <Lock
               className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                errors.password 
-                  ? "text-red-500" 
-                  : "text-[var(--muted-foreground)]"
-              }`} 
+                errors.password ? "text-red-500" : "text-[var(--muted-foreground)]"
+              }`}
             />
             <input
               id="password-register"
@@ -265,8 +265,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               onChange={handleChange("password")}
               onBlur={handleBlur("password")}
               className={`w-full pl-10 pr-10 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                errors.password 
-                  ? "border-red-500 focus:ring-red-500/20" 
+                errors.password
+                  ? "border-red-500 focus:ring-red-500/20"
                   : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
               }`}
               required
@@ -283,15 +283,14 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               disabled={isLoading}
               aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
             >
-              {showPassword ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {errors.password && (
-            <p id="password-register-error" className="text-xs text-red-500 flex items-center gap-1">
+            <p
+              id="password-register-error"
+              className="text-xs text-red-500 flex items-center gap-1"
+            >
               <span className="w-1 h-1 bg-red-500 rounded-full"></span>
               {errors.password}
             </p>
@@ -299,16 +298,17 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-[var(--foreground)]">
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium text-[var(--foreground)]"
+          >
             Подтверждение пароля
           </label>
           <div className="relative">
-            <Lock 
+            <Lock
               className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                errors.confirmPassword 
-                  ? "text-red-500" 
-                  : "text-[var(--muted-foreground)]"
-              }`} 
+                errors.confirmPassword ? "text-red-500" : "text-[var(--muted-foreground)]"
+              }`}
             />
             <input
               id="confirmPassword"
@@ -318,8 +318,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               onChange={handleChange("confirmPassword")}
               onBlur={handleBlur("confirmPassword")}
               className={`w-full pl-10 pr-10 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                errors.confirmPassword 
-                  ? "border-red-500 focus:ring-red-500/20" 
+                errors.confirmPassword
+                  ? "border-red-500 focus:ring-red-500/20"
                   : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
               }`}
               required
@@ -336,11 +336,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               disabled={isLoading}
               aria-label={showConfirmPassword ? "Скрыть пароль" : "Показать пароль"}
             >
-              {showConfirmPassword ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
+              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {errors.confirmPassword && (
@@ -407,52 +403,68 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         title="Условия использования"
       >
         <div className="prose prose-sm max-w-none text-[var(--muted-foreground)]">
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Общие положения</h3>
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">
+            Общие положения
+          </h3>
           <p className="mb-4">{termsOfUse.ru.sections.general.content}</p>
-          
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Термины и определения</h3>
+
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">
+            Термины и определения
+          </h3>
           <ul className="list-disc list-inside mb-4 space-y-1">
             {termsOfUse.ru.sections.definitions.items.map((item, index) => (
               <li key={index}>{item}</li>
             ))}
           </ul>
-          
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Предмет соглашения</h3>
+
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">
+            Предмет соглашения
+          </h3>
           <ul className="list-disc list-inside mb-4 space-y-1">
             {termsOfUse.ru.sections.agreement.items.map((item, index) => (
               <li key={index}>{item}</li>
             ))}
           </ul>
-          
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Права и обязанности Пользователя</h3>
+
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">
+            Права и обязанности Пользователя
+          </h3>
           <ul className="list-disc list-inside mb-4 space-y-1">
             {termsOfUse.ru.sections.userRights.items.map((item, index) => (
               <li key={index}>{item}</li>
             ))}
           </ul>
-          
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Права и обязанности Администрации</h3>
+
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">
+            Права и обязанности Администрации
+          </h3>
           <ul className="list-disc list-inside mb-4 space-y-1">
             {termsOfUse.ru.sections.adminRights.items.map((item, index) => (
               <li key={index}>{item}</li>
             ))}
           </ul>
-          
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Интеллектуальная собственность</h3>
+
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">
+            Интеллектуальная собственность
+          </h3>
           <ul className="list-disc list-inside mb-4 space-y-1">
             {termsOfUse.ru.sections.intellectualProperty.items.map((item, index) => (
               <li key={index}>{item}</li>
             ))}
           </ul>
-          
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Ограничение ответственности</h3>
+
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">
+            Ограничение ответственности
+          </h3>
           <ul className="list-disc list-inside mb-4 space-y-1">
             {termsOfUse.ru.sections.liability.items.map((item, index) => (
               <li key={index}>{item}</li>
             ))}
           </ul>
-          
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">Прочие условия</h3>
+
+          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-2">
+            Прочие условия
+          </h3>
           <ul className="list-disc list-inside mb-4 space-y-1">
             {termsOfUse.ru.sections.other.items.map((item, index) => (
               <li key={index}>{item}</li>

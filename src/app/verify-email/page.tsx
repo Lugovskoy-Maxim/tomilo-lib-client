@@ -6,9 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { Footer, Header } from "@/widgets";
 
 function VerifyEmailPageContent() {
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -26,7 +24,7 @@ function VerifyEmailPageContent() {
         const response = await fetch(
           `${
             process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
-          }/auth/verify-email?token=${token}`
+          }/auth/verify-email?token=${token}`,
         );
         const data = await response.json();
 
@@ -81,11 +79,7 @@ function VerifyEmailPageContent() {
               <Button className="w-full" onClick={handleGoToProfile}>
                 Перейти в профиль
               </Button>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleGoHome}
-              >
+              <Button variant="outline" className="w-full" onClick={handleGoHome}>
                 На главную
               </Button>
             </div>

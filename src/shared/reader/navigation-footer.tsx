@@ -8,7 +8,11 @@ interface NavigationFooterProps {
   nextChapter: Chapter | null;
 }
 
-export default function NavigationFooter({ title, prevChapter, nextChapter }: NavigationFooterProps) {
+export default function NavigationFooter({
+  title,
+  prevChapter,
+  nextChapter,
+}: NavigationFooterProps) {
   return (
     <div className="bg-[var(--background)] border-t border-[var(--border)] py-6">
       <div className="max-w-4xl mx-auto px-4">

@@ -11,12 +11,7 @@ import {
 } from "@/store/api/authApi";
 import { useUpdateChapterMutation } from "@/store/api/chaptersApi";
 import { UpdateChapterDto } from "@/types/title";
-import {
-  login,
-  logout,
-  setLoading,
-  updateUser,
-} from "@/store/slices/authSlice";
+import { login, logout, setLoading, updateUser } from "@/store/slices/authSlice";
 import { RootState } from "@/store";
 import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 
@@ -70,12 +65,7 @@ export const useAuth = () => {
 
   useEffect(() => {
     const currentToken = getToken();
-    if (
-      profileResponse &&
-      profileResponse.success &&
-      profileResponse.data &&
-      currentToken
-    ) {
+    if (profileResponse && profileResponse.success && profileResponse.data && currentToken) {
       const user: StoredUser = profileResponse.data;
       const authResponse: AuthResponse = {
         access_token: currentToken,
@@ -108,36 +98,33 @@ export const useAuth = () => {
     }
   }, [error, token, dispatch]);
 
-  const updateUserData = useCallback((userData: Partial<StoredUser>) => {
-    dispatch(updateUser(userData));
-    if (typeof window !== "undefined") {
-      try {
-        const storedUser = localStorage.getItem(USER_DATA_KEY);
-        if (storedUser) {
-          const userObj = JSON.parse(storedUser);
-          const updatedUser = { ...userObj, ...userData };
-          localStorage.setItem(USER_DATA_KEY, JSON.stringify(updatedUser));
+  const updateUserData = useCallback(
+    (userData: Partial<StoredUser>) => {
+      dispatch(updateUser(userData));
+      if (typeof window !== "undefined") {
+        try {
+          const storedUser = localStorage.getItem(USER_DATA_KEY);
+          if (storedUser) {
+            const userObj = JSON.parse(storedUser);
+            const updatedUser = { ...userObj, ...userData };
+            localStorage.setItem(USER_DATA_KEY, JSON.stringify(updatedUser));
+          }
+        } catch (e) {
+          console.error("Error updating user data in localStorage:", e);
         }
-      } catch (e) {
-        console.error("Error updating user data in localStorage:", e);
       }
-    }
-  }, [dispatch]);
+    },
+    [dispatch],
+  );
 
   // Обновление истории чтения в профиле пользователя
   useEffect(() => {
-    if (
-      readingHistoryData &&
-      readingHistoryData.success &&
-      readingHistoryData.data
-    ) {
+    if (readingHistoryData && readingHistoryData.success && readingHistoryData.data) {
       updateUserData({ readingHistory: readingHistoryData.data });
     }
   }, [readingHistoryData, updateUserData]);
 
-  const updateAvatar = async (
-    avatarFile: File
-  ): Promise<{ success: boolean; error?: string }> => {
+  const updateAvatar = async (avatarFile: File): Promise<{ success: boolean; error?: string }> => {
     try {
       const formData = new FormData();
       formData.append("avatar", avatarFile);
@@ -223,7 +210,7 @@ export const useAuth = () => {
   };
 
   const addBookmarkToUser = async (
-    titleId: string
+    titleId: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await addBookmark(titleId).unwrap();
@@ -250,7 +237,7 @@ export const useAuth = () => {
   };
 
   const removeBookmarkFromUser = async (
-    titleId: string
+    titleId: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await removeBookmark(titleId).unwrap();
@@ -279,7 +266,7 @@ export const useAuth = () => {
   const updateChapterViewsCount = useCallback(
     async (
       chapterId: string,
-      currentViews: number
+      currentViews: number,
     ): Promise<{ success: boolean; error?: string }> => {
       try {
         await updateChapter({
@@ -296,14 +283,11 @@ export const useAuth = () => {
         };
       }
     },
-    [updateChapter]
+    [updateChapter],
   );
 
   const addToReadingHistoryFunc = useCallback(
-    async (
-      titleId: string,
-      chapterId: string
-    ): Promise<{ success: boolean; error?: string }> => {
+    async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
       try {
         const result = await addToReadingHistory({
           titleId,
@@ -327,12 +311,12 @@ export const useAuth = () => {
         };
       }
     },
-    [addToReadingHistory, refetchProfile]
+    [addToReadingHistory, refetchProfile],
   );
 
   const removeFromReadingHistoryFunc = async (
     titleId: string,
-    chapterId: string
+    chapterId: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await removeFromReadingHistory({
@@ -341,9 +325,7 @@ export const useAuth = () => {
       }).unwrap();
 
       if (!result.success) {
-        throw new Error(
-          result.message || "Ошибка при удалении из истории чтения"
-        );
+        throw new Error(result.message || "Ошибка при удалении из истории чтения");
       }
 
       refetchProfile();

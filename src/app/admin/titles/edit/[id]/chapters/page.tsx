@@ -3,7 +3,11 @@
 import { AuthGuard } from "@/guard/auth-guard";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useGetChaptersByTitleQuery, useDeleteChapterMutation, useUpdateChapterMutation } from "@/store/api/chaptersApi";
+import {
+  useGetChaptersByTitleQuery,
+  useDeleteChapterMutation,
+  useUpdateChapterMutation,
+} from "@/store/api/chaptersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useMemo, useCallback, useState, useRef } from "react";
 import { Header, Footer } from "@/widgets";
@@ -25,11 +29,10 @@ export default function ChaptersManagementPage() {
   const { data: titleData } = useGetTitleByIdQuery({ id: titleId }, { skip: !titleId });
   const { data, isLoading, error } = useGetChaptersByTitleQuery(
     { titleId, page: currentPage, limit: 10000, sortOrder: "desc" },
-    { skip: !titleId }
+    { skip: !titleId },
   );
   const [deleteChapter] = useDeleteChapterMutation();
   const [updateChapter] = useUpdateChapterMutation();
-
 
   const chapters = useMemo(() => data?.chapters || [], [data]);
   const hasMore = data?.hasMore || false;
@@ -56,7 +59,7 @@ export default function ChaptersManagementPage() {
       setTimeout(() => {
         const element = document.querySelector(`[data-chapter-id="${found._id}"]`);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 100);
     } else {
@@ -112,7 +115,7 @@ export default function ChaptersManagementPage() {
 
     const newChapters = [...sortedChapters];
     const draggedItem = newChapters[dragItem.current];
-    
+
     // Удаляем элемент из старой позиции
     newChapters.splice(dragItem.current, 1);
     // Вставляем в новую позицию
@@ -125,7 +128,7 @@ export default function ChaptersManagementPage() {
         if (chapter.chapterNumber !== newChapterNumber) {
           return updateChapter({
             id: chapter._id,
-            data: { chapterNumber: newChapterNumber }
+            data: { chapterNumber: newChapterNumber },
           }).unwrap();
         }
         return Promise.resolve();
@@ -169,8 +172,8 @@ export default function ChaptersManagementPage() {
                   type="number"
                   placeholder="Номер главы"
                   value={searchChapterNumber}
-                  onChange={(e) => setSearchChapterNumber(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onChange={e => setSearchChapterNumber(e.target.value)}
+                  onKeyPress={e => e.key === "Enter" && handleSearch()}
                   className="px-3 py-2 border rounded text-sm w-32"
                 />
                 <button
@@ -202,7 +205,7 @@ export default function ChaptersManagementPage() {
                 <div className="text-sm text-[var(--muted-foreground)]">
                   Загружено: {sortedChapters.length} глав
                   {hasMore && !isLoading && (
-                    <button 
+                    <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       className="ml-4 px-3 py-1 text-sm bg-[var(--primary)] text-[var(--primary-foreground)] rounded hover:opacity-90"
                     >
@@ -230,15 +233,15 @@ export default function ChaptersManagementPage() {
                   </thead>
                   <tbody>
                     {sortedChapters.map((ch: Chapter, index: number) => (
-                      <tr 
-                        key={ch._id} 
+                      <tr
+                        key={ch._id}
                         data-chapter-id={ch._id}
                         className={`border-b border-[var(--border)] hover:bg-[var(--accent)]/30 ${
-                          foundChapter?._id === ch._id ? 'bg-yellow-100 border-yellow-300' : ''
-                        } ${draggedChapter?._id === ch._id ? 'opacity-50' : ''}`}
+                          foundChapter?._id === ch._id ? "bg-yellow-100 border-yellow-300" : ""
+                        } ${draggedChapter?._id === ch._id ? "opacity-50" : ""}`}
                         draggable
-                        onDragStart={(e) => handleDragStart(e, index)}
-                        onDragEnter={(e) => handleDragEnter(e, index)}
+                        onDragStart={e => handleDragStart(e, index)}
+                        onDragEnter={e => handleDragEnter(e, index)}
                         onDragOver={handleDragOver}
                         onDrop={handleDrop}
                         onDragEnd={handleDragEnd}
@@ -250,13 +253,22 @@ export default function ChaptersManagementPage() {
                         <td className="p-3">{ch.views ?? 0}</td>
                         <td className="p-3 text-right">
                           <div className="inline-flex gap-2">
-                            <Link href={`/titles/${titleData?.slug || titleId}/chapter/${ch._id}`} className="px-2 py-1 border rounded">
+                            <Link
+                              href={`/titles/${titleData?.slug || titleId}/chapter/${ch._id}`}
+                              className="px-2 py-1 border rounded"
+                            >
                               Открыть
                             </Link>
-                            <Link href={`/admin/titles/edit/${titleId}/chapters/${ch._id}`} className="px-2 py-1 border rounded">
+                            <Link
+                              href={`/admin/titles/edit/${titleId}/chapters/${ch._id}`}
+                              className="px-2 py-1 border rounded"
+                            >
                               Редактировать
                             </Link>
-                            <button className="px-2 py-1 border rounded text-red-600" onClick={() => handleDelete(ch._id)}>
+                            <button
+                              className="px-2 py-1 border rounded text-red-600"
+                              onClick={() => handleDelete(ch._id)}
+                            >
                               Удалить
                             </button>
                           </div>
@@ -267,7 +279,9 @@ export default function ChaptersManagementPage() {
                 </table>
 
                 {sortedChapters.length === 0 && (
-                  <div className="p-6 text-center text-[var(--muted-foreground)]">Пока нет глав</div>
+                  <div className="p-6 text-center text-[var(--muted-foreground)]">
+                    Пока нет глав
+                  </div>
                 )}
 
                 {/* Пагинация */}
@@ -276,7 +290,7 @@ export default function ChaptersManagementPage() {
                     <div className="text-sm text-[var(--muted-foreground)]">
                       Страница {currentPage}
                       {hasMore && (
-                        <button 
+                        <button
                           onClick={() => handlePageChange(currentPage + 1)}
                           className="ml-4 px-3 py-1 text-sm bg-[var(--secondary)] border rounded hover:bg-[var(--accent)]"
                         >
@@ -285,7 +299,7 @@ export default function ChaptersManagementPage() {
                       )}
                     </div>
                     {currentPage > 1 && (
-                      <button 
+                      <button
                         onClick={() => handlePageChange(currentPage - 1)}
                         className="px-3 py-1 text-sm bg-[var(--secondary)] border rounded hover:bg-[var(--accent)]"
                       >

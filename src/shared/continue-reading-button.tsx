@@ -1,6 +1,5 @@
 "use client";
 
-
 import Button from "@/shared/ui/button";
 import { BookOpen, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,10 +28,11 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
     // Собираем все главы со временем чтения
     const allChaptersWithTime = user.readingHistory.flatMap(historyItem => {
       return historyItem.chapters.map(chapter => ({
-        titleId: typeof historyItem.titleId === 'string' ? historyItem.titleId : historyItem.titleId._id,
+        titleId:
+          typeof historyItem.titleId === "string" ? historyItem.titleId : historyItem.titleId._id,
         chapterId: chapter.chapterId,
         chapterNumber: chapter.chapterNumber,
-        readAt: new Date(chapter.readAt).getTime()
+        readAt: new Date(chapter.readAt).getTime(),
       }));
     });
 
@@ -47,12 +47,11 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
   // Используем новый API endpoint для получения главы по номеру
   const { data: chapterData, isLoading: chapterLoading } = useGetChapterByNumberQuery(
     {
-      titleId: lastReadChapter?.titleId || '',
-      chapterNumber: lastReadChapter?.chapterNumber || 0
+      titleId: lastReadChapter?.titleId || "",
+      chapterNumber: lastReadChapter?.chapterNumber || 0,
     },
-    { skip: !lastReadChapter?.titleId || !lastReadChapter?.chapterNumber }
+    { skip: !lastReadChapter?.titleId || !lastReadChapter?.chapterNumber },
   );
-
 
   const handleClick = () => {
     // Используем ID главы из нового API endpoint если доступен, иначе из истории
@@ -67,11 +66,7 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
   // Показываем состояние загрузки только на клиенте
   if ((readingHistoryLoading || chapterLoading) && isClient) {
     return (
-      <Button
-        variant="outline"
-        className={`w-full justify-start ${className}`}
-        disabled
-      >
+      <Button variant="outline" className={`w-full justify-start ${className}`} disabled>
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         Загрузка...
       </Button>
@@ -83,11 +78,7 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
   }
 
   return (
-    <Button
-      variant="outline"
-      className={`w-full justify-start ${className}`}
-      onClick={handleClick}
-    >
+    <Button variant="outline" className={`w-full justify-start ${className}`} onClick={handleClick}>
       <BookOpen className="mr-2 h-4 w-4" />
       Продолжить чтение
     </Button>

@@ -16,9 +16,7 @@ export default function LoadingState() {
           <div className="flex items-center justify-center min-h-[59vh]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-              <p className="text-[var(--muted-foreground)]">
-                Загрузка данных тайтла...
-              </p>
+              <p className="text-[var(--muted-foreground)]">Загрузка данных тайтла...</p>
             </div>
           </div>
         </div>

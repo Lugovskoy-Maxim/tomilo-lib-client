@@ -18,10 +18,7 @@ import { useRouter } from "next/navigation";
 import { CreateTitleDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
 import { normalizeGenres } from "@/lib/genre-normalizer";
-import {
-  translateTitleStatus,
-  translateTitleType,
-} from "@/lib/title-type-translations";
+import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { VALIDATION_MESSAGES } from "@/constants/validation";
 import { MESSAGES } from "@/constants/messages";
 import { GENRES } from "@/constants/genres";
@@ -61,7 +58,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ onCoverChange }) => {
 
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = event => {
         setPreviewUrl(event.target?.result as string);
       };
       reader.readAsDataURL(file);
@@ -80,9 +77,7 @@ const CoverUpload: React.FC<CoverUploadProps> = ({ onCoverChange }) => {
 
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-medium mb-2">
-        {MESSAGES.ADMIN_ACTIONS.COVER}
-      </label>
+      <label className="block text-sm font-medium mb-2">{MESSAGES.ADMIN_ACTIONS.COVER}</label>
 
       {previewUrl && (
         <div className="relative inline-block">
@@ -142,7 +137,7 @@ export default function TitleEditorPage() {
     { id: titleId! },
     {
       skip: !isEditMode,
-    }
+    },
   );
   const [createTitle, { isLoading: isCreating }] = useCreateTitleMutation();
   const [updateTitle, { isLoading: isUpdating }] = useUpdateTitleMutation();
@@ -197,32 +192,27 @@ export default function TitleEditorPage() {
   }, [existingTitle]);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: name === "releaseYear" ? parseInt(value, 10) || 0 : value,
     }));
   };
 
   const handleGenreToggle = (genre: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       genres: prev.genres.includes(genre)
-        ? prev.genres.filter((g) => g !== genre)
+        ? prev.genres.filter(g => g !== genre)
         : [...prev.genres, genre],
     }));
   };
 
   const addAltName = () => {
-    if (
-      altNameInput.trim() &&
-      !formData.altNames.includes(altNameInput.trim())
-    ) {
-      setFormData((prev) => ({
+    if (altNameInput.trim() && !formData.altNames.includes(altNameInput.trim())) {
+      setFormData(prev => ({
         ...prev,
         altNames: [...prev.altNames, altNameInput.trim()],
       }));
@@ -231,7 +221,7 @@ export default function TitleEditorPage() {
   };
 
   const removeAltName = (index: number) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       altNames: prev.altNames.filter((_, i) => i !== index),
     }));
@@ -239,7 +229,7 @@ export default function TitleEditorPage() {
 
   const addTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         tags: [...prev.tags, tagInput.trim()],
       }));
@@ -248,7 +238,7 @@ export default function TitleEditorPage() {
   };
 
   const removeTag = (index: number) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       tags: prev.tags.filter((_, i) => i !== index),
     }));
@@ -256,13 +246,13 @@ export default function TitleEditorPage() {
 
   // Функция нормализации жанров/тегов с уведомлениями
   const normalizeGenresTags = (
-    items: string[]
+    items: string[],
   ): {
     normalized: string[];
     changes: Array<{ original: string; normalized: string }>;
   } => {
     const changes: Array<{ original: string; normalized: string }> = [];
-    const normalized = items.map((item) => {
+    const normalized = items.map(item => {
       const original = item.trim();
       const normalized = normalizeGenres([original])[0];
 
@@ -289,7 +279,7 @@ export default function TitleEditorPage() {
     const result = normalizeGenresTags(formData[field]);
 
     // Обновляем состояние формы с нормализованными значениями
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [field]: result.normalized,
     }));
@@ -298,30 +288,15 @@ export default function TitleEditorPage() {
     if (result.changes.length > 0) {
       const changesText = result.changes
         .slice(0, 3) // Показываем только первые 3 изменения
-        .map((change) => `${change.original} → ${change.normalized}`)
+        .map(change => `${change.original} → ${change.normalized}`)
         .join("\n");
 
-      const moreText =
-        result.changes.length > 3
-          ? `\nи еще ${result.changes.length - 3}...`
-          : "";
+      const moreText = result.changes.length > 3 ? `\nи еще ${result.changes.length - 3}...` : "";
 
       if (field === "genres") {
-        toast.success(
-          UI_ELEMENTS.GENRES_NORMALIZED(
-            result.changes.length,
-            changesText,
-            moreText
-          )
-        );
+        toast.success(UI_ELEMENTS.GENRES_NORMALIZED(result.changes.length, changesText, moreText));
       } else {
-        toast.success(
-          UI_ELEMENTS.TAGS_NORMALIZED(
-            result.changes.length,
-            changesText,
-            moreText
-          )
-        );
+        toast.success(UI_ELEMENTS.TAGS_NORMALIZED(result.changes.length, changesText, moreText));
       }
     } else {
       if (field === "genres") {
@@ -337,12 +312,12 @@ export default function TitleEditorPage() {
     const data: Partial<CreateTitleDto> = {
       name: formData.name.trim(),
       slug: formData.slug?.trim() || undefined,
-      altNames: formData.altNames.filter((name) => name.trim() !== ""),
+      altNames: formData.altNames.filter(name => name.trim() !== ""),
       author: formData.author.trim(),
       description: formData.description.trim(),
       genres: normalizeGenres(formData.genres),
       ageLimit: formData.ageLimits,
-      tags: normalizeGenres(formData.tags.filter((tag) => tag.trim() !== "")),
+      tags: normalizeGenres(formData.tags.filter(tag => tag.trim() !== "")),
       releaseYear: formData.releaseYear,
       status: formData.status,
       type: formData.type,
@@ -367,9 +342,7 @@ export default function TitleEditorPage() {
     }
 
     if (formData.relatedTitles && formData.relatedTitles.length > 0) {
-      data.relatedTitles = formData.relatedTitles.filter(
-        (title) => title.trim() !== ""
-      );
+      data.relatedTitles = formData.relatedTitles.filter(title => title.trim() !== "");
     }
 
     return data;
@@ -431,10 +404,8 @@ export default function TitleEditorPage() {
       if (err.data?.message) {
         toast.error(
           `${MESSAGES.ERROR_MESSAGES.UNKNOWN_ERROR}: ${
-            Array.isArray(err.data.message)
-              ? err.data.message.join(", ")
-              : err.data.message
-          }`
+            Array.isArray(err.data.message) ? err.data.message.join(", ") : err.data.message
+          }`,
         );
       } else {
         toast.error(MESSAGES.ERROR_MESSAGES.SERVER_ERROR);
@@ -450,14 +421,8 @@ export default function TitleEditorPage() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
-              {isEditMode ? (
-                <Edit className="w-8 h-8" />
-              ) : (
-                <Plus className="w-8 h-8" />
-              )}
-              {isEditMode
-                ? UI_ELEMENTS.EDIT_TITLE
-                : UI_ELEMENTS.ADMIN_CREATE_TITLE}
+              {isEditMode ? <Edit className="w-8 h-8" /> : <Plus className="w-8 h-8" />}
+              {isEditMode ? UI_ELEMENTS.EDIT_TITLE : UI_ELEMENTS.ADMIN_CREATE_TITLE}
             </h1>
             <p className="text-[var(--muted-foreground)]">
               {isEditMode
@@ -546,9 +511,7 @@ export default function TitleEditorPage() {
                   />
 
                   <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                    {UI_ELEMENTS.VALIDATION.YEAR_RANGE(
-                      new Date().getFullYear()
-                    )}
+                    {UI_ELEMENTS.VALIDATION.YEAR_RANGE(new Date().getFullYear())}
                   </p>
                 </div>
 
@@ -611,27 +574,15 @@ export default function TitleEditorPage() {
                     required
                     className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg"
                   >
-                    <option value={TitleType.MANGA}>
-                      {translateTitleType(TitleType.MANGA)}
-                    </option>
-                    <option value={TitleType.MANHWA}>
-                      {translateTitleType(TitleType.MANHWA)}
-                    </option>
-                    <option value={TitleType.MANHUA}>
-                      {translateTitleType(TitleType.MANHUA)}
-                    </option>
-                    <option value={TitleType.NOVEL}>
-                      {translateTitleType(TitleType.NOVEL)}
-                    </option>
+                    <option value={TitleType.MANGA}>{translateTitleType(TitleType.MANGA)}</option>
+                    <option value={TitleType.MANHWA}>{translateTitleType(TitleType.MANHWA)}</option>
+                    <option value={TitleType.MANHUA}>{translateTitleType(TitleType.MANHUA)}</option>
+                    <option value={TitleType.NOVEL}>{translateTitleType(TitleType.NOVEL)}</option>
                     <option value={TitleType.LIGHT_NOVEL}>
                       {translateTitleType(TitleType.LIGHT_NOVEL)}
                     </option>
-                    <option value={TitleType.COMIC}>
-                      {translateTitleType(TitleType.COMIC)}
-                    </option>
-                    <option value={TitleType.OTHER}>
-                      {translateTitleType(TitleType.OTHER)}
-                    </option>
+                    <option value={TitleType.COMIC}>{translateTitleType(TitleType.COMIC)}</option>
+                    <option value={TitleType.OTHER}>{translateTitleType(TitleType.OTHER)}</option>
                   </select>
                 </div>
 
@@ -667,8 +618,8 @@ export default function TitleEditorPage() {
                       type="checkbox"
                       name="isPublished"
                       checked={formData.isPublished}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
+                      onChange={e =>
+                        setFormData(prev => ({
                           ...prev,
                           isPublished: e.target.checked,
                         }))
@@ -689,10 +640,10 @@ export default function TitleEditorPage() {
                   <input
                     type="text"
                     value={altNameInput}
-                    onChange={(e) => setAltNameInput(e.target.value)}
+                    onChange={e => setAltNameInput(e.target.value)}
                     placeholder={MESSAGES.PLACEHOLDERS.ALT_NAME}
                     className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                    onKeyPress={(e) => {
+                    onKeyPress={e => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         addAltName();
@@ -745,7 +696,7 @@ export default function TitleEditorPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {GENRES.map((genre) => (
+                  {GENRES.map(genre => (
                     <label key={genre} className="inline-flex items-center">
                       <input
                         type="checkbox"
@@ -761,10 +712,7 @@ export default function TitleEditorPage() {
                 </div>
                 {formData.genres.length > 0 && (
                   <p className="text-xs text-[var(--muted-foreground)] mt-2">
-                    {UI_ELEMENTS.VALIDATION.SELECTED_COUNT(
-                      formData.genres.length,
-                      formData.genres
-                    )}
+                    {UI_ELEMENTS.VALIDATION.SELECTED_COUNT(formData.genres.length, formData.genres)}
                   </p>
                 )}
               </div>
@@ -788,10 +736,10 @@ export default function TitleEditorPage() {
                   <input
                     type="text"
                     value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
+                    onChange={e => setTagInput(e.target.value)}
                     placeholder={MESSAGES.PLACEHOLDERS.TAG}
                     className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
-                    onKeyPress={(e) => {
+                    onKeyPress={e => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         addTag();
@@ -854,19 +802,15 @@ export default function TitleEditorPage() {
                 disabled={isCreating || isUpdating || isCreatingWithCover}
                 className="px-8 py-3 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--secondary-foreground)]/10 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
-                {isEditMode ? (
-                  <Save className="w-5 h-5" />
-                ) : (
-                  <Plus className="w-5 h-5" />
-                )}
+                {isEditMode ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
 
                 {isEditMode
                   ? isUpdating
                     ? UI_ELEMENTS.SAVING
                     : UI_ELEMENTS.SAVE_CHANGES
                   : isCreating || isCreatingWithCover
-                  ? UI_ELEMENTS.ADDING
-                  : UI_ELEMENTS.ADD_TITLE}
+                    ? UI_ELEMENTS.ADDING
+                    : UI_ELEMENTS.ADD_TITLE}
               </button>
             </div>
           </form>

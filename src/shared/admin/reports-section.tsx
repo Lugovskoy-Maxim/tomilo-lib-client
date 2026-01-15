@@ -71,9 +71,7 @@ export function ReportsSection() {
   if (error) {
     return (
       <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)] rounded-lg p-4">
-        <p className="text-[var(--destructive)]">
-          Ошибка загрузки жалоб: {JSON.stringify(error)}
-        </p>
+        <p className="text-[var(--destructive)]">Ошибка загрузки жалоб: {JSON.stringify(error)}</p>
       </div>
     );
   }
@@ -81,9 +79,7 @@ export function ReportsSection() {
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
-          Управление жалобами
-        </h2>
+        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Управление жалобами</h2>
         <p className="text-[var(--muted-foreground)]">
           Просмотр и управление всеми жалобами пользователей
         </p>
@@ -97,7 +93,7 @@ export function ReportsSection() {
           </label>
           <select
             value={reportTypeFilter}
-            onChange={(e) => setReportTypeFilter(e.target.value)}
+            onChange={e => setReportTypeFilter(e.target.value)}
             className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           >
             <option value="">Все типы</option>
@@ -110,12 +106,10 @@ export function ReportsSection() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-            Статус
-          </label>
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">Статус</label>
           <select
             value={isResolvedFilter}
-            onChange={(e) => setIsResolvedFilter(e.target.value)}
+            onChange={e => setIsResolvedFilter(e.target.value)}
             className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           >
             <option value="">Все</option>
@@ -137,21 +131,15 @@ export function ReportsSection() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[var(--border)]">
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
-                  Тип
-                </th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Тип</th>
                 <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
                   Описание
                 </th>
                 <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
                   Сущность
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
-                  Статус
-                </th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
-                  Дата
-                </th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Статус</th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Дата</th>
                 <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
                   Действия
                 </th>
@@ -172,13 +160,10 @@ export function ReportsSection() {
                       {reportTypeLabels[report.reportType]}
                     </span>
                   </td>
-                  <td className="py-3 px-4 max-w-xs truncate">
-                    {report.content}
-                  </td>
+                  <td className="py-3 px-4 max-w-xs truncate">{report.content}</td>
                   <td className="py-3 px-4">
                     <span className="capitalize">
-                      {report.entityType === "title" ? "Тайтл" : "Глава"}:{" "}
-                      {report.entityId}
+                      {report.entityType === "title" ? "Тайтл" : "Глава"}: {report.entityId}
                     </span>
                   </td>
                   <td className="py-3 px-4">
@@ -194,17 +179,13 @@ export function ReportsSection() {
                       </span>
                     )}
                   </td>
-                  <td className="py-3 px-4">
-                    {new Date(report.createdAt).toLocaleDateString()}
-                  </td>
+                  <td className="py-3 px-4">{new Date(report.createdAt).toLocaleDateString()}</td>
                   <td className="py-3 px-4">
                     <div className="flex space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() =>
-                          handleStatusChange(report._id, !report.isResolved)
-                        }
+                        onClick={() => handleStatusChange(report._id, !report.isResolved)}
                       >
                         {report.isResolved ? (
                           <>
@@ -235,9 +216,7 @@ export function ReportsSection() {
       ) : (
         <div className="text-center py-12">
           <AlertTriangle className="w-12 h-12 mx-auto text-[var(--muted-foreground)] mb-4" />
-          <h3 className="text-lg font-medium text-[var(--foreground)] mb-1">
-            Жалобы не найдены
-          </h3>
+          <h3 className="text-lg font-medium text-[var(--foreground)] mb-1">Жалобы не найдены</h3>
           <p className="text-[var(--muted-foreground)]">
             Нет жалоб, соответствующих выбранным фильтрам
           </p>
@@ -248,7 +227,7 @@ export function ReportsSection() {
       {data?.data?.totalPages && data.data.totalPages > 1 && (
         <div className="flex justify-between items-center mt-6">
           <Button
-            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => setPage(prev => Math.max(prev - 1, 1))}
             disabled={page === 1}
             variant="outline"
           >
@@ -260,7 +239,7 @@ export function ReportsSection() {
           </span>
 
           <Button
-            onClick={() => setPage((prev) => prev + 1)}
+            onClick={() => setPage(prev => prev + 1)}
             disabled={page === data.data.totalPages}
             variant="outline"
           >

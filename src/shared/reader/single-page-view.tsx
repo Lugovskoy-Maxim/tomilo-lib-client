@@ -46,7 +46,11 @@ export default function SinglePageView({
               alt={`Страница ${currentImageIndex + 1}`}
               width={800}
               className={`max-h-[90vh] object-contain ${
-                imageWidth === "fit" ? "w-full" : imageWidth === "original" ? "w-auto" : "max-w-full"
+                imageWidth === "fit"
+                  ? "w-full"
+                  : imageWidth === "original"
+                    ? "w-auto"
+                    : "max-w-full"
               }`}
               onLoad={onImageLoad}
               onError={() => onImageError(currentImageIndex)}
@@ -54,7 +58,9 @@ export default function SinglePageView({
             />
           ) : (
             <div className="flex flex-col items-center justify-center w-full h-96 bg-[var(--card)] rounded-lg border border-[var(--border)]">
-              <div className="text-[var(--muted-foreground)] text-lg mb-2">Ошибка загрузки изображения</div>
+              <div className="text-[var(--muted-foreground)] text-lg mb-2">
+                Ошибка загрузки изображения
+              </div>
               <button
                 onClick={() => {
                   const newSet = new Set(imageLoadErrors);

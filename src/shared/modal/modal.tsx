@@ -23,7 +23,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         role="dialog"
         aria-modal="true"
         className="relative w-max mx-4 bg-[var(--background)] rounded-2xl shadow-xl border border-[var(--border)] max-h-[85vh] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)] sticky top-0 bg-[var(--background)] z-10 rounded-t-2xl">
           <h2 className="text-xl font-semibold">{title}</h2>
@@ -35,9 +35,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-4 overflow-y-auto max-h-[calc(85vh-72px)]">
-          {children}
-        </div>
+        <div className="p-4 overflow-y-auto max-h-[calc(85vh-72px)]">{children}</div>
       </div>
     </div>
   );

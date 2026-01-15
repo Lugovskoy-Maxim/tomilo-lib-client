@@ -1,7 +1,17 @@
-
-
 // Типы для фильтров
-export type SortBy = "createdAt" | "updatedAt" | "name" | "views" | "weekViews" | "dayViews" | "monthViews" | "averageRating" | "releaseYear" | "rating" | "year" | "chapters";
+export type SortBy =
+  | "createdAt"
+  | "updatedAt"
+  | "name"
+  | "views"
+  | "weekViews"
+  | "dayViews"
+  | "monthViews"
+  | "averageRating"
+  | "releaseYear"
+  | "rating"
+  | "year"
+  | "chapters";
 export type SortOrder = "asc" | "desc";
 
 export interface Filters {

@@ -1,13 +1,13 @@
 export enum ReportType {
-  ERROR = 'error',
-  TYPO = 'typo',
-  COMPLAINT = 'complaint'
+  ERROR = "error",
+  TYPO = "typo",
+  COMPLAINT = "complaint",
 }
 
 export interface Report {
   _id: string;
   reporterId: string;
-  entityType: 'title' | 'chapter';
+  entityType: "title" | "chapter";
   entityId: string;
   reportType: ReportType;
   content: string;
@@ -19,7 +19,7 @@ export interface Report {
 }
 
 export interface CreateReportDto {
-  entityType: 'title' | 'chapter';
+  entityType: "title" | "chapter";
   entityId: string;
   reportType: ReportType;
   content: string;
@@ -37,4 +37,4 @@ export interface ReportsResponse {
   limit: number;
 }
 
-import { ApiResponseDto } from './api';
+import { ApiResponseDto } from "./api";

@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Title } from '@/types/title';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Title } from "@/types/title";
 
 interface SearchState {
   query: string;
@@ -13,7 +13,7 @@ interface SearchState {
 }
 
 const initialState: SearchState = {
-  query: '',
+  query: "",
   results: [],
   isLoading: false,
   error: null,
@@ -24,30 +24,36 @@ const initialState: SearchState = {
 };
 
 export const searchSlice = createSlice({
-  name: 'search',
+  name: "search",
   initialState,
   reducers: {
     setQuery: (state, action: PayloadAction<string>) => {
       state.query = action.payload;
     },
-    setResults: (state, action: PayloadAction<{ 
-      data: Title[]; 
-      total: number; 
-      page: number; 
-      totalPages: number 
-    }>) => {
+    setResults: (
+      state,
+      action: PayloadAction<{
+        data: Title[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>,
+    ) => {
       state.results = action.payload.data;
       state.totalResults = action.payload.total;
       state.page = action.payload.page;
       state.totalPages = action.payload.totalPages;
       state.hasMore = action.payload.page < action.payload.totalPages;
     },
-    appendResults: (state, action: PayloadAction<{ 
-      data: Title[]; 
-      total: number; 
-      page: number; 
-      totalPages: number 
-    }>) => {
+    appendResults: (
+      state,
+      action: PayloadAction<{
+        data: Title[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>,
+    ) => {
       state.results = [...state.results, ...action.payload.data];
       state.totalResults = action.payload.total;
       state.page = action.payload.page;
@@ -60,7 +66,7 @@ export const searchSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
-    clearResults: (state) => {
+    clearResults: state => {
       state.results = [];
       state.page = 1;
       state.totalPages = 0;
@@ -70,13 +76,7 @@ export const searchSlice = createSlice({
   },
 });
 
-export const {
-  setQuery,
-  setResults,
-  appendResults,
-  setLoading,
-  setError,
-  clearResults,
-} = searchSlice.actions;
+export const { setQuery, setResults, appendResults, setLoading, setError, clearResults } =
+  searchSlice.actions;
 
 export default searchSlice.reducer;

@@ -34,14 +34,16 @@ export default function ContinuousScrollView({
   initialScrollTo,
 }: ContinuousScrollViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [visibleChapterId, setVisibleChapterId] = useState<string>(chapters[currentChapterIndex]?._id || '');
+  const [visibleChapterId, setVisibleChapterId] = useState<string>(
+    chapters[currentChapterIndex]?._id || "",
+  );
   const observerRef = useRef<IntersectionObserver | null>(null);
   const imageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Calculate cumulative images up to each chapter
   const cumulativeImages: number[] = [];
   let totalImages = 0;
-  chapters.forEach((ch) => {
+  chapters.forEach(ch => {
     cumulativeImages.push(totalImages);
     totalImages += ch.images.length;
   });
@@ -55,7 +57,7 @@ export default function ContinuousScrollView({
         const imageKey = `${chapter._id}-${initialScrollTo.imageIndex}`;
         const imageElement = imageRefs.current.get(imageKey);
         if (imageElement) {
-          imageElement.scrollIntoView({ behavior: 'instant', block: 'start' });
+          imageElement.scrollIntoView({ behavior: "instant", block: "start" });
         }
       }
     }
@@ -66,19 +68,19 @@ export default function ContinuousScrollView({
     if (!containerRef.current) return;
 
     observerRef.current = new IntersectionObserver(
-      (entries) => {
+      entries => {
         const visibleEntries = entries.filter(entry => entry.isIntersecting);
         if (visibleEntries.length === 0) return;
 
         // Find the most visible image (highest intersection ratio)
         const mostVisible = visibleEntries.reduce((prev, current) =>
-          prev.intersectionRatio > current.intersectionRatio ? prev : current
+          prev.intersectionRatio > current.intersectionRatio ? prev : current,
         );
 
-        const imageKey = mostVisible.target.getAttribute('data-image-key');
+        const imageKey = mostVisible.target.getAttribute("data-image-key");
         if (!imageKey) return;
 
-        const [chapterId, imageIndexStr] = imageKey.split('-');
+        const [chapterId, imageIndexStr] = imageKey.split("-");
         const imageIndex = parseInt(imageIndexStr, 10);
 
         if (visibleChapterId !== chapterId) {
@@ -90,13 +92,13 @@ export default function ContinuousScrollView({
       },
       {
         root: null, // Use viewport
-        rootMargin: '0px',
+        rootMargin: "0px",
         threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-      }
+      },
     );
 
     // Observe all images
-    imageRefs.current.forEach((element) => {
+    imageRefs.current.forEach(element => {
       observerRef.current?.observe(element);
     });
 
@@ -124,8 +126,8 @@ export default function ContinuousScrollView({
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [onLoadPrev, onLoadNext]);
 
   return (
@@ -145,16 +147,12 @@ export default function ContinuousScrollView({
                       imageWidth === "fit"
                         ? "w-full"
                         : imageWidth === "original"
-                        ? "w-auto"
-                        : "max-w-full"
+                          ? "w-auto"
+                          : "max-w-full"
                     }`}
                     style={{
                       width:
-                        imageWidth === "fit"
-                          ? "100%"
-                          : imageWidth === "original"
-                          ? "auto"
-                          : "100%",
+                        imageWidth === "fit" ? "100%" : imageWidth === "original" ? "auto" : "100%",
                       height: "auto",
                     }}
                     onLoad={globalIndex === 0 ? onImageLoad : undefined}
@@ -178,7 +176,7 @@ export default function ContinuousScrollView({
                 )}
               </div>
             );
-          })
+          }),
         )}
       </div>
     </div>

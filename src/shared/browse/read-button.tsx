@@ -1,4 +1,3 @@
-
 import Button from "@/shared/ui/button";
 import { Play, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,14 +45,19 @@ export function ReadButton({
     });
 
     // Если есть продолжение чтения и оно относится к текущему тайтлу
-    const readingHistoryItem = readingHistory || user?.readingHistory?.find(
-      (item: ReadingHistoryEntry) => {
-        const titleId = typeof item.titleId === 'string' ? item.titleId : item.titleId?._id;
+    const readingHistoryItem =
+      readingHistory ||
+      user?.readingHistory?.find((item: ReadingHistoryEntry) => {
+        const titleId = typeof item.titleId === "string" ? item.titleId : item.titleId?._id;
         return titleId === titleData?._id;
-      }
-    );
+      });
 
-    if (readingHistoryItem && readingHistoryItem.chapters && Array.isArray(readingHistoryItem.chapters) && readingHistoryItem.chapters.length > 0) {
+    if (
+      readingHistoryItem &&
+      readingHistoryItem.chapters &&
+      Array.isArray(readingHistoryItem.chapters) &&
+      readingHistoryItem.chapters.length > 0
+    ) {
       // Находим последнюю прочитанную главу по времени чтения
       const lastReadChapter = readingHistoryItem.chapters.reduce((latest, current) => {
         const latestTime = new Date(latest.readAt).getTime();
@@ -79,14 +83,12 @@ export function ReadButton({
         }
       } else {
         // Fallback если chapterNumber не доступен в истории
-        const currentChapter = chapters.find(
-          (ch) => ch._id === lastReadChapter.chapterId
-        );
+        const currentChapter = chapters.find(ch => ch._id === lastReadChapter.chapterId);
 
         if (currentChapter) {
-          const nextChapters = chapters.filter(
-            (ch) => ch.chapterNumber > currentChapter.chapterNumber
-          ).sort((a, b) => a.chapterNumber - b.chapterNumber);
+          const nextChapters = chapters
+            .filter(ch => ch.chapterNumber > currentChapter.chapterNumber)
+            .sort((a, b) => a.chapterNumber - b.chapterNumber);
 
           if (nextChapters.length > 0) {
             return nextChapters[0];
@@ -119,13 +121,13 @@ export function ReadButton({
   let showIcon = true;
 
   // Если есть продолжение чтения для этого тайтла
-  const readingHistoryItem = readingHistory || user?.readingHistory?.find(
-    (item: ReadingHistoryEntry) => {
-      const titleId = typeof item.titleId === 'string' ? item.titleId : item.titleId?._id;
+  const readingHistoryItem =
+    readingHistory ||
+    user?.readingHistory?.find((item: ReadingHistoryEntry) => {
+      const titleId = typeof item.titleId === "string" ? item.titleId : item.titleId?._id;
       return titleId === titleData?._id;
-    }
-  );
-  
+    });
+
   if (
     readingHistoryItem &&
     readingHistoryItem.chapters &&
@@ -146,11 +148,7 @@ export function ReadButton({
   // Показываем состояние загрузки только на клиенте
   if (readingHistoryLoading && isClient) {
     return (
-      <Button
-        variant="primary"
-        className={`w-full justify-center ${className}`}
-        disabled
-      >
+      <Button variant="primary" className={`w-full justify-center ${className}`} disabled>
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         Загрузка...
       </Button>

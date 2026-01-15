@@ -6,9 +6,7 @@ import { Metadata } from "next";
 async function getTitleDataBySlug(slug: string) {
   try {
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
-      }/titles/slug/${slug}`
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/titles/slug/${slug}`,
     );
     if (!response.ok) {
       throw new Error(`Failed to fetch title by slug: ${response.status}`);
@@ -24,9 +22,7 @@ async function getTitleDataBySlug(slug: string) {
 async function getChapterData(chapterId: string) {
   try {
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
-      }/chapters/${chapterId}`
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/chapters/${chapterId}`,
     );
     if (!response.ok) {
       throw new Error(`Failed to fetch chapter: ${response.status}`);
@@ -69,9 +65,7 @@ export async function generateMetadata({
       chapterTitle ? ` "${chapterTitle}"` : ""
     } онлайн. Манга, манхва, маньхуа, комиксы.`;
 
-    const image = titleData.coverImage
-      ? `${baseUrl}${titleData.coverImage}`
-      : undefined;
+    const image = titleData.coverImage ? `${baseUrl}${titleData.coverImage}` : undefined;
 
     // Формируем метаданные
     const metadata: Metadata = {
@@ -119,7 +113,7 @@ export async function generateMetadata({
     return {
       ...metadata,
       other: {
-        'script:ld+json': schemaOrgJsonLd,
+        "script:ld+json": schemaOrgJsonLd,
       },
     };
   } catch (error) {
@@ -136,16 +130,17 @@ export default async function ChapterPage({
 }: {
   params: Promise<{ slug: string; chapterId: string }>;
 }) {
-  
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-          <div className="text-[var(--foreground)]">Загрузка данных...</div>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+            <div className="text-[var(--foreground)]">Загрузка данных...</div>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <ServerChapterPage params={params} />
     </Suspense>
   );

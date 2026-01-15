@@ -12,9 +12,7 @@ interface BookmarksSectionProps {
   showAll?: boolean;
 }
 
-function BookmarksSection({
-  bookmarks,
-}: BookmarksSectionProps) {
+function BookmarksSection({ bookmarks }: BookmarksSectionProps) {
   const [currentBookmarks, setCurrentBookmarks] = useState(bookmarks);
   const [titleData, setTitleData] = useState<Record<string, Title>>({});
   const [loadingBookmarks, setLoadingBookmarks] = useState<Record<string, boolean>>({});
@@ -23,10 +21,22 @@ function BookmarksSection({
 
   // Загружаем данные о тайтлах с помощью RTK Query
   // Используем отдельные хуки для каждого bookmarkId
-  const bookmarkQuery1 = useGetTitleByIdQuery({ id: currentBookmarks[0] || 'null' }, { skip: !currentBookmarks[0] });
-  const bookmarkQuery2 = useGetTitleByIdQuery({ id: currentBookmarks[1] || 'null' }, { skip: !currentBookmarks[1] });
-  const bookmarkQuery3 = useGetTitleByIdQuery({ id: currentBookmarks[2] || 'null' }, { skip: !currentBookmarks[2] });
-  const bookmarkQuery4 = useGetTitleByIdQuery({ id: currentBookmarks[3] || 'null' }, { skip: !currentBookmarks[3] });
+  const bookmarkQuery1 = useGetTitleByIdQuery(
+    { id: currentBookmarks[0] || "null" },
+    { skip: !currentBookmarks[0] },
+  );
+  const bookmarkQuery2 = useGetTitleByIdQuery(
+    { id: currentBookmarks[1] || "null" },
+    { skip: !currentBookmarks[1] },
+  );
+  const bookmarkQuery3 = useGetTitleByIdQuery(
+    { id: currentBookmarks[2] || "null" },
+    { skip: !currentBookmarks[2] },
+  );
+  const bookmarkQuery4 = useGetTitleByIdQuery(
+    { id: currentBookmarks[3] || "null" },
+    { skip: !currentBookmarks[3] },
+  );
 
   // Обновляем titleData на основе результатов запросов
   useEffect(() => {
@@ -46,14 +56,14 @@ function BookmarksSection({
     if (Object.keys(newTitleData).length > 0) {
       setTitleData(prev => ({
         ...prev,
-        ...newTitleData
+        ...newTitleData,
       }));
     }
 
     if (Object.keys(newErrorBookmarks).length > 0) {
       setErrorBookmarks(prev => ({
         ...prev,
-        ...newErrorBookmarks
+        ...newErrorBookmarks,
       }));
     }
   }, [bookmarkQuery1, bookmarkQuery2, bookmarkQuery3, bookmarkQuery4, currentBookmarks]);
@@ -62,14 +72,14 @@ function BookmarksSection({
     // Обновляем локальное состояние
     const updatedBookmarks = currentBookmarks.filter((id: string) => id !== bookmarkId);
     setCurrentBookmarks(updatedBookmarks);
-    
+
     // Удаляем данные об ошибке и заголовке при удалении закладки
     setErrorBookmarks(prev => {
       const newErrors = { ...prev };
       delete newErrors[bookmarkId];
       return newErrors;
     });
-    
+
     setTitleData(prev => {
       const newData = { ...prev };
       delete newData[bookmarkId];
@@ -80,7 +90,7 @@ function BookmarksSection({
   const handleBookmarkRemove = (titleId: string) => {
     // Устанавливаем состояние загрузки для этой закладки
     setLoadingBookmarks(prev => ({ ...prev, [titleId]: true }));
-    
+
     // После завершения анимации удаления обновляем состояние
     setTimeout(() => {
       handleRemoveBookmark(titleId);
@@ -93,7 +103,7 @@ function BookmarksSection({
   };
 
   // Компонент для отображения состояния загрузки
-  const LoadingCard = ({ }: { bookmarkId: string }) => (
+  const LoadingCard = ({}: { bookmarkId: string }) => (
     <div className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] animate-pulse">
       <div className="flex items-start space-x-3">
         <div className="w-12 h-16 bg-[var(--muted)] rounded flex-shrink-0"></div>
@@ -129,9 +139,7 @@ function BookmarksSection({
           <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1">
             Манга #{bookmarkId.slice(-6)}
           </h3>
-          <p className="text-xs text-red-500 mb-2">
-            Ошибка загрузки данных
-          </p>
+          <p className="text-xs text-red-500 mb-2">Ошибка загрузки данных</p>
         </div>
       </div>
     </div>
@@ -155,12 +163,12 @@ function BookmarksSection({
           if (loadingBookmarks[bookmarkId]) {
             return <LoadingCard key={bookmarkId} bookmarkId={bookmarkId} />;
           }
-          
+
           // Показываем ошибку, если данные не загрузились
           if (errorBookmarks[bookmarkId]) {
             return <ErrorCard key={bookmarkId} bookmarkId={bookmarkId} />;
           }
-          
+
           // Показываем карточку с данными, если они есть
           const title = titleData[bookmarkId];
           if (title) {
@@ -173,7 +181,7 @@ function BookmarksSection({
               />
             );
           }
-          
+
           // Показываем состояние загрузки по умолчанию
           return <LoadingCard key={bookmarkId} bookmarkId={bookmarkId} />;
         })}
@@ -183,7 +191,7 @@ function BookmarksSection({
         <div className="text-center mt-4">
           <button
             className="text-xs text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]/80 transition-colors"
-            onClick={() => router.push('/bookmarks')}
+            onClick={() => router.push("/bookmarks")}
           >
             Показать все {currentBookmarks.length} закладок
           </button>

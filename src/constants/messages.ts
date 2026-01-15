@@ -109,7 +109,6 @@ export const MESSAGES = {
     DATA_SYNCED: "Данные синхронизированы",
   },
 
-
   // Подтверждения действий
   CONFIRMATIONS: {
     DELETE_BOOKMARK: "Удалить из закладок?",
@@ -151,7 +150,7 @@ export const MESSAGES = {
   // Типы контента
   CONTENT_TYPES: {
     MANGA: "Манга",
-    MANHWA: "Манхва", 
+    MANHWA: "Манхва",
     MANHUA: "Маньхуа",
     NOVEL: "Ранобэ",
     LIGHT_NOVEL: "Лайт-новелла",
@@ -181,7 +180,7 @@ export const MESSAGES = {
     // Aria-labels
     ARIA_LABELS: {
       CATALOG: "Каталог",
-      NOTIFICATIONS: "Уведомления", 
+      NOTIFICATIONS: "Уведомления",
       HOME_PAGE: "Главная страница",
       BOOKMARKS: "Закладки",
       MENU: "Меню",
@@ -192,7 +191,7 @@ export const MESSAGES = {
   // Жанры для админки
   GENRES: [
     "Фэнтези",
-    "Романтика", 
+    "Романтика",
     "Приключения",
     "Драма",
     "Комедия",
@@ -222,26 +221,23 @@ export const MESSAGES = {
     "Видеоигры",
   ],
 
-
-
   // Возрастные ограничения
   AGE_LIMITS: {
     ALL_AGES: "0+ Для всех возрастов",
     PLUS_12: "12+ Для детей старше 12",
-    PLUS_16: "16+ Для детей старше 16", 
+    PLUS_16: "16+ Для детей старше 16",
     PLUS_18: "18+ Только для взрослых",
   },
 
   // Placeholder'ы и подсказки
   PLACEHOLDERS: {
     SLUG: "Введите slug тайтла",
-    ALT_NAME: "Введите альтернативное название", 
+    ALT_NAME: "Введите альтернативное название",
     TAG: "Введите тег",
     DESCRIPTION: "Подробное описание тайтла...",
     YEAR_HINT: (currentYear: number) => `Должен быть между 1900 и ${currentYear}`,
     YEAR_RANGE: (currentYear: number) => `1900-${currentYear}`,
   },
-
 
   // Кнопки и действия в админке
   ADMIN_ACTIONS: {
@@ -279,7 +275,6 @@ export const MESSAGES = {
     AGE_CONFIRMED: "Возраст подтвержден",
   },
 } as const;
-
 
 // Типы для удобства использования
 export type MessageKey = keyof typeof MESSAGES;

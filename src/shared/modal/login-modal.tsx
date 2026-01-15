@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -43,7 +42,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [yandexAuthMutation] = useYandexAuthMutation();
   const { login: authLogin } = useAuth();
 
-
   const validate = {
     email: (email: string): string | null => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -65,14 +63,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const isFormValid = (): boolean =>
     !errors.email && !errors.password && !!form.email && !!form.password;
 
-  const handleChange =
-    (field: keyof LoginData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
-      setTouched((prev) => ({ ...prev, [field]: true }));
-    };
+  const handleChange = (field: keyof LoginData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(prev => ({ ...prev, [field]: e.target.value }));
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
 
   const handleBlur = (field: keyof LoginData) => () => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
+    setTouched(prev => ({ ...prev, [field]: true }));
   };
 
   // Безопасное извлечение сообщения об ошибке
@@ -81,7 +78,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
     // Проверяем тип ошибки и извлекаем сообщение безопасно
     if (typeof error === "object") {
-
       // Ошибка с данными от сервера (FetchBaseQueryError)
       if ("data" in error && error.data && typeof error.data === "object") {
         const serverError = error.data as ServerError;
@@ -112,7 +108,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
     if (typeof error === "string") {
       return error;
     }
-
 
     return MESSAGES.ERROR_MESSAGES.UNKNOWN_ERROR;
   };
@@ -165,7 +160,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             buttonTheme: "light",
             buttonBorderRadius: "22",
             buttonIcon: "ya",
-          }
+          },
         )
           .then(({ handler }) => handler())
           .then(async (data: unknown) => {
@@ -261,26 +256,23 @@ const LoginModal: React.FC<LoginModalProps> = ({
             .on(VKID.WidgetEvents.ERROR, (error: unknown) => {
               console.log("Ошибка VK авторизации", error);
             })
-            .on(
-              VKID.OneTapInternalEvents.LOGIN_SUCCESS,
-              function (payload: unknown) {
-                const typedPayload = payload as {
-                  code: string;
-                  device_id: string;
-                };
-                const code = typedPayload.code;
-                const deviceId = typedPayload.device_id;
+            .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload: unknown) {
+              const typedPayload = payload as {
+                code: string;
+                device_id: string;
+              };
+              const code = typedPayload.code;
+              const deviceId = typedPayload.device_id;
 
-                VKID.Auth.exchangeCode(code, deviceId)
-                  .then((data: unknown) => {
-                    console.log("Успешная авторизация через VK", data);
-                    // Здесь будет обработка токена авторизации
-                  })
-                  .catch((error: unknown) => {
-                    console.log("Ошибка обмена кода VK", error);
-                  });
-              }
-            );
+              VKID.Auth.exchangeCode(code, deviceId)
+                .then((data: unknown) => {
+                  console.log("Успешная авторизация через VK", data);
+                  // Здесь будет обработка токена авторизации
+                })
+                .catch((error: unknown) => {
+                  console.log("Ошибка обмена кода VK", error);
+                });
+            });
         } catch (error) {
           console.log("Ошибка инициализации VKID", error);
         }
@@ -295,7 +287,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
       setShowPassword(false);
     }
   }, [isOpen]);
-
 
   const errorMessage = getErrorMessage();
 
@@ -317,10 +308,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         )}
 
         <div className="space-y-2">
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-[var(--foreground)]"
-          >
+          <label htmlFor="email" className="block text-sm font-medium text-[var(--foreground)]">
             Email
           </label>
           <div className="relative">
@@ -351,10 +339,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             />
           </div>
           {errors.email && (
-            <p
-              id="email-error"
-              className="text-xs text-red-500 flex items-center gap-1"
-            >
+            <p id="email-error" className="text-xs text-red-500 flex items-center gap-1">
               <span className="w-1 h-1 bg-red-500 rounded-full"></span>
               {errors.email}
             </p>
@@ -375,25 +360,28 @@ const LoginModal: React.FC<LoginModalProps> = ({
               className="text-xs text-[var(--primary)] hover:underline"
               onClick={() => {
                 // Отправляем запрос на сброс пароля
-                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/forgot-password`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
+                fetch(
+                  `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/auth/forgot-password`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email: form.email }),
                   },
-                  body: JSON.stringify({ email: form.email }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                  if (data.success) {
-                    console.log("Письмо для сброса пароля отправлено");
-                    // Здесь можно показать уведомление пользователю
-                  } else {
-                    console.error("Ошибка отправки письма для сброса пароля:", data.message);
-                  }
-                })
-                .catch(error => {
-                  console.error("Ошибка сети при отправке запроса на сброс пароля:", error);
-                });
+                )
+                  .then(response => response.json())
+                  .then(data => {
+                    if (data.success) {
+                      console.log("Письмо для сброса пароля отправлено");
+                      // Здесь можно показать уведомление пользователю
+                    } else {
+                      console.error("Ошибка отправки письма для сброса пароля:", data.message);
+                    }
+                  })
+                  .catch(error => {
+                    console.error("Ошибка сети при отправке запроса на сброс пароля:", error);
+                  });
               }}
             >
               {MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD}
@@ -402,9 +390,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           <div className="relative">
             <Lock
               className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                errors.password
-                  ? "text-red-500"
-                  : "text-[var(--muted-foreground)]"
+                errors.password ? "text-red-500" : "text-[var(--muted-foreground)]"
               }`}
             />
 
@@ -433,20 +419,17 @@ const LoginModal: React.FC<LoginModalProps> = ({
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
               disabled={isLoading}
-              aria-label={showPassword ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD}
+              aria-label={
+                showPassword
+                  ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD
+                  : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD
+              }
             >
-              {showPassword ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {errors.password && (
-            <p
-              id="password-error"
-              className="text-xs text-red-500 flex items-center gap-1"
-            >
+            <p id="password-error" className="text-xs text-red-500 flex items-center gap-1">
               <span className="w-1 h-1 bg-red-500 rounded-full"></span>
               {errors.password}
             </p>
@@ -458,7 +441,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
           disabled={!isFormValid() || isLoading}
           className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-all duration-300 disabled:opacity-50 disabled:bg-[var(--muted)] disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
         >
-
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -482,16 +464,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
       {/* Контейнеры для кнопок авторизации */}
       <div className="px-6 py-2 space-y-3 relative">
-        <div
-          ref={yandexButtonRef}
-          id="yandexButtonContainer"
-          className="flex justify-center"
-        ></div>
+        <div ref={yandexButtonRef} id="yandexButtonContainer" className="flex justify-center"></div>
         <div ref={vkButtonRef} className="flex justify-center" />
       </div>
 
       <div className="p-6 border-t border-[var(--border)] text-center">
-
         <p className="text-sm text-[var(--muted-foreground)]">
           {MESSAGES.UI_ELEMENTS.ALREADY_HAVE_ACCOUNT}{" "}
           <button

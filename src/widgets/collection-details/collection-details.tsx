@@ -22,18 +22,13 @@ import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 export default function CollectionDetails({ collectionId }: { collectionId: string }) {
   const router = useRouter();
   const { user } = useAuth();
-  const {
-    data: collectionResponse,
-    isLoading,
-    error,
-  } = useGetCollectionByIdQuery(collectionId);
+  const { data: collectionResponse, isLoading, error } = useGetCollectionByIdQuery(collectionId);
   const [incrementViews] = useIncrementCollectionViewsMutation();
 
   const collection = collectionResponse?.data;
 
   // Флаг для предотвращения множественных инкрементов просмотров
   const hasIncrementedViewsRef = useRef(false);
-
 
   // Age verification state
   const [isAgeVerified, setIsAgeVerified] = useState(false);
@@ -43,9 +38,10 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
   useEffect(() => {
     const verified = checkAgeVerification(user);
     setIsAgeVerified(verified);
-    
+
     // If collection has 18+ content and is not verified, show modal
-    const hasAdultContent = collection?.titles?.some((title: Title) => title.ageLimit === 18) || false;
+    const hasAdultContent =
+      collection?.titles?.some((title: Title) => title.ageLimit === 18) || false;
     if (hasAdultContent && !verified) {
       setShowAgeModal(true);
     }
@@ -74,15 +70,13 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
       keywords: "коллекция, тайтлы, манга",
       image: collection?.cover || "/logo/tomilo_color.svg",
     }),
-    [collection?.name, collection?.description, collection?.cover]
+    [collection?.name, collection?.description, collection?.cover],
   );
 
   useSEO(seoConfig);
 
   const normalizeImageUrl = (cover: string) => {
-    return cover
-      ? process.env.NEXT_PUBLIC_URL + cover
-      : "/404/image-holder.png";
+    return cover ? process.env.NEXT_PUBLIC_URL + cover : "/404/image-holder.png";
   };
 
   // Увеличиваем просмотры при загрузке
@@ -147,7 +141,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
           items={[
             { name: "Главная", href: "/" },
             { name: "Коллекции", href: "/collections" },
-            { name: collection?.name || "Коллекция", isCurrent: true }
+            { name: collection?.name || "Коллекция", isCurrent: true },
           ]}
         />
       </div>
@@ -172,8 +166,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
               <span className="whitespace-nowrap">{collection.titles?.length || 0} тайтлов</span>
               {collection.createdAt && (
                 <span className="whitespace-nowrap">
-                  Создано:{" "}
-                  {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
+                  Создано: {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
                 </span>
               )}
             </div>
@@ -196,13 +189,15 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
         <div className="pb-6 grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5">
           {collection.titles?.map((title: Title) => {
             const isContentHidden = shouldHideContent(title);
-            
+
             return (
               <div
                 key={title._id}
-                onClick={() => !isContentHidden && router.push(getTitlePath({ id: title._id, slug: title.slug }))}
+                onClick={() =>
+                  !isContentHidden && router.push(getTitlePath({ id: title._id, slug: title.slug }))
+                }
                 className={`bg-[var(--card)] max-h-[580px] overflow-hidden rounded-lg border border-[var(--border)] p-2 sm:p-3 lg:p-4 hover:border-[var(--primary)] transition-colors cursor-pointer group relative ${
-                  isContentHidden ? 'cursor-not-allowed opacity-75' : ''
+                  isContentHidden ? "cursor-not-allowed opacity-75" : ""
                 }`}
               >
                 {/* Views Rating */}
@@ -216,7 +211,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                   <Star className="w-4 h-4" />
                   {title.averageRating?.toFixed(1) || 0}
                 </div>
-                
+
                 <div className="aspect-[3/4] mb-2 sm:mb-3 overflow-hidden rounded relative">
                   <Image
                     loader={() => normalizeImageUrl(title?.coverImage || "")}
@@ -237,13 +232,15 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                     </div>
                   )}
                 </div>
-                
-                <h3 className={`font-semibold text-[var(--muted-foreground)] truncate text-sm sm:text-base ${
-                  isContentHidden ? "blur-sm" : ""
-                }`}>
+
+                <h3
+                  className={`font-semibold text-[var(--muted-foreground)] truncate text-sm sm:text-base ${
+                    isContentHidden ? "blur-sm" : ""
+                  }`}
+                >
                   {title.name}
                 </h3>
-                
+
                 {/* Метаданные тайтла */}
                 <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-1">
                   {title.releaseYear && (
@@ -258,15 +255,16 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                     </span>
                   )}
                 </div>
-                
+
                 {title.description && (
-                  <p className={`text-xs sm:text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2 hidden sm:block ${
-                    isContentHidden ? "blur-sm" : ""
-                  }`}>
-                    {title.description.length > 100 
-                      ? `${title.description.substring(0, 100)}...` 
-                      : title.description
-                    }
+                  <p
+                    className={`text-xs sm:text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2 hidden sm:block ${
+                      isContentHidden ? "blur-sm" : ""
+                    }`}
+                  >
+                    {title.description.length > 100
+                      ? `${title.description.substring(0, 100)}...`
+                      : title.description}
                   </p>
                 )}
 
@@ -293,9 +291,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
 
         {(!collection.titles || collection.titles.length === 0) && (
           <div className="text-center py-12">
-            <p className="text-[var(--muted-foreground)]">
-              В этой коллекции пока нет тайтлов.
-            </p>
+            <p className="text-[var(--muted-foreground)]">В этой коллекции пока нет тайтлов.</p>
           </div>
         )}
       </div>
@@ -317,30 +313,33 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Collection",
-            "name": collection.name,
-            "description": collection.description,
-            "url": `${process.env.NEXT_PUBLIC_URL}/collections/${collectionId}`,
-            "image": collection.cover ? `${process.env.NEXT_PUBLIC_URL}${collection.cover}` : `${process.env.NEXT_PUBLIC_URL}/logo/tomilo_color.svg`,
-            "numberOfItems": collection.titles?.length || 0,
-            "dateCreated": collection.createdAt,
-            "dateModified": collection.updatedAt,
-            "interactionStatistic": {
+            name: collection.name,
+            description: collection.description,
+            url: `${process.env.NEXT_PUBLIC_URL}/collections/${collectionId}`,
+            image: collection.cover
+              ? `${process.env.NEXT_PUBLIC_URL}${collection.cover}`
+              : `${process.env.NEXT_PUBLIC_URL}/logo/tomilo_color.svg`,
+            numberOfItems: collection.titles?.length || 0,
+            dateCreated: collection.createdAt,
+            dateModified: collection.updatedAt,
+            interactionStatistic: {
               "@type": "InteractionCounter",
-              "interactionType": "https://schema.org/ViewAction",
-              "userInteractionCount": collection.views
+              interactionType: "https://schema.org/ViewAction",
+              userInteractionCount: collection.views,
             },
-            "hasPart": collection.titles?.map((title: Title) => ({
+            hasPart: collection.titles?.map((title: Title) => ({
               "@type": "CreativeWork",
-              "name": title.name,
-              "url": `${process.env.NEXT_PUBLIC_URL}${getTitlePath({ id: title._id, slug: title.slug })}`,
-              "image": title.coverImage ? `${process.env.NEXT_PUBLIC_URL}${title.coverImage}` : undefined,
-              "author": title.author,
-              "genre": title.genres
-            }))
-          })
+              name: title.name,
+              url: `${process.env.NEXT_PUBLIC_URL}${getTitlePath({ id: title._id, slug: title.slug })}`,
+              image: title.coverImage
+                ? `${process.env.NEXT_PUBLIC_URL}${title.coverImage}`
+                : undefined,
+              author: title.author,
+              genre: title.genres,
+            })),
+          }),
         }}
       />
     </main>
   );
 }
-

@@ -5,7 +5,9 @@ interface ProfileNotificationsSettingsProps {
   userProfile: UserProfile;
 }
 
-export default function ProfileNotificationsSettings({ userProfile }: ProfileNotificationsSettingsProps) {
+export default function ProfileNotificationsSettings({
+  userProfile,
+}: ProfileNotificationsSettingsProps) {
   // TODO: Реализовать логику сохранения настроек уведомлений
   const handleNotificationChange = (type: string, enabled: boolean) => {
     console.log(`Изменение настройки уведомлений ${type}: ${enabled}`);
@@ -16,20 +18,14 @@ export default function ProfileNotificationsSettings({ userProfile }: ProfileNot
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
       <div className="flex items-center gap-3 mb-4">
         <Bell className="w-5 h-5 text-[var(--primary)]" />
-        <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
-          Уведомления
-        </h2>
+        <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Уведомления</h2>
       </div>
-      
+
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-sm font-medium text-[var(--foreground)]">
-              Новые главы
-            </span>
-            <p className="text-xs text-[var(--muted-foreground)]">
-              Уведомления о новых главах
-            </p>
+            <span className="text-sm font-medium text-[var(--foreground)]">Новые главы</span>
+            <p className="text-xs text-[var(--muted-foreground)]">Уведомления о новых главах</p>
           </div>
           <div className="relative inline-block w-10 h-5">
             <input
@@ -37,7 +33,7 @@ export default function ProfileNotificationsSettings({ userProfile }: ProfileNot
               id="new-chapters"
               className="sr-only peer"
               defaultChecked={true} // TODO: Получать значение из userProfile
-              onChange={(e) => handleNotificationChange("newChapters", e.target.checked)}
+              onChange={e => handleNotificationChange("newChapters", e.target.checked)}
             />
             <label
               htmlFor="new-chapters"
@@ -47,15 +43,11 @@ export default function ProfileNotificationsSettings({ userProfile }: ProfileNot
             </label>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-sm font-medium text-[var(--foreground)]">
-              Комментарии
-            </span>
-            <p className="text-xs text-[var(--muted-foreground)]">
-              Уведомления о комментариях
-            </p>
+            <span className="text-sm font-medium text-[var(--foreground)]">Комментарии</span>
+            <p className="text-xs text-[var(--muted-foreground)]">Уведомления о комментариях</p>
           </div>
           <div className="relative inline-block w-10 h-5">
             <input
@@ -63,7 +55,7 @@ export default function ProfileNotificationsSettings({ userProfile }: ProfileNot
               id="comments"
               className="sr-only peer"
               defaultChecked={true} // TODO: Получать значение из userProfile
-              onChange={(e) => handleNotificationChange("comments", e.target.checked)}
+              onChange={e => handleNotificationChange("comments", e.target.checked)}
             />
             <label
               htmlFor="comments"

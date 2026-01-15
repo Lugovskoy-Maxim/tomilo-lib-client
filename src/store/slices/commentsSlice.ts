@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Comment } from '@/types/comment';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Comment } from "@/types/comment";
 
 interface CommentsState {
   comments: Comment[];
@@ -14,11 +14,11 @@ const initialState: CommentsState = {
   selectedComment: null,
   isLoading: false,
   error: null,
-  search: '',
+  search: "",
 };
 
 export const commentsSlice = createSlice({
-  name: 'comments',
+  name: "comments",
   initialState,
   reducers: {
     setComments: (state, action: PayloadAction<Comment[]>) => {

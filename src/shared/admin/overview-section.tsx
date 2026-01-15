@@ -85,7 +85,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
   const handleCleanupOrphanedChapters = async () => {
     if (
       !confirm(
-        "Вы уверены, что хотите удалить все осиротевшие главы (главы без тайтлов)? Это действие нельзя отменить."
+        "Вы уверены, что хотите удалить все осиротевшие главы (главы без тайтлов)? Это действие нельзя отменить.",
       )
     )
       return;
@@ -176,12 +176,8 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
         ) : error ? (
           // Error state
           <div className="col-span-full bg-red-50 border border-red-200 rounded-xl p-4">
-            <p className="text-red-800 font-medium text-sm">
-              Ошибка загрузки статистики
-            </p>
-            <p className="text-red-600 text-xs mt-1">
-              Не удалось получить данные с сервера
-            </p>
+            <p className="text-red-800 font-medium text-sm">Ошибка загрузки статистики</p>
+            <p className="text-red-600 text-xs mt-1">Не удалось получить данные с сервера</p>
           </div>
         ) : (
           stats.map((stat, index) => (
@@ -193,12 +189,8 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
                 <stat.icon className="w-5 h-5 text-[var(--muted-foreground)]" />
               </div>
               <div>
-                <p className="text-xl font-bold text-[var(--foreground)]">
-                  {stat.value}
-                </p>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  {stat.label}
-                </p>
+                <p className="text-xl font-bold text-[var(--foreground)]">{stat.value}</p>
+                <p className="text-xs text-[var(--muted-foreground)]">{stat.label}</p>
               </div>
             </div>
           ))
@@ -207,9 +199,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
 
       {/* Quick Actions */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-        <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">
-          Быстрые действия
-        </h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">Быстрые действия</h2>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {quickActions.map((action, index) => (
             <button
@@ -220,9 +210,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
               }`}
             >
               <action.icon className="w-5 h-5" />
-              <span className="text-xs font-medium text-center">
-                {action.label}
-              </span>
+              <span className="text-xs font-medium text-center">{action.label}</span>
             </button>
           ))}
         </div>
@@ -253,12 +241,8 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
           ) : updatesError ? (
             // Error state
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-800 font-medium text-sm">
-                Ошибка загрузки обновлений
-              </p>
-              <p className="text-red-600 text-xs mt-1">
-                Не удалось получить последние обновления
-              </p>
+              <p className="text-red-800 font-medium text-sm">Ошибка загрузки обновлений</p>
+              <p className="text-red-600 text-xs mt-1">Не удалось получить последние обновления</p>
             </div>
           ) : (
             updatesData?.data?.slice(0, 3).map((update, index) => (
@@ -270,12 +254,9 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
                   <FileText className="w-4 h-4 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-[var(--foreground)] text-sm">
-                    {update.title}
-                  </p>
+                  <p className="font-medium text-[var(--foreground)] text-sm">{update.title}</p>
                   <p className="text-xs text-[var(--muted-foreground)]">
-                    {update.chapterNumber}{" "}
-                    {getChaptersText(update.chapterNumber)} •{" "}
+                    {update.chapterNumber} {getChaptersText(update.chapterNumber)} •{" "}
                     {timeAgo(update.timeAgo)}
                   </p>
                 </div>
@@ -297,9 +278,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
               )}
               {modalContent.title}
             </h3>
-            <p className="text-[var(--muted-foreground)] mb-6">
-              {modalContent.message}
-            </p>
+            <p className="text-[var(--muted-foreground)] mb-6">{modalContent.message}</p>
             <div className="flex justify-end">
               <button
                 onClick={() => setIsModalOpen(false)}

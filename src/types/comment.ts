@@ -1,8 +1,8 @@
-import { ApiResponseDto } from './api';
+import { ApiResponseDto } from "./api";
 
 export enum CommentEntityType {
-  TITLE = 'title',
-  CHAPTER = 'chapter',
+  TITLE = "title",
+  CHAPTER = "chapter",
 }
 
 export interface CommentUser {
@@ -47,6 +47,3 @@ export interface CreateCommentDto {
 export interface UpdateCommentDto {
   content: string;
 }
-
-
-

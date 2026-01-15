@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React from "react";
 import { Trophy, Eye, Sparkles } from "lucide-react";
@@ -51,7 +51,6 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
     setShowAgeModal(false);
   };
 
-
   const handleClick = () => {
     // Проверяем, является ли контент для взрослых и подтверждено ли возрастное ограничение
     if (data.isAdult && !isAgeVerified) {
@@ -65,7 +64,10 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
   if (variant === "top3") {
     return (
       <>
-        <div className="bg-[var(--muted)]/30 rounded-xl border border-[var(--border)] hover:shadow-xl transition-all duration-300 cursor-pointer group p-4 sm:p-6" onClick={handleClick}>
+        <div
+          className="bg-[var(--muted)]/30 rounded-xl border border-[var(--border)] hover:shadow-xl transition-all duration-300 cursor-pointer group p-4 sm:p-6"
+          onClick={handleClick}
+        >
           {/* Мобильная версия - горизонтальная */}
           <div className="flex gap-4 sm:hidden">
             <div className="relative flex-shrink-0">
@@ -105,13 +107,11 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                 <span className="font-medium">{data.year}</span>
                 <div className="flex items-center gap-1 font-medium">
                   <Sparkles className="w-4 h-4 text-[var(--chart-3)]" />
-                  <span className="text-lg font-bold text-[var(--chart-3)]">
-                    {data.rating}
-                  </span>
+                  <span className="text-lg font-bold text-[var(--chart-3)]">{data.rating}</span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1 mb-2">
-                {data.genres.slice(0, 2).map((genre) => (
+                {data.genres.slice(0, 2).map(genre => (
                   <span
                     key={genre}
                     className="px-2 py-1 bg-[var(--accent)] text-[var(--accent-foreground)] text-xs rounded-full font-medium"
@@ -180,7 +180,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                 </div>
               </div>
               <div className="flex flex-wrap justify-center gap-1 mb-2">
-                {data.genres.slice(0, 2).map((genre) => (
+                {data.genres.slice(0, 2).map(genre => (
                   <span
                     key={genre}
                     className="px-2 py-1 bg-[var(--accent)] text-[var(--accent-foreground)] text-xs rounded-full font-medium"
@@ -217,7 +217,10 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
 
   return (
     <>
-      <div className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:bg-[var(--accent)] hover:shadow-md transition-all duration-300 cursor-pointer group h-full" onClick={handleClick}>
+      <div
+        className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:bg-[var(--accent)] hover:shadow-md transition-all duration-300 cursor-pointer group h-full"
+        onClick={handleClick}
+      >
         <div className="relative">
           <OptimizedImage
             src={process.env.NEXT_PUBLIC_URL + data.image}
@@ -247,16 +250,16 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
             <div className="flex items-center justify-center gap-1 text-xs text-[var(--muted-foreground)]">
               <span className="flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-[var(--chart-4)]" />
-                <span className="text-xs font-bold text-[var(--chart-4)]">
-                  {data.rating}
-                </span>
+                <span className="text-xs font-bold text-[var(--chart-4)]">{data.rating}</span>
               </span>
             </div>
             <div className="flex items-center justify-center gap-2">
               {data.views && (
                 <div className="flex items-center justify-center gap-1 text-xs font-medium text-[var(--primary)]">
                   <Eye className="w-3 h-3" />
-                  <span>{data.views >= 1000 ? `${(data.views / 1000).toFixed(1)}k` : data.views}</span>
+                  <span>
+                    {data.views >= 1000 ? `${(data.views / 1000).toFixed(1)}k` : data.views}
+                  </span>
                 </div>
               )}
               {data.ratingCount && (

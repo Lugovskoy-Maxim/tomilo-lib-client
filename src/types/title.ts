@@ -1,29 +1,29 @@
 import { ReaderChapter } from "./chapter";
-import { ApiResponseDto } from './api';
+import { ApiResponseDto } from "./api";
 
 export enum TitleStatus {
-  ONGOING = 'ongoing',
-  COMPLETED = 'completed',
-  PAUSE = 'pause',
-  CANCELLED = 'cancelled',
+  ONGOING = "ongoing",
+  COMPLETED = "completed",
+  PAUSE = "pause",
+  CANCELLED = "cancelled",
 }
 
 export enum ChapterStatus {
-  DRAFT = 'draft',
-  PUBLISHED = 'published',
-  SCHEDULED = 'scheduled',
-  HIDDEN = 'hidden',
-  DELETED = 'deleted'
+  DRAFT = "draft",
+  PUBLISHED = "published",
+  SCHEDULED = "scheduled",
+  HIDDEN = "hidden",
+  DELETED = "deleted",
 }
 
 export enum TitleType {
-  MANGA = 'manga',
-  MANHWA = 'manhwa',
-  MANHUA = 'manhua',
-  NOVEL = 'novel',
-  LIGHT_NOVEL = 'light_novel',
-  COMIC = 'comic',
-  OTHER = 'other'
+  MANGA = "manga",
+  MANHWA = "manhwa",
+  MANHUA = "manhua",
+  NOVEL = "novel",
+  LIGHT_NOVEL = "light_novel",
+  COMIC = "comic",
+  OTHER = "other",
 }
 
 export interface TitlesState {
@@ -35,8 +35,6 @@ export interface TitlesState {
   isLoading: boolean;
   error: string | null;
 }
-
-
 
 export interface Title {
   averageRating: number | undefined;
@@ -105,7 +103,7 @@ export interface Chapter {
   // Для сортировки и навигации
   sortOrder?: number;
   // Связь с тайтлом (может быть заполнена при join-запросах)
-  titleInfo?: Pick<Title, 'name' | 'coverImage' | 'status'>;
+  titleInfo?: Pick<Title, "name" | "coverImage" | "status">;
 }
 
 // Типы для API ответов
@@ -147,9 +145,15 @@ export interface ChapterNavigation {
 }
 
 // Типы для DTO (Data Transfer Objects)
-export type CreateTitleDto = Omit<Title, '_id' | 'views' | 'rating' | 'totalChapters' | 'createdAt' | 'updatedAt'>;
+export type CreateTitleDto = Omit<
+  Title,
+  "_id" | "views" | "rating" | "totalChapters" | "createdAt" | "updatedAt"
+>;
 export type UpdateTitleDto = Partial<CreateTitleDto>;
-export type CreateChapterDto = Omit<Chapter, '_id' | 'views' | 'createdAt' | 'updatedAt' | 'titleInfo'>;
+export type CreateChapterDto = Omit<
+  Chapter,
+  "_id" | "views" | "createdAt" | "updatedAt" | "titleInfo"
+>;
 export type UpdateChapterDto = Partial<CreateChapterDto>;
 
 // Тип для обновления просмотров главы
@@ -162,8 +166,8 @@ export interface ChaptersQuery {
   page?: number;
   limit?: number;
   search?: string;
-  sortBy?: 'chapterNumber' | 'releaseDate' | 'views' | 'createdAt';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "chapterNumber" | "releaseDate" | "views" | "createdAt";
+  sortOrder?: "asc" | "desc";
   volume?: number;
   isPublished?: boolean;
   status?: ChapterStatus;
@@ -177,8 +181,8 @@ export interface TitlesQuery {
   tags?: string[];
   status?: TitleStatus;
   type?: TitleType;
-  sortBy?: 'name' | 'releaseYear' | 'views' | 'rating' | 'createdAt'| 'averageRating';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "name" | "releaseYear" | "views" | "rating" | "createdAt" | "averageRating";
+  sortOrder?: "asc" | "desc";
 }
 
 // Типы для читалки
@@ -193,8 +197,8 @@ export interface ReadingProgress {
 }
 
 export interface ReaderSettings {
-  readingMode: 'vertical' | 'horizontal' | 'webtoon';
-  imageQuality: 'auto' | 'low' | 'medium' | 'high' | 'original';
+  readingMode: "vertical" | "horizontal" | "webtoon";
+  imageQuality: "auto" | "low" | "medium" | "high" | "original";
   preloadImages: boolean;
   showPageNumbers: boolean;
   backgroundColor: string;
@@ -223,7 +227,7 @@ export interface TitleViewState {
   chapters: Chapter[];
   isLoading: boolean;
   error: string | null;
-  activeTab: 'description' | 'chapters' | 'comments';
+  activeTab: "description" | "chapters" | "comments";
   chaptersQuery: ChaptersQuery;
   hasMoreChapters: boolean;
 }
@@ -236,7 +240,6 @@ export interface ChapterListState {
   hasMore: boolean;
   selectedChapter: Chapter | null;
 }
-
 
 export interface ReaderTitle {
   _id: string;

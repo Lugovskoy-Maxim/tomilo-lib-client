@@ -1,16 +1,16 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Проверяем, начинается ли путь с /browse
-  if (pathname.startsWith('/browse')) {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  if (pathname.startsWith("/browse")) {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
     // /browse или /browse/ → /titles или /titles/
-    if (pathname === '/browse' || pathname === '/browse/') {
-      return NextResponse.redirect(new URL('/titles', request.url));
+    if (pathname === "/browse" || pathname === "/browse/") {
+      return NextResponse.redirect(new URL("/titles", request.url));
     }
 
     // /browse/:titleId → /titles/:slug
@@ -20,24 +20,22 @@ export async function middleware(request: NextRequest) {
       try {
         const response = await fetch(`${baseUrl}/titles/${titleId}?populateChapters=false`, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; Middleware-Redirect/1.0)',
+            "User-Agent": "Mozilla/5.0 (compatible; Middleware-Redirect/1.0)",
           },
         });
 
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data?.slug) {
-            return NextResponse.redirect(
-              new URL(`/titles/${data.data.slug}`, request.url)
-            );
+            return NextResponse.redirect(new URL(`/titles/${data.data.slug}`, request.url));
           }
         }
       } catch (error) {
-        console.error('Middleware: Error fetching title for redirect:', error);
+        console.error("Middleware: Error fetching title for redirect:", error);
       }
 
       // Если не удалось получить slug, редиректим на /titles
-      return NextResponse.redirect(new URL('/titles', request.url));
+      return NextResponse.redirect(new URL("/titles", request.url));
     }
 
     // /browse/:titleId/chapter/:chapterId → /titles/:slug/chapter/:chapterId
@@ -49,7 +47,7 @@ export async function middleware(request: NextRequest) {
       try {
         const response = await fetch(`${baseUrl}/titles/${titleId}?populateChapters=false`, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; Middleware-Redirect/1.0)',
+            "User-Agent": "Mozilla/5.0 (compatible; Middleware-Redirect/1.0)",
           },
         });
 
@@ -57,16 +55,16 @@ export async function middleware(request: NextRequest) {
           const data = await response.json();
           if (data.success && data.data?.slug) {
             return NextResponse.redirect(
-              new URL(`/titles/${data.data.slug}/chapter/${chapterId}`, request.url)
+              new URL(`/titles/${data.data.slug}/chapter/${chapterId}`, request.url),
             );
           }
         }
       } catch (error) {
-        console.error('Middleware: Error fetching title for chapter redirect:', error);
+        console.error("Middleware: Error fetching title for chapter redirect:", error);
       }
 
       // Если не удалось получить slug, редиректим на /titles
-      return NextResponse.redirect(new URL('/titles', request.url));
+      return NextResponse.redirect(new URL("/titles", request.url));
     }
   }
 
@@ -83,7 +81,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
   ],
 };
-

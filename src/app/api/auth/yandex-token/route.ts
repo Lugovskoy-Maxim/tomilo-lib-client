@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   try {
@@ -7,35 +7,38 @@ export async function POST(request: Request) {
 
     if (!access_token) {
       return NextResponse.json(
-        { success: false, message: 'Токен доступа не предоставлен' },
-        { status: 400 }
+        { success: false, message: "Токен доступа не предоставлен" },
+        { status: 400 },
       );
     }
 
     // Здесь должна быть логика проверки токена с помощью API Яндекса
     // и получения информации о пользователе
-    
+
     // Пример проверки токена (псевдокод):
-    const userInfo = await fetch('https://login.yandex.ru/info?format=json', {
+    const userInfo = await fetch("https://login.yandex.ru/info?format=json", {
       headers: {
-        'Authorization': `OAuth ${access_token}`
-      }
+        Authorization: `OAuth ${access_token}`,
+      },
     }).then(res => res.json());
-    
+
     // Если токен действителен, создаем сессию для пользователя
     // В реальной реализации здесь должна быть логика создания/получения пользователя в БД
-    
+
     // Отправляем приветственное письмо при OAuth авторизации
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/send-verification-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/auth/send-verification-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: userInfo.email }), // Здесь должен быть email пользователя из userInfo
         },
-        body: JSON.stringify({ email: userInfo.email }), // Здесь должен быть email пользователя из userInfo
-      });
+      );
     } catch (emailError) {
-      console.error('Ошибка отправки приветственного письма:', emailError);
+      console.error("Ошибка отправки приветственного письма:", emailError);
       // Не прерываем основной процесс авторизации из-за ошибки отправки письма
     }
 
@@ -43,23 +46,23 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       success: true,
       data: { access_token },
-      message: 'Авторизация успешна'
+      message: "Авторизация успешна",
     });
-    
+
     // Устанавливаем cookie с токеном (в продакшене нужно настроить secure и httpOnly флаги)
-    response.cookies.set('tomilo_lib_token', access_token, {
+    response.cookies.set("tomilo_lib_token", access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7, // 1 неделя
-      path: '/',
+      path: "/",
     });
-    
+
     return response;
   } catch (error) {
-    console.error('Ошибка обработки токена Яндекса:', error);
+    console.error("Ошибка обработки токена Яндекса:", error);
     return NextResponse.json(
-      { success: false, message: 'Ошибка обработки токена' },
-      { status: 500 }
+      { success: false, message: "Ошибка обработки токена" },
+      { status: 500 },
     );
   }
 }

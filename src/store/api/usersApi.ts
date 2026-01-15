@@ -8,7 +8,7 @@ export const usersApi = createApi({
   reducerPath: "usersApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL,
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (token) {
@@ -19,9 +19,12 @@ export const usersApi = createApi({
     },
   }),
   tagTypes: ["Users"],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getUsers: builder.query<
-      ApiResponse<{ users: UserProfile[]; pagination: { total: number; page: number; limit: number; pages: number } }>,
+      ApiResponse<{
+        users: UserProfile[];
+        pagination: { total: number; page: number; limit: number; pages: number };
+      }>,
       { search?: string; page?: number; limit?: number }
     >({
       query: ({ search = "", page = 1, limit = 50 }) => ({
@@ -30,7 +33,7 @@ export const usersApi = createApi({
       providesTags: ["Users"],
     }),
     deleteUser: builder.mutation<ApiResponse<void>, string>({
-      query: (userId) => ({
+      query: userId => ({
         url: `/users/admin/${userId}`,
         method: "DELETE",
       }),

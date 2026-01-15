@@ -25,7 +25,6 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
   const [imageError, setImageError] = useState(false);
   const toast = useToast();
 
-
   const handleClick = () => {
     router.push(getTitlePath(title));
   };
@@ -33,7 +32,7 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
   const handleRemove = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsRemoving(true);
-    
+
     try {
       const result = await removeBookmark(title._id);
       if (result.success) {
@@ -53,14 +52,14 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
   // Формируем корректный URL для изображения
   const getImageUrl = (coverImage: string | undefined) => {
     if (!coverImage) return IMAGE_HOLDER.src;
-    
+
     // Если изображение уже полный URL, используем как есть
-    if (coverImage.startsWith('http')) {
+    if (coverImage.startsWith("http")) {
       return coverImage;
     }
-    
+
     // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}${coverImage}`;
+    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${coverImage}`;
   };
 
   // Проверяем, нужно ли показывать изображение
@@ -112,7 +111,6 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
             {title.genres?.slice(0, 2).join(", ") || "Жанры не указаны"}
           </p>
           <div className="flex items-center justify-between">
-
             <span className="text-xs text-[var(--muted-foreground)]">
               {translateTitleStatus(title.status)}
             </span>
@@ -130,8 +128,19 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
       >
         {isRemoving || isLoading ? (
           <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
         ) : (
           <X className="w-3 h-3" />

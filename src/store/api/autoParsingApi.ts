@@ -12,7 +12,7 @@ export const autoParsingApi = createApi({
   reducerPath: "autoParsingApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (token) {
@@ -23,7 +23,7 @@ export const autoParsingApi = createApi({
     },
   }),
   tagTypes: ["AutoParsing"],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     // Get all auto-parsing jobs
     getAutoParsingJobs: builder.query<AutoParsingJob[], void>({
       query: () => "/auto-parsing",
@@ -32,16 +32,13 @@ export const autoParsingApi = createApi({
 
     // Get single auto-parsing job
     getAutoParsingJob: builder.query<AutoParsingJob, string>({
-      query: (id) => `/auto-parsing/${id}`,
+      query: id => `/auto-parsing/${id}`,
       providesTags: ["AutoParsing"],
     }),
 
     // Create auto-parsing job
-    createAutoParsingJob: builder.mutation<
-      AutoParsingJob,
-      CreateAutoParsingJobDto
-    >({
-      query: (data) => ({
+    createAutoParsingJob: builder.mutation<AutoParsingJob, CreateAutoParsingJobDto>({
+      query: data => ({
         url: "/auto-parsing",
         method: "POST",
         body: data,
@@ -63,11 +60,8 @@ export const autoParsingApi = createApi({
     }),
 
     // Delete auto-parsing job
-    deleteAutoParsingJob: builder.mutation<
-      { message: string },
-      string
-    >({
-      query: (id) => ({
+    deleteAutoParsingJob: builder.mutation<{ message: string }, string>({
+      query: id => ({
         url: `/auto-parsing/${id}`,
         method: "DELETE",
       }),
@@ -75,11 +69,8 @@ export const autoParsingApi = createApi({
     }),
 
     // Check for new chapters
-    checkNewChapters: builder.mutation<
-      CheckNewChaptersResponse,
-      string
-    >({
-      query: (id) => ({
+    checkNewChapters: builder.mutation<CheckNewChaptersResponse, string>({
+      query: id => ({
         url: `/auto-parsing/${id}/check`,
         method: "POST",
       }),

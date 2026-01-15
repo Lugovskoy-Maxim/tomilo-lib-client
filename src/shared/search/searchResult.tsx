@@ -41,10 +41,7 @@ export default function SearchResults({
   if (isLoading) {
     return (
       <Container>
-        <div
-          className="flex justify-center items-center py-2"
-          aria-live="polite"
-        >
+        <div className="flex justify-center items-center py-2" aria-live="polite">
           <div className="w-6 h-6 border-2 border-[var(--border)] border-t-transparent rounded-full animate-spin"></div>
           <span className="ml-2 text-sm text-muted-foreground">Поиск...</span>
         </div>
@@ -62,10 +59,7 @@ export default function SearchResults({
     );
   }
 
-  if (
-    !Array.isArray(results) ||
-    (results.length === 0 && normalizedSearchTerm)
-  ) {
+  if (!Array.isArray(results) || (results.length === 0 && normalizedSearchTerm)) {
     return (
       <Container>
         <div className="text-sm text-muted-foreground text-center">
@@ -77,11 +71,8 @@ export default function SearchResults({
 
   return (
     <Container>
-      <div
-        className="max-h-80 overflow-y-auto flex flex-col gap-1 "
-        data-testid="search-results"
-      >
-        {results.map((result) => (
+      <div className="max-h-80 overflow-y-auto flex flex-col gap-1 " data-testid="search-results">
+        {results.map(result => (
           <Link
             key={result.id}
             href={getTitlePath(result)}
@@ -104,9 +95,7 @@ export default function SearchResults({
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-foreground">
-                  {result.title}
-                </div>
+                <div className="font-medium text-foreground">{result.title}</div>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   {result.type && (
                     <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
@@ -114,9 +103,7 @@ export default function SearchResults({
                     </span>
                   )}
                   {result.releaseYear && (
-                    <span className="text-xs text-muted-foreground">
-                      {result.releaseYear} г.
-                    </span>
+                    <span className="text-xs text-muted-foreground">{result.releaseYear} г.</span>
                   )}
                   {result.rating !== undefined && (
                     <span className="flex gap-1 text-xs text-muted-foreground">

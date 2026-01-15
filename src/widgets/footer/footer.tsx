@@ -37,10 +37,7 @@ export default function Footer() {
       const currentScrollY = window.scrollY;
       const scrollingDown = currentScrollY > lastScrollY;
 
-      if (
-        window.innerHeight + window.pageYOffset >=
-        document.documentElement.scrollHeight
-      ) {
+      if (window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight) {
         setIsVisible(true);
       }
       if (scrollingDown && isVisible) {
@@ -67,10 +64,8 @@ export default function Footer() {
         alt="Сугроб"
         width={300}
         height={40}
-
         className="absolute -top-5 left-1/4 hidden lg:block"
       />
-
 
       <div className="w-full bg-[var(--secondary)]/40 border-t border-[var(--border)] mt-auto hidden lg:block">
         <div className="w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 md:px-8">
@@ -83,8 +78,7 @@ export default function Footer() {
             <div className="flex flex-col items-center space-y-3 md:items-start md:max-w-sm lg:max-w-xs">
               <Logo />
               <p className="text-[var(--muted-foreground)] text-sm leading-relaxed md:text-base">
-                TOMILO-LIB — Современная платформа для чтения манги, манхвы и
-                маньхуа.
+                TOMILO-LIB — Современная платформа для чтения манги, манхвы и маньхуа.
               </p>
             </div>
 
@@ -111,9 +105,7 @@ export default function Footer() {
                 className="flex items-center gap-2 text-[var(--chart-1)] hover:text-[var(--primary)] transition-colors text-sm break-words px-2 py-1 text-center md:text-right"
               >
                 <Send className="w-4 h-4 flex-shrink-0" />
-                <span className="max-w-[180px] sm:max-w-[250px] md:max-w-none">
-                  Мы в телеграм
-                </span>
+                <span className="max-w-[180px] sm:max-w-[250px] md:max-w-none">Мы в телеграм</span>
               </Link>
             </div>
           </div>
@@ -167,8 +159,6 @@ export default function Footer() {
       </div>
       {/* Мобильный футер */}
       <div
-
-
         className={`fixed bottom-2 left-1/2 transform -translate-x-1/2 max-w-[360px] w-[calc(100%-16px)] sm:w-auto rounded-md bg-[var(--background)]/90 border-t border-[var(--border)] shadow-lg z-50 backdrop-blur-sm lg:hidden transition-transform duration-300 ${
           isVisible ? "translate-y-0" : "translate-y-20"
         }`}
@@ -188,9 +178,7 @@ export default function Footer() {
             aria-label="Каталог"
           >
             <Library className="w-4 h-4  text-[var(--muted-foreground)]" />
-            <span className=" text-sm text-[var(--muted-foreground)]  ">
-              Каталог
-            </span>
+            <span className=" text-sm text-[var(--muted-foreground)]  ">Каталог</span>
           </Link>
           <Link
             href="/notifications"
@@ -198,9 +186,7 @@ export default function Footer() {
             aria-label="Уведомления"
           >
             <Bell className="w-4 h-4  text-[var(--muted-foreground)]" />
-            <span className=" text-sm text-[var(--muted-foreground)]  ">
-              Увед.
-            </span>
+            <span className=" text-sm text-[var(--muted-foreground)]  ">Увед.</span>
           </Link>
 
           <Link
@@ -209,9 +195,7 @@ export default function Footer() {
             aria-label="Главная страница"
           >
             <Home className="w-4 h-4  text-[var(--muted-foreground)]" />
-            <span className=" text-sm text-[var(--muted-foreground)]  ">
-              Главная
-            </span>
+            <span className=" text-sm text-[var(--muted-foreground)]  ">Главная</span>
           </Link>
 
           <Link
@@ -220,9 +204,7 @@ export default function Footer() {
             aria-label="Закладки"
           >
             <Bookmark className="w-4 h-4  text-[var(--muted-foreground)]" />
-            <span className=" text-sm text-[var(--muted-foreground)]  ">
-              Закладки
-            </span>
+            <span className=" text-sm text-[var(--muted-foreground)]  ">Закладки</span>
           </Link>
 
           <div className="relative">
@@ -232,9 +214,7 @@ export default function Footer() {
               aria-label="Меню"
             >
               <MoreVertical className="w-4 h-4  text-[var(--muted-foreground)]" />
-              <span className=" text-sm text-[var(--muted-foreground)]  ">
-                Меню
-              </span>
+              <span className=" text-sm text-[var(--muted-foreground)]  ">Меню</span>
             </button>
 
             {/* Выпадающее меню */}

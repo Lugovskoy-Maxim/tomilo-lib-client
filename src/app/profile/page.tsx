@@ -2,12 +2,7 @@
 
 import { AuthGuard } from "@/guard/auth-guard";
 import { useProfile } from "@/hooks/useProfile";
-import {
-  ErrorState,
-  LoadingState,
-  ProfileBanner,
-  ProfileHeader,
-} from "@/shared";
+import { ErrorState, LoadingState, ProfileBanner, ProfileHeader } from "@/shared";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 
 import { Footer, Header } from "@/widgets";
@@ -18,8 +13,7 @@ import { UserProfile } from "@/types/user";
 import { ProfileTabs } from "@/shared/profile-tabs/profile-tabs";
 
 export default function ProfilePage() {
-  const { userProfile, isLoading, authLoading, handleAvatarUpdate } =
-    useProfile();
+  const { userProfile, isLoading, authLoading, handleAvatarUpdate } = useProfile();
   const [updateProfile] = useUpdateProfileMutation();
 
   // SEO для страницы профиля
@@ -53,7 +47,7 @@ export default function ProfilePage() {
             onAvatarUpdate={handleAvatarUpdate}
             onUpdateProfile={handleUpdateProfile}
           />
-          
+
           {/* Вкладки профиля */}
           <ProfileTabs userProfile={userProfile} />
         </div>

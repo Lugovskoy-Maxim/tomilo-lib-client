@@ -5,4 +5,3 @@ export { default as Pagination } from "./pagination";
 export { default as MobileFilterButton } from "./mobile-filter-button";
 export { default as TitlesContent } from "./titles-content";
 export { default as CollapsibleGenresList } from "./CollapsibleGenresList";
-

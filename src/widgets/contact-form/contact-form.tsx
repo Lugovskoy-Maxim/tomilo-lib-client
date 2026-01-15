@@ -18,11 +18,13 @@ export default function ContactForm({ className = "", compact = false }: Contact
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -67,16 +69,17 @@ export default function ContactForm({ className = "", compact = false }: Contact
       {!compact && (
         <div className="flex items-center gap-2 mb-4">
           <Mail className="w-5 h-5 text-[var(--primary)]" />
-          <h3 className="text-lg font-semibold text-[var(--foreground)]">
-            Свяжитесь с нами
-          </h3>
+          <h3 className="text-lg font-semibold text-[var(--foreground)]">Свяжитесь с нами</h3>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-[var(--foreground)] mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-[var(--foreground)] mb-1"
+            >
               Имя
             </label>
             <input
@@ -92,7 +95,10 @@ export default function ContactForm({ className = "", compact = false }: Contact
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-[var(--foreground)] mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-[var(--foreground)] mb-1"
+            >
               Email
             </label>
             <input
@@ -109,7 +115,10 @@ export default function ContactForm({ className = "", compact = false }: Contact
         </div>
 
         <div>
-          <label htmlFor="subject" className="block text-sm font-medium text-[var(--foreground)] mb-1">
+          <label
+            htmlFor="subject"
+            className="block text-sm font-medium text-[var(--foreground)] mb-1"
+          >
             Тема
           </label>
           <select
@@ -130,7 +139,10 @@ export default function ContactForm({ className = "", compact = false }: Contact
         </div>
 
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-[var(--foreground)] mb-1">
+          <label
+            htmlFor="message"
+            className="block text-sm font-medium text-[var(--foreground)] mb-1"
+          >
             Сообщение
           </label>
           <textarea

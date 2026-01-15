@@ -2,14 +2,10 @@ import Image from "next/image";
 import LOGO_IMAGE_COLOR from "../../../public/logo/tomilo_color.svg";
 import SANTA_HAT_IMAGE from "../../../public/logo/snata_hat.svg";
 
-
 import Link from "next/link";
 export default function Logo() {
   return (
-    <Link
-      href="/"
-      className="flex items-end  relative"
-    >
+    <Link href="/" className="flex items-end  relative">
       <Image
         src={LOGO_IMAGE_COLOR}
         alt="Logo"
@@ -19,7 +15,7 @@ export default function Logo() {
         className="grayscale-100 hover:grayscale-0 transition-all"
       />
       {/* New Year's Santa Hat */}
-            <Image
+      <Image
         src={SANTA_HAT_IMAGE}
         alt="Logo"
         width={30}

@@ -61,9 +61,7 @@ export default async function CopyrightPage({ searchParams }: CopyrightPageProps
             <div className="prose prose-lg max-w-none text-[var(--muted-foreground)]">
               {/* Первый раздел */}
               <div className="mb-8">
-                <p className="mb-4 leading-relaxed">
-                  {currentContent.section1}
-                </p>
+                <p className="mb-4 leading-relaxed">{currentContent.section1}</p>
               </div>
 
               {/* Уведомление о нарушении */}
@@ -72,9 +70,7 @@ export default async function CopyrightPage({ searchParams }: CopyrightPageProps
                   <FileText className="w-6 h-6 text-[var(--primary)]" />
                   {currentContent.notificationTitle}
                 </h2>
-                <p className="mb-4 leading-relaxed">
-                  {currentContent.notificationText}
-                </p>
+                <p className="mb-4 leading-relaxed">{currentContent.notificationText}</p>
               </div>
 
               {/* Требования DMCA */}
@@ -82,9 +78,7 @@ export default async function CopyrightPage({ searchParams }: CopyrightPageProps
                 <h3 className="text-xl font-semibold text-[var(--muted-foreground)] mb-4">
                   {currentContent.requirementsTitle}
                 </h3>
-                <p className="mb-4 leading-relaxed">
-                  {currentContent.requirementsText}
-                </p>
+                <p className="mb-4 leading-relaxed">{currentContent.requirementsText}</p>
                 <ul className="list-disc list-inside space-y-2 mb-4 text-[var(--muted-foreground)] leading-relaxed">
                   {currentContent.requirementsList.map((item, index) => (
                     <li key={index}>{item}</li>

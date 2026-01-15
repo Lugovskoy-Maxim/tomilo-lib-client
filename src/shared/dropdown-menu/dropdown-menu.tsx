@@ -1,17 +1,10 @@
 // components/UserDropdown.tsx
 "use client";
 import { useState } from "react";
-import {
-  User,
-  Settings,
-  Bookmark,
-  History,
-  LogOut,
-  CircleDollarSign
-} from "lucide-react";
-import { useRouter } from 'next/navigation';
+import { User, Settings, Bookmark, History, LogOut, CircleDollarSign } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { UserAvatar } from "..";
- 
+
 interface UserDropdownProps {
   isOpen: boolean;
   onClose: () => void;
@@ -36,28 +29,28 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
 
   const menuItems = [
     {
-      id: 'profile',
+      id: "profile",
       icon: User,
-      label: 'Профиль',
-      onClick: () => router.push('/profile'),
+      label: "Профиль",
+      onClick: () => router.push("/profile"),
     },
     {
-      id: 'bookmarks',
+      id: "bookmarks",
       icon: Bookmark,
-      label: 'Закладки',
-      onClick: () => router.push('/profile?tab=bookmarks'),
+      label: "Закладки",
+      onClick: () => router.push("/profile?tab=bookmarks"),
     },
     {
-      id: 'history',
+      id: "history",
       icon: History,
-      label: 'История чтения',
-      onClick: () => router.push('/profile?tab=history'),
+      label: "История чтения",
+      onClick: () => router.push("/profile?tab=history"),
     },
     {
-      id: 'settings',
+      id: "settings",
       icon: Settings,
-      label: 'Настройки',
-      onClick: () => router.push('/settings'),
+      label: "Настройки",
+      onClick: () => router.push("/settings"),
     },
   ];
 
@@ -69,7 +62,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
   return (
     <div
       className="absolute top-full right-0 mt-3 w-60 bg-[var(--background)] rounded-xl shadow-xl border border-[var(--border)] z-50 overflow-hidden"
-      onClick={(e) => e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
     >
       {/* Заголовок с информацией о пользователе */}
       <div className="p-4 border-b border-[var(--border)] bg-[var(--secondary)]">
@@ -82,12 +75,10 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
           />
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-[var(--foreground)] truncate">
-              {user?.name || user?.username || 'Пользователь'}
+              {user?.name || user?.username || "Пользователь"}
             </p>
             {user?.email && (
-              <p className="text-sm text-[var(--muted-foreground)] truncate">
-                {user.email}
-              </p>
+              <p className="text-sm text-[var(--muted-foreground)] truncate">{user.email}</p>
             )}
             {/* Информация о уровне, опыте и балансе */}
             <div className="flex items-center gap-2 mt-2">
@@ -108,12 +99,12 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       {/* Основное меню */}
       <div className="max-h-96 overflow-y-auto">
         <div className="p-2 space-y-1">
-          {menuItems.map((item) => (
+          {menuItems.map(item => (
             <div key={item.id}>
               <button
                 type="button"
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-[var(--secondary)] transition-colors cursor-pointer group ${
-                  activeSubmenu === item.id ? 'bg-[var(--secondary)]' : ''
+                  activeSubmenu === item.id ? "bg-[var(--secondary)]" : ""
                 }`}
                 onClick={item.onClick}
               >
@@ -147,7 +138,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       {/* Футер с версией */}
       <div className="px-4 py-2 border-t border-[var(--border)] bg-[var(--secondary)]">
         <p className="text-xs text-[var(--muted-foreground)] text-center">
-          {user?.id ? `ID: ${user.id}` : 'Неавторизован'}
+          {user?.id ? `ID: ${user.id}` : "Неавторизован"}
         </p>
       </div>
     </div>

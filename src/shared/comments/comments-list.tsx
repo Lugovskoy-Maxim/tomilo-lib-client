@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Comment } from '@/types/comment';
-import { CommentItem } from './comment-item';
-import LoadingSkeleton from '@/shared/skeleton';
+import React from "react";
+import { Comment } from "@/types/comment";
+import { CommentItem } from "./comment-item";
+import LoadingSkeleton from "@/shared/skeleton";
 
 interface CommentsListProps {
   comments: Comment[];
@@ -12,16 +12,11 @@ interface CommentsListProps {
   isLoading?: boolean;
 }
 
-export function CommentsList({
-  comments,
-  onReply,
-  onEdit,
-  isLoading,
-}: CommentsListProps) {
+export function CommentsList({ comments, onReply, onEdit, isLoading }: CommentsListProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <div key={i} className="border-b border-[var(--border)] pb-4">
             <LoadingSkeleton className="h-20" />
           </div>
@@ -40,15 +35,9 @@ export function CommentsList({
 
   return (
     <div className="space-y-4">
-      {comments.map((comment) => (
-        <CommentItem
-          key={comment._id}
-          comment={comment}
-          onReply={onReply}
-          onEdit={onEdit}
-        />
+      {comments.map(comment => (
+        <CommentItem key={comment._id} comment={comment} onReply={onReply} onEdit={onEdit} />
       ))}
     </div>
   );
 }
-

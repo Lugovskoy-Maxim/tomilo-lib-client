@@ -8,14 +8,11 @@ interface PeriodFilterProps {
 /**
  * Компонент фильтра периодов для топа тайтлов
  */
-export default function PeriodFilter({
-  activePeriod,
-  onPeriodChange,
-}: PeriodFilterProps) {
+export default function PeriodFilter({ activePeriod, onPeriodChange }: PeriodFilterProps) {
   return (
     <div className="flex justify-center mb-6 sm:mb-8">
       <div className="flex gap-2 p-1 bg-[var(--muted)]/30 rounded-lg border border-[var(--border)]">
-        {(["day", "week", "month"] as Period[]).map((period) => (
+        {(["day", "week", "month"] as Period[]).map(period => (
           <button
             key={period}
             onClick={() => onPeriodChange(period)}

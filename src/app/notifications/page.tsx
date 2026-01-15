@@ -42,7 +42,7 @@ export default function NotificationsPage() {
     try {
       await markAllAsRead().unwrap();
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      console.error("Error marking all notifications as read:", error);
     }
   };
 
@@ -138,7 +138,7 @@ export default function NotificationsPage() {
                   { key: "all" as const, label: "Все" },
                   { key: "updates" as const, label: "Обновления" },
                   { key: "users" as const, label: "Пользователи" },
-                  { key: "system" as const, label: "Система" }
+                  { key: "system" as const, label: "Система" },
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -164,7 +164,7 @@ export default function NotificationsPage() {
                 id="show-read"
                 type="checkbox"
                 checked={showRead}
-                onChange={(e) => setShowRead(e.target.checked)}
+                onChange={e => setShowRead(e.target.checked)}
                 className="rounded"
               />
             </div>
@@ -180,10 +180,7 @@ export default function NotificationsPage() {
           ) : filteredNotifications.length > 0 ? (
             <div className="space-y-2">
               {filteredNotifications.map((notification: Notification) => (
-                <NotificationCard
-                  key={notification._id}
-                  notification={notification}
-                />
+                <NotificationCard key={notification._id} notification={notification} />
               ))}
             </div>
           ) : (
@@ -193,8 +190,7 @@ export default function NotificationsPage() {
               <p className="text-muted-foreground">
                 {activeFilter === "all"
                   ? "У вас пока нет уведомлений"
-                  : `Нет уведомлений типа "${activeFilter === "updates" ? "Обновления" : activeFilter === "users" ? "Пользователи" : "Система"}"`
-                }
+                  : `Нет уведомлений типа "${activeFilter === "updates" ? "Обновления" : activeFilter === "users" ? "Пользователи" : "Система"}"`}
               </p>
             </div>
           )}

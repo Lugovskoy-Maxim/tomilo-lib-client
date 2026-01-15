@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
-import { Toast as ToastType } from '@/types/toast';
-import { useToastContext } from '@/contexts/ToastContext';
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
+import { Toast as ToastType } from "@/types/toast";
+import { useToastContext } from "@/contexts/ToastContext";
 
 interface ToastProps {
   toast: ToastType;
@@ -18,10 +18,10 @@ const toastIcons = {
 };
 
 const toastClasses = {
-  success: 'bg-[var(--chart-1)]',
-  error: 'bg-[var(--chart-5)]',
-  warning: 'bg-[var(--chart-3)]',
-  info: 'bg-[var(--chart-2)]',
+  success: "bg-[var(--chart-1)]",
+  error: "bg-[var(--chart-5)]",
+  warning: "bg-[var(--chart-3)]",
+  info: "bg-[var(--chart-2)]",
 };
 
 export const Toast: React.FC<ToastProps> = ({ toast }) => {
@@ -53,7 +53,7 @@ export const ToastContainer: React.FC = () => {
   return (
     <div className="fixed top-4 right-4 z-50">
       <AnimatePresence>
-        {toasts.map((toast) => (
+        {toasts.map(toast => (
           <Toast key={toast.id} toast={toast} />
         ))}
       </AnimatePresence>

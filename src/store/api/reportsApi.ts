@@ -1,11 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseDto } from "@/types/api";
-import {
-  Report,
-  CreateReportDto,
-  UpdateReportStatusDto,
-  ReportsResponse,
-} from "@/types/report";
+import { Report, CreateReportDto, UpdateReportStatusDto, ReportsResponse } from "@/types/report";
 
 const REPORTS_TAG = "Reports";
 
@@ -13,7 +8,7 @@ export const reportsApi = createApi({
   reducerPath: "reportsApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem("tomilo_lib_token");
         if (token) {
@@ -24,10 +19,10 @@ export const reportsApi = createApi({
     },
   }),
   tagTypes: [REPORTS_TAG],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     // Create a new report
     createReport: builder.mutation<ApiResponseDto<Report>, CreateReportDto>({
-      query: (data) => ({
+      query: data => ({
         url: "/reports",
         method: "POST",
         body: data,
@@ -45,7 +40,7 @@ export const reportsApi = createApi({
         isResolved?: string;
       }
     >({
-      query: (params) => ({
+      query: params => ({
         url: "/reports",
         params,
       }),
@@ -54,7 +49,7 @@ export const reportsApi = createApi({
 
     // Get a specific report (admin only)
     getReport: builder.query<ApiResponseDto<Report>, string>({
-      query: (id) => `/reports/${id}`,
+      query: id => `/reports/${id}`,
       providesTags: (result, error, id) => [{ type: REPORTS_TAG, id }],
     }),
 
@@ -73,7 +68,7 @@ export const reportsApi = createApi({
 
     // Delete a report (admin only)
     deleteReport: builder.mutation<ApiResponseDto<void>, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/reports/${id}`,
         method: "DELETE",
       }),

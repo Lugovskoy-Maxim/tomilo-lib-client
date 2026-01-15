@@ -17,12 +17,7 @@ export default function NotFound() {
           {/* Анимированная иконка */}
           <div className="relative mb-8">
             <div className="w-32 h-32 mx-auto flex items-center justify-center">
-              <Image
-                src={BG_IMAGE}
-                alt="404"
-                className="w-32 h-32 animate-pulse"
-                unoptimized
-              />
+              <Image src={BG_IMAGE} alt="404" className="w-32 h-32 animate-pulse" unoptimized />
             </div>
           </div>
 

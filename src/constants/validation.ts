@@ -18,8 +18,6 @@ export const VALIDATION_MESSAGES = {
   AUTHOR_REQUIRED: "Автор обязателен для заполнения",
   AUTHOR_PLACEHOLDER: "Введите автора",
 
-
-
   DESCRIPTION_REQUIRED: "Описание обязательно для заполнения",
   DESCRIPTION_PLACEHOLDER: "Введите описание",
 

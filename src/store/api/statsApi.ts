@@ -8,7 +8,7 @@ export const statsApi = createApi({
   reducerPath: "statsApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (token) {
@@ -19,7 +19,7 @@ export const statsApi = createApi({
     },
   }),
   tagTypes: ["Stats"],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getStats: builder.query<ApiResponseDto<StatsResponse>, void>({
       query: () => "/stats",
       providesTags: ["Stats"],

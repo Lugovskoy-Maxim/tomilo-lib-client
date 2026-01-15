@@ -1,7 +1,6 @@
 "use client";
 
-
-import React from 'react';
+import React from "react";
 import { BookOpen, Trash2, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useMemo } from "react";
@@ -46,8 +45,11 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
       if (!historyItem.chapters || !Array.isArray(historyItem.chapters)) return [];
 
       return historyItem.chapters.map(chapter => {
-        const isTitleObject = typeof historyItem.titleId === 'object' && historyItem.titleId !== null;
-        const titleId = isTitleObject ? (historyItem.titleId as { _id: string })._id : historyItem.titleId as string;
+        const isTitleObject =
+          typeof historyItem.titleId === "object" && historyItem.titleId !== null;
+        const titleId = isTitleObject
+          ? (historyItem.titleId as { _id: string })._id
+          : (historyItem.titleId as string);
 
         return {
           titleId,
@@ -59,7 +61,7 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
           // Добавляем ключ для уникальной идентификации
           uniqueKey: `${titleId}-${chapter.chapterId}-${chapter.readAt || historyItem.readAt}`,
           // Если titleId - объект, сохраняем его данные, иначе undefined
-          titleData: isTitleObject ? historyItem.titleId as TitleData : undefined
+          titleData: isTitleObject ? (historyItem.titleId as TitleData) : undefined,
         };
       });
     });
@@ -82,12 +84,9 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
       });
   }, [allChapters]);
 
-  const handleRemoveFromHistory = async (
-    titleId: string,
-    chapterId: string
-  ) => {
+  const handleRemoveFromHistory = async (titleId: string, chapterId: string) => {
     const key = `${titleId}-${chapterId}`;
-    setLoadingItems((prev) => ({ ...prev, [key]: true }));
+    setLoadingItems(prev => ({ ...prev, [key]: true }));
 
     try {
       const result = await removeFromReadingHistory(titleId, chapterId);
@@ -99,7 +98,7 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
       console.error("Ошибка при удалении из истории чтения:", error);
       alert("Произошла ошибка при удаления из истории чтения");
     } finally {
-      setLoadingItems((prev) => {
+      setLoadingItems(prev => {
         const newLoading = { ...prev };
         delete newLoading[key];
         return newLoading;
@@ -115,15 +114,13 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
       return coverImage;
     }
 
-    return `${
-      process.env.NEXT_PUBLIC_URL || "http://localhost:3001"
-    }${coverImage}`;
+    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${coverImage}`;
   };
 
   // Преобразуем изображение в строку для использования в OptimizedImage
   const getImageUrlString = (coverImage: string | undefined) => {
     const imageUrl = getImageUrl(coverImage);
-    return typeof imageUrl === 'string' ? imageUrl : imageUrl.src || '';
+    return typeof imageUrl === "string" ? imageUrl : imageUrl.src || "";
   };
 
   // Если история чтения пуста, показываем сообщение
@@ -136,9 +133,7 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
             <span>История чтения</span>
           </h2>
         </div>
-        <div className="text-center py-8 text-[var(--muted-foreground)]">
-          История чтения пуста
-        </div>
+        <div className="text-center py-8 text-[var(--muted-foreground)]">История чтения пуста</div>
       </div>
     );
   }
@@ -156,7 +151,7 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
       </div>
 
       <div className="grid grid-cols-1 gap-2">
-        {recentChapters.slice(0, limit || recentChapters.length).map((item) => {
+        {recentChapters.slice(0, limit || recentChapters.length).map(item => {
           const loadingKey = `${item.titleId}-${item.chapterId}`;
           // Получаем данные о тайтле из item.titleData (теперь данные встроены в API ответ)
           const title = item.titleData;
@@ -167,9 +162,11 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
               className="bg-[var(--background)] rounded-lg p-2 border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer group"
               onClick={() => {
                 if (item.titleId && item.chapterId) {
-
                   router.push(
-                    getChapterPath({ id: item.titleId, slug: item.titleData?.slug }, item.chapterId)
+                    getChapterPath(
+                      { id: item.titleId, slug: item.titleData?.slug },
+                      item.chapterId,
+                    ),
                   );
                 }
               }}
@@ -210,24 +207,22 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
                     {title?.name || `Манга #${item.titleId}`}
                   </h3>
                   <p className="text-xs text-[var(--muted-foreground)] mb-2">
-                    Глава {item.chapterNumber || 'N/A'}
+                    Глава {item.chapterNumber || "N/A"}
                     {item.chapterTitle && ` - ${item.chapterTitle}`}
                   </p>
                   <div className="flex items-center space-x-2 text-xs text-[var(--muted-foreground)]">
                     <Clock className="w-3 h-3" />
-                    <span>
-                      {new Date(item.readAt).toLocaleDateString("ru-RU")}
-                    </span>
+                    <span>{new Date(item.readAt).toLocaleDateString("ru-RU")}</span>
                     <span className="text-[var(--muted-foreground)]/60">
                       {new Date(item.readAt).toLocaleTimeString("ru-RU", {
-                        hour: '2-digit',
-                        minute: '2-digit'
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </span>
                   </div>
                 </div>
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     if (item.titleId && item.chapterId) {
                       handleRemoveFromHistory(item.titleId, item.chapterId);
@@ -237,11 +232,7 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
                   className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-500/10 rounded transition-all disabled:opacity-50"
                 >
                   {loadingItems[loadingKey] ? (
-                    <svg
-                      className="w-3 h-3 animate-spin"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle
                         className="opacity-25"
                         cx="12"

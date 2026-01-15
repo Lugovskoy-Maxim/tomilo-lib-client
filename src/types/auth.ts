@@ -1,5 +1,5 @@
 // ApiResponseDto - стандартный формат ответа API
-export type { ApiResponseDto } from './api';
+export type { ApiResponseDto } from "./api";
 
 export interface LoginData {
   email: string;
@@ -44,4 +44,3 @@ export interface AuthState {
 
 // RTK Query
 export type User = StoredUser;
-  

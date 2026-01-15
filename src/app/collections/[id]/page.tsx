@@ -1,9 +1,6 @@
-
-
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { CollectionDetails } from "@/widgets";
-
 
 interface CollectionPageProps {
   params: Promise<{ id: string }>;
@@ -13,7 +10,7 @@ interface CollectionPageProps {
 async function getCollectionDataById(id: string) {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/collections/${id}`
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/collections/${id}`,
     );
     if (!response.ok) {
       throw new Error(`Failed to fetch collection by id: ${response.status}`);
@@ -37,9 +34,9 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
     const collectionData = await getCollectionDataById(id);
     const collectionName = collectionData.name || "Коллекция";
     const description = collectionData.description
-      ? collectionData.description.substring(0, 160).replace(/<[^>]*>/g, '') + '...'
+      ? collectionData.description.substring(0, 160).replace(/<[^>]*>/g, "") + "..."
       : `Просмотрите коллекцию "${collectionName}" с ${collectionData.titles?.length || 0} тайтлами`;
-    
+
     const image = collectionData.cover
       ? `${baseUrl}${collectionData.cover}`
       : `${baseUrl}/logo/tomilo_color.svg`;
@@ -49,17 +46,20 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
       title: `Посмотрите коллекцию "${collectionName}" - Tomilo-lib.ru`,
       description: description,
 
-      keywords: `${collectionName}, коллекция, тайтлы, манга, маньхуа, комиксы, онлайн чтение, ${collectionData.titles?.slice(0, 5).map((title: { name: string }) => title.name).join(', ')}`,
+      keywords: `${collectionName}, коллекция, тайтлы, манга, маньхуа, комиксы, онлайн чтение, ${collectionData.titles
+        ?.slice(0, 5)
+        .map((title: { name: string }) => title.name)
+        .join(", ")}`,
       openGraph: {
         title: `Посмотрите коллекцию "${collectionName}" - Tomilo-lib.ru`,
         description: description,
-        type: 'website',
+        type: "website",
         url: `${baseUrl}/collections/${id}`,
-        siteName: 'Tomilo-lib.ru',
+        siteName: "Tomilo-lib.ru",
         images: [{ url: image }],
       },
       twitter: {
-        card: 'summary_large_image',
+        card: "summary_large_image",
         title: `Посмотрите коллекцию "${collectionName}" - Tomilo-lib.ru`,
         description: description,
         images: [image],
@@ -68,10 +68,10 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
 
     return metadata;
   } catch (error) {
-    console.error('Ошибка при генерации метаданных коллекции:', error);
+    console.error("Ошибка при генерации метаданных коллекции:", error);
     return {
-      title: 'Коллекция не найдена - Tomilo-lib.ru',
-      description: 'Запрашиваемая коллекция не найдена',
+      title: "Коллекция не найдена - Tomilo-lib.ru",
+      description: "Запрашиваемая коллекция не найдена",
     };
   }
 }
@@ -82,7 +82,7 @@ export default async function CollectionPageRoute({ params }: CollectionPageProp
   const { id } = resolvedParams;
 
   // Валидация ID
-  if (!id || id === 'undefined') {
+  if (!id || id === "undefined") {
     notFound();
   }
 

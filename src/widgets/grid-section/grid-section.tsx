@@ -56,10 +56,7 @@ export default function GridSection<T>({
     return (
       <>
         {parts[0]}
-        <Link
-          href={descriptionLink.href}
-          className="text-[var(--chart-1)] hover:underline"
-        >
+        <Link href={descriptionLink.href} className="text-[var(--chart-1)] hover:underline">
           {descriptionLink.text}
         </Link>
         {parts[1]}
@@ -73,23 +70,17 @@ export default function GridSection<T>({
       <div className="flex items-center justify-between mb-6">
         <div className="flex flex-col w-full">
           <div className="flex items-center gap-2 mb-2">
-            {icon && (
-              <div className="w-6 h-6 text-[var(--muted-foreground)]">
-                {icon}
-              </div>
-            )}
+            {icon && <div className="w-6 h-6 text-[var(--muted-foreground)]">{icon}</div>}
             {title && (
-              <h2 className="text-2xl font-bold text-[var(--muted-foreground)]">
-                {title}
-              </h2>
+              <h2 className="text-2xl font-bold text-[var(--muted-foreground)]">{title}</h2>
             )}
           </div>
-          
+
           <div className="flex justify-between items-center w-full">
             <p className="text-[var(--muted-foreground)] text-sm max-w-2xl">
               {renderDescription()}
             </p>
-            
+
             {href && (
               <Link
                 href={href}
@@ -105,7 +96,7 @@ export default function GridSection<T>({
       {/* Grid с карточками - 3 колонки */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
         {data.length > 0 ? (
-          data.map((item) => (
+          data.map(item => (
             <div
               key={getCardId(item)}
               data-card-id={getCardId(item)}

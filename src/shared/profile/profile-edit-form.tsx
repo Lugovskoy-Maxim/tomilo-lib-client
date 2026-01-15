@@ -27,7 +27,10 @@ export default function ProfileEditForm({ userProfile, onSave, onCancel }: Profi
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="username" className="block text-sm font-medium text-[var(--muted-foreground)] mb-1">
+        <label
+          htmlFor="username"
+          className="block text-sm font-medium text-[var(--muted-foreground)] mb-1"
+        >
           Имя пользователя
         </label>
         <div className="relative">
@@ -44,7 +47,10 @@ export default function ProfileEditForm({ userProfile, onSave, onCancel }: Profi
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-[var(--muted-foreground)] mb-1">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium text-[var(--muted-foreground)] mb-1"
+        >
           Email
         </label>
         <div className="relative">
@@ -62,7 +68,10 @@ export default function ProfileEditForm({ userProfile, onSave, onCancel }: Profi
       </div>
 
       <div>
-        <label htmlFor="birthDate" className="block text-sm font-medium text-[var(--muted-foreground)] mb-1">
+        <label
+          htmlFor="birthDate"
+          className="block text-sm font-medium text-[var(--muted-foreground)] mb-1"
+        >
           Дата рождения
         </label>
         <div className="relative">

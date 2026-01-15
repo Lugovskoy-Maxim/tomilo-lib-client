@@ -21,11 +21,11 @@ function transformUserToProfile(user: User): UserProfile | null {
     balance: user.balance,
     bookmarks: user.bookmarks || [],
     readingHistory: Array.isArray(user.readingHistory)
-      ? user.readingHistory.map((item) => ({
+      ? user.readingHistory.map(item => ({
           ...item,
           titleId: item.titleId, // Preserve the original titleId (can be string, null, or object)
           chapters: Array.isArray(item.chapters)
-            ? item.chapters.map((chap) => ({
+            ? item.chapters.map(chap => ({
                 chapterId:
                   typeof chap.chapterId === "object" && chap.chapterId !== null
                     ? ((chap.chapterId as { _id: string })._id as string)
@@ -70,7 +70,7 @@ export function useProfile() {
 
   // Обработчик обновления аватара
   const handleAvatarUpdate = (newAvatarUrl: string) => {
-    setUserProfile((prev) => (prev ? { ...prev, avatar: newAvatarUrl } : null));
+    setUserProfile(prev => (prev ? { ...prev, avatar: newAvatarUrl } : null));
     // Здесь можно добавить логику для обновления аватара на сервере
   };
 

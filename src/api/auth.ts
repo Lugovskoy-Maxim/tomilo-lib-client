@@ -1,51 +1,47 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { AuthResponse, LoginData, RegisterData, User } from '@/types/auth';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { AuthResponse, LoginData, RegisterData, User } from "@/types/auth";
 
 // Ключи для localStorage (сохраняем ваши существующие)
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
 export const authApi = createApi({
-  reducerPath: 'authApi',
+  reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
-    prepareHeaders: (headers) => {
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+    prepareHeaders: headers => {
       // Используем ваши существующие ключи localStorage
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (token) {
-          headers.set('authorization', `Bearer ${token}`);
+          headers.set("authorization", `Bearer ${token}`);
         }
       }
       return headers;
     },
   }),
-  tagTypes: ['Auth'],
-  endpoints: (builder) => ({
+  tagTypes: ["Auth"],
+  endpoints: builder => ({
     login: builder.mutation<AuthResponse, LoginData>({
-      query: (credentials) => ({
-        url: '/auth/login',
-        method: 'POST',
+      query: credentials => ({
+        url: "/auth/login",
+        method: "POST",
         body: credentials,
       }),
-      invalidatesTags: ['Auth'],
+      invalidatesTags: ["Auth"],
     }),
     register: builder.mutation<AuthResponse, RegisterData>({
-      query: (userData) => ({
-        url: '/auth/register',
-        method: 'POST',
+      query: userData => ({
+        url: "/auth/register",
+        method: "POST",
         body: userData,
       }),
-      invalidatesTags: ['Auth'],
+      invalidatesTags: ["Auth"],
     }),
     getMe: builder.query<User, void>({
-      query: () => '/profile',
-      providesTags: ['Auth'],
+      query: () => "/profile",
+      providesTags: ["Auth"],
     }),
   }),
 });
 
-export const {
-  useLoginMutation,
-  useRegisterMutation,
-  useGetMeQuery,
-} = authApi;
+export const { useLoginMutation, useRegisterMutation, useGetMeQuery } = authApi;

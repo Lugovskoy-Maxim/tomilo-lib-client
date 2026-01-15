@@ -7,10 +7,7 @@ import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  AgeVerificationModal,
-  checkAgeVerification,
-} from "@/shared/modal/age-verification-modal";
+import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
 
 interface CombinedTopData {
   topManhwa: TopTitleCombined[];
@@ -107,9 +104,7 @@ const CardItem = ({ item }: CardItemProps) => {
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                <span className="text-xs text-[var(--muted-foreground)]">
-                  Нет фото
-                </span>
+                <span className="text-xs text-[var(--muted-foreground)]">Нет фото</span>
               </div>
             )}
             {item.isAdult && (
@@ -128,9 +123,7 @@ const CardItem = ({ item }: CardItemProps) => {
                 {translateTitleType(item.type)}
               </span>
               <span className="text-xs text-[var(--muted-foreground)]">•</span>
-              <span className="text-xs text-[var(--muted-foreground)]">
-                {item.year || "2025"}
-              </span>
+              <span className="text-xs text-[var(--muted-foreground)]">{item.year || "2025"}</span>
             </div>
             <h4
               className={`text-[var(--primary)] font-medium group-hover:text-[var(--chart-1)]/80 transition-colors line-clamp-2 ${
@@ -147,15 +140,11 @@ const CardItem = ({ item }: CardItemProps) => {
 
               <span
                 className={`flex gap-1 text-xs font-medium items-center justify-center ${
-                  item.rating >= 7
-                    ? "text-[var(--chart-5)]"
-                    : "text-[var(--muted-foreground)]"
+                  item.rating >= 7 ? "text-[var(--chart-5)]" : "text-[var(--muted-foreground)]"
                 }`}
               >
                 <Star className="w-4 h-4" />
-                {item.rating
-                  ? parseFloat(item.rating.toFixed(1)).toString()
-                  : "0.0"}
+                {item.rating ? parseFloat(item.rating.toFixed(1)).toString() : "0.0"}
               </span>
             </div>
           </div>
@@ -182,19 +171,11 @@ interface ColumnProps {
   showViews?: boolean;
 }
 
-const Column = ({
-  title,
-  href,
-  items,
-  showRating = false,
-  showViews = true,
-}: ColumnProps) => {
+const Column = ({ title, href, items, showRating = false, showViews = true }: ColumnProps) => {
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg md:text-2xl text-[var(--muted-foreground)] font-bold">
-          {title}
-        </h3>
+        <h3 className="text-lg md:text-2xl text-[var(--muted-foreground)] font-bold">{title}</h3>
         <Link
           href={href}
           className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
@@ -204,13 +185,8 @@ const Column = ({
         </Link>
       </div>
       <div className="space-y-4">
-        {items.slice(0, 5).map((item) => (
-          <CardItem
-            key={item.id}
-            item={item}
-            showRating={showRating}
-            showViews={showViews}
-          />
+        {items.slice(0, 5).map(item => (
+          <CardItem key={item.id} item={item} showRating={showRating} showViews={showViews} />
         ))}
       </div>
     </div>

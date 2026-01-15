@@ -10,7 +10,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { ReportModal } from "@/shared/report/report-modal";
 
-
 interface LeftSidebarProps {
   titleData: Title;
   chapters: Chapter[];
@@ -36,7 +35,6 @@ export function LeftSidebar({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   return (
-
     <div className="sticky top-2">
       <div className="flex relative w-full max-w-[280px] h-auto justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
         {titleData?.coverImage ? (
@@ -46,22 +44,23 @@ export function LeftSidebar({
             width={280}
             height={420}
             unoptimized={true}
-            className={`object-cover w-full h-auto rounded-xl ${shouldBlurImage ? 'blur-sm' : ''}`}
+            className={`object-cover w-full h-auto rounded-xl ${shouldBlurImage ? "blur-sm" : ""}`}
             priority
             sizes="(max-width: 640px) 90vw, (max-width: 1024px) 25vw, 280px"
-            style={{ aspectRatio: '2/3' }}
+            style={{ aspectRatio: "2/3" }}
           />
         ) : (
-          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-auto" style={{ aspectRatio: '2/3' }} />
+          <div
+            className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-auto"
+            style={{ aspectRatio: "2/3" }}
+          />
         )}
       </div>
 
       {/* Admin ID display */}
       {isAdmin && (
         <div className="text-center mt-4">
-          <p className="text-sm text-[var(--muted-foreground)]">
-            ID: {titleData._id}
-          </p>
+          <p className="text-sm text-[var(--muted-foreground)]">ID: {titleData._id}</p>
         </div>
       )}
 

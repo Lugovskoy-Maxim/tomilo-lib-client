@@ -26,7 +26,6 @@ export function DecorationCard({
   onUnequip,
   isLoading = false,
 }: DecorationCardProps) {
-
   const { isAuthenticated } = useAuth();
 
   const { success, error: showError } = useToast();
@@ -34,12 +33,10 @@ export function DecorationCard({
 
   const handlePurchase = async () => {
     if (!isAuthenticated) {
-
-
       showError("Необходимо войти в аккаунт для покупки");
       return;
     }
-    
+
     try {
       await onPurchase?.(decoration.id);
       success(`"${decoration.name}" успешно куплено!`);
@@ -50,7 +47,6 @@ export function DecorationCard({
 
   const handleEquip = async () => {
     if (!isAuthenticated) {
-
       showError("Необходимо войти в аккаунт для экипировки");
       return;
     }
@@ -144,14 +140,14 @@ export function DecorationCard({
 
   const getTypeIcon = () => {
     switch (decoration.type) {
-      case 'avatar':
-        return '👤';
-      case 'background':
-        return '🖼️';
-      case 'card':
-        return '🃏';
+      case "avatar":
+        return "👤";
+      case "background":
+        return "🖼️";
+      case "card":
+        return "🃏";
       default:
-        return '🎨';
+        return "🎨";
     }
   };
 
@@ -169,12 +165,12 @@ export function DecorationCard({
           alt={decoration.name}
           fill
           className={`object-cover group-hover:scale-105 transition-transform duration-200 ${
-            isImageLoading ? 'opacity-0' : 'opacity-100'
+            isImageLoading ? "opacity-0" : "opacity-100"
           }`}
           onLoad={() => setIsImageLoading(false)}
           onError={() => setIsImageLoading(false)}
         />
-        
+
         {/* Статусы */}
         <div className="absolute top-2 left-2 flex gap-1">
           {isEquipped && (
@@ -199,9 +195,7 @@ export function DecorationCard({
       {/* Контент */}
       <div className="p-4">
         <div className="mb-2">
-          <h3 className="font-semibold text-[var(--foreground)] line-clamp-1">
-            {decoration.name}
-          </h3>
+          <h3 className="font-semibold text-[var(--foreground)] line-clamp-1">{decoration.name}</h3>
           <p className="text-sm text-[var(--muted-foreground)] line-clamp-2 mt-1">
             {decoration.description}
           </p>
@@ -217,9 +211,7 @@ export function DecorationCard({
         )}
 
         {/* Кнопка действия */}
-        <div className="mt-auto">
-          {getActionButton()}
-        </div>
+        <div className="mt-auto">{getActionButton()}</div>
       </div>
     </div>
   );

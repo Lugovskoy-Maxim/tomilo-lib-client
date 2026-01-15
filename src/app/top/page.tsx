@@ -3,13 +3,7 @@ import { useMemo } from "react";
 import { Trophy } from "lucide-react";
 
 import { Carousel, Footer, Header } from "@/widgets";
-import {
-
-  TopTitleCard,
-  PeriodFilter,
-  LoadingSkeleton,
-  ErrorState,
-} from "@/shared";
+import { TopTitleCard, PeriodFilter, LoadingSkeleton, ErrorState } from "@/shared";
 import { useHomeData } from "@/hooks/useHomeData";
 import { RankedTopTitle } from "@/types/home";
 import { useSEO } from "@/hooks/useSEO";
@@ -86,26 +80,19 @@ export default function TopPage() {
         </div>
 
         {/* Фильтр периодов */}
-        <PeriodFilter
-          activePeriod={activePeriod}
-          onPeriodChange={setActivePeriod}
-        />
+        <PeriodFilter activePeriod={activePeriod} onPeriodChange={setActivePeriod} />
 
         {/* Топ тайтлы */}
         {activeTopTitles.loading ? (
           <LoadingSkeleton />
-          ) : activeTopTitles.error ? (
-            <ErrorState />
-          ) : topTitlesWithRank.length > 0 ? (
+        ) : activeTopTitles.error ? (
+          <ErrorState />
+        ) : topTitlesWithRank.length > 0 ? (
           <div className="w-full max-w-7xl mx-auto px-4">
             {/* Топ 3 тайтла */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {topTitlesWithRank.slice(0, 3).map((title) => (
-                <TopTitleCard
-                  key={title.id}
-                  data={title}
-                  variant="top3"
-                />
+              {topTitlesWithRank.slice(0, 3).map(title => (
+                <TopTitleCard key={title.id} data={title} variant="top3" />
               ))}
             </div>
 
@@ -114,7 +101,7 @@ export default function TopPage() {
               <Carousel
                 title={`Топ тайтлов ${periodLabels[activePeriod]} (4-${topTitlesWithRank.length})`}
                 data={topTitlesWithRank.slice(3)}
-                cardComponent={(props) => <TopTitleCard {...props} variant="carousel" />}
+                cardComponent={props => <TopTitleCard {...props} variant="carousel" />}
                 type="browse"
                 icon={<Trophy className="w-6 h-6" />}
                 cardWidth="w-48 sm:w-52 md:w-56 lg:w-60"
@@ -125,9 +112,7 @@ export default function TopPage() {
         ) : (
           <div className="text-center py-12">
             <Trophy className="w-16 h-16 text-[var(--muted-foreground)] mx-auto mb-4" />
-            <p className="text-[var(--muted-foreground)]">
-              Нет данных для отображения
-            </p>
+            <p className="text-[var(--muted-foreground)]">Нет данных для отображения</p>
           </div>
         )}
       </main>
@@ -135,5 +120,3 @@ export default function TopPage() {
     </>
   );
 }
-
-

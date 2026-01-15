@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Comment, CommentEntityType } from '@/types/comment';
-import { useGetCommentsQuery } from '@/store/api/commentsApi';
-import { CommentForm } from './comment-form';
-import { CommentsList } from './comments-list';
-import { Button } from '@/shared/ui/button';
-import { MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from "react";
+import { Comment, CommentEntityType } from "@/types/comment";
+import { useGetCommentsQuery } from "@/store/api/commentsApi";
+import { CommentForm } from "./comment-form";
+import { CommentsList } from "./comments-list";
+import { Button } from "@/shared/ui/button";
+import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CommentsSectionProps {
   entityType: CommentEntityType;
@@ -14,11 +14,7 @@ interface CommentsSectionProps {
   className?: string;
 }
 
-export function CommentsSection({
-  entityType,
-  entityId,
-  className = '',
-}: CommentsSectionProps) {
+export function CommentsSection({ entityType, entityId, className = "" }: CommentsSectionProps) {
   const [page, setPage] = useState(1);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
@@ -66,11 +62,7 @@ export function CommentsSection({
       <div className="flex items-center gap-2">
         <MessageCircle className="w-5 h-5 text-[var(--primary)]" />
         <h2 className="text-xl font-semibold">Комментарии</h2>
-        {total > 0 && (
-          <span className="text-sm text-[var(--muted-foreground)]">
-            ({total})
-          </span>
-        )}
+        {total > 0 && <span className="text-sm text-[var(--muted-foreground)]">({total})</span>}
       </div>
 
       {/* Comment Form */}
@@ -112,7 +104,7 @@ export function CommentsSection({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
@@ -124,7 +116,7 @@ export function CommentsSection({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
           >
             Вперед
@@ -135,4 +127,3 @@ export function CommentsSection({
     </div>
   );
 }
-

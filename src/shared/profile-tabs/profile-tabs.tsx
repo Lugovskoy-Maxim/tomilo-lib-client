@@ -71,7 +71,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
       {/* Навигация по вкладкам */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-1">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
-          {tabs.map((tab) => {
+          {tabs.map(tab => {
             const Icon = tab.icon;
             return (
               <button
@@ -106,16 +106,9 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
         {activeTab === "bookmarks" && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
-                Мои закладки
-              </h2>
-              <p className="text-[var(--muted-foreground)] mb-4">
-                Все сохраненные вами манги
-              </p>
-              <BookmarksSection
-                bookmarks={userProfile.bookmarks}
-                showAll={true}
-              />
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Мои закладки</h2>
+              <p className="text-[var(--muted-foreground)] mb-4">Все сохраненные вами манги</p>
+              <BookmarksSection bookmarks={userProfile.bookmarks} showAll={true} />
             </div>
           </div>
         )}
@@ -124,15 +117,9 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
         {activeTab === "history" && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
-                История чтения
-              </h2>
-              <p className="text-[var(--muted-foreground)] mb-4">
-                Все прочитанные вами главы
-              </p>
-              <ReadingHistorySection
-                readingHistory={userProfile.readingHistory}
-              />
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">История чтения</h2>
+              <p className="text-[var(--muted-foreground)] mb-4">Все прочитанные вами главы</p>
+              <ReadingHistorySection readingHistory={userProfile.readingHistory} />
             </div>
           </div>
         )}

@@ -9,8 +9,8 @@ export default function SettingsPage() {
   useSEO(
     seoConfigs.static(
       "Настройки - Tomilo-lib.ru",
-      "Персональные настройки сайта. Настройте тему, язык и другие параметры для комфортного чтения манги и маньхуа."
-    )
+      "Персональные настройки сайта. Настройте тему, язык и другие параметры для комфортного чтения манги и маньхуа.",
+    ),
   );
 
   return (
@@ -41,9 +41,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-sm font-medium text-[var(--foreground)]">
-                    Тема
-                  </span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">Тема</span>
                   <p className="text-xs text-[var(--muted-foreground)]">
                     Цветовая схема интерфейса
                   </p>
@@ -56,9 +54,7 @@ export default function SettingsPage() {
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-2">
               <div className="flex items-center gap-3 mb-4">
                 <Languages className="w-5 h-5 text-[var(--primary)]" />
-                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
-                  Язык
-                </h2>
+                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Язык</h2>
               </div>
               {/*
             <div className="flex items-center justify-between">
@@ -96,11 +92,7 @@ export default function SettingsPage() {
                     </p>
                   </div>
                   <div className="relative inline-block w-10 h-5">
-                    <input
-                      type="checkbox"
-                      id="new-chapters"
-                      className="sr-only peer"
-                    />
+                    <input type="checkbox" id="new-chapters" className="sr-only peer" />
                     <label
                       htmlFor="new-chapters"
                       className="block w-full h-full bg-[var(--muted)] border border-[var(--border)] rounded-full cursor-pointer peer-checked:bg-[var(--primary)] peer-checked:border-[var(--primary)] transition-colors"
@@ -119,11 +111,7 @@ export default function SettingsPage() {
                     </p>
                   </div>
                   <div className="relative inline-block w-10 h-5">
-                    <input
-                      type="checkbox"
-                      id="comments"
-                      className="sr-only peer"
-                    />
+                    <input type="checkbox" id="comments" className="sr-only peer" />
                     <label
                       htmlFor="comments"
                       className="block w-full h-full bg-[var(--muted)] border border-[var(--border)] rounded-full cursor-pointer peer-checked:bg-[var(--primary)] peer-checked:border-[var(--primary)] transition-colors"
@@ -139,9 +127,7 @@ export default function SettingsPage() {
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-2">
               <div className="flex items-center gap-3 mb-4">
                 <Eye className="w-5 h-5 text-[var(--primary)]" />
-                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
-                  Чтение
-                </h2>
+                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Чтение</h2>
               </div>
             </div>
           </div>

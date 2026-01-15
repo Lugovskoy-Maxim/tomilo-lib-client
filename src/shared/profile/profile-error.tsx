@@ -10,10 +10,8 @@ export default function ErrorState() {
           <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
             Пользователь не найден
           </h1>
-          <p className="text-[var(--muted-foreground)] mb-6">
-            Не удалось загрузить данные профиля
-          </p>
-          <Link 
+          <p className="text-[var(--muted-foreground)] mb-6">Не удалось загрузить данные профиля</p>
+          <Link
             href="/"
             className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
           >

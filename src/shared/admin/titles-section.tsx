@@ -2,10 +2,7 @@ import React, { useState } from "react";
 import { Plus, Search, Edit, Trash2, Eye, AlertCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { Title } from "@/types/title";
-import {
-  useSearchTitlesQuery,
-  useDeleteTitleMutation,
-} from "@/store/api/titlesApi";
+import { useSearchTitlesQuery, useDeleteTitleMutation } from "@/store/api/titlesApi";
 
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
@@ -18,30 +15,30 @@ interface TitlesSectionProps {
 
 export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: titlesResponse, isLoading } = useSearchTitlesQuery(searchTerm ? {
-    search: searchTerm,
-    page: 1,
-    limit: 50,
-  } : { limit: 10000 });
+  const { data: titlesResponse, isLoading } = useSearchTitlesQuery(
+    searchTerm
+      ? {
+          search: searchTerm,
+          page: 1,
+          limit: 50,
+        }
+      : { limit: 10000 },
+  );
   const [deleteTitle] = useDeleteTitleMutation();
   const router = useRouter();
   const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<{title: string, message: string} | null>(null);
+  const [modalContent, setModalContent] = useState<{ title: string; message: string } | null>(null);
   const titles = titlesResponse?.data?.data || [];
 
   const handleDelete = async (id: string, title: string) => {
-    if (
-      confirm(
-        `Вы уверены, что хотите удалить тайтл "${title}"? Это действие нельзя отменить.`
-      )
-    ) {
+    if (confirm(`Вы уверены, что хотите удалить тайтл "${title}"? Это действие нельзя отменить.`)) {
       try {
         await deleteTitle(id).unwrap();
         // Показываем модальное окно с результатом
         setModalContent({
           title: "Удаление завершено",
-          message: "Тайтл успешно удален"
+          message: "Тайтл успешно удален",
         });
         setIsModalOpen(true);
       } catch (error) {
@@ -49,7 +46,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
         // Показываем модальное окно с ошибкой
         setModalContent({
           title: "Ошибка удаления",
-          message: "Произошла ошибка при удалении тайтла"
+          message: "Произошла ошибка при удалении тайтла",
         });
         setIsModalOpen(true);
       }
@@ -70,9 +67,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
               )}
               {modalContent.title}
             </h3>
-            <p className="text-[var(--muted-foreground)] mb-6">
-              {modalContent.message}
-            </p>
+            <p className="text-[var(--muted-foreground)] mb-6">{modalContent.message}</p>
             <div className="flex justify-end">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -93,7 +88,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
             type="text"
             placeholder="Поиск тайтлов..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
           />
         </div>
@@ -111,9 +106,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
         {isLoading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-            <p className="text-[var(--muted-foreground)]">
-              Загрузка тайтлов...
-            </p>
+            <p className="text-[var(--muted-foreground)]">Загрузка тайтлов...</p>
           </div>
         ) : titles.length === 0 ? (
           <div className="p-8 text-center">
@@ -124,24 +117,12 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
             <table className="w-full">
               <thead className="bg-[var(--secondary)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">
-                    Название
-                  </th>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">
-                    Автор
-                  </th>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">
-                    Статус
-                  </th>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">
-                    Глав
-                  </th>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">
-                    Просмотры
-                  </th>
-                  <th className="text-right p-4 font-medium text-[var(--foreground)]">
-                    Действия
-                  </th>
+                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Название</th>
+                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Автор</th>
+                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Статус</th>
+                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Глав</th>
+                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Просмотры</th>
+                  <th className="text-right p-4 font-medium text-[var(--foreground)]">Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -151,9 +132,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                     className="border-t border-[var(--border)] hover:bg-[var(--accent)]/30"
                   >
                     <td className="p-4">
-                      <div className="font-medium text-[var(--foreground)]">
-                        {title.name}
-                      </div>
+                      <div className="font-medium text-[var(--foreground)]">{title.name}</div>
                       {title.altNames && title.altNames.length > 0 && (
                         <div className="text-sm text-[var(--muted-foreground)]">
                           {title.altNames.slice(0, 2).join(", ")}
@@ -161,25 +140,21 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                         </div>
                       )}
                     </td>
-                    <td className="p-4 text-[var(--foreground)]">
-                      {title.author}
-                    </td>
+                    <td className="p-4 text-[var(--foreground)]">{title.author}</td>
                     <td className="p-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
                           title.status === "ongoing"
                             ? "bg-green-100 text-green-800"
                             : title.status === "completed"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
-
-                        }`}>
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {translateTitleStatus(title.status)}
                       </span>
                     </td>
-                    <td className="p-4 text-[var(--foreground)]">
-                      {title.totalChapters || 0}
-                    </td>
+                    <td className="p-4 text-[var(--foreground)]">{title.totalChapters || 0}</td>
                     <td className="p-4 text-[var(--foreground)]">
                       {title.views?.toLocaleString() || 0}
                     </td>

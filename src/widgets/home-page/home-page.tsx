@@ -1,13 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
-import {
-  BookOpen,
-  Clock,
-  LibraryIcon,
-  SquareArrowOutUpRight,
-  Trophy,
-} from "lucide-react";
+import { BookOpen, Clock, LibraryIcon, SquareArrowOutUpRight, Trophy } from "lucide-react";
 
 import { CarouselCard, CollectionCard, ReadingCard } from "@/shared";
 import LatestUpdateCard from "@/shared/last-updates/last-updates";
@@ -90,14 +84,8 @@ const DataCarousel = ({
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
-  const {
-    popularTitles,
-    randomTitles,
-    readingProgress,
-    topManhua,
-    topManhwa,
-    top2025,
-  } = useHomeData();
+  const { popularTitles, randomTitles, readingProgress, topManhua, topManhwa, top2025 } =
+    useHomeData();
   const { collections, latestUpdates } = useStaticData();
 
   useEffect(() => {
@@ -146,7 +134,6 @@ export default function HomePage() {
           error={randomTitles.error}
         />
 
-
         {/* Коллекции */}
         <DataCarousel
           title="Коллекции по темам"
@@ -166,7 +153,7 @@ export default function HomePage() {
         {/* Объединенная секция топ манхв, маньхуа и новинок 2025 */}
         <TopCombinedSection
           data={{
-            topManhwa: (topManhwa.data || []).slice(0, 5).map((item) => ({
+            topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
               id: item.id,
               slug: item.slug,
               title: item.title,
@@ -178,7 +165,7 @@ export default function HomePage() {
               isAdult: item.isAdult ?? false,
             })),
 
-            top2025: (top2025.data || []).slice(0, 5).map((item) => ({
+            top2025: (top2025.data || []).slice(0, 5).map(item => ({
               id: item.id,
               slug: item.slug,
               title: item.title,
@@ -190,7 +177,7 @@ export default function HomePage() {
               isAdult: item.isAdult ?? false,
             })),
 
-            topManhua: (topManhua.data || []).slice(0, 5).map((item) => ({
+            topManhua: (topManhua.data || []).slice(0, 5).map(item => ({
               id: item.id,
               slug: item.slug,
               title: item.title,
@@ -239,4 +226,3 @@ export default function HomePage() {
     </>
   );
 }
-

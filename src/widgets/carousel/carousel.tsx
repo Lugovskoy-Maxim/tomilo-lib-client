@@ -1,11 +1,9 @@
-
 "use client";
 import { useRef, useState, ReactNode } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getTitlePath } from "@/lib/title-paths";
-
 
 interface CarouselProps<T> {
   title: string;
@@ -30,7 +28,7 @@ interface CarouselProps<T> {
 /**
  * Компонент карусели для отображения списка карточек с возможностью прокрутки влево/вправо,
  * перетаскивания и навигации по карточкам.
- * 
+ *
  * @param title - Заголовок карусели.
  * @param description - Описание карусели (может содержать текст со ссылкой).
  * @param type - Тип карточек, используемый для формирования маршрута при клике.
@@ -169,19 +167,18 @@ export default function Carousel<T>({
       const cardElement = document.elementFromPoint(e.clientX, e.clientY);
       const card = cardElement?.closest("[data-card-id]");
 
-
       if (card) {
         const cardId = card.getAttribute("data-card-id");
         if (cardId) {
           // Проверяем, есть ли у карточки обработчик onClick
-          const cardComponent = card.querySelector('[data-card-click-handler]');
+          const cardComponent = card.querySelector("[data-card-click-handler]");
           if (cardComponent) {
             // Если есть обработчик, не выполняем переход по умолчанию
             return;
           }
-          
+
           // Находим соответствующий элемент данных
-          const item = data.find((dataItem) => getCardId(dataItem) === cardId);
+          const item = data.find(dataItem => getCardId(dataItem) === cardId);
           if (item) {
             // Используем кастомный путь если предоставлен, иначе fallback на стандартный
             const path = getItemPath ? getItemPath(item) : `/${type}/${cardId}`;
@@ -232,10 +229,7 @@ export default function Carousel<T>({
     return (
       <>
         {parts[0]}
-        <Link
-          href={descriptionLink.href}
-          className="text-[var(--chart-1)] hover:underline"
-        >
+        <Link href={descriptionLink.href} className="text-[var(--chart-1)] hover:underline">
           {descriptionLink.text}
         </Link>
         {parts[1]}
@@ -248,12 +242,12 @@ export default function Carousel<T>({
       <div className="flex items-center justify-between mb-4">
         <div className="flex flex-col w-full">
           <div className="flex items-center gap-1">
-            {icon && (
-              <div className="w-6 h-6 text-[var(--muted-foreground)]">
-                {icon}
-              </div>
+            {icon && <div className="w-6 h-6 text-[var(--muted-foreground)]">{icon}</div>}
+            {title && (
+              <h2 className="text-lg md:text-2xl font-bold text-[var(--muted-foreground)]">
+                {title}
+              </h2>
             )}
-            {title && <h2 className="text-lg md:text-2xl font-bold text-[var(--muted-foreground)]">{title}</h2>}
           </div>
           <div className="flex justify-between items-center w-full">
             <p className="text-[var(--muted-foreground)] text-sm max-w-3xl">
@@ -301,7 +295,7 @@ export default function Carousel<T>({
           onMouseMove={handleMouseMove}
           style={{ userSelect: "none" }}
         >
-          {data.map((item) => (
+          {data.map(item => (
             <div
               key={getCardId(item)}
               className={`flex-shrink-0 flex-col ${cardWidth}`}

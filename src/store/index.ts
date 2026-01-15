@@ -47,7 +47,7 @@ export const store = configureStore({
     [reportsApi.reducerPath]: reportsApi.reducer,
     [autoParsingApi.reducerPath]: autoParsingApi.reducer,
   },
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware()
       .concat(authApi.middleware)
       .concat(titlesApi.middleware)

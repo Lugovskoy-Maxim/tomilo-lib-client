@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { BookmarkItem } from '@/types/store';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { BookmarkItem } from "@/types/store";
 
 interface BookmarksState {
   bookmarks: BookmarkItem[];
@@ -14,7 +14,7 @@ const initialState: BookmarksState = {
 };
 
 export const bookmarksSlice = createSlice({
-  name: 'bookmarks',
+  name: "bookmarks",
   initialState,
   reducers: {
     setBookmarks: (state, action: PayloadAction<BookmarkItem[]>) => {
@@ -32,19 +32,13 @@ export const bookmarksSlice = createSlice({
     removeBookmark: (state, action: PayloadAction<string>) => {
       state.bookmarks = state.bookmarks.filter(bookmark => bookmark._id !== action.payload);
     },
-    clearBookmarks: (state) => {
+    clearBookmarks: state => {
       state.bookmarks = [];
     },
   },
 });
 
-export const {
-  setBookmarks,
-  setLoading,
-  setError,
-  addBookmark,
-  removeBookmark,
-  clearBookmarks,
-} = bookmarksSlice.actions;
+export const { setBookmarks, setLoading, setError, addBookmark, removeBookmark, clearBookmarks } =
+  bookmarksSlice.actions;
 
 export default bookmarksSlice.reducer;

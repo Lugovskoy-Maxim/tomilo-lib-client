@@ -18,17 +18,12 @@ export default function SnowEffect() {
     // Show snow in December (12) and January (1)
     setIsVisible(currentMonth === 12 || currentMonth === 1);
 
-
     if (isVisible) {
-
       const flakes: Snowflake[] = [];
       for (let i = 0; i < 30; i++) {
         flakes.push({
           id: i,
           left: Math.random() * 100,
-
-
-
 
           animationDelay: 0, // start immediately
           size: Math.random() * 4 + 2, // size between 2-6px
@@ -40,10 +35,9 @@ export default function SnowEffect() {
 
   if (!isVisible) return null;
 
-
   return (
     <div className="absolute inset-0 pointer-events-none h-full р-overflow-hidden">
-      {snowflakes.map((flake) => (
+      {snowflakes.map(flake => (
         <div
           key={flake.id}
           className="absolute text-[var(--primary)] opacity-70 animate-fall"
@@ -59,7 +53,6 @@ export default function SnowEffect() {
           ❄
         </div>
       ))}
-
 
       <style jsx>{`
         @keyframes fall {

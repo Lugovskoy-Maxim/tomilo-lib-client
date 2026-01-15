@@ -17,16 +17,12 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
       <div className="flex items-center gap-3 mb-4">
         <Lock className="w-5 h-5 text-[var(--primary)]" />
-        <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
-          Приватность
-        </h2>
+        <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Приватность</h2>
       </div>
-      
+
       <div className="space-y-4">
         <div>
-          <span className="text-sm font-medium text-[var(--foreground)]">
-            Видимость профиля
-          </span>
+          <span className="text-sm font-medium text-[var(--foreground)]">Видимость профиля</span>
           <p className="text-xs text-[var(--muted-foreground)] mb-2">
             Кто может видеть ваш профиль
           </p>
@@ -63,11 +59,9 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
             </button>
           </div>
         </div>
-        
+
         <div>
-          <span className="text-sm font-medium text-[var(--foreground)]">
-            История чтения
-          </span>
+          <span className="text-sm font-medium text-[var(--foreground)]">История чтения</span>
           <p className="text-xs text-[var(--muted-foreground)] mb-2">
             Кто может видеть вашу историю чтения
           </p>

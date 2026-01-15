@@ -14,7 +14,7 @@ export const notificationsApi = createApi({
   reducerPath: "notificationsApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (token) {
@@ -25,7 +25,7 @@ export const notificationsApi = createApi({
     },
   }),
   tagTypes: ["Notifications", "UnreadCount"],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     // Получение уведомлений пользователя
     getNotifications: builder.query<ApiResponseDto<NotificationsResponse>, void>({
       query: () => "/notifications",
@@ -44,7 +44,7 @@ export const notificationsApi = createApi({
 
     // Отметить уведомление как прочитанное
     markAsRead: builder.mutation<ApiResponseDto<MarkAsReadResponse>, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/notifications/${id}/read`,
         method: "POST",
       }),
@@ -62,7 +62,7 @@ export const notificationsApi = createApi({
 
     // Удалить уведомление
     deleteNotification: builder.mutation<ApiResponseDto<DeleteNotificationResponse>, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/notifications/${id}`,
         method: "DELETE",
       }),

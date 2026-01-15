@@ -20,9 +20,7 @@ export default function ErrorState({ error, slug }: { error: string; slug?: stri
           <div className="flex items-center justify-center min-h-[50vh]">
             <div className="text-center">
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-                {error}
-              </h1>
+              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">{error}</h1>
               <p className="text-[var(--muted-foreground)] mb-4">
                 Slug тайтла: {slug || "не указан"}
               </p>

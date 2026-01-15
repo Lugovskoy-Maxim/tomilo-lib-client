@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -18,26 +17,38 @@ const densitySettings = {
   heavy: { min: 8, max: 15 },
 };
 
-export default function SnowCapsGlobal({ 
-  count = 6, 
+export default function SnowCapsGlobal({
+  count = 6,
   className = "",
   excludePositions = [],
-  density = "medium"
+  density = "medium",
 }: SnowCapsGlobalProps) {
   const densityConfig = densitySettings[density];
-  const actualCount = Math.min(count, Math.max(densityConfig.min, Math.min(densityConfig.max, count)));
-  
+  const actualCount = Math.min(
+    count,
+    Math.max(densityConfig.min, Math.min(densityConfig.max, count)),
+  );
+
   // Генерируем случайные данные заранее
   const snowCapConfigs = Array.from({ length: actualCount }, (_, index) => {
     const variants = ["small", "medium", "long", "long2", "small2", "smallRight"] as const;
-    const positions = ["top-left", "top-right", "bottom-left", "bottom-right", "top-center", "bottom-center", "left", "right"] as const;
-    
+    const positions = [
+      "top-left",
+      "top-right",
+      "bottom-left",
+      "bottom-right",
+      "top-center",
+      "bottom-center",
+      "left",
+      "right",
+    ] as const;
+
     const variant = variants[Math.floor(Math.random() * variants.length)];
     const position = positions[Math.floor(Math.random() * positions.length)];
     const sizes = ["sm", "md", "lg"] as const;
     const size = sizes[Math.floor(Math.random() * sizes.length)];
     const opacity = 0.6 + Math.random() * 0.4;
-    
+
     return {
       id: index,
       variant,
@@ -49,7 +60,7 @@ export default function SnowCapsGlobal({
 
   return (
     <div className={`fixed inset-0 pointer-events-none overflow-hidden ${className}`}>
-      {snowCapConfigs.map((config) => (
+      {snowCapConfigs.map(config => (
         <SnowCap
           key={config.id}
           variant={config.variant}
@@ -63,10 +74,11 @@ export default function SnowCapsGlobal({
           }}
         />
       ))}
-      
+
       <style jsx>{`
         @keyframes float {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateY(0px) rotate(0deg);
           }
           50% {
@@ -89,7 +101,7 @@ interface PageSnowCapsProps {
 
 export function PageSnowCaps({ showOnMobile = true, winterOnly = false }: PageSnowCapsProps) {
   const [showSnow, setShowSnow] = useState(true);
-  
+
   useEffect(() => {
     if (winterOnly) {
       const currentMonth = new Date().getMonth() + 1;

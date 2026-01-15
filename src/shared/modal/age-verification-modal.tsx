@@ -13,11 +13,7 @@ interface AgeVerificationModalProps {
 
 const AGE_VERIFICATION_KEY = "age-verified";
 
-export function AgeVerificationModal({
-  isOpen,
-  onConfirm,
-  onCancel,
-}: AgeVerificationModalProps) {
+export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerificationModalProps) {
   const [isChecked, setIsChecked] = useState(false);
 
   useEffect(() => {
@@ -37,11 +33,7 @@ export function AgeVerificationModal({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onCancel}
-      title="⚠️ Внимание: Возрастное ограничение 18+"
-    >
+    <Modal isOpen={isOpen} onClose={onCancel} title="⚠️ Внимание: Возрастное ограничение 18+">
       <div className="space-y-4">
         {/* Основной текст с иконкой-предупреждением (опционально) */}
         <div className="flex items-start gap-3">
@@ -50,15 +42,13 @@ export function AgeVerificationModal({
             <p className="text-[var(--primary)] font-medium">
               Содержимое этого раздела предназначено{" "}
               <strong className="text-[var(--chart-5)]">
-                исключительно для совершеннолетних пользователей (18 лет и
-                старше)
+                исключительно для совершеннолетних пользователей (18 лет и старше)
               </strong>
               .
             </p>
             <p className="text-sm text-[var(--primary)]">
-              Данное ограничение установлено в соответствии с законодательством
-              РФ (№436-ФЗ) и внутренними правилами платформы для защиты
-              несовершеннолетних.
+              Данное ограничение установлено в соответствии с законодательством РФ (№436-ФЗ) и
+              внутренними правилами платформы для защиты несовершеннолетних.
             </p>
           </div>
         </div>
@@ -76,20 +66,15 @@ export function AgeVerificationModal({
             type="checkbox"
             id="age-confirm"
             checked={isChecked}
-            onChange={(e) => setIsChecked(e.target.checked)}
+            onChange={e => setIsChecked(e.target.checked)}
             className="w-4 h-4 mt-1 text-[var(--primary)] bg-[var(--background)] border-[var(--border)] rounded focus:ring-[var(--primary)] focus:ring-2"
           />
-          <label
-            htmlFor="age-confirm"
-            className="text-sm text-[var(--primary)] cursor-pointer"
-          >
-            <span className="font-medium">
-              Я подтверждаю, что мне исполнилось 18 лет.
-            </span>
+          <label htmlFor="age-confirm" className="text-sm text-[var(--primary)] cursor-pointer">
+            <span className="font-medium">Я подтверждаю, что мне исполнилось 18 лет.</span>
             <br />
             <span className="text-xs text-[var(--primary)]/60">
-              Я осознаю содержание материалов и несу полную ответственность за
-              просмотр данного контента.
+              Я осознаю содержание материалов и несу полную ответственность за просмотр данного
+              контента.
             </span>
           </label>
         </div>
@@ -115,9 +100,7 @@ export function AgeVerificationModal({
   );
 }
 
-export function checkAgeVerification(
-  user: UserProfile | StoredUser | null = null
-): boolean {
+export function checkAgeVerification(user: UserProfile | StoredUser | null = null): boolean {
   // Если передан пользователь с датой рождения, проверяем возраст
   if (user && user.birthDate) {
     try {
@@ -127,10 +110,7 @@ export function checkAgeVerification(
       const monthDiff = today.getMonth() - birthDate.getMonth();
 
       // Корректируем возраст, если день рождения еще не наступил в этом году
-      if (
-        monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < birthDate.getDate())
-      ) {
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--;
       }
 
@@ -148,8 +128,7 @@ export function checkAgeVerification(
 
   // Проверяем localStorage только в браузере
   if (typeof window !== "undefined" && window.localStorage) {
-    const localStorageVerified =
-      localStorage.getItem(AGE_VERIFICATION_KEY) === "true";
+    const localStorageVerified = localStorage.getItem(AGE_VERIFICATION_KEY) === "true";
     return localStorageVerified;
   }
 

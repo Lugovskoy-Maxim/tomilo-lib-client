@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { UserProfile } from '@/types/user';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { UserProfile } from "@/types/user";
 
 interface UserProfileState {
   profile: UserProfile | null;
@@ -14,7 +14,7 @@ const initialState: UserProfileState = {
 };
 
 export const userProfileSlice = createSlice({
-  name: 'userProfile',
+  name: "userProfile",
   initialState,
   reducers: {
     setProfile: (state, action: PayloadAction<UserProfile | null>) => {
@@ -34,11 +34,6 @@ export const userProfileSlice = createSlice({
   },
 });
 
-export const {
-  setProfile,
-  setLoading,
-  setError,
-  updateProfile,
-} = userProfileSlice.actions;
+export const { setProfile, setLoading, setError, updateProfile } = userProfileSlice.actions;
 
 export default userProfileSlice.reducer;

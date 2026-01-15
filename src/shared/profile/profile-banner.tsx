@@ -56,12 +56,10 @@ export default function ProfileBanner({
               {userProfile.balance || 0}
             </div>
           </div>
-          
+
           {/* Уровень */}
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-[var(--muted-foreground)]">
-              Уровень
-            </span>
+            <span className="text-sm font-medium text-[var(--muted-foreground)]">Уровень</span>
             <div className="flex justify-center items-center w-8 h-8 border border-[var(--border)] font-bold bg-[var(--chart-1)] rounded-lg text-[var(--primary)]">
               {userProfile.level || 0}
             </div>
@@ -73,22 +71,14 @@ export default function ProfileBanner({
       <div className="pt-2 pb-6 px-8">
         <UserInfo userProfile={userProfile} onEdit={handleEdit} />
       </div>
-      
+
       {/* Статистика пользователя */}
       <div className="px-8 pb-6">
         <ProfileStats userProfile={userProfile} />
       </div>
-      
-      <Modal
-        isOpen={isEditing}
-        onClose={handleCancel}
-        title="Редактирование профиля"
-      >
-        <ProfileEditForm
-          userProfile={userProfile}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
+
+      <Modal isOpen={isEditing} onClose={handleCancel} title="Редактирование профиля">
+        <ProfileEditForm userProfile={userProfile} onSave={handleSave} onCancel={handleCancel} />
       </Modal>
     </div>
   );

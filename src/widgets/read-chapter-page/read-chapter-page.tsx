@@ -40,8 +40,7 @@ export default function ReadChapterPage({
 }) {
   const router = useRouter();
 
-  const { updateChapterViews, addToReadingHistory, isAuthenticated } =
-    useAuth();
+  const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
 
   const [incrementChapterViews] = useIncrementChapterViewsMutation();
 
@@ -50,14 +49,12 @@ export default function ReadChapterPage({
 
   // Находим текущую главу и её индекс
   const currentChapterIndex = useMemo(() => {
-    const foundIndex = chapters.findIndex((ch) => ch._id === chapterId);
+    const foundIndex = chapters.findIndex(ch => ch._id === chapterId);
     return foundIndex !== -1 ? foundIndex : 0;
   }, [chapters, chapterId]);
 
   // Состояния
-  const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(
-    new Set()
-  );
+  const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
   const [, setIsFullscreen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
@@ -99,9 +96,7 @@ export default function ReadChapterPage({
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(
-        window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent)
-      );
+      setIsMobile(window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent));
     };
 
     checkMobile();
@@ -136,7 +131,7 @@ export default function ReadChapterPage({
       // Добавляем параметр ширины к URL для оптимизации
       return `${imageUrl}?w=${width}`;
     },
-    [getImageUrl]
+    [getImageUrl],
   );
 
   // Обновление просмотров и истории чтения
@@ -172,7 +167,7 @@ export default function ReadChapterPage({
         .then(() => {
           historyAddedRef.current.add(chapterKey);
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Error adding to reading history:", error);
           // Не перебрасываем ошибку, чтобы избежать бесконечных запросов
         });
@@ -188,13 +183,10 @@ export default function ReadChapterPage({
   ]);
 
   // Обработчик ошибок загрузки изображений
-  const handleImageError = useCallback(
-    (chapterId: string, imageIndex: number) => {
-      const errorKey = `${chapterId}-${imageIndex}`;
-      setImageLoadErrors((prev) => new Set(prev).add(errorKey));
-    },
-    []
-  );
+  const handleImageError = useCallback((chapterId: string, imageIndex: number) => {
+    const errorKey = `${chapterId}-${imageIndex}`;
+    setImageLoadErrors(prev => new Set(prev).add(errorKey));
+  }, []);
 
   // Функция для получения корректного пути
   const getChapterPath = useCallback(
@@ -203,7 +195,7 @@ export default function ReadChapterPage({
         ? `/titles/${slug}/chapter/${chapterId}`
         : `/titles/${titleId}/chapter/${chapterId}`;
     },
-    [slug, titleId]
+    [slug, titleId],
   );
 
   const getTitlePath = useCallback(() => {
@@ -248,8 +240,7 @@ export default function ReadChapterPage({
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () =>
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
   // Обработчики для хедера
@@ -313,9 +304,10 @@ export default function ReadChapterPage({
     if (savedPosition && savedPosition.page > 1) {
       // Показываем уведомление о восстановлении позиции в стиле счетчика страниц
       const notificationId = `restore-position-${Date.now()}`;
-      const notificationElement = document.createElement('div');
+      const notificationElement = document.createElement("div");
       notificationElement.id = notificationId;
-      notificationElement.className = 'fixed w-full max-w-[350px] top-1/2 left-1/2 transform -translate-x-1/2 text-[var(--muted-foreground)] text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-2 px-4 py-2  shadow-lg z-[100] flex items-center space-x-2';
+      notificationElement.className =
+        "fixed w-full max-w-[350px] top-1/2 left-1/2 transform -translate-x-1/2 text-[var(--muted-foreground)] text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-2 px-4 py-2  shadow-lg z-[100] flex items-center space-x-2";
       notificationElement.innerHTML = `
         <span>Восстановление позиции чтения на странице ${savedPosition.page}</span>
         <button id="cancel-restore" class="ml-2 px-2 py-2 bg-[var(--destructive)] hover:bg-[var(--destructive)]/80 rounded text-xs">Отменить</button>
@@ -325,7 +317,7 @@ export default function ReadChapterPage({
 
       // Таймер обратного отсчета
       let countdown = 5;
-      const countdownElement = document.getElementById('countdown');
+      const countdownElement = document.getElementById("countdown");
       const countdownInterval = setInterval(() => {
         countdown--;
         if (countdownElement) {
@@ -356,9 +348,9 @@ export default function ReadChapterPage({
       };
 
       // Добавляем обработчик клика на кнопку отмены
-      const cancelButton = document.getElementById('cancel-restore');
+      const cancelButton = document.getElementById("cancel-restore");
       if (cancelButton) {
-        cancelButton.addEventListener('click', cancelRestore);
+        cancelButton.addEventListener("click", cancelRestore);
       }
 
       // Функция восстановления позиции
@@ -370,9 +362,7 @@ export default function ReadChapterPage({
         const timeoutId = setTimeout(async () => {
           try {
             // Быстрая прокрутка без ожидания загрузки изображений
-            const pageElement = document.querySelector(
-              `[data-page="${page}"]`
-            );
+            const pageElement = document.querySelector(`[data-page="${page}"]`);
             if (pageElement) {
               pageElement.scrollIntoView({
                 behavior: "auto", // Быстрая прокрутка
@@ -410,7 +400,7 @@ export default function ReadChapterPage({
       return () => {
         clearInterval(countdownInterval);
         if (cancelButton) {
-          cancelButton.removeEventListener('click', cancelRestore);
+          cancelButton.removeEventListener("click", cancelRestore);
         }
         if (document.getElementById(notificationId)) {
           document.getElementById(notificationId)?.remove();
@@ -428,7 +418,7 @@ export default function ReadChapterPage({
       createDebouncedSave((page: number) => {
         saveReadingPosition(titleId, chapterId, page);
       }, 1000),
-    [titleId, chapterId]
+    [titleId, chapterId],
   );
 
   // Отслеживание текущей страницы с помощью улучшенного алгоритма
@@ -454,10 +444,7 @@ export default function ReadChapterPage({
           const pageNum = index + 1;
           if (pageNum === currentPageNum) {
             priorities.set(pageNum, "high"); // Текущая страница - высокий приоритет
-          } else if (
-            pageNum === savedReadingPage ||
-            Math.abs(pageNum - currentPageNum) <= 2
-          ) {
+          } else if (pageNum === savedReadingPage || Math.abs(pageNum - currentPageNum) <= 2) {
             priorities.set(pageNum, "medium"); // Недавно просмотренные страницы - средний приоритет
           } else {
             priorities.set(pageNum, "low"); // Остальные - низкий приоритет
@@ -486,12 +473,7 @@ export default function ReadChapterPage({
       window.removeEventListener("scroll", debouncedScrollHandler);
       window.removeEventListener("resize", updateCurrentPage);
     };
-  }, [
-    chapter.images,
-    debouncedSavePosition,
-    isPositionRestored,
-    savedReadingPage,
-  ]);
+  }, [chapter.images, debouncedSavePosition, isPositionRestored, savedReadingPage]);
 
   const loading = !chapter;
 
@@ -507,11 +489,13 @@ export default function ReadChapterPage({
   }
 
   if (!chapter) {
-    return <ChapterErrorState
-      title="Глава не найдена"
-      message="Попробуйте обновить страницу или выбрать другую главу"
-      slug={slug}
-    />;
+    return (
+      <ChapterErrorState
+        title="Глава не найдена"
+        message="Попробуйте обновить страницу или выбрать другую главу"
+        slug={slug}
+      />
+    );
   }
 
   return (
@@ -523,7 +507,7 @@ export default function ReadChapterPage({
         currentPage={currentPage}
         chapterImageLength={chapter.images.length}
         chapters={chapters}
-        onChapterSelect={(chapterId) => router.push(getChapterPath(chapterId))}
+        onChapterSelect={chapterId => router.push(getChapterPath(chapterId))}
         onPrev={() => {
           if (currentChapterIndex > 0) {
             const prevChapter = chapters[currentChapterIndex - 1];
@@ -581,10 +565,7 @@ export default function ReadChapterPage({
               )}
 
               <div className="min-w-0 flex-1">
-                <h1
-                  className="font-semibold text-lg truncate"
-                  title={title.title}
-                >
+                <h1 className="font-semibold text-lg truncate" title={title.title}>
                   {title.title}
                 </h1>
                 <p className="text-[var(--muted-foreground)] text-sm truncate">
@@ -609,17 +590,12 @@ export default function ReadChapterPage({
                 ))}
               </select>
             </div> */}
-
           </div>
         </div>
       </header>
 
       {/* Основной контент - ТОЛЬКО ОДНА ГЛАВА */}
-      <main
-        ref={containerRef}
-        className="pt-20 sm:pt-16"
-        onClick={handleMobileTap}
-      >
+      <main ref={containerRef} className="pt-20 sm:pt-16" onClick={handleMobileTap}>
         <div className="container mx-auto">
           <div className=" chapter-container">
             {/* Заголовок главы */}
@@ -637,10 +613,7 @@ export default function ReadChapterPage({
               const imageUrl = getImageUrl(src);
 
               return (
-                <div
-                  key={`${chapter._id}-${imageIndex}`}
-                  className="flex justify-center"
-                >
+                <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center">
                   <div
                     className="relative w-full flex justify-center"
                     data-page={imageIndex + 1}
@@ -653,23 +626,15 @@ export default function ReadChapterPage({
                         key={`${chapter._id}-${imageIndex}-${imageWidth}`}
                         loader={imageLoader}
                         src={src}
-                        alt={`Глава ${chapter.number}, Страница ${
-                          imageIndex + 1
-                        }`}
+                        alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
                         width={isMobile ? 1200 : imageWidth}
-                        height={
-                          isMobile
-                            ? 1600
-                            : Math.round((imageWidth * 1600) / 1200)
-                        }
+                        height={isMobile ? 1600 : Math.round((imageWidth * 1600) / 1200)}
                         className="w-full h-auto shadow-2xl"
                         quality={
                           // Если есть приоритеты, используем разное качество
                           imageLoadPriority.size > 0
                             ? (() => {
-                                const priority = imageLoadPriority.get(
-                                  imageIndex + 1
-                                );
+                                const priority = imageLoadPriority.get(imageIndex + 1);
                                 switch (priority) {
                                   case "high":
                                     return 85; // Высокое качество
@@ -690,12 +655,10 @@ export default function ReadChapterPage({
                               ? "eager"
                               : "lazy"
                             : imageIndex < (isMobile ? 6 : 3)
-                            ? "eager"
-                            : "lazy"
+                              ? "eager"
+                              : "lazy"
                         }
-                        onError={() =>
-                          handleImageError(chapter._id, imageIndex)
-                        }
+                        onError={() => handleImageError(chapter._id, imageIndex)}
                         priority={
                           // Если есть приоритеты, используем их, иначе fallback к старой логике
                           imageLoadPriority.size > 0
@@ -711,7 +674,7 @@ export default function ReadChapterPage({
                           </div>
                           <button
                             onClick={() => {
-                              setImageLoadErrors((prev) => {
+                              setImageLoadErrors(prev => {
                                 const newSet = new Set(prev);
                                 newSet.delete(errorKey);
                                 return newSet;
@@ -776,9 +739,7 @@ export default function ReadChapterPage({
           {/* Сообщение о завершении всех глав */}
           {currentChapterIndex === chapters.length - 1 && (
             <div className="py-6 text-center border-t border-[var(--border)] mt-8">
-              <p className="text-lg font-semibold mb-2">
-                Вы дочитали до конца!
-              </p>
+              <p className="text-lg font-semibold mb-2">Вы дочитали до конца!</p>
 
               <button
                 onClick={() => router.push(getTitlePath())}
@@ -797,14 +758,14 @@ export default function ReadChapterPage({
           <p>Используйте ← → для навигации между главами</p>
         </div>
       </footer>
-      
+
       {/* Report Modal */}
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         entityType="chapter"
         entityId={chapterId}
-        entityTitle={`Глава ${chapter.number}${chapter.title ? ` - ${chapter.title}` : ''}`}
+        entityTitle={`Глава ${chapter.number}${chapter.title ? ` - ${chapter.title}` : ""}`}
       />
     </div>
   );

@@ -6,10 +6,7 @@ import { Title } from "@/types/title";
 import { translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
-import {
-  useIncrementViewsMutation,
-  useGetTitleBySlugQuery,
-} from "@/store/api/titlesApi";
+import { useIncrementViewsMutation, useGetTitleBySlugQuery } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,7 +50,7 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId, // Skip if no titleId
-    }
+    },
   );
 
   // Load additional pages if there are more chapters
@@ -66,7 +63,7 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId || !chaptersData?.hasMore,
-    }
+    },
   );
 
   const { data: chaptersDataPage3 } = useGetChaptersByTitleQuery(
@@ -78,7 +75,7 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId || !chaptersDataPage2?.hasMore,
-    }
+    },
   );
 
   const { data: chaptersDataPage4 } = useGetChaptersByTitleQuery(
@@ -90,7 +87,7 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId || !chaptersDataPage3?.hasMore,
-    }
+    },
   );
 
   const { data: chaptersDataPage5 } = useGetChaptersByTitleQuery(
@@ -102,7 +99,7 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId || !chaptersDataPage4?.hasMore,
-    }
+    },
   );
 
   // Load all chapters for ReadButton to ensure correct chapter determination
@@ -115,7 +112,7 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId, // Skip if no titleId
-    }
+    },
   );
 
   const { data: allChaptersDataPage2 } = useGetChaptersByTitleQuery(
@@ -127,7 +124,7 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId || !allChaptersData?.hasMore,
-    }
+    },
   );
 
   const { data: allChaptersDataPage3 } = useGetChaptersByTitleQuery(
@@ -139,7 +136,7 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId || !allChaptersDataPage2?.hasMore,
-    }
+    },
   );
 
   const { data: allChaptersDataPage4 } = useGetChaptersByTitleQuery(
@@ -151,7 +148,7 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId || !allChaptersDataPage3?.hasMore,
-    }
+    },
   );
 
   const { data: allChaptersDataPage5 } = useGetChaptersByTitleQuery(
@@ -163,14 +160,13 @@ export default function TitleView({ slug }: { slug: string }) {
     },
     {
       skip: !titleId || !allChaptersDataPage4?.hasMore,
-    }
+    },
   );
 
   // Load reading history for the current title
-  const { data: readingHistoryData } = useGetReadingHistoryByTitleQuery(
-    titleId,
-    { skip: !user || !titleId }
-  );
+  const { data: readingHistoryData } = useGetReadingHistoryByTitleQuery(titleId, {
+    skip: !user || !titleId,
+  });
 
   // Обработка данных глав - комбинируем все загруженные страницы
   const processedChaptersData = useMemo(() => {
@@ -188,13 +184,7 @@ export default function TitleView({ slug }: { slug: string }) {
       const bNum = b.chapterNumber || 0;
       return bNum - aNum; // desc order
     });
-  }, [
-    chaptersData,
-    chaptersDataPage2,
-    chaptersDataPage3,
-    chaptersDataPage4,
-    chaptersDataPage5,
-  ]);
+  }, [chaptersData, chaptersDataPage2, chaptersDataPage3, chaptersDataPage4, chaptersDataPage5]);
 
   // Проверяем, есть ли еще главы для загрузки
   const hasMoreChapters = useMemo(() => {
@@ -220,9 +210,7 @@ export default function TitleView({ slug }: { slug: string }) {
   };
 
   // Состояние для активной вкладки
-  const [activeTab, setActiveTab] = useState<"main" | "chapters" | "comments">(
-    "chapters"
-  );
+  const [activeTab, setActiveTab] = useState<"main" | "chapters" | "comments">("chapters");
 
   // Состояние для раскрытого описания
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -288,13 +276,11 @@ export default function TitleView({ slug }: { slug: string }) {
 
   const typeLabel = typeLabels[titleType] || "Другое";
   const translatedType = translateTitleType(titleType);
-  const titleWithType = `${titleData.name} - ${translatedType ? ` ${translatedType}` : ''}`;
+  const titleWithType = `${titleData.name} - ${translatedType ? ` ${translatedType}` : ""}`;
 
   // Определяем тип контента для микроразметки
   const contentType =
-    titleData.type === "novel" || titleData.type === "light_novel"
-      ? "Book"
-      : "Article";
+    titleData.type === "novel" || titleData.type === "light_novel" ? "Book" : "Article";
 
   // Формируем полный URL для изображения
   const image = titleData.coverImage
@@ -385,7 +371,7 @@ export default function TitleView({ slug }: { slug: string }) {
               : 0,
             inLanguage: "ru",
             about:
-              titleData.genres?.map((genre) => ({
+              titleData.genres?.map(genre => ({
                 "@type": "Thing",
                 name: genre,
               })) || [],
@@ -400,8 +386,7 @@ export default function TitleView({ slug }: { slug: string }) {
               : {
                   articleSection: titleData.type,
                   wordCount: titleData.description
-                    ? titleData.description.replace(/<[^>]*>/g, "").split(" ")
-                        .length
+                    ? titleData.description.replace(/<[^>]*>/g, "").split(" ").length
                     : 0,
                   "@type": "Article",
                 }),
@@ -414,7 +399,7 @@ export default function TitleView({ slug }: { slug: string }) {
           items={[
             { name: "Главная", href: "/" },
             { name: "Каталог", href: "/titles" },
-            { name: titleData.name, isCurrent: true }
+            { name: titleData.name, isCurrent: true },
           ]}
         />
         <div className="max-w-7xl mx-auto">
@@ -461,9 +446,7 @@ export default function TitleView({ slug }: { slug: string }) {
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 isDescriptionExpanded={isDescriptionExpanded}
-                onDescriptionToggle={() =>
-                  setIsDescriptionExpanded(!isDescriptionExpanded)
-                }
+                onDescriptionToggle={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                 chapters={processedChaptersData}
                 hasMoreChapters={false}
                 chaptersLoading={chaptersLoading}
@@ -497,4 +480,3 @@ export default function TitleView({ slug }: { slug: string }) {
     </main>
   );
 }
-

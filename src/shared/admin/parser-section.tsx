@@ -44,11 +44,10 @@ interface ChaptersInfoData {
 export function ParserSection() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [currentProgress, setCurrentProgress] =
-    useState<ParsingProgress | null>(null);
+  const [currentProgress, setCurrentProgress] = useState<ParsingProgress | null>(null);
   const [sessionId] = useState(() => Math.random().toString(36).substring(7));
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<{title: string, message: string} | null>(null);
+  const [modalContent, setModalContent] = useState<{ title: string; message: string } | null>(null);
 
   // API hooks
   const { data: supportedSites } = useGetSupportedSitesQuery();
@@ -68,27 +67,22 @@ export function ParserSection() {
   // Search for titles when typing titleId
   const { data: searchResults } = useSearchTitlesQuery(
     { search: titleId, limit: 5 },
-    { skip: !titleId || titleId.length < 2 }
+    { skip: !titleId || titleId.length < 2 },
   );
 
   // Результаты парсинга
-  const [chaptersInfo, setChaptersInfo] = useState<ChaptersInfoData | null>(
-    null
-  );
+  const [chaptersInfo, setChaptersInfo] = useState<ChaptersInfoData | null>(null);
   const [isParsing, setIsParsing] = useState(false);
 
   // Хук для обновления списка глав
-  const { refetch: refetchChapters } = useGetChaptersByTitleQuery(
-    { titleId },
-    { skip: !titleId }
-  );
+  const { refetch: refetchChapters } = useGetChaptersByTitleQuery({ titleId }, { skip: !titleId });
 
   useEffect(() => {
     const newSocket = io(
       `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/parsing`,
       {
         transports: ["websocket", "polling"],
-      }
+      },
     );
 
     newSocket.on("connect", () => {
@@ -103,10 +97,7 @@ export function ParserSection() {
       if (progress.sessionId === sessionId) {
         setCurrentProgress(progress);
 
-        if (
-          progress.status === "completed" &&
-          progress.type === "chapters_info"
-        ) {
+        if (progress.status === "completed" && progress.type === "chapters_info") {
           setChaptersInfo(progress.data as ChaptersInfoData);
         }
 
@@ -114,17 +105,17 @@ export function ParserSection() {
           setIsParsing(false);
           // Обновляем список глав после завершения
           setTimeout(() => refetchChapters(), 1000);
-          
+
           // Показываем модальное окно с результатом
           if (progress.status === "completed") {
             setModalContent({
               title: "Парсинг завершен",
-              message: progress.message || "Парсинг успешно завершен"
+              message: progress.message || "Парсинг успешно завершен",
             });
           } else {
             setModalContent({
               title: "Ошибка парсинга",
-              message: progress.message || "Произошла ошибка во время парсинга"
+              message: progress.message || "Произошла ошибка во время парсинга",
             });
           }
           setIsModalOpen(true);
@@ -160,7 +151,7 @@ export function ParserSection() {
         dto: {
           url: url.trim(),
           chapterNumbers: chapterNumbers.trim()
-            ? chapterNumbers.split(",").map((s) => s.trim())
+            ? chapterNumbers.split(",").map(s => s.trim())
             : undefined,
         },
       });
@@ -170,12 +161,12 @@ export function ParserSection() {
         dto: {
           url: url.trim(),
           chapterNumbers: chapterNumbers.trim()
-            ? chapterNumbers.split(",").map((s) => s.trim())
+            ? chapterNumbers.split(",").map(s => s.trim())
             : undefined,
           customTitle: customTitle.trim() || undefined,
           customDescription: customDescription.trim() || undefined,
           customGenres: customGenres.trim()
-            ? customGenres.split(",").map((s) => s.trim())
+            ? customGenres.split(",").map(s => s.trim())
             : undefined,
           customType: customType.trim() || undefined,
         },
@@ -187,7 +178,7 @@ export function ParserSection() {
           url: url.trim(),
           titleId,
           chapterNumbers: chapterNumbers.trim()
-            ? chapterNumbers.split(",").map((s) => s.trim())
+            ? chapterNumbers.split(",").map(s => s.trim())
             : undefined,
         },
       });
@@ -232,9 +223,7 @@ export function ParserSection() {
               )}
               {modalContent.title}
             </h3>
-            <p className="text-[var(--muted-foreground)] mb-6">
-              {modalContent.message}
-            </p>
+            <p className="text-[var(--muted-foreground)] mb-6">{modalContent.message}</p>
             <div className="flex justify-end">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -252,14 +241,10 @@ export function ParserSection() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-[var(--foreground)]">
-              Парсинг тайтла
-            </h2>
+            <h2 className="text-xl font-semibold text-[var(--foreground)]">Парсинг тайтла</h2>
             <div className="flex items-center gap-2 mt-1">
               <div
-                className={`w-2 h-2 rounded-full ${
-                  isConnected ? "bg-green-500" : "bg-red-500"
-                }`}
+                className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
               />
               <span className="text-sm text-[var(--muted-foreground)]">
                 {isConnected ? "Подключено" : "Отключено"}
@@ -290,16 +275,11 @@ export function ParserSection() {
                 label: "Импорт глав",
                 icon: Settings,
               },
-            ].map((mode) => (
+            ].map(mode => (
               <button
                 key={mode.value}
                 onClick={() =>
-                  setParsingMode(
-                    mode.value as
-                      | "chapters_info"
-                      | "title_import"
-                      | "chapter_import"
-                  )
+                  setParsingMode(mode.value as "chapters_info" | "title_import" | "chapter_import")
                 }
                 className={`p-4 rounded-lg border transition-colors ${
                   parsingMode === mode.value
@@ -308,9 +288,7 @@ export function ParserSection() {
                 }`}
               >
                 <mode.icon className="w-6 h-6 mx-auto mb-2 text-[var(--foreground)]" />
-                <div className="text-sm font-medium text-[var(--foreground)]">
-                  {mode.label}
-                </div>
+                <div className="text-sm font-medium text-[var(--foreground)]">{mode.label}</div>
               </button>
             ))}
           </div>
@@ -325,7 +303,7 @@ export function ParserSection() {
             <input
               type="url"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={e => setUrl(e.target.value)}
               placeholder="https://example.com/manga/title"
               className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
               disabled={isParsing}
@@ -351,7 +329,7 @@ export function ParserSection() {
           <input
             type="text"
             value={chapterNumbers}
-            onChange={(e) => setChapterNumbers(e.target.value)}
+            onChange={e => setChapterNumbers(e.target.value)}
             placeholder="1,2,3 или 1-5,8,10-15"
             className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
             disabled={isParsing}
@@ -370,7 +348,7 @@ export function ParserSection() {
             <input
               type="text"
               value={titleId}
-              onChange={(e) => setTitleId(e.target.value)}
+              onChange={e => setTitleId(e.target.value)}
               placeholder="Введите ID тайтла или начните поиск..."
               className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
               disabled={isParsing}
@@ -397,9 +375,7 @@ export function ParserSection() {
         {/* Custom Fields for Title Import */}
         {parsingMode === "title_import" && (
           <div className="mb-4 space-y-4 p-4 bg-[var(--background)] rounded-lg">
-            <h3 className="font-medium text-[var(--foreground)]">
-              Настройки импорта
-            </h3>
+            <h3 className="font-medium text-[var(--foreground)]">Настройки импорта</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -409,7 +385,7 @@ export function ParserSection() {
                 <input
                   type="text"
                   value={customTitle}
-                  onChange={(e) => setCustomTitle(e.target.value)}
+                  onChange={e => setCustomTitle(e.target.value)}
                   placeholder="Оставить пустым для автоопределения"
                   className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
                   disabled={isParsing}
@@ -422,7 +398,7 @@ export function ParserSection() {
                 </label>
                 <select
                   value={customType}
-                  onChange={(e) => setCustomType(e.target.value)}
+                  onChange={e => setCustomType(e.target.value)}
                   className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
                   disabled={isParsing}
                 >
@@ -441,7 +417,7 @@ export function ParserSection() {
               <input
                 type="text"
                 value={customGenres}
-                onChange={(e) => setCustomGenres(e.target.value)}
+                onChange={e => setCustomGenres(e.target.value)}
                 placeholder="Фэнтези, Приключения, Драма"
                 className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
                 disabled={isParsing}
@@ -454,7 +430,7 @@ export function ParserSection() {
               </label>
               <textarea
                 value={customDescription}
-                onChange={(e) => setCustomDescription(e.target.value)}
+                onChange={e => setCustomDescription(e.target.value)}
                 placeholder="Оставить пустым для автоопределения"
                 rows={3}
                 className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] resize-none"
@@ -485,15 +461,14 @@ export function ParserSection() {
               )}
               <div className="flex-1">
                 <div className="font-medium text-[var(--foreground)]">
-                  {currentProgress?.message ||
-                    (isParsing ? "Парсинг запущен..." : "Ожидание...")}
+                  {currentProgress?.message || (isParsing ? "Парсинг запущен..." : "Ожидание...")}
                 </div>
                 {currentProgress?.progress && (
                   <div className="text-sm text-[var(--muted-foreground)]">
                     {currentProgress.type === "chapter_import"
                       ? `Chapter ${currentProgress.progress.current}`
-                      : `${currentProgress.progress.current} / ${currentProgress.progress.total}`
-                    } ({currentProgress.progress.percentage}%)
+                      : `${currentProgress.progress.current} / ${currentProgress.progress.total}`}{" "}
+                    ({currentProgress.progress.percentage}%)
                   </div>
                 )}
               </div>
@@ -517,15 +492,13 @@ export function ParserSection() {
               Найденные главы ({chaptersInfo.totalChapters})
             </h3>
             <div className="max-h-40 overflow-y-auto space-y-1">
-              {chaptersInfo.chapters
-                .slice(0, 10)
-                .map((chapter: ChapterInfo, index: number) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span className="text-[var(--foreground)]">
-                      Глава {chapter.number}: {chapter.name}
-                    </span>
-                  </div>
-                ))}
+              {chaptersInfo.chapters.slice(0, 10).map((chapter: ChapterInfo, index: number) => (
+                <div key={index} className="flex justify-between text-sm">
+                  <span className="text-[var(--foreground)]">
+                    Глава {chapter.number}: {chapter.name}
+                  </span>
+                </div>
+              ))}
               {chaptersInfo.chapters.length > 10 && (
                 <div className="text-sm text-[var(--muted-foreground)]">
                   ... и ещё {chaptersInfo.chapters.length - 10} глав

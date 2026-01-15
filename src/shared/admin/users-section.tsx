@@ -18,9 +18,9 @@ export function UsersSection() {
   // Отладочное логирование для проверки структуры данных
   React.useEffect(() => {
     if (usersData) {
-      console.log('Users data structure:', usersData);
-      console.log('Users array:', usersData.data?.users);
-      console.log('Users array length:', usersData.data?.users?.length);
+      console.log("Users data structure:", usersData);
+      console.log("Users array:", usersData.data?.users);
+      console.log("Users array length:", usersData.data?.users?.length);
     }
   }, [usersData]);
 
@@ -30,7 +30,7 @@ export function UsersSection() {
   const handleDelete = async (id: string, username: string) => {
     if (
       confirm(
-        `Вы уверены, что хотите удалить пользователя "${username}"? Это действие нельзя отменить.`
+        `Вы уверены, что хотите удалить пользователя "${username}"? Это действие нельзя отменить.`,
       )
     ) {
       try {
@@ -44,9 +44,8 @@ export function UsersSection() {
   };
 
   const normalizeUrl = (url: string) => {
-    return process.env.NEXT_PUBLIC_URL + url
+    return process.env.NEXT_PUBLIC_URL + url;
   };
-  
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU");
@@ -62,7 +61,7 @@ export function UsersSection() {
             type="text"
             placeholder="Поиск пользователей..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
           />
         </div>
@@ -73,9 +72,7 @@ export function UsersSection() {
         {isLoading ? (
           <div className="p-4 sm:p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-            <p className="text-[var(--muted-foreground)]">
-              Загрузка пользователей...
-            </p>
+            <p className="text-[var(--muted-foreground)]">Загрузка пользователей...</p>
           </div>
         ) : users.length === 0 ? (
           <div className="p-4 sm:p-8 text-center">
@@ -141,7 +138,9 @@ export function UsersSection() {
                     <td className="p-2 sm:p-4">
                       <div className="flex items-center gap-2">
                         <Mail className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--muted-foreground)]" />
-                        <span className="text-[var(--foreground)] text-sm sm:text-base">{user.email}</span>
+                        <span className="text-[var(--foreground)] text-sm sm:text-base">
+                          {user.email}
+                        </span>
                       </div>
                     </td>
                     <td className="p-2 sm:p-4">
@@ -150,15 +149,15 @@ export function UsersSection() {
                           user.role === "admin"
                             ? "bg-red-100 text-red-800"
                             : user.role === "moderator"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {user.role === "admin"
                           ? "Админ"
                           : user.role === "moderator"
-                          ? "Модератор"
-                          : "Пользователь"}
+                            ? "Модератор"
+                            : "Пользователь"}
                       </span>
                     </td>
                     <td className="p-2 sm:p-4 text-[var(--foreground)] text-sm sm:text-base">

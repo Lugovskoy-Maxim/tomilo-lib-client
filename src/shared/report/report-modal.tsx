@@ -30,12 +30,12 @@ export function ReportModal({
   const reportTypeLabels = {
     [ReportType.ERROR]: "Ошибка",
     [ReportType.TYPO]: "Опечатка",
-    [ReportType.COMPLAINT]: "Жалоба"
+    [ReportType.COMPLAINT]: "Жалоба",
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const result = await createReport({
         entityType,
@@ -43,7 +43,7 @@ export function ReportModal({
         reportType,
         content: description,
       }).unwrap();
-      
+
       if (result.success) {
         toast.success("Спасибо за ваше сообщение. Мы рассмотрим его в ближайшее время.");
         onClose();
@@ -77,14 +77,10 @@ export function ReportModal({
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="w-5 h-5 text-[var(--primary)]" />
-            <h2 className="text-xl font-bold text-[var(--foreground)]">
-              Сообщить о проблеме
-            </h2>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">Сообщить о проблеме</h2>
           </div>
           <p className="text-[var(--muted-foreground)] text-sm">
-            {entityType === "title"
-              ? `Тайтл: ${entityTitle}`
-              : `Глава: ${entityTitle}`}
+            {entityType === "title" ? `Тайтл: ${entityTitle}` : `Глава: ${entityTitle}`}
           </p>
         </div>
 
@@ -95,7 +91,7 @@ export function ReportModal({
             </label>
             <select
               value={reportType}
-              onChange={(e) => setReportType(e.target.value as ReportType)}
+              onChange={e => setReportType(e.target.value as ReportType)}
               className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               required
             >
@@ -122,19 +118,10 @@ export function ReportModal({
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Отмена
             </Button>
-            <Button
-              type="submit"
-              className="flex-1"
-              disabled={isLoading || !description.trim()}
-            >
+            <Button type="submit" className="flex-1" disabled={isLoading || !description.trim()}>
               {isLoading ? "Отправка..." : "Отправить"}
             </Button>
           </div>

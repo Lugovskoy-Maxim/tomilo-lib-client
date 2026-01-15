@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Chapter } from '@/types/title';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Chapter } from "@/types/title";
 
 interface ChaptersState {
   chapters: Chapter[];
@@ -14,11 +14,11 @@ const initialState: ChaptersState = {
   selectedChapter: null,
   isLoading: false,
   error: null,
-  search: '',
+  search: "",
 };
 
 export const chaptersSlice = createSlice({
-  name: 'chapters',
+  name: "chapters",
   initialState,
   reducers: {
     setChapters: (state, action: PayloadAction<Chapter[]>) => {

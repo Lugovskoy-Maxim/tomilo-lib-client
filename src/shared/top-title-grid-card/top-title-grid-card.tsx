@@ -46,7 +46,6 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
     setShowAgeModal(false);
   };
 
-
   const handleClick = () => {
     // Проверяем, является ли контент для взрослых и подтверждено ли возрастное ограничение
     if (data.isAdult && !isAgeVerified) {
@@ -66,9 +65,7 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
     }
 
     // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${
-      data.image
-    }`;
+    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${data.image}`;
   };
 
   const imageUrl = getImageUrl();
@@ -91,7 +88,7 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
                 className="object-cover"
                 sizes="64px"
                 unoptimized
-                onError={(e) => {
+                onError={e => {
                   const target = e.target as HTMLImageElement;
                   target.src = IMAGE_HOLDER.src;
                 }}
@@ -102,7 +99,7 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
             <div className="absolute bottom-1 left-1 bg-muted text-primary px-1 py-0.5 rounded text-xs font-medium">
               {data.type}
             </div>
-            
+
             {/* Рейтинг */}
             <div className="absolute top-1 right-1 bg-chart-3 text-primary-foreground px-1 py-0.5 rounded text-xs font-bold flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
@@ -116,26 +113,24 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
             <h3 className="font-semibold text-foreground line-clamp-1 leading-tight text-sm group-hover:text-primary transition-colors">
               {data.title}
             </h3>
-    
+
             {/* Информация о годе и рейтинге */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {/* Год */}
-                <span className="text-foreground font-medium text-sm">
-                  {data.year}
-                </span>
+                <span className="text-foreground font-medium text-sm">{data.year}</span>
               </div>
-    
+
               {/* Рейтинг */}
               <div className="flex items-center gap-1 text-muted-foreground text-xs">
                 <Sparkles className="w-3 h-3" />
                 <span>{data.rating}</span>
               </div>
             </div>
-            
+
             {/* Жанры */}
             <div className="flex flex-wrap gap-1 mt-1">
-              {data.genres.slice(0, 2).map((genre) => (
+              {data.genres.slice(0, 2).map(genre => (
                 <span
                   key={genre}
                   className="px-1 py-0.5 bg-accent text-accent-foreground text-xs rounded-full font-medium"

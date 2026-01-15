@@ -1,9 +1,9 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Title, TitlesState } from '@/types/title';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Title, TitlesState } from "@/types/title";
 
 const initialState: TitlesState = {
   titles: [],
-  search: '',
+  search: "",
   selectedGenre: null,
   selectedStatus: null,
   selectedTitle: null,
@@ -12,7 +12,7 @@ const initialState: TitlesState = {
 };
 
 export const titlesSlice = createSlice({
-  name: 'titles',
+  name: "titles",
   initialState,
   reducers: {
     setTitles: (state, action: PayloadAction<Title[]>) => {
@@ -22,13 +22,13 @@ export const titlesSlice = createSlice({
       state.titles.push(action.payload);
     },
     updateTitle: (state, action: PayloadAction<Title>) => {
-      const index = state.titles.findIndex((t: { _id: string; }) => t._id === action.payload._id);
+      const index = state.titles.findIndex((t: { _id: string }) => t._id === action.payload._id);
       if (index !== -1) {
         state.titles[index] = action.payload;
       }
     },
     deleteTitle: (state, action: PayloadAction<string>) => {
-      state.titles = state.titles.filter((t: { _id: string; }) => t._id !== action.payload);
+      state.titles = state.titles.filter((t: { _id: string }) => t._id !== action.payload);
     },
     setSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;

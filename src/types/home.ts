@@ -17,7 +17,17 @@ export interface Collection {
 }
 
 export interface ReadingProgress {
-  titleId: string | { _id: string; id?: string; name?: string; coverImage?: string; totalChapters?: number; type?: string; chapters?: { chapterNumber: number; readAt: string }[] };
+  titleId:
+    | string
+    | {
+        _id: string;
+        id?: string;
+        name?: string;
+        coverImage?: string;
+        totalChapters?: number;
+        type?: string;
+        chapters?: { chapterNumber: number; readAt: string }[];
+      };
   chapterId: string | { _id: string; id?: string };
   chapterNumber: number;
   lastReadDate?: string;
@@ -87,7 +97,7 @@ export interface TopTitle extends TitleCard {
 }
 
 // Make cover optional to match the data structure
-export interface TopTitleCardData extends Omit<TitleCard, 'cover'> {
+export interface TopTitleCardData extends Omit<TitleCard, "cover"> {
   cover?: string;
   isAdult?: boolean;
 }

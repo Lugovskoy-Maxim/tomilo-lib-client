@@ -9,14 +9,18 @@ interface ImagePreviewModalProps {
   altText?: string;
 }
 
-export function ImagePreviewModal({ isOpen, onClose, imageUrl, altText = "Предпросмотр изображения" }: ImagePreviewModalProps) {
-
+export function ImagePreviewModal({
+  isOpen,
+  onClose,
+  imageUrl,
+  altText = "Предпросмотр изображения",
+}: ImagePreviewModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Предпросмотр изображения">
       <div className="flex justify-center">
         {imageUrl ? (
           <Image
-                loader={({ src, width }) => `${src}?w=${width}`}
+            loader={({ src, width }) => `${src}?w=${width}`}
             src={process.env.NEXT_PUBLIC_UPLOADS_URL + imageUrl}
             alt={altText}
             width={400}
@@ -25,9 +29,7 @@ export function ImagePreviewModal({ isOpen, onClose, imageUrl, altText = "Пре
             unoptimized
           />
         ) : (
-          <div className="text-center py-10 text-gray-500">
-            Изображение не найдено
-          </div>
+          <div className="text-center py-10 text-gray-500">Изображение не найдено</div>
         )}
       </div>
     </Modal>

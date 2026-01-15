@@ -1,6 +1,25 @@
-import { BarChart3, Download, BookOpen, FileText, Users, FolderOpen, Clock, MessageCircle, AlertTriangle } from "lucide-react";
+import {
+  BarChart3,
+  Download,
+  BookOpen,
+  FileText,
+  Users,
+  FolderOpen,
+  Clock,
+  MessageCircle,
+  AlertTriangle,
+} from "lucide-react";
 
-type AdminTab = "overview" | "parser" | "auto-parsing" | "titles" | "chapters" | "collections" | "users" | "comments" | "reports";
+type AdminTab =
+  | "overview"
+  | "parser"
+  | "auto-parsing"
+  | "titles"
+  | "chapters"
+  | "collections"
+  | "users"
+  | "comments"
+  | "reports";
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -59,7 +78,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-1">
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1">
-        {tabs.map((tab) => {
+        {tabs.map(tab => {
           const Icon = tab.icon;
           return (
             <button

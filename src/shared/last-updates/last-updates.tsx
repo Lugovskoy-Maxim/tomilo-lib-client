@@ -9,10 +9,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { timeAgo } from "@/lib/date-utils";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
-import {
-  AgeVerificationModal,
-  checkAgeVerification,
-} from "@/shared/modal/age-verification-modal";
+import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
 
 interface LatestUpdateCardProps {
   data: {
@@ -66,9 +63,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
     }
 
     // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${
-      data.cover
-    }`;
+    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${data.cover}`;
   };
 
   const imageUrl = getImageUrl();
@@ -94,12 +89,10 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               src={imageUrl}
               alt={data.title}
               fill
-              className={`object-cover ${
-                data.isAdult && !isAgeVerified ? "blur-sm" : ""
-              }`}
+              className={`object-cover ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
               sizes="64px"
               unoptimized
-              onError={(e) => {
+              onError={e => {
                 const target = e.target as HTMLImageElement;
                 target.src = IMAGE_HOLDER.src;
               }}
@@ -138,9 +131,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {/* Номер главы */}
-              <span className="text-[var(--primary)] font-medium text-sm">
-                {data.chapter}
-              </span>
+              <span className="text-[var(--primary)] font-medium text-sm">{data.chapter}</span>
 
               {/* Количество новых глав (если есть) */}
               {data.newChapters && data.newChapters > 0 && (

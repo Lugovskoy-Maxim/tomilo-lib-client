@@ -15,7 +15,6 @@ import { normalizeGenres } from "@/lib/genre-normalizer";
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
 export const useHomeData = (): {
-
   popularTitles: {
     data: {
       id: string;
@@ -128,7 +127,6 @@ export const useHomeData = (): {
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
 
-  
   // Популярные тайтлы
   const {
     data: popularTitlesData,
@@ -164,7 +162,6 @@ export const useHomeData = (): {
     error: topTitlesMonthError,
   } = useGetTopTitlesMonthQuery({ limit: 10 });
 
-
   // Топ тайтлы Маньхуа
   const {
     data: topManhuaData,
@@ -177,7 +174,6 @@ export const useHomeData = (): {
     sortOrder: "desc",
     limit: 5,
   });
-
 
   // Топ тайтлы Манхва
   const {
@@ -214,11 +210,9 @@ export const useHomeData = (): {
     skip: !getToken(),
   });
 
-
-
   // Преобразование популярных тайтлов
   const popularTitles =
-    popularTitlesData?.data?.map((item) => ({
+    popularTitlesData?.data?.map(item => ({
       id: item.id,
       slug: (item as any).slug, // Добавляем поддержку slug
       title: item.title,
@@ -231,10 +225,9 @@ export const useHomeData = (): {
       isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
     })) || [];
 
-
   // Преобразование случайных тайтлов
   const randomTitles =
-    randomTitlesData?.data?.map((item) => ({
+    randomTitlesData?.data?.map(item => ({
       id: item.id,
       slug: item.slug, // Добавляем поддержку slug
       title: item.title,
@@ -247,10 +240,9 @@ export const useHomeData = (): {
       isAdult: item.isAdult ?? false,
     })) || [];
 
-
   // Преобразование топ тайтлов Маньхуа
   const topManhua =
-    topManhuaData?.data?.data?.map((item) => ({
+    topManhuaData?.data?.data?.map(item => ({
       id: item._id,
       slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
       title: item.name,
@@ -266,7 +258,7 @@ export const useHomeData = (): {
 
   // Преобразование топ тайтлов за день
   const topTitlesDay =
-    topTitlesDayData?.data?.map((item) => ({
+    topTitlesDayData?.data?.map(item => ({
       id: item.id,
       title: item.title,
       image: item.cover,
@@ -281,7 +273,7 @@ export const useHomeData = (): {
 
   // Преобразование топ тайтлов за неделю
   const topTitlesWeek =
-    topTitlesWeekData?.data?.map((item) => ({
+    topTitlesWeekData?.data?.map(item => ({
       id: item.id,
       title: item.title,
       image: item.cover,
@@ -296,7 +288,7 @@ export const useHomeData = (): {
 
   // Преобразование топ тайтлов за месяц
   const topTitlesMonth =
-    topTitlesMonthData?.data?.map((item) => ({
+    topTitlesMonthData?.data?.map(item => ({
       id: item.id,
       title: item.title,
       image: item.cover,
@@ -309,10 +301,9 @@ export const useHomeData = (): {
       ratingCount: item.ratingCount || 0,
     })) || [];
 
-
   // Преобразование топ тайтлов Манхва
   const topManhwa =
-    topManhwaData?.data?.data?.map((item) => ({
+    topManhwaData?.data?.data?.map(item => ({
       id: item._id,
       slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
       title: item.name,
@@ -326,10 +317,9 @@ export const useHomeData = (): {
       isAdult: item.isAdult ?? false,
     })) || [];
 
-
   // Преобразование топ тайтлов 2025 года
   const top2025 =
-    top2025Data?.data?.data?.map((item) => ({
+    top2025Data?.data?.data?.map(item => ({
       id: item._id,
       slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
       title: item.name,
@@ -346,40 +336,32 @@ export const useHomeData = (): {
   // Преобразование прогресса чтения (сортировка по дате последнего чтения, самые свежие сначала)
   const readingProgress =
     readingHistory?.data
-      ?.map((item) => {
+      ?.map(item => {
         // Проверяем, что chapters существует и это массив
-        const chaptersArray =
-          item.chapters && Array.isArray(item.chapters) ? item.chapters : [];
+        const chaptersArray = item.chapters && Array.isArray(item.chapters) ? item.chapters : [];
 
         const latestChapter =
           chaptersArray.length > 0
             ? chaptersArray.reduce((latest, current) => {
-                return new Date(current.readAt) > new Date(latest.readAt)
-                  ? current
-                  : latest;
+                return new Date(current.readAt) > new Date(latest.readAt) ? current : latest;
               })
             : null;
 
         // Безопасное получение данных о тайтле
-        const titleData =
-          item.titleId && typeof item.titleId === "object" ? item.titleId : {};
+        const titleData = item.titleId && typeof item.titleId === "object" ? item.titleId : {};
         const titleId =
           typeof item.titleId === "string"
             ? item.titleId
             : (titleData as { _id?: string })._id || "";
 
-        const titleChapters =
-          (titleData as { chapters?: Chapter[] }).chapters || [];
+        const titleChapters = (titleData as { chapters?: Chapter[] }).chapters || [];
         const totalChapters = titleChapters.length;
         const currentChapter = latestChapter?.chapterNumber || 0;
 
         // Calculate new chapters based on release date vs last read date
-        const lastReadDate = latestChapter
-          ? new Date(latestChapter.readAt)
-          : new Date(0);
+        const lastReadDate = latestChapter ? new Date(latestChapter.readAt) : new Date(0);
         const newChapters = titleChapters.filter(
-          (ch: Chapter) =>
-            ch.releaseDate && new Date(ch.releaseDate) > lastReadDate
+          (ch: Chapter) => ch.releaseDate && new Date(ch.releaseDate) > lastReadDate,
         ).length;
 
         return {
@@ -399,15 +381,10 @@ export const useHomeData = (): {
               }
             : undefined,
           // Добавляем timestamp для сортировки
-          lastReadTimestamp: latestChapter
-            ? new Date(latestChapter.readAt).getTime()
-            : 0,
+          lastReadTimestamp: latestChapter ? new Date(latestChapter.readAt).getTime() : 0,
         };
       })
-      .filter(
-        (item) =>
-          item.currentChapter <= item.totalChapters && item.totalChapters > 0
-      )
+      .filter(item => item.currentChapter <= item.totalChapters && item.totalChapters > 0)
       // Сортировка по дате последнего чтения (свежие сначала)
       .sort((a, b) => b.lastReadTimestamp - a.lastReadTimestamp) || [];
 

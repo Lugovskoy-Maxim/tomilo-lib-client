@@ -20,11 +20,10 @@ const Button = ({
     primary: "bg-primary text-primary-foreground hover:bg-primary/90 border-muted",
     outline:
       "border border-input bg-background hover:bg-accent hover:text-accent-foreground border-muted",
-    link: "text-primary underline-offset-4 hover:underline border-muted" ,
+    link: "text-primary underline-offset-4 hover:underline border-muted",
     ghost: "hover:bg-accent hover:text-accent-foreground",
     text: "text-primary hover:bg-accent hover:text-accent-foreground",
-    destructive:
-      "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+    destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
   };
 
   // Классы для размеров

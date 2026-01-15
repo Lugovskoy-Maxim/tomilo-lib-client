@@ -1,6 +1,6 @@
 import { SearchResult } from "@/types/search";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 export async function searchApi(term: string, signal?: AbortSignal): Promise<SearchResult[]> {
   if (!term.trim()) {
@@ -15,11 +15,10 @@ export async function searchApi(term: string, signal?: AbortSignal): Promise<Sea
     }
 
     const data = await response.json();
-    const results = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+    const results = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
     return results as SearchResult[];
   } catch (error) {
-    console.error('Ошибка при выполнении поиска:', error);
+    console.error("Ошибка при выполнении поиска:", error);
     return [];
   }
 }
-

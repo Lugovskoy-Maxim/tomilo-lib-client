@@ -13,28 +13,23 @@ export default function CollapsibleGenresList({
   genres,
   selectedGenres,
   onGenreChange,
-  maxVisibleGenres = 12
+  maxVisibleGenres = 12,
 }: CollapsibleGenresListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Если жанров меньше или равно максимальному количеству для показа, не показываем кнопку
   const shouldShowToggle = genres.length > maxVisibleGenres;
-  
-  const visibleGenres = isExpanded 
-    ? genres 
-    : genres.slice(0, maxVisibleGenres);
-  
+
+  const visibleGenres = isExpanded ? genres : genres.slice(0, maxVisibleGenres);
+
   const hiddenCount = genres.length - maxVisibleGenres;
 
   return (
     <div className="space-y-2">
       {/* Список жанров */}
       <div className="space-y-2">
-        {visibleGenres.map((genre) => (
-          <label
-            key={genre}
-            className="flex items-center gap-2 cursor-pointer"
-          >
+        {visibleGenres.map(genre => (
+          <label key={genre} className="flex items-center gap-2 cursor-pointer">
             <div className="relative">
               <input
                 type="checkbox"

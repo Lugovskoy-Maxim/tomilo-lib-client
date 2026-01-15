@@ -57,8 +57,7 @@ export default function AdultContentWarning() {
                 Контент для взрослых
               </h1>
               <p className="text-[var(--muted-foreground)] mb-6">
-                Этот тайтл содержит контент для взрослых. Для просмотра
-                необходимо авторизоваться.
+                Этот тайтл содержит контент для взрослых. Для просмотра необходимо авторизоваться.
               </p>
 
               <div className="flex gap-3 justify-center">

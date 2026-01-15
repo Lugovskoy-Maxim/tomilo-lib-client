@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ReadingHistoryEntry } from '@/types/store';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { ReadingHistoryEntry } from "@/types/store";
 
 interface ReadingHistoryState {
   history: ReadingHistoryEntry[];
@@ -14,7 +14,7 @@ const initialState: ReadingHistoryState = {
 };
 
 export const readingHistorySlice = createSlice({
-  name: 'readingHistory',
+  name: "readingHistory",
   initialState,
   reducers: {
     setHistory: (state, action: PayloadAction<ReadingHistoryEntry[]>) => {
@@ -30,11 +30,13 @@ export const readingHistorySlice = createSlice({
       state.history.push(action.payload);
     },
     removeHistoryEntry: (state, action: PayloadAction<string>) => {
-      state.history = state.history.filter(entry => 
-        typeof entry.titleId === 'string' ? entry.titleId !== action.payload : entry.titleId._id !== action.payload
+      state.history = state.history.filter(entry =>
+        typeof entry.titleId === "string"
+          ? entry.titleId !== action.payload
+          : entry.titleId._id !== action.payload,
       );
     },
-    clearHistory: (state) => {
+    clearHistory: state => {
       state.history = [];
     },
   },

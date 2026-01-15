@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TitleType, TitleStatus } from '@/types/title';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { TitleType, TitleStatus } from "@/types/title";
 
 interface FilterState {
   selectedGenres: string[];
@@ -7,7 +7,7 @@ interface FilterState {
   selectedStatuses: TitleStatus[];
   selectedAgeLimits: number[];
   sortBy: string;
-  sortOrder: 'asc' | 'desc';
+  sortOrder: "asc" | "desc";
   releaseYearRange: [number, number] | null;
 }
 
@@ -16,13 +16,13 @@ const initialState: FilterState = {
   selectedTypes: [],
   selectedStatuses: [],
   selectedAgeLimits: [],
-  sortBy: 'createdAt',
-  sortOrder: 'desc',
+  sortBy: "createdAt",
+  sortOrder: "desc",
   releaseYearRange: null,
 };
 
 export const filterSlice = createSlice({
-  name: 'filter',
+  name: "filter",
   initialState,
   reducers: {
     setSelectedGenres: (state, action: PayloadAction<string[]>) => {
@@ -40,13 +40,13 @@ export const filterSlice = createSlice({
     setSortBy: (state, action: PayloadAction<string>) => {
       state.sortBy = action.payload;
     },
-    setSortOrder: (state, action: PayloadAction<'asc' | 'desc'>) => {
+    setSortOrder: (state, action: PayloadAction<"asc" | "desc">) => {
       state.sortOrder = action.payload;
     },
     setReleaseYearRange: (state, action: PayloadAction<[number, number] | null>) => {
       state.releaseYearRange = action.payload;
     },
-    resetFilters: (state) => {
+    resetFilters: state => {
       state.selectedGenres = [];
       state.selectedTypes = [];
       state.selectedStatuses = [];

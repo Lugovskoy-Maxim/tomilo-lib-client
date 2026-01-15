@@ -1,14 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Comment, CreateCommentDto, CommentEntityType } from '@/types/comment';
-import {
-  useCreateCommentMutation,
-  useUpdateCommentMutation,
-} from '@/store/api/commentsApi';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/shared/ui/button';
-import { Send, X } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Comment, CreateCommentDto, CommentEntityType } from "@/types/comment";
+import { useCreateCommentMutation, useUpdateCommentMutation } from "@/store/api/commentsApi";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/shared/ui/button";
+import { Send, X } from "lucide-react";
 
 interface CommentFormProps {
   entityType: CommentEntityType;
@@ -28,7 +25,7 @@ export function CommentForm({
   onSubmit,
 }: CommentFormProps) {
   const { user } = useAuth();
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [createComment, { isLoading: isCreating }] = useCreateCommentMutation();
   const [updateComment, { isLoading: isUpdating }] = useUpdateCommentMutation();
 
@@ -36,7 +33,7 @@ export function CommentForm({
     if (editComment) {
       setContent(editComment.content);
     } else {
-      setContent('');
+      setContent("");
     }
   }, [editComment]);
 
@@ -59,16 +56,18 @@ export function CommentForm({
         };
         const result = await createComment(commentData).unwrap();
       }
-      setContent('');
+      setContent("");
       onSubmit?.();
     } catch (error: unknown) {
       // Handle error silently in production
       // Показываем пользователю понятное сообщение
-      const errData = ((error as Record<string, unknown>).data) as Record<string, unknown> | undefined;
+      const errData = (error as Record<string, unknown>).data as
+        | Record<string, unknown>
+        | undefined;
       alert(
         (errData?.message as string | undefined) ||
-        (Array.isArray(errData?.errors) ? errData?.errors.join(', ') : undefined) ||
-        'Не удалось отправить комментарий. Проверьте консоль для подробностей.'
+          (Array.isArray(errData?.errors) ? errData?.errors.join(", ") : undefined) ||
+          "Не удалось отправить комментарий. Проверьте консоль для подробностей.",
       );
     }
   };
@@ -85,13 +84,13 @@ export function CommentForm({
     <form onSubmit={handleSubmit} className="space-y-3">
       <textarea
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={e => setContent(e.target.value)}
         placeholder={
           editComment
-            ? 'Редактировать комментарий...'
+            ? "Редактировать комментарий..."
             : parentId
-              ? 'Написать ответ...'
-              : 'Написать комментарий...'
+              ? "Написать ответ..."
+              : "Написать комментарий..."
         }
         rows={4}
         maxLength={5000}
@@ -99,17 +98,10 @@ export function CommentForm({
         required
       />
       <div className="flex items-center justify-between">
-        <span className="text-xs text-[var(--muted-foreground)]">
-          {content.length}/5000
-        </span>
+        <span className="text-xs text-[var(--muted-foreground)]">{content.length}/5000</span>
         <div className="flex gap-2">
           {onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onCancel}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={onCancel}>
               <X className="w-4 h-4 mr-2" />
               Отмена
             </Button>
@@ -123,15 +115,14 @@ export function CommentForm({
             <Send className="w-4 h-4 mr-2" />
             {editComment
               ? isUpdating
-                ? 'Сохранение...'
-                : 'Сохранить'
+                ? "Сохранение..."
+                : "Сохранить"
               : isCreating
-                ? 'Отправка...'
-                : 'Отправить'}
+                ? "Отправка..."
+                : "Отправить"}
           </Button>
         </div>
       </div>
     </form>
   );
 }
-

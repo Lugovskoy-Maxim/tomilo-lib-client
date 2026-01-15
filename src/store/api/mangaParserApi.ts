@@ -15,7 +15,7 @@ export const mangaParserApi = createApi({
   reducerPath: "mangaParserApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (token) {
@@ -26,10 +26,10 @@ export const mangaParserApi = createApi({
     },
   }),
   tagTypes: ["MangaParser"],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     // Parse and import complete title
     parseTitle: builder.mutation<ApiResponseDto<ParseResult>, ParseTitleDto>({
-      query: (data) => ({
+      query: data => ({
         url: "/manga-parser/parse-title",
         method: "POST",
         body: data,
@@ -40,7 +40,7 @@ export const mangaParserApi = createApi({
 
     // Parse and import chapters
     parseChapters: builder.mutation<ApiResponseDto<ParseResult>, ParseChaptersDto>({
-      query: (data) => ({
+      query: data => ({
         url: "/manga-parser/parse-chapters",
         method: "POST",
         body: data,
@@ -50,8 +50,11 @@ export const mangaParserApi = createApi({
     }),
 
     // Get chapters info from URL
-    parseChaptersInfo: builder.query<ApiResponseDto<ParseChaptersInfoResponse>, ParseChaptersInfoDto>({
-      query: (data) => ({
+    parseChaptersInfo: builder.query<
+      ApiResponseDto<ParseChaptersInfoResponse>,
+      ParseChaptersInfoDto
+    >({
+      query: data => ({
         url: "/manga-parser/parse-chapters-info",
         method: "POST",
         body: data,

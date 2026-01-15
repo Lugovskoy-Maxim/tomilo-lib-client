@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import {
-  Title,
-  CreateTitleDto,
-  UpdateTitleDto,
-} from "@/types/title";
+import { Title, CreateTitleDto, UpdateTitleDto } from "@/types/title";
 import { ApiResponseDto } from "@/types/api";
 
 interface PopularTitle {
@@ -21,9 +17,7 @@ interface PopularTitle {
 const TITLES_TAG = "Titles";
 
 // 🔧 Утилита для преобразования объекта в FormData
-function toFormData<T extends Record<string, unknown>>(
-  data: Partial<T>
-): FormData {
+function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormData {
   const formData = new FormData();
 
   Object.entries(data).forEach(([key, value]) => {
@@ -31,7 +25,7 @@ function toFormData<T extends Record<string, unknown>>(
 
     if (Array.isArray(value)) {
       // Для массивов добавляем каждый элемент как отдельное поле с тем же именем
-      value.forEach((item) => {
+      value.forEach(item => {
         formData.append(key, String(item));
       });
     } else if (value instanceof Blob) {
@@ -55,7 +49,7 @@ export const titlesApi = createApi({
   reducerPath: "titlesApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem("tomilo_lib_token");
         if (token) {
@@ -66,16 +60,13 @@ export const titlesApi = createApi({
     },
   }),
   tagTypes: [TITLES_TAG],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     // Получить все тайтлы (простой список)
     getTitles: builder.query<ApiResponseDto<{ titles: Title[] }>, void>({
       query: () => "/titles",
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<{ titles: Title[] }>) =>
-        response,
+      transformResponse: (response: ApiResponseDto<{ titles: Title[] }>) => response,
     }),
-
-
 
     // Поиск/список тайтлов с фильтрами и пагинацией
     searchTitles: builder.query<
@@ -85,7 +76,6 @@ export const titlesApi = createApi({
         page: number;
         totalPages: number;
       }>,
-
       {
         search?: string;
         genres?: string;
@@ -100,9 +90,9 @@ export const titlesApi = createApi({
         limit?: number;
       }
     >({
-      query: (params) => {
+      query: params => {
         const queryParams: Record<string, any> = {};
-        
+
         // Копируем все параметры
         Object.keys(params).forEach(key => {
           const value = params[key as keyof typeof params];
@@ -111,14 +101,11 @@ export const titlesApi = createApi({
           }
         });
 
-
-
-
         // Специальная обработка ageLimits для отправки как ageLimits строка
         if (params.ageLimits) {
           // Всегда отправляем как ageLimits строка с запятыми
           if (Array.isArray(params.ageLimits)) {
-            queryParams.ageLimits = params.ageLimits.join(',');
+            queryParams.ageLimits = params.ageLimits.join(",");
           } else {
             queryParams.ageLimits = params.ageLimits;
           }
@@ -142,18 +129,13 @@ export const titlesApi = createApi({
           total?: number;
           page?: number;
           totalPages?: number;
-        }>
+        }>,
       ) => {
         // Нормализуем серверный ответ { titles, pagination }
-        const data: Title[] =
-          response?.data?.titles ?? response?.data?.data ?? [];
+        const data: Title[] = response?.data?.titles ?? response?.data?.data ?? [];
         const total: number =
-          response?.data?.pagination?.total ??
-          response?.data?.total ??
-          data.length ??
-          0;
-        const page: number =
-          response?.data?.pagination?.page ?? response?.data?.page ?? 1;
+          response?.data?.pagination?.total ?? response?.data?.total ?? data.length ?? 0;
+        const page: number = response?.data?.pagination?.page ?? response?.data?.page ?? 1;
         const totalPages: number =
           response?.data?.pagination?.pages ??
           response?.data?.totalPages ??
@@ -190,7 +172,7 @@ export const titlesApi = createApi({
           status?: string[];
           tags?: string[];
           types?: string[];
-        }>
+        }>,
       ) => {
         // Обеспечиваем дефолтные значения для всех полей
         const data = response.data || {};
@@ -220,10 +202,7 @@ export const titlesApi = createApi({
     }),
 
     // Получить тайтл по ID
-    getTitleById: builder.query<
-      Title,
-      { id: string; includeChapters?: boolean }
-    >({
+    getTitleById: builder.query<Title, { id: string; includeChapters?: boolean }>({
       query: ({ id, includeChapters = false }) => ({
         url: `/titles/${id}`,
         params: { populateChapters: includeChapters.toString() },
@@ -231,11 +210,7 @@ export const titlesApi = createApi({
       providesTags: (result, error, { id }) => [{ type: TITLES_TAG, id }],
       transformResponse: (response: unknown): Title => {
         const apiResponse = response as ApiResponseDto<Title> | Title;
-        if (
-          typeof apiResponse === "object" &&
-          apiResponse !== null &&
-          "success" in apiResponse
-        ) {
+        if (typeof apiResponse === "object" && apiResponse !== null && "success" in apiResponse) {
           const wrappedResponse = apiResponse as ApiResponseDto<Title>;
           if (wrappedResponse.success === false) {
             throw new Error(wrappedResponse.message || "Failed to fetch title");
@@ -250,29 +225,18 @@ export const titlesApi = createApi({
     }),
 
     // Получить тайтл по slug
-    getTitleBySlug: builder.query<
-      Title,
-      { slug: string; includeChapters?: boolean }
-    >({
+    getTitleBySlug: builder.query<Title, { slug: string; includeChapters?: boolean }>({
       query: ({ slug, includeChapters = false }) => ({
         url: `/titles/slug/${slug}`,
         params: { populateChapters: includeChapters.toString() },
       }),
-      providesTags: (result, error, { slug }) => [
-        { type: TITLES_TAG, id: `slug-${slug}` },
-      ],
+      providesTags: (result, error, { slug }) => [{ type: TITLES_TAG, id: `slug-${slug}` }],
       transformResponse: (response: unknown): Title => {
         const apiResponse = response as ApiResponseDto<Title> | Title;
-        if (
-          typeof apiResponse === "object" &&
-          apiResponse !== null &&
-          "success" in apiResponse
-        ) {
+        if (typeof apiResponse === "object" && apiResponse !== null && "success" in apiResponse) {
           const wrappedResponse = apiResponse as ApiResponseDto<Title>;
           if (wrappedResponse.success === false) {
-            throw new Error(
-              wrappedResponse.message || "Failed to fetch title by slug"
-            );
+            throw new Error(wrappedResponse.message || "Failed to fetch title by slug");
           }
           if (!wrappedResponse.data) {
             throw new Error("No data in API response");
@@ -284,11 +248,8 @@ export const titlesApi = createApi({
     }),
 
     // Создание тайтла
-    createTitle: builder.mutation<
-      ApiResponseDto<Title>,
-      Partial<CreateTitleDto>
-    >({
-      query: (data) => ({
+    createTitle: builder.mutation<ApiResponseDto<Title>, Partial<CreateTitleDto>>({
+      query: data => ({
         url: "/titles",
         method: "POST",
         body: data,
@@ -331,10 +292,7 @@ export const titlesApi = createApi({
     }),
 
     // Обновление обложки тайтла
-    updateTitleCover: builder.mutation<
-      ApiResponseDto<Title>,
-      { id: string; coverImage: File }
-    >({
+    updateTitleCover: builder.mutation<ApiResponseDto<Title>, { id: string; coverImage: File }>({
       query: ({ id, coverImage }) => {
         const formData = new FormData();
         formData.append("coverImage", coverImage);
@@ -349,10 +307,7 @@ export const titlesApi = createApi({
     }),
 
     // Обновление рейтинга тайтла
-    updateRating: builder.mutation<
-      ApiResponseDto<Title>,
-      { id: string; rating: number }
-    >({
+    updateRating: builder.mutation<ApiResponseDto<Title>, { id: string; rating: number }>({
       query: ({ id, rating }) => ({
         url: `/titles/${id}/rating`,
         method: "POST",
@@ -364,7 +319,7 @@ export const titlesApi = createApi({
 
     // Увеличение счётчика просмотров тайтла
     incrementViews: builder.mutation<ApiResponseDto<Title>, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/titles/${id}/views`,
         method: "POST",
       }),
@@ -373,15 +328,10 @@ export const titlesApi = createApi({
     }),
 
     // Получить популярные тайтлы
-    getPopularTitles: builder.query<
-      ApiResponseDto<PopularTitle[]>,
-      void
-    >({
+    getPopularTitles: builder.query<ApiResponseDto<PopularTitle[]>, void>({
       query: () => "/titles/popular",
       providesTags: [TITLES_TAG],
-      transformResponse: (
-        response: ApiResponseDto<PopularTitle[]>
-      ) => response,
+      transformResponse: (response: ApiResponseDto<PopularTitle[]>) => response,
     }),
 
     // Получить топ тайтлы за день
@@ -401,7 +351,7 @@ export const titlesApi = createApi({
       >,
       { limit?: number }
     >({
-      query: (params) => ({
+      query: params => ({
         url: "/titles/top/day",
         params,
       }),
@@ -419,7 +369,7 @@ export const titlesApi = createApi({
             isAdult?: boolean;
             ratingCount?: number;
           }[]
-        >
+        >,
       ) => response,
     }),
 
@@ -440,7 +390,7 @@ export const titlesApi = createApi({
       >,
       { limit?: number }
     >({
-      query: (params) => ({
+      query: params => ({
         url: "/titles/top/week",
         params,
       }),
@@ -458,7 +408,7 @@ export const titlesApi = createApi({
             isAdult?: boolean;
             ratingCount?: number;
           }[]
-        >
+        >,
       ) => response,
     }),
 
@@ -479,7 +429,7 @@ export const titlesApi = createApi({
       >,
       { limit?: number }
     >({
-      query: (params) => ({
+      query: params => ({
         url: "/titles/top/month",
         params,
       }),
@@ -497,23 +447,19 @@ export const titlesApi = createApi({
             isAdult?: boolean;
             ratingCount?: number;
           }[]
-        >
+        >,
       ) => response,
     }),
 
     // Получить коллекции
     getCollections: builder.query<
-      ApiResponseDto<
-        { id: string; name: string; image: string; link: string }[]
-      >,
+      ApiResponseDto<{ id: string; name: string; image: string; link: string }[]>,
       void
     >({
       query: () => "/collections",
       providesTags: [TITLES_TAG],
       transformResponse: (
-        response: ApiResponseDto<
-          { id: string; name: string; image: string; link: string }[]
-        >
+        response: ApiResponseDto<{ id: string; name: string; image: string; link: string }[]>,
       ) => response,
     }),
 
@@ -535,7 +481,7 @@ export const titlesApi = createApi({
       >,
       { limit?: number }
     >({
-      query: (params) => ({
+      query: params => ({
         url: "/titles/random",
         params,
       }),
@@ -553,7 +499,7 @@ export const titlesApi = createApi({
             isAdult: boolean;
             ratingCount?: number;
           }[]
-        >
+        >,
       ) => response,
     }),
 
@@ -587,13 +533,13 @@ export const titlesApi = createApi({
             releaseYear?: number;
             type?: string;
           }[]
-        >
+        >,
       ) => response,
     }),
 
     // Удаление тайтла
     deleteTitle: builder.mutation<void, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/titles/${id}`,
         method: "DELETE",
       }),

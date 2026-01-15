@@ -15,17 +15,11 @@ import {
   X,
   CheckCircle,
 } from "lucide-react";
-import {
-  translateTitleStatus,
-  translateTitleType,
-} from "@/lib/title-type-translations";
+import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useUpdateRatingMutation } from "@/store/api/titlesApi";
-import {
-  AgeVerificationModal,
-  checkAgeVerification,
-} from "@/shared/modal/age-verification-modal";
+import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
 import { getChapterPath } from "@/lib/title-paths";
 
 interface RightContentProps {
@@ -83,7 +77,7 @@ export function RightContent({
       const titleData = { _id: titleId, slug };
       return getChapterPath(titleData, chapterId);
     },
-    [titleId, slug]
+    [titleId, slug],
   );
 
   // Функция для получения корректного пути к тайтлу
@@ -133,7 +127,7 @@ export function RightContent({
 
   useEffect(() => {
     if (searchQuery) {
-      const filteredChapters = chapters.filter((chapter) => {
+      const filteredChapters = chapters.filter(chapter => {
         const chapterNumberMatch = chapter.name.match(/(?:Глава\s+)?(\d+)/i);
         const chapterNumber = chapterNumberMatch ? chapterNumberMatch[1] : null;
         return chapterNumber === searchQuery.trim();
@@ -142,10 +136,9 @@ export function RightContent({
       setVisibleChapters(filteredChapters);
       setLoadedChaptersCount(filteredChapters.length);
     } else {
-      setDisplayedChapters((prev) => {
+      setDisplayedChapters(prev => {
         const newChapters = chapters.filter(
-          (chapter) =>
-            !prev.some((prevChapter) => prevChapter._id === chapter._id)
+          chapter => !prev.some(prevChapter => prevChapter._id === chapter._id),
         );
         // Sort chapters by chapterNumber based on sortOrder
         const sortedChapters = [...prev, ...newChapters].sort((a, b) => {
@@ -170,14 +163,9 @@ export function RightContent({
   }, [searchQuery, displayedChapters, loadedChaptersCount]);
 
   const handleScroll = useCallback(() => {
-    if (
-      window.innerHeight + window.scrollY >=
-      document.body.offsetHeight - 1000
-    ) {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
       if (loadedChaptersCount < displayedChapters.length) {
-        setLoadedChaptersCount((prev) =>
-          Math.min(prev + 10, displayedChapters.length)
-        );
+        setLoadedChaptersCount(prev => Math.min(prev + 10, displayedChapters.length));
       }
     }
   }, [loadedChaptersCount, displayedChapters.length]);
@@ -193,10 +181,13 @@ export function RightContent({
 
   // Функция для обработки массива оценок и подсчета частоты каждой оценки
   const getRatingStats = (ratings: number[]) => {
-    const stats = ratings.reduce((acc, rating) => {
-      acc[rating] = (acc[rating] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
+    const stats = ratings.reduce(
+      (acc, rating) => {
+        acc[rating] = (acc[rating] || 0) + 1;
+        return acc;
+      },
+      {} as Record<number, number>,
+    );
 
     // Сортируем по убыванию оценки
     return Object.entries(stats)
@@ -208,11 +199,8 @@ export function RightContent({
       .sort((a, b) => b.rating - a.rating);
   };
 
-  const ratingStats = titleData?.ratings
-    ? getRatingStats(titleData.ratings)
-    : [];
-  const totalRatings =
-    titleData?.totalRatings || titleData?.ratings?.length || 0;
+  const ratingStats = titleData?.ratings ? getRatingStats(titleData.ratings) : [];
+  const totalRatings = titleData?.totalRatings || titleData?.ratings?.length || 0;
 
   console.log(activeTab);
   const renderTabContent = (): React.ReactElement | null => {
@@ -229,22 +217,16 @@ export function RightContent({
             <div className="text-center py-2 border-b border-[var(--border)]">
               <p className="text-[var(--foreground)]/60">
                 Последнее обновление{" "}
-                {titleData?.updatedAt
-                  ? timeAgo(titleData.updatedAt)
-                  : "неизвестно"}
+                {titleData?.updatedAt ? timeAgo(titleData.updatedAt) : "неизвестно"}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-[var(--primary)]/80">
-                  {titleData?.createdAt
-                    ? new Date(titleData.createdAt).toLocaleDateString()
-                    : 0}
+                  {titleData?.createdAt ? new Date(titleData.createdAt).toLocaleDateString() : 0}
                 </div>
-                <div className="text-sm text-[var(--foreground)]/60">
-                  Дата загрузки на сайте
-                </div>
+                <div className="text-sm text-[var(--foreground)]/60">Дата загрузки на сайте</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-[var(--primary)]/80">
@@ -254,10 +236,9 @@ export function RightContent({
                   Загружено:{" "}
                   {titleData?.totalChapters === 1
                     ? " глава"
-                    : titleData?.totalChapters > 1 &&
-                      titleData?.totalChapters < 5
-                    ? " главы"
-                    : " глав"}
+                    : titleData?.totalChapters > 1 && titleData?.totalChapters < 5
+                      ? " главы"
+                      : " глав"}
                 </div>
               </div>
             </div>
@@ -265,21 +246,15 @@ export function RightContent({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-[var(--primary)]/80">
-                  {titleData?.author
-                    ? titleData.author
-                    : "Нет доступных данных"}
+                  {titleData?.author ? titleData.author : "Нет доступных данных"}
                 </div>
                 <div className="text-sm text-[var(--foreground)]/60">Автор</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-[var(--primary)]/80">
-                  {titleData?.artist
-                    ? titleData.artist
-                    : "Нет доступных данных"}
+                  {titleData?.artist ? titleData.artist : "Нет доступных данных"}
                 </div>
-                <div className="text-sm text-[var(--foreground)]/60">
-                  Художник(и)
-                </div>
+                <div className="text-sm text-[var(--foreground)]/60">Художник(и)</div>
               </div>
             </div>
 
@@ -288,9 +263,7 @@ export function RightContent({
                 Альтернативные названия:
               </div>
               <div className="text-lg font-normal text-[var(--primary)]/80">
-                {titleData?.altNames
-                  ? titleData.altNames.join(", ")
-                  : "Нет доступных данных"}
+                {titleData?.altNames ? titleData.altNames.join(", ") : "Нет доступных данных"}
               </div>
             </div>
 
@@ -304,17 +277,11 @@ export function RightContent({
                     <div className="text-2xl font-bold text-[var(--foreground)]">
                       {titleData?.views || 0}
                     </div>
-                    <div className="text-sm text-[var(--foreground)]/60">
-                      Просмотров
-                    </div>
+                    <div className="text-sm text-[var(--foreground)]/60">Просмотров</div>
                   </div>
                   <div className="text-center mb-4">
-                    <div className="text-xl font-bold text-[var(--foreground)]">
-                      {totalRatings}
-                    </div>
-                    <div className="text-sm text-[var(--foreground)]/60">
-                      Всего оценок
-                    </div>
+                    <div className="text-xl font-bold text-[var(--foreground)]">{totalRatings}</div>
+                    <div className="text-sm text-[var(--foreground)]/60">Всего оценок</div>
                   </div>
                 </div>
               </div>
@@ -327,7 +294,7 @@ export function RightContent({
                         Распределение оценок
                       </h4>
                       <div className="space-y-3">
-                        {ratingStats.map((stat) => (
+                        {ratingStats.map(stat => (
                           <div
                             key={stat.rating}
                             className="flex items-center justify-between gap-3"
@@ -405,14 +372,12 @@ export function RightContent({
                   type="text"
                   placeholder="Поиск глав..."
                   value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
+                  onChange={e => onSearchChange(e.target.value)}
                   className="flex-1 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] placeholder-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] relative"
                 />
 
                 <button
-                  onClick={() =>
-                    onSortChange(sortOrder === "desc" ? "asc" : "desc")
-                  }
+                  onClick={() => onSortChange(sortOrder === "desc" ? "asc" : "desc")}
                   className="w-[160px] px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <ArrowUpDown
@@ -426,36 +391,28 @@ export function RightContent({
             </div>
 
             <div className="space-y-2 mt-2">
-              {visibleChapters.map((chapter) => (
+              {visibleChapters.map(chapter => (
                 <div
                   key={chapter._id}
                   className="flex items-center justify-between gap-2 py-2 px-3 bg-[var(--card)]/50 rounded-full hover:bg-[var(--background)]/70 transition-colors"
                 >
                   <Eye className="w-5 h-5 text-[var(--primary)]" />
                   <div className="flex-1">
-                    <h3 className="font-medium text-[var(--foreground)]">
-                      {chapter.name}
-                    </h3>
+                    <h3 className="font-medium text-[var(--foreground)]">{chapter.name}</h3>
                     <p className="text-sm text-[var(--foreground)]/60">
-                      {chapter.createdAt
-                        ? new Date(chapter.createdAt).toLocaleDateString()
-                        : ""}
+                      {chapter.createdAt ? new Date(chapter.createdAt).toLocaleDateString() : ""}
                     </p>
                   </div>
                   <div className="flex gap-2 items-center">
                     <div className="flex gap-2">
                       {"Просмотров: "}
                       {chapter.views && (
-                        <span className="flex items-center gap-1">
-                          {chapter.views}
-                        </span>
+                        <span className="flex items-center gap-1">{chapter.views}</span>
                       )}
                     </div>
 
                     <button
-                      onClick={() =>
-                        router.push(getChapterPathCallback(chapter._id))
-                      }
+                      onClick={() => router.push(getChapterPathCallback(chapter._id))}
                       className="px-4 py-2 bg-[var(--chart-1)]/80 cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)]/80 transition-colors"
                     >
                       Читать
@@ -476,12 +433,7 @@ export function RightContent({
         );
 
       case "comments":
-        return (
-          <CommentsSection
-            entityType={CommentEntityType.TITLE}
-            entityId={titleId}
-          />
-        );
+        return <CommentsSection entityType={CommentEntityType.TITLE} entityId={titleId} />;
 
       default:
         return null;
@@ -503,9 +455,7 @@ export function RightContent({
             </div>
             <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-full text-[var(--primary)]">
               <CheckCheck className="w-4 h-4" />
-              {titleData?.status && (
-                <span>{translateTitleStatus(titleData.status || "")}</span>
-              )}
+              {titleData?.status && <span>{translateTitleStatus(titleData.status || "")}</span>}
             </div>
             {/* <button
               onClick={() => setIsReportModalOpen(true)}
@@ -523,9 +473,7 @@ export function RightContent({
             <div className="relative flex flex-col items-end gap-1 bg-[var(--background)]/20 px-3 py-2 rounded-full min-w-[80px]">
               <div className="flex flex-col items-end">
                 <span className="text-lg font-bold text-[var(--chart-1)]">
-                  {titleData?.averageRating
-                    ? titleData?.averageRating.toFixed(2)
-                    : "0"}
+                  {titleData?.averageRating ? titleData?.averageRating.toFixed(2) : "0"}
                 </span>
                 {totalRatings > 0 && (
                   <span className="text-xs text-[var(--foreground)]/60">
@@ -535,7 +483,7 @@ export function RightContent({
               </div>
               <button
                 type="button"
-                onClick={() => setIsRatingOpen((v) => !v)}
+                onClick={() => setIsRatingOpen(v => !v)}
                 className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer whitespace-nowrap"
               >
                 Оценить
@@ -543,9 +491,7 @@ export function RightContent({
               {isRatingOpen && (
                 <div className="absolute top-4 right-0 flex flex-col w-max bg-[var(--accent)] rounded-lg p-4 z-20">
                   <div className="flex items-end justify-between mb-2">
-                    <span className="text-sm text-[var(--primary)]">
-                      Ваша оценка
-                    </span>
+                    <span className="text-sm text-[var(--primary)]">Ваша оценка</span>
                     <button
                       type="button"
                       onClick={() => setIsRatingOpen(false)}
@@ -556,7 +502,7 @@ export function RightContent({
                     </button>
                   </div>
                   <div className="flex gap-2 overflow-x-auto">
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
                       <button
                         key={n}
                         type="button"
@@ -590,11 +536,7 @@ export function RightContent({
           <span
             className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-sm font-semibold bg-[var(--muted)]/60 p-1"
             onClick={() => {
-              router.push(
-                `/titles?ageLimit=${encodeURIComponent(
-                  titleData?.ageLimit || ""
-                )}`
-              );
+              router.push(`/titles?ageLimit=${encodeURIComponent(titleData?.ageLimit || "")}`);
             }}
           >
             {titleData?.ageLimit}+
@@ -604,9 +546,7 @@ export function RightContent({
               key={index}
               className="px-2 py-1 cursor-pointer rounded-full text-sm font-normal bg-[var(--muted)]/50 p-1 text-[var(--foreground)]"
               onClick={() => {
-                router.push(
-                  `/titles?genres=${encodeURIComponent(genre || "")}`
-                );
+                router.push(`/titles?genres=${encodeURIComponent(genre || "")}`);
               }}
             >
               {genre}
@@ -650,7 +590,7 @@ export function RightContent({
                 label: `Главы (${titleData?.chapters?.length || 0})`,
               },
               { key: "comments" as const, label: "Комментарии" },
-            ].map((tab) => (
+            ].map(tab => (
               <button
                 key={tab.key}
                 onClick={() => onTabChange(tab.key)}

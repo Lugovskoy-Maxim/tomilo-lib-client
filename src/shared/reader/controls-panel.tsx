@@ -1,8 +1,14 @@
-
-
-'use client';
+"use client";
 import { useRouter } from "next/navigation";
-import { BookOpen, ChevronLeft, ChevronRight, List, Maximize, Minimize, RotateCcw } from "lucide-react";
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  List,
+  Maximize,
+  Minimize,
+  RotateCcw,
+} from "lucide-react";
 import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
 
 interface ControlsPanelProps {
@@ -36,9 +42,10 @@ export default function ControlsPanel({
 }: ControlsPanelProps) {
   const router = useRouter();
 
-  const currentChapterIndex = chapters.findIndex((ch) => ch._id === chapter._id);
+  const currentChapterIndex = chapters.findIndex(ch => ch._id === chapter._id);
   const prevChapter = currentChapterIndex > 0 ? chapters[currentChapterIndex - 1] : null;
-  const nextChapter = currentChapterIndex < chapters.length - 1 ? chapters[currentChapterIndex + 1] : null;
+  const nextChapter =
+    currentChapterIndex < chapters.length - 1 ? chapters[currentChapterIndex + 1] : null;
 
   return (
     <div
@@ -49,31 +56,34 @@ export default function ControlsPanel({
       <div className="flex items-center gap-4">
         {/* Навигация по главам */}
         <div className="flex items-center gap-2">
-
           <button
-            onClick={() => prevChapter && router.push(`/titles/${title.slug}/chapter/${prevChapter._id || prevChapter.number}`)}
+            onClick={() =>
+              prevChapter &&
+              router.push(`/titles/${title.slug}/chapter/${prevChapter._id || prevChapter.number}`)
+            }
             disabled={!prevChapter}
             className="p-2 rounded-lg bg-[var(--card)] border border-[var(--border)] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[var(--accent)] transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-
           <select
             value={chapter._id || chapter.number}
-            onChange={(e) => router.push(`/titles/${title.slug}/chapter/${e.target.value}`)}
+            onChange={e => router.push(`/titles/${title.slug}/chapter/${e.target.value}`)}
             className="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] min-w-[120px]"
           >
-            {chapters.map((ch) => (
-              <option key={ch._id } value={ch._id || ch.number}>
+            {chapters.map(ch => (
+              <option key={ch._id} value={ch._id || ch.number}>
                 Глава {ch.number} {ch.title && `- ${ch.title}`}
               </option>
             ))}
           </select>
 
-
           <button
-            onClick={() => nextChapter && router.push(`/titles/${title.slug}chapter/${nextChapter._id || nextChapter.number}`)}
+            onClick={() =>
+              nextChapter &&
+              router.push(`/titles/${title.slug}chapter/${nextChapter._id || nextChapter.number}`)
+            }
             disabled={!nextChapter}
             className="p-2 rounded-lg bg-[var(--card)] border border-[var(--border)] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[var(--accent)] transition-colors"
           >
@@ -113,7 +123,7 @@ export default function ControlsPanel({
         <div className="flex items-center gap-2">
           <select
             value={imageWidth}
-            onChange={(e) => onImageWidthChange(e.target.value as "auto" | "fit" | "original")}
+            onChange={e => onImageWidthChange(e.target.value as "auto" | "fit" | "original")}
             className="bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1 text-sm text-[var(--foreground)]"
           >
             <option value="auto">Авто</option>

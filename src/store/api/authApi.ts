@@ -1,15 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import {
-  AuthResponse,
-  User,
-} from "@/types/auth";
+import { AuthResponse, User } from "@/types/auth";
 import { LoginData, RegisterData } from "@/types/form";
 import { ApiResponseDto } from "@/types/api";
-import {
-  ReadingHistoryEntry,
-  BookmarkItem,
-  AvatarResponse,
-} from "@/types/store";
+import { ReadingHistoryEntry, BookmarkItem, AvatarResponse } from "@/types/store";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
@@ -17,7 +10,7 @@ export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (token) {
@@ -28,10 +21,10 @@ export const authApi = createApi({
     },
   }),
   tagTypes: ["Auth", "ReadingHistory", "Bookmarks"],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     // Аутентификация
     login: builder.mutation<ApiResponseDto<AuthResponse>, LoginData>({
-      query: (credentials) => ({
+      query: credentials => ({
         url: "/auth/login",
         method: "POST",
         body: credentials,
@@ -40,7 +33,7 @@ export const authApi = createApi({
     }),
 
     register: builder.mutation<ApiResponseDto<AuthResponse>, RegisterData>({
-      query: (userData) => ({
+      query: userData => ({
         url: "/auth/register",
         method: "POST",
         body: userData,
@@ -64,7 +57,7 @@ export const authApi = createApi({
     }),
 
     updateProfile: builder.mutation<ApiResponseDto<User>, Partial<User>>({
-      query: (profileData) => ({
+      query: profileData => ({
         url: "/users/profile",
         method: "PUT",
         body: profileData,
@@ -73,7 +66,7 @@ export const authApi = createApi({
     }),
 
     updateAvatar: builder.mutation<ApiResponseDto<AvatarResponse>, FormData>({
-      query: (formData) => ({
+      query: formData => ({
         url: "/users/profile/avatar",
         method: "PUT",
         body: formData,
@@ -83,7 +76,7 @@ export const authApi = createApi({
 
     // Закладки
     addBookmark: builder.mutation<ApiResponseDto<User>, string>({
-      query: (titleId) => ({
+      query: titleId => ({
         url: `/users/profile/bookmarks/${titleId}`,
         method: "POST",
       }),
@@ -91,7 +84,7 @@ export const authApi = createApi({
     }),
 
     removeBookmark: builder.mutation<ApiResponseDto<User>, string>({
-      query: (titleId) => ({
+      query: titleId => ({
         url: `/users/profile/bookmarks/${titleId}`,
         method: "DELETE",
       }),
@@ -104,19 +97,13 @@ export const authApi = createApi({
     }),
 
     // История чтения
-    getReadingHistory: builder.query<
-      ApiResponseDto<ReadingHistoryEntry[]>,
-      void
-    >({
+    getReadingHistory: builder.query<ApiResponseDto<ReadingHistoryEntry[]>, void>({
       query: () => "/users/profile/history",
       providesTags: ["ReadingHistory"],
     }),
 
-    getReadingHistoryByTitle: builder.query<
-      ApiResponseDto<ReadingHistoryEntry>,
-      string
-    >({
-      query: (titleId) => `/users/profile/history/${titleId}`,
+    getReadingHistoryByTitle: builder.query<ApiResponseDto<ReadingHistoryEntry>, string>({
+      query: titleId => `/users/profile/history/${titleId}`,
       providesTags: ["ReadingHistory"],
     }),
 

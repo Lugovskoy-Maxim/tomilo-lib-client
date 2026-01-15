@@ -1,7 +1,7 @@
 import { Title } from "./title";
 
 // ApiResponseDto - стандартный формат ответа API
-import { ApiResponseDto } from './api';
+import { ApiResponseDto } from "./api";
 
 export interface Collection {
   id: string;
@@ -28,7 +28,7 @@ export interface CollectionWithTitles {
 }
 
 // Типы для DTO (Data Transfer Objects)
-export type CreateCollectionDto = Omit<Collection, 'id' | 'views' | 'createdAt' | 'updatedAt'>;
+export type CreateCollectionDto = Omit<Collection, "id" | "views" | "createdAt" | "updatedAt">;
 export type UpdateCollectionDto = Partial<CreateCollectionDto>;
 
 // Типы для запросов с пагинацией и фильтрацией
@@ -36,8 +36,8 @@ export interface CollectionsQuery {
   page?: number;
   limit?: number;
   search?: string;
-  sortBy?: 'name' | 'views' | 'createdAt';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "name" | "views" | "createdAt";
+  sortOrder?: "asc" | "desc";
 }
 
 // Типы для API ответов
@@ -70,5 +70,5 @@ export interface CollectionViewState {
   titles: Title[];
   isLoading: boolean;
   error: string | null;
-  activeTab: 'description' | 'titles' | 'comments';
+  activeTab: "description" | "titles" | "comments";
 }

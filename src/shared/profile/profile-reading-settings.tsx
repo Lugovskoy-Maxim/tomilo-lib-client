@@ -38,11 +38,9 @@ export default function ProfileReadingSettings({ userProfile }: ProfileReadingSe
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
       <div className="flex items-center gap-3 mb-4">
         <Eye className="w-5 h-5 text-[var(--primary)]" />
-        <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
-          Чтение
-        </h2>
+        <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Чтение</h2>
       </div>
-      
+
       <div className="space-y-6">
         {/* Настройки типа отображения */}
         <div>
@@ -53,13 +51,13 @@ export default function ProfileReadingSettings({ userProfile }: ProfileReadingSe
             Как отображать страницы при чтении
           </p>
           <div className="flex gap-2">
-            <button 
+            <button
               className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
               onClick={() => console.log("single")}
             >
               По одной странице
             </button>
-            <button 
+            <button
               className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
               onClick={() => console.log("continuous")}
             >
@@ -67,7 +65,7 @@ export default function ProfileReadingSettings({ userProfile }: ProfileReadingSe
             </button>
           </div>
         </div>
-        
+
         {/* Настройки ориентации экрана */}
         <div>
           <span className="text-sm font-medium text-[var(--foreground)] block mb-2">
@@ -77,19 +75,19 @@ export default function ProfileReadingSettings({ userProfile }: ProfileReadingSe
             Предпочтительная ориентация при чтении
           </p>
           <div className="flex gap-2">
-            <button 
+            <button
               className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
               onClick={() => console.log("auto")}
             >
               Автоматически
             </button>
-            <button 
+            <button
               className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
               onClick={() => console.log("portrait")}
             >
               Портретная
             </button>
-            <button 
+            <button
               className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
               onClick={() => console.log("landscape")}
             >
@@ -109,11 +107,9 @@ export default function ProfileReadingSettings({ userProfile }: ProfileReadingSe
                 Настройте ширину изображений в читалке
               </p>
             </div>
-            <span className="text-sm font-medium text-[var(--foreground)]">
-              {imageWidth}px
-            </span>
+            <span className="text-sm font-medium text-[var(--foreground)]">{imageWidth}px</span>
           </div>
-          
+
           <div className="pl-0">
             <input
               type="range"
@@ -121,11 +117,11 @@ export default function ProfileReadingSettings({ userProfile }: ProfileReadingSe
               max="1440"
               step="64"
               value={imageWidth}
-              onChange={(e) => setImageWidth(Number(e.target.value))}
+              onChange={e => setImageWidth(Number(e.target.value))}
               className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
               style={{
-                background: 'var(--muted)',
-                outline: 'none',
+                background: "var(--muted)",
+                outline: "none",
               }}
             />
             <div className="flex justify-between mt-2 text-xs text-[var(--muted-foreground)]">
@@ -149,4 +145,3 @@ export default function ProfileReadingSettings({ userProfile }: ProfileReadingSe
     </div>
   );
 }
-

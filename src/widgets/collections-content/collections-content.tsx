@@ -19,7 +19,11 @@ function CollectionsContent() {
   }, [searchParams]);
 
   // Запрос коллекций с параметрами
-  const { data: collectionsResponse, isLoading, error } = useGetCollectionsQuery({
+  const {
+    data: collectionsResponse,
+    isLoading,
+    error,
+  } = useGetCollectionsQuery({
     page,
     limit: 12,
   });
@@ -32,9 +36,7 @@ function CollectionsContent() {
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams();
     if (page > 1) params.set("page", page.toString());
-    const newUrl = params.toString()
-      ? `/collections?${params.toString()}`
-      : "/collections";
+    const newUrl = params.toString() ? `/collections?${params.toString()}` : "/collections";
     router.replace(newUrl, { scroll: false });
   };
 
@@ -59,9 +61,7 @@ function CollectionsContent() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-[var(--muted-foreground)] mb-4">
-          Не удалось загрузить коллекции
-        </p>
+        <p className="text-[var(--muted-foreground)] mb-4">Не удалось загрузить коллекции</p>
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90"
@@ -81,9 +81,7 @@ function CollectionsContent() {
           <h1 className="text-2xl lg:text-3xl font-bold text-[var(--muted-foreground)] mb-2">
             Коллекции
           </h1>
-          <p className="text-[var(--muted-foreground)]">
-            Найдено {totalCollections} коллекций
-          </p>
+          <p className="text-[var(--muted-foreground)]">Найдено {totalCollections} коллекций</p>
         </div>
 
         {/* Сетка коллекций */}
@@ -97,8 +95,10 @@ function CollectionsContent() {
               {collection.cover && (
                 <div className="mb-3">
                   <Image
-                  loader={()=> {return process.env.NEXT_PUBLIC_URL+collection.cover}}
-                    src={process.env.NEXT_PUBLIC_URL+collection.cover}
+                    loader={() => {
+                      return process.env.NEXT_PUBLIC_URL + collection.cover;
+                    }}
+                    src={process.env.NEXT_PUBLIC_URL + collection.cover}
                     alt={collection.name}
                     width={328}
                     height={328}
@@ -123,14 +123,12 @@ function CollectionsContent() {
                   <span>👁️</span>
                   {collection.views} просмотров
                 </span>
-                <span>
-                  {collection.titles?.length || 0} тайтлов
-                </span>
+                <span>{collection.titles?.length || 0} тайтлов</span>
               </div>
 
               {collection.createdAt && (
                 <div className="mt-2 text-xs text-[var(--muted-foreground)]">
-                  Создано: {new Date(collection.createdAt).toLocaleDateString('ru-RU')}
+                  Создано: {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
                 </div>
               )}
             </div>
@@ -139,9 +137,7 @@ function CollectionsContent() {
 
         {collections.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-[var(--muted-foreground)] mb-4">
-              Коллекции не найдены
-            </p>
+            <p className="text-[var(--muted-foreground)] mb-4">Коллекции не найдены</p>
           </div>
         )}
 

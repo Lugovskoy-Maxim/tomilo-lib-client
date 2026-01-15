@@ -1,6 +1,6 @@
 import { PopularSearchesResult } from "@/types/search";
 
-export async function getPopularSearches():Promise<PopularSearchesResult[]> {
+export async function getPopularSearches(): Promise<PopularSearchesResult[]> {
   try {
     const response = await fetch("/api/popular-searches");
     if (!response.ok) {

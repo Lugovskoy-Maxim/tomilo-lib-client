@@ -26,11 +26,7 @@ import {
   useRemoveCommentFromCollectionMutation,
   useGetCollectionByIdQuery,
 } from "@/store/api/collectionsApi";
-import {
-  Collection,
-  CreateCollectionDto,
-  UpdateCollectionDto,
-} from "@/types/collection";
+import { Collection, CreateCollectionDto, UpdateCollectionDto } from "@/types/collection";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 import Modal from "@/shared/modal/modal";
@@ -46,9 +42,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [sortBy, setSortBy] = useState<"name" | "views" | "createdAt">(
-    "createdAt"
-  );
+  const [sortBy, setSortBy] = useState<"name" | "views" | "createdAt">("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -60,8 +54,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
     title: string;
     message: string;
   } | null>(null);
-  const [selectedCollection, setSelectedCollection] =
-    useState<Collection | null>(null);
+  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
 
   const {
     data: collectionsResponse,
@@ -76,14 +69,10 @@ export function CollectionsSection({}: CollectionsSectionProps) {
     sortOrder,
   });
 
-  const [createCollection, { isLoading: isCreating }] =
-    useCreateCollectionMutation();
-  const [updateCollection, { isLoading: isUpdating }] =
-    useUpdateCollectionMutation();
-  const [deleteCollection, { isLoading: isDeleting }] =
-    useDeleteCollectionMutation();
-  const [addTitleToCollection, { isLoading: isAddingTitle }] =
-    useAddTitleToCollectionMutation();
+  const [createCollection, { isLoading: isCreating }] = useCreateCollectionMutation();
+  const [updateCollection, { isLoading: isUpdating }] = useUpdateCollectionMutation();
+  const [deleteCollection, { isLoading: isDeleting }] = useDeleteCollectionMutation();
+  const [addTitleToCollection, { isLoading: isAddingTitle }] = useAddTitleToCollectionMutation();
   const [removeTitleFromCollection, { isLoading: isRemovingTitle }] =
     useRemoveTitleFromCollectionMutation();
   const [addCommentToCollection, { isLoading: isAddingComment }] =
@@ -285,10 +274,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
     }
   };
 
-  const handleRemoveComment = async (
-    collectionId: string,
-    commentIndex: number
-  ) => {
+  const handleRemoveComment = async (collectionId: string, commentIndex: number) => {
     try {
       await removeCommentFromCollection({
         collectionId,
@@ -341,8 +327,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             Управление коллекциями
           </h2>
           <p className="text-[var(--muted-foreground)] mt-1">
-            Всего коллекций:{" "}
-            {collectionsResponse?.data?.total || collections.length || 0}
+            Всего коллекций: {collectionsResponse?.data?.total || collections.length || 0}
           </p>
         </div>
         <button
@@ -388,17 +373,14 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             type="text"
             placeholder="Поиск коллекций..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
         </div>
         <select
           value={`${sortBy}-${sortOrder}`}
-          onChange={(e) => {
-            const [field, order] = e.target.value.split("-") as [
-              typeof sortBy,
-              typeof sortOrder
-            ];
+          onChange={e => {
+            const [field, order] = e.target.value.split("-") as [typeof sortBy, typeof sortOrder];
             setSortBy(field);
             setSortOrder(order);
           }}
@@ -421,8 +403,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
               Коллекции не найдены
             </h3>
             <p className="text-sm text-[var(--muted-foreground)]">
-              Создайте первую коллекцию, нажав кнопку &quot;Создать
-              коллекцию&quot;
+              Создайте первую коллекцию, нажав кнопку &quot;Создать коллекцию&quot;
             </p>
           </div>
         ) : (
@@ -493,8 +474,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
 
               {collection.createdAt && (
                 <div className="mt-2 text-xs text-[var(--muted-foreground)]">
-                  Создано:{" "}
-                  {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
+                  Создано: {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
                 </div>
               )}
             </div>
@@ -644,7 +624,7 @@ function CollectionModal({
       setSelectedFile(file);
       // Create preview
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         setPreviewUrl(e.target?.result as string);
       };
       reader.readAsDataURL(file);
@@ -675,18 +655,14 @@ function CollectionModal({
     }
   };
 
-  const handleChange = (
-    field: keyof CreateCollectionDto,
-    value: string | string[]
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof CreateCollectionDto, value: string | string[]) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const imageCover = () => {
     if (selectedFile) return URL.createObjectURL(selectedFile);
     if (previewUrl) return `${process.env.NEXT_PUBLIC_URL}${previewUrl}`;
-    if (formData?.cover) 
-      return `${process.env.NEXT_PUBLIC_URL}${formData.cover}`;
+    if (formData?.cover) return `${process.env.NEXT_PUBLIC_URL}${formData.cover}`;
     return "/404/image-holder.png"; // placeholder
   };
 
@@ -700,7 +676,7 @@ function CollectionModal({
           <input
             type="text"
             value={formData.name}
-            onChange={(e) => handleChange("name", e.target.value)}
+            onChange={e => handleChange("name", e.target.value)}
             required
             placeholder="Введите название коллекции"
             className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
@@ -713,7 +689,7 @@ function CollectionModal({
           </label>
           <textarea
             value={formData.description || ""}
-            onChange={(e) => handleChange("description", e.target.value)}
+            onChange={e => handleChange("description", e.target.value)}
             className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] resize-none"
             rows={3}
             placeholder="Введите описание коллекции"
@@ -761,9 +737,7 @@ function CollectionModal({
             >
               <Upload className="w-6 h-6 text-[var(--muted-foreground)]" />
               <span className="text-sm text-[var(--muted-foreground)]">
-                {selectedFile
-                  ? selectedFile.name
-                  : "Выберите изображение обложки"}
+                {selectedFile ? selectedFile.name : "Выберите изображение обложки"}
               </span>
               <span className="text-xs text-[var(--muted-foreground)]">
                 Нажмите для выбора файла (JPG, PNG, WebP, макс. 5MB)
@@ -829,23 +803,21 @@ function TitlesModal({
   const [search, setSearch] = useState("");
   const [selectedTitleId, setSelectedTitleId] = useState("");
 
-  const { data: titlesResponse, isLoading: isLoadingTitles } =
-    useSearchTitlesQuery({
-      search: search || undefined,
-      limit: 50,
-    });
+  const { data: titlesResponse, isLoading: isLoadingTitles } = useSearchTitlesQuery({
+    search: search || undefined,
+    limit: 50,
+  });
 
   const { data: collectionDetails } = useGetCollectionByIdQuery(collection.id);
 
   const titles = titlesResponse?.data?.data || [];
-  const collectionTitles =
-    collectionDetails?.data?.titles || collection.titles || [];
+  const collectionTitles = collectionDetails?.data?.titles || collection.titles || [];
 
   const availableTitles = titles.filter(
     (title: Title) =>
       !collectionTitles.some(
-        (ct: string | Title) => (typeof ct === "string" ? ct : ct._id) === title._id
-      )
+        (ct: string | Title) => (typeof ct === "string" ? ct : ct._id) === title._id,
+      ),
   );
 
   const handleAddTitle = () => {
@@ -860,11 +832,7 @@ function TitlesModal({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Управление тайтлами - ${collection.name}`}
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={`Управление тайтлами - ${collection.name}`}>
       <div className="space-y-6">
         {/* Current Titles */}
         <div>
@@ -874,17 +842,13 @@ function TitlesModal({
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {collectionTitles.map((title: string | Title, index: number) => {
               const titleData =
-                typeof title === "string"
-                  ? { _id: title, name: `Title ${title}` }
-                  : title;
+                typeof title === "string" ? { _id: title, name: `Title ${title}` } : title;
               return (
                 <div
                   key={titleData._id}
                   className="flex justify-between items-center p-2 bg-[var(--secondary)] rounded"
                 >
-                  <span className="text-[var(--muted-foreground)]">
-                    {titleData.name}
-                  </span>
+                  <span className="text-[var(--muted-foreground)]">{titleData.name}</span>
                   <button
                     onClick={() => handleRemoveTitle(titleData._id)}
                     disabled={isRemoving}
@@ -896,9 +860,7 @@ function TitlesModal({
               );
             })}
             {collectionTitles.length === 0 && (
-              <p className="text-sm text-[var(--muted-foreground)]">
-                Нет тайтлов в коллекции
-              </p>
+              <p className="text-sm text-[var(--muted-foreground)]">Нет тайтлов в коллекции</p>
             )}
           </div>
         </div>
@@ -911,7 +873,7 @@ function TitlesModal({
           <div className="flex gap-2">
             <select
               value={selectedTitleId}
-              onChange={(e) => setSelectedTitleId(e.target.value)}
+              onChange={e => setSelectedTitleId(e.target.value)}
               className="flex-1 px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)]"
             >
               <option value="">Выберите тайтл...</option>
@@ -997,9 +959,7 @@ function CommentsModal({
                 key={index}
                 className="flex justify-between items-start p-3 bg-[var(--secondary)] rounded"
               >
-                <p className="text-[var(--muted-foreground)] flex-1">
-                  {comment}
-                </p>
+                <p className="text-[var(--muted-foreground)] flex-1">{comment}</p>
                 <button
                   onClick={() => handleRemoveComment(index)}
                   disabled={isRemoving}
@@ -1010,9 +970,7 @@ function CommentsModal({
               </div>
             ))}
             {comments.length === 0 && (
-              <p className="text-sm text-[var(--muted-foreground)]">
-                Нет комментариев
-              </p>
+              <p className="text-sm text-[var(--muted-foreground)]">Нет комментариев</p>
             )}
           </div>
         </div>
@@ -1025,7 +983,7 @@ function CommentsModal({
           <div className="flex gap-2">
             <textarea
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              onChange={e => setNewComment(e.target.value)}
               placeholder="Введите комментарий..."
               className="flex-1 px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] resize-none"
               rows={3}

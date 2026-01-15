@@ -13,7 +13,7 @@ import { DecorationCard } from "./decoration-card";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ShopSectionProps {
-  type: 'avatar' | 'background' | 'card';
+  type: "avatar" | "background" | "card";
 }
 
 interface UserDecorations {
@@ -26,7 +26,7 @@ export function ShopSection({ type }: ShopSectionProps) {
   const [decorations, setDecorations] = useState<Decoration[]>([]);
   const [userDecorations, setUserDecorations] = useState<UserDecorations>({
     owned: [],
-    equipped: []
+    equipped: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,9 +37,9 @@ export function ShopSection({ type }: ShopSectionProps) {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await getDecorationsByType(type);
-      
+
       if (response.success && response.data) {
         setDecorations(response.data);
       } else {
@@ -62,13 +62,13 @@ export function ShopSection({ type }: ShopSectionProps) {
 
     try {
       const response = await getUserDecorations();
-      
+
       if (response.success && response.data) {
         // Предполагаем, что API возвращает owned и equipped отдельно
         // Если нет, то все украшения в data будут owned
         setUserDecorations({
           owned: response.data.map(d => d.id),
-          equipped: response.data.filter(d => d.isEquipped).map(d => d.id)
+          equipped: response.data.filter(d => d.isEquipped).map(d => d.id),
         });
       }
     } catch (err) {
@@ -94,14 +94,14 @@ export function ShopSection({ type }: ShopSectionProps) {
     setActionLoading(decorationId);
     try {
       const response = await purchaseDecoration(type, decorationId);
-      
+
       if (response.success) {
         // Добавляем в owned
         setUserDecorations(prev => ({
           ...prev,
-          owned: [...prev.owned, decorationId]
+          owned: [...prev.owned, decorationId],
         }));
-        
+
         // Перезагружаем пользовательские данные
         if (isAuthenticated) {
           await loadUserDecorations();
@@ -121,12 +121,12 @@ export function ShopSection({ type }: ShopSectionProps) {
     setActionLoading(decorationId);
     try {
       const response = await equipDecoration(type, decorationId);
-      
+
       if (response.success) {
         // Добавляем в equipped
         setUserDecorations(prev => ({
           ...prev,
-          equipped: [...prev.equipped.filter(id => id !== decorationId), decorationId]
+          equipped: [...prev.equipped.filter(id => id !== decorationId), decorationId],
         }));
       } else {
         throw new Error(response.message || "Ошибка при экипировке");
@@ -140,15 +140,15 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   // Обработчик снятия
   const handleUnequip = async () => {
-    setActionLoading('unequip');
+    setActionLoading("unequip");
     try {
       const response = await unequipDecoration(type);
-      
+
       if (response.success) {
         // Убираем из equipped
         setUserDecorations(prev => ({
           ...prev,
-          equipped: []
+          equipped: [],
         }));
       } else {
         throw new Error(response.message || "Ошибка при снятии");
@@ -162,27 +162,27 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   const getTypeTitle = () => {
     switch (type) {
-      case 'avatar':
-        return 'Аватары';
-      case 'background':
-        return 'Фоны';
-      case 'card':
-        return 'Карточки';
+      case "avatar":
+        return "Аватары";
+      case "background":
+        return "Фоны";
+      case "card":
+        return "Карточки";
       default:
-        return 'Товары';
+        return "Товары";
     }
   };
 
   const getTypeDescription = () => {
     switch (type) {
-      case 'avatar':
-        return 'Украсьте свой профиль стильными аватарами';
-      case 'background':
-        return 'Выберите красивый фон для своего профиля';
-      case 'card':
-        return 'Персонализируйте свои карточки с уникальными дизайнами';
+      case "avatar":
+        return "Украсьте свой профиль стильными аватарами";
+      case "background":
+        return "Выберите красивый фон для своего профиля";
+      case "card":
+        return "Персонализируйте свои карточки с уникальными дизайнами";
       default:
-        return 'Выберите товары для украшения профиля';
+        return "Выберите товары для украшения профиля";
     }
   };
 
@@ -216,9 +216,7 @@ export function ShopSection({ type }: ShopSectionProps) {
   if (decorations.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-[var(--muted-foreground)] text-lg mb-2">
-          Нет доступных товаров
-        </p>
+        <p className="text-[var(--muted-foreground)] text-lg mb-2">Нет доступных товаров</p>
         <p className="text-[var(--muted-foreground)]">
           Попробуйте позже или выберите другую категорию
         </p>
@@ -230,17 +228,13 @@ export function ShopSection({ type }: ShopSectionProps) {
     <div>
       {/* Заголовок секции */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-          {getTypeTitle()}
-        </h2>
-        <p className="text-[var(--muted-foreground)]">
-          {getTypeDescription()}
-        </p>
+        <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">{getTypeTitle()}</h2>
+        <p className="text-[var(--muted-foreground)]">{getTypeDescription()}</p>
       </div>
 
       {/* Сетка товаров */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {decorations.map((decoration) => (
+        {decorations.map(decoration => (
           <DecorationCard
             key={decoration.id}
             decoration={decoration}

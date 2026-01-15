@@ -33,24 +33,19 @@ export function AutoParsingSection() {
   const [editingJob, setEditingJob] = useState<AutoParsingJob | null>(null);
   const [titleSearch, setTitleSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<{title: string, message: string} | null>(null);
+  const [modalContent, setModalContent] = useState<{ title: string; message: string } | null>(null);
 
   // API hooks
-  const { data: jobsResponse, isLoading: jobsLoading } =
-    useGetAutoParsingJobsQuery();
-  const [createJob, { isLoading: createLoading }] =
-    useCreateAutoParsingJobMutation();
-  const [updateJob, { isLoading: updateLoading }] =
-    useUpdateAutoParsingJobMutation();
-  const [deleteJob, { isLoading: deleteLoading }] =
-    useDeleteAutoParsingJobMutation();
-  const [checkChapters, { isLoading: checkLoading }] =
-    useCheckNewChaptersMutation();
+  const { data: jobsResponse, isLoading: jobsLoading } = useGetAutoParsingJobsQuery();
+  const [createJob, { isLoading: createLoading }] = useCreateAutoParsingJobMutation();
+  const [updateJob, { isLoading: updateLoading }] = useUpdateAutoParsingJobMutation();
+  const [deleteJob, { isLoading: deleteLoading }] = useDeleteAutoParsingJobMutation();
+  const [checkChapters, { isLoading: checkLoading }] = useCheckNewChaptersMutation();
 
   // Search titles
   const { data: searchResultsResponse } = useSearchTitlesQuery(
     { search: titleSearch, limit: 5 },
-    { skip: !titleSearch || titleSearch.length < 2 }
+    { skip: !titleSearch || titleSearch.length < 2 },
   );
 
   const searchResults: Title[] = searchResultsResponse?.data?.data || [];
@@ -91,7 +86,7 @@ export function AutoParsingSection() {
       // Показываем модальное окно с результатом
       setModalContent({
         title: "Проверка завершена",
-        message: "Проверка новых глав успешно завершена"
+        message: "Проверка новых глав успешно завершена",
       });
       setIsModalOpen(true);
     } catch (error) {
@@ -99,7 +94,7 @@ export function AutoParsingSection() {
       // Показываем модальное окно с ошибкой
       setModalContent({
         title: "Ошибка проверки",
-        message: "Произошла ошибка при проверке новых глав"
+        message: "Произошла ошибка при проверке новых глав",
       });
       setIsModalOpen(true);
     }
@@ -124,9 +119,7 @@ export function AutoParsingSection() {
               )}
               {modalContent.title}
             </h3>
-            <p className="text-[var(--muted-foreground)] mb-6">
-              {modalContent.message}
-            </p>
+            <p className="text-[var(--muted-foreground)] mb-6">{modalContent.message}</p>
             <div className="flex justify-end">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -168,17 +161,12 @@ export function AutoParsingSection() {
         ) : jobs.length === 0 ? (
           <div className="text-center py-8">
             <Clock className="w-12 h-12 text-[var(--muted-foreground)] mx-auto mb-4" />
-            <p className="text-[var(--muted-foreground)]">
-              Нет задач автоматического парсинга
-            </p>
+            <p className="text-[var(--muted-foreground)]">Нет задач автоматического парсинга</p>
           </div>
         ) : (
           <div className="space-y-2">
             {jobs.map((job: AutoParsingJob) => (
-              <div
-                key={job._id}
-                className="border border-[var(--border)] rounded-lg p-3"
-              >
+              <div key={job._id} className="border border-[var(--border)] rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div
@@ -202,11 +190,7 @@ export function AutoParsingSection() {
                       className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
                       title="Проверить новые главы"
                     >
-                      <RefreshCw
-                        className={`w-4 h-4 ${
-                          checkLoading ? "animate-spin" : ""
-                        }`}
-                      />
+                      <RefreshCw className={`w-4 h-4 ${checkLoading ? "animate-spin" : ""}`} />
                     </button>
                     <button
                       onClick={() => setEditingJob(job)}
@@ -230,9 +214,7 @@ export function AutoParsingSection() {
                   <div>
                     <span className="text-[var(--muted-foreground)]">URL:</span>
                     <div className="flex items-center gap-1 mt-1">
-                      <span className="text-[var(--foreground)] truncate text-xs">
-                        {job.url}
-                      </span>
+                      <span className="text-[var(--foreground)] truncate text-xs">{job.url}</span>
                       <button
                         onClick={() => window.open(job.url, "_blank")}
                         className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
@@ -242,25 +224,17 @@ export function AutoParsingSection() {
                     </div>
                   </div>
                   <div>
-                    <span className="text-[var(--muted-foreground)]">
-                      Частота:
-                    </span>
-                    <p className="text-[var(--foreground)] mt-1 text-xs">
-                      {job.frequency}
-                    </p>
+                    <span className="text-[var(--muted-foreground)]">Частота:</span>
+                    <p className="text-[var(--foreground)] mt-1 text-xs">{job.frequency}</p>
                   </div>
                   <div>
-                    <span className="text-[var(--muted-foreground)]">
-                      Создано:
-                    </span>
+                    <span className="text-[var(--muted-foreground)]">Создано:</span>
                     <p className="text-[var(--foreground)] mt-1 text-xs">
                       {formatDate(job.createdAt)}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[var(--muted-foreground)]">
-                      Обновлено:
-                    </span>
+                    <span className="text-[var(--muted-foreground)]">Обновлено:</span>
                     <p className="text-[var(--foreground)] mt-1 text-xs">
                       {formatDate(job.updatedAt)}
                     </p>
@@ -281,11 +255,7 @@ export function AutoParsingSection() {
             setEditingJob(null);
           }}
           onCreate={handleCreateJob}
-          onUpdate={
-            editingJob
-              ? (data) => handleUpdateJob(editingJob._id, data)
-              : undefined
-          }
+          onUpdate={editingJob ? data => handleUpdateJob(editingJob._id, data) : undefined}
           isLoading={createLoading || updateLoading}
           searchResults={searchResults}
           titleSearch={titleSearch}
@@ -362,7 +332,7 @@ function JobModal({
             <input
               type="text"
               value={titleId}
-              onChange={(e) => {
+              onChange={e => {
                 setTitleId(e.target.value);
                 setTitleSearch(e.target.value);
               }}
@@ -372,7 +342,7 @@ function JobModal({
             />
             {searchResults.length > 0 && (
               <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                {searchResults.map((title) => (
+                {searchResults.map(title => (
                   <div
                     key={title._id}
                     onClick={() => onSelectTitle(title, setTitleId)}
@@ -396,7 +366,7 @@ function JobModal({
             <input
               type="url"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={e => setUrl(e.target.value)}
               placeholder="https://example.com/manga/title"
               className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
               required
@@ -410,7 +380,7 @@ function JobModal({
             </label>
             <select
               value={frequency}
-              onChange={(e) => setFrequency(e.target.value)}
+              onChange={e => setFrequency(e.target.value)}
               className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
               required
             >
@@ -427,13 +397,10 @@ function JobModal({
                 type="checkbox"
                 id="enabled"
                 checked={enabled}
-                onChange={(e) => setEnabled(e.target.checked)}
+                onChange={e => setEnabled(e.target.checked)}
                 className="rounded"
               />
-              <label
-                htmlFor="enabled"
-                className="text-sm text-[var(--foreground)]"
-              >
+              <label htmlFor="enabled" className="text-sm text-[var(--foreground)]">
                 Активная задача
               </label>
             </div>

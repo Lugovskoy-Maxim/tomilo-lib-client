@@ -24,7 +24,7 @@ export interface CardProps {
 }
 
 export interface PopularCardProps {
-  data: CardProps;  
+  data: CardProps;
   onCardClick?: (id: string) => void;
 }
 
@@ -45,7 +45,6 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     return fixed.replace(/\.0$/, "");
   };
 
-
   // Функция для выполнения действия с карточкой
   const performCardAction = () => {
     if (onCardClick) {
@@ -59,7 +58,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const handleAgeConfirm = () => {
     setIsAgeVerified(true);
     setShowAgeModal(false);
-    
+
     // Выполняем отложенное действие после подтверждения возраста
     if (pendingAction) {
       pendingAction(); // Просто вызываем функцию
@@ -75,7 +74,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Если контент для взрослых и возраст не подтвержден
     if (data.isAdult && !isAgeVerified) {
       // Сохраняем функцию, которую нужно выполнить после подтверждения
@@ -92,12 +91,10 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const pathname = usePathname();
   // const isBrowsePage = pathname.startsWith("/browse");
 
-  const imageSrc = data.image
-    ? `${process.env.NEXT_PUBLIC_URL}${data.image}`
-    : IMAGE_HOLDER;
+  const imageSrc = data.image ? `${process.env.NEXT_PUBLIC_URL}${data.image}` : IMAGE_HOLDER;
 
   // Преобразуем imageSrc в строку если это объект изображения
-  const imageSrcString = typeof imageSrc === 'string' ? imageSrc : imageSrc.src;
+  const imageSrcString = typeof imageSrc === "string" ? imageSrc : imageSrc.src;
 
   return (
     <div
@@ -114,16 +111,14 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           height={220}
           quality={85}
           priority={false}
-          onDragStart={(e) => e.preventDefault()}
+          onDragStart={e => e.preventDefault()}
           draggable={false}
           style={{ width: "100%", height: "100%" }}
         />
 
         {isAdultContent && (
           <div className="absolute top-1 right-1  flex items-center justify-center">
-            <div className="bg-red-500/90 text-white px-1  rounded-full font-bold text-sm">
-              18+
-            </div>
+            <div className="bg-red-500/90 text-white px-1  rounded-full font-bold text-sm">18+</div>
           </div>
         )}
 
@@ -141,11 +136,13 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           <span className="text-[9px] sm:text-[10px]">{data.year}</span>
         </div>
 
-        <h3 className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-2 leading-tight mb-1`}>
+        <h3
+          className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-2 leading-tight mb-1`}
+        >
           {data.title}
         </h3>
       </div>
-      
+
       <AgeVerificationModal
         isOpen={showAgeModal}
         onConfirm={handleAgeConfirm}

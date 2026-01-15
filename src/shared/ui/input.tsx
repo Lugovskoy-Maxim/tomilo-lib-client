@@ -58,14 +58,14 @@ const Input: React.FC<InputProps> = ({
   return (
     <div className={`space-y-2 ${className}`}>
       <div className="relative">
-        <Icon 
+        <Icon
           className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-            error 
-              ? "text-red-500" 
-              : isFocused 
-                ? "text-[var(--primary)]" 
+            error
+              ? "text-red-500"
+              : isFocused
+                ? "text-[var(--primary)]"
                 : "text-[var(--muted-foreground)]"
-          }`} 
+          }`}
         />
         <input
           type={getInputType()}
@@ -79,8 +79,8 @@ const Input: React.FC<InputProps> = ({
           name={name}
           disabled={disabled}
           className={`w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-            error 
-              ? "border-red-500 focus:ring-red-500/20" 
+            error
+              ? "border-red-500 focus:ring-red-500/20"
               : isFocused
                 ? "border-[var(--primary)] focus:ring-[var(--primary)]"
                 : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)]"
@@ -93,11 +93,7 @@ const Input: React.FC<InputProps> = ({
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             disabled={disabled}
           >
-            {isPasswordVisible ? (
-              <EyeOff className="w-4 h-4" />
-            ) : (
-              <Eye className="w-4 h-4" />
-            )}
+            {isPasswordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         )}
       </div>

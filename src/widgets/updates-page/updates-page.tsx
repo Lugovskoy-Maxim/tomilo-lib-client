@@ -15,7 +15,8 @@ export default function UpdatesPage() {
   // SEO для страницы ленты обновлений
   useSEO({
     title: "Лента новых глав - Tomilo-lib.ru",
-    description: "Свежие главы манги и маньхуа, которые только что вышли. Следите за обновлениями ваших любимых тайтлов.",
+    description:
+      "Свежие главы манги и маньхуа, которые только что вышли. Следите за обновлениями ваших любимых тайтлов.",
     keywords: "новые главы, обновления, манга, маньхуа, свежие релизы",
     type: "website",
   });
@@ -33,7 +34,10 @@ export default function UpdatesPage() {
           <div className="w-full max-w-7xl mx-auto px-4 py-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 animate-pulse">
               {[...Array(12)].map((_, i) => (
-                <div key={i} className="w-full bg-[var(--muted)] rounded-lg border border-border h-20"></div>
+                <div
+                  key={i}
+                  className="w-full bg-[var(--muted)] rounded-lg border border-border h-20"
+                ></div>
               ))}
             </div>
           </div>
@@ -52,7 +56,10 @@ export default function UpdatesPage() {
           <div className="w-full max-w-7xl mx-auto px-4 py-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 animate-pulse">
               {[...Array(12)].map((_, i) => (
-                <div key={i} className="w-full bg-[var(--muted)] rounded-lg border border-border h-20"></div>
+                <div
+                  key={i}
+                  className="w-full bg-[var(--muted)] rounded-lg border border-border h-20"
+                ></div>
               ))}
             </div>
           </div>
@@ -83,4 +90,3 @@ export default function UpdatesPage() {
     </>
   );
 }
-

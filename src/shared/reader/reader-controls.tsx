@@ -55,40 +55,41 @@ export default function ReaderControls({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const toast = useToast();
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
-  const [isBookmarked, setIsBookmarked] = useState(
-    user?.bookmarks?.includes(titleId) ?? false
-  );
+  const [isBookmarked, setIsBookmarked] = useState(user?.bookmarks?.includes(titleId) ?? false);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
-  
+
   // Ref для панели настроек ширины
   const widthControlRef = useRef<HTMLDivElement>(null);
 
   // Обработчик закрытия панели настроек при клике вне её
-  const handleClickOutside = useCallback((event: MouseEvent) => {
-    if (
-      isWidthControlOpen &&
-      widthControlRef.current &&
-      !widthControlRef.current.contains(event.target as Node)
-    ) {
-      // Проверяем, что клик не был по самой кнопке настроек
-      const target = event.target as HTMLElement;
-      if (!target.closest('button[title="Настройки ширины изображений"]')) {
-        setIsWidthControlOpen(false);
+  const handleClickOutside = useCallback(
+    (event: MouseEvent) => {
+      if (
+        isWidthControlOpen &&
+        widthControlRef.current &&
+        !widthControlRef.current.contains(event.target as Node)
+      ) {
+        // Проверяем, что клик не был по самой кнопке настроек
+        const target = event.target as HTMLElement;
+        if (!target.closest('button[title="Настройки ширины изображений"]')) {
+          setIsWidthControlOpen(false);
+        }
       }
-    }
-  }, [isWidthControlOpen]);
+    },
+    [isWidthControlOpen],
+  );
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [handleClickOutside]);
 
   const filteredChapters = chapters.filter(
-    (chapter) =>
+    chapter =>
       chapter.number.toString().includes(chapterSearch) ||
-      chapter.title.toLowerCase().includes(chapterSearch.toLowerCase())
+      chapter.title.toLowerCase().includes(chapterSearch.toLowerCase()),
   );
 
   const handleBookmarkToggle = async () => {
@@ -137,12 +138,18 @@ export default function ReaderControls({
           background: var(--primary);
           cursor: pointer;
           border: 3px solid var(--background);
-          box-shadow: 0 0 0 2px var(--primary), 0 2px 8px rgba(0, 0, 0, 0.2);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          box-shadow:
+            0 0 0 2px var(--primary),
+            0 2px 8px rgba(0, 0, 0, 0.2);
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
         }
         .slider::-webkit-slider-thumb:hover {
           transform: scale(1.15);
-          box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(0, 0, 0, 0.3);
+          box-shadow:
+            0 0 0 2px var(--primary),
+            0 4px 12px rgba(0, 0, 0, 0.3);
         }
         .slider::-moz-range-thumb {
           width: 18px;
@@ -151,12 +158,18 @@ export default function ReaderControls({
           background: var(--primary);
           cursor: pointer;
           border: 3px solid var(--background);
-          box-shadow: 0 0 0 2px var(--primary), 0 2px 8px rgba(0, 0, 0, 0.2);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          box-shadow:
+            0 0 0 2px var(--primary),
+            0 2px 8px rgba(0, 0, 0, 0.2);
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
         }
         .slider::-moz-range-thumb:hover {
           transform: scale(1.15);
-          box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(0, 0, 0, 0.3);
+          box-shadow:
+            0 0 0 2px var(--primary),
+            0 4px 12px rgba(0, 0, 0, 0.3);
         }
         .slider:focus {
           outline: none;
@@ -212,9 +225,7 @@ export default function ReaderControls({
               >
                 <div className="flex items-center gap-2">
                   <Settings className="w-4 h-4 text-[var(--primary)]" />
-                  <span className="text-[var(--foreground)] font-medium">
-                    {imageWidth}px
-                  </span>
+                  <span className="text-[var(--foreground)] font-medium">{imageWidth}px</span>
                 </div>
                 <input
                   type="range"
@@ -222,7 +233,7 @@ export default function ReaderControls({
                   max="1440"
                   step="64"
                   value={imageWidth}
-                  onChange={(e) => onImageWidthChange(Number(e.target.value))}
+                  onChange={e => onImageWidthChange(Number(e.target.value))}
                   className="w-40 h-3 bg-[var(--muted)] rounded-full appearance-none cursor-pointer slider"
                   style={{
                     background: "var(--muted)",
@@ -291,11 +302,7 @@ export default function ReaderControls({
             title={isBookmarked ? "Удалить из закладок" : "Добавить в закладки"}
           >
             {isBookmarkLoading ? (
-              <svg
-                className="w-4 h-4 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -311,10 +318,7 @@ export default function ReaderControls({
                 ></path>
               </svg>
             ) : (
-              <Bookmark
-                className="w-4 h-4"
-                fill={isBookmarked ? "currentColor" : "none"}
-              />
+              <Bookmark className="w-4 h-4" fill={isBookmarked ? "currentColor" : "none"} />
             )}
           </button>
 
@@ -326,9 +330,7 @@ export default function ReaderControls({
           >
             <MessageCircle
               className={`w-4 h-4 ${
-                isCommentsOpen
-                  ? "text-[var(--primary)]"
-                  : "text-[var(--muted-foreground)]"
+                isCommentsOpen ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
               }`}
             />
           </button>
@@ -419,16 +421,10 @@ export default function ReaderControls({
               onClick={handleBookmarkToggle}
               disabled={isBookmarkLoading}
               className="flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[64px] active:scale-95"
-              title={
-                isBookmarked ? "Удалить из закладок" : "Добавить в закладки"
-              }
+              title={isBookmarked ? "Удалить из закладок" : "Добавить в закладки"}
             >
               {isBookmarkLoading ? (
-                <svg
-                  className="w-5 h-5 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -446,18 +442,14 @@ export default function ReaderControls({
               ) : (
                 <Bookmark
                   className={`w-5 h-5 ${
-                    isBookmarked
-                      ? "text-[var(--primary)]"
-                      : "text-[var(--muted-foreground)]"
+                    isBookmarked ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                   }`}
                   fill={isBookmarked ? "currentColor" : "none"}
                 />
               )}
               <span
                 className={`text-[10px] mt-1 leading-tight ${
-                  isBookmarked
-                    ? "text-[var(--primary)]"
-                    : "text-[var(--muted-foreground)]"
+                  isBookmarked ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                 }`}
               >
                 Избр.
@@ -474,16 +466,12 @@ export default function ReaderControls({
             >
               <MessageCircle
                 className={`w-5 h-5 ${
-                  isCommentsOpen
-                    ? "text-[var(--primary)]"
-                    : "text-[var(--muted-foreground)]"
+                  isCommentsOpen ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                 }`}
               />
               <span
                 className={`text-[10px] mt-1 leading-tight ${
-                  isCommentsOpen
-                    ? "text-[var(--primary)]"
-                    : "text-[var(--muted-foreground)]"
+                  isCommentsOpen ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                 }`}
               >
                 Комм.
@@ -501,12 +489,12 @@ export default function ReaderControls({
               type="text"
               placeholder="Поиск главы..."
               value={chapterSearch}
-              onChange={(e) => setChapterSearch(e.target.value)}
+              onChange={e => setChapterSearch(e.target.value)}
               className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
             />
           </div>
           <div className="max-h-80 overflow-y-auto">
-            {filteredChapters.map((chapter) => (
+            {filteredChapters.map(chapter => (
               <button
                 key={chapter._id}
                 onClick={() => {
@@ -613,4 +601,3 @@ export default function ReaderControls({
     </>
   );
 }
-

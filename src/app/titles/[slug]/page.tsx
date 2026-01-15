@@ -18,7 +18,7 @@ async function getTitleDataBySlug(slug: string) {
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; SEO-Bot/1.0)",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -37,9 +37,7 @@ async function getTitleDataBySlug(slug: string) {
 }
 
 // Функция для генерации улучшенных SEO метаданных
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
     const resolvedParams = await params;
     const { slug } = resolvedParams;
@@ -62,13 +60,9 @@ export async function generateMetadata({
     const titleName = titleData.name || "Без названия";
     const shortDescription = titleData.description
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, "")
-      : `Читать ${titleName} онлайн на Tomilo-lib.ru. ${titleData.genres?.join(
-          ", "
-        )}`;
+      : `Читать ${titleName} онлайн на Tomilo-lib.ru. ${titleData.genres?.join(", ")}`;
 
-    const image = titleData.coverImage
-      ? `${baseUrl}${titleData.coverImage}`
-      : undefined;
+    const image = titleData.coverImage ? `${baseUrl}${titleData.coverImage}` : undefined;
 
     // Формируем расширенные метаданные
     const metadata: Metadata = {

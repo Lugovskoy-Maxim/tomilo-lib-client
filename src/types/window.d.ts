@@ -16,12 +16,12 @@ interface Window {
         buttonTheme: string;
         buttonBorderRadius: string;
         buttonIcon: string;
-      }
+      },
     ) => Promise<{
       handler: () => Promise<unknown>;
     }>;
   };
-  
+
   // Расширение для VK авторизации
   VKIDSDK: {
     Config: {

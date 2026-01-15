@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { Toast, ToastContextType } from '@/types/toast';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { Toast, ToastContextType } from "@/types/toast";
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const useToastContext = () => {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToastContext must be used within a ToastProvider');
+    throw new Error("useToastContext must be used within a ToastProvider");
   }
   return context;
 };
@@ -21,22 +21,25 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
 
-  const addToast = useCallback((type: Toast['type'], message: string, duration = 5000) => {
-    const id = Date.now().toString();
-    const toast: Toast = { id, type, message, duration };
+  const addToast = useCallback(
+    (type: Toast["type"], message: string, duration = 5000) => {
+      const id = Date.now().toString();
+      const toast: Toast = { id, type, message, duration };
 
-    setToasts((prev) => [...prev, toast]);
+      setToasts(prev => [...prev, toast]);
 
-    // Auto-remove toast after duration
-    if (duration > 0) {
-      setTimeout(() => {
-        removeToast(id);
-      }, duration);
-    }
-  }, [removeToast]);
+      // Auto-remove toast after duration
+      if (duration > 0) {
+        setTimeout(() => {
+          removeToast(id);
+        }, duration);
+      }
+    },
+    [removeToast],
+  );
 
   const value: ToastContextType = {
     toasts,

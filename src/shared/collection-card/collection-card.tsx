@@ -36,11 +36,11 @@ export default function CollectionCard({ data }: CollectionCardProps) {
     if (!collectionImage) return IMAGE_HOLDER;
 
     // Для относительных путей, добавляем url сервера
-    return  `${process.env.NEXT_PUBLIC_URL}${collectionImage}`
+    return `${process.env.NEXT_PUBLIC_URL}${collectionImage}`;
   };
 
   const imageUrl = getImageUrl();
-  const imageUrlString = typeof imageUrl === 'string' ? imageUrl : imageUrl.src;
+  const imageUrlString = typeof imageUrl === "string" ? imageUrl : imageUrl.src;
 
   return (
     <div

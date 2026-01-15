@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Notification } from '@/types/notifications';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Notification } from "@/types/notifications";
 
 interface NotificationsState {
   notifications: Notification[];
@@ -18,7 +18,7 @@ const initialState: NotificationsState = {
 };
 
 export const notificationsSlice = createSlice({
-  name: 'notifications',
+  name: "notifications",
   initialState,
   reducers: {
     setNotifications: (state, action: PayloadAction<Notification[]>) => {
@@ -40,24 +40,30 @@ export const notificationsSlice = createSlice({
       state.notifications.push(action.payload);
     },
     updateNotification: (state, action: PayloadAction<Notification>) => {
-      const index = state.notifications.findIndex(notification => notification._id === action.payload._id);
+      const index = state.notifications.findIndex(
+        notification => notification._id === action.payload._id,
+      );
       if (index !== -1) {
         state.notifications[index] = action.payload;
       }
     },
     removeNotification: (state, action: PayloadAction<string>) => {
-      state.notifications = state.notifications.filter(notification => notification._id !== action.payload);
+      state.notifications = state.notifications.filter(
+        notification => notification._id !== action.payload,
+      );
     },
     markAsRead: (state, action: PayloadAction<string>) => {
-      const index = state.notifications.findIndex(notification => notification._id === action.payload);
+      const index = state.notifications.findIndex(
+        notification => notification._id === action.payload,
+      );
       if (index !== -1) {
         state.notifications[index].isRead = true;
       }
     },
-    markAllAsRead: (state) => {
+    markAllAsRead: state => {
       state.notifications = state.notifications.map(notification => ({
         ...notification,
-        isRead: true
+        isRead: true,
       }));
       state.unreadCount = 0;
     },

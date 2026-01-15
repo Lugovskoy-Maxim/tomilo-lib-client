@@ -12,7 +12,6 @@ export interface Chapter {
   __v?: number;
 }
 
-
 export interface ReaderChapter {
   _id: string;
   number: number;

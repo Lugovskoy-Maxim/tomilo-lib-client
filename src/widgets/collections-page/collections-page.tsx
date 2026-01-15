@@ -5,12 +5,15 @@ import { useMemo } from "react";
 
 export default function CollectionsPage() {
   // SEO для страницы коллекций
-  const seoConfig = useMemo(() => ({
-    title: "Коллекции",
-    description: "Просмотрите все доступные коллекции тайтлов",
-    keywords: "коллекции, тайтлы, манга, коллекция",
-    image: "/logo/tomilo_color.svg",
-  }), []);
+  const seoConfig = useMemo(
+    () => ({
+      title: "Коллекции",
+      description: "Просмотрите все доступные коллекции тайтлов",
+      keywords: "коллекции, тайтлы, манга, коллекция",
+      image: "/logo/tomilo_color.svg",
+    }),
+    [],
+  );
 
   useSEO(seoConfig);
 
@@ -26,4 +29,3 @@ export default function CollectionsPage() {
     </main>
   );
 }
-

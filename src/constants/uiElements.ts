@@ -3,7 +3,7 @@
 export const UI_ELEMENTS = {
   // Основные кнопки и действия
   LOGIN: "Войти",
-  REGISTER: "Зарегистрироваться", 
+  REGISTER: "Зарегистрироваться",
   FORGOT_PASSWORD: "Забыли пароль?",
   HIDE_PASSWORD: "Скрыть пароль",
   SHOW_PASSWORD: "Показать пароль",
@@ -12,18 +12,18 @@ export const UI_ELEMENTS = {
   EDIT_TITLE: "Редактировать тайтл",
   NORMALIZE_GENRES: "Нормализовать жанры",
   NORMALIZE_TAGS: "Нормализовать теги",
-  
+
   // Статусы загрузки
   LOADING: "Загрузка...",
   SAVING: "Сохраняем...",
   ADDING: "Добавляем...",
-  
+
   // Разделители и служебные тексты
   OR: "или",
 
   ALREADY_HAVE_ACCOUNT: "Ещё нет аккаунта?",
   LOGIN_TITLE: "Вход в аккаунт",
-  
+
   // Placeholder'ы
   EMAIL_PLACEHOLDER: "email@domen.ru",
   PASSWORD_PLACEHOLDER: "Введите пароль",
@@ -32,12 +32,12 @@ export const UI_ELEMENTS = {
   DESCRIPTION_PLACEHOLDER: "Введите описание",
   TAG_PLACEHOLDER: "Введите тег",
   ALT_NAME_PLACEHOLDER: "Введите альтернативное название",
-  
+
   // Aria-labels для навигации
   ARIA_LABELS: {
     CATALOG: "Каталог",
     NOTIFICATIONS: "Уведомления",
-    HOME_PAGE: "Главная страница", 
+    HOME_PAGE: "Главная страница",
     BOOKMARKS: "Закладки",
     MENU: "Меню",
     SEARCH: "Поиск",
@@ -45,44 +45,43 @@ export const UI_ELEMENTS = {
     CLOSE: "Закрыть",
     BACK: "Назад",
   },
-  
+
   // Сообщения возрастной проверки
   AGE_VERIFICATION_CONTENT: "Содержимое этого раздела предназначено",
   AGE_CONFIRM_TEXT: "для лиц старше 18 лет",
   AGE_CONFIRM_BUTTON: "Мне есть 18 лет",
   AGE_DENY_BUTTON: "Мне нет 18 лет",
-  
+
   // Подсказки
   CREATE_ACCOUNT_PROMPT: "Создайте аккаунт для сохранения прогресса",
   USE_FILTERS_PROMPT: "Используйте фильтры для поиска нужных тайтлов",
   ADD_BOOKMARKS_PROMPT: "Добавьте интересные тайтлы в закладки",
-  
+
   // Админские тексты
   ADMIN_CREATE_TITLE: "Добавить новый тайтл",
-  ADMIN_EDIT_TITLE: "Редактировать тайтл", 
+  ADMIN_EDIT_TITLE: "Редактировать тайтл",
   ADMIN_CREATE_DESCRIPTION: "Заполните информацию о тайтле",
   ADMIN_EDIT_DESCRIPTION: "Обновите информацию о тайтле",
   ADMIN_SELECT_GENRE: "Выберите жанр",
   ADMIN_TAG_SUGGESTIONS: "Начните вводить тег...",
-  
+
   // Уведомления о результатах нормализации
-  GENRES_NORMALIZED: (count: number, changesText: string, moreText: string) => 
+  GENRES_NORMALIZED: (count: number, changesText: string, moreText: string) =>
     `Нормализовано ${count} жанров:\n${changesText}${moreText}`,
-  TAGS_NORMALIZED: (count: number, changesText: string, moreText: string) => 
+  TAGS_NORMALIZED: (count: number, changesText: string, moreText: string) =>
     `Нормализовано ${count} тегов:\n${changesText}${moreText}`,
   ALL_GENRES_NORMALIZED: "Все жанры уже в нормальном формате",
   ALL_TAGS_NORMALIZED: "Все теги уже в нормальном формате",
-  
+
   // Сообщения для авторизации
   RESTORE_PASSWORD_REQUEST: "Запрос на восстановление пароля",
   TOKEN_MESSAGE: "Сообщение с токеном",
   ERROR_PROCESSING: "Обработка ошибки",
   VK_SUCCESS: "Успешная авторизация через VK",
-  
 
   // Общие константы
   UNKNOWN_SLUG: "не указан",
-  CHAPTER_FORMAT: (number: number, title?: string) => 
+  CHAPTER_FORMAT: (number: number, title?: string) =>
     `Глава ${number}${title ? ` - ${title}` : ""}`,
   YEAR_FORMAT: (year: number) => year.toString(),
 
@@ -118,10 +117,8 @@ export const UI_ELEMENTS = {
 
   // Валидационные сообщения
   VALIDATION: {
-    YEAR_RANGE: (currentYear: number) => 
-      `Должен быть между 1900 и ${currentYear}`,
-    SELECTED_COUNT: (count: number, items: string[]) => 
-      `Выбрано: ${items.join(', ')}`,
+    YEAR_RANGE: (currentYear: number) => `Должен быть между 1900 и ${currentYear}`,
+    SELECTED_COUNT: (count: number, items: string[]) => `Выбрано: ${items.join(", ")}`,
   },
 
   // Действия админки

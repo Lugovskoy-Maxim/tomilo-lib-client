@@ -8,10 +8,10 @@ interface BackButtonProps {
   showIcon?: boolean;
 }
 
-export default function BackButton({ 
-  text = "Вернуться назад", 
+export default function BackButton({
+  text = "Вернуться назад",
   className = "",
-  showIcon = true 
+  showIcon = true,
 }: BackButtonProps) {
   const router = useRouter();
 

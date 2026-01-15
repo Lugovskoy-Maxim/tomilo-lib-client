@@ -4,7 +4,8 @@ import { pageTitle } from "@/lib/page-title";
 
 export const metadata: Metadata = {
   title: "Контакты - Tomilo-lib.ru",
-  description: "Свяжитесь с нами. Контактная информация и форма обратной связи платформы Tomilo-lib.ru.",
+  description:
+    "Свяжитесь с нами. Контактная информация и форма обратной связи платформы Tomilo-lib.ru.",
 };
 
 export default function ContactPage() {
@@ -16,12 +17,10 @@ export default function ContactPage() {
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 pt-8 pb-20 lg:py-8 sm:px-6 lg:px-8">
         <div className="space-y-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-[var(--foreground)] mb-4">
-              Свяжитесь с нами
-            </h1>
+            <h1 className="text-3xl font-bold text-[var(--foreground)] mb-4">Свяжитесь с нами</h1>
             <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
-              У вас есть вопросы, предложения или замечания? Мы всегда рады услышать ваше мнение
-              и готовы помочь с любыми вопросами о нашей платформе.
+              У вас есть вопросы, предложения или замечания? Мы всегда рады услышать ваше мнение и
+              готовы помочь с любыми вопросами о нашей платформе.
             </p>
           </div>
 
@@ -35,8 +34,18 @@ export default function ContactPage() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[var(--accent)] rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <svg
+                        className="w-5 h-5 text-[var(--primary)]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
                       </svg>
                     </div>
                     <div>
@@ -47,8 +56,18 @@ export default function ContactPage() {
 
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[var(--accent)] rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <svg
+                        className="w-5 h-5 text-[var(--primary)]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
                       </svg>
                     </div>
                     <div>

@@ -42,7 +42,7 @@ export default function NavigationHeader({
             <div className="flex items-center gap-2">
               <div className="relative w-8 h-12 rounded overflow-hidden">
                 <OptimizedImage
-                  src={process.env.NEXT_PUBLIC_URL  + title.image}
+                  src={process.env.NEXT_PUBLIC_URL + title.image}
                   alt={title.title}
                   width={32}
                   className="object-cover"

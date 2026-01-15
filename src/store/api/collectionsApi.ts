@@ -25,12 +25,11 @@ interface CollectionsApiResponseData {
 
 const COLLECTIONS_TAG = "Collections";
 
-
 export const collectionsApi = createApi({
   reducerPath: "collectionsApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem("tomilo_lib_token");
         if (token) {
@@ -41,13 +40,18 @@ export const collectionsApi = createApi({
     },
   }),
   tagTypes: [COLLECTIONS_TAG],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     // Получить все коллекции с пагинацией, поиском и сортировкой
     getCollections: builder.query<
-      ApiResponseDto<{ collections: Collection[]; total: number; page: number; totalPages: number }>,
+      ApiResponseDto<{
+        collections: Collection[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>,
       CollectionsQuery
     >({
-      query: (params) => ({
+      query: params => ({
         url: "/collections",
         params,
       }),
@@ -64,37 +68,45 @@ export const collectionsApi = createApi({
           // API returns collections directly as array
           collections = data as Collection[];
           total = data.length;
-        } else if (data && typeof data === 'object') {
+        } else if (data && typeof data === "object") {
           const dataObj = data as CollectionsApiResponseData;
           const rawCollections = dataObj.collections || dataObj.data || [];
           total = dataObj.pagination?.total || dataObj.total || rawCollections.length || 0;
           page = dataObj.pagination?.page || dataObj.page || 1;
-          totalPages = dataObj.pagination?.pages || dataObj.totalPages || Math.ceil(total / (dataObj.pagination?.limit || 12)) || 1;
+          totalPages =
+            dataObj.pagination?.pages ||
+            dataObj.totalPages ||
+            Math.ceil(total / (dataObj.pagination?.limit || 12)) ||
+            1;
 
           // If rawCollections is already Collection[], use it directly, otherwise map from unknown
-          if (rawCollections.length > 0 && typeof rawCollections[0] === 'object' && rawCollections[0] !== null && 'id' in rawCollections[0]) {
+          if (
+            rawCollections.length > 0 &&
+            typeof rawCollections[0] === "object" &&
+            rawCollections[0] !== null &&
+            "id" in rawCollections[0]
+          ) {
             collections = rawCollections as Collection[];
           } else {
-            collections = (rawCollections as unknown[])
-              .map((collection): Collection => {
-                const coll = collection as Record<string, unknown>;
-                return {
-                  id: (coll.id as string) || (coll._id as string) || "",
-                  cover: (coll.cover as string) || (coll.image as string) || "",
-                  name: (coll.name as string) || "",
-                  description: (coll.description as string) || undefined,
-                  titles: (coll.titles as string[]) || [],
-                  comments: (coll.comments as string[]) || [],
-                  views: (coll.views as number) || 0,
-                  createdAt: (coll.createdAt as string) || "",
-                  updatedAt: (coll.updatedAt as string) || ""
-                };
-              });
+            collections = (rawCollections as unknown[]).map((collection): Collection => {
+              const coll = collection as Record<string, unknown>;
+              return {
+                id: (coll.id as string) || (coll._id as string) || "",
+                cover: (coll.cover as string) || (coll.image as string) || "",
+                name: (coll.name as string) || "",
+                description: (coll.description as string) || undefined,
+                titles: (coll.titles as string[]) || [],
+                comments: (coll.comments as string[]) || [],
+                views: (coll.views as number) || 0,
+                createdAt: (coll.createdAt as string) || "",
+                updatedAt: (coll.updatedAt as string) || "",
+              };
+            });
           }
 
           collections = collections.filter((collection: Collection) => {
             const id = collection.id;
-            return id && id !== 'undefined';
+            return id && id !== "undefined";
           });
         }
 
@@ -117,10 +129,10 @@ export const collectionsApi = createApi({
 
     // Получить коллекцию по ID
     getCollectionById: builder.query<ApiResponseDto<CollectionWithTitles>, string>({
-      query: (id) => `/collections/${id}`,
+      query: id => `/collections/${id}`,
       providesTags: (result, error, id) => [{ type: COLLECTIONS_TAG, id }],
       transformResponse: (response: ApiResponseDto<CollectionWithTitles>) => {
-        if (response.data && typeof response.data === 'object') {
+        if (response.data && typeof response.data === "object") {
           const dataObj = response.data as unknown as Record<string, unknown>;
           return {
             ...response,
@@ -133,8 +145,8 @@ export const collectionsApi = createApi({
               comments: (dataObj.comments as unknown[]) || [],
               views: (dataObj.views as number) || 0,
               createdAt: (dataObj.createdAt as string) || "",
-              updatedAt: (dataObj.updatedAt as string) || ""
-            } as CollectionWithTitles
+              updatedAt: (dataObj.updatedAt as string) || "",
+            } as CollectionWithTitles,
           };
         }
         return response;
@@ -142,18 +154,24 @@ export const collectionsApi = createApi({
     }),
 
     // Создание коллекции
-    createCollection: builder.mutation<ApiResponseDto<Collection>, Partial<CreateCollectionDto> | FormData>({
-      query: (data) => ({
+    createCollection: builder.mutation<
+      ApiResponseDto<Collection>,
+      Partial<CreateCollectionDto> | FormData
+    >({
+      query: data => ({
         url: "/collections",
         method: "POST",
-        body: data
+        body: data,
       }),
       invalidatesTags: [COLLECTIONS_TAG],
       transformResponse: (response: ApiResponseDto<Collection>) => response,
     }),
 
     // Обновление коллекции
-    updateCollection: builder.mutation<ApiResponseDto<Collection>, { id: string; data: Partial<UpdateCollectionDto> | FormData }>({
+    updateCollection: builder.mutation<
+      ApiResponseDto<Collection>,
+      { id: string; data: Partial<UpdateCollectionDto> | FormData }
+    >({
       query: ({ id, data }) => ({
         url: `/collections/${id}`,
         method: "PUT",
@@ -162,7 +180,7 @@ export const collectionsApi = createApi({
       invalidatesTags: [COLLECTIONS_TAG],
       transformResponse: (response: ApiResponseDto<Collection>) => {
         // Map API response fields to match Collection interface
-        if (response.data && typeof response.data === 'object') {
+        if (response.data && typeof response.data === "object") {
           const dataObj = response.data as unknown as Record<string, unknown>;
           return {
             ...response,
@@ -175,8 +193,8 @@ export const collectionsApi = createApi({
               comments: (dataObj.comments as string[]) || [],
               views: (dataObj.views as number) || 0,
               createdAt: (dataObj.createdAt as string) || "",
-              updatedAt: (dataObj.updatedAt as string) || ""
-            } as Collection
+              updatedAt: (dataObj.updatedAt as string) || "",
+            } as Collection,
           };
         }
         return response;
@@ -185,7 +203,7 @@ export const collectionsApi = createApi({
 
     // Удаление коллекции
     deleteCollection: builder.mutation<void, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/collections/${id}`,
         method: "DELETE",
       }),
@@ -194,7 +212,7 @@ export const collectionsApi = createApi({
 
     // Увеличение счётчика просмотров коллекции
     incrementCollectionViews: builder.mutation<ApiResponseDto<Collection>, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/collections/${id}/views`,
         method: "POST",
       }),
@@ -203,43 +221,63 @@ export const collectionsApi = createApi({
     }),
 
     // Добавление тайтла в коллекцию
-    addTitleToCollection: builder.mutation<ApiResponseDto<Collection>, { collectionId: string; titleId: string }>({
+    addTitleToCollection: builder.mutation<
+      ApiResponseDto<Collection>,
+      { collectionId: string; titleId: string }
+    >({
       query: ({ collectionId, titleId }) => ({
         url: `/collections/${collectionId}/titles/${titleId}`,
         method: "POST",
       }),
-      invalidatesTags: (result, error, { collectionId }) => [{ type: COLLECTIONS_TAG, id: collectionId }],
+      invalidatesTags: (result, error, { collectionId }) => [
+        { type: COLLECTIONS_TAG, id: collectionId },
+      ],
       transformResponse: (response: ApiResponseDto<Collection>) => response,
     }),
 
     // Удаление тайтла из коллекции
-    removeTitleFromCollection: builder.mutation<ApiResponseDto<Collection>, { collectionId: string; titleId: string }>({
+    removeTitleFromCollection: builder.mutation<
+      ApiResponseDto<Collection>,
+      { collectionId: string; titleId: string }
+    >({
       query: ({ collectionId, titleId }) => ({
         url: `/collections/${collectionId}/titles/${titleId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, { collectionId }) => [{ type: COLLECTIONS_TAG, id: collectionId }],
+      invalidatesTags: (result, error, { collectionId }) => [
+        { type: COLLECTIONS_TAG, id: collectionId },
+      ],
       transformResponse: (response: ApiResponseDto<Collection>) => response,
     }),
 
     // Добавление комментария к коллекции
-    addCommentToCollection: builder.mutation<ApiResponseDto<Collection>, { collectionId: string; comment: string }>({
+    addCommentToCollection: builder.mutation<
+      ApiResponseDto<Collection>,
+      { collectionId: string; comment: string }
+    >({
       query: ({ collectionId, comment }) => ({
         url: `/collections/${collectionId}/comments`,
         method: "POST",
         body: { comment },
       }),
-      invalidatesTags: (result, error, { collectionId }) => [{ type: COLLECTIONS_TAG, id: collectionId }],
+      invalidatesTags: (result, error, { collectionId }) => [
+        { type: COLLECTIONS_TAG, id: collectionId },
+      ],
       transformResponse: (response: ApiResponseDto<Collection>) => response,
     }),
 
     // Удаление комментария из коллекции
-    removeCommentFromCollection: builder.mutation<ApiResponseDto<Collection>, { collectionId: string; commentIndex: number }>({
+    removeCommentFromCollection: builder.mutation<
+      ApiResponseDto<Collection>,
+      { collectionId: string; commentIndex: number }
+    >({
       query: ({ collectionId, commentIndex }) => ({
         url: `/collections/${collectionId}/comments/${commentIndex}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, { collectionId }) => [{ type: COLLECTIONS_TAG, id: collectionId }],
+      invalidatesTags: (result, error, { collectionId }) => [
+        { type: COLLECTIONS_TAG, id: collectionId },
+      ],
       transformResponse: (response: ApiResponseDto<Collection>) => response,
     }),
   }),

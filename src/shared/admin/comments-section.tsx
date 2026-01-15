@@ -4,18 +4,13 @@ import { useState } from "react";
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import { Trash2, Search } from "lucide-react";
-import {
-  useGetCommentsQuery,
-  useDeleteCommentMutation,
-} from "@/store/api/commentsApi";
+import { useGetCommentsQuery, useDeleteCommentMutation } from "@/store/api/commentsApi";
 import { Comment, CommentEntityType } from "@/types/comment";
 
 export function CommentsSection() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [entityType, setEntityType] = useState<CommentEntityType | "all">(
-    "all"
-  );
+  const [entityType, setEntityType] = useState<CommentEntityType | "all">("all");
 
   // Получаем все комментарии
   const { data, isLoading, isError, refetch } = useGetCommentsQuery({
@@ -44,9 +39,7 @@ export function CommentsSection() {
       (comment: Comment) =>
         comment.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (typeof comment.userId !== "string" &&
-          comment.userId.username
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()))
+          comment.userId.username.toLowerCase().includes(searchTerm.toLowerCase())),
     ) || [];
 
   if (isLoading) {
@@ -54,22 +47,14 @@ export function CommentsSection() {
   }
 
   if (isError) {
-    return (
-      <div className="text-center py-8 text-red-500">
-        Ошибка загрузки комментариев
-      </div>
-    );
+    return <div className="text-center py-8 text-red-500">Ошибка загрузки комментариев</div>;
   }
 
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
-          Комментарии
-        </h2>
-        <p className="text-[var(--muted-foreground)]">
-          Управление комментариями пользователей
-        </p>
+        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Комментарии</h2>
+        <p className="text-[var(--muted-foreground)]">Управление комментариями пользователей</p>
       </div>
 
       {/* Фильтры */}
@@ -80,16 +65,14 @@ export function CommentsSection() {
             type="text"
             placeholder="Поиск комментариев..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             icon={Search}
           />
         </div>
 
         <select
           value={entityType}
-          onChange={(e) =>
-            setEntityType(e.target.value as CommentEntityType | "all")
-          }
+          onChange={e => setEntityType(e.target.value as CommentEntityType | "all")}
           className="px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
         >
           <option value="all">Все типы</option>
@@ -109,9 +92,7 @@ export function CommentsSection() {
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h3 className="font-medium text-[var(--foreground)]">
-                    {typeof comment.userId !== "string"
-                      ? comment.userId.username
-                      : "Пользователь"}
+                    {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
                   </h3>
                   <p className="text-sm text-[var(--muted-foreground)]">
                     {new Date(comment.createdAt).toLocaleDateString()}
@@ -145,22 +126,18 @@ export function CommentsSection() {
       {data?.data && data.data.totalPages > 1 && (
         <div className="flex justify-center mt-6">
           <div className="flex gap-2">
-            {Array.from({ length: data.data.totalPages }, (_, i) => i + 1).map(
-              (page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "primary" : "outline"}
-                  onClick={() => setCurrentPage(page)}
-                  className={
-                    currentPage === page
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : ""
-                  }
-                >
-                  {page}
-                </Button>
-              )
-            )}
+            {Array.from({ length: data.data.totalPages }, (_, i) => i + 1).map(page => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "primary" : "outline"}
+                onClick={() => setCurrentPage(page)}
+                className={
+                  currentPage === page ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : ""
+                }
+              >
+                {page}
+              </Button>
+            ))}
           </div>
         </div>
       )}

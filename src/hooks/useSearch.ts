@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { searchApi } from '../api/searchApi';
+import { useState, useCallback, useRef, useEffect } from "react";
+import { searchApi } from "../api/searchApi";
 import { SearchResult } from "@/types/search";
 
 export function useSearch() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +33,10 @@ export function useSearch() {
       const results = await searchApi(term, controller.signal);
       setSearchResults(results);
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
+      if (err instanceof Error && err.name === "AbortError") {
         // игнорируем отменённые запросы
       } else {
-        setError(err instanceof Error ? err.message : 'Произошла ошибка при поиске');
+        setError(err instanceof Error ? err.message : "Произошла ошибка при поиске");
       }
       setSearchResults([]);
     } finally {
@@ -44,21 +44,24 @@ export function useSearch() {
     }
   }, []);
 
-  const handleSearchChange = useCallback((term: string) => {
-    setSearchTerm(term);
-    
-    // для избежания частых запросов
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+  const handleSearchChange = useCallback(
+    (term: string) => {
+      setSearchTerm(term);
 
-    timeoutRef.current = setTimeout(() => {
-      performSearch(term);
-    }, 300);
-  }, [performSearch]);
+      // для избежания частых запросов
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        performSearch(term);
+      }, 300);
+    },
+    [performSearch],
+  );
 
   const clearSearch = useCallback(() => {
-    setSearchTerm('');
+    setSearchTerm("");
     setSearchResults([]);
     setError(null);
     if (timeoutRef.current) {

@@ -1,9 +1,20 @@
-
 "use client";
 import { Logo, Search, ThemeToggle, SnowEffect } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState } from "react";
-import { X, Search as SearchIcon, Home, User, FileText, Shield, MoreVertical, Info, Mail, Bookmark, Bell } from "lucide-react";
+import {
+  X,
+  Search as SearchIcon,
+  Home,
+  User,
+  FileText,
+  Shield,
+  MoreVertical,
+  Info,
+  Mail,
+  Bookmark,
+  Bell,
+} from "lucide-react";
 import Link from "next/link";
 import ContactForm from "@/widgets/contact-form/contact-form";
 
@@ -28,9 +39,8 @@ export default function Header() {
     setIsDropdownOpen(false);
   };
 
-
   return (
-    <header className="w-full bg-[var(--secondary)]/40 border-b border-[var(--border)] h-[var(--header-height)] relative" >
+    <header className="w-full bg-[var(--secondary)]/40 border-b border-[var(--border)] h-[var(--header-height)] relative">
       <SnowEffect />
       <div className="w-full max-w-7xl mx-auto p-4 h-16 flex items-center justify-between relative z-10">
         {/* Логотип */}
@@ -59,8 +69,6 @@ export default function Header() {
             {isSearchOpen ? null : <SearchIcon className="w-5 h-5" />}
           </button>
 
-
-
           {/* Кнопка "..." с выпадающим меню */}
           <div className="relative hidden md:block">
             <button
@@ -81,8 +89,7 @@ export default function Header() {
                       onClick={closeDropdown}
                       className="flex items-center px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
                     >
-                      <Info className="w-4 h-4 mr-3" />
-                      О нас
+                      <Info className="w-4 h-4 mr-3" />О нас
                     </Link>
                     <Link
                       href="/contact"
@@ -96,10 +103,7 @@ export default function Header() {
                 </div>
 
                 {/* Overlay для закрытия меню */}
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={closeDropdown}
-                />
+                <div className="fixed inset-0 z-40" onClick={closeDropdown} />
               </>
             )}
           </div>
@@ -251,10 +255,7 @@ export default function Header() {
 
         {/* Overlay для мобильного меню */}
         {isMobileMenuOpen && (
-          <div
-            className="lg:hidden fixed inset-0 bg-black/50 z-40"
-            onClick={closeMobileMenu}
-          />
+          <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={closeMobileMenu} />
         )}
       </div>
     </header>

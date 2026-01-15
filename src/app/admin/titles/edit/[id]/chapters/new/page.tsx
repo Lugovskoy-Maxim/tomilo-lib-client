@@ -32,7 +32,7 @@ export default function ChapterCreatePage() {
   const [pages, setPages] = useState<File[]>([]);
 
   const handleChange = (name: keyof CreateChapterDto, value: unknown) => {
-    setForm((prev) => ({ ...prev, [name]: value as never }));
+    setForm(prev => ({ ...prev, [name]: value as never }));
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -65,9 +65,7 @@ export default function ChapterCreatePage() {
     } catch (err: unknown) {
       const error = err as { data?: { message?: string }; message?: string };
       toast.error(
-        `Ошибка создания: ${
-          error?.data?.message || (error as Error)?.message || "Unknown"
-        }`
+        `Ошибка создания: ${error?.data?.message || (error as Error)?.message || "Unknown"}`,
       );
     }
   };
@@ -92,9 +90,7 @@ export default function ChapterCreatePage() {
               <input
                 type="number"
                 value={form.chapterNumber ?? ""}
-                onChange={(e) =>
-                  handleChange("chapterNumber", Number(e.target.value))
-                }
+                onChange={e => handleChange("chapterNumber", Number(e.target.value))}
                 className="border rounded px-3 py-2 bg-transparent"
                 required
                 min={1}
@@ -105,11 +101,8 @@ export default function ChapterCreatePage() {
               <input
                 type="number"
                 value={form.volumeNumber ?? ""}
-                onChange={(e) =>
-                  handleChange(
-                    "volumeNumber",
-                    e.target.value ? Number(e.target.value) : undefined
-                  )
+                onChange={e =>
+                  handleChange("volumeNumber", e.target.value ? Number(e.target.value) : undefined)
                 }
                 className="border rounded px-3 py-2 bg-transparent"
                 min={1}
@@ -120,7 +113,7 @@ export default function ChapterCreatePage() {
               <input
                 type="text"
                 value={form.title ?? ""}
-                onChange={(e) => handleChange("title", e.target.value)}
+                onChange={e => handleChange("title", e.target.value)}
                 className="border rounded px-3 py-2 bg-transparent"
                 placeholder="Опционально"
               />
@@ -129,12 +122,10 @@ export default function ChapterCreatePage() {
               <span className="text-sm">Статус</span>
               <select
                 value={form.status}
-                onChange={(e) =>
-                  handleChange("status", e.target.value as ChapterStatus)
-                }
+                onChange={e => handleChange("status", e.target.value as ChapterStatus)}
                 className="border rounded px-3 py-2 bg-transparent"
               >
-                {Object.values(ChapterStatus).map((s) => (
+                {Object.values(ChapterStatus).map(s => (
                   <option key={s} value={s}>
                     {s}
                   </option>
@@ -145,7 +136,7 @@ export default function ChapterCreatePage() {
               <input
                 type="checkbox"
                 checked={!!form.isPublished}
-                onChange={(e) => handleChange("isPublished", e.target.checked)}
+                onChange={e => handleChange("isPublished", e.target.checked)}
               />
               <span>Опубликована</span>
             </label>
@@ -153,7 +144,7 @@ export default function ChapterCreatePage() {
               <input
                 type="checkbox"
                 checked={!!form.isFree}
-                onChange={(e) => handleChange("isFree", e.target.checked)}
+                onChange={e => handleChange("isFree", e.target.checked)}
               />
               <span>Бесплатная</span>
             </label>
@@ -162,11 +153,8 @@ export default function ChapterCreatePage() {
               <input
                 type="number"
                 value={form.price ?? ""}
-                onChange={(e) =>
-                  handleChange(
-                    "price",
-                    e.target.value ? Number(e.target.value) : undefined
-                  )
+                onChange={e =>
+                  handleChange("price", e.target.value ? Number(e.target.value) : undefined)
                 }
                 className="border rounded px-3 py-2 bg-transparent"
                 min={0}
@@ -178,7 +166,7 @@ export default function ChapterCreatePage() {
               <input
                 type="text"
                 value={form.translator ?? ""}
-                onChange={(e) => handleChange("translator", e.target.value)}
+                onChange={e => handleChange("translator", e.target.value)}
                 className="border rounded px-3 py-2 bg-transparent"
               />
             </label>
@@ -187,7 +175,7 @@ export default function ChapterCreatePage() {
               <input
                 type="text"
                 value={form.proofreader ?? ""}
-                onChange={(e) => handleChange("proofreader", e.target.value)}
+                onChange={e => handleChange("proofreader", e.target.value)}
                 className="border rounded px-3 py-2 bg-transparent"
               />
             </label>
@@ -196,7 +184,7 @@ export default function ChapterCreatePage() {
               <input
                 type="text"
                 value={form.qualityCheck ?? ""}
-                onChange={(e) => handleChange("qualityCheck", e.target.value)}
+                onChange={e => handleChange("qualityCheck", e.target.value)}
                 className="border rounded px-3 py-2 bg-transparent"
               />
             </label>
@@ -205,15 +193,10 @@ export default function ChapterCreatePage() {
               <input
                 type="datetime-local"
                 value={
-                  form.releaseDate
-                    ? new Date(form.releaseDate).toISOString().slice(0, 16)
-                    : ""
+                  form.releaseDate ? new Date(form.releaseDate).toISOString().slice(0, 16) : ""
                 }
-                onChange={(e) =>
-                  handleChange(
-                    "releaseDate",
-                    e.target.value ? new Date(e.target.value) : undefined
-                  )
+                onChange={e =>
+                  handleChange("releaseDate", e.target.value ? new Date(e.target.value) : undefined)
                 }
                 className="border rounded px-3 py-2 bg-transparent"
               />
@@ -221,19 +204,15 @@ export default function ChapterCreatePage() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm">
-              Страницы главы (изображения), можно выбрать несколько
-            </p>
+            <p className="text-sm">Страницы главы (изображения), можно выбрать несколько</p>
             <input
               type="file"
               multiple
               accept="image/*"
-              onChange={(e) => handleFiles(e.target.files)}
+              onChange={e => handleFiles(e.target.files)}
             />
             {!!pages.length && (
-              <p className="text-xs text-muted-foreground">
-                Выбрано файлов: {pages.length}
-              </p>
+              <p className="text-xs text-muted-foreground">Выбрано файлов: {pages.length}</p>
             )}
           </div>
 

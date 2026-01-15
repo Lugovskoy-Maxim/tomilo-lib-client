@@ -55,7 +55,7 @@ function EditAvatarButton({}: EditAvatarButtonProps) {
       toast.error(
         `Ошибка при обновлении аватара: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
     } finally {
       setIsLoading(false);
@@ -74,11 +74,7 @@ function EditAvatarButton({}: EditAvatarButtonProps) {
         className="absolute -bottom-1 -right-1 w-8 h-8 bg-[var(--primary-foreground)] text-[var(--primary)] rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--background)] hover:bg-[var(--chart-5)]/60 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10"
         title="Изменить аватар"
       >
-        {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <Edit className="w-4 h-4" />
-        )}
+        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit className="w-4 h-4" />}
       </button>
       <input
         type="file"

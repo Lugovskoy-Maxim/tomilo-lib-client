@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Collection } from '@/types/collection';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Collection } from "@/types/collection";
 
 interface CollectionsState {
   collections: Collection[];
@@ -14,11 +14,11 @@ const initialState: CollectionsState = {
   selectedCollection: null,
   isLoading: false,
   error: null,
-  search: '',
+  search: "",
 };
 
 export const collectionsSlice = createSlice({
-  name: 'collections',
+  name: "collections",
   initialState,
   reducers: {
     setCollections: (state, action: PayloadAction<Collection[]>) => {

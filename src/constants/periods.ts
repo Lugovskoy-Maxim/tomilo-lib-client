@@ -12,7 +12,7 @@ export const PERIODS = {
 // Метки периодов
 export const PERIOD_LABELS: Record<Period, string> = {
   day: "за день",
-  week: "за неделю", 
+  week: "за неделю",
   month: "за месяц",
 };
 
@@ -26,7 +26,7 @@ export const PERIOD_SHORT_LABELS: Record<Period, string> = {
 // Значения для сортировки
 export const PERIOD_SORT_VALUES = {
   day: "today",
-  week: "thisWeek", 
+  week: "thisWeek",
   month: "thisMonth",
 } as const;
 

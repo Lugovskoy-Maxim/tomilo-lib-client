@@ -1,6 +1,5 @@
 // Types for search functionality
 
-
 export interface SearchResult {
   id: string;
   slug?: string;

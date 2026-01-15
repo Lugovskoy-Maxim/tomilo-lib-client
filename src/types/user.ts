@@ -26,8 +26,8 @@ export interface ReadingStats {
 }
 
 export interface UserPreferences {
-  readingMode: 'vertical' | 'horizontal';
-  theme: 'light' | 'dark' | 'auto';
+  readingMode: "vertical" | "horizontal";
+  theme: "light" | "dark" | "auto";
   notifications: {
     newChapters: boolean;
     comments: boolean;

@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Comment } from '@/types/comment';
-import { useAuth } from '@/hooks/useAuth';
+import React, { useState } from "react";
+import { Comment } from "@/types/comment";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useLikeCommentMutation,
   useDislikeCommentMutation,
   useDeleteCommentMutation,
-} from '@/store/api/commentsApi';
-import { ThumbsUp, ThumbsDown, Reply, Edit, Trash2, MoreVertical } from 'lucide-react';
-import Image from 'next/image';
+} from "@/store/api/commentsApi";
+import { ThumbsUp, ThumbsDown, Reply, Edit, Trash2, MoreVertical } from "lucide-react";
+import Image from "next/image";
 
 interface CommentItemProps {
   comment: Comment;
@@ -18,12 +18,7 @@ interface CommentItemProps {
   level?: number;
 }
 
-export function CommentItem({
-  comment,
-  onReply,
-  onEdit,
-  level = 0,
-}: CommentItemProps) {
+export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItemProps) {
   const { user } = useAuth();
   const [showReplies, setShowReplies] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
@@ -32,8 +27,7 @@ export function CommentItem({
   const [dislikeComment] = useDislikeCommentMutation();
   const [deleteComment] = useDeleteCommentMutation();
 
-  const userData =
-    typeof comment.userId === 'object' ? comment.userId : null;
+  const userData = typeof comment.userId === "object" ? comment.userId : null;
   const isOwner = user && userData && user._id === userData._id;
   const hasLiked = user && comment.likedBy.includes(user._id);
   const hasDisliked = user && comment.dislikedBy.includes(user._id);
@@ -43,7 +37,7 @@ export function CommentItem({
     try {
       await likeComment(comment._id).unwrap();
     } catch (error) {
-      console.error('Failed to like comment:', error);
+      console.error("Failed to like comment:", error);
     }
   };
 
@@ -52,16 +46,16 @@ export function CommentItem({
     try {
       await dislikeComment(comment._id).unwrap();
     } catch (error) {
-      console.error('Failed to dislike comment:', error);
+      console.error("Failed to dislike comment:", error);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) return;
+    if (!confirm("Вы уверены, что хотите удалить этот комментарий?")) return;
     try {
       await deleteComment(comment._id).unwrap();
     } catch (error) {
-      console.error('Failed to delete comment:', error);
+      console.error("Failed to delete comment:", error);
     }
   };
 
@@ -72,21 +66,21 @@ export function CommentItem({
       const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
       if (diffInSeconds < 60) {
-        return 'только что';
+        return "только что";
       } else if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60);
-        return `${minutes} ${minutes === 1 ? 'минуту' : minutes < 5 ? 'минуты' : 'минут'} назад`;
+        return `${minutes} ${minutes === 1 ? "минуту" : minutes < 5 ? "минуты" : "минут"} назад`;
       } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
-        return `${hours} ${hours === 1 ? 'час' : hours < 5 ? 'часа' : 'часов'} назад`;
+        return `${hours} ${hours === 1 ? "час" : hours < 5 ? "часа" : "часов"} назад`;
       } else if (diffInSeconds < 604800) {
         const days = Math.floor(diffInSeconds / 86400);
-        return `${days} ${days === 1 ? 'день' : days < 5 ? 'дня' : 'дней'} назад`;
+        return `${days} ${days === 1 ? "день" : days < 5 ? "дня" : "дней"} назад`;
       } else {
-        return date.toLocaleDateString('ru-RU', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
+        return date.toLocaleDateString("ru-RU", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
         });
       }
     } catch {
@@ -95,9 +89,7 @@ export function CommentItem({
   };
 
   return (
-    <div
-      className={`${level > 0 ? 'ml-8 mt-4' : ''} border-b border-[var(--border)] pb-4`}
-    >
+    <div className={`${level > 0 ? "ml-8 mt-4" : ""} border-b border-[var(--border)] pb-4`}>
       <div className="flex gap-3">
         {/* Avatar */}
         <div className="flex-shrink-0 h-14 w-14 overflow-hidden rounded-full">
@@ -112,7 +104,7 @@ export function CommentItem({
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-semibold">
-              {userData?.username?.[0]?.toUpperCase() || 'U'}
+              {userData?.username?.[0]?.toUpperCase() || "U"}
             </div>
           )}
         </div>
@@ -121,15 +113,13 @@ export function CommentItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="font-semibold text-[var(--foreground)]">
-              {userData?.username || 'Анонимный пользователь'}
+              {userData?.username || "Анонимный пользователь"}
             </span>
             <span className="text-xs text-[var(--muted-foreground)]">
               {formatDate(comment.createdAt)}
             </span>
             {comment.isEdited && (
-              <span className="text-xs text-[var(--muted-foreground)] italic">
-                (изменено)
-              </span>
+              <span className="text-xs text-[var(--muted-foreground)] italic">(изменено)</span>
             )}
             {isOwner && (
               <div className="relative ml-auto">
@@ -178,9 +168,9 @@ export function CommentItem({
               disabled={!user}
               className={`flex items-center gap-1 text-sm transition-colors ${
                 hasLiked
-                  ? 'text-[var(--primary)]'
-                  : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
-              } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  ? "text-[var(--primary)]"
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <ThumbsUp className="w-4 h-4" />
               <span>{comment.likes}</span>
@@ -191,9 +181,9 @@ export function CommentItem({
               disabled={!user}
               className={`flex items-center gap-1 text-sm transition-colors ${
                 hasDisliked
-                  ? 'text-red-500'
-                  : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
-              } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  ? "text-red-500"
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <ThumbsDown className="w-4 h-4" />
               <span>{comment.dislikes}</span>
@@ -217,11 +207,11 @@ export function CommentItem({
                 onClick={() => setShowReplies(!showReplies)}
                 className="text-sm text-[var(--primary)] hover:underline mb-2"
               >
-                {showReplies ? 'Скрыть' : 'Показать'} ответы ({comment.replies.length})
+                {showReplies ? "Скрыть" : "Показать"} ответы ({comment.replies.length})
               </button>
               {showReplies && (
                 <div className="mt-2 space-y-4">
-                  {comment.replies.map((reply) => (
+                  {comment.replies.map(reply => (
                     <CommentItem
                       key={reply._id}
                       comment={reply}
@@ -239,4 +229,3 @@ export function CommentItem({
     </div>
   );
 }
-

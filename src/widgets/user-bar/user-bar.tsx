@@ -1,11 +1,5 @@
 "use client";
-import {
-  NotificationButton,
-  UserDropdown,
-  ThemeToggle,
-  LoginModal,
-  RegisterModal,
-} from "@/shared";
+import { NotificationButton, UserDropdown, ThemeToggle, LoginModal, RegisterModal } from "@/shared";
 import { UserAvatar } from "@/shared";
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
@@ -34,7 +28,6 @@ export default function UserBar() {
 
   const { user, isAuthenticated, login, logout, isLoading } = useAuth();
 
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -42,10 +35,7 @@ export default function UserBar() {
   // Закрытие dropdown при клике вне области
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
       }
     };
@@ -102,7 +92,7 @@ export default function UserBar() {
       avatar: user.avatar,
       level: user.level,
       experience: user.experience,
-      balance: user.balance
+      balance: user.balance,
     };
   };
 

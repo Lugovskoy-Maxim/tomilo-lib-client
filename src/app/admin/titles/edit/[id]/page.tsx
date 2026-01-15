@@ -40,10 +40,7 @@ import { useToast } from "@/hooks/useToast";
 // import Image from "next/image";
 import { CoverUploadSection } from "@/shared/admin/cover-upload-section";
 import { normalizeGenres } from "@/lib/genre-normalizer";
-import {
-  translateTitleStatus,
-  translateTitleType,
-} from "@/lib/title-type-translations";
+import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 
 // Конфигурация API
 const API_CONFIG = {
@@ -174,13 +171,13 @@ const generateSlug = (name: string): string => {
 
 // Функция нормализации жанров/тегов с улучшенной обработкой капса
 const normalizeGenresTags = (
-  items: string[]
+  items: string[],
 ): {
   normalized: string[];
   changes: Array<{ original: string; normalized: string }>;
 } => {
   const changes: Array<{ original: string; normalized: string }> = [];
-  const normalized = items.map((item) => {
+  const normalized = items.map(item => {
     const original = item.trim();
     const normalized = normalizeGenres([original])[0];
 
@@ -208,19 +205,11 @@ interface BasicInfoSectionProps {
   formData: Title;
   titleId: string;
   handleInputChange: (
-    field: keyof Title
-  ) => (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => void;
-  handleArrayFieldChange: (
-    field: "genres" | "tags"
-  ) => (value: string, isChecked: boolean) => void;
-  handleInputArrayChange: (
-    field: "genres" | "tags"
-  ) => (values: string[]) => void;
-  handleNormalize: (
-    field: "genres" | "tags"
-  ) => (values: string[]) => {
+    field: keyof Title,
+  ) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  handleArrayFieldChange: (field: "genres" | "tags") => (value: string, isChecked: boolean) => void;
+  handleInputArrayChange: (field: "genres" | "tags") => (values: string[]) => void;
+  handleNormalize: (field: "genres" | "tags") => (values: string[]) => {
     normalized: string[];
     changes: Array<{ original: string; normalized: string }>;
   };
@@ -319,18 +308,14 @@ export default function TitleEditorPage() {
     { id: titleId },
     {
       skip: !titleId,
-    }
+    },
   );
 
   // Получаем главы тайтла для подсчета количества
-  const { data: chaptersData } = useGetChaptersByTitleQuery(
-    { titleId },
-    { skip: !titleId }
-  );
+  const { data: chaptersData } = useGetChaptersByTitleQuery({ titleId }, { skip: !titleId });
 
   // Хук для обновления тайтла
-  const [updateTitleMutation, { isLoading: isUpdating }] =
-    useUpdateTitleMutation();
+  const [updateTitleMutation, { isLoading: isUpdating }] = useUpdateTitleMutation();
   const [updateTitleCoverMutation] = useUpdateTitleCoverMutation();
 
   const [formData, setFormData] = useState<Title>({
@@ -391,9 +376,7 @@ export default function TitleEditorPage() {
   // Обработчики
   const handleInputChange =
     (field: keyof Title) =>
-    (
-      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-    ) => {
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       const target = e.target as HTMLInputElement;
       let value: string | number | boolean = target.value;
 
@@ -405,12 +388,12 @@ export default function TitleEditorPage() {
         value = parseInt(target.value) || 0;
       }
 
-      setFormData((prev) => ({ ...prev, [field]: value }));
+      setFormData(prev => ({ ...prev, [field]: value }));
     };
 
   const handleArrayFieldChange =
     (field: "genres" | "tags") => (value: string, isChecked: boolean) => {
-      setFormData((prev) => {
+      setFormData(prev => {
         // Обеспечиваем, что prev[field] всегда является массивом
         const currentArray = Array.isArray(prev[field]) ? prev[field] : [];
 
@@ -418,25 +401,24 @@ export default function TitleEditorPage() {
           ...prev,
           [field]: isChecked
             ? [...currentArray, value]
-            : currentArray.filter((item) => item !== value),
+            : currentArray.filter(item => item !== value),
         };
       });
     };
 
-  const handleInputArrayChange =
-    (field: "genres" | "tags") => (values: string[]) => {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: values,
-      }));
-    };
+  const handleInputArrayChange = (field: "genres" | "tags") => (values: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: values,
+    }));
+  };
 
   // Обработчик нормализации жанров/тегов с уведомлениями
   const handleNormalize = (field: "genres" | "tags") => (values: string[]) => {
     const result = normalizeGenresTags(values);
 
     // Обновляем состояние формы с нормализованными значениями
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [field]: result.normalized,
     }));
@@ -445,23 +427,18 @@ export default function TitleEditorPage() {
     if (result.changes.length > 0) {
       const changesText = result.changes
         .slice(0, 3) // Показываем только первые 3 изменения
-        .map((change) => `${change.original} → ${change.normalized}`)
+        .map(change => `${change.original} → ${change.normalized}`)
         .join("\n");
 
-      const moreText =
-        result.changes.length > 3
-          ? `\nи еще ${result.changes.length - 3}...`
-          : "";
+      const moreText = result.changes.length > 3 ? `\nи еще ${result.changes.length - 3}...` : "";
 
       toast.success(
         `Нормализовано ${result.changes.length} ${
           field === "genres" ? "жанров" : "тегов"
-        }:\n${changesText}${moreText}`
+        }:\n${changesText}${moreText}`,
       );
     } else {
-      toast.info(
-        `Все ${field === "genres" ? "жанры" : "теги"} уже в нормальном формате`
-      );
+      toast.info(`Все ${field === "genres" ? "жанры" : "теги"} уже в нормальном формате`);
     }
 
     return result;
@@ -470,9 +447,9 @@ export default function TitleEditorPage() {
   const handleAltNamesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const names = e.target.value
       .split(",")
-      .map((name) => name.trim())
-      .filter((name) => name);
-    setFormData((prev) => ({ ...prev, altNames: names }));
+      .map(name => name.trim())
+      .filter(name => name);
+    setFormData(prev => ({ ...prev, altNames: names }));
   };
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -482,11 +459,11 @@ export default function TitleEditorPage() {
 
       // Конвертируем файл в base64 для отправки на сервер
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         const result = e.target?.result as string;
         // Извлекаем base64 данные из data URL
         const base64 = result.split(",")[1];
-        setFormData((prev) => ({
+        setFormData(prev => ({
           ...prev,
           coverImage: base64,
         }));
@@ -533,7 +510,7 @@ export default function TitleEditorPage() {
         dispatch(updateTitle(result.data));
         // Обновляем обложку в локальном состоянии, если она была обновлена
         if (selectedFile && result.data.coverImage) {
-          setFormData((prev) => ({
+          setFormData(prev => ({
             ...prev,
             coverImage: result.data!.coverImage,
           }));
@@ -543,9 +520,7 @@ export default function TitleEditorPage() {
       toast.success("Тайтл успешно обновлен!");
     } catch (err) {
       toast.error(
-        `Ошибка при обновлении тайтла: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`
+        `Ошибка при обновлении тайтла: ${err instanceof Error ? err.message : "Unknown error"}`,
       );
     } finally {
       setIsSaving(false);
@@ -559,7 +534,7 @@ export default function TitleEditorPage() {
   // Функция для генерации slug из названия
   const handleSlugGenerate = () => {
     const newSlug = generateSlug(formData.name);
-    setFormData((prev) => ({ ...prev, slug: newSlug }));
+    setFormData(prev => ({ ...prev, slug: newSlug }));
     toast.success("Slug успешно сгенерирован!");
   };
 
@@ -581,9 +556,7 @@ export default function TitleEditorPage() {
                 handleAltNamesChange={handleAltNamesChange}
                 handleImageChange={handleImageChange}
                 selectedFile={selectedFile}
-                onCoverUpdate={(newCover) =>
-                  setFormData((prev) => ({ ...prev, coverImage: newCover }))
-                }
+                onCoverUpdate={newCover => setFormData(prev => ({ ...prev, coverImage: newCover }))}
                 onSlugGenerate={handleSlugGenerate}
               />
               {/* <TextareaField
@@ -595,10 +568,7 @@ export default function TitleEditorPage() {
                 required
               /> */}
               <div className="flex items-center justify-between gap-3">
-                <Link
-                  href={`/titles/${formData.slug}`}
-                  className="px-4 py-2 rounded border"
-                >
+                <Link href={`/titles/${formData.slug}`} className="px-4 py-2 rounded border">
                   Открыть страницу тайтла
                 </Link>
                 <FormActions isSaving={isSaving || isUpdating} />
@@ -606,10 +576,7 @@ export default function TitleEditorPage() {
             </form>
             <div className="space-y-6 lg:col-span-1">
               <StatsSection formData={formData} />
-              <ChaptersSection
-                titleId={titleId}
-                chaptersCount={chaptersCount}
-              />
+              <ChaptersSection titleId={titleId} chaptersCount={chaptersCount} />
             </div>
           </div>
         </div>
@@ -628,9 +595,7 @@ function LoadingState() {
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-            <p className="text-[var(--muted-foreground)]">
-              Загрузка данных тайтла...
-            </p>
+            <p className="text-[var(--muted-foreground)]">Загрузка данных тайтла...</p>
           </div>
         </div>
       </div>
@@ -647,9 +612,7 @@ function ErrorState({ error }: ErrorStateProps) {
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-              {error}
-            </h1>
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">{error}</h1>
             <p className="text-[var(--muted-foreground)] mb-6">
               Не удалось загрузить данные тайтла для редактирования
             </p>
@@ -675,9 +638,7 @@ function HeaderSection() {
         <Edit className="w-6 h-6" />
         Редактировать тайтл
       </h1>
-      <p className="text-[var(--muted-foreground)]">
-        Обновите информацию о тайтле
-      </p>
+      <p className="text-[var(--muted-foreground)]">Обновите информацию о тайтле</p>
     </div>
   );
 }
@@ -786,7 +747,7 @@ function BasicInfoSection({
           label="Статус *"
           value={formData.status}
           onChange={handleInputChange("status")}
-          options={Object.values(TitleStatus).map((status) => ({
+          options={Object.values(TitleStatus).map(status => ({
             value: status,
             label: translateTitleStatus(status),
           }))}
@@ -798,7 +759,7 @@ function BasicInfoSection({
           onChange={handleInputChange("type")}
           options={[
             { value: "", label: "Не указан" },
-            ...Object.values(TitleType).map((type) => ({
+            ...Object.values(TitleType).map(type => ({
               value: type as string,
               label: translateTitleType(type as string),
             })),
@@ -824,9 +785,7 @@ function BasicInfoSection({
         label="Жанры"
         items={API_CONFIG.genres}
         selectedItems={formData.genres}
-        onChange={(value, checked) =>
-          handleArrayFieldChange("genres")(value, checked)
-        }
+        onChange={(value, checked) => handleArrayFieldChange("genres")(value, checked)}
         onInputChange={handleInputArrayChange("genres")}
         onNormalize={handleNormalize("genres")}
         icon={Tag}
@@ -836,9 +795,7 @@ function BasicInfoSection({
         label="Теги"
         items={API_CONFIG.tags}
         selectedItems={formData.tags}
-        onChange={(value, checked) =>
-          handleArrayFieldChange("tags")(value, checked)
-        }
+        onChange={(value, checked) => handleArrayFieldChange("tags")(value, checked)}
         onInputChange={handleInputArrayChange("tags")}
         onNormalize={handleNormalize("tags")}
       />
@@ -896,15 +853,10 @@ function StatsSection({ formData }: StatsSectionProps) {
 
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-      <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">
-        Статистика
-      </h2>
+      <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">Статистика</h2>
       <div className="grid grid-cols-2 gap-4">
         {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="text-center p-4 bg-[var(--secondary)] rounded-lg"
-          >
+          <div key={index} className="text-center p-4 bg-[var(--secondary)] rounded-lg">
             <div
               className={`flex items-center justify-center w-10 h-10 ${
                 colorClasses[stat.color]
@@ -912,12 +864,8 @@ function StatsSection({ formData }: StatsSectionProps) {
             >
               <stat.icon className="w-5 h-5" />
             </div>
-            <p className="text-lg font-bold text-[var(--foreground)]">
-              {stat.value}
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)]">
-              {stat.label}
-            </p>
+            <p className="text-lg font-bold text-[var(--foreground)]">{stat.value}</p>
+            <p className="text-sm text-[var(--muted-foreground)]">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -933,9 +881,7 @@ function ChaptersSection({ titleId, chaptersCount }: ChaptersSectionProps) {
           <FileText className="w-5 h-5" />
           Управление главами
         </h2>
-        <span className="text-lg font-bold text-[var(--primary)]">
-          {chaptersCount} глав
-        </span>
+        <span className="text-lg font-bold text-[var(--primary)]">{chaptersCount} глав</span>
       </div>
 
       <div className="flex gap-3 flex-wrap">
@@ -957,8 +903,7 @@ function ChaptersSection({ titleId, chaptersCount }: ChaptersSectionProps) {
       </div>
 
       <p className="text-sm text-[var(--muted-foreground)] mt-3">
-        Добавляйте новые главы вручную или используйте парсинг из внешних
-        источников
+        Добавляйте новые главы вручную или используйте парсинг из внешних источников
       </p>
     </div>
   );
@@ -986,12 +931,7 @@ function FormActions({ isSaving }: FormActionsProps) {
 }
 
 // Базовые компоненты полей
-function InputField({
-  label,
-  icon: Icon,
-  type = "text",
-  ...props
-}: InputFieldProps) {
+function InputField({ label, icon: Icon, type = "text", ...props }: InputFieldProps) {
   return (
     <div>
       <label className="text-sm font-medium text-[var(--foreground)] mb-1 flex items-center gap-2">
@@ -1010,9 +950,7 @@ function InputField({
 function TextareaField({ label, ...props }: TextareaFieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-[var(--foreground)] mb-1">{label}</label>
       <textarea
         className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] resize text-sm"
         {...props}
@@ -1021,12 +959,7 @@ function TextareaField({ label, ...props }: TextareaFieldProps) {
   );
 }
 
-function SelectField({
-  label,
-  icon: Icon,
-  options,
-  ...props
-}: SelectFieldProps) {
+function SelectField({ label, icon: Icon, options, ...props }: SelectFieldProps) {
   return (
     <div>
       <label className=" text-sm font-medium text-[var(--foreground)] mb-1 flex items-center gap-2">
@@ -1037,7 +970,7 @@ function SelectField({
         className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
         {...props}
       >
-        {options.map((option) => (
+        {options.map(option => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
@@ -1056,9 +989,7 @@ function CheckboxField({ label, ...props }: CheckboxFieldProps) {
           className="w-4 h-4 text-[var(--primary)] bg-[var(--background)] border-[var(--border)] rounded focus:ring-[var(--primary)]"
           {...props}
         />
-        <span className="text-sm font-medium text-[var(--foreground)]">
-          {label}
-        </span>
+        <span className="text-sm font-medium text-[var(--foreground)]">{label}</span>
       </label>
     </div>
   );
@@ -1080,8 +1011,8 @@ function CheckboxGroup({
     if (onInputChange) {
       const values = e.target.value
         .split(",")
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0);
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
       onInputChange(values);
     }
   };
@@ -1115,7 +1046,7 @@ function CheckboxGroup({
             <input
               type="checkbox"
               checked={safeSelectedItems.includes(item)}
-              onChange={(e) => handleCheckboxChange(item, e.target.checked)}
+              onChange={e => handleCheckboxChange(item, e.target.checked)}
               className="hidden peer"
             />
             <span className="px-2 py-1 rounded-full text-xs border border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)] hover:border-[var(--primary)] transition-colors peer-checked:bg-[var(--primary)] peer-checked:text-[var(--primary-foreground)] peer-checked:border-[var(--primary)] cursor-pointer">

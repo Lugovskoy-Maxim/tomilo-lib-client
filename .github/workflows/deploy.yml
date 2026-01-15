@@ -46,7 +46,7 @@ jobs:
                 ignoreDuringBuilds: true,
               },
             }
-            
+
             module.exports = nextConfig
             EOF
 
@@ -98,13 +98,13 @@ jobs:
 
             # Собираем проект БЕЗ Turbopack
             echo "🔨 Building Next.js application (without Turbopack)..."
-            
+
             # Временно изменяем package.json чтобы убрать --turbopack
             if grep -q '"build":.*--turbopack' package.json; then
               echo "Removing --turbopack from build script..."
               sed -i 's/"build": "next build --turbopack"/"build": "next build"/g' package.json
             fi
-            
+
             # Выполняем сборку
             npm run build
 
@@ -129,7 +129,7 @@ jobs:
 
             # Запускаем приложение через pm2
             echo "🔄 Starting Next.js application with PM2..."
-            
+
             # Создаем ecosystem файл для PM2
             cat > ecosystem.config.js << 'EOF'
             module.exports = {
@@ -154,14 +154,14 @@ jobs:
             # Останавливаем старый процесс и запускаем новый
             pm2 stop tomilo-lib-client 2>/dev/null || true
             pm2 delete tomilo-lib-client 2>/dev/null || true
-            
+
             # Проверяем порт 3000
             echo "🔍 Checking port 3000..."
             netstat -tlnp | grep 3000 || echo "Port 3000 is free"
-            
+
             # Запускаем приложение
             pm2 start ecosystem.config.js
-            
+
             # Даем время на запуск
             sleep 10
 

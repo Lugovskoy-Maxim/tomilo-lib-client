@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 const API_BASE = "https://tomilo-lib.ru/api";
-const SITE_URL = process.env.NEXT_PUBLIC_URL || 'https://tomilo-lib.ru';
+const SITE_URL = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
 // Type definitions for RSS items
 interface BaseItem {
@@ -16,7 +16,7 @@ interface TitleItem extends BaseItem {
   description?: string;
   genres?: string[];
   altNames?: string[];
-  type?: 'manga' | 'manhua' | 'manhwa';
+  type?: "manga" | "manhua" | "manhwa";
   totalChapters?: number;
 }
 
@@ -34,15 +34,21 @@ type RssItem = TitleItem | ChapterItem;
 
 // Helper function to escape XML characters
 function escapeXml(unsafe: string): string {
-  if (!unsafe) return '';
-  return unsafe.replace(/[<>&'"]/g, (c) => {
+  if (!unsafe) return "";
+  return unsafe.replace(/[<>&'"]/g, c => {
     switch (c) {
-      case '<': return '&lt;';
-      case '>': return '&gt;';
-      case '&': return '&amp;';
-      case "'": return "&apos;";
-      case '"': return '&quot;';
-      default: return c;
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case "&":
+        return "&amp;";
+      case "'":
+        return "&apos;";
+      case '"':
+        return "&quot;";
+      default:
+        return c;
     }
   });
 }
@@ -65,12 +71,12 @@ const titlesCache = new Map<string, TitleItem>();
 
 // Type guard to check if item is TitleItem
 function isTitleItem(item: RssItem): item is TitleItem {
-  return 'slug' in item && ('name' in item || 'title' in item);
+  return "slug" in item && ("name" in item || "title" in item);
 }
 
 // Type guard to check if item is ChapterItem
 function isChapterItem(item: RssItem): item is ChapterItem {
-  return 'chapterNumber' in item;
+  return "chapterNumber" in item;
 }
 
 // Type for API response
@@ -100,45 +106,45 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
   try {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    console.log('Fetching titles created after:', sevenDaysAgo.toISOString());
+    console.log("Fetching titles created after:", sevenDaysAgo.toISOString());
 
     const url = new URL(`${API_BASE}/titles`);
-    url.searchParams.set('sortBy', 'createdAt');
-    url.searchParams.set('sortOrder', 'desc');
-    url.searchParams.set('limit', '100');
+    url.searchParams.set("sortBy", "createdAt");
+    url.searchParams.set("sortOrder", "desc");
+    url.searchParams.set("limit", "100");
 
-    console.log('Fetching titles from:', url.toString());
-    const response = await fetch(url.toString(), { 
-      cache: 'no-store',
+    console.log("Fetching titles from:", url.toString());
+    const response = await fetch(url.toString(), {
+      cache: "no-store",
       headers: {
-        'Accept': 'application/json',
-      }
+        Accept: "application/json",
+      },
     });
-    
-    console.log('Titles response status:', response.status);
-    
+
+    console.log("Titles response status:", response.status);
+
     if (!response.ok) {
-      console.warn('API not available for titles, returning empty array');
+      console.warn("API not available for titles, returning empty array");
       return [];
     }
 
     const data: ApiResponse = await response.json();
-    
+
     // Based on your curl output, the structure is: data.data.titles
     const titles = data?.data?.titles || [];
-    console.log('Number of titles received:', titles.length);
+    console.log("Number of titles received:", titles.length);
 
     // Filter titles from last 7 days
     const recentTitles = titles
       .filter((title: ApiTitleResponse) => {
         if (!title || !title.createdAt) return false;
-        
+
         try {
           const titleDate = new Date(title.createdAt);
           const isRecent = !isNaN(titleDate.getTime()) && titleDate >= sevenDaysAgo;
           return isRecent;
         } catch (error) {
-          console.warn('Invalid date for title:', title._id, title.createdAt);
+          console.warn("Invalid date for title:", title._id, title.createdAt);
           return false;
         }
       })
@@ -148,21 +154,21 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
         if (Array.isArray(title.genres)) {
           normalizedGenres = title.genres.map(g => String(g)).filter(g => g);
         }
-        
+
         // Normalize altNames
         let normalizedAltNames: string[] = [];
         if (Array.isArray(title.altNames)) {
           normalizedAltNames = title.altNames.map(a => String(a)).filter(a => a);
         }
-        
+
         // Normalize type
-        let normalizedType: 'manga' | 'manhua' | 'manhwa' | undefined;
-        if (title.type === 'manga' || title.type === 'manhua' || title.type === 'manhwa') {
+        let normalizedType: "manga" | "manhua" | "manhwa" | undefined;
+        if (title.type === "manga" || title.type === "manhua" || title.type === "manhwa") {
           normalizedType = title.type;
         }
-        
+
         const titleItem: TitleItem = {
-          _id: String(title._id || ''),
+          _id: String(title._id || ""),
           name: title.name ? String(title.name) : undefined,
           title: title.title ? String(title.title) : undefined,
           slug: title.slug ? String(title.slug) : undefined,
@@ -173,18 +179,18 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
           totalChapters: title.totalChapters ? Number(title.totalChapters) : undefined,
           createdAt: String(title.createdAt || new Date().toISOString()),
         };
-        
+
         // Cache the title for later use
         titlesCache.set(titleItem._id, titleItem);
-        
+
         return titleItem;
       })
       .filter((title: TitleItem) => title.name || title.title); // Only titles with a name
 
-    console.log('Recent titles after filtering:', recentTitles.length);
+    console.log("Recent titles after filtering:", recentTitles.length);
     return recentTitles;
   } catch (error) {
-    console.error('Error fetching recent titles:', error);
+    console.error("Error fetching recent titles:", error);
     return [];
   }
 }
@@ -194,51 +200,51 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
   try {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    console.log('Fetching chapters created after:', sevenDaysAgo.toISOString());
+    console.log("Fetching chapters created after:", sevenDaysAgo.toISOString());
 
     // First, fetch titles to get chapters from them
     const url = new URL(`${API_BASE}/titles`);
-    url.searchParams.set('sortBy', 'createdAt');
-    url.searchParams.set('sortOrder', 'desc');
-    url.searchParams.set('limit', '50'); // Get 50 recent titles
+    url.searchParams.set("sortBy", "createdAt");
+    url.searchParams.set("sortOrder", "desc");
+    url.searchParams.set("limit", "50"); // Get 50 recent titles
 
-    console.log('Fetching titles for chapters from:', url.toString());
-    const response = await fetch(url.toString(), { 
-      cache: 'no-store',
+    console.log("Fetching titles for chapters from:", url.toString());
+    const response = await fetch(url.toString(), {
+      cache: "no-store",
       headers: {
-        'Accept': 'application/json',
-      }
+        Accept: "application/json",
+      },
     });
-    
-    console.log('Titles for chapters response status:', response.status);
-    
+
+    console.log("Titles for chapters response status:", response.status);
+
     if (!response.ok) {
-      console.warn('Failed to fetch titles for chapters');
+      console.warn("Failed to fetch titles for chapters");
       return [];
     }
 
     const data: ApiResponse = await response.json();
     const titles = data?.data?.titles || [];
-    console.log('Number of titles for chapters:', titles.length);
+    console.log("Number of titles for chapters:", titles.length);
 
     // Get all chapters from these titles
     const allChapters: ChapterItem[] = [];
-    
+
     for (const title of titles) {
       // Each title has a chapters array with IDs
       if (Array.isArray(title.chapters) && title.chapters.length > 0) {
         const titleItem: TitleItem = {
-          _id: String(title._id || ''),
-          name: title.name || title.title || 'Unknown Title',
+          _id: String(title._id || ""),
+          name: title.name || title.title || "Unknown Title",
           slug: title.slug,
           description: title.description,
           genres: Array.isArray(title.genres) ? title.genres.map(g => String(g)) : undefined,
           createdAt: String(title.createdAt || new Date().toISOString()),
         };
-        
+
         // Cache the title
         titlesCache.set(titleItem._id, titleItem);
-        
+
         // For each chapter ID, create a chapter item
         // Note: We're creating chapters based on IDs since we don't have a chapters endpoint
         // This is a limitation - we don't have actual chapter data, just IDs
@@ -249,11 +255,11 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
             chapterNumber: title.totalChapters ? title.totalChapters - index : 1,
             createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString(), // Fake dates
             title: {
-              name: title.name || title.title || 'Unknown Title',
+              name: title.name || title.title || "Unknown Title",
               slug: title.slug,
-            }
+            },
           };
-          
+
           allChapters.push(chapterItem);
         });
       }
@@ -272,64 +278,65 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
       })
       .slice(0, 50); // Limit to 50 chapters
 
-    console.log('Recent chapters after filtering:', recentChapters.length);
+    console.log("Recent chapters after filtering:", recentChapters.length);
     return recentChapters;
   } catch (error) {
-    console.warn('Error fetching recent chapters:', error);
+    console.warn("Error fetching recent chapters:", error);
     return [];
   }
 }
 
 // Fallback sample data for when API is unavailable
-function getSampleData(): { titles: TitleItem[], chapters: ChapterItem[] } {
+function getSampleData(): { titles: TitleItem[]; chapters: ChapterItem[] } {
   const sampleDate = new Date().toISOString();
   const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
-  
+
   return {
     titles: [
       {
-        _id: 'sample-title-1',
-        name: 'Я попал в мир ужасов с системой богатства',
-        slug: 'with-my-netherworld-trillions-game-on',
-        description: 'Линь Юй обретает Божественную систему, которая ежедневно приносит ему деньги...',
-        genres: ['Ужасы', 'Фэнтези', 'Экшен'],
-        type: 'manhua',
+        _id: "sample-title-1",
+        name: "Я попал в мир ужасов с системой богатства",
+        slug: "with-my-netherworld-trillions-game-on",
+        description:
+          "Линь Юй обретает Божественную систему, которая ежедневно приносит ему деньги...",
+        genres: ["Ужасы", "Фэнтези", "Экшен"],
+        type: "manhua",
         totalChapters: 277,
-        createdAt: sampleDate
+        createdAt: sampleDate,
       },
       {
-        _id: 'sample-title-2',
-        name: 'Путь удивительного небожителя',
-        slug: 'the-path-of-weird-immortals',
-        description: 'Ученика старших классов Ли Хуована одолевает необычная способность...',
-        genres: ['Фэнтези', 'Психологическое', 'Приключения'],
-        type: 'manhua',
+        _id: "sample-title-2",
+        name: "Путь удивительного небожителя",
+        slug: "the-path-of-weird-immortals",
+        description: "Ученика старших классов Ли Хуована одолевает необычная способность...",
+        genres: ["Фэнтези", "Психологическое", "Приключения"],
+        type: "manhua",
         totalChapters: 64,
-        createdAt: twoDaysAgo
-      }
+        createdAt: twoDaysAgo,
+      },
     ],
     chapters: [
       {
-        _id: 'sample-chapter-1',
+        _id: "sample-chapter-1",
         chapterNumber: 105,
-        content: 'Новая глава ужасного приключения Линь Юя...',
+        content: "Новая глава ужасного приключения Линь Юя...",
         createdAt: sampleDate,
         title: {
-          name: 'Я попал в мир ужасов с системой богатства',
-          slug: 'with-my-netherworld-trillions-game-on'
-        }
+          name: "Я попал в мир ужасов с системой богатства",
+          slug: "with-my-netherworld-trillions-game-on",
+        },
       },
       {
-        _id: 'sample-chapter-2',
+        _id: "sample-chapter-2",
         chapterNumber: 42,
-        content: 'Ли Хуован продолжает свои странствия...',
+        content: "Ли Хуован продолжает свои странствия...",
         createdAt: twoDaysAgo,
         title: {
-          name: 'Путь удивительного небожителя',
-          slug: 'the-path-of-weird-immortals'
-        }
-      }
-    ]
+          name: "Путь удивительного небожителя",
+          slug: "the-path-of-weird-immortals",
+        },
+      },
+    ],
   };
 }
 
@@ -341,57 +348,60 @@ export async function GET() {
     try {
       [recentTitles, recentChapters] = await Promise.all([
         fetchRecentTitles(),
-        fetchRecentChapters()
+        fetchRecentChapters(),
       ]);
-      
+
       // If no data from API, use sample data
       if (recentTitles.length === 0 && recentChapters.length === 0) {
-        console.log('No data from API, using sample data');
+        console.log("No data from API, using sample data");
         const sampleData = getSampleData();
         recentTitles = sampleData.titles;
         recentChapters = sampleData.chapters;
       }
     } catch (apiError) {
-      console.warn('API request failed, using sample data:', apiError);
+      console.warn("API request failed, using sample data:", apiError);
       const sampleData = getSampleData();
       recentTitles = sampleData.titles;
       recentChapters = sampleData.chapters;
     }
 
-    console.log('Number of recent titles:', recentTitles.length);
-    console.log('Number of recent chapters:', recentChapters.length);
-    
+    console.log("Number of recent titles:", recentTitles.length);
+    console.log("Number of recent chapters:", recentChapters.length);
+
     // Combine and sort items by date (newest first)
     const allItems: RssItem[] = [...recentTitles, ...recentChapters]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 100); // Limit to 100 most recent items
-      
-    console.log('Total items in RSS feed:', allItems.length);
+
+    console.log("Total items in RSS feed:", allItems.length);
 
     // Generate RSS items
     const rssItems = allItems.map((item: RssItem): string => {
       // Use type guards to determine the type of item
       if (isTitleItem(item)) {
         const title = item;
-        const titleName = title.name || title.title || 'Без названия';
+        const titleName = title.name || title.title || "Без названия";
         const titleSlug = title.slug || title._id;
         const titleUrl = `${SITE_URL}/titles/${titleSlug}`;
-        
+
         // Clean description
-        let cleanDescription = title.description || 'Новый тайтл добавлен в библиотеку';
-        cleanDescription = cleanDescription.replace(/<[^>]*>/g, '').substring(0, 250);
+        let cleanDescription = title.description || "Новый тайтл добавлен в библиотеку";
+        cleanDescription = cleanDescription.replace(/<[^>]*>/g, "").substring(0, 250);
         if (cleanDescription.length < (title.description?.length || 0)) {
-          cleanDescription += '...';
+          cleanDescription += "...";
         }
 
         // Add type info to description
-        const typeInfo = title.type ? `Тип: ${title.type}` : '';
-        const chaptersInfo = title.totalChapters ? `Глав: ${title.totalChapters}` : '';
-        const fullDescription = `${cleanDescription}${typeInfo ? ` | ${typeInfo}` : ''}${chaptersInfo ? ` | ${chaptersInfo}` : ''}`;
+        const typeInfo = title.type ? `Тип: ${title.type}` : "";
+        const chaptersInfo = title.totalChapters ? `Глав: ${title.totalChapters}` : "";
+        const fullDescription = `${cleanDescription}${typeInfo ? ` | ${typeInfo}` : ""}${chaptersInfo ? ` | ${chaptersInfo}` : ""}`;
 
-        const genres = title.genres?.length 
-          ? title.genres.slice(0, 3).map(genre => `<category>${escapeXml(genre)}</category>`).join('')
-          : '';
+        const genres = title.genres?.length
+          ? title.genres
+              .slice(0, 3)
+              .map(genre => `<category>${escapeXml(genre)}</category>`)
+              .join("")
+          : "";
 
         return `
 <item>
@@ -401,24 +411,24 @@ export async function GET() {
   <guid>${titleUrl}</guid>
   <pubDate>${formatRssDate(title.createdAt)}</pubDate>
   <category>Новый тайтл</category>
-  ${title.type ? `<category>${escapeXml(title.type)}</category>` : ''}
+  ${title.type ? `<category>${escapeXml(title.type)}</category>` : ""}
   ${genres}
 </item>`;
       } else if (isChapterItem(item)) {
         const chapter = item;
-        const titleName = chapter.title?.name || 'Неизвестный тайтл';
+        const titleName = chapter.title?.name || "Неизвестный тайтл";
         const titleSlug = chapter.title?.slug;
         const chapterUrl = titleSlug
           ? `${SITE_URL}/titles/${titleSlug}/chapter/${chapter._id}`
           : `${SITE_URL}/titles/chapter/${chapter._id}`;
 
         const chapterTitle = `${escapeXml(titleName)} - Глава ${chapter.chapterNumber}`;
-        
+
         // Clean content
         let cleanContent = chapter.content || `Новая глава ${chapter.chapterNumber} опубликована`;
-        cleanContent = cleanContent.replace(/<[^>]*>/g, '').substring(0, 200);
+        cleanContent = cleanContent.replace(/<[^>]*>/g, "").substring(0, 200);
         if (cleanContent.length < (chapter.content?.length || 0)) {
-          cleanContent += '...';
+          cleanContent += "...";
         }
 
         return `
@@ -432,9 +442,9 @@ export async function GET() {
   <category>${escapeXml(titleName)}</category>
 </item>`;
       }
-      
+
       // This should never happen, but just in case
-      return '';
+      return "";
     });
 
     const rssXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -451,9 +461,11 @@ export async function GET() {
     <docs>https://www.rssboard.org/rss-specification</docs>
     <ttl>30</ttl>
     
-    ${rssItems.join('')}
+    ${rssItems.join("")}
     
-    ${rssItems.length === 0 ? `
+    ${
+      rssItems.length === 0
+        ? `
     <item>
       <title>Добро пожаловать в Tomilo Lib!</title>
       <description>Библиотека манги и манхвы. Скоро здесь появятся новые тайтлы и главы.</description>
@@ -461,22 +473,23 @@ export async function GET() {
       <guid>${SITE_URL}/welcome</guid>
       <pubDate>${new Date().toUTCString()}</pubDate>
       <category>Информация</category>
-    </item>` : ''}
+    </item>`
+        : ""
+    }
   </channel>
 </rss>`;
 
     return new NextResponse(rssXml, {
       headers: {
-        'Content-Type': 'application/rss+xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=300, stale-while-revalidate=600', // Cache for 5 minutes
-        'X-RSS-Generated-At': new Date().toISOString(),
-        'X-RSS-Items-Count': allItems.length.toString(),
+        "Content-Type": "application/rss+xml; charset=utf-8",
+        "Cache-Control": "public, max-age=300, stale-while-revalidate=600", // Cache for 5 minutes
+        "X-RSS-Generated-At": new Date().toISOString(),
+        "X-RSS-Items-Count": allItems.length.toString(),
       },
     });
-
   } catch (error) {
-    console.error('Error generating RSS feed:', error);
-    
+    console.error("Error generating RSS feed:", error);
+
     // Fallback simple RSS in case of error
     const fallbackRss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
@@ -498,8 +511,8 @@ export async function GET() {
     return new NextResponse(fallbackRss, {
       status: 200,
       headers: {
-        'Content-Type': 'application/rss+xml; charset=utf-8',
-        'Cache-Control': 'no-cache',
+        "Content-Type": "application/rss+xml; charset=utf-8",
+        "Cache-Control": "no-cache",
       },
     });
   }

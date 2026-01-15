@@ -1,6 +1,6 @@
-"use client"
-import React, { useEffect, useRef } from 'react';
-import { useImageState } from '@/lib/image-optimizer';
+"use client";
+import React, { useEffect, useRef } from "react";
+import { useImageState } from "@/lib/image-optimizer";
 
 interface OptimizedImageProps {
   src: string;
@@ -20,7 +20,7 @@ interface OptimizedImageProps {
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
   alt,
-  className = '',
+  className = "",
   width,
   height,
   quality = 80,
@@ -32,13 +32,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   draggable,
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
-  const {
-    isLoading,
-    isLoaded,
-    error,
-    loadImage
-  } = useImageState();
-  
+  const { isLoading, isLoaded, error, loadImage } = useImageState();
+
   // Отслеживаем изменения src и priority для перезагрузки изображения при необходимости
   useEffect(() => {
     if (src) {
@@ -59,10 +54,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // Определяем классы для изображения
   const imageClasses = [
     className,
-    isLoading ? 'loading' : '',
-    isLoaded ? 'loaded' : '',
-    error ? 'error' : ''
-  ].filter(Boolean).join(' ');
+    isLoading ? "loading" : "",
+    isLoaded ? "loaded" : "",
+    error ? "error" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   // Placeholder для изображения во время загрузки
   const getPlaceholder = () => {
@@ -72,11 +69,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           className="image-placeholder"
           style={{
             width: width,
-            height: 'auto',
-            backgroundColor: '#f0f0f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            height: "auto",
+            backgroundColor: "#f0f0f0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <div className="loading-spinner" />
@@ -91,14 +88,14 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     <div
       className="image-error"
       style={{
-        width: width || '100%',
-        height: 'auto',
-        backgroundColor: '#fdd',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#c33',
-        border: '1px solid #fcc'
+        width: width || "100%",
+        height: "auto",
+        backgroundColor: "#fdd",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#c33",
+        border: "1px solid #fcc",
       }}
     >
       Ошибка загрузки изображения
@@ -112,10 +109,10 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Определяем стиль отображения в зависимости от состояния загрузки
   const imageStyle = {
-    display: isLoading ? 'none' : 'block',
-    width: width ? `${width}px` : '100%',
-    height: 'auto',
-    ...style
+    display: isLoading ? "none" : "block",
+    width: width ? `${width}px` : "100%",
+    height: "auto",
+    ...style,
   };
 
   return (
@@ -133,12 +130,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         height={height}
         onLoad={handleLoad}
         onError={handleError}
-        loading={priority ? 'eager' : 'lazy'}
+        loading={priority ? "eager" : "lazy"}
         style={imageStyle}
         onDragStart={onDragStart}
         draggable={draggable}
       />
-      
+
       {/* Стили для компонента */}
       <style jsx>{`
         .loading-spinner {
@@ -149,16 +146,20 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           height: 20px;
           animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
-        
+
         .image-placeholder {
           position: relative;
         }
-        
+
         .image-error {
           font-size: 14px;
           font-weight: 500;

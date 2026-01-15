@@ -1,5 +1,3 @@
-
-
 import React, { useState, ChangeEvent } from "react";
 import { Upload, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
@@ -12,12 +10,12 @@ interface CoverUploadSectionProps {
   onImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function CoverUploadSection({ 
-  titleId, 
-  currentCover, 
-  onCoverUpdate, 
-  selectedFile, 
-  onImageChange 
+export function CoverUploadSection({
+  titleId,
+  currentCover,
+  onCoverUpdate,
+  selectedFile,
+  onImageChange,
 }: CoverUploadSectionProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -25,7 +23,7 @@ export function CoverUploadSection({
   React.useEffect(() => {
     if (selectedFile) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         setPreviewUrl(e.target?.result as string);
       };
       reader.readAsDataURL(selectedFile);
@@ -35,9 +33,11 @@ export function CoverUploadSection({
   }, [selectedFile]);
 
   const apiBase = process.env.NEXT_PUBLIC_URL || "http://localhost:3000/";
-  const resolvedCurrentCover = currentCover 
-    ? (currentCover.startsWith('http') ? currentCover : `${apiBase}${currentCover.startsWith('/') ? '' : '/'}${currentCover}`)
-    : '';
+  const resolvedCurrentCover = currentCover
+    ? currentCover.startsWith("http")
+      ? currentCover
+      : `${apiBase}${currentCover.startsWith("/") ? "" : "/"}${currentCover}`
+    : "";
 
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
@@ -45,7 +45,7 @@ export function CoverUploadSection({
         <ImageIcon className="w-5 h-5" />
         Обложка тайтла
       </h2>
-      
+
       <div className="space-y-4">
         {/* Текущая обложка */}
         {(resolvedCurrentCover || previewUrl) && (
@@ -94,7 +94,6 @@ export function CoverUploadSection({
             </span>
           </label>
         </div>
-
 
         {selectedFile && (
           <div className="text-sm text-[var(--muted-foreground)] bg-[var(--accent)]/20 p-3 rounded">

@@ -54,12 +54,5 @@ export default function DataCarousel<T>({
 
   if (!data?.length) return null;
 
-  return (
-    <Carousel
-      title={title}
-      data={data}
-      cardComponent={cardComponent}
-      {...carouselProps}
-    />
-  );
+  return <Carousel title={title} data={data} cardComponent={cardComponent} {...carouselProps} />;
 }

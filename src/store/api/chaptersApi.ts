@@ -1,17 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseDto } from "@/types/api";
-import {
-  Chapter,
-  ChaptersResponse,
-  CreateChapterDto,
-  UpdateChapterDto,
-} from "@/types/title";
+import { Chapter, ChaptersResponse, CreateChapterDto, UpdateChapterDto } from "@/types/title";
 
 const CHAPTERS_TAG = "Chapters";
 
-function toFormData<T extends Record<string, unknown>>(
-  data: Partial<T>
-): FormData {
+function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormData {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
     if (value === undefined || value === null) return;
@@ -30,7 +23,7 @@ export const chaptersApi = createApi({
   reducerPath: "chaptersApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem("tomilo_lib_token");
         if (token) {
@@ -41,17 +34,14 @@ export const chaptersApi = createApi({
     },
   }),
   tagTypes: [CHAPTERS_TAG],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getChapterById: builder.query<Chapter, string>({
-      query: (id) => `/chapters/${id}`,
+      query: id => `/chapters/${id}`,
       transformResponse: (response: ApiResponseDto<Chapter>) => response.data!,
       providesTags: (result, error, id) => [{ type: CHAPTERS_TAG, id }],
     }),
 
-    getChapterByNumber: builder.query<
-      Chapter,
-      { titleId: string; chapterNumber: number }
-    >({
+    getChapterByNumber: builder.query<Chapter, { titleId: string; chapterNumber: number }>({
       query: ({ titleId, chapterNumber }) =>
         `/chapters/by-number/${titleId}?chapterNumber=${chapterNumber}`,
     }),
@@ -73,15 +63,14 @@ export const chaptersApi = createApi({
         { type: CHAPTERS_TAG, id: `title-${titleId}` },
       ],
       transformResponse: (
-        response: ApiResponseDto<ChaptersResponse> | ChaptersResponse
+        response: ApiResponseDto<ChaptersResponse> | ChaptersResponse,
       ): ChaptersResponse => {
         // Normalize various possible server shapes
         if ("data" in response && response.data) {
           return response.data;
         }
         const resp = response as unknown as Record<string, unknown>;
-        const chapters: Chapter[] =
-          (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
+        const chapters: Chapter[] = (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
         const total: number =
           ((resp.pagination as Record<string, unknown>)?.total as number) ??
           (resp.total as number) ??
@@ -100,8 +89,7 @@ export const chaptersApi = createApi({
           (resp.totalPages as number) ??
           Math.max(1, Math.ceil(total / (limit || 1)));
         const hasMore: boolean =
-          ((resp.pagination as Record<string, unknown>)?.hasMore as boolean) ??
-          page < totalPages;
+          ((resp.pagination as Record<string, unknown>)?.hasMore as boolean) ?? page < totalPages;
         return { chapters, total, page, limit, totalPages, hasMore };
       },
     }),
@@ -116,17 +104,16 @@ export const chaptersApi = createApi({
         sortOrder?: "asc" | "desc";
       }
     >({
-      query: (params) => ({ url: "/chapters", params }),
+      query: params => ({ url: "/chapters", params }),
       transformResponse: (
-        response: ApiResponseDto<ChaptersResponse> | ChaptersResponse
+        response: ApiResponseDto<ChaptersResponse> | ChaptersResponse,
       ): ChaptersResponse => {
         // Normalize various possible server shapes
         if ("data" in response && response.data) {
           return response.data;
         }
         const resp = response as unknown as Record<string, unknown>;
-        const chapters: Chapter[] =
-          (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
+        const chapters: Chapter[] = (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
         const total: number =
           ((resp.pagination as Record<string, unknown>)?.total as number) ??
           (resp.total as number) ??
@@ -145,15 +132,14 @@ export const chaptersApi = createApi({
           (resp.totalPages as number) ??
           Math.max(1, Math.ceil(total / (limit || 1)));
         const hasMore: boolean =
-          ((resp.pagination as Record<string, unknown>)?.hasMore as boolean) ??
-          page < totalPages;
+          ((resp.pagination as Record<string, unknown>)?.hasMore as boolean) ?? page < totalPages;
         return { chapters, total, page, limit, totalPages, hasMore };
       },
       providesTags: [CHAPTERS_TAG],
     }),
 
     createChapter: builder.mutation<Chapter, Partial<CreateChapterDto>>({
-      query: (data) => ({
+      query: data => ({
         url: "/chapters",
         method: "POST",
         body: data,
@@ -167,7 +153,7 @@ export const chaptersApi = createApi({
     >({
       query: ({ data, pages }) => {
         const formData = toFormData<CreateChapterDto>(data);
-        pages.forEach((file) => formData.append("pages", file));
+        pages.forEach(file => formData.append("pages", file));
         return {
           url: "/chapters/upload",
           method: "POST",
@@ -177,28 +163,20 @@ export const chaptersApi = createApi({
       invalidatesTags: [CHAPTERS_TAG],
     }),
 
-    addPagesToChapter: builder.mutation<Chapter, { id: string; pages: File[] }>(
-      {
-        query: ({ id, pages }) => {
-          const formData = new FormData();
-          pages.forEach((file) => formData.append("pages", file));
-          return {
-            url: `/chapters/${id}/pages`,
-            method: "POST",
-            body: formData,
-          };
-        },
-        invalidatesTags: (result, error, { id }) => [
-          { type: CHAPTERS_TAG, id },
-          CHAPTERS_TAG,
-        ],
-      }
-    ),
+    addPagesToChapter: builder.mutation<Chapter, { id: string; pages: File[] }>({
+      query: ({ id, pages }) => {
+        const formData = new FormData();
+        pages.forEach(file => formData.append("pages", file));
+        return {
+          url: `/chapters/${id}/pages`,
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: (result, error, { id }) => [{ type: CHAPTERS_TAG, id }, CHAPTERS_TAG],
+    }),
 
-    updateChapter: builder.mutation<
-      Chapter,
-      { id: string; data: Partial<UpdateChapterDto> }
-    >({
+    updateChapter: builder.mutation<Chapter, { id: string; data: Partial<UpdateChapterDto> }>({
       query: ({ id, data }) => ({
         url: `/chapters/${id}`,
         method: "PATCH",
@@ -208,13 +186,13 @@ export const chaptersApi = createApi({
     }),
 
     deleteChapter: builder.mutation<void, string>({
-      query: (id) => ({ url: `/chapters/${id}`, method: "DELETE" }),
+      query: id => ({ url: `/chapters/${id}`, method: "DELETE" }),
       invalidatesTags: [CHAPTERS_TAG],
     }),
 
     // Увеличение счётчика просмотров главы (доступно без авторизации)
     incrementChapterViews: builder.mutation<ApiResponseDto<Chapter>, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/chapters/${id}/view`,
         method: "POST",
       }),

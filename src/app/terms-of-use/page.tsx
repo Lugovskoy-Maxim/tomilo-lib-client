@@ -1,11 +1,4 @@
-import {
-  Shield,
-  AlertTriangle,
-  Users,
-  Book,
-  Mail,
-  Languages,
-} from "lucide-react";
+import { Shield, AlertTriangle, Users, Book, Mail, Languages } from "lucide-react";
 import { Footer, Header } from "@/widgets";
 import { BackButton, Breadcrumbs } from "@/shared";
 import termsOfUse from "@/constants/terms-of-use";
@@ -15,9 +8,7 @@ interface TermsOfUsePageProps {
   searchParams: Promise<{ lang?: string }>;
 }
 
-export async function generateMetadata({
-  searchParams,
-}: TermsOfUsePageProps): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: TermsOfUsePageProps): Promise<Metadata> {
   const params = await searchParams;
   const language = (params.lang === "en" ? "en" : "ru") as "ru" | "en";
   const currentContent = termsOfUse[language];
@@ -28,9 +19,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function TermsOfServicePage({
-  searchParams,
-}: TermsOfUsePageProps) {
+export default async function TermsOfServicePage({ searchParams }: TermsOfUsePageProps) {
   const params = await searchParams;
   const language = (params.lang === "en" ? "en" : "ru") as "ru" | "en";
   const currentContent = termsOfUse[language];
@@ -72,16 +61,11 @@ export default async function TermsOfServicePage({
               <AlertTriangle className="w-6 h-6 text-yellow-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="text-lg font-semibold text-yellow-800 mb-3">
-                  {language === "ru"
-                    ? "Важная информация"
-                    : "Important Information"}
+                  {language === "ru" ? "Важная информация" : "Important Information"}
                 </h3>
                 <ul className="space-y-2">
                   {currentContent.importantNotes.map((note, index) => (
-                    <li
-                      key={index}
-                      className="flex items-start gap-2 text-yellow-700"
-                    >
+                    <li key={index} className="flex items-start gap-2 text-yellow-700">
                       <Shield className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                       <span>{note}</span>
                     </li>
@@ -113,9 +97,7 @@ export default async function TermsOfServicePage({
                   <Users className="w-6 h-6 text-[var(--primary)]" />
                   {currentContent.sections.general.title}
                 </h2>
-                <p className="leading-relaxed">
-                  {currentContent.sections.general.content}
-                </p>
+                <p className="leading-relaxed">{currentContent.sections.general.content}</p>
               </div>
 
               {/* Термины и определения */}
@@ -124,11 +106,9 @@ export default async function TermsOfServicePage({
                   {currentContent.sections.definitions.title}
                 </h2>
                 <ul className="list-disc list-inside space-y-2 text-[var(--muted-foreground)] leading-relaxed">
-                  {currentContent.sections.definitions.items.map(
-                    (item, index) => (
-                      <li key={index}>{item}</li>
-                    )
-                  )}
+                  {currentContent.sections.definitions.items.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
                 </ul>
               </div>
 
@@ -138,11 +118,9 @@ export default async function TermsOfServicePage({
                   {currentContent.sections.agreement.title}
                 </h2>
                 <ul className="list-disc list-inside space-y-2 text-[var(--muted-foreground)] leading-relaxed">
-                  {currentContent.sections.agreement.items.map(
-                    (item, index) => (
-                      <li key={index}>{item}</li>
-                    )
-                  )}
+                  {currentContent.sections.agreement.items.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
                 </ul>
               </div>
 
@@ -152,11 +130,9 @@ export default async function TermsOfServicePage({
                   {currentContent.sections.userRights.title}
                 </h2>
                 <ul className="list-disc list-inside space-y-2 text-[var(--muted-foreground)] leading-relaxed">
-                  {currentContent.sections.userRights.items.map(
-                    (item, index) => (
-                      <li key={index}>{item}</li>
-                    )
-                  )}
+                  {currentContent.sections.userRights.items.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
                 </ul>
               </div>
 
@@ -166,11 +142,9 @@ export default async function TermsOfServicePage({
                   {currentContent.sections.adminRights.title}
                 </h2>
                 <ul className="list-disc list-inside space-y-2 text-[var(--muted-foreground)] leading-relaxed">
-                  {currentContent.sections.adminRights.items.map(
-                    (item, index) => (
-                      <li key={index}>{item}</li>
-                    )
-                  )}
+                  {currentContent.sections.adminRights.items.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
                 </ul>
               </div>
 
@@ -181,11 +155,9 @@ export default async function TermsOfServicePage({
                   {currentContent.sections.intellectualProperty.title}
                 </h2>
                 <ul className="list-disc list-inside space-y-2 text-[var(--muted-foreground)] leading-relaxed">
-                  {currentContent.sections.intellectualProperty.items.map(
-                    (item, index) => (
-                      <li key={index}>{item}</li>
-                    )
-                  )}
+                  {currentContent.sections.intellectualProperty.items.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
                 </ul>
               </div>
 
@@ -195,11 +167,9 @@ export default async function TermsOfServicePage({
                   {currentContent.sections.liability.title}
                 </h2>
                 <ul className="list-disc list-inside space-y-2 text-[var(--muted-foreground)] leading-relaxed">
-                  {currentContent.sections.liability.items.map(
-                    (item, index) => (
-                      <li key={index}>{item}</li>
-                    )
-                  )}
+                  {currentContent.sections.liability.items.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
                 </ul>
               </div>
 
