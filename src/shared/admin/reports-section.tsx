@@ -1,8 +1,6 @@
 "use client";
 
-// Component for managing reports in admin panel
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   useGetReportsQuery,
   useUpdateReportStatusMutation,
@@ -10,7 +8,7 @@ import {
 } from "@/store/api/reportsApi";
 import { Report, ReportType } from "@/types/report";
 import Button from "@/shared/ui/button";
-import { AlertTriangle, CheckCircle, XCircle, Eye, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 
 const reportTypeLabels = {
@@ -27,7 +25,7 @@ const reportTypeColors = {
 
 export function ReportsSection() {
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit] = useState(20);
   const [reportTypeFilter, setReportTypeFilter] = useState<string>("");
   const [isResolvedFilter, setIsResolvedFilter] = useState<string>("");
 
@@ -48,7 +46,7 @@ export function ReportsSection() {
       toast.success(`Жалоба ${isResolved ? "закрыта" : "открыта"} успешно`);
       refetch();
     } catch (error) {
-      toast.error("Не удалось обновить статус жалобы");
+      toast.error(`Не удалось обновить статус жалобы, ${error}`);
     }
   };
 
@@ -58,7 +56,7 @@ export function ReportsSection() {
       toast.success("Жалоба удалена успешно");
       refetch();
     } catch (error) {
-      toast.error("Не удалось удалить жалобу");
+      toast.error(`Не удалось удалить жалобу, ${error}`);
     }
   };
 

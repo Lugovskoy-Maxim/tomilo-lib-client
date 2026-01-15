@@ -1,4 +1,4 @@
-import { Title, Chapter, RatingStat } from "@/types/title";
+import { Title, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
 import { CommentEntityType } from "@/types/comment";
 import { CommentsSection } from "@/shared/comments/comments-section";
@@ -6,13 +6,11 @@ import { timeAgo } from "@/lib/date-utils";
 import { ReportModal } from "@/shared/report/report-modal";
 
 import {
-  ArrowUpToLine,
   ArrowUpDown,
   BookOpen,
   Calendar,
   CheckCheck,
   Eye,
-  Loader2,
   Star,
   X,
   CheckCircle,
@@ -28,7 +26,7 @@ import {
   AgeVerificationModal,
   checkAgeVerification,
 } from "@/shared/modal/age-verification-modal";
-import { getChapterPath, getTitlePath } from "@/lib/title-paths";
+import { getChapterPath } from "@/lib/title-paths";
 
 interface RightContentProps {
   titleData: Title;
@@ -58,9 +56,6 @@ export function RightContent({
   isDescriptionExpanded,
   onDescriptionToggle,
   chapters,
-  hasMoreChapters,
-  chaptersLoading,
-  onLoadMoreChapters,
   searchQuery,
   onSearchChange,
   sortOrder,
@@ -68,7 +63,6 @@ export function RightContent({
   titleId,
   user,
   onAgeVerificationRequired,
-  basePath,
   slug,
 }: RightContentProps): React.ReactElement {
   const router = useRouter();
@@ -93,10 +87,10 @@ export function RightContent({
   );
 
   // Функция для получения корректного пути к тайтлу
-  const getTitlePathCallback = useCallback(() => {
-    const titleData = { _id: titleId, slug };
-    return getTitlePath(titleData);
-  }, [titleId, slug]);
+  // const getTitlePathCallback = useCallback(() => {
+  //   const titleData = { _id: titleId, slug };
+  //   return getTitlePath(titleData);
+  // }, [titleId, slug]);
 
   // Проверяем статус подтверждения возраста при монтировании и при изменении пользователя
   useEffect(() => {
@@ -193,9 +187,9 @@ export function RightContent({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  // const scrollToTop = () => {
+  //   window.scrollTo({ top: 0, behavior: "smooth" });
+  // };
 
   // Функция для обработки массива оценок и подсчета частоты каждой оценки
   const getRatingStats = (ratings: number[]) => {
@@ -235,7 +229,9 @@ export function RightContent({
             <div className="text-center py-2 border-b border-[var(--border)]">
               <p className="text-[var(--foreground)]/60">
                 Последнее обновление{" "}
-                {titleData?.updatedAt ? timeAgo(titleData.updatedAt) : "неизвестно"}
+                {titleData?.updatedAt
+                  ? timeAgo(titleData.updatedAt)
+                  : "неизвестно"}
               </p>
             </div>
 
@@ -325,8 +321,6 @@ export function RightContent({
 
               {totalRatings > 0 && (
                 <div>
-
-
                   {ratingStats.length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-md font-semibold text-[var(--foreground)] text-center mb-4">
@@ -352,7 +346,7 @@ export function RightContent({
                                   style={{ width: `${stat.percentage}%` }}
                                 />
                               </div>
-                              <span className="text-sm text-[var(--foreground)]/60 whitespace-nowrap text-xs">
+                              <span className="text-[var(--foreground)]/60 whitespace-nowrap text-xs">
                                 {stat.count} ({stat.percentage}%)
                               </span>
                             </div>
@@ -370,7 +364,6 @@ export function RightContent({
       case "chapters":
         const isAdultContent =
           titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);
-        const isLoggedIn = !!user;
         const shouldVerifyAge = isAdultContent && !isAgeVerified;
 
         if (shouldVerifyAge) {

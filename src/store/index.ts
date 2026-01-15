@@ -11,12 +11,30 @@ import { commentsApi } from "./api/commentsApi";
 import { reportsApi } from "./api/reportsApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
+import collectionsReducer from "./slices/collectionsSlice";
+import chaptersReducer from "./slices/chaptersSlice";
+import commentsReducer from "./slices/commentsSlice";
+import notificationsReducer from "./slices/notificationsSlice";
+import userProfileReducer from "./slices/userProfileSlice";
+import readingHistoryReducer from "./slices/readingHistorySlice";
+import bookmarksReducer from "./slices/bookmarksSlice";
+import searchReducer from "./slices/searchSlice";
+import filterReducer from "./slices/filterSlice";
 import { autoParsingApi } from "./api/autoParsingApi";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     titles: titlesReducer,
+    collections: collectionsReducer,
+    chapters: chaptersReducer,
+    comments: commentsReducer,
+    notifications: notificationsReducer,
+    userProfile: userProfileReducer,
+    readingHistory: readingHistoryReducer,
+    bookmarks: bookmarksReducer,
+    search: searchReducer,
+    filter: filterReducer,
     [authApi.reducerPath]: authApi.reducer,
     [titlesApi.reducerPath]: titlesApi.reducer,
     [chaptersApi.reducerPath]: chaptersApi.reducer,
