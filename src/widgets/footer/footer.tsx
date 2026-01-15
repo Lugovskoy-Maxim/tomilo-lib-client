@@ -138,7 +138,7 @@ export default function Footer() {
             >
               <div className="flex items-center gap-1 text-xs sm:text-sm md:text-base">
                 <Copyright className="w-4 h-4  sm:w-4 sm:h-4" />
-                <span>{currentYear} «Tomilo-lib.ru»</span>
+                <span>2025 - {currentYear} «Tomilo-lib.ru»</span>
               </div>
               <div className="text-xs bg-[var(--accent)] px-2 py-1 rounded border border-[var(--border)] whitespace-nowrap">
                 Версия 16012026.091
