@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 import { UserProfile } from "@/types/user";
-import {
-  BarChart3,
-  Bookmark,
-  Clock,
-  Settings,
-} from "lucide-react";
+import { BarChart3, Bookmark, Clock, Settings } from "lucide-react";
 
 // Компоненты обзора
 import ProfileAdditionalInfo from "@/shared/profile/ProfileAdditionalInfo";
@@ -143,4 +138,3 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 }
 
 export default ProfileTabs;
-

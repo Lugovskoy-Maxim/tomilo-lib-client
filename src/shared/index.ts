@@ -59,4 +59,3 @@ export { default as DataCarousel } from "./data-carousel/DataCarousel";
 export { default as SnowEffect } from "./snow-cap/SnowCap";
 export { default as Breadcrumbs } from "./breadcrumbs/breadcrumbs";
 export { default as OptimizedImage } from "./optimized-image/OptimizedImage";
-

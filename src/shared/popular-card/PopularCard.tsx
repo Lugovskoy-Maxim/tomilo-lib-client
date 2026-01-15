@@ -111,7 +111,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           height={220}
           quality={85}
           priority={false}
-onDragStart={(e: React.DragEvent) => e.preventDefault()}
+          onDragStart={(e: React.DragEvent) => e.preventDefault()}
           draggable={false}
           style={{ width: "100%", height: "100%" }}
         />

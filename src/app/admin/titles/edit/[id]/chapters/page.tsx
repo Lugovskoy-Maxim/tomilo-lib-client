@@ -14,7 +14,6 @@ import { Header, Footer } from "@/widgets";
 import { useToast } from "@/hooks/useToast";
 import { Chapter } from "@/types/title";
 
-
 export default function ChaptersManagementPage() {
   const params = useParams();
   const titleId = (params?.id as string) || "";
