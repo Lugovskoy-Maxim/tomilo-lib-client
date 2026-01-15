@@ -4,6 +4,7 @@ import { Footer, Header } from "@/widgets";
 import { useState, useEffect, useMemo } from "react";
 import { Title } from "@/types/title";
 import { translateTitleType } from "@/lib/title-type-translations";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 import {
   useIncrementViewsMutation,
@@ -409,6 +410,13 @@ export default function TitleViewClient({ slug }: { slug: string }) {
       />
       <Header />
       <div className="container mx-auto px-4 lg:py-8 pb-20">
+        <Breadcrumbs
+          items={[
+            { name: "Главная", href: "/" },
+            { name: "Каталог", href: "/titles" },
+            { name: titleData.name, isCurrent: true }
+          ]}
+        />
         <div className="max-w-7xl mx-auto">
           <MobileCover
             titleData={titleData}

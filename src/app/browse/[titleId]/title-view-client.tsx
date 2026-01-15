@@ -3,6 +3,7 @@
 import { Footer, Header } from "@/widgets";
 import { useState, useEffect, useMemo } from "react";
 import { Title } from "@/types/title";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 import { useIncrementViewsMutation } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
@@ -231,6 +232,7 @@ export default function TitleViewClient({
     <main className="min-h-screen bg-[var(--background)]">
       <Header />
       <div className="container mx-auto px-4 lg:py-8 pb-20">
+        <Breadcrumbs />
         <div className="max-w-7xl mx-auto">
           <MobileCover
             titleData={processedTitleData}

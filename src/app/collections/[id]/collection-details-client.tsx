@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
 import Script from "next/script";
 import { translateTitleType } from "@/lib/title-type-translations";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 interface CollectionDetailsClientProps {
   collectionId: string;
@@ -147,6 +148,15 @@ export default function CollectionDetailsClient({
   return (
     <main className="flex flex-col h-full min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] mb-10">
       <Header />
+      <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4">
+        <Breadcrumbs
+          items={[
+            { name: "Главная", href: "/" },
+            { name: "Коллекции", href: "/collections" },
+            { name: collection?.name || "Коллекция", isCurrent: true }
+          ]}
+        />
+      </div>
 
       <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4">
         {/* Заголовок и информация о коллекции */}
