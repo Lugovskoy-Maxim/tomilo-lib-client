@@ -38,7 +38,7 @@ export default function NotificationCard({ notification }: NotificationCardProps
     if (!notification.isRead) {
       try {
         await markAsRead(notification._id).unwrap();
-      } catch (error) {
+      } catch  {
         // Error handling is done by the RTK Query
       }
     }
@@ -48,7 +48,7 @@ export default function NotificationCard({ notification }: NotificationCardProps
     e.stopPropagation();
     try {
       await markAsRead(notification._id).unwrap();
-    } catch (error) {
+    } catch {
       // Error handling is done by the RTK Query
     }
   };
@@ -57,7 +57,7 @@ export default function NotificationCard({ notification }: NotificationCardProps
     e.stopPropagation();
     try {
       await deleteNotification(notification._id).unwrap();
-    } catch (error) {
+    } catch {
       // Error handling is done by the RTK Query
     }
   };

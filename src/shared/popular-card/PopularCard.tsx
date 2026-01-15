@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Sparkles } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
@@ -30,7 +30,7 @@ export interface PopularCardProps {
 
 export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
@@ -88,7 +88,6 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   };
 
   const isAdultContent = data.isAdult;
-  const pathname = usePathname();
   // const isBrowsePage = pathname.startsWith("/browse");
 
   const imageSrc = data.image ? `${process.env.NEXT_PUBLIC_URL}${data.image}` : IMAGE_HOLDER;

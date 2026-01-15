@@ -8,7 +8,6 @@ import {
   Copyright,
   Bookmark,
   Bell,
-  Paperclip,
   Send,
 } from "lucide-react";
 import { useState, useEffect } from "react";

@@ -54,7 +54,7 @@ export function CommentForm({
           content: content.trim(),
           ...(parentId && { parentId }),
         };
-        const result = await createComment(commentData).unwrap();
+        await createComment(commentData).unwrap();
       }
       setContent("");
       onSubmit?.();

@@ -30,8 +30,8 @@ export function useSearch() {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      const results = await searchApi(term, controller.signal);
-      setSearchResults(results);
+      const searchResultsFromApi = await searchApi(term, controller.signal);
+      setSearchResults(searchResultsFromApi);
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
         // игнорируем отменённые запросы

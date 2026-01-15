@@ -98,7 +98,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       setIsModalOpen(true);
       setIsCreateModalOpen(false);
       refetch();
-    } catch (error) {
+    } catch {
       setModalContent({
         title: "Ошибка",
         message: "Не удалось создать коллекцию",
@@ -122,7 +122,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       setIsModalOpen(true);
       setIsEditModalOpen(false);
       refetch();
-    } catch (error) {
+    } catch {
       setModalContent({
         title: "Ошибка",
         message: "Не удалось обновить коллекцию",
@@ -161,7 +161,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       });
       setIsModalOpen(true);
       refetch();
-    } catch (error) {
+    } catch {
       setModalContent({
         title: "Ошибка",
         message: "Не удалось обновить обложку",
@@ -184,7 +184,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       });
       setIsModalOpen(true);
       refetch();
-    } catch (error) {
+    } catch {
       setModalContent({
         title: "Ошибка",
         message: "Не удалось удалить коллекцию",
@@ -229,7 +229,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       });
       setIsModalOpen(true);
       refetch();
-    } catch (error) {
+    } catch {
       setModalContent({
         title: "Ошибка",
         message: "Не удалось добавить тайтл в коллекцию",
@@ -247,7 +247,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       });
       setIsModalOpen(true);
       refetch();
-    } catch (error) {
+    } catch {
       setModalContent({
         title: "Ошибка",
         message: "Не удалось удалить тайтл из коллекции",
@@ -265,7 +265,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       });
       setIsModalOpen(true);
       refetch();
-    } catch (error) {
+    } catch {
       setModalContent({
         title: "Ошибка",
         message: "Не удалось добавить комментарий",
@@ -286,7 +286,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
       });
       setIsModalOpen(true);
       refetch();
-    } catch (error) {
+    } catch {
       setModalContent({
         title: "Ошибка",
         message: "Не удалось удалить комментарий",
@@ -645,7 +645,7 @@ function CollectionModal({
 
         // For now, we'll submit with the file - the API will handle it
         await onSubmit(formDataToSend as unknown as CreateCollectionDto);
-      } catch (error) {
+      } catch {
         // Handle error silently in production
       } finally {
         setIsUploading(false);
@@ -800,10 +800,10 @@ function TitlesModal({
   isAdding,
   isRemoving,
 }: TitlesModalProps) {
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
   const [selectedTitleId, setSelectedTitleId] = useState("");
 
-  const { data: titlesResponse, isLoading: isLoadingTitles } = useSearchTitlesQuery({
+  const { data: titlesResponse } = useSearchTitlesQuery({
     search: search || undefined,
     limit: 50,
   });
@@ -840,7 +840,7 @@ function TitlesModal({
             Текущие тайтлы ({collectionTitles.length})
           </h3>
           <div className="space-y-2 max-h-40 overflow-y-auto">
-            {collectionTitles.map((title: string | Title, index: number) => {
+            {collectionTitles.map((title: string | Title) => {
               const titleData =
                 typeof title === "string" ? { _id: title, name: `Title ${title}` } : title;
               return (

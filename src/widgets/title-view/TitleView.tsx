@@ -7,7 +7,6 @@ import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 import { useIncrementViewsMutation, useGetTitleBySlugQuery } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
-import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingState from "@/shared/profile/ProfileLoading";
 import ErrorState from "@/shared/error-state/ErrorState";
@@ -39,7 +38,6 @@ export default function TitleView({ slug }: { slug: string }) {
   const {
     data: chaptersData,
     isLoading: chaptersLoading,
-    error: chaptersError,
   } = useGetChaptersByTitleQuery(
     {
       titleId,
@@ -162,11 +160,6 @@ export default function TitleView({ slug }: { slug: string }) {
     },
   );
 
-  // Load reading history for the current title
-  const { data: readingHistoryData } = useGetReadingHistoryByTitleQuery(titleId, {
-    skip: !user || !titleId,
-  });
-
   // Обработка данных глав - комбинируем все загруженные страницы
   const processedChaptersData = useMemo(() => {
     const allChapters = [
@@ -185,28 +178,6 @@ export default function TitleView({ slug }: { slug: string }) {
     });
   }, [chaptersData, chaptersDataPage2, chaptersDataPage3, chaptersDataPage4, chaptersDataPage5]);
 
-  // Проверяем, есть ли еще главы для загрузки
-  const hasMoreChapters = useMemo(() => {
-    return (
-      chaptersData?.hasMore ||
-      chaptersDataPage2?.hasMore ||
-      chaptersDataPage3?.hasMore ||
-      chaptersDataPage4?.hasMore ||
-      chaptersDataPage5?.hasMore ||
-      false
-    );
-  }, [
-    chaptersData?.hasMore,
-    chaptersDataPage2?.hasMore,
-    chaptersDataPage3?.hasMore,
-    chaptersDataPage4?.hasMore,
-    chaptersDataPage5?.hasMore,
-  ]);
-
-  // Функция для загрузки дополнительных глав (заглушка, так как мы загружаем все сразу)
-  const handleLoadMoreChapters = () => {
-    // Все главы уже загружены автоматически
-  };
 
   // Состояние для активной вкладки
   const [activeTab, setActiveTab] = useState<"main" | "chapters" | "comments">("chapters");
@@ -276,10 +247,6 @@ export default function TitleView({ slug }: { slug: string }) {
   const typeLabel = typeLabels[titleType] || "Другое";
   const translatedType = translateTitleType(titleType);
   const titleWithType = `${titleData.name} - ${translatedType ? ` ${translatedType}` : ""}`;
-
-  // Определяем тип контента для микроразметки
-  const contentType =
-    titleData.type === "novel" || titleData.type === "light_novel" ? "Book" : "Article";
 
   // Формируем полный URL для изображения
   const image = titleData.coverImage

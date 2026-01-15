@@ -87,7 +87,7 @@ export const useStaticData = (): StaticData => {
           loading: false,
           error: null,
         });
-      } catch (error) {
+      } catch {
         // Возвращаем к статическим данным в случае ошибки
         setCollections({
           data: [
@@ -151,11 +151,11 @@ export const useStaticData = (): StaticData => {
           loading: false,
           error: null,
         });
-      } catch (error) {
+      } catch {
         setLatestUpdates({
           data: [],
           loading: false,
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: "Unknown error",
         });
       }
     };

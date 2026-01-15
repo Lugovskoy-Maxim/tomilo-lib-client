@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { UserProfile } from "@/types/user";
-import { Eye, Settings } from "lucide-react";
+import { Eye } from "lucide-react";
 
 interface ProfileReadingSettingsProps {
   userProfile: UserProfile;
 }
 
-export default function ProfileReadingSettings({ userProfile }: ProfileReadingSettingsProps) {
+export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) {
   const [imageWidth, setImageWidth] = useState(768);
   const [isSaving, setIsSaving] = useState(false);
 

@@ -5,7 +5,6 @@ import { Title } from "@/types/title";
 import { useSearchTitlesQuery, useDeleteTitleMutation } from "@/store/api/titlesApi";
 
 import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/useToast";
 import { translateTitleStatus } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
 
@@ -26,7 +25,6 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   );
   const [deleteTitle] = useDeleteTitleMutation();
   const router = useRouter();
-  const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<{ title: string; message: string } | null>(null);
   const titles = titlesResponse?.data?.data || [];

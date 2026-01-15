@@ -36,5 +36,3 @@ export interface ReportsResponse {
   totalPages: number;
   limit: number;
 }
-
-import { ApiResponseDto } from "./api";

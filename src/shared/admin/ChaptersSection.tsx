@@ -5,11 +5,10 @@ import { useGetTitlesQuery } from "@/store/api/titlesApi";
 import {
   useGetChaptersByTitleQuery,
   useDeleteChapterMutation,
-  useCleanupOrphanedChaptersMutation,
 } from "@/store/api/chaptersApi";
-import { useToast } from "@/hooks/useToast";
 import Pagination from "@/shared/browse/pagination";
 import { getChapterPath } from "@/lib/title-paths";
+import { Chapter, Title } from "@/types/title";
 
 interface ChaptersSectionProps {
   titleId: string | null;
@@ -19,8 +18,11 @@ interface ChaptersSectionProps {
 export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteChapter] = useDeleteChapterMutation();
-  const [cleanupOrphanedChapters] = useCleanupOrphanedChaptersMutation();
-  const toast = useToast();
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<{
     title: string;
@@ -40,12 +42,6 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
 
   const chapters = chaptersResponse?.chapters || [];
 
-  const selectedTitle = titles.find(t => t._id === titleId);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
   // Reset page when title changes
   useEffect(() => {
     setCurrentPage(1);
@@ -61,7 +57,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
         message: "Глава успешно удалена",
       });
       setIsModalOpen(true);
-    } catch (error) {
+    } catch {
       // Показываем модальное окно с ошибкой
       setModalContent({
         title: "Ошибка удаления",
@@ -119,11 +115,13 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
             ))}
           </select>
         </div>
-        {selectedTitle && (
+        {titleId && (
           <div className="mt-4 p-4 bg-[var(--secondary)] rounded-lg">
-            <h3 className="font-medium text-[var(--foreground)]">{selectedTitle.name}</h3>
+            <h3 className="font-medium text-[var(--foreground)]">
+              {titles.find(t => t._id === titleId)?.name}
+            </h3>
             <p className="text-sm text-[var(--muted-foreground)]">
-              Автор: {selectedTitle.author} • Глав: {selectedTitle.totalChapters || 0}
+              Автор: {titles.find(t => t._id === titleId)?.author} • Глав: {chaptersResponse?.total || 0}
             </p>
           </div>
         )}
@@ -191,7 +189,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
                     </tr>
                   </thead>
                   <tbody>
-                    {chapters.map(chapter => (
+                    {chapters.map((chapter) => (
                       <tr
                         key={chapter._id}
                         className="border-t border-[var(--border)] hover:bg-[var(--accent)]/30"
@@ -235,7 +233,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-2">
                             <Link
-                              href={getChapterPath(selectedTitle || { _id: titleId }, chapter._id)}
+                              href={getChapterPath({ _id: titleId } as Title, chapter._id)}
                               className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
                               title="Просмотреть"
                             >
@@ -289,3 +287,4 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
     </div>
   );
 }
+

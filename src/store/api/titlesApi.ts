@@ -16,34 +16,7 @@ interface PopularTitle {
 
 const TITLES_TAG = "Titles";
 
-// 🔧 Утилита для преобразования объекта в FormData
-function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormData {
-  const formData = new FormData();
 
-  Object.entries(data).forEach(([key, value]) => {
-    if (value === undefined || value === null) return;
-
-    if (Array.isArray(value)) {
-      // Для массивов добавляем каждый элемент как отдельное поле с тем же именем
-      value.forEach(item => {
-        formData.append(key, String(item));
-      });
-    } else if (value instanceof Blob) {
-      // File наследуется от Blob — это корректная и безопасная проверка
-      formData.append(key, value);
-    } else if (typeof value === "number") {
-      // Для числовых значений отправляем как числа
-      formData.append(key, value.toString());
-    } else if (typeof value === "boolean") {
-      // Для булевых значений отправляем как строки "true" или "false"
-      formData.append(key, value.toString());
-    } else {
-      formData.append(key, String(value));
-    }
-  });
-
-  return formData;
-}
 
 export const titlesApi = createApi({
   reducerPath: "titlesApi",

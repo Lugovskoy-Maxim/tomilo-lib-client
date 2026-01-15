@@ -4,7 +4,7 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useLoginMutation, useYandexAuthMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginData, FormErrors, FormTouched } from "../../types/form";
-import { Input, Modal } from "..";
+import { Modal } from "..";
 import { ApiResponseDto } from "@/types/api";
 import { AuthResponse } from "@/types/auth";
 import { VALIDATION_MESSAGES } from "@/constants/validation";

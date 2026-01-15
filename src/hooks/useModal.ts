@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-export const useModal = (isOpen: boolean, onClose: () => void) => {
+export function useModal(isOpen: boolean, onClose: () => void) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

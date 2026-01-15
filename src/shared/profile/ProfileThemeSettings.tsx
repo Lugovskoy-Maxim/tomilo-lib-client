@@ -6,7 +6,7 @@ interface ProfileThemeSettingsProps {
   userProfile: UserProfile;
 }
 
-export default function ProfileThemeSettings({ userProfile }: ProfileThemeSettingsProps) {
+export default function ProfileThemeSettings({}: ProfileThemeSettingsProps) {
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
       <div className="flex items-center gap-3 mb-4">

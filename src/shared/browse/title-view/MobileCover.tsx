@@ -24,7 +24,6 @@ export default function MobileCover({
   onShare,
   isAdmin,
   onAgeVerificationRequired,
-  onTabChange,
 }: MobileCoverProps) {
   const { user } = useAuth();
   const isAdultContent = titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);

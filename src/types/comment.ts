@@ -1,5 +1,3 @@
-import { ApiResponseDto } from "./api";
-
 export enum CommentEntityType {
   TITLE = "title",
   CHAPTER = "chapter",

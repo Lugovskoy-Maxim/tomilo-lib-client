@@ -1,8 +1,5 @@
 import { Title } from "./title";
 
-// ApiResponseDto - стандартный формат ответа API
-import { ApiResponseDto } from "./api";
-
 export interface Collection {
   id: string;
   cover: string;

@@ -1,5 +1,5 @@
 "use client";
-import { Logo, Search, ThemeToggle, SnowEffect } from "@/shared";
+import { Logo, Search, ThemeToggle } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState } from "react";
 import {

@@ -100,7 +100,6 @@ export function LeftSidebar({
   readingHistory,
   onShare,
   isAdmin,
-  onAgeVerificationRequired,
 }: {
   titleData: Title;
   chapters: Chapter[];
@@ -121,9 +120,6 @@ export function LeftSidebar({
   const handleAgeCancel = () => {
     setShowAgeModal(false);
   };
-
-  const isAdultContent = titleData.ageLimit >= 18;
-  const shouldBlurImage = isAdultContent && !isAgeVerified;
 
   return (
     <div className="space-y-4">
@@ -211,8 +207,6 @@ export function ChaptersTab({
   onSortChange,
   loading,
   user,
-  titleData,
-  onAgeVerificationRequired,
 }: {
   titleId: string;
   chapters: Chapter[];
@@ -292,7 +286,6 @@ export function ChaptersTab({
 export function ChapterItem({
   chapter,
   titleId,
-  user,
 }: {
   chapter: Chapter;
   titleId: string;
@@ -417,7 +410,6 @@ export function RightContent({
   onSortChange,
   titleId,
   user,
-  onAgeVerificationRequired,
 }: {
   titleData: Title;
   activeTab: "description" | "chapters" | "comments" | "statistics";

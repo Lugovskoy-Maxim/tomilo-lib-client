@@ -2,7 +2,7 @@
 
 import NavigationLink from "@/shared/navigation-link/NavigationLink";
 import { usePathname } from "next/navigation";
-import { BookOpen, Trophy } from "lucide-react";
+import { BookOpen } from "lucide-react";
 
 interface NavigationProps {
   vertical?: boolean;

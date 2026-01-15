@@ -7,13 +7,11 @@ import {
   Eye,
   Star,
   Loader2,
-  Trash2,
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
 import { useGetStatsQuery } from "@/store/api/statsApi";
 import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
-import { useCleanupOrphanedChaptersMutation } from "@/store/api/chaptersApi";
 import { timeAgo } from "@/lib/date-utils";
 import { useState } from "react";
 
@@ -30,9 +28,8 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
     isLoading: updatesLoading,
     error: updatesError,
   } = useGetLatestUpdatesQuery();
-  const [cleanupOrphanedChapters] = useCleanupOrphanedChaptersMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<{
+  const [modalContent] = useState<{
     title: string;
     message: string;
   } | null>(null);
@@ -82,36 +79,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
       ]
     : [];
 
-  const handleCleanupOrphanedChapters = async () => {
-    if (
-      !confirm(
-        "Вы уверены, что хотите удалить все осиротевшие главы (главы без тайтлов)? Это действие нельзя отменить.",
-      )
-    )
-      return;
-    try {
-      const result = await cleanupOrphanedChapters().unwrap();
-      setModalContent({
-        title: "Очистка завершена",
-        message: `Удалено ${result.data?.deletedCount || 0} осиротевших глав`,
-      });
-      setIsModalOpen(true);
-    } catch (error) {
-      setModalContent({
-        title: "Ошибка очистки",
-        message: "Произошла ошибка при удалении осиротевших глав",
-      });
-      setIsModalOpen(true);
-    }
-  };
-
   const quickActions = [
-    {
-      icon: Trash2,
-      label: "Очистить осиротевшие главы",
-      action: handleCleanupOrphanedChapters,
-      color: "red",
-    },
     {
       icon: Plus,
       label: "Создать тайтл",
@@ -150,7 +118,6 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
     purple: "bg-purple-50 text-purple-600 border-purple-200",
     orange: "bg-orange-50 text-orange-600 border-orange-200",
     yellow: "bg-yellow-50 text-yellow-600 border-yellow-200",
-    red: "bg-red-50 text-red-600 border-red-200",
   };
 
   return (

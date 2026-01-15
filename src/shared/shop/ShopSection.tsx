@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Decoration } from "@/api/shop";
 import {
   getDecorationsByType,
@@ -33,7 +33,7 @@ export function ShopSection({ type }: ShopSectionProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Загрузка украшений
-  const loadDecorations = async () => {
+  const loadDecorations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -45,16 +45,16 @@ export function ShopSection({ type }: ShopSectionProps) {
       } else {
         setError(response.message || "Ошибка при загрузке товаров");
       }
-    } catch (err) {
+    } catch     {
       setError("Ошибка при загрузке товаров");
-      console.error("Error loading decorations:", err);
+      console.error("Error loading decorations:");
     } finally {
       setLoading(false);
     }
-  };
+  }, [type]);
 
   // Загрузка пользовательских украшений
-  const loadUserDecorations = async () => {
+  const loadUserDecorations = useCallback(async () => {
     if (!isAuthenticated) {
       setUserDecorations({ owned: [], equipped: [] });
       return;
@@ -71,15 +71,15 @@ export function ShopSection({ type }: ShopSectionProps) {
           equipped: response.data.filter(d => d.isEquipped).map(d => d.id),
         });
       }
-    } catch (err) {
-      console.error("Error loading user decorations:", err);
+    } catch     {
+      console.error("Error loading user decorations:"  );
     }
-  };
+  }, [isAuthenticated]);
 
   // Загрузка данных при изменении типа или аутентификации
   useEffect(() => {
     loadDecorations();
-  }, [type]);
+  }, [loadDecorations]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -87,7 +87,7 @@ export function ShopSection({ type }: ShopSectionProps) {
     } else {
       setUserDecorations({ owned: [], equipped: [] });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadUserDecorations]);
 
   // Обработчик покупки
   const handlePurchase = async (decorationId: string) => {
@@ -109,8 +109,8 @@ export function ShopSection({ type }: ShopSectionProps) {
       } else {
         throw new Error(response.message || "Ошибка при покупке");
       }
-    } catch (err) {
-      throw err; // Перебрасываем ошибку для обработки в компоненте
+    } catch (error)  {
+      throw error; // Перебрасываем ошибку для обработки в компоненте
     } finally {
       setActionLoading(null);
     }
@@ -131,8 +131,8 @@ export function ShopSection({ type }: ShopSectionProps) {
       } else {
         throw new Error(response.message || "Ошибка при экипировке");
       }
-    } catch (err) {
-      throw err;
+   } catch (error)  {
+      throw error;
     } finally {
       setActionLoading(null);
     }
@@ -153,8 +153,8 @@ export function ShopSection({ type }: ShopSectionProps) {
       } else {
         throw new Error(response.message || "Ошибка при снятии");
       }
-    } catch (err) {
-      throw err;
+   } catch (error)  {
+      throw error;
     } finally {
       setActionLoading(null);
     }

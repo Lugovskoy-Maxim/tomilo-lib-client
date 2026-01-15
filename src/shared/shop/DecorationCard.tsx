@@ -40,7 +40,7 @@ export function DecorationCard({
     try {
       await onPurchase?.(decoration.id);
       success(`"${decoration.name}" успешно куплено!`);
-    } catch (error) {
+    } catch  {
       showError("Ошибка при покупке");
     }
   };
@@ -54,7 +54,7 @@ export function DecorationCard({
     try {
       await onEquip?.(decoration.id);
       success(`"${decoration.name}" надето!`);
-    } catch (error) {
+    } catch {
       showError("Ошибка при экипировке");
     }
   };
@@ -68,7 +68,7 @@ export function DecorationCard({
     try {
       await onUnequip?.();
       success(`"${decoration.name}" снято!`);
-    } catch (error) {
+    } catch{
       showError("Ошибка при снятии");
     }
   };

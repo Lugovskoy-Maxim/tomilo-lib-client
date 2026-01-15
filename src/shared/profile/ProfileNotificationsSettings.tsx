@@ -6,7 +6,6 @@ interface ProfileNotificationsSettingsProps {
 }
 
 export default function ProfileNotificationsSettings({
-  userProfile,
 }: ProfileNotificationsSettingsProps) {
   // TODO: Реализовать логику сохранения настроек уведомлений
   const handleNotificationChange = (type: string, enabled: boolean) => {

@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useToast } from "@/hooks/useToast";
 import { ReportModal } from "@/shared/report/ReportModal";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -70,7 +69,6 @@ export default function ReadChapterPage({
 
   // Report state
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const toast = useToast();
 
   // Определение мобильного устройства
   const [isMobile, setIsMobile] = useState(false);
@@ -230,7 +228,7 @@ export default function ReadChapterPage({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [currentChapterIndex, chapters, titleId, router]);
+  }, [currentChapterIndex, chapters, titleId, router, getChapterPath]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {

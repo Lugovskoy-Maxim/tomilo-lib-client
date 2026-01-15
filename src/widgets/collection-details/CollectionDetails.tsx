@@ -48,10 +48,6 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
   }, [user, collection]);
 
   // Check if collection has adult content
-  const hasAdultContent = useMemo(() => {
-    return collection?.titles?.some((title: Title) => title.ageLimit === 18) || false;
-  }, [collection?.titles]);
-
   const handleAgeVerification = () => {
     setIsAgeVerified(true);
     setShowAgeModal(false);

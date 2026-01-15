@@ -23,7 +23,6 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   className = "",
   width,
   height,
-  quality = 80,
   priority = false,
   onLoad,
   onError,

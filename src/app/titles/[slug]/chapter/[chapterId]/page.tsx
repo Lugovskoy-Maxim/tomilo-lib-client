@@ -49,7 +49,6 @@ export async function generateMetadata({
     // Получаем данные тайтла по slug
     const titleData = await getTitleDataBySlug(slug);
     const titleName = titleData.name || "Без названия";
-    const titleId = titleData._id;
 
     // Получаем данные главы
     const chapterData = await getChapterData(chapterId);

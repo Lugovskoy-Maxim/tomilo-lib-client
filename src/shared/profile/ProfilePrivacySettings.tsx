@@ -1,12 +1,11 @@
 import { UserProfile } from "@/types/user";
 import { Users, Eye, Lock } from "lucide-react";
-import { useState } from "react";
 
 interface ProfilePrivacySettingsProps {
   userProfile: UserProfile;
 }
 
-export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySettingsProps) {
+export default function ProfilePrivacySettings({}: ProfilePrivacySettingsProps) {
   // TODO: Реализовать логику сохранения настроек приватности
   const handlePrivacySettingChange = (setting: string, value: string) => {
     console.log(`Изменение настройки приватности ${setting}: ${value}`);

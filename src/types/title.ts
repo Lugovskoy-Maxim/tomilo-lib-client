@@ -1,5 +1,4 @@
 import { ReaderChapter } from "./chapter";
-import { ApiResponseDto } from "./api";
 
 export enum TitleStatus {
   ONGOING = "ongoing",

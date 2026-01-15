@@ -3,7 +3,6 @@ import { useRef, useState, ReactNode } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getTitlePath } from "@/lib/title-paths";
 
 interface CarouselProps<T> {
   title: string;

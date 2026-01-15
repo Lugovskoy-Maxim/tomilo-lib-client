@@ -3,17 +3,15 @@ import { Upload, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 
 interface CoverUploadSectionProps {
-  titleId: string;
+  titleId?: string;
   currentCover?: string;
-  onCoverUpdate: (newCoverUrl: string) => void;
+  onCoverUpdate?: (newCoverUrl: string) => void;
   selectedFile: File | null;
   onImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function CoverUploadSection({
-  titleId,
   currentCover,
-  onCoverUpdate,
   selectedFile,
   onImageChange,
 }: CoverUploadSectionProps) {
@@ -106,3 +104,4 @@ export function CoverUploadSection({
     </div>
   );
 }
+

@@ -143,7 +143,7 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
           const titleDate = new Date(title.createdAt);
           const isRecent = !isNaN(titleDate.getTime()) && titleDate >= sevenDaysAgo;
           return isRecent;
-        } catch (error) {
+        } catch {
           console.warn("Invalid date for title:", title._id, title.createdAt);
           return false;
         }
@@ -272,7 +272,7 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
           const chapterDate = new Date(chapter.createdAt);
           const isRecent = !isNaN(chapterDate.getTime()) && chapterDate >= sevenDaysAgo;
           return isRecent;
-        } catch (error) {
+        } catch {
           return false;
         }
       })
@@ -286,59 +286,7 @@ async function fetchRecentChapters(): Promise<ChapterItem[]> {
   }
 }
 
-// Fallback sample data for when API is unavailable
-function getSampleData(): { titles: TitleItem[]; chapters: ChapterItem[] } {
-  const sampleDate = new Date().toISOString();
-  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
 
-  return {
-    titles: [
-      {
-        _id: "sample-title-1",
-        name: "Я попал в мир ужасов с системой богатства",
-        slug: "with-my-netherworld-trillions-game-on",
-        description:
-          "Линь Юй обретает Божественную систему, которая ежедневно приносит ему деньги...",
-        genres: ["Ужасы", "Фэнтези", "Экшен"],
-        type: "manhua",
-        totalChapters: 277,
-        createdAt: sampleDate,
-      },
-      {
-        _id: "sample-title-2",
-        name: "Путь удивительного небожителя",
-        slug: "the-path-of-weird-immortals",
-        description: "Ученика старших классов Ли Хуована одолевает необычная способность...",
-        genres: ["Фэнтези", "Психологическое", "Приключения"],
-        type: "manhua",
-        totalChapters: 64,
-        createdAt: twoDaysAgo,
-      },
-    ],
-    chapters: [
-      {
-        _id: "sample-chapter-1",
-        chapterNumber: 105,
-        content: "Новая глава ужасного приключения Линь Юя...",
-        createdAt: sampleDate,
-        title: {
-          name: "Я попал в мир ужасов с системой богатства",
-          slug: "with-my-netherworld-trillions-game-on",
-        },
-      },
-      {
-        _id: "sample-chapter-2",
-        chapterNumber: 42,
-        content: "Ли Хуован продолжает свои странствия...",
-        createdAt: twoDaysAgo,
-        title: {
-          name: "Путь удивительного небожителя",
-          slug: "the-path-of-weird-immortals",
-        },
-      },
-    ],
-  };
-}
 
 export async function GET() {
   try {
@@ -351,18 +299,9 @@ export async function GET() {
         fetchRecentChapters(),
       ]);
 
-      // If no data from API, use sample data
-      if (recentTitles.length === 0 && recentChapters.length === 0) {
-        console.log("No data from API, using sample data");
-        const sampleData = getSampleData();
-        recentTitles = sampleData.titles;
-        recentChapters = sampleData.chapters;
-      }
+
     } catch (apiError) {
       console.warn("API request failed, using sample data:", apiError);
-      const sampleData = getSampleData();
-      recentTitles = sampleData.titles;
-      recentChapters = sampleData.chapters;
     }
 
     console.log("Number of recent titles:", recentTitles.length);
