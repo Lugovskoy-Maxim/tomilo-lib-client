@@ -1,7 +1,8 @@
 "use client";
-import Image from "next/image";
+import React from "react";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import OptimizedImage from "@/shared/optimized-image";
 import { Collection } from "@/types/collection";
 
 interface CollectionCardProps {
@@ -39,6 +40,7 @@ export default function CollectionCard({ data }: CollectionCardProps) {
   };
 
   const imageUrl = getImageUrl();
+  const imageUrlString = typeof imageUrl === 'string' ? imageUrl : imageUrl.src;
 
   return (
     <div
@@ -48,17 +50,16 @@ export default function CollectionCard({ data }: CollectionCardProps) {
     >
       <div className="aspect-[3/4] relative rounded-lg overflow-hidden">
         <div className="relative w-full h-full">
-          <Image
-            loader={({ src, width }) => `${src}?w=${width}`}
-            src={imageUrl}
+          <OptimizedImage
+            src={imageUrlString}
             alt={collectionName || "Коллекция"}
-            fill
+            width={128}
+            height={170}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, 128px"
-            unoptimized
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = IMAGE_HOLDER.src;
+            quality={80}
+            priority={false}
+            onError={() => {
+              console.warn(`Failed to load image for collection ${collectionName}`);
             }}
           />
         </div>

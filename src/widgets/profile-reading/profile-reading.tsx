@@ -5,7 +5,7 @@ import React from 'react';
 import { BookOpen, Trash2, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useMemo } from "react";
-import Image from "next/image";
+import OptimizedImage from "@/shared/optimized-image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getChapterPath } from "@/lib/title-paths";
@@ -120,6 +120,12 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
     }${coverImage}`;
   };
 
+  // Преобразуем изображение в строку для использования в OptimizedImage
+  const getImageUrlString = (coverImage: string | undefined) => {
+    const imageUrl = getImageUrl(coverImage);
+    return typeof imageUrl === 'string' ? imageUrl : imageUrl.src || '';
+  };
+
   // Если история чтения пуста, показываем сообщение
   if (!readingHistory || readingHistory.length === 0 || allChapters.length === 0) {
     return (
@@ -171,25 +177,30 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
               <div className="flex items-start space-x-3">
                 <div className="w-12 h-16 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {title?.coverImage ? (
-                    <Image
-                      src={getImageUrl(title.coverImage)}
+                    <OptimizedImage
+                      src={getImageUrlString(title.coverImage)}
                       alt={title.name || `Манга #${item.titleId}`}
                       width={48}
                       height={64}
                       className="w-full h-full object-cover"
-                      unoptimized
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = IMAGE_HOLDER.src;
+                      quality={80}
+                      priority={false}
+                      onError={() => {
+                        // Обработка ошибки загрузки изображения
                       }}
                     />
                   ) : (
-                    <Image
-                      src={IMAGE_HOLDER}
+                    <OptimizedImage
+                      src={IMAGE_HOLDER.src}
                       alt="Заглушка"
                       width={48}
                       height={64}
                       className="w-full h-full object-cover"
+                      quality={80}
+                      priority={false}
+                      onError={() => {
+                        // Обработка ошибки загрузки изображения
+                      }}
                     />
                   )}
                 </div>

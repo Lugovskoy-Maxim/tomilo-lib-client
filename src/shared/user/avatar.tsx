@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useEffect } from "react";
+import OptimizedImage from "@/shared/optimized-image";
 
 
 interface UserAvatarProps {
@@ -37,8 +37,7 @@ export default function UserAvatar({
   }
 
   return (
-    <Image
-      loader={() => avatarUrl.startsWith('/uploads/') ? `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3001'}${avatarUrl}` : avatarUrl}
+    <OptimizedImage
       src={avatarUrl.startsWith('/uploads/') ? `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3001'}${avatarUrl}` : avatarUrl}
       alt={`Аватар ${username || 'пользователя'}`}
       width={size}
@@ -46,7 +45,6 @@ export default function UserAvatar({
       className={`rounded-full object-cover h-10 w-10 ${className}`}
       onError={() => setImageError(true)}
       priority={size > 60}
-      unoptimized
     />
   );
 }

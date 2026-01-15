@@ -1,9 +1,10 @@
 "use client";
 
+import React from "react";
 import { BookOpen, TrendingUp } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import OptimizedImage from "@/shared/optimized-image";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
 
@@ -55,6 +56,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
   };
 
   const imageUrl = getImageUrl();
+  const imageUrlString = typeof imageUrl === 'string' ? imageUrl : imageUrl.src;
 
   return (
     <div
@@ -66,19 +68,17 @@ export default function ReadingCard({ data }: ReadingCardProps) {
         {/* Картинка слева */}
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0">
           <div className="relative w-full h-full">
-            <Image
-              loader={({ src, width }: { src: string; width: number }) => `${src}?w=${width}`}
-              src={imageUrl}
+            <OptimizedImage
+              src={imageUrlString}
               alt={data.title}
-              fill
+              width={128}
+              height={144}
               className="object-cover"
-
-              sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, 128px"
-              unoptimized
-              onError={(e) => {
-                // Если изображение не загружается, показываем заглушку
-                const target = e.target as HTMLImageElement;
-                target.src = IMAGE_HOLDER.src;
+              quality={80}
+              priority={false}
+              onError={() => {
+                // Обработка ошибки загрузки изображения
+                console.warn(`Failed to load image for ${data.title}`);
               }}
             />
           </div>

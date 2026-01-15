@@ -1,13 +1,12 @@
 "use client";
 
-
+import React, { useState } from "react";
 import { Title } from "@/types/title";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import OptimizedImage from "@/shared/optimized-image";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
 
 import { useToast } from "@/hooks/useToast";
 import { getTitlePath } from "@/lib/title-paths";
@@ -75,13 +74,14 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
       <div className="flex items-start space-x-3">
         <div className="w-12 h-16 bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
           {showImage ? (
-            <Image
+            <OptimizedImage
               src={getImageUrl(title.coverImage)}
               alt={title.name}
               width={48}
               height={64}
               className="w-full h-full object-cover"
-              unoptimized
+              quality={80}
+              priority={false}
               onError={() => {
                 // Если изображение не загружается, показываем заглушку
                 setImageError(true);

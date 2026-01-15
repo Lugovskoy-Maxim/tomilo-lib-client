@@ -45,3 +45,4 @@ export { default as LoadingSkeleton } from './skeleton';
 export { default as SharedErrorState } from './error-state';
 export { default as DataCarousel } from './data-carousel';
 export { default as SnowEffect } from './snow-effect';
+export { default as OptimizedImage } from './optimized-image';

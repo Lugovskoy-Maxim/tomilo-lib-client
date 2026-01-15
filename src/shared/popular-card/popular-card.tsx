@@ -1,11 +1,11 @@
 "use client";
 
-
+import React from "react";
 import { Sparkles } from "lucide-react";
-import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import OptimizedImage from "@/shared/optimized-image";
 import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
 import { useState, useEffect } from "react";
@@ -96,6 +96,9 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     ? `${process.env.NEXT_PUBLIC_URL}${data.image}`
     : IMAGE_HOLDER;
 
+  // Преобразуем imageSrc в строку если это объект изображения
+  const imageSrcString = typeof imageSrc === 'string' ? imageSrc : imageSrc.src;
+
   return (
     <div
       className="overflow-hidden max-w-xl rounded-lg group cursor-pointer active:cursor-grabbing transition-all select-none"
@@ -103,18 +106,17 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
       data-card-click-handler="true"
     >
       <div className="relative overflow-hidden rounded-lg">
-        <Image
+        <OptimizedImage
           className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} w-full h-40 sm:h-48 md:h-52 lg:h-55 rounded-lg bg-cover bg-center transition-transform group-hover:scale-105 object-cover`}
-          loader={({ src, width }) => `${src}?w=${width}`}
-          src={imageSrc}
+          src={imageSrcString}
           alt={data.title}
           width={160}
           height={220}
           quality={85}
-          loading="lazy"
-          style={{ width: "100%", height: "100%" }}
+          priority={false}
           onDragStart={(e) => e.preventDefault()}
           draggable={false}
+          style={{ width: "100%", height: "100%" }}
         />
 
         {isAdultContent && (

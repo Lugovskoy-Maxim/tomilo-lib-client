@@ -1,8 +1,9 @@
 "use client"
 
+import React from "react";
 import { Trophy, Eye, Sparkles } from "lucide-react";
-import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
+import OptimizedImage from "@/shared/optimized-image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/age-verification-modal";
@@ -68,12 +69,14 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
           {/* Мобильная версия - горизонтальная */}
           <div className="flex gap-4 sm:hidden">
             <div className="relative flex-shrink-0">
-              <Image
+              <OptimizedImage
                 src={process.env.NEXT_PUBLIC_URL + data.image}
                 alt={data.title}
                 width={120}
                 height={160}
                 className={`w-42 h-52 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
+                quality={80}
+                priority={false}
               />
               {data.isAdult && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
@@ -137,12 +140,14 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
           {/* Десктопная версия - вертикальная */}
           <div className="hidden sm:flex flex-col items-center gap-3">
             <div className="relative">
-              <Image
+              <OptimizedImage
                 src={process.env.NEXT_PUBLIC_URL + data.image}
                 alt={data.title}
                 width={120}
                 height={160}
                 className={`w-42 h-54 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
+                quality={80}
+                priority={false}
               />
               {data.isAdult && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
@@ -214,12 +219,14 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
     <>
       <div className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:bg-[var(--accent)] hover:shadow-md transition-all duration-300 cursor-pointer group h-full" onClick={handleClick}>
         <div className="relative">
-          <Image
+          <OptimizedImage
             src={process.env.NEXT_PUBLIC_URL + data.image}
             alt={data.title}
             width={160}
             height={128}
             className={`w-full h-24 sm:h-32 object-cover rounded-lg shadow-sm group-hover:shadow-md transition-shadow ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
+            quality={80}
+            priority={false}
           />
           {data.isAdult && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">

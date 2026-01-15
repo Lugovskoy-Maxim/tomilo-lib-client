@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import OptimizedImage from "@/shared/optimized-image";
 import { Check, X, Clock } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
@@ -127,13 +127,14 @@ export default function NotificationCard({
           />
           {getCoverImage() && !imageError && (
             <div className="relative w-8 h-12 rounded overflow-hidden">
-              <Image
+              <OptimizedImage
                 src={getImageUrl(getCoverImage())}
                 alt=""
-                fill
+                width={32}
+                height={48}
                 className="object-cover"
-                sizes="32px"
-                unoptimized
+                quality={80}
+                priority={false}
                 onError={() => setImageError(true)}
               />
             </div>

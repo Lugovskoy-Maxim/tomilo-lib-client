@@ -2,7 +2,7 @@
 import { ArrowRight, Eye, Star, StarHalf } from "lucide-react";
 import Link from "next/link";
 import { TopTitleCombined } from "@/types/constants";
-import Image from "next/image";
+import OptimizedImage from "@/shared/optimized-image";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
 import { useState, useEffect } from "react";
@@ -91,7 +91,7 @@ const CardItem = ({ item }: CardItemProps) => {
           {/* Обложка */}
           <div className="w-16 h-24 rounded flex-shrink-0 overflow-hidden bg-gray-700 relative">
             {item.coverImage ? (
-              <Image
+              <OptimizedImage
                 src={normalizeImageUrl(item.coverImage)}
                 alt={item.title}
                 width={64}
@@ -99,9 +99,10 @@ const CardItem = ({ item }: CardItemProps) => {
                 className={`w-full h-full object-cover ${
                   item.isAdult && !isAgeVerified ? "blur-sm" : ""
                 }`}
-                unoptimized
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
+                quality={80}
+                priority={false}
+                onError={() => {
+                  // Обработка ошибки загрузки изображения
                 }}
               />
             ) : (
