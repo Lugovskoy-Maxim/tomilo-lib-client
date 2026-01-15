@@ -24,6 +24,12 @@ export const saveReadingPosition = (
 ): void => {
   if (typeof window === "undefined") return;
   
+  // Валидация входных данных
+  if (typeof page !== 'number' || page < 1) {
+    console.warn("Invalid page number for saving position:", page);
+    return;
+  }
+  
   try {
     const key = getReadingPositionKey(titleId, chapterId);
     const position: ReadingPosition = {
@@ -51,6 +57,14 @@ export const getReadingPosition = (
     if (!stored) return null;
     
     const position: ReadingPosition = JSON.parse(stored);
+    
+    // Проверяем, что позиция действительна
+    if (typeof position.page !== 'number' || position.page < 1) {
+      console.warn("Invalid reading position data:", position);
+      localStorage.removeItem(key); // Удаляем недействительные данные
+      return null;
+    }
+    
     return position;
   } catch (error) {
     console.warn("Failed to load reading position:", error);
@@ -236,8 +250,8 @@ export const getCurrentPage = (): number => {
     const visibleHeight = Math.max(0, visibleBottom - visibleTop);
     const visibleRatio = visibleHeight / rect.height;
     
-    // Снижен порог до 20% для лучшей точности
-    if (visibleRatio > 0.2 && visibleRatio > maxVisible) {
+    // Повышен порог до 30% для лучшей точности
+    if (visibleRatio > 0.3 && visibleRatio > maxVisible) {
       maxVisible = visibleRatio;
       currentPage = parseInt(el.getAttribute("data-page") || "1");
     }
@@ -255,34 +269,19 @@ export const getCurrentPageEnhanced = (): number => {
   const pageElements = document.querySelectorAll("[data-page]");
   if (pageElements.length === 0) return 1;
   
+  // Простой и надежный способ определения текущей страницы
+  // Находим страницу, которая находится ближе всего к центру экрана
   let bestPage = 1;
-  let bestScore = 0;
+  let minDistance = Infinity;
+  const viewportCenter = window.innerHeight / 2;
 
   pageElements.forEach((el) => {
     const rect = el.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const viewportCenter = viewportHeight / 2;
-    
-    // Метод 1: По видимости (20% порог)
-    const visibleTop = Math.max(0, rect.top);
-    const visibleBottom = Math.min(rect.bottom, viewportHeight);
-    const visibleHeight = Math.max(0, visibleBottom - visibleTop);
-    const visibilityScore = visibleHeight / rect.height;
-    
-    // Метод 2: По близости к центру экрана
     const elementCenter = (rect.top + rect.bottom) / 2;
-    const distanceFromCenter = Math.abs(elementCenter - viewportCenter);
-    const maxDistance = viewportHeight;
-    const centerScore = Math.max(0, 1 - (distanceFromCenter / maxDistance));
+    const distance = Math.abs(elementCenter - viewportCenter);
     
-    // Метод 3: Позиция в viewport
-    const positionScore = rect.top < viewportCenter && rect.bottom > viewportCenter ? 1 : 0;
-    
-    // Комбинированный счет
-    const combinedScore = (visibilityScore * 0.4) + (centerScore * 0.4) + (positionScore * 0.2);
-    
-    if (combinedScore > bestScore) {
-      bestScore = combinedScore;
+    if (distance < minDistance) {
+      minDistance = distance;
       bestPage = parseInt(el.getAttribute("data-page") || "1");
     }
   });

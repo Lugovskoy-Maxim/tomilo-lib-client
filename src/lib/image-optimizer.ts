@@ -222,6 +222,11 @@ export const useImageState = (initialSrc?: string) => {
   });
 
   const loadImage = useCallback((src: string) => {
+    // Если это то же самое изображение, что уже загружено, не перезагружаем
+    if (state.src === src && state.isLoaded) {
+      return;
+    }
+    
     setState({
       src,
       isLoading: true,
@@ -231,26 +236,33 @@ export const useImageState = (initialSrc?: string) => {
     const img = new Image();
     
     img.onload = () => {
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        isLoaded: true,
-        width: img.width,
-        height: img.height
-      }));
+      // Проверяем, актуально ли еще это изображение
+      if (state.src === src) {
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          isLoaded: true,
+          width: img.width,
+          height: img.height
+        }));
+      }
     };
 
     img.onerror = () => {
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        isLoaded: false,
-        error: 'Не удалось загрузить изображение'
-      }));
+      // Проверяем, актуально ли еще это изображение
+      if (state.src === src) {
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          isLoaded: false,
+          error: 'Не удалось загрузить изображение'
+        }));
+      }
     };
 
+    // Начинаем загрузку изображения сразу
     img.src = src;
-  }, []);
+  }, [state.src, state.isLoaded]);
 
   return { ...state, loadImage };
 };

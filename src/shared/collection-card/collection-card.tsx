@@ -53,9 +53,9 @@ export default function CollectionCard({ data }: CollectionCardProps) {
           <OptimizedImage
             src={imageUrlString}
             alt={collectionName || "Коллекция"}
-            width={128}
-            height={170}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            width={144}
+            height={192}
+            className="object-cover transition-transform duration-300 group-hover:scale-105 w-full h-full"
             quality={80}
             priority={false}
             onError={() => {

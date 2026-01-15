@@ -32,18 +32,21 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   draggable,
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
-  const { 
-    isLoading, 
-    isLoaded, 
-    error, 
-    loadImage 
+  const {
+    isLoading,
+    isLoaded,
+    error,
+    loadImage
   } = useImageState();
-
+  
+  // Отслеживаем изменения src и priority для перезагрузки изображения при необходимости
   useEffect(() => {
     if (src) {
+      // Если priority=true, загружаем немедленно
+      // Иначе начинаем загрузку сразу (без ожидания видимости)
       loadImage(src);
     }
-  }, [src, loadImage]);
+  }, [src, priority, loadImage]);
 
   const handleLoad = () => {
     if (onLoad) onLoad();
@@ -107,6 +110,14 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     return renderError();
   }
 
+  // Определяем стиль отображения в зависимости от состояния загрузки
+  const imageStyle = {
+    display: isLoading ? 'none' : 'block',
+    width: width ? `${width}px` : '100%',
+    height: 'auto',
+    ...style
+  };
+
   return (
     <>
       {/* Placeholder во время загрузки */}
@@ -123,12 +134,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         onLoad={handleLoad}
         onError={handleError}
         loading={priority ? 'eager' : 'lazy'}
-        style={{
-          display: isLoading ? 'none' : 'block',
-          width: width ? `${width}px` : '100%',
-          height: 'auto',
-          ...style
-        }}
+        style={imageStyle}
         onDragStart={onDragStart}
         draggable={draggable}
       />

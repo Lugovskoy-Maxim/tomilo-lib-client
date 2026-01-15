@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useToast } from "@/hooks/useToast";
 import { ReportModal } from "@/shared/report/report-modal";
 import { ReportType } from "@/types/report";
-import OptimizedImage from "@/shared/optimized-image";
 
 import { useAuth } from "@/hooks/useAuth";
 import { ReaderTitle } from "@/types/title";
@@ -129,6 +129,15 @@ export default function ReadChapterPage({
     return `${process.env.NEXT_PUBLIC_URL}${url}`;
   }, []);
 
+  // Функция загрузчика изображений с поддержкой ширины
+  const imageLoader = useCallback(
+    ({ src, width }: { src: string; width: number }) => {
+      const imageUrl = getImageUrl(src);
+      // Добавляем параметр ширины к URL для оптимизации
+      return `${imageUrl}?w=${width}`;
+    },
+    [getImageUrl]
+  );
 
   // Обновление просмотров и истории чтения
   useEffect(() => {
@@ -302,47 +311,111 @@ export default function ReadChapterPage({
 
     const savedPosition = getReadingPosition(titleId, chapterId);
     if (savedPosition && savedPosition.page > 1) {
-      // Сохраняем сохраненную позицию для поэтапной загрузки
-      setSavedReadingPage(savedPosition.page);
+      // Показываем уведомление о восстановлении позиции в стиле счетчика страниц
+      const notificationId = `restore-position-${Date.now()}`;
+      const notificationElement = document.createElement('div');
+      notificationElement.id = notificationId;
+      notificationElement.className = 'fixed w-full max-w-[350px] top-1/2 left-1/2 transform -translate-x-1/2 text-[var(--muted-foreground)] text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-2 px-4 py-2  shadow-lg z-[100] flex items-center space-x-2';
+      notificationElement.innerHTML = `
+        <span>Восстановление позиции чтения на странице ${savedPosition.page}</span>
+        <button id="cancel-restore" class="ml-2 px-2 py-2 bg-[var(--destructive)] hover:bg-[var(--destructive)]/80 rounded text-xs">Отменить</button>
+        <span id="countdown" class="ml-2 text-xs">5</span>
+      `;
+      document.body.appendChild(notificationElement);
 
-      // Быстрая прокрутка к сохраненной странице
-      const timeoutId = setTimeout(async () => {
-        try {
-          // Быстрая прокрутка без ожидания загрузки изображений
-          const pageElement = document.querySelector(
-            `[data-page="${savedPosition.page}"]`
-          );
-          if (pageElement) {
-            pageElement.scrollIntoView({
-              behavior: "auto", // Быстрая прокрутка
-              block: "center",
-            });
-          }
-          setCurrentPage(savedPosition.page);
-
-          // Устанавливаем приоритеты загрузки изображений
-          const priorities = new Map<number, "low" | "medium" | "high">();
-          chapter.images.forEach((_, index) => {
-            const pageNum = index + 1;
-            if (pageNum === savedPosition.page) {
-              priorities.set(pageNum, "high"); // Текущая страница - высокий приоритет
-            } else if (pageNum < savedPosition.page) {
-              priorities.set(pageNum, "low"); // Предыдущие страницы - низкий приоритет
-            } else {
-              priorities.set(pageNum, "low"); // Следующие страницы - низкий приоритет (пока)
-            }
-          });
-          setImageLoadPriority(priorities);
-
-          setIsPositionRestored(true);
-        } catch (error) {
-          console.warn("Failed to restore reading position:", error);
-          setCurrentPage(1);
-          setIsPositionRestored(true);
+      // Таймер обратного отсчета
+      let countdown = 5;
+      const countdownElement = document.getElementById('countdown');
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdownElement) {
+          countdownElement.textContent = countdown.toString();
         }
-      }, 100); // Значительно сокращаем задержку для быстрой прокрутки
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          // Автоматически восстанавливаем позицию
+          restorePosition(savedPosition.page);
+          // Удаляем уведомление
+          setTimeout(() => {
+            if (document.getElementById(notificationId)) {
+              document.getElementById(notificationId)?.remove();
+            }
+          }, 1000);
+        }
+      }, 1000);
 
-      return () => clearTimeout(timeoutId);
+      // Обработчик отмены
+      const cancelRestore = () => {
+        clearInterval(countdownInterval);
+        if (document.getElementById(notificationId)) {
+          document.getElementById(notificationId)?.remove();
+        }
+        // Устанавливаем позицию на первую страницу
+        setSavedReadingPage(1);
+        setIsPositionRestored(true);
+      };
+
+      // Добавляем обработчик клика на кнопку отмены
+      const cancelButton = document.getElementById('cancel-restore');
+      if (cancelButton) {
+        cancelButton.addEventListener('click', cancelRestore);
+      }
+
+      // Функция восстановления позиции
+      const restorePosition = (page: number) => {
+        // Сохраняем сохраненную позицию для поэтапной загрузки
+        setSavedReadingPage(page);
+
+        // Быстрая прокрутка к сохраненной странице
+        const timeoutId = setTimeout(async () => {
+          try {
+            // Быстрая прокрутка без ожидания загрузки изображений
+            const pageElement = document.querySelector(
+              `[data-page="${page}"]`
+            );
+            if (pageElement) {
+              pageElement.scrollIntoView({
+                behavior: "auto", // Быстрая прокрутка
+                block: "center",
+              });
+            }
+            setCurrentPage(page);
+
+            // Устанавливаем приоритеты загрузки изображений
+            const priorities = new Map<number, "low" | "medium" | "high">();
+            chapter.images.forEach((_, index) => {
+              const pageNum = index + 1;
+              if (pageNum === page) {
+                priorities.set(pageNum, "high"); // Текущая страница - высокий приоритет
+              } else if (pageNum < page) {
+                priorities.set(pageNum, "low"); // Предыдущие страницы - низкий приоритет
+              } else {
+                priorities.set(pageNum, "low"); // Следующие страницы - низкий приоритет (пока)
+              }
+            });
+            setImageLoadPriority(priorities);
+
+            setIsPositionRestored(true);
+          } catch (error) {
+            console.warn("Failed to restore reading position:", error);
+            setCurrentPage(1);
+            setIsPositionRestored(true);
+          }
+        }, 100); // Значительно сокращаем задержку для быстрой прокрутки
+
+        return () => clearTimeout(timeoutId);
+      };
+
+      // Очищаем таймеры и обработчики при размонтировании
+      return () => {
+        clearInterval(countdownInterval);
+        if (cancelButton) {
+          cancelButton.removeEventListener('click', cancelRestore);
+        }
+        if (document.getElementById(notificationId)) {
+          document.getElementById(notificationId)?.remove();
+        }
+      };
     } else {
       // Если нет сохраненной позиции, сразу помечаем как восстановленное
       setIsPositionRestored(true);
@@ -496,17 +569,13 @@ export default function ReadChapterPage({
               {/* Изображение тайтла */}
               {title.image && (
                 <div className="relative w-10 h-12 flex-shrink-0">
-                  <OptimizedImage
+                  <Image
+                    loader={() => getImageUrl(title.image)}
                     src={getImageUrl(title.image)}
                     alt={title.title}
-                    width={40}
-                    height={48}
+                    fill
                     className="object-cover rounded-md"
-                    quality={80}
-                    priority={false}
-                    onError={() => {
-                      // Обработка ошибки загрузки изображения
-                    }}
+                    sizes="40px"
                   />
                 </div>
               )}
@@ -580,13 +649,19 @@ export default function ReadChapterPage({
                     }}
                   >
                     {!isError ? (
-                      <OptimizedImage
-                        key={`${chapter._id}-${imageIndex}`}
-                        src={imageUrl}
+                      <Image
+                        key={`${chapter._id}-${imageIndex}-${imageWidth}`}
+                        loader={imageLoader}
+                        src={src}
                         alt={`Глава ${chapter.number}, Страница ${
                           imageIndex + 1
                         }`}
                         width={isMobile ? 1200 : imageWidth}
+                        height={
+                          isMobile
+                            ? 1600
+                            : Math.round((imageWidth * 1600) / 1200)
+                        }
                         className="w-full h-auto shadow-2xl"
                         quality={
                           // Если есть приоритеты, используем разное качество
@@ -608,14 +683,24 @@ export default function ReadChapterPage({
                               })()
                             : 85 // Fallback качество
                         }
+                        loading={
+                          // Если есть приоритеты, используем их, иначе fallback к старой логике
+                          imageLoadPriority.size > 0
+                            ? imageLoadPriority.get(imageIndex + 1) === "high"
+                              ? "eager"
+                              : "lazy"
+                            : imageIndex < (isMobile ? 6 : 3)
+                            ? "eager"
+                            : "lazy"
+                        }
+                        onError={() =>
+                          handleImageError(chapter._id, imageIndex)
+                        }
                         priority={
                           // Если есть приоритеты, используем их, иначе fallback к старой логике
                           imageLoadPriority.size > 0
                             ? imageLoadPriority.get(imageIndex + 1) === "high"
                             : imageIndex < (isMobile ? 3 : 1)
-                        }
-                        onError={() =>
-                          handleImageError(chapter._id, imageIndex)
                         }
                       />
                     ) : (
