@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import OptimizedImage from "@/shared/optimized-image";
 import { useEffect, useRef, useState } from "react";
 import { ReaderChapter as Chapter } from "@/shared/reader/types";
 
@@ -137,13 +137,10 @@ export default function ContinuousScrollView({
             return (
               <div key={`${chapter._id}-${imageIdx}`} className="flex justify-center">
                 {!imageLoadErrors.has(globalIndex) ? (
-                  <Image
-                    loader={() => `${image}`}
+                  <OptimizedImage
                     src={`${image}`}
                     alt={`Глава ${chapter.number}, Страница ${imageIdx + 1}`}
-                    unoptimized
                     width={1000}
-                    height={4000}
                     className={`max-w-full h-auto ${
                       imageWidth === "fit"
                         ? "w-full"

@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useToast } from "@/hooks/useToast";
 import { ReportModal } from "@/shared/report/report-modal";
 import { ReportType } from "@/types/report";
+import OptimizedImage from "@/shared/optimized-image";
 
 import { useAuth } from "@/hooks/useAuth";
 import { ReaderTitle } from "@/types/title";
@@ -129,15 +129,6 @@ export default function ReadChapterPage({
     return `${process.env.NEXT_PUBLIC_URL}${url}`;
   }, []);
 
-  // Функция загрузчика изображений с поддержкой ширины
-  const imageLoader = useCallback(
-    ({ src, width }: { src: string; width: number }) => {
-      const imageUrl = getImageUrl(src);
-      // Добавляем параметр ширины к URL для оптимизации
-      return `${imageUrl}?w=${width}`;
-    },
-    [getImageUrl]
-  );
 
   // Обновление просмотров и истории чтения
   useEffect(() => {
@@ -505,13 +496,17 @@ export default function ReadChapterPage({
               {/* Изображение тайтла */}
               {title.image && (
                 <div className="relative w-10 h-12 flex-shrink-0">
-                  <Image
-                    loader={() => getImageUrl(title.image)}
+                  <OptimizedImage
                     src={getImageUrl(title.image)}
                     alt={title.title}
-                    fill
+                    width={40}
+                    height={48}
                     className="object-cover rounded-md"
-                    sizes="40px"
+                    quality={80}
+                    priority={false}
+                    onError={() => {
+                      // Обработка ошибки загрузки изображения
+                    }}
                   />
                 </div>
               )}
@@ -585,19 +580,13 @@ export default function ReadChapterPage({
                     }}
                   >
                     {!isError ? (
-                      <Image
-                        key={`${chapter._id}-${imageIndex}-${imageWidth}`}
-                        loader={imageLoader}
-                        src={src}
+                      <OptimizedImage
+                        key={`${chapter._id}-${imageIndex}`}
+                        src={imageUrl}
                         alt={`Глава ${chapter.number}, Страница ${
                           imageIndex + 1
                         }`}
                         width={isMobile ? 1200 : imageWidth}
-                        height={
-                          isMobile
-                            ? 1600
-                            : Math.round((imageWidth * 1600) / 1200)
-                        }
                         className="w-full h-auto shadow-2xl"
                         quality={
                           // Если есть приоритеты, используем разное качество
@@ -619,24 +608,14 @@ export default function ReadChapterPage({
                               })()
                             : 85 // Fallback качество
                         }
-                        loading={
-                          // Если есть приоритеты, используем их, иначе fallback к старой логике
-                          imageLoadPriority.size > 0
-                            ? imageLoadPriority.get(imageIndex + 1) === "high"
-                              ? "eager"
-                              : "lazy"
-                            : imageIndex < (isMobile ? 6 : 3)
-                            ? "eager"
-                            : "lazy"
-                        }
-                        onError={() =>
-                          handleImageError(chapter._id, imageIndex)
-                        }
                         priority={
                           // Если есть приоритеты, используем их, иначе fallback к старой логике
                           imageLoadPriority.size > 0
                             ? imageLoadPriority.get(imageIndex + 1) === "high"
                             : imageIndex < (isMobile ? 3 : 1)
+                        }
+                        onError={() =>
+                          handleImageError(chapter._id, imageIndex)
                         }
                       />
                     ) : (

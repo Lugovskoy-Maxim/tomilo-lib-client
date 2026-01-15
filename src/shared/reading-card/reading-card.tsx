@@ -56,7 +56,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
   };
 
   const imageUrl = getImageUrl();
-  const imageUrlString = typeof imageUrl === 'string' ? imageUrl : imageUrl.src;
+  const imageUrlString = typeof imageUrl === "string" ? imageUrl : imageUrl.src;
 
   return (
     <div
@@ -72,7 +72,6 @@ export default function ReadingCard({ data }: ReadingCardProps) {
               src={imageUrlString}
               alt={data.title}
               width={128}
-              height={144}
               className="object-cover"
               quality={80}
               priority={false}

@@ -65,11 +65,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const getPlaceholder = () => {
     if (width && height) {
       return (
-        <div 
+        <div
           className="image-placeholder"
           style={{
             width: width,
-            height: height,
+            height: 'auto',
             backgroundColor: '#f0f0f0',
             display: 'flex',
             alignItems: 'center',
@@ -85,11 +85,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Отображение ошибки
   const renderError = () => (
-    <div 
+    <div
       className="image-error"
       style={{
         width: width || '100%',
-        height: height || '200px',
+        height: 'auto',
         backgroundColor: '#fdd',
         display: 'flex',
         alignItems: 'center',
@@ -126,7 +126,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         style={{
           display: isLoading ? 'none' : 'block',
           width: width ? `${width}px` : '100%',
-          height: height ? `${height}px` : 'auto',
+          height: 'auto',
           ...style
         }}
         onDragStart={onDragStart}

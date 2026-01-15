@@ -1,4 +1,4 @@
-import Image from "next/image";
+import OptimizedImage from "@/shared/optimized-image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ReaderChapter as Chapter } from "@/shared/reader/types";
 
@@ -41,11 +41,10 @@ export default function SinglePageView({
 
         <div className="flex justify-center">
           {!imageLoadErrors.has(currentImageIndex) ? (
-            <Image
+            <OptimizedImage
               src={chapter.images[currentImageIndex]}
               alt={`Страница ${currentImageIndex + 1}`}
               width={800}
-              height={1200}
               className={`max-h-[90vh] object-contain ${
                 imageWidth === "fit" ? "w-full" : imageWidth === "original" ? "w-auto" : "max-w-full"
               }`}

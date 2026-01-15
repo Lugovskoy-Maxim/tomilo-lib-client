@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import OptimizedImage from "@/shared/optimized-image";
 import { ChevronLeft } from "lucide-react";
 import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
 
@@ -41,12 +41,11 @@ export default function NavigationHeader({
 
             <div className="flex items-center gap-2">
               <div className="relative w-8 h-12 rounded overflow-hidden">
-                <Image
+                <OptimizedImage
                   src={process.env.NEXT_PUBLIC_URL  + title.image}
                   alt={title.title}
-                  fill
+                  width={32}
                   className="object-cover"
-                  sizes="32px"
                 />
               </div>
               <div className="max-w-xs">
