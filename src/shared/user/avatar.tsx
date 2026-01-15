@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import OptimizedImage from "@/shared/optimized-image";
+import OptimizedImage from "@/shared/OptimizedImage";
 
 interface UserAvatarProps {
   avatarUrl?: string | null;

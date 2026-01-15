@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Header, Footer } from "@/widgets";
-import { ShopTabs } from "@/shared/shop/shop-tabs";
-import { ShopSection } from "@/shared/shop/shop-section";
+import { ShopTabs } from "@/shared/shop/ShopTabs";
+import { ShopSection } from "@/shared/shop/ShopSection";
 import { useSEO } from "@/hooks/useSEO";
 
 export default function TomiloShopPage() {
@@ -16,19 +16,6 @@ export default function TomiloShopPage() {
       "Купите уникальные аватары, фоны и карточки для персонализации вашего профиля в Tomilo-lib.ru",
     keywords: "магазин, украшения, аватары, фоны, карточки, персонализация",
   });
-
-  const getTabTitle = () => {
-    switch (activeTab) {
-      case "avatar":
-        return "Аватары";
-      case "background":
-        return "Фоны";
-      case "card":
-        return "Карточки";
-      default:
-        return "Товары";
-    }
-  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">

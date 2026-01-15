@@ -1,2 +1,4 @@
-export { default } from "./error-state";
-export { default as ChapterErrorState } from "./chapter-error-state";
+// Default exports (export default function)
+export { default as ErrorState } from "./ErrorState";
+export { default as ChapterErrorState } from "./ChapterErrorState";
+

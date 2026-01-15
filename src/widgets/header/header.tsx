@@ -16,7 +16,7 @@ import {
   Bell,
 } from "lucide-react";
 import Link from "next/link";
-import ContactForm from "@/widgets/contact-form/contact-form";
+import ContactForm from "@/widgets/contact-form/ContactForm";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

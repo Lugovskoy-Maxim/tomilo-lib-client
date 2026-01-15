@@ -1,6 +1,6 @@
 "use client";
 
-import NavigationLink from "@/shared/navigation-link/navigation-link";
+import NavigationLink from "@/shared/navigation-link/NavigationLink";
 import { usePathname } from "next/navigation";
 import { BookOpen, Trophy } from "lucide-react";
 

@@ -1,17 +1,17 @@
 "use client";
 
-import { AdminTabs } from "@/shared/admin/admin-tabs";
-import { AutoParsingSection } from "@/shared/admin/auto-parsing-section";
-import { ChaptersSection } from "@/shared/admin/chapters-section";
-import { CollectionsSection } from "@/shared/admin/collections-section";
-import { OverviewSection } from "@/shared/admin/overview-section";
-import { ParserSection } from "@/shared/admin/parser-section";
-import { TitlesSection } from "@/shared/admin/titles-section";
-import { UsersSection } from "@/shared/admin/users-section";
-import { CommentsSection } from "@/shared/admin/comments-section";
-import { ReportsSection } from "@/shared/admin/reports-section";
+import { AdminTabs } from "@/shared/admin/AdminTabs";
+import AutoParsingSection from "@/shared/admin/AutoParsingSection";
+import { ChaptersSection } from "@/shared/admin/ChaptersSection";
+import { CollectionsSection } from "@/shared/admin/CollectionsSection";
+import { OverviewSection } from "@/shared/admin/OverviewSection";
+import { ParserSection } from "@/shared/admin/ParserSection";
+import { TitlesSection } from "@/shared/admin/TitlesSection";
+import { UsersSection } from "@/shared/admin/UsersSection";
+import { CommentsSection } from "@/shared/admin/CommentsSection";
+import { ReportsSection } from "@/shared/admin/ReportsSection";
 import { Footer, Header } from "@/widgets";
-import { AuthGuard } from "@/guard/auth-guard";
+import { AuthGuard } from "@/guard/AuthGuard";
 import { useState } from "react";
 import { Cog } from "lucide-react";
 

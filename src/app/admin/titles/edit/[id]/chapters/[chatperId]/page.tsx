@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthGuard } from "@/guard/auth-guard";
+import { AuthGuard } from "@/guard/AuthGuard";
 import { useState, useEffect, ChangeEvent, FormEvent, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -14,7 +14,7 @@ import {
 } from "@/store/api/chaptersApi";
 import { UpdateChapterDto } from "@/types/title";
 import { Chapter } from "@/types/chapter";
-import { ImagePreviewModal } from "@/shared/admin/image-preview-modal";
+import { ImagePreviewModal } from "@/shared/admin/ImagePreviewModal";
 import { Button } from "@/shared/ui/button";
 
 interface FormActionsProps {

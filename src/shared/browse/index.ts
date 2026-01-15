@@ -1,7 +1,12 @@
-export { default as FilterSidebar } from "./filter-sidebar";
-export { default as SortAndSearch } from "./sort-and-search";
-export { default as TitleGrid } from "./titles-grid";
+// Default exports (export default function)
+export { default as FilterSidebar } from "./FilterSidebar";
+export { default as SortAndSearch } from "./SortAndSearch";
+export { default as TitleGrid } from "./TitlesGrid";
 export { default as Pagination } from "./pagination";
-export { default as MobileFilterButton } from "./mobile-filter-button";
-export { default as TitlesContent } from "./titles-content";
-export { default as CollapsibleGenresList } from "./CollapsibleGenresList";
+export { default as MobileFilterButton } from "./MobileFilterButton";
+export { default as TitlesContent } from "./TitlesContent";
+export { default as TitleView } from "./TitleView";
+
+// Named exports (export function)
+export { ReadButton } from "./ReadButton";
+

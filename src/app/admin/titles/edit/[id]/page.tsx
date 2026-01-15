@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthGuard } from "@/guard/auth-guard";
+import { AuthGuard } from "@/guard/AuthGuard";
 
 import { Footer, Header } from "@/widgets";
 import {
@@ -38,7 +38,7 @@ import { UpdateTitleDto } from "@/types/title";
 
 import { useToast } from "@/hooks/useToast";
 // import Image from "next/image";
-import { CoverUploadSection } from "@/shared/admin/cover-upload-section";
+import { CoverUploadSection } from "@/shared/admin/CoverUploadSection";
 import { normalizeGenres } from "@/lib/genre-normalizer";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 

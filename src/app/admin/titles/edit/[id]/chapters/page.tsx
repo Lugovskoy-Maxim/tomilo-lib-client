@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthGuard } from "@/guard/auth-guard";
+import { AuthGuard } from "@/guard/AuthGuard";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -13,7 +13,7 @@ import { useMemo, useCallback, useState, useRef } from "react";
 import { Header, Footer } from "@/widgets";
 import { useToast } from "@/hooks/useToast";
 import { Chapter } from "@/types/title";
-import { getChapterPath } from "@/lib/title-paths";
+
 
 export default function ChaptersManagementPage() {
   const params = useParams();

@@ -1,3 +1,7 @@
-export { LeftSidebar } from "./left-sidebar";
-export { RightContent } from "./right-content";
-export { default as MobileCover } from "./mobile-cover";
+// Named exports (export function)
+export { LeftSidebar } from "./LeftSidebar";
+export { RightContent } from "./RightContent";
+
+// Default exports (export default function)
+export { default as MobileCover } from "./MobileCover";
+

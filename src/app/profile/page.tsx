@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthGuard } from "@/guard/auth-guard";
+import { AuthGuard } from "@/guard/AuthGuard";
 import { useProfile } from "@/hooks/useProfile";
 import { ErrorState, LoadingState, ProfileBanner, ProfileHeader } from "@/shared";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
@@ -10,7 +10,7 @@ import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { UserProfile } from "@/types/user";
 
 // Импортируем компонент вкладок профиля
-import { ProfileTabs } from "@/shared/profile-tabs/profile-tabs";
+import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";
 
 export default function ProfilePage() {
   const { userProfile, isLoading, authLoading, handleAvatarUpdate } = useProfile();

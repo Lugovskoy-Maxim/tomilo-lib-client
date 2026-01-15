@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthGuard } from "@/guard/auth-guard";
+import { AuthGuard } from "@/guard/AuthGuard";
 import { Footer, Header } from "@/widgets";
 import { Plus, BookOpen, Tag, Edit, Save } from "lucide-react";
 import Link from "next/link";

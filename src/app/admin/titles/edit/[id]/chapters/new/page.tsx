@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthGuard } from "@/guard/auth-guard";
+import { AuthGuard } from "@/guard/AuthGuard";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCreateChapterWithPagesMutation } from "@/store/api/chaptersApi";

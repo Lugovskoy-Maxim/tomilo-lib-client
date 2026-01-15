@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import ServerChapterPage from "./server-page";
+import ServerChapterPage from "./ServerPage";
 import { Metadata } from "next";
 
 // Функция для получения данных тайтла по slug на сервере

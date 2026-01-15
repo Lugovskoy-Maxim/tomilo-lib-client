@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthGuard } from "@/guard/auth-guard";
+import { AuthGuard } from "@/guard/AuthGuard";
 import { useProfile } from "@/hooks/useProfile";
 import { ErrorState, LoadingState } from "@/shared";
 
