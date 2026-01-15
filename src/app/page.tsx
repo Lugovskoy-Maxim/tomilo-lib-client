@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import HomeClient from "./page-client";
+import { HomePage } from "@/widgets";
 
 // Функция для генерации SEO метаданных
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,5 +25,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function Home() {
-  return <HomeClient />;
+  return <HomePage />;
 }

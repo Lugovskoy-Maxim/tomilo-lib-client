@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import TitlesClient from "./titles-client";
+import { TitlesPage } from "@/widgets";
 import { Metadata } from "next";
 
 // Функция для генерации SEO метаданных
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function TitlesPage() {
+export default function TitlesPageRoute() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
@@ -35,7 +35,7 @@ export default function TitlesPage() {
         </div>
       </div>
     }>
-      <TitlesClient />
+      <TitlesPage />
     </Suspense>
   );
 }

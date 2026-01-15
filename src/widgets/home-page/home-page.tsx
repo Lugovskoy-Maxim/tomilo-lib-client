@@ -88,17 +88,11 @@ const DataCarousel = ({
   );
 };
 
-export default function HomeClient() {
+export default function HomePage() {
   const [mounted, setMounted] = useState(false);
-  // const [activePeriod, setActivePeriod] = useState<"day" | "week" | "month">(
-  //   "day"
-  // );
   const {
     popularTitles,
     randomTitles,
-    // topTitlesDay,
-    // topTitlesWeek,
-    // topTitlesMonth,
     readingProgress,
     topManhua,
     topManhwa,
@@ -167,7 +161,6 @@ export default function HomeClient() {
           icon={<LibraryIcon className="w-6 h-6" />}
           showNavigation={false}
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-          // getItemPath={(item: any) => `/collections/${item.id}`}
         />
 
         {/* Объединенная секция топ манхв, маньхуа и новинок 2025 */}
@@ -175,38 +168,38 @@ export default function HomeClient() {
           data={{
             topManhwa: (topManhwa.data || []).slice(0, 5).map((item) => ({
               id: item.id,
-              slug: item.slug, // Добавляем slug для правильной навигации
+              slug: item.slug,
               title: item.title,
-              coverImage: item.image, // <-- исправлено здесь
+              coverImage: item.image,
               type: item.type,
               year: item.year,
               rating: item.rating,
-              views: item.views || "0К", // Добавляем views, если нужно
-              isAdult: item.isAdult ?? false, // Добавляем поле isAdult для размытия и 18+ значка
+              views: item.views || "0К",
+              isAdult: item.isAdult ?? false,
             })),
 
             top2025: (top2025.data || []).slice(0, 5).map((item) => ({
               id: item.id,
-              slug: item.slug, // Добавляем slug для правильной навигации
+              slug: item.slug,
               title: item.title,
-              coverImage: item.image, // <-- исправлено здесь
+              coverImage: item.image,
               type: item.type,
               year: item.year,
               rating: item.rating,
               views: item.views || "0К",
-              isAdult: item.isAdult ?? false, // Добавляем поле isAdult для размытия и 18+ значка
+              isAdult: item.isAdult ?? false,
             })),
 
             topManhua: (topManhua.data || []).slice(0, 5).map((item) => ({
               id: item.id,
-              slug: item.slug, // Добавляем slug для правильной навигации
+              slug: item.slug,
               title: item.title,
-              coverImage: item.image, // <-- исправлено здесь
+              coverImage: item.image,
               type: item.type,
               year: item.year,
               rating: item.rating,
               views: item.views || "0К",
-              isAdult: item.isAdult ?? false, // Добавляем поле isAdult для размытия и 18+ значка
+              isAdult: item.isAdult ?? false,
             })),
           }}
         />
@@ -246,3 +239,4 @@ export default function HomeClient() {
     </>
   );
 }
+

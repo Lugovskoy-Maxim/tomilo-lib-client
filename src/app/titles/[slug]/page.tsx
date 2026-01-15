@@ -1,9 +1,6 @@
-
-
 import { Suspense } from "react";
-import TitleViewClient from "./title-view-client";
+import { TitleView } from "@/widgets";
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -19,18 +16,18 @@ async function getTitleDataBySlug(slug: string) {
       {
         next: { revalidate: 3600 }, // Кеширование на 1 час для SEO
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; SEO-Bot/1.0)',
+          "User-Agent": "Mozilla/5.0 (compatible; SEO-Bot/1.0)",
         },
       }
     );
-    
+
     if (!response.ok) {
       if (response.status === 404) {
         return null;
       }
       throw new Error(`Failed to fetch title by slug: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data.data || data;
   } catch (error) {
@@ -40,7 +37,9 @@ async function getTitleDataBySlug(slug: string) {
 }
 
 // Функция для генерации улучшенных SEO метаданных
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   try {
     const resolvedParams = await params;
     const { slug } = resolvedParams;
@@ -48,11 +47,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     // Получаем данные тайтла по slug
     const titleData = await getTitleDataBySlug(slug);
-    
+
     if (!titleData) {
       return {
-        title: 'Тайтл не найден - Tomilo-lib.ru',
-        description: 'Запрашиваемый тайтл не найден на сайте Tomilo-lib.ru',
+        title: "Тайтл не найден - Tomilo-lib.ru",
+        description: "Запрашиваемый тайтл не найден на сайте Tomilo-lib.ru",
         robots: {
           index: false,
           follow: false,
@@ -62,17 +61,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     const titleName = titleData.name || "Без названия";
     const shortDescription = titleData.description
-      ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, '')
-      : `Читать ${titleName} онлайн на Tomilo-lib.ru. ${titleData.genres?.join(', ')}`;
+      ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, "")
+      : `Читать ${titleName} онлайн на Tomilo-lib.ru. ${titleData.genres?.join(
+          ", "
+        )}`;
 
     const image = titleData.coverImage
       ? `${baseUrl}${titleData.coverImage}`
       : undefined;
-
-    // Определяем тип контента для микроразметки
-    const contentType = titleData.type === 'novel' || titleData.type === 'light_novel' 
-      ? 'Book' 
-      : 'Article';
 
     // Формируем расширенные метаданные
     const metadata: Metadata = {
@@ -83,70 +79,74 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         ...(titleData.genres || []),
         titleData.author,
         titleData.artist,
-        'манга',
-        'маньхуа', 
-        'манхва',
-        'комиксы',
-        'онлайн чтение',
-        'Tomilo-lib',
+        "манга",
+        "маньхуа",
+        "манхва",
+        "комиксы",
+        "онлайн чтение",
+        "Tomilo-lib",
         titleData.type,
-      ].filter(Boolean).join(', '),
+      ]
+        .filter(Boolean)
+        .join(", "),
       authors: titleData.author ? [titleData.author] : [],
       creator: titleData.artist || titleData.author,
-      publisher: 'Tomilo-lib.ru',
+      publisher: "Tomilo-lib.ru",
       robots: {
         index: true,
         follow: true,
         googleBot: {
           index: true,
           follow: true,
-          'max-video-preview': -1,
-          'max-image-preview': 'large',
-          'max-snippet': -1,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
         },
       },
 
       openGraph: {
         title: `Читать ${titleName} - Tomilo-lib.ru`,
         description: shortDescription,
-        type: 'article' as const,
+        type: "article" as const,
         url: `${baseUrl}/titles/${slug}`,
-        siteName: 'Tomilo-lib.ru',
-        locale: 'ru_RU',
-        images: image ? [
-          {
-            url: image,
-            width: 1200,
-            height: 630,
-            alt: `${titleName} - обложка`,
-          }
-        ] : [],
+        siteName: "Tomilo-lib.ru",
+        locale: "ru_RU",
+        images: image
+          ? [
+              {
+                url: image,
+                width: 1200,
+                height: 630,
+                alt: `${titleName} - обложка`,
+              },
+            ]
+          : [],
       },
       twitter: {
-        card: 'summary_large_image',
+        card: "summary_large_image",
         title: `Читать ${titleName} - Tomilo-lib.ru`,
         description: shortDescription,
         images: image ? [image] : [],
-        creator: '@tomilo_lib',
-        site: '@tomilo_lib',
+        creator: "@tomilo_lib",
+        site: "@tomilo_lib",
       },
       alternates: {
         canonical: `${baseUrl}/titles/${slug}`,
         languages: {
-          'ru-RU': `${baseUrl}/titles/${slug}`,
+          "ru-RU": `${baseUrl}/titles/${slug}`,
         },
       },
       verification: {
-        yandex: '8f2bae575aa86202',
+        yandex: "8f2bae575aa86202",
       },
     };
 
     return metadata;
   } catch (error) {
-    console.error('Ошибка при генерации метаданных:', error);
+    console.error("Ошибка при генерации метаданных:", error);
     return {
-      title: 'Ошибка загрузки - Tomilo-lib.ru',
-      description: 'Произошла ошибка при загрузке страницы',
+      title: "Ошибка загрузки - Tomilo-lib.ru",
+      description: "Произошла ошибка при загрузке страницы",
       robots: {
         index: false,
         follow: false,
@@ -162,25 +162,27 @@ export async function generateStaticParams() {
     // для получения популярных тайтлов для предварительной генерации
     return [];
   } catch (error) {
-    console.error('Error generating static params:', error);
+    console.error("Error generating static params:", error);
     return [];
   }
 }
 
-export default async function TitlePage({ params }: PageProps) {
+export default async function TitlePageRoute({ params }: PageProps) {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-  
+
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-          <div className="text-[var(--foreground)]">Загрузка тайтла...</div>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+            <div className="text-[var(--foreground)]">Загрузка тайтла...</div>
+          </div>
         </div>
-      </div>
-    }>
-      <TitleViewClient slug={slug} />
+      }
+    >
+      <TitleView slug={slug} />
     </Suspense>
   );
 }

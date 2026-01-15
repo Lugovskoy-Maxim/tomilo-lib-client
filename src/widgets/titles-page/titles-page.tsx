@@ -1,14 +1,9 @@
-
 "use client";
 
 import { Footer, Header } from "@/widgets";
 import TitlesContent from "@/shared/browse/titles-content";
 
-interface TitlesPageClientProps {
-  searchQuery?: string;
-}
-
-export default function TitlesPageClient() {
+export default function TitlesPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
@@ -21,3 +16,4 @@ export default function TitlesPageClient() {
     </main>
   );
 }
+

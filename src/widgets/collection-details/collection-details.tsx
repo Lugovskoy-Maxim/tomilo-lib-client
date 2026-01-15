@@ -19,13 +19,7 @@ import Script from "next/script";
 import { translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
-interface CollectionDetailsClientProps {
-  collectionId: string;
-}
-
-export default function CollectionDetailsClient({
-  collectionId,
-}: CollectionDetailsClientProps) {
+export default function CollectionDetails({ collectionId }: { collectionId: string }) {
   const router = useRouter();
   const { user } = useAuth();
   const {
@@ -349,3 +343,4 @@ export default function CollectionDetailsClient({
     </main>
   );
 }
+

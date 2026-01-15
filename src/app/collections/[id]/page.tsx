@@ -2,8 +2,8 @@
 
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import CollectionDetailsClient from "./collection-details-client";
-import { Collection } from "@/types/collection";
+import { CollectionDetails } from "@/widgets";
+
 
 interface CollectionPageProps {
   params: Promise<{ id: string }>;
@@ -77,7 +77,7 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
 }
 
 // Серверный компонент страницы коллекции по ID
-export default async function CollectionPage({ params }: CollectionPageProps) {
+export default async function CollectionPageRoute({ params }: CollectionPageProps) {
   const resolvedParams = await params;
   const { id } = resolvedParams;
 
@@ -86,5 +86,5 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
     notFound();
   }
 
-  return <CollectionDetailsClient collectionId={id} />;
+  return <CollectionDetails collectionId={id} />;
 }

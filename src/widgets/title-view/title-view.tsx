@@ -13,14 +13,14 @@ import {
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
-import LoadingState from "./loading";
-import ErrorState from "./error";
+import LoadingState from "@/shared/profile/profile-loading";
+import ErrorState from "@/shared/error-state/error-state";
 import MobileCover from "@/shared/browse/title-view/mobile-cover";
 import { LeftSidebar } from "@/shared/browse/title-view/left-sidebar";
 import { RightContent } from "@/shared/browse/title-view/right-content";
 import { AgeVerificationModal } from "@/shared/modal/age-verification-modal";
 
-export default function TitleViewClient({ slug }: { slug: string }) {
+export default function TitleView({ slug }: { slug: string }) {
   const { user } = useAuth();
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
 
@@ -267,11 +267,11 @@ export default function TitleViewClient({ slug }: { slug: string }) {
 
   // Показываем ошибку
   if (titleError) {
-    return <ErrorState error={"Ошибка загрузки тайтла"} slug={slug} />;
+    return <ErrorState title={"Ошибка загрузки тайтла"} />;
   }
 
   if (!titleData) {
-    return <ErrorState error={"Тайтл не найден"} slug={slug} />;
+    return <ErrorState title={"Тайтл не найден"} />;
   }
 
   // Определяем тип тайтла для хлебных крошек
@@ -497,3 +497,4 @@ export default function TitleViewClient({ slug }: { slug: string }) {
     </main>
   );
 }
+

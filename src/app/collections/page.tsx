@@ -1,5 +1,5 @@
 import { pageTitle } from "@/lib/page-title";
-import CollectionsPageClient from "./collections-client";
+import { CollectionsPage } from "@/widgets";
 
 interface CollectionsPageProps {
   searchParams: Promise<{
@@ -11,7 +11,7 @@ interface CollectionsPageProps {
 }
 
 // Основной серверный компонент страницы коллекций
-export default async function CollectionsPage({ searchParams }: CollectionsPageProps) {
+export default async function CollectionsPageRoute({ searchParams }: CollectionsPageProps) {
   const resolvedSearchParams = await searchParams;
   const initialFilters = getInitialFilters(resolvedSearchParams);
 
@@ -21,7 +21,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
       : "Просмотрите все доступные коллекции тайтлов - Tomilo-lib.ru"
   );
 
-  return <CollectionsPageClient searchQuery={initialFilters.search} />;
+  return <CollectionsPage />;
 }
 
 // Утилита для получения начальных фильтров из URL параметров

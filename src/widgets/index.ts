@@ -8,3 +8,9 @@ export { default as ReadChapterPage} from "./read-chapter-page/read-chapter-page
 export { default as BookmarksSection } from './profile-bookmarks/profile-bookmarks';
 export { default as ReadingHistorySection } from './profile-reading/profile-reading';
 export { default as CollectionsContent } from './collections-content/collections-content';
+export { default as TitlesPage } from './titles-page/titles-page';
+export { default as TitleView } from './title-view/title-view';
+export { default as CollectionsPage } from './collections-page/collections-page';
+export { default as CollectionDetails } from './collection-details/collection-details';
+export { default as HomePage } from './home-page/home-page';
+export { default as UpdatesPage } from './updates-page/updates-page';

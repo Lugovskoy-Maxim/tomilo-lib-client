@@ -3,20 +3,15 @@ import { CollectionsContent, Footer, Header } from "@/widgets";
 import { useSEO } from "@/hooks/useSEO";
 import { useMemo } from "react";
 
-interface CollectionsPageClientProps {
-  searchQuery?: string;
-}
-
-export default function CollectionsPageClient({ searchQuery }: CollectionsPageClientProps) {
+export default function CollectionsPage() {
   // SEO для страницы коллекций
   const seoConfig = useMemo(() => ({
-    title: searchQuery ? `Поиск коллекций: ${searchQuery}` : "Коллекции",
-    description: searchQuery
-      ? `Найдите коллекции по запросу: ${searchQuery}`
-      : "Просмотрите все доступные коллекции тайтлов",
+    title: "Коллекции",
+    description: "Просмотрите все доступные коллекции тайтлов",
     keywords: "коллекции, тайтлы, манга, коллекция",
     image: "/logo/tomilo_color.svg",
-  }), [searchQuery]);
+  }), []);
+
   useSEO(seoConfig);
 
   return (
@@ -31,3 +26,4 @@ export default function CollectionsPageClient({ searchQuery }: CollectionsPageCl
     </main>
   );
 }
+
