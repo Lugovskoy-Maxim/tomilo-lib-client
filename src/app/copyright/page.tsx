@@ -1,7 +1,7 @@
 import { Mail, FileText, Clock, Shield, Languages } from "lucide-react";
 import { Footer, Header } from "@/widgets";
 import content from "@/constants/copyright";
-import { BackButton } from "@/shared";
+import { BackButton, Breadcrumbs } from "@/shared";
 import { Metadata } from "next";
 
 interface CopyrightPageProps {
@@ -29,6 +29,7 @@ export default async function CopyrightPage({ searchParams }: CopyrightPageProps
       <Header />
       <main className="flex-1 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] pb-15 md:pb-0">
         <div className="container mx-auto px-4 py-12 max-w-4xl">
+          <Breadcrumbs className="mb-6" />
           {/* Переключатель языка */}
           <div className="flex justify-end mb-6">
             <a

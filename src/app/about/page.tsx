@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import { Header, Footer } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
-
+import { Breadcrumbs } from "@/shared";
 export const metadata: Metadata = {
   title: "О нас - Tomilo-lib.ru",
-  description: "Узнайте больше о платформе Tomilo-lib.ru - современной платформе для чтения маньхуя и комиксов.",
+  description: "Узнайте больше о платформе Tomilo-lib.ru - современной платформе для чтения маньхуа и комиксов.",
 };
 
 export default function AboutPage() {
@@ -15,6 +15,7 @@ export default function AboutPage() {
       <Header />
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pb-20 md:pb-2">
         <div className="prose prose-lg max-w-none">
+          <Breadcrumbs className="mb-6" />
           <h1 className="text-3xl font-bold text-[var(--foreground)] mb-6">
             О нас
           </h1>
@@ -22,13 +23,13 @@ export default function AboutPage() {
           <div className="space-y-6 text-[var(--foreground)]">
             <p className="text-lg leading-relaxed">
               <strong className="text-[var(--primary)]">TOMILO-LIB</strong> — это современная платформа,
-              созданная для любителей маньхуя и комиксов. Мы стремимся предоставить удобный и качественный
+              созданная для любителей манги, манхвы и маньхуа. Мы стремимся предоставить удобный и качественный
               сервис для чтения и изучения азиатской комиксной культуры.
             </p>
 
             <div className="bg-[var(--secondary)] p-6 rounded-lg border border-[var(--border)]">
               <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">
-                Наша миссия
+                Наша задача
               </h2>
               <p className="leading-relaxed">
                 Мы верим, что каждый человек должен иметь доступ к качественному контенту.
@@ -42,7 +43,7 @@ export default function AboutPage() {
                 Что мы предлагаем
               </h2>
               <ul className="space-y-2 list-disc list-inside leading-relaxed">
-                <li>Обширная коллекция манги и манхвы и маньхуя и комиксов</li>
+                <li>Обширная коллекция манги и манхвы и маньхуа и комиксов</li>
                 <li>Удобный интерфейс для чтения на любых устройствах</li>
                 <li>Регулярные обновления с новыми главами</li>
                 <li>Персонализированные рекомендации</li>
