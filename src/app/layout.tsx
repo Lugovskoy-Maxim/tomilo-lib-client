@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { ToastProvider } from "@/contexts/ToastContext";
 
 import { ToastContainer } from "@/shared/ui/Toast";
+import TelegramJoinNotification from "@/shared/TelegramJoinNotification";
 import Script from "next/script";
 
 const exo_2 = Exo_2({
@@ -109,8 +110,9 @@ export default function RootLayout({
       >
         <ToastProvider>
           <Providers>
-            <ThemeProvider>
+        <ThemeProvider>
               {children}
+              <TelegramJoinNotification />
               {/* Обработчик сообщений от окна авторизации через Яндекс */}
               <script
                 dangerouslySetInnerHTML={{
