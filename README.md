@@ -201,7 +201,7 @@ tomilo-lib-client/
 
 - **Сайт:** [tomilo-lib.ru](https://tomilo-lib.ru)
 - **Email:** support@tomilo-lib.ru
-- **GitHub:** [tomilo](https://github.com/tomilo)
+- **GitHub:** [Lugovskoy-Maxim](https://github.com/Lugovskoy-Maxim)
 
 ---
 
