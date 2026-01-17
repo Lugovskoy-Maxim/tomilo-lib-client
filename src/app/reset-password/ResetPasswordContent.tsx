@@ -41,7 +41,7 @@ export default function ResetPasswordContent() {
       setToken(tokenParam);
     } else {
       error("Неверная ссылка для сброса пароля");
-      router.push("/login");
+      router.push("/");
     }
   }, [searchParams, router, error]);
 
@@ -111,7 +111,7 @@ export default function ResetPasswordContent() {
       
       if (response.ok) {
         success("Пароль успешно изменен");
-        router.push("/login");
+        router.push("/");
       } else {
         error(result.message || "Не удалось сбросить пароль");
       }
@@ -178,11 +178,11 @@ export default function ResetPasswordContent() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full"
+            className="w-full cursor-pointer border-2 border-[var(--border)] rounded-full bg-[var(--chart-1)] text-[var(--primary)] hover:bg-[var(--chart-1)]/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span className="w-4 h-4 border-2 border-[var(--border)] border-t-transparent rounded-full animate-spin"></span>
                 Обновление пароля...
               </span>
             ) : (
