@@ -102,7 +102,7 @@ export default function ResetPasswordContent() {
           },
           body: JSON.stringify({
             token,
-            newPassword: formData.password
+            password: formData.password
           }),
         }
       );
