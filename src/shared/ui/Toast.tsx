@@ -47,7 +47,7 @@ export const Toast: React.FC<ToastProps> = ({ toast }) => {
   );
 };
 
-export const ToastContainer: React.FC = () => {
+const ToastContainer: React.FC = () => {
   const { toasts } = useToastContext();
 
   return (
@@ -60,3 +60,5 @@ export const ToastContainer: React.FC = () => {
     </div>
   );
 };
+
+export default ToastContainer;

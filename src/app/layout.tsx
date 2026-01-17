@@ -4,9 +4,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { ToastProvider } from "@/contexts/ToastContext";
 
-import { ToastContainer } from "@/shared/ui/Toast";
-import TelegramJoinNotification from "@/shared/TelegramJoinNotification";
 import Script from "next/script";
+import { TelegramJoinNotification, ToastContainer } from "@/shared";
 
 const exo_2 = Exo_2({
   variable: "--font-exo_2",
