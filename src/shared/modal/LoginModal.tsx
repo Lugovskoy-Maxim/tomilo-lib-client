@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { useLoginMutation, useYandexAuthMutation } from "@/store/api/authApi";
+import { useLoginMutation, useYandexAuthMutation, useForgotPasswordMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginData, FormErrors, FormTouched } from "../../types/form";
 import { Modal } from "..";
@@ -40,6 +40,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   // Используем RTK Query для логина
   const [loginMutation, { isLoading, error }] = useLoginMutation();
   const [yandexAuthMutation] = useYandexAuthMutation();
+  const [forgotPasswordMutation, { isLoading: isForgotPasswordLoading }] = useForgotPasswordMutation();
   const { login: authLogin } = useAuth();
 
   const validate = {
@@ -138,8 +139,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
   // Инициализация виджета Яндекс авторизации
   useEffect(() => {
     if (isOpen && yandexButtonRef.current) {
-      // Очищаем контейнер перед инициализацией
-      yandexButtonRef.current.innerHTML = "";
+      // Очищаем контейнер перед инициализацией (из очистки исчезает окно авторизации при вводе пароля)
+      // yandexButtonRef.current.innerHTML = "";
 
       // Проверяем, что YaAuthSuggest доступен
       if (typeof window !== "undefined" && window.YaAuthSuggest) {
@@ -357,34 +358,28 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
             <button
               type="button"
-              className="text-xs text-[var(--primary)] hover:underline"
-              onClick={() => {
-                // Отправляем запрос на сброс пароля
-                fetch(
-                  `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/auth/forgot-password`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ email: form.email }),
-                  },
-                )
-                  .then(response => response.json())
-                  .then(data => {
-                    if (data.success) {
-                      console.log("Письмо для сброса пароля отправлено");
-                      // Здесь можно показать уведомление пользователю
-                    } else {
-                      console.error("Ошибка отправки письма для сброса пароля:", data.message);
-                    }
-                  })
-                  .catch(error => {
-                    console.error("Ошибка сети при отправке запроса на сброс пароля:", error);
-                  });
+              className={`text-xs cursor-pointer hover:underline ${
+                isForgotPasswordLoading
+                  ? "text-[var(--muted-foreground)] cursor-not-allowed"
+                  : "text-[var(--primary)]"
+              }`}
+              disabled={isForgotPasswordLoading}
+              onClick={async () => {
+                if (!form.email) {
+                  // Можно показать уведомление о необходимости ввести email
+                  return;
+                }
+
+                try {
+                  await forgotPasswordMutation({ email: form.email }).unwrap();
+                  console.log("Письмо для сброса пароля отправлено");
+                  // Здесь можно показать уведомление пользователю
+                } catch (error: any) {
+                  console.error("Ошибка отправки письма для сброса пароля:", error?.data?.message);
+                }
               }}
             >
-              {MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD}
+              {isForgotPasswordLoading ? "Отправка..." : MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD}
             </button>
           </div>
           <div className="relative">

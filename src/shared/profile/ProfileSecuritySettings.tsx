@@ -3,6 +3,8 @@ import { Shield, Lock } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import { useState } from "react";
+import { useChangePasswordMutation } from "@/store/api/authApi";
+import { useToast } from "@/hooks/useToast";
 
 interface ProfileSecuritySettingsProps {
   userProfile: UserProfile;
@@ -12,22 +14,31 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [changePassword, { isLoading }] = useChangePasswordMutation();
+  const toast = useToast();
 
-  // TODO: Реализовать логику сохранения настроек безопасности
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      console.error("Пароли не совпадают");
+      toast.error("Пароли не совпадают");
       return;
     }
 
-    console.log("Изменение пароля пользователя");
-    // Здесь будет логика изменения пароля
+    try {
+      await changePassword({
+        currentPassword,
+        newPassword,
+      }).unwrap();
 
-    // Очистка формы после успешного изменения
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+      toast.success("Пароль успешно изменен");
+
+      // Очистка формы после успешного изменения
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Ошибка при изменении пароля");
+    }
   };
 
   return (
