@@ -111,7 +111,11 @@ export default function ResetPasswordContent() {
       
       if (response.ok) {
         success("Пароль успешно изменен");
-        router.push("/");
+
+        // Ждем 5 секунд перед перенаправлением
+        setTimeout(() => {
+          router.push("/");
+        }, 5000);
       } else {
         error(result.message || "Не удалось сбросить пароль");
       }
