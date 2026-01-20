@@ -84,7 +84,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
       <div className="animate-fade-in">
         {/* Вкладка "Обзор" */}
         {activeTab === "overview" && (
-          <div className="space-y-6">
+          <div className="space-y-6 pb-20 sm:pb-0">
             {/* <ProfileStats userProfile={userProfile} /> */}
             <ProfileAdditionalInfo userProfile={userProfile} />
             <ProfileContent userProfile={userProfile} />
@@ -93,7 +93,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
         {/* Вкладка "Закладки" */}
         {activeTab === "bookmarks" && (
-          <div className="space-y-6">
+          <div className="space-y-6 pb-20 sm:pb-0">
             <div>
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Мои закладки</h2>
               <p className="text-[var(--muted-foreground)] mb-4">Все сохраненные вами манги</p>
@@ -104,7 +104,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
         {/* Вкладка "История" */}
         {activeTab === "history" && (
-          <div className="space-y-6">
+          <div className="space-y-6 pb-20 sm:pb-0">
             <div>
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">История чтения</h2>
               <p className="text-[var(--muted-foreground)] mb-4">Все прочитанные вами главы</p>
@@ -115,7 +115,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
         {/* Вкладка "Настройки" */}
         {activeTab === "settings" && (
-          <div className="space-y-6">
+          <div className="space-y-6 pb-20 sm:pb-0">
             {/* Настройки уведомлений */}
             <ProfileNotificationsSettings userProfile={userProfile} />
 

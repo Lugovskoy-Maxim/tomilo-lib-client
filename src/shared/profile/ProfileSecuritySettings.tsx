@@ -14,6 +14,9 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isCurrentPasswordVisible, setIsCurrentPasswordVisible] = useState(false);
+  const [isNewPasswordVisible, setIsNewPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [changePassword, { isLoading }] = useChangePasswordMutation();
   const toast = useToast();
 
@@ -48,7 +51,7 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
         <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Безопасность</h2>
       </div>
 
-      <form onSubmit={handleChangePassword} className="space-y-4">
+      <form onSubmit={handleChangePassword} className="space-y-2">
         <div>
           <label
             htmlFor="currentPassword"
@@ -63,6 +66,9 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
             onChange={e => setCurrentPassword(e.target.value)}
             placeholder="Введите текущий пароль"
             icon={Lock}
+            showPasswordToggle={true}
+            isPasswordVisible={isCurrentPasswordVisible}
+            onTogglePassword={() => setIsCurrentPasswordVisible(!isCurrentPasswordVisible)}
           />
         </div>
 
@@ -80,6 +86,9 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
             onChange={e => setNewPassword(e.target.value)}
             placeholder="Введите новый пароль"
             icon={Lock}
+            showPasswordToggle={true}
+            isPasswordVisible={isNewPasswordVisible}
+            onTogglePassword={() => setIsNewPasswordVisible(!isNewPasswordVisible)}
           />
         </div>
 
@@ -97,6 +106,9 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
             onChange={e => setConfirmPassword(e.target.value)}
             placeholder="Подтвердите новый пароль"
             icon={Lock}
+            showPasswordToggle={true}
+            isPasswordVisible={isConfirmPasswordVisible}
+            onTogglePassword={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
           />
         </div>
 

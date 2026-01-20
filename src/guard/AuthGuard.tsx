@@ -15,7 +15,7 @@ interface AuthGuardProps {
 export function AuthGuard({
   children,
   requireAuth = true,
-  redirectTo = "/login",
+  redirectTo = "/",
   requiredRole,
 }: AuthGuardProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
