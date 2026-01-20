@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { TitleView } from "@/widgets";
 import { Metadata } from "next";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -58,12 +59,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
 
     const titleName = titleData.name || "Без названия";
+    const titleType = titleData.type || "other";
+    const titleTypeTranslate = translateTitleType(titleType);
     const shortDescription = titleData.description
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, "")
       : `Читать ${titleName} онлайн на Tomilo-lib.ru. ${titleData.genres?.join(", ")}`;
 
     const image = titleData.coverImage ? `${baseUrl}${titleData.coverImage}` : undefined;
-
     // Формируем расширенные метаданные
     const metadata: Metadata = {
       title: `Читать ${titleName} - Tomilo-lib.ru`,
@@ -99,7 +101,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
 
       openGraph: {
-        title: `Читать ${titleName} - Tomilo-lib.ru`,
+        title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
         description: shortDescription,
         type: "article" as const,
         url: `${baseUrl}/titles/${slug}`,
