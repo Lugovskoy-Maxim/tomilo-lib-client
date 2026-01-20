@@ -196,9 +196,11 @@ export default function ResetPasswordContent() {
         </form>
       </div>
 
-      {/* Кнопка назад */}
+      {/* Кнопка на главную страницу */}
       <div className="mt-6">
-        <BackButton />
+        <Button onClick={() => router.push("/")} className="w-full cursor-pointer border-2 border-[var(--border)] rounded-full bg-[var(--chart-1)] text-[var(--primary)] hover:bg-[var(--chart-1)]/80 transition-all duration-300">
+          На главную
+        </Button>
       </div>
     </>
   );
