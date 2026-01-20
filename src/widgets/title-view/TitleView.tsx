@@ -357,13 +357,15 @@ export default function TitleView({ slug }: { slug: string }) {
       />
       <Header />
       <div className="container mx-auto px-4 lg:py-8 pb-20">
-        <Breadcrumbs
-          items={[
-            { name: "Главная", href: "/" },
-            { name: "Каталог", href: "/titles" },
-            { name: titleData.name, isCurrent: true },
-          ]}
-        />
+        <div className="max-w-7xl mx-auto">
+          <Breadcrumbs
+            items={[
+              { name: "Главная", href: "/" },
+              { name: "Каталог", href: "/titles" },
+              { name: titleData.name, isCurrent: true },
+            ]}
+          />
+        </div>
         <div className="max-w-7xl mx-auto">
           <MobileCover
             titleData={titleData}
