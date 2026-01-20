@@ -303,7 +303,7 @@ export default function ReadChapterPage({
       const notificationElement = document.createElement("div");
       notificationElement.id = notificationId;
       notificationElement.className =
-        "fixed w-full max-w-[350px] top-1/2 left-1/2 transform -translate-x-1/2 text-[var(--muted-foreground)] text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-2 px-4 py-2  shadow-lg z-[100] flex items-center space-x-2";
+        "fixed w-full max-w-[350px] top-1/2 left-1/2 transform -translate-x-1/2 text-[var(--muted-foreground)] text-sm sm:text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-2 px-4 py-2  shadow-lg z-[100] flex items-center space-x-2";
       notificationElement.innerHTML = `
         <span>Восстановление позиции чтения на странице ${savedPosition.page}</span>
         <button id="cancel-restore" class="ml-2 px-2 py-2 bg-[var(--destructive)] hover:bg-[var(--destructive)]/80 rounded text-xs">Отменить</button>

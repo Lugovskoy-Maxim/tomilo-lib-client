@@ -193,7 +193,7 @@ export default function ReaderControls({
       <div className="hidden sm:flex fixed right-1 top-1/2 -translate-y-1/2 z-40 flex-col gap-5 ">
         {/* Счётчик страниц главы */}
         <div className="w-full flex justify-center items-center  mb-2">
-          <p className="text-[var(--muted-foreground)] text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-1">
+          <p className="text-[var(--muted-foreground)] text-sm sm:text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-1">
             {currentPage} {"/"} {chapterImageLength}
           </p>
         </div>
@@ -345,7 +345,7 @@ export default function ReaderControls({
       >
         {/* Счётчик страниц главы */}
         <div className="w-full flex justify-center items-center  mb-2 ">
-          <p className="text-[var(--muted-foreground)] text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-2">
+          <p className="text-[var(--muted-foreground)] text-sm border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-2">
             {currentPage} {"/"} {chapterImageLength}
           </p>
         </div>
@@ -365,11 +365,11 @@ export default function ReaderControls({
             <button
               onClick={onPrev}
               disabled={!canGoPrev}
-              className="flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[64px] active:scale-95"
+              className="flex flex-col items-center p-1 hover:bg-[var(--muted)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[52px] active:scale-95"
               title="Предыдущая глава"
             >
-              <ChevronLeft className="w-5 h-5 text-[var(--muted-foreground)]" />
-              <span className="text-[10px] text-[var(--muted-foreground)] mt-1 leading-tight">
+              <ChevronLeft className="w-4 h-4 text-[var(--muted-foreground)]" />
+              <span className="text-xs text-[var(--muted-foreground)] mt-0.5 leading-tight">
                 Пред.
               </span>
             </button>
@@ -377,16 +377,16 @@ export default function ReaderControls({
             {/* Выбор главы */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[64px] active:scale-95"
+              className="flex flex-col items-center p-1 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[52px] active:scale-95"
               title={`Глава ${currentChapter.number}`}
             >
               <div className="relative">
-                <TableOfContents className="w-5 h-5 text-[var(--muted-foreground)]" />
-                <span className="absolute -top-1 -right-1 bg-[var(--primary)] text-[var(--primary-foreground)] text-[9px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5">
+                <TableOfContents className="w-4 h-4 text-[var(--muted-foreground)]" />
+                <span className="absolute -top-1 -right-1 bg-[var(--primary)] text-[var(--primary-foreground)] text-[9px] font-bold rounded-full min-w-[12px] h-[12px] flex items-center justify-center px-0.5">
                   {currentChapter.number}
                 </span>
               </div>
-              <span className="text-[10px] text-[var(--muted-foreground)] mt-1 leading-tight">
+              <span className="text-xs text-[var(--muted-foreground)] mt-0.5 leading-tight">
                 Глава
               </span>
             </button>
@@ -395,11 +395,11 @@ export default function ReaderControls({
             <button
               onClick={onNext}
               disabled={!canGoNext}
-              className="flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[64px] active:scale-95"
+              className="flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[52px] active:scale-95"
               title="Следующая глава"
             >
-              <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
-              <span className="text-[10px] text-[var(--muted-foreground)] mt-1 leading-tight">
+              <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
+              <span className="text-xs text-[var(--muted-foreground)] mt-0.5 leading-tight">
                 След.
               </span>
             </button>
@@ -407,70 +407,30 @@ export default function ReaderControls({
             {/* Сообщение об ошибке */}
             <button
               onClick={() => setIsReportModalOpen(true)}
-              className="flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[64px] active:scale-95"
+              className="flex flex-col items-center p-1 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[52px] active:scale-95"
               title="Сообщить об ошибке"
             >
-              <AlertTriangle className="w-5 h-5 text-[var(--muted-foreground)]" />
-              <span className="text-[10px] text-[var(--muted-foreground)] mt-1 leading-tight">
+              <AlertTriangle className="w-4 h-4 text-[var(--muted-foreground)]" />
+              <span className="text-xs text-[var(--muted-foreground)] mt-0.5 leading-tight">
                 Ошибка
-              </span>
-            </button>
-
-            {/* Добавить в избранное */}
-            <button
-              onClick={handleBookmarkToggle}
-              disabled={isBookmarkLoading}
-              className="flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[64px] active:scale-95"
-              title={isBookmarked ? "Удалить из закладок" : "Добавить в закладки"}
-            >
-              {isBookmarkLoading ? (
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              ) : (
-                <Bookmark
-                  className={`w-5 h-5 ${
-                    isBookmarked ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
-                  }`}
-                  fill={isBookmarked ? "currentColor" : "none"}
-                />
-              )}
-              <span
-                className={`text-[10px] mt-1 leading-tight ${
-                  isBookmarked ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
-                }`}
-              >
-                Избр.
               </span>
             </button>
 
             {/* Комментарии */}
             <button
               onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-              className={`flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[64px] active:scale-95 ${
+              className={`flex flex-col items-center p-1 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[52px] active:scale-95 ${
                 isCommentsOpen ? "bg-[var(--accent)]" : ""
               }`}
               title="Комментарии"
             >
               <MessageCircle
-                className={`w-5 h-5 ${
+                className={`w-4 h-4 ${
                   isCommentsOpen ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                 }`}
               />
               <span
-                className={`text-[10px] mt-1 leading-tight ${
+                className={`text-xs mt-0.5 leading-tight ${
                   isCommentsOpen ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                 }`}
               >
