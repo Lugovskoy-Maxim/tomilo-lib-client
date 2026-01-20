@@ -14,10 +14,17 @@ import MobileCover from "@/shared/browse/title-view/MobileCover";
 import { LeftSidebar } from "@/shared/browse/title-view/LeftSidebar";
 import { RightContent } from "@/shared/browse/title-view/RightContent";
 import { AgeVerificationModal } from "@/shared/modal/AgeVerificationModal";
+import { ReportModal } from "@/shared/report/ReportModal";
 
 export default function TitleView({ slug }: { slug: string }) {
   const { user } = useAuth();
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportModalData, setReportModalData] = useState<{
+    entityType: "title" | "chapter";
+    entityId: string;
+    entityTitle: string;
+  } | null>(null);
 
   // Получаем данные тайтла по slug
   const {
@@ -400,6 +407,10 @@ export default function TitleView({ slug }: { slug: string }) {
                   onShare={handleShare}
                   isAdmin={displayIsAdmin}
                   onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
+                  onReportClick={data => {
+                    setReportModalData(data);
+                    setIsReportModalOpen(true);
+                  }}
                 />
               </div>
             </div>
@@ -432,15 +443,31 @@ export default function TitleView({ slug }: { slug: string }) {
       <Footer />
 
       {/* Модальное окно для подтверждения возраста */}
-      <AgeVerificationModal
-        isOpen={isAgeModalOpen}
-        onConfirm={() => {
-          setIsAgeModalOpen(false);
-          // После подтверждения возраста, можно продолжить действие, которое требовало подтверждения
-          console.log("Возраст подтвержден");
-        }}
-        onCancel={() => setIsAgeModalOpen(false)}
-      />
+      {isAgeModalOpen && (
+        <AgeVerificationModal
+          isOpen={isAgeModalOpen}
+          onConfirm={() => {
+            setIsAgeModalOpen(false);
+            // После подтверждения возраста, можно продолжить действие, которое требовало подтверждения
+            console.log("Возраст подтвержден");
+          }}
+          onCancel={() => setIsAgeModalOpen(false)}
+        />
+      )}
+
+      {/* Модальное окно для отправки жалобы */}
+      {isReportModalOpen && reportModalData && (
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => {
+            setIsReportModalOpen(false);
+            setReportModalData(null);
+          }}
+          entityType={reportModalData.entityType}
+          entityId={reportModalData.entityId}
+          entityTitle={reportModalData.entityTitle}
+        />
+      )}
     </main>
   );
 }

@@ -139,8 +139,11 @@ export const authApi = createApi({
       invalidatesTags: ["ReadingHistory", "Auth"],
     }),
 
-    changePassword: builder.mutation<ApiResponseDto<{ success: boolean; message: string }>, { currentPassword: string; newPassword: string }>({
-      query: (passwords) => ({
+    changePassword: builder.mutation<
+      ApiResponseDto<{ success: boolean; message: string }>,
+      { currentPassword: string; newPassword: string }
+    >({
+      query: passwords => ({
         url: "/auth/change-password",
         method: "POST",
         body: passwords,
@@ -148,8 +151,11 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
-    forgotPassword: builder.mutation<ApiResponseDto<{ success: boolean; message: string }>, { email: string }>({
-      query: (emailDto) => ({
+    forgotPassword: builder.mutation<
+      ApiResponseDto<{ success: boolean; message: string }>,
+      { email: string }
+    >({
+      query: emailDto => ({
         url: "/auth/forgot-password",
         method: "POST",
         body: emailDto,

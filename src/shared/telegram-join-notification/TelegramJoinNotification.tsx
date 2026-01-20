@@ -40,12 +40,12 @@ const TelegramJoinNotification: React.FC = () => {
             className="px-3 py-1 cursor-pointer bg-[var(--primary)]/10 text-[var(--chart-1)]/90 hover:text-[var(--chart-1)]  text-sm rounded hover:bg-[var(--chart-1)]/5 border border-transparent hover:border-[var(--border)] transition-colors"
           >
             Присоединиться
-          </button> 
+          </button>
           <button
             onClick={handleClose}
             className="absolute -top-3 -right-3 border border-[var(--border)] bg-[var(--muted)] hover:bg-[var(--muted)]/90 rounded-full p-2 cursor-pointer text-[var(--primary)] text-sm hover:text-[var(--chart-5)] transition-colors"
           >
-            <X className="w-4 h-4"/>
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>

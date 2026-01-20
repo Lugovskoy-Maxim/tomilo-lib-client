@@ -609,20 +609,24 @@ export function RightContent({
         {renderTabContent()}
       </div>
 
-      <ReportModal
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        entityType="title"
-        entityId={titleId}
-        entityTitle={titleData?.name || "Неизвестный тайтл"}
-      />
+      {isReportModalOpen && (
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          entityType="title"
+          entityId={titleId}
+          entityTitle={titleData?.name || "Неизвестный тайтл"}
+        />
+      )}
 
       {/* Модальное окно для подтверждения возраста */}
-      <AgeVerificationModal
-        isOpen={isAgeModalOpen}
-        onConfirm={handleAgeVerificationConfirm}
-        onCancel={handleAgeVerificationCancel}
-      />
+      {isAgeModalOpen && (
+        <AgeVerificationModal
+          isOpen={isAgeModalOpen}
+          onConfirm={handleAgeVerificationConfirm}
+          onCancel={handleAgeVerificationCancel}
+        />
+      )}
     </>
   );
 }

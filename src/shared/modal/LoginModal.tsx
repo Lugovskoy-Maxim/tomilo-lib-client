@@ -1,7 +1,11 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { useLoginMutation, useYandexAuthMutation, useForgotPasswordMutation } from "@/store/api/authApi";
+import {
+  useLoginMutation,
+  useYandexAuthMutation,
+  useForgotPasswordMutation,
+} from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginData, FormErrors, FormTouched } from "../../types/form";
 import { Modal } from "..";
@@ -40,7 +44,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
   // Используем RTK Query для логина
   const [loginMutation, { isLoading, error }] = useLoginMutation();
   const [yandexAuthMutation] = useYandexAuthMutation();
-  const [forgotPasswordMutation, { isLoading: isForgotPasswordLoading }] = useForgotPasswordMutation();
+  const [forgotPasswordMutation, { isLoading: isForgotPasswordLoading }] =
+    useForgotPasswordMutation();
   const { login: authLogin } = useAuth();
 
   const validate = {

@@ -109,7 +109,7 @@ export default function RootLayout({
       >
         <ToastProvider>
           <Providers>
-        <ThemeProvider>
+            <ThemeProvider>
               {children}
               <TelegramJoinNotification />
               {/* Обработчик сообщений от окна авторизации через Яндекс */}

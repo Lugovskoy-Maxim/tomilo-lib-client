@@ -64,8 +64,7 @@ const DataCarousel = ({
       </div>
     );
   }
-  if (!data?.length)
-    return null;
+  if (!data?.length) return null;
 
   return (
     <Carousel

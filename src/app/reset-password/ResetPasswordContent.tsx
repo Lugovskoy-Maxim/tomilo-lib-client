@@ -22,12 +22,12 @@ export default function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { success, error } = useToast();
-  
+
   const [formData, setFormData] = useState<ResetPasswordData>({
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
-  
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -47,50 +47,51 @@ export default function ResetPasswordContent() {
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     // Валидация пароля
     if (!formData.password) {
       newErrors.password = VALIDATION_MESSAGES.PASSWORD_REQUIRED;
     } else if (formData.password.length < 6) {
       newErrors.password = "Пароль должен содержать минимум 6 символов";
     }
-    
+
     // Валидация подтверждения пароля
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Подтверждение пароля обязательно";
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Пароли не совпадают";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (field: keyof ResetPasswordData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
-    
-    // Очищаем ошибку при изменении поля
-    if (errors[field]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
-  };
+  const handleChange =
+    (field: keyof ResetPasswordData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData(prev => ({ ...prev, [field]: e.target.value }));
+
+      // Очищаем ошибку при изменении поля
+      if (errors[field]) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
-    
+
     if (!token) {
       error("Неверная ссылка для сброса пароля");
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       // Отправляем запрос на сброс пароля
       const response = await fetch(
@@ -102,13 +103,13 @@ export default function ResetPasswordContent() {
           },
           body: JSON.stringify({
             token,
-            password: formData.password
+            password: formData.password,
           }),
-        }
+        },
       );
-      
+
       const result = await response.json();
-      
+
       if (response.ok) {
         success("Пароль успешно изменен");
 
@@ -131,9 +132,7 @@ export default function ResetPasswordContent() {
     <>
       {/* Заголовок */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2">
-          Сброс пароля
-        </h1>
+        <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2">Сброс пароля</h1>
         <p className="text-sm text-[var(--muted-foreground)]">
           Введите новый пароль для вашей учетной записи
         </p>
@@ -198,7 +197,10 @@ export default function ResetPasswordContent() {
 
       {/* Кнопка на главную страницу */}
       <div className="mt-6">
-        <Button onClick={() => router.push("/")} className="w-full cursor-pointer border-2 border-[var(--border)] rounded-full bg-[var(--chart-1)] text-[var(--primary)] hover:bg-[var(--chart-1)]/80 transition-all duration-300">
+        <Button
+          onClick={() => router.push("/")}
+          className="w-full cursor-pointer border-2 border-[var(--border)] rounded-full bg-[var(--chart-1)] text-[var(--primary)] hover:bg-[var(--chart-1)]/80 transition-all duration-300"
+        >
           На главную
         </Button>
       </div>

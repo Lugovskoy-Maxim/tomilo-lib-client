@@ -41,8 +41,11 @@ export const authApi = createApi({
       query: () => "/profile",
       providesTags: ["Auth"],
     }),
-    changePassword: builder.mutation<{ success: boolean; message: string }, { currentPassword: string; newPassword: string }>({
-      query: (passwords) => ({
+    changePassword: builder.mutation<
+      { success: boolean; message: string },
+      { currentPassword: string; newPassword: string }
+    >({
+      query: passwords => ({
         url: "/auth/change-password",
         method: "POST",
         body: passwords,
@@ -50,7 +53,7 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
     forgotPassword: builder.mutation<{ success: boolean; message: string }, { email: string }>({
-      query: (emailDto) => ({
+      query: emailDto => ({
         url: "/auth/forgot-password",
         method: "POST",
         body: emailDto,
@@ -59,4 +62,10 @@ export const authApi = createApi({
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useGetMeQuery, useChangePasswordMutation, useForgotPasswordMutation } = authApi;
+export const {
+  useLoginMutation,
+  useRegisterMutation,
+  useGetMeQuery,
+  useChangePasswordMutation,
+  useForgotPasswordMutation,
+} = authApi;
