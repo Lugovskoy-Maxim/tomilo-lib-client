@@ -65,11 +65,7 @@ const DataCarousel = ({
     );
   }
   if (!data?.length)
-    return (
-      <div className="text-[var(--muted-foreground)] font-semibold p-4">
-        Нет данных для отображения {title}
-      </div>
-    );
+    return null;
 
   return (
     <Carousel
