@@ -3,7 +3,7 @@
 import { Footer, Header } from "@/widgets";
 import TitlesContent from "@/shared/browse/TitlesContent";
 
-export default function TitlesPage() {
+export function TitlesPageClient() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
