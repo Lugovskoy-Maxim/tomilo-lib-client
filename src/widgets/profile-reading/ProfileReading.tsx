@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BookOpen, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, Clock, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useMemo } from "react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
@@ -56,11 +56,8 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
     const groups: Map<string, GroupedTitleHistory> = new Map();
 
     readingHistory.forEach(item => {
-      const isTitleObject =
-        typeof item.titleId === "object" && item.titleId !== null;
-      const titleId = isTitleObject
-        ? (item.titleId as TitleData)._id
-        : String(item.titleId);
+      const isTitleObject = typeof item.titleId === "object" && item.titleId !== null;
+      const titleId = isTitleObject ? (item.titleId as TitleData)._id : String(item.titleId);
 
       if (!groups.has(titleId)) {
         groups.set(titleId, {
@@ -102,33 +99,36 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
       });
   }, [readingHistory]);
 
-  // Сортируем главы внутри каждой группы по времени чтения (новые первыми)
-  const sortChaptersByReadTime = (chapters: ChapterData[]): ChapterData[] => {
-    return [...chapters].sort(
-      (a, b) => new Date(b.readAt).getTime() - new Date(a.readAt).getTime()
-    );
+  // Сортируем главы по номеру (возрастание) для корректной группировки по сессиям
+  const sortChaptersByNumber = (chapters: ChapterData[]): ChapterData[] => {
+    return [...chapters].sort((a, b) => a.chapterNumber - b.chapterNumber);
   };
 
-  // Группируем главы по сеансам чтения (2-3 часа между главами)
+  // Группируем главы по сеансам чтения (2 часа между главами) на основе порядка глав
   const groupChaptersBySession = (chapters: ChapterData[]): ChapterData[][] => {
     if (chapters.length === 0) return [];
     if (chapters.length === 1) return [chapters];
 
-    const sessions: ChapterData[][] = [];
-    let currentSession: ChapterData[] = [chapters[0]];
+    // Сначала сортируем по номеру главы
+    const sortedByNumber = sortChaptersByNumber(chapters);
 
-    for (let i = 1; i < chapters.length; i++) {
-      const timeDiff = new Date(chapters[i].readAt).getTime() - new Date(chapters[i - 1].readAt).getTime();
+    const sessions: ChapterData[][] = [];
+    let currentSession: ChapterData[] = [sortedByNumber[0]];
+
+    for (let i = 1; i < sortedByNumber.length; i++) {
+      const timeDiff =
+        new Date(sortedByNumber[i].readAt).getTime() -
+        new Date(sortedByNumber[i - 1].readAt).getTime();
       const hoursDiff = timeDiff / (1000 * 60 * 60);
 
-      // Если прошло больше 3 часов, начинаем новую сессию
-      if (hoursDiff > 3) {
+      // Если прошло больше 2 часов, начинаем новую сессию
+      if (hoursDiff > 2) {
         if (currentSession.length > 0) {
           sessions.push(currentSession);
         }
-        currentSession = [chapters[i]];
+        currentSession = [sortedByNumber[i]];
       } else {
-        currentSession.push(chapters[i]);
+        currentSession.push(sortedByNumber[i]);
       }
     }
 
@@ -139,28 +139,55 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
     return sessions;
   };
 
+  // Сортируем сессии по времени последней главы в сессии (новые первыми)
+  const sortSessionsByTime = (sessions: ChapterData[][]): ChapterData[][] => {
+    return [...sessions].sort((a, b) => {
+      const lastReadA = new Date(a[a.length - 1].readAt).getTime();
+      const lastReadB = new Date(b[b.length - 1].readAt).getTime();
+      return lastReadB - lastReadA;
+    });
+  };
+
   // Форматируем диапазон глав для одной сессии
   const formatChapterRange = (chapters: ChapterData[]): string => {
     if (chapters.length === 1) {
       return `Глава ${chapters[0].chapterNumber}`;
     }
 
+    // Сортируем по номеру главы
     const sortedByNumber = [...chapters].sort((a, b) => a.chapterNumber - b.chapterNumber);
     const first = sortedByNumber[0].chapterNumber;
     const last = sortedByNumber[sortedByNumber.length - 1].chapterNumber;
 
-    if (first === last) {
+    // Проверяем, являются ли главы последовательными
+    const isConsecutive = sortedByNumber.every((chapter, index) => {
+      if (index === 0) return true;
+      return chapter.chapterNumber === sortedByNumber[index - 1].chapterNumber + 1;
+    });
+
+    if (isConsecutive && first === last) {
       return `Глава ${first}`;
     }
 
-    return `Главы ${first}-${last}`;
+    if (isConsecutive) {
+      return `Главы ${first}-${last}`;
+    }
+
+    // Если главы не последовательные, показываем их через запятую (максимум 3)
+    if (sortedByNumber.length <= 3) {
+      return `Главы ${sortedByNumber.map(c => c.chapterNumber).join(", ")}`;
+    }
+
+    // Если больше 5 глав и они не последовательные, показываем первые 3 и последнюю
+    return `Главы ${sortedByNumber
+      .slice(0, 2)
+      .map(c => c.chapterNumber)
+      .join(", ")} ... ${last}`;
   };
 
   // Определяем, какие тайтлы показывать
   const defaultLimit = 4;
-  const displayedTitles = isExpanded
-    ? groupedHistory
-    : groupedHistory.slice(0, defaultLimit);
+  const displayedTitles = isExpanded ? groupedHistory : groupedHistory.slice(0, defaultLimit);
   const hasMoreTitles = groupedHistory.length > defaultLimit;
 
   const toggleTitleExpanded = (titleId: string) => {
@@ -175,9 +202,10 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
     });
   };
 
-  const handleRemoveFromHistory = async (titleId: string, chapterId: string) => {
+  const handleRemoveFromHistory = async (titleId: string, chapterId?: string) => {
     try {
-      const result = await removeFromReadingHistory(titleId, chapterId);
+      // Если chapterId не передан, удаляем все главы тайтла
+      const result = await removeFromReadingHistory(titleId, chapterId || "");
       if (!result.success) {
         console.error("Ошибка при удалении из истории чтения:", result.error);
         alert(`Ошибка при удалении из истории чтения: ${result.error}`);
@@ -186,6 +214,14 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
       console.error("Ошибка при удалении из истории чтения:", error);
       alert("Произошла ошибка при удалении из истории чтения");
     }
+  };
+
+  const handleRemoveTitleFromHistory = async (titleId: string, titleName?: string | null) => {
+    const title = titleName || "этот тайтл";
+    const confirmDelete = confirm(`Вы уверены, что хотите удалить ${title} из истории чтения?`);
+    if (!confirmDelete) return;
+
+    await handleRemoveFromHistory(titleId);
   };
 
   const getImageUrl = (coverImage: string | undefined) => {
@@ -206,7 +242,10 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
     const lastRead = new Date(chapters[chapters.length - 1].readAt);
 
     const dateStr = firstRead.toLocaleDateString("ru-RU");
-    const timeStr = `${firstRead.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })} - ${lastRead.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}`;
+    const timeStr =
+      chapters.length === 1
+        ? `${firstRead.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}`
+        : `${firstRead.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })} - ${lastRead.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}`;
 
     return `${dateStr}, ${timeStr}`;
   };
@@ -260,11 +299,14 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
 
       <div className="grid grid-cols-1 gap-2">
         {displayedTitles.map(group => {
-          const sortedChapters = sortChaptersByReadTime(group.chapters);
-          const sessions = groupChaptersBySession(sortedChapters);
+          // Группируем главы по сессиям и сортируем сессии по времени (новые первыми)
+          const sessions = groupChaptersBySession(group.chapters);
+          const sortedSessions = sortSessionsByTime(sessions);
           const isExpandedTitle = expandedTitles.has(group.titleId);
-          const lastChapter = sortedChapters[0];
+          // Последняя прочитанная глава - первая глава из первой (новой) сессии
+          const lastChapter = sortedSessions[0]?.[0];
           const title = group.titleData;
+          const titleName = title?.name || "";
 
           return (
             <div
@@ -315,30 +357,17 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                       {title?.name || `Манга #${group.titleId}`}
                     </h3>
                     <p className="text-xs text-[var(--muted-foreground)] mb-1">
-                      {isExpandedTitle ? (
-                        // Показываем все сессии когда развернуто
-                        sessions.map((session, idx) => (
-                          <span key={idx} className="block">
-                            {formatChapterRange(session)}
-                            <span className="text-[var(--muted-foreground)]/60 ml-2">
-                              {formatSessionTime(session)}
-                            </span>
-                          </span>
-                        ))
-                      ) : (
-                        // Показываем только последнюю сессию
-                        <>
-                          {formatChapterRange(sessions[0])}
-                          <span className="text-[var(--muted-foreground)]/60 ml-2">
-                            {formatSessionTime(sessions[0])}
-                          </span>
-                        </>
-                      )}
+                      <>
+                        {formatChapterRange(sortedSessions[0])}
+                        {/* <span className="text-[var(--muted-foreground)]/60 ml-2">
+                            {formatSessionTime(sortedSessions[0])}
+                          </span> */}
+                      </>
                     </p>
                     <div className="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
                       <div className="flex items-center space-x-2">
                         <Clock className="w-3 h-3" />
-                        <span>{new Date(group.lastReadAt).toLocaleDateString("ru-RU")}</span>
+                        <span>{formatSessionTime(sortedSessions[0])}</span>
                       </div>
                       <span className="text-[var(--muted-foreground)]/60">
                         Всего глав прочитано: {group.chapters.length}
@@ -347,9 +376,9 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                   </div>
 
                   {/* Кнопка разворачивания/сворачивания */}
-                  {group.chapters.length > 1 ?(
+                  {group.chapters.length > 1 ? (
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         toggleTitleExpanded(group.titleId);
                       }}
@@ -361,14 +390,33 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                         <ChevronDown className="w-4 h-4" />
                       )}
                     </button>
-                  ): <div className="w-8 h-8"></div>}
+                  ) : (
+                    <div className="w-8 h-8"></div>
+                  )}
                 </div>
               </div>
 
+              {/* Кнопка удаления всех глав тайтла - показывается только когда развернуто */}
+              {isExpandedTitle && (
+                <div className="border-t border-[var(--border)] bg-[var(--secondary)]/30 px-3 py-2">
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleRemoveTitleFromHistory(String(group.titleId), titleName);
+                    }}
+                    className="flex items-center gap-2 w-full text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-1.5 rounded transition-colors"
+                    title="Удалить все главы этого тайтла из истории"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Удалить все прочитанные главы</span>
+                  </button>
+                </div>
+              )}
+
               {/* Развернутый список глав */}
-              {isExpandedTitle && sessions.length > 0 && (
+              {isExpandedTitle && sortedSessions.length > 0 && (
                 <div className="border-t border-[var(--border)] bg-[var(--secondary)]/30">
-                  {sessions.map((session, sessionIdx) => (
+                  {sortedSessions.map((session, sessionIdx) => (
                     <div
                       key={sessionIdx}
                       className="px-3 py-2 border-b border-[var(--border)] last:border-0"
@@ -389,7 +437,7 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                             className="flex items-center justify-between text-xs"
                           >
                             <button
-                              onClick={(e) => {
+                              onClick={e => {
                                 e.stopPropagation();
                                 handleRemoveFromHistory(group.titleId, chapter.chapterId);
                               }}
@@ -399,7 +447,11 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                               Глава {chapter.chapterNumber} ×
                             </button>
                             <span className="text-[var(--muted-foreground)]/60">
-                              {new Date(chapter.readAt).toLocaleDateString("ru-RU")}, {new Date(chapter.readAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
+                              {new Date(chapter.readAt).toLocaleDateString("ru-RU")},{" "}
+                              {new Date(chapter.readAt).toLocaleTimeString("ru-RU", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </span>
                           </div>
                         ))}
@@ -428,4 +480,3 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
 }
 
 export default ReadingHistorySection;
-
