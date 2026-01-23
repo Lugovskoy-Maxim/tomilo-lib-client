@@ -21,7 +21,6 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       day: "numeric",
     });
   };
-  console.log(userProfile);
 
   // Форматирование последнего входа
   const formatLastLogin = (dateString: string) => {
@@ -80,8 +79,8 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         }
       })
       .catch(error => {
-        toast.error("Ошибка сети при отправке письма подтверждения");
-        console.error("Ошибка сети при отправке письма подтверждения:", error);
+        toast.error(`Ошибка сети при отправке письма подтверждения: ${error.message} `);
+
       })
       .finally(() => {
         // Сбрасываем состояние загрузки после завершения запроса

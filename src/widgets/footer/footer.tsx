@@ -3,10 +3,9 @@ import Link from "next/link";
 import { MoreVertical, Library, Home, Mail, Copyright, Bookmark, Bell, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Logo } from "@/shared";
-import Image from "next/image";
-import SnowCapImage from "../../../public/snow_cap/snow_cap_long.png";
-
-import SnowCapImageRight from "../../../public/snow_cap/snow_cap_small_right.png";
+// import Image from "next/image";
+// import SnowCapImage from "../../../public/snow_cap/snow_cap_long.png";
+// import SnowCapImageRight from "../../../public/snow_cap/snow_cap_small_right.png";
 
 export default function Footer() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -49,13 +48,13 @@ export default function Footer() {
 
   return (
     <footer className="relative w-full">
-      <Image
+      {/* <Image
         src={SnowCapImage}
         alt="Сугроб"
         width={300}
         height={40}
         className="absolute -top-5 left-1/4 hidden lg:block"
-      />
+      /> */}
 
       <div className="w-full bg-[var(--secondary)]/40 border-t border-[var(--border)] mt-auto hidden lg:block">
         <div className="w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 md:px-8">
@@ -153,13 +152,13 @@ export default function Footer() {
           isVisible ? "translate-y-0" : "translate-y-20"
         }`}
       >
-        <Image
+        {/* <Image
           src={SnowCapImageRight}
           alt="Сугроб"
           width={50}
           height={10}
           className="absolute -top-2 -right-0"
-        />
+        /> */}
 
         <div className="flex items-center justify-around p-0 rounded-md">
           <Link

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BookOpen, Trash2, Clock } from "lucide-react";
+import { BookOpen, Trash2, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useMemo } from "react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
@@ -29,12 +29,13 @@ interface ReadingHistorySectionProps {
         readAt: string;
       }[]
     | undefined;
-  limit?: number;
+  showAll?: boolean;
 }
 
-function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionProps) {
+function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
+  const [isExpanded, setIsExpanded] = useState(showAll);
   const router = useRouter();
 
   // Преобразуем данные в плоский список глав с информацией о тайтле
@@ -47,27 +48,31 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
       return historyItem.chapters.map(chapter => {
         const isTitleObject =
           typeof historyItem.titleId === "object" && historyItem.titleId !== null;
+        // Keep titleId as string for API calls, but preserve titleData for display
         const titleId = isTitleObject
           ? (historyItem.titleId as { _id: string })._id
-          : (historyItem.titleId as string);
+          : String(historyItem.titleId);
+
+        // Ensure chapterId is always a string for API calls
+        const chapterIdValue = typeof chapter.chapterId === "object" && chapter.chapterId !== null
+          ? (chapter.chapterId as { _id: string })._id
+          : String(chapter.chapterId);
 
         return {
           titleId,
-          chapterId: chapter.chapterId,
+          chapterId: chapterIdValue,
           chapterNumber: chapter.chapterNumber,
           chapterTitle: chapter.chapterTitle,
-          // Используем readAt из главы, если есть, иначе из родительского элемента
           readAt: chapter.readAt || historyItem.readAt,
-          // Добавляем ключ для уникальной идентификации
-          uniqueKey: `${titleId}-${chapter.chapterId}-${chapter.readAt || historyItem.readAt}`,
-          // Если titleId - объект, сохраняем его данные, иначе undefined
+          uniqueKey: `${titleId}-${chapterIdValue}-${chapter.readAt || historyItem.readAt}`,
+          // Keep the original titleId object for title data access
           titleData: isTitleObject ? (historyItem.titleId as TitleData) : undefined,
         };
       });
     });
   }, [readingHistory]);
 
-  // Фильтруем записи за последний месяц и сортируем по времени чтения главы (самые новые первыми), затем по номеру главы
+  // Фильтруем записи за последний месяц и сортируем
   const recentChapters = useMemo(() => {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
@@ -75,14 +80,18 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
     return [...allChapters]
       .filter(item => new Date(item.readAt) >= oneMonthAgo)
       .sort((a, b) => {
-        // Сначала сортируем по времени чтения (новые первыми)
         const timeDiff = new Date(b.readAt).getTime() - new Date(a.readAt).getTime();
         if (timeDiff !== 0) return timeDiff;
-
-        // Если время одинаковое, сортируем по номеру главы (более высокие номера первыми)
         return (b.chapterNumber || 0) - (a.chapterNumber || 0);
       });
   }, [allChapters]);
+
+  // Определяем, какие главы показывать
+  const defaultLimit = 4;
+  const displayedChapters = isExpanded
+    ? recentChapters
+    : recentChapters.slice(0, defaultLimit);
+  const hasMoreChapters = recentChapters.length > defaultLimit;
 
   const handleRemoveFromHistory = async (titleId: string, chapterId: string) => {
     const key = `${titleId}-${chapterId}`;
@@ -106,24 +115,18 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
     }
   };
 
-  // Формируем корректный URL для изображения
   const getImageUrl = (coverImage: string | undefined) => {
     if (!coverImage) return IMAGE_HOLDER;
-
-    if (coverImage.startsWith("http")) {
-      return coverImage;
-    }
-
+    if (coverImage.startsWith("http")) return coverImage;
     return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${coverImage}`;
   };
 
-  // Преобразуем изображение в строку для использования в OptimizedImage
   const getImageUrlString = (coverImage: string | undefined) => {
     const imageUrl = getImageUrl(coverImage);
     return typeof imageUrl === "string" ? imageUrl : imageUrl.src || "";
   };
 
-  // Если история чтения пуста, показываем сообщение
+  // Если история чтения пуста
   if (!readingHistory || readingHistory.length === 0 || allChapters.length === 0) {
     return (
       <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
@@ -144,16 +147,35 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
         <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
           <span>История чтения</span>
         </h2>
-        <span className="text-xs flex gap-2 items-center text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
-          <BookOpen className="h-3 w-3" />
-          {limit ? Math.min(limit, recentChapters.length) : recentChapters.length}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs flex gap-2 items-center text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
+            <BookOpen className="h-3 w-3" />
+            {recentChapters.length}
+          </span>
+          {hasMoreChapters && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-1 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors bg-[var(--background)] px-2 py-1 rounded"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="h-3 w-3" />
+                  <span>Свернуть</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-3 w-3" />
+                  <span>Показать все</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-2">
-        {recentChapters.slice(0, limit || recentChapters.length).map(item => {
+        {displayedChapters.map(item => {
           const loadingKey = `${item.titleId}-${item.chapterId}`;
-          // Получаем данные о тайтле из item.titleData (теперь данные встроены в API ответ)
           const title = item.titleData;
 
           return (
@@ -182,9 +204,6 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
                       className="w-full h-full object-cover"
                       quality={80}
                       priority={false}
-                      onError={() => {
-                        // Обработка ошибки загрузки изображения
-                      }}
                     />
                   ) : (
                     <OptimizedImage
@@ -195,9 +214,6 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
                       className="w-full h-full object-cover"
                       quality={80}
                       priority={false}
-                      onError={() => {
-                        // Обработка ошибки загрузки изображения
-                      }}
                     />
                   )}
                 </div>
@@ -257,11 +273,11 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
         })}
       </div>
 
-      {limit && recentChapters.length > limit && (
+      {hasMoreChapters && !isExpanded && (
         <div className="text-center mt-4">
           <button
             className="text-xs text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]/80 transition-colors"
-            onClick={() => router.push("/history")}
+            onClick={() => setIsExpanded(true)}
           >
             Показать все {recentChapters.length} историй чтения
           </button>
@@ -272,3 +288,4 @@ function ReadingHistorySection({ readingHistory, limit }: ReadingHistorySectionP
 }
 
 export default ReadingHistorySection;
+

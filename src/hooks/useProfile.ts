@@ -4,6 +4,7 @@ import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { pageTitle } from "@/lib/page-title";
 import { useGetProfileQuery, useGetReadingHistoryQuery } from "@/store/api/authApi";
+import { ReadingHistoryEntry } from "@/types/store";
 
 // Преобразование User из API в UserProfile
 function transformUserToProfile(user: User): UserProfile | null {
@@ -21,26 +22,32 @@ function transformUserToProfile(user: User): UserProfile | null {
     balance: user.balance,
     bookmarks: user.bookmarks || [],
     readingHistory: Array.isArray(user.readingHistory)
-      ? user.readingHistory.map(item => ({
-          ...item,
-          titleId: item.titleId, // Preserve the original titleId (can be string, null, or object)
-          chapters: Array.isArray(item.chapters)
-            ? item.chapters.map(chap => ({
-                chapterId:
-                  typeof chap.chapterId === "object" && chap.chapterId !== null
-                    ? ((chap.chapterId as { _id: string })._id as string)
-                    : (chap.chapterId as string),
-                chapterNumber: chap.chapterNumber,
-                chapterTitle: chap.chapterTitle,
-                readAt: chap.readAt,
-              }))
-            : [],
-        }))
+      ? transformReadingHistory(user.readingHistory)
       : [],
     birthDate: user.birthDate,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
+}
+
+// Transform reading history to ensure chapterId is string while preserving titleId object
+function transformReadingHistory(history: ReadingHistoryEntry[]): ReadingHistoryEntry[] {
+  return history.map(item => ({
+    ...item,
+    // Keep titleId as is (can be string or object), but ensure it's consistent
+    titleId: item.titleId,
+    chapters: Array.isArray(item.chapters)
+      ? item.chapters.map(chap => ({
+          chapterId:
+            typeof chap.chapterId === "object" && chap.chapterId !== null
+              ? (chap.chapterId as { _id: string })._id
+              : String(chap.chapterId),
+          chapterNumber: chap.chapterNumber,
+          chapterTitle: chap.chapterTitle,
+          readAt: chap.readAt,
+        }))
+      : [],
+  }));
 }
 
 export function useProfile() {
@@ -58,9 +65,9 @@ export function useProfile() {
   useEffect(() => {
     if (profileData?.success && profileData.data) {
       const profile = transformUserToProfile(profileData.data);
-      // Если есть данные из API истории чтения, используем их
+      // Если есть данные из API истории чтения, используем их с преобразованием
       if (profile && readingHistoryData?.success && readingHistoryData.data) {
-        profile.readingHistory = readingHistoryData.data;
+        profile.readingHistory = transformReadingHistory(readingHistoryData.data);
       }
       setUserProfile(profile);
     } else if (!isAuthenticated) {
