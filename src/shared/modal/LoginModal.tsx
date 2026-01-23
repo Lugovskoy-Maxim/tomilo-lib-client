@@ -379,8 +379,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
                   await forgotPasswordMutation({ email: form.email }).unwrap();
                   console.log("Письмо для сброса пароля отправлено");
                   // Здесь можно показать уведомление пользователю
-                } catch (error: any) {
-                  console.error("Ошибка отправки письма для сброса пароля:", error?.data?.message);
+                } catch (error: unknown) {
+                  console.error("Ошибка отправки письма для сброса пароля:", (error as { data?: { message?: string } })?.data?.message);
                 }
               }}
             >

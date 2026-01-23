@@ -39,8 +39,11 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Ошибка при изменении пароля");
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as { data?: { message?: string } })?.data?.message ||
+        "Ошибка при изменении пароля";
+      toast.error(errorMessage);
     }
   };
 

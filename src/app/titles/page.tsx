@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import { TitlesPageClient } from "./TitlesPageClient";
 import { generateDynamicSEOMetadata } from "@/lib/seo-utils";
-import { Filters } from "@/types/browse-page";
+import { Filters, SortBy, SortOrder } from "@/types/browse-page";
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -20,8 +20,8 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     ageLimits: (params.ageLimits as string)?.split(",").filter(Boolean).map(Number) || [],
     releaseYears: (params.releaseYears as string)?.split(",").filter(Boolean).map(Number) || [],
     tags: (params.tags as string)?.split(",").filter(Boolean) || [],
-    sortBy: (params.sortBy as any) || "averageRating",
-    sortOrder: (params.sortOrder as any) || "desc",
+    sortBy: (params.sortBy as SortBy) || "averageRating",
+    sortOrder: (params.sortOrder as SortOrder) || "desc",
   };
 
   const seoData = generateDynamicSEOMetadata(filters);
