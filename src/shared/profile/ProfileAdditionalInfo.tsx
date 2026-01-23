@@ -1,7 +1,8 @@
 import { UserProfile } from "@/types/user";
-import { Calendar, Clock, UserCheck } from "lucide-react";
+import { Calendar, Clock, UserCheck, Award } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useState } from "react";
+import { getRankDisplay, getRankColor, levelToRank } from "@/lib/rank-utils";
 interface ProfileAdditionalInfoProps {
   userProfile: UserProfile;
 }
@@ -151,6 +152,24 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
             {userProfile.emailVerified === true ? "Да" : "Нет"}
           </span>
         </div>
+
+        {/* Отображение ранга пользователя */}
+        {userProfile.level !== undefined && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Award className="w-4 h-4 text-[var(--muted-foreground)]" />
+              <span className="text-sm text-[var(--muted-foreground)]">Ранг силы</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="text-sm font-medium text-[var(--foreground)]"
+                style={{ color: getRankColor(levelToRank(userProfile.level).rank) }}
+              >
+                {getRankDisplay(userProfile.level)}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Кнопка для отправки письма подтверждения email */}
