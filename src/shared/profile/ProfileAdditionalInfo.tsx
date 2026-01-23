@@ -158,14 +158,14 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Award className="w-4 h-4 text-[var(--muted-foreground)]" />
-              <span className="text-sm text-[var(--muted-foreground)]">Ранг силы</span>
+              <span className="flex justify-center items-center text-sm text-[var(--muted-foreground)]">Ранг силы</span>
             </div>
             <div className="flex items-center gap-2">
               <span
                 className="text-sm font-medium text-[var(--foreground)]"
                 style={{ color: getRankColor(levelToRank(userProfile.level).rank) }}
               >
-                {getRankDisplay(userProfile.level)}
+                {levelToRank(userProfile.level).rank}
               </span>
             </div>
           </div>

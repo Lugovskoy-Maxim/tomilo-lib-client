@@ -60,12 +60,12 @@ export default function ProfileBanner({
           </div>
 
           {/* Уровень */}
-          <div className="flex items-center space-x-2">
+          {/* <div className="flex items-center space-x-2">
             <span className="text-sm font-medium text-[var(--muted-foreground)]">Уровень</span>
             <div className="flex justify-center items-center w-8 h-8 border border-[var(--border)] font-bold bg-[var(--chart-1)] rounded-lg text-[var(--primary)]">
               {userProfile.level || 0}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
