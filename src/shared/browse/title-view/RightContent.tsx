@@ -4,6 +4,7 @@ import { CommentEntityType } from "@/types/comment";
 import { CommentsSection } from "@/shared/comments/CommentsSection";
 import { timeAgo } from "@/lib/date-utils";
 import { ReportModal } from "@/shared/report/ReportModal";
+import { ReadingHistoryEntry, ReadingHistoryChapter } from "@/types/store";
 
 import {
   ArrowUpDown,
@@ -11,6 +12,7 @@ import {
   Calendar,
   CheckCheck,
   Eye,
+  EyeOff,
   Star,
   X,
   CheckCircle,
@@ -21,6 +23,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useUpdateRatingMutation } from "@/store/api/titlesApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getChapterPath } from "@/lib/title-paths";
+import { useAuth } from "@/hooks/useAuth";
 
 interface RightContentProps {
   titleData: Title;
@@ -67,6 +70,10 @@ export function RightContent({
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [hoveredChapterId, setHoveredChapterId] = useState<string | null>(null);
+  const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
+
+  const { removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
 
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
@@ -97,6 +104,50 @@ export function RightContent({
       setIsAgeVerified(verified);
     }
   }, [user]);
+
+  // Получаем историю чтения для текущего тайтла
+  const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
+
+  // Функция для проверки, прочитана ли глава
+  const isChapterRead = useCallback(
+    (chapterId: string): boolean => {
+      if (!readingHistoryData?.data) return false;
+
+      // API returns array directly, but type says ReadingHistoryEntry
+      const historyData = (readingHistoryData.data || []) as unknown as Array<{
+        chapterId?: { _id: string } | null | undefined;
+        chapterNumber: number;
+        readAt: string;
+      }>;
+      
+      return historyData.some(ch => {
+        if (!ch.chapterId) return false;
+        // chapterId is an object with _id property
+        return ch.chapterId._id === chapterId;
+      });
+    },
+    [readingHistoryData],
+  );
+
+  // Функция для удаления из истории чтения
+  const handleRemoveFromHistory = useCallback(
+    async (chapterId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (removingChapterId) return;
+
+      setRemovingChapterId(chapterId);
+      try {
+        await removeFromReadingHistory(titleId, chapterId);
+        console.log(`Removed chapter ${chapterId} from reading history`);
+      } catch (error) {
+        console.error("Failed to remove from reading history:", error);
+      } finally {
+        setRemovingChapterId(null);
+      }
+    },
+    [titleId, removeFromReadingHistory, removingChapterId],
+  );
 
   const handleAgeVerificationClick = () => {
     if (isAgeVerified) {
@@ -391,35 +442,71 @@ export function RightContent({
             </div>
 
             <div className="space-y-2 mt-2">
-              {visibleChapters.map(chapter => (
-                <div
-                  key={chapter._id}
-                  className="flex items-center justify-between gap-2 py-2 px-3 bg-[var(--card)]/50 rounded-full hover:bg-[var(--background)]/70 transition-colors"
-                >
-                  <Eye className="w-5 h-5 text-[var(--primary)]" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-[var(--foreground)]">{chapter.name}</h3>
-                    <p className="text-sm text-[var(--foreground)]/60">
-                      {chapter.createdAt ? new Date(chapter.createdAt).toLocaleDateString() : ""}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <div className="flex gap-2">
-                      {"Просмотров: "}
-                      {chapter.views && (
-                        <span className="flex items-center gap-1">{chapter.views}</span>
+              {visibleChapters.map(chapter => {
+                const read = isChapterRead(chapter._id || "");
+                const isHovered = hoveredChapterId === chapter._id;
+                const isRemoving = removingChapterId === chapter._id;
+
+                return (
+                  <div
+                    key={chapter._id}
+                    className="flex items-center justify-between gap-2 py-2 px-3 bg-[var(--card)]/50 rounded-full hover:bg-[var(--background)]/70 transition-colors"
+                  >
+                    {/* Иконка статуса прочтения */}
+                    <div
+                      className="flex items-center w-5 h-5"
+                      onMouseEnter={() => setHoveredChapterId(chapter._id || null)}
+                      onMouseLeave={() => setHoveredChapterId(null)}
+                    >
+                      {read && isHovered ? (
+                        <button
+                          onClick={e => handleRemoveFromHistory(chapter._id || "", e)}
+                          disabled={isRemoving}
+                          className={`flex items-center justify-center transition-colors hover:text-red-600 ${
+                            isRemoving
+                              ? "cursor-not-allowed text-[var(--primary)]"
+                              : "text-red-500 cursor-pointer"
+                          }`}
+                          title="Удалить из истории чтения"
+                        >
+                          {isRemoving ? (
+                            <div className="w-5 h-5" />
+                          ) : (
+                            <EyeOff className="w-5 h-5" />
+                          )}
+                        </button>
+                      ) : (
+                        <Eye
+                          className={`w-5 h-5 transition-colors ${
+                            read ? "text-green-500" : "text-gray-400"
+                          }`}
+                        />
                       )}
                     </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-[var(--foreground)]">{chapter.name}</h3>
+                      <p className="text-sm text-[var(--foreground)]/60">
+                        {chapter.createdAt ? new Date(chapter.createdAt).toLocaleDateString() : ""}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <div className="flex gap-2">
+                        {"Просмотров: "}
+                        {chapter.views && (
+                          <span className="flex items-center gap-1">{chapter.views}</span>
+                        )}
+                      </div>
 
-                    <button
-                      onClick={() => router.push(getChapterPathCallback(chapter._id))}
-                      className="px-4 py-2 bg-[var(--chart-1)]/80 cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)]/80 transition-colors"
-                    >
-                      Читать
-                    </button>
+                      <button
+                        onClick={() => router.push(getChapterPathCallback(chapter._id))}
+                        className="px-4 py-2 bg-[var(--chart-1)]/80 cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)]/80 transition-colors"
+                      >
+                        Читать
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             {/* 
             <button

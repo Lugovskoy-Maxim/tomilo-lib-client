@@ -299,21 +299,16 @@ export function ChapterItem({
   const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
 
   // Проверяем, прочитана ли глава
-  const isRead =
-    readingHistoryData?.data?.chapters?.some(ch => {
-      if (ch.chapterId == null) return false;
-
-      let historyChapterId: string;
-      if (typeof ch.chapterId === "string") {
-        historyChapterId = ch.chapterId;
-      } else if (ch.chapterId && typeof ch.chapterId === "object" && "_id" in ch.chapterId) {
-        historyChapterId = (ch.chapterId as { _id: string })._id;
-      } else {
-        return false;
-      }
-
-      return historyChapterId === chapter._id;
-    }) || false;
+  // API возвращает массив напрямую, но тип говорит ReadingHistoryEntry
+  const historyArray = (readingHistoryData?.data || []) as unknown as Array<{
+    chapterId?: { _id: string } | null | undefined;
+    chapterNumber: number;
+    readAt: string;
+  }>;
+  const isRead = historyArray.some(ch => {
+    if (!ch.chapterId) return false;
+    return ch.chapterId._id === chapter._id;
+  });
 
   // Функция для удаления из истории чтения
   const handleRemoveFromHistory = async (e: React.MouseEvent) => {
@@ -357,7 +352,11 @@ export function ChapterItem({
               {isRemoving ? <div className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
             </button>
           ) : (
-            <Eye className={`w-5 h-5 ${isRead ? "text-green-500" : "text-[var(--primary)]"}`} />
+            <Eye
+              className={`w-5 h-5 transition-colors ${
+                isRead ? "text-green-500" : "text-gray-400"
+              }`}
+            />
           )}
         </div>
         <div className="flex gap-1 justify-center items-center">
