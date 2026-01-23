@@ -1,7 +1,7 @@
 "use client"
 import { UserProfile } from "@/types/user";
 import { BookOpen, Clock, Star, CircleDollarSign, HelpCircle } from "lucide-react";
-import { getRankColor, levelToRank, RANK_NAMES } from "@/lib/rank-utils";
+import { getRankColor, getRankDisplay, levelToRank, RANK_NAMES } from "@/lib/rank-utils";
 import { useState } from "react";
 
 interface ProfileStatsProps {
@@ -106,11 +106,11 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
             className="text-lg font-bold"
             style={{ color: getRankColor(levelToRank(level).rank) }}
           >
-            {levelToRank(level).name} {levelToRank(level).rank}
+            {getRankDisplay(level)}
           </div>
-          <div className="ml-2 text-sm text-[var(--muted-foreground)]">
+          {/* <div className="ml-2 text-sm text-[var(--muted-foreground)]">
             {levelToRank(level).stars} {levelToRank(level).stars === 1 ? 'звезда' : levelToRank(level).stars < 5 ? 'звезды' : 'звёзд'}
-          </div>
+          </div> */}
         </div>
       </div>
       

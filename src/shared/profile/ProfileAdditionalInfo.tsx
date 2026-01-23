@@ -2,7 +2,7 @@ import { UserProfile } from "@/types/user";
 import { Calendar, Clock, UserCheck, Award } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useState } from "react";
-import { getRankDisplay, getRankColor, levelToRank } from "@/lib/rank-utils";
+import { getRankColor, levelToRank } from "@/lib/rank-utils";
 interface ProfileAdditionalInfoProps {
   userProfile: UserProfile;
 }
@@ -153,7 +153,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           </span>
         </div>
 
-        {/* Отображение ранга пользователя */}
+        {/* Отображение ранга пользователя
         {userProfile.level !== undefined && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -169,7 +169,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
               </span>
             </div>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Кнопка для отправки письма подтверждения email */}

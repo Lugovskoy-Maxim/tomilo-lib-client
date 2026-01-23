@@ -75,8 +75,8 @@ export function levelToRank(level: number): RankInfo {
  */
 export function getRankDisplay(level: number): string {
   const rankInfo = levelToRank(level);
-  // const starsDisplay = "★".repeat(rankInfo.stars) + "☆".repeat(9 - rankInfo.stars);
-  return `${rankInfo.name} (${rankInfo.rank}-й ранг)`;
+  const starsDisplay = "★".repeat(rankInfo.stars) + "☆".repeat(9 - rankInfo.stars);
+  return `${rankInfo.name} (${rankInfo.rank})  ${starsDisplay}`;
 }
 
 /**

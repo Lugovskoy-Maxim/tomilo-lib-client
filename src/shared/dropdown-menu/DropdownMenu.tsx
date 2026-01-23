@@ -4,6 +4,7 @@ import { useState } from "react";
 import { User, Settings, Bookmark, History, LogOut, CircleDollarSign } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserAvatar } from "..";
+import { getRankDisplay } from "@/lib/rank-utils";
 
 interface UserDropdownProps {
   isOpen: boolean;
@@ -46,12 +47,12 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       label: "История чтения",
       onClick: () => router.push("/profile?tab=history"),
     },
-    {
-      id: "settings",
-      icon: Settings,
-      label: "Настройки",
-      onClick: () => router.push("/settings"),
-    },
+    // {
+    //   id: "settings",
+    //   icon: Settings,
+    //   label: "Настройки",
+    //   onClick: () => router.push("/settings"),
+    // },
   ];
 
   const handleLogout = () => {
@@ -65,12 +66,12 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       onClick={e => e.stopPropagation()}
     >
       {/* Заголовок с информацией о пользователе */}
-      <div className="p-4 border-b border-[var(--border)] bg-[var(--secondary)]">
+      <div className="p-2 border-b border-[var(--border)] bg-[var(--secondary)]">
         <div className="flex items-center space-x-3">
           <UserAvatar
             avatarUrl={user?.avatar}
             username={user?.username || user?.name}
-            size={40}
+            size={60}
             className="border-2 border-[var(--background)]"
           />
           <div className="flex-1 min-w-0">
@@ -81,7 +82,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
               <p className="text-sm text-[var(--muted-foreground)] truncate">{user.email}</p>
             )}
             {/* Информация о уровне, опыте и балансе */}
-            <div className="flex items-center gap-2 mt-2">
+            {/* <div className="flex items-center gap-2 mt-2">
               <div className="px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-1)] rounded-lg text-[var(--primary)] text-xs">
                 {user?.level || 0}
               </div>
@@ -91,7 +92,15 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
               <div className="px-2 py-1 border border-[var(--border)] font-medium bg-[var(--chart-3)] rounded-lg text-[var(--primary)] text-xs">
                 {user?.balance || 0} <CircleDollarSign className="w-3 h-3 inline" />
               </div>
-            </div>
+            </div> */}
+            {/* Отображение ранга силы */}
+            {user?.level !== undefined && (
+              <div className="mt-1">
+                <span className="text-xs text-[var(--muted-foreground)]">
+                  Ранг: {getRankDisplay(user.level)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
