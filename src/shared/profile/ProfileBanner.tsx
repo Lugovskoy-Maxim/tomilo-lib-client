@@ -1,6 +1,7 @@
 "use client";
 import { UserProfile } from "@/types/user";
 import { EditAvatarButton, ProfileAvatar, UserInfo } from "@/shared";
+import RankStarsOverlay from "./RankStarsOverlay";
 import ProfileStats from "./ProfileStats";
 import { CircleDollarSign } from "lucide-react";
 import { useState } from "react";
@@ -41,6 +42,7 @@ export default function ProfileBanner({
         <div className="absolute left-8 -bottom-16">
           <div className="relative">
             <ProfileAvatar userProfile={userProfile} />
+            <RankStarsOverlay userProfile={userProfile} />
             <EditAvatarButton onAvatarUpdate={onAvatarUpdate} />
           </div>
         </div>
