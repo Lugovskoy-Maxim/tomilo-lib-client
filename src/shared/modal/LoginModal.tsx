@@ -380,7 +380,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
                   console.log("Письмо для сброса пароля отправлено");
                   // Здесь можно показать уведомление пользователю
                 } catch (error: unknown) {
-                  console.error("Ошибка отправки письма для сброса пароля:", (error as { data?: { message?: string } })?.data?.message);
+                  console.error(
+                    "Ошибка отправки письма для сброса пароля:",
+                    (error as { data?: { message?: string } })?.data?.message,
+                  );
                 }
               }}
             >

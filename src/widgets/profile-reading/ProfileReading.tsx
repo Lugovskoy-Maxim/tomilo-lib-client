@@ -389,13 +389,16 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                         <ChevronDown className="w-4 h-4" />
                       )}
                     </button>
-                    
+
                     {/* Кнопка удаления - для одной главы */}
                     {!isExpandedTitle && group.chapters.length === 1 && (
                       <button
                         onClick={e => {
                           e.stopPropagation();
-                          handleRemoveFromHistory(String(group.titleId), sortedSessions[0]?.[0]?.chapterId);
+                          handleRemoveFromHistory(
+                            String(group.titleId),
+                            sortedSessions[0]?.[0]?.chapterId,
+                          );
                         }}
                         className="flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded transition-colors"
                         title="Удалить из истории"
@@ -403,7 +406,7 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
-                    
+
                     {/* Кнопка удаления - для нескольких глав */}
                     {!isExpandedTitle && group.chapters.length > 1 && (
                       <button

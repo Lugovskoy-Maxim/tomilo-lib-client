@@ -35,10 +35,10 @@ export default function RankStarsOverlay({ userProfile, size = 136 }: RankStarsO
     const angle = startAngle + angleStep * index;
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
-    
+
     // Calculate rotation angle for the star (pointing towards center)
     const rotation = (angle * 180) / Math.PI + 90; // Convert to degrees and add 90 for downward point
-    
+
     return { x, y, rotation };
   });
 
@@ -71,4 +71,3 @@ export default function RankStarsOverlay({ userProfile, size = 136 }: RankStarsO
     </div>
   );
 }
-

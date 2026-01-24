@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { UserProfile } from "@/types/user";
 import { BookOpen, Clock, Star, CircleDollarSign, HelpCircle } from "lucide-react";
 import { getRankColor, getRankDisplay, levelToRank, RANK_NAMES } from "@/lib/rank-utils";
@@ -10,7 +10,7 @@ interface ProfileStatsProps {
 
 export default function ProfileStats({ userProfile }: ProfileStatsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // Рассчитываем статистику
   const totalBookmarks = userProfile.bookmarks?.length || 0;
   const totalChaptersRead =
@@ -41,7 +41,6 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
   return (
     <div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 py-4">
-
         {/* Опыт */}
         <div className="bg-[var(--secondary)] rounded-xl p-3 border border-[var(--border)] hover:border-[var(--primary)] transition-colors flex flex-col items-center justify-center">
           <div className="flex items-center gap-2 mb-1">
@@ -113,12 +112,12 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
           </div> */}
         </div>
       </div>
-      
+
       {/* Модальное окно с рангами */}
       {isModalOpen && (
         <div
           className="fixed inset-0 bg-[var(--background)]/90 flex items-center justify-center z-50 p-4"
-          onClick={(e) => {
+          onClick={e => {
             // Закрываем модальное окно при клике вне его
             if (e.target === e.currentTarget) {
               setIsModalOpen(false);
@@ -142,26 +141,22 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
                 const maxLevel = rankNum === 9 ? 90 : rankNum * 10;
                 const isCurrent = level >= minLevel && level <= maxLevel;
                 const currentStars = levelToRank(level).stars;
-                
+
                 return (
                   <div
                     key={rankNum}
                     className={`p-3 rounded-lg ${
-                      isCurrent
-                        ? 'bg-[var(--primary)]/10'
-                        : 'bg-[var(--secondary)]'
+                      isCurrent ? "bg-[var(--primary)]/10" : "bg-[var(--secondary)]"
                     }`}
                   >
                     <div className="flex justify-between items-center">
-                      <div
-                        className="font-medium text-sm"
-                        style={{ color: getRankColor(rankNum) }}
-                      >
+                      <div className="font-medium text-sm" style={{ color: getRankColor(rankNum) }}>
                         {RANK_NAMES[rankNum]} {rankNum}
                       </div>
                       {isCurrent && (
                         <span className="text-xs bg-[var(--primary)] text-[var(--primary-foreground)] px-2 py-1 rounded">
-                          Текущий ({currentStars} {currentStars === 1 ? 'звезда' : currentStars < 5 ? 'звезды' : 'звёзд'})
+                          Текущий ({currentStars}{" "}
+                          {currentStars === 1 ? "звезда" : currentStars < 5 ? "звезды" : "звёзд"})
                         </span>
                       )}
                     </div>

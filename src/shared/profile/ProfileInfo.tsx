@@ -9,8 +9,6 @@ interface UserInfoProps {
 }
 
 export default function UserInfo({ userProfile, onEdit }: UserInfoProps) {
-
-
   return (
     <div className="relative flex flex-col lg:flex-row lg:items-end lg:justify-between">
       <div className="mb-4 ml-40 lg:mb-0">
@@ -49,7 +47,7 @@ export default function UserInfo({ userProfile, onEdit }: UserInfoProps) {
 }
 
 function UserStats({ userProfile }: { userProfile: UserProfile }) {
-    const isAdult = userProfile.birthDate
+  const isAdult = userProfile.birthDate
     ? new Date(userProfile.birthDate).getFullYear() + 18 <= new Date().getFullYear()
     : false;
   return (
@@ -62,7 +60,9 @@ function UserStats({ userProfile }: { userProfile: UserProfile }) {
             <span className="mx-2">•</span>
             <Calendar1 className="w-4 h-4" />
             <span className="text-xs font-medium">
-              {isAdult ? "Совершеннолетний (контент 18+ доступен по умолчанию) " : "Контент ограничен для несовершеннолетних"}
+              {isAdult
+                ? "Совершеннолетний (контент 18+ доступен по умолчанию) "
+                : "Контент ограничен для несовершеннолетних"}
             </span>
           </>
         )}

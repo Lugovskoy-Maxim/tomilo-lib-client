@@ -15,16 +15,16 @@ export const isAdult = (birthDate: string): boolean => {
 
   const birth = new Date(birthDate);
   const today = new Date();
-  
+
   // Calculate age
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
-  
+
   // Adjust if birthday hasn't occurred yet this year
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
     age--;
   }
-  
+
   return age >= 18;
 };
 
@@ -34,7 +34,7 @@ export const isAdult = (birthDate: string): boolean => {
  */
 export const isAgeVerified = (): boolean => {
   if (typeof window === "undefined") return false;
-  
+
   try {
     const stored = localStorage.getItem(AGE_VERIFIED_KEY);
     return stored === "true";
@@ -50,7 +50,7 @@ export const isAgeVerified = (): boolean => {
  */
 export const setAgeVerified = (): void => {
   if (typeof window === "undefined") return;
-  
+
   try {
     localStorage.setItem(AGE_VERIFIED_KEY, "true");
   } catch (error) {
@@ -64,7 +64,7 @@ export const setAgeVerified = (): void => {
  */
 export const clearAgeVerification = (): void => {
   if (typeof window === "undefined") return;
-  
+
   try {
     localStorage.removeItem(AGE_VERIFIED_KEY);
   } catch (error) {
@@ -84,4 +84,3 @@ export const checkAndSetAgeVerification = (birthDate: string): boolean => {
   }
   return false;
 };
-

@@ -18,10 +18,11 @@ function BookmarkItem({
   bookmarkId: string;
   onRemove: (id: string) => void;
 }) {
-  const { data: title, isLoading, error } = useGetTitleByIdQuery(
-    { id: bookmarkId || "null" },
-    { skip: !bookmarkId }
-  );
+  const {
+    data: title,
+    isLoading,
+    error,
+  } = useGetTitleByIdQuery({ id: bookmarkId || "null" }, { skip: !bookmarkId });
   const [isRemoving, setIsRemoving] = useState(false);
 
   const handleRemove = () => {
@@ -77,13 +78,7 @@ function BookmarkItem({
     );
   }
 
-  return (
-    <BookmarkCard
-      title={title}
-      onRemove={handleRemove}
-      isLoading={false}
-    />
-  );
+  return <BookmarkCard title={title} onRemove={handleRemove} isLoading={false} />;
 }
 
 function BookmarksSection({ bookmarks, showAll = false }: BookmarksSectionProps) {
@@ -147,11 +142,7 @@ function BookmarksSection({ bookmarks, showAll = false }: BookmarksSectionProps)
 
       <div className="grid grid-cols-1 gap-4">
         {visibleBookmarks.map((bookmarkId: string) => (
-          <BookmarkItem
-            key={bookmarkId}
-            bookmarkId={bookmarkId}
-            onRemove={handleRemoveBookmark}
-          />
+          <BookmarkItem key={bookmarkId} bookmarkId={bookmarkId} onRemove={handleRemoveBookmark} />
         ))}
       </div>
 
@@ -170,4 +161,3 @@ function BookmarksSection({ bookmarks, showAll = false }: BookmarksSectionProps)
 }
 
 export default BookmarksSection;
-

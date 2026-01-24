@@ -122,7 +122,7 @@ export function RightContent({
         chapterNumber: number;
         readAt: string;
       }>;
-      
+
       return historyData.some(ch => {
         if (!ch.chapterId) return false;
         // chapterId is an object with _id property

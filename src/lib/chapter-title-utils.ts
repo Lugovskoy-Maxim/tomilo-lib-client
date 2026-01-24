@@ -4,7 +4,9 @@ import { Chapter } from "@/types/title";
  * Format chapter name for display
  * If the chapter name doesn't contain "Глава" prefix, adds it with the chapter number
  */
-export function getChapterDisplayName(chapter: Pick<Chapter, "name" | "chapterNumber" | "title">): string {
+export function getChapterDisplayName(
+  chapter: Pick<Chapter, "name" | "chapterNumber" | "title">,
+): string {
   const name = chapter.name || "";
   const chapterNumber = chapter.chapterNumber;
   const title = chapter.title;
@@ -39,7 +41,7 @@ export function formatChapterName(
     title?: string;
     prefix?: string;
     separator?: string;
-  }
+  },
 ): string {
   const { includeTitle = true, title, prefix = "Глава", separator = " - " } = options || {};
 
@@ -61,4 +63,3 @@ export function formatChapterName(
 
   return result;
 }
-

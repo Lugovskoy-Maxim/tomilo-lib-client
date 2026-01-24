@@ -357,9 +357,7 @@ export function ChapterItem({
             </button>
           ) : (
             <Eye
-              className={`w-5 h-5 transition-colors ${
-                isRead ? "text-green-500" : "text-gray-400"
-              }`}
+              className={`w-5 h-5 transition-colors ${isRead ? "text-green-500" : "text-gray-400"}`}
             />
           )}
         </div>

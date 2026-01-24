@@ -41,8 +41,7 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
       setConfirmPassword("");
     } catch (error: unknown) {
       const errorMessage =
-        (error as { data?: { message?: string } })?.data?.message ||
-        "Ошибка при изменении пароля";
+        (error as { data?: { message?: string } })?.data?.message || "Ошибка при изменении пароля";
       toast.error(errorMessage);
     }
   };

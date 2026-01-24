@@ -24,10 +24,10 @@ export function GenresList({ genres = [], tags = [] }: GenresListProps) {
   // Все элементы (жанры + теги)
   const allItems: Item[] = useMemo(
     () => [
-      ...(genres?.map((genre) => ({ type: "genre" as const, value: genre })) || []),
-      ...(tags?.map((tag) => ({ type: "tag" as const, value: tag })) || []),
+      ...(genres?.map(genre => ({ type: "genre" as const, value: genre })) || []),
+      ...(tags?.map(tag => ({ type: "tag" as const, value: tag })) || []),
     ],
-    [genres, tags]
+    [genres, tags],
   );
 
   const hasItems = allItems.length > 0;
@@ -48,11 +48,7 @@ export function GenresList({ genres = [], tags = [] }: GenresListProps) {
     };
 
     // Несколько проверок для стабилизации
-    const timers = [
-      setTimeout(check, 50),
-      setTimeout(check, 100),
-      setTimeout(check, 200),
-    ];
+    const timers = [setTimeout(check, 50), setTimeout(check, 100), setTimeout(check, 200)];
 
     const observer = new ResizeObserver(check);
     if (containerRef.current) observer.observe(containerRef.current);
@@ -97,10 +93,7 @@ export function GenresList({ genres = [], tags = [] }: GenresListProps) {
         </span>
 
         {/* Контейнер с жанрами и тегами */}
-        <div
-          ref={containerRef}
-          className="flex flex-nowrap gap-2 overflow-hidden max-w-full"
-        >
+        <div ref={containerRef} className="flex flex-nowrap gap-2 overflow-hidden max-w-full">
           <div ref={contentRef} className="flex flex-nowrap gap-2">
             {visibleItems.map((item, index) => (
               <span
@@ -141,4 +134,3 @@ export function GenresList({ genres = [], tags = [] }: GenresListProps) {
 }
 
 export default GenresList;
-
