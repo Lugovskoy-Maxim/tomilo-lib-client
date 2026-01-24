@@ -3,13 +3,9 @@ import {
   useGetPopularTitlesQuery,
   useSearchTitlesQuery,
   useGetRandomTitlesQuery,
-  useGetTopTitlesDayQuery,
-  useGetTopTitlesWeekQuery,
-  useGetTopTitlesMonthQuery,
 } from "@/store/api/titlesApi";
 import { useGetReadingHistoryQuery } from "@/store/api/authApi";
 import { Chapter } from "@/types/title";
-import { TopTitleData } from "@/types/home";
 import { normalizeGenres } from "@/lib/genre-normalizer";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
@@ -120,9 +116,6 @@ export const useHomeData = (): {
     loading: boolean;
     error: unknown;
   };
-  topTitlesDay: TopTitleData;
-  topTitlesWeek: TopTitleData;
-  topTitlesMonth: TopTitleData;
 } => {
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
@@ -140,27 +133,6 @@ export const useHomeData = (): {
     isLoading: randomTitlesLoading,
     error: randomTitlesError,
   } = useGetRandomTitlesQuery({ limit: 10 });
-
-  // Топ тайтлы за день
-  const {
-    data: topTitlesDayData,
-    isLoading: topTitlesDayLoading,
-    error: topTitlesDayError,
-  } = useGetTopTitlesDayQuery({ limit: 10 });
-
-  // Топ тайтлы за неделю
-  const {
-    data: topTitlesWeekData,
-    isLoading: topTitlesWeekLoading,
-    error: topTitlesWeekError,
-  } = useGetTopTitlesWeekQuery({ limit: 10 });
-
-  // Топ тайтлы за месяц
-  const {
-    data: topTitlesMonthData,
-    isLoading: topTitlesMonthLoading,
-    error: topTitlesMonthError,
-  } = useGetTopTitlesMonthQuery({ limit: 10 });
 
   // Топ тайтлы Маньхуа
   const {
@@ -254,51 +226,6 @@ export const useHomeData = (): {
       rating: item.averageRating || item.rating || 0,
       genres: normalizeGenres(item.genres || []),
       isAdult: item.isAdult ?? false,
-    })) || [];
-
-  // Преобразование топ тайтлов за день
-  const topTitlesDay =
-    topTitlesDayData?.data?.map(item => ({
-      id: item.id,
-      title: item.title,
-      image: item.cover,
-      description: item.description,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
-      genres: [], // Жанры не возвращаются для топ тайтлов
-      isAdult: item.isAdult ?? false,
-      ratingCount: item.ratingCount || 0,
-    })) || [];
-
-  // Преобразование топ тайтлов за неделю
-  const topTitlesWeek =
-    topTitlesWeekData?.data?.map(item => ({
-      id: item.id,
-      title: item.title,
-      image: item.cover,
-      description: item.description,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
-      genres: [], // Жанры не возвращаются для топ тайтлов
-      isAdult: item.isAdult ?? false,
-      ratingCount: item.ratingCount || 0,
-    })) || [];
-
-  // Преобразование топ тайтлов за месяц
-  const topTitlesMonth =
-    topTitlesMonthData?.data?.map(item => ({
-      id: item.id,
-      title: item.title,
-      image: item.cover,
-      description: item.description,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
-      genres: [], // Жанры не возвращаются для топ тайтлов
-      isAdult: item.isAdult ?? false,
-      ratingCount: item.ratingCount || 0,
     })) || [];
 
   // Преобразование топ тайтлов Манхва
@@ -419,20 +346,6 @@ export const useHomeData = (): {
       loading: top2025Loading,
       error: top2025Error,
     },
-    topTitlesDay: {
-      data: topTitlesDay,
-      loading: topTitlesDayLoading,
-      error: topTitlesDayError,
-    },
-    topTitlesWeek: {
-      data: topTitlesWeek,
-      loading: topTitlesWeekLoading,
-      error: topTitlesWeekError,
-    },
-    topTitlesMonth: {
-      data: topTitlesMonth,
-      loading: topTitlesMonthLoading,
-      error: topTitlesMonthError,
-    },
   };
 };
+

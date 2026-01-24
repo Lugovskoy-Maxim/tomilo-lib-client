@@ -4,7 +4,7 @@ import { Trophy } from "lucide-react";
 
 import { Carousel, Footer, Header } from "@/widgets";
 import { TopTitleCard, PeriodFilter, LoadingSkeleton, ErrorState } from "@/shared";
-import { useHomeData } from "@/hooks/useHomeData";
+import { useGetTopTitlesDayQuery, useGetTopTitlesWeekQuery, useGetTopTitlesMonthQuery } from "@/store/api/titlesApi";
 import { RankedTopTitle } from "@/types/home";
 import { useSEO } from "@/hooks/useSEO";
 import { useMounted } from "@/hooks/useMounted";
@@ -13,7 +13,27 @@ import { usePeriodFilter } from "@/hooks/usePeriodFilter";
 export default function TopPage() {
   const mounted = useMounted();
   const { activePeriod, setActivePeriod, periodLabels } = usePeriodFilter();
-  const { topTitlesDay, topTitlesWeek, topTitlesMonth } = useHomeData();
+
+  // Топ тайтлы за день
+  const {
+    data: topTitlesDayData,
+    isLoading: topTitlesDayLoading,
+    error: topTitlesDayError,
+  } = useGetTopTitlesDayQuery({ limit: 10 });
+
+  // Топ тайтлы за неделю
+  const {
+    data: topTitlesWeekData,
+    isLoading: topTitlesWeekLoading,
+    error: topTitlesWeekError,
+  } = useGetTopTitlesWeekQuery({ limit: 10 });
+
+  // Топ тайтлы за месяц
+  const {
+    data: topTitlesMonthData,
+    isLoading: topTitlesMonthLoading,
+    error: topTitlesMonthError,
+  } = useGetTopTitlesMonthQuery({ limit: 10 });
 
   useSEO({
     title: `Топ тайтлов ${periodLabels[activePeriod]} - Tomilo-lib.ru`,
@@ -25,27 +45,43 @@ export default function TopPage() {
   const getActiveTopTitles = () => {
     switch (activePeriod) {
       case "day":
-        return topTitlesDay;
+        return {
+          data: topTitlesDayData?.data || [],
+          loading: topTitlesDayLoading,
+          error: topTitlesDayError,
+        };
       case "week":
-        return topTitlesWeek;
+        return {
+          data: topTitlesWeekData?.data || [],
+          loading: topTitlesWeekLoading,
+          error: topTitlesWeekError,
+        };
       case "month":
-        return topTitlesMonth;
+        return {
+          data: topTitlesMonthData?.data || [],
+          loading: topTitlesMonthLoading,
+          error: topTitlesMonthError,
+        };
       default:
-        return topTitlesDay;
+        return {
+          data: topTitlesDayData?.data || [],
+          loading: topTitlesDayLoading,
+          error: topTitlesDayError,
+        };
     }
   };
 
   const activeTopTitles = getActiveTopTitles();
 
   const topTitlesWithRank = useMemo<RankedTopTitle[]>(() => {
-    return activeTopTitles.data.map((title, index) => ({
+    return activeTopTitles.data.map((title: { id: string; title: string; cover?: string; rating?: number; type?: string; releaseYear?: number; isAdult?: boolean }, index: number) => ({
       id: title.id,
       title: title.title,
       type: title.type || "Неуказан",
-      year: title.year || new Date().getFullYear(),
+      year: title.releaseYear || new Date().getFullYear(),
       rating: title.rating || 0,
-      image: title.cover || title.image || "",
-      genres: title.genres || [],
+      image: title.cover || "",
+      genres: [],
       rank: index + 1,
       period: periodLabels[activePeriod],
       isAdult: title.isAdult || false,
@@ -120,3 +156,4 @@ export default function TopPage() {
     </>
   );
 }
+
