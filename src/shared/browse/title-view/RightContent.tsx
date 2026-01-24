@@ -16,6 +16,7 @@ import {
   Star,
   X,
   CheckCircle,
+  Play,
 } from "lucide-react";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,7 @@ import { useUpdateRatingMutation } from "@/store/api/titlesApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getChapterPath } from "@/lib/title-paths";
 import { useAuth } from "@/hooks/useAuth";
+import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 
 interface RightContentProps {
   titleData: Title;
@@ -454,7 +456,7 @@ export function RightContent({
                   >
                     {/* Иконка статуса прочтения */}
                     <div
-                      className="flex items-center w-5 h-5"
+                      className="flex items-center w-5 h-5 flex-shrink-0"
                       onMouseEnter={() => setHoveredChapterId(chapter._id || null)}
                       onMouseLeave={() => setHoveredChapterId(null)}
                     >
@@ -483,25 +485,35 @@ export function RightContent({
                         />
                       )}
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-[var(--foreground)]">{chapter.name}</h3>
-                      <p className="text-sm text-[var(--foreground)]/60">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-[var(--foreground)] truncate">
+                        {getChapterDisplayName(chapter)}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-[var(--foreground)]/60 truncate hidden sm:block">
                         {chapter.createdAt ? new Date(chapter.createdAt).toLocaleDateString() : ""}
                       </p>
                     </div>
-                    <div className="flex gap-2 items-center">
-                      <div className="flex gap-2">
-                        {"Просмотров: "}
-                        {chapter.views && (
-                          <span className="flex items-center gap-1">{chapter.views}</span>
-                        )}
+                    <div className="flex gap-1 sm:gap-2 items-center flex-shrink-0">
+                      <div className="hidden sm:flex gap-1 items-center">
+                        <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">
+                          Просмотров: {chapter.views || 0}
+                        </span>
+                      </div>
+                      {/* Mobile: only icon with number */}
+                      <div className="sm:hidden flex items-center gap-1">
+                        <Eye className="w-4 h-4 text-[var(--muted-foreground)]" />
+                        <span className="text-xs text-[var(--muted-foreground)]">
+                          {chapter.views || 0}
+                        </span>
                       </div>
 
                       <button
                         onClick={() => router.push(getChapterPathCallback(chapter._id))}
-                        className="px-4 py-2 bg-[var(--chart-1)]/80 cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)]/80 transition-colors"
+                        className="p-1.5 sm:px-4 sm:py-2 bg-[var(--chart-1)]/80 cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)]/80 transition-colors flex items-center justify-center"
+                        aria-label="Читать главу"
                       >
-                        Читать
+                        <Play className="w-4 h-4 sm:hidden" />
+                        <span className="hidden sm:inline text-sm">Читать</span>
                       </button>
                     </div>
                   </div>

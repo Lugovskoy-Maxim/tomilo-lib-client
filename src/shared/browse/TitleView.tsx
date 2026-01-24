@@ -9,7 +9,6 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
-  Eye,
   Globe,
   MessageCircle,
   Share as ShareIcon,
@@ -18,6 +17,8 @@ import {
   X,
   EyeOff,
   ArrowUpDown,
+  Play,
+  Eye,
 } from "lucide-react";
 import { Title, TitleStatus, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
@@ -33,6 +34,8 @@ import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVe
 import { LoginModal, RegisterModal } from "@/shared";
 
 import { translateTitleType, translateTitleStatus } from "@/lib/title-type-translations";
+import { getChapterDisplayName } from "@/lib/chapter-title-utils";
+import router from "next/router";
 
 // Shared UI
 export function TabButton({
@@ -359,10 +362,9 @@ export function ChapterItem({
             />
           )}
         </div>
-        <div className="flex gap-1 justify-center items-center">
-          <div className="font-medium text-[var(--primary)] text-sm sm:text-sm">
-            Глава {chapter.chapterNumber}
-            {chapter.name != `Глава ${chapter.chapterNumber.toString()}` && `: ${chapter.name}`}
+        <div className="flex gap-1 justify-center items-center flex-wrap">
+          <div className="font-medium text-[var(--primary)] text-sm sm:text-sm truncate max-w-[150px] sm:max-w-none">
+            {getChapterDisplayName(chapter)}
           </div>
           {chapter.releaseDate && (
             <div className="flex items-center gap-1 font-medium text-[var(--primary)] text-sm sm:text-sm">
@@ -373,16 +375,24 @@ export function ChapterItem({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 text-sm text-[var(--primary)]">
-        {"Просмотров: "}
-        {chapter.views && (
-          <span className="flex items-center gap-1">
-            {/* <Eye className="w-4 h-4" /> */}
-            {chapter.views}
-          </span>
-        )}
+      <div className="flex items-center gap-3 text-sm text-[var(--primary)] flex-shrink-0">
+        <div className="hidden sm:flex items-center gap-1">
+          <span>Просмотров: {chapter.views}</span>
+        </div>
+        {/* Mobile: icon with number */}
+        <div className="sm:hidden flex items-center gap-1">
+          <Eye className="w-4 h-4" />
+          <span>{chapter.views}</span>
+        </div>
 
-        <ChevronDown className="w-4 h-4 -rotate-90" />
+        <button
+          onClick={() => router.push(`/titles/${titleId}/chapter/${chapter._id}`)}
+          className="p-1.5 sm:px-4 sm:py-2 bg-[var(--chart-1)]/80 text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)]/80 transition-colors flex items-center justify-center"
+          aria-label="Читать главу"
+        >
+          <Play className="w-4 h-4 sm:hidden" />
+          <span className="hidden sm:inline text-sm">Читать</span>
+        </button>
       </div>
     </Link>
   );
