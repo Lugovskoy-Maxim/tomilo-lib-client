@@ -14,6 +14,7 @@ import { UpdateChapterDto } from "@/types/title";
 import { login, logout, setLoading, updateUser } from "@/store/slices/authSlice";
 import { RootState } from "@/store";
 import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
+import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-verification";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
@@ -83,9 +84,15 @@ export const useAuth = () => {
           readingHistory: user.readingHistory,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
+          birthDate: user.birthDate,
         },
       };
       dispatch(login(authResponse));
+
+      // Check age and set verification if user is 18+
+      if (user.birthDate) {
+        checkAndSetAgeVerification(user.birthDate);
+      }
     }
   }, [profileResponse, token, dispatch]);
 
@@ -348,6 +355,11 @@ export const useAuth = () => {
       localStorage.setItem(AUTH_TOKEN_KEY, token);
       localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
 
+      // Check age and set verification if user is 18+
+      if (user.birthDate) {
+        checkAndSetAgeVerification(user.birthDate);
+      }
+
       if (authResponse.data) {
         dispatch(login(authResponse.data));
       }
@@ -358,6 +370,8 @@ export const useAuth = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(AUTH_TOKEN_KEY);
       localStorage.removeItem(USER_DATA_KEY);
+      // Clear age verification on logout
+      clearAgeVerification();
     }
     dispatch(logout());
   };
