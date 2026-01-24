@@ -67,39 +67,80 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         <div
           className="image-placeholder"
           style={{
-            width: width,
-            height: "auto",
-            backgroundColor: "#f0f0f0",
+            width: "100%",
+            aspectRatio: width / height,
+            backgroundColor: "var(--muted)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            borderRadius: "var(--radius)",
           }}
         >
-          <div className="loading-spinner" />
+          <div
+            style={{
+              border: "2px solid var(--muted)",
+              borderTop: "2px solid var(--primary)",
+              borderRadius: "50%",
+              width: "20px",
+              height: "20px",
+              animation: "spin 1s linear infinite",
+            }}
+          />
         </div>
       );
     }
-    return null;
+    // Если размеры не указаны, используем skeleton с 100% width
+    return (
+      <div
+        className="image-placeholder"
+        style={{
+          width: "100%",
+          paddingBottom: "137.5%", // Соотношение 220/160 = 1.375 (137.5%)
+          backgroundColor: "var(--muted)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "var(--radius)",
+        }}
+      >
+        <div
+          style={{
+            border: "2px solid var(--muted)",
+            borderTop: "2px solid var(--primary)",
+            borderRadius: "50%",
+            width: "20px",
+            height: "20px",
+            animation: "spin 1s linear infinite",
+          }}
+        />
+      </div>
+    );
   };
 
   // Отображение ошибки
-  const renderError = () => (
-    <div
-      className="image-error"
-      style={{
-        width: width || "100%",
-        height: "auto",
-        backgroundColor: "#fdd",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#c33",
-        border: "1px solid #fcc",
-      }}
-    >
-      Ошибка загрузки изображения
-    </div>
-  );
+  const renderError = () => {
+    const aspectRatio = width && height ? width / height : 160 / 220;
+    return (
+      <div
+        className="image-error"
+        style={{
+          width: "100%",
+          aspectRatio: aspectRatio,
+          backgroundColor: "var(--destructive)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--destructive-foreground)",
+          border: "1px solid var(--destructive)",
+          borderRadius: "var(--radius)",
+          fontSize: "14px",
+          fontWeight: 500,
+        }}
+      >
+        Ошибка
+      </div>
+    );
+  };
 
   // Если есть ошибка, отображаем сообщение об ошибке
   if (error) {
@@ -135,17 +176,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         draggable={draggable}
       />
 
-      {/* Стили для компонента */}
-      <style jsx>{`
-        .loading-spinner {
-          border: 2px solid #f3f3f3;
-          border-top: 2px solid #3498db;
-          border-radius: 50%;
-          width: 20px;
-          height: 20px;
-          animation: spin 1s linear infinite;
-        }
-
+      {/* Глобальные стили для анимации спиннера */}
+      <style jsx global>{`
         @keyframes spin {
           0% {
             transform: rotate(0deg);
@@ -153,15 +185,6 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           100% {
             transform: rotate(360deg);
           }
-        }
-
-        .image-placeholder {
-          position: relative;
-        }
-
-        .image-error {
-          font-size: 14px;
-          font-weight: 500;
         }
       `}</style>
     </>
