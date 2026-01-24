@@ -71,13 +71,13 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
       onClick={handleClick}
     >
       <div className="flex items-start space-x-3">
-        <div className="w-12 h-16 bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="w-18 h-24 bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
           {showImage ? (
             <OptimizedImage
               src={getImageUrl(title.coverImage)}
               alt={title.name}
-              width={48}
-              height={64}
+              width={72}
+              height={96}
               className="w-full h-full object-cover"
               quality={80}
               priority={false}
@@ -103,7 +103,7 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
           )}
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 flex flex-col justify-between h-full gap-2 my-auto min-w-0">
           <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1 truncate">
             {title.name}
           </h3>
@@ -115,7 +115,7 @@ export default function BookmarkCard({ title, onRemove, isLoading }: BookmarkCar
               {translateTitleStatus(title.status)}
             </span>
             <span className="text-xs text-[var(--muted-foreground)]">
-              {title.totalChapters} гл.
+              <span className="font-bold text-[var(--chart-1)]">{title.totalChapters}</span> глав.
             </span>
           </div>
         </div>

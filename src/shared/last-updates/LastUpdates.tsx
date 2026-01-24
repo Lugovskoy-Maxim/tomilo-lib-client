@@ -82,7 +82,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
     >
       <div className="flex">
         {/* Картинка слева */}
-        <div className="relative w-16 h-24 flex-shrink-0">
+        <div className="relative w-22 h-30 flex-shrink-0">
           <div className="relative w-full h-full rounded-l-lg overflow-hidden">
             <Image
               loader={() => `${imageUrl}`}

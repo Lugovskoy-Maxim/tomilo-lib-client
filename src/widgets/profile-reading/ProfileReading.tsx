@@ -328,13 +328,13 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                 }}
               >
                 <div className="flex items-start space-x-3">
-                  <div className="w-12 h-16 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-18 h-24 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {title?.coverImage ? (
                       <OptimizedImage
                         src={getImageUrlString(title.coverImage)}
                         alt={title.name || `Манга #${group.titleId}`}
-                        width={48}
-                        height={64}
+                        width={72}
+                        height={96}
                         className="w-full h-full object-cover"
                         quality={80}
                         priority={false}
@@ -343,8 +343,8 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                       <OptimizedImage
                         src={IMAGE_HOLDER.src}
                         alt="Заглушка"
-                        width={48}
-                        height={64}
+                        width={72}
+                        height={96}
                         className="w-full h-full object-cover"
                         quality={80}
                         priority={false}
@@ -352,7 +352,7 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                     )}
                   </div>
 
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 flex flex-col justify-between h-full gap-2 my-auto min-w-0">
                     <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1 truncate">
                       {title?.name || `Манга #${group.titleId}`}
                     </h3>
@@ -362,7 +362,7 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                         <>{formatChapterRange(sortedSessions[0])}</>
                       }
                     </p>
-                    <div className="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+                    <div className="block sm:flex items-center justify-between text-xs text-[var(--muted-foreground)]">
                       <div className="flex items-center space-x-2">
                         <Clock className="w-3 h-3" />
                         <span>{formatSessionTime(sortedSessions[0])}</span>
@@ -374,7 +374,7 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                   </div>
 
                   {/* Кнопки управления */}
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col h-full gap-7">
                     {/* Кнопка разворачивания/сворачивания */}
                     <button
                       onClick={e => {

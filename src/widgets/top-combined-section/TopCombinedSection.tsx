@@ -86,13 +86,13 @@ const CardItem = ({ item }: CardItemProps) => {
       <div className="block group cursor-pointer" onClick={handleClick}>
         <div className="flex items-center gap-3 hover:bg-[var(--muted)]/20 p-2 rounded-lg transition-colors">
           {/* Обложка */}
-          <div className="w-16 h-24 rounded flex-shrink-0 overflow-hidden bg-gray-700 relative">
+          <div className="w-22 h-30 rounded flex-shrink-0 overflow-hidden bg-gray-700 relative">
             {item.coverImage ? (
               <OptimizedImage
                 src={normalizeImageUrl(item.coverImage)}
                 alt={item.title}
-                width={64}
-                height={96}
+                width={88}
+                height={120}
                 className={`w-full h-full object-cover ${
                   item.isAdult && !isAgeVerified ? "blur-sm" : ""
                 }`}
