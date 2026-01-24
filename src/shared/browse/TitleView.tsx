@@ -35,6 +35,7 @@ import { LoginModal, RegisterModal } from "@/shared";
 
 import { translateTitleType, translateTitleStatus } from "@/lib/title-type-translations";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
+import { GenresList } from "./title-view/GenresList";
 import router from "next/router";
 
 // Shared UI
@@ -572,38 +573,7 @@ export function RightContent({
         </div>
 
         <div className="mt-2">
-          <div className="flex flex-wrap gap-2">
-            <span
-              className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-xs font-semibold bg-[var(--background)]/60"
-              onClick={() => {
-                router.push(`/titles?ageLimit=${encodeURIComponent(titleData?.ageLimit || "")}`);
-              }}
-            >
-              {titleData?.ageLimit}+
-            </span>
-            {titleData.genres?.map((genre, index) => (
-              <span
-                key={index}
-                className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
-                onClick={() => {
-                  router.push(`/titles?genres=${encodeURIComponent(genre || "")}`);
-                }}
-              >
-                {genre}
-              </span>
-            ))}
-            {titleData.tags?.map((tag, index) => (
-              <span
-                key={index}
-                className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
-                onClick={() => {
-                  router.push(`/titles?tags=${encodeURIComponent(tag || "")}`);
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+          <GenresList genres={titleData.genres} tags={titleData.tags} />
         </div>
 
         {titleData.description && (

@@ -26,6 +26,7 @@ import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVe
 import { getChapterPath } from "@/lib/title-paths";
 import { useAuth } from "@/hooks/useAuth";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
+import { GenresList } from "./GenresList";
 
 interface RightContentProps {
   titleData: Title;
@@ -631,54 +632,24 @@ export function RightContent({
           {titleData?.name}
         </h1>
 
-        <div className="flex flex-wrap gap-2">
-          <span
-            className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-sm font-semibold bg-[var(--muted)]/60 p-1"
-            onClick={() => {
-              router.push(`/titles?ageLimit=${encodeURIComponent(titleData?.ageLimit || "")}`);
-            }}
+        <GenresList genres={titleData.genres} tags={titleData.tags} />
+
+        <div
+          className={`text-[var(--foreground)]/80 leading-relaxed ${
+            !isDescriptionExpanded ? "line-clamp-3" : ""
+          }`}
+          dangerouslySetInnerHTML={{
+            __html: titleData?.description || "",
+          }}
+        ></div>
+        {(titleData?.description?.length || 0) > 200 && (
+          <button
+            onClick={onDescriptionToggle}
+            className=" text-[var(--chart-1)] hover:text-[var(--chart-1)]/80 transition-colors"
           >
-            {titleData?.ageLimit}+
-          </span>
-          {titleData.genres?.map((genre, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 cursor-pointer rounded-full text-sm font-normal bg-[var(--muted)]/50 p-1 text-[var(--foreground)]"
-              onClick={() => {
-                router.push(`/titles?genres=${encodeURIComponent(genre || "")}`);
-              }}
-            >
-              {genre}
-            </span>
-          ))}
-          {titleData.tags?.map((tag, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 cursor-pointer rounded-full text-xs font-normal bg-[var(--background)]/50 text-[var(--foreground)]"
-              onClick={() => {
-                router.push(`/titles?tags=${encodeURIComponent(tag || "")}`);
-              }}
-            >
-              {tag}
-            </span>
-          ))}
-          <div
-            className={`text-[var(--foreground)]/80 leading-relaxed ${
-              !isDescriptionExpanded ? "line-clamp-3" : ""
-            }`}
-            dangerouslySetInnerHTML={{
-              __html: titleData?.description || "",
-            }}
-          ></div>
-          {(titleData?.description?.length || 0) > 200 && (
-            <button
-              onClick={onDescriptionToggle}
-              className=" text-[var(--chart-1)] hover:text-[var(--chart-1)]/80 transition-colors"
-            >
-              {isDescriptionExpanded ? "Свернуть" : "Развернуть"}
-            </button>
-          )}
-        </div>
+            {isDescriptionExpanded ? "Свернуть" : "Развернуть"}
+          </button>
+        )}
 
         <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1 relative">
           <div className="flex">
