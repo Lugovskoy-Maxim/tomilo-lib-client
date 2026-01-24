@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const image = titleData.coverImage ? `${baseUrl}${titleData.coverImage}` : undefined;
     // Формируем расширенные метаданные
     const metadata: Metadata = {
-      title: `Читать ${titleName} - Tomilo-lib.ru`,
+      title: `Читать ${titleName}- ${titleTypeTranslate}- Tomilo-lib.ru`,
       description: shortDescription,
       keywords: [
         titleName,
@@ -120,7 +120,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
       twitter: {
         card: "summary_large_image",
-        title: `Читать ${titleName} - Tomilo-lib.ru`,
+        title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
         description: shortDescription,
         images: image ? [image] : [],
         creator: "@tomilo_lib",
