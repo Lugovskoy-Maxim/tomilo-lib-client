@@ -1,100 +1,99 @@
-import { UserProfile } from "@/types/user";
-import { Users, Eye, Lock } from "lucide-react";
+import { UserProfile, UserPrivacy } from "@/types/user";
+import { Check } from "lucide-react";
+import { useUpdateProfileMutation } from "@/store/api/authApi";
+import { useToast } from "@/hooks/useToast";
 
 interface ProfilePrivacySettingsProps {
   userProfile: UserProfile;
 }
 
-export default function ProfilePrivacySettings({}: ProfilePrivacySettingsProps) {
-  // TODO: Реализовать логику сохранения настроек приватности
-  const handlePrivacySettingChange = (setting: string, value: string) => {
-    console.log(`Изменение настройки приватности ${setting}: ${value}`);
-    // Здесь будет логика сохранения настроек приватности
+export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySettingsProps) {
+  const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+  const toast = useToast();
+
+  const currentPrivacy = userProfile.privacy || {
+    profileVisibility: "public",
+    readingHistoryVisibility: "private",
+  };
+
+  const handlePrivacySettingChange = async (setting: keyof UserPrivacy, value: string) => {
+    if (isLoading) return;
+    try {
+      await updateProfile({
+        privacy: {
+          ...currentPrivacy,
+          [setting]: value,
+        },
+      }).unwrap();
+      toast.success("Настройки приватности обновлены");
+    } catch (error) {
+      console.error("Ошибка при сохранении настроек приватности:", error);
+      toast.error("Не удалось сохранить настройки");
+    }
   };
 
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-      <div className="flex items-center gap-3 mb-4">
-        <Lock className="w-5 h-5 text-[var(--primary)]" />
-        <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Приватность</h2>
-      </div>
+    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3 sm:p-4">
+      <h2 className="text-base sm:text-lg font-semibold text-[var(--foreground)] mb-3 sm:mb-4">
+        Приватность
+      </h2>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
+        {/* Видимость профиля */}
         <div>
-          <span className="text-sm font-medium text-[var(--foreground)]">Видимость профиля</span>
-          <p className="text-xs text-[var(--muted-foreground)] mb-2">
-            Кто может видеть ваш профиль
-          </p>
-          <div className="flex flex-col gap-2">
-            <button
-              className="flex items-center gap-2 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm justify-between"
-              onClick={() => handlePrivacySettingChange("profileVisibility", "public")}
-            >
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Публичный
-              </div>
-              <div className="text-xs text-[var(--muted-foreground)]">Все пользователи</div>
-            </button>
-            <button
-              className="flex items-center gap-2 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm justify-between"
-              onClick={() => handlePrivacySettingChange("profileVisibility", "friends")}
-            >
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Для друзей
-              </div>
-              <div className="text-xs text-[var(--muted-foreground)]">Только друзья</div>
-            </button>
-            <button
-              className="flex items-center gap-2 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm justify-between"
-              onClick={() => handlePrivacySettingChange("profileVisibility", "private")}
-            >
-              <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4" />
-                Приватный
-              </div>
-              <div className="text-xs text-[var(--muted-foreground)]">Только вы</div>
-            </button>
+          <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] block mb-2">
+            Профиль
+          </span>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {(["public", "friends", "private"] as const).map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handlePrivacySettingChange("profileVisibility", option)}
+                disabled={isLoading}
+                className={`px-2.5 py-1.5 text-xs rounded-lg border transition-colors flex items-center gap-1 ${
+                  currentPrivacy.profileVisibility === option
+                    ? "bg-[var(--primary)] border-[var(--primary)] text-[var(--primary-foreground)]"
+                    : "bg-[var(--accent)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                {option === "public" && "Публичн."}
+                {option === "friends" && "Друзья"}
+                {option === "private" && "Приват."}
+                {currentPrivacy.profileVisibility === option && (
+                  <Check className="w-3 h-3 flex-shrink-0" />
+                )}
+              </button>
+            ))}
           </div>
         </div>
 
+        {/* Видимость истории */}
         <div>
-          <span className="text-sm font-medium text-[var(--foreground)]">История чтения</span>
-          <p className="text-xs text-[var(--muted-foreground)] mb-2">
-            Кто может видеть вашу историю чтения
-          </p>
-          <div className="flex flex-col gap-2">
-            <button
-              className="flex items-center gap-2 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm justify-between"
-              onClick={() => handlePrivacySettingChange("readingHistoryVisibility", "public")}
-            >
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4" />
-                Публичная
-              </div>
-              <div className="text-xs text-[var(--muted-foreground)]">Все пользователи</div>
-            </button>
-            <button
-              className="flex items-center gap-2 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm justify-between"
-              onClick={() => handlePrivacySettingChange("readingHistoryVisibility", "friends")}
-            >
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Для друзей
-              </div>
-              <div className="text-xs text-[var(--muted-foreground)]">Только друзья</div>
-            </button>
-            <button
-              className="flex items-center gap-2 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm justify-between"
-              onClick={() => handlePrivacySettingChange("readingHistoryVisibility", "private")}
-            >
-              <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4" />
-                Приватная
-              </div>
-              <div className="text-xs text-[var(--muted-foreground)]">Только вы</div>
-            </button>
+          <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] block mb-2">
+            История чтения
+          </span>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {(["public", "friends", "private"] as const).map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handlePrivacySettingChange("readingHistoryVisibility", option)}
+                disabled={isLoading}
+                className={`px-2.5 py-1.5 text-xs rounded-lg border transition-colors flex items-center gap-1 ${
+                  currentPrivacy.readingHistoryVisibility === option
+                    ? "bg-[var(--primary)] border-[var(--primary)] text-[var(--primary-foreground)]"
+                    : "bg-[var(--accent)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                {option === "public" && "Публичн."}
+                {option === "friends" && "Друзья"}
+                {option === "private" && "Приват."}
+                {currentPrivacy.readingHistoryVisibility === option && (
+                  <Check className="w-3 h-3 flex-shrink-0" />
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </div>

@@ -571,7 +571,12 @@ export function RightContent({
         </div>
 
         <div className="mt-2">
-          <GenresList genres={titleData.genres} tags={titleData.tags} isAdult={titleData.isAdult} ageLimit={titleData.ageLimit} />
+          <GenresList
+            genres={titleData.genres}
+            tags={titleData.tags}
+            isAdult={titleData.isAdult}
+            ageLimit={titleData.ageLimit}
+          />
         </div>
 
         {titleData.description && (

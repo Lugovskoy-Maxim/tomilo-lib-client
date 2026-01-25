@@ -19,8 +19,16 @@ interface Item {
 export function GenresList({ genres = [], tags = [], isAdult, ageLimit }: GenresListProps) {
   const showAdultBadge = isAdult || (ageLimit && ageLimit >= 18);
   const showAgeRating = ageLimit && ageLimit > 0;
-  const ageRatingLabel = ageLimit === 18 ? "18+" : ageLimit === 16 ? "16+" : ageLimit === 12 ? "12+" : `${ageLimit}+`;
-  const ageRatingColor = ageLimit === 18 ? "text-red-500" : ageLimit === 16 ? "text-orange-500" : ageLimit === 12 ? "text-yellow-500" : "text-green-500";
+  const ageRatingLabel =
+    ageLimit === 18 ? "18+" : ageLimit === 16 ? "16+" : ageLimit === 12 ? "12+" : `${ageLimit}+`;
+  const ageRatingColor =
+    ageLimit === 18
+      ? "text-red-500"
+      : ageLimit === 16
+        ? "text-orange-500"
+        : ageLimit === 12
+          ? "text-yellow-500"
+          : "text-green-500";
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCollapseButton, setShowCollapseButton] = useState(false);

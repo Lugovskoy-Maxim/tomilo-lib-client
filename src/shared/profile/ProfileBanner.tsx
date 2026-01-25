@@ -37,9 +37,9 @@ export default function ProfileBanner({
   return (
     <div className="bg-[var(--secondary)] rounded-xl border border-[var(--border)] overflow-hidden mb-2">
       {/* Верхняя часть - баннер */}
-      <div className="h-42 bg-gradient-to-r from-[var(--primary)]/20 to-[var(--chart-1)]/20 relative">
+      <div className="h-32 sm:h-42 bg-gradient-to-r from-[var(--primary)]/20 to-[var(--chart-1)]/20 relative">
         {/* Аватар, перекрывающий обе части */}
-        <div className="absolute left-8 -bottom-16">
+        <div className="absolute left-1/2 -translate-x-1/2 sm:left-8 -bottom-12 sm:-translate-x-0 sm:-bottom-16">
           <div className="relative">
             <ProfileAvatar userProfile={userProfile} />
             <RankStarsOverlay userProfile={userProfile} />
@@ -47,35 +47,27 @@ export default function ProfileBanner({
           </div>
         </div>
         {/* Статистика пользователя в верхней части */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+        <div className="absolute top-3 left-4 right-4 sm:top-4 sm:left-4 sm:right-4 flex justify-between items-center gap-2">
           {/* Опыт и баланс */}
-          <div className="flex items-center space-x-2">
-            <div className="flex justify-center items-center px-3 py-1 border border-[var(--border)] font-medium bg-[var(--chart-2)] rounded-lg text-[var(--primary)] text-sm">
+          <div className="flex items-center gap-1.5 sm:space-x-2">
+            <div className="flex justify-center items-center px-2 py-0.5 sm:px-3 sm:py-1 border border-[var(--border)] font-medium bg-[var(--chart-2)] rounded-lg text-[var(--primary)] text-xs sm:text-sm">
               {userProfile.experience || 0} XP
             </div>
-            <div className="flex justify-center items-center px-3 py-1 border border-[var(--border)] font-medium bg-[var(--chart-3)] rounded-lg text-[var(--primary)] text-sm">
-              <CircleDollarSign className="w-4 h-4 mr-1" />
+            <div className="flex justify-center items-center px-2 py-0.5 sm:px-3 sm:py-1 border border-[var(--border)] font-medium bg-[var(--chart-3)] rounded-lg text-[var(--primary)] text-xs sm:text-sm">
+              <CircleDollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
               {userProfile.balance || 0}
             </div>
           </div>
-
-          {/* Уровень */}
-          {/* <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-[var(--muted-foreground)]">Уровень</span>
-            <div className="flex justify-center items-center w-8 h-8 border border-[var(--border)] font-bold bg-[var(--chart-1)] rounded-lg text-[var(--primary)]">
-              {userProfile.level || 0}
-            </div>
-          </div> */}
         </div>
       </div>
 
       {/* Нижняя часть - информация */}
-      <div className="pt-2 pb-6 px-8">
+      <div className="pt-20 pb-4 px-4 sm:pt-2 sm:pb-6 sm:px-8">
         <UserInfo userProfile={userProfile} onEdit={handleEdit} />
       </div>
 
       {/* Статистика пользователя */}
-      <div className="px-8 pb-6">
+      <div className="px-4 pb-4 sm:px-8 sm:pb-6">
         <ProfileStats userProfile={userProfile} />
       </div>
 

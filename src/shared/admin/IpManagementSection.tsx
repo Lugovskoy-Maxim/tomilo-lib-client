@@ -111,9 +111,7 @@ export function IpManagementSection() {
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3 sm:p-4">
           <div className="flex items-center gap-2 mb-2">
             <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-              Уникальных IP
-            </span>
+            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Уникальных IP</span>
           </div>
           <p className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
             {isStatsLoading ? (
@@ -127,9 +125,7 @@ export function IpManagementSection() {
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3 sm:p-4">
           <div className="flex items-center gap-2 mb-2">
             <ShieldAlert className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-              Заблокировано
-            </span>
+            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Заблокировано</span>
           </div>
           <p className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
             {isStatsLoading ? (
@@ -143,9 +139,7 @@ export function IpManagementSection() {
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3 sm:p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-              Топ IP
-            </span>
+            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Топ IP</span>
           </div>
           <p className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
             {isStatsLoading ? (
@@ -163,10 +157,7 @@ export function IpManagementSection() {
           <ShieldAlert className="w-5 h-5 text-red-500" />
           Заблокировать IP
         </h3>
-        <form
-          onSubmit={handleBlockIp}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4"
-        >
+        <form onSubmit={handleBlockIp} className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <div className="sm:col-span-1">
             <input
               type="text"
@@ -181,19 +172,12 @@ export function IpManagementSection() {
               type="text"
               placeholder="Причина блокировки"
               value={blockIpForm.reason}
-              onChange={e =>
-                setBlockIpForm({ ...blockIpForm, reason: e.target.value })
-              }
+              onChange={e => setBlockIpForm({ ...blockIpForm, reason: e.target.value })}
               className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
             />
           </div>
           <div className="sm:col-span-1">
-            <Button
-              type="submit"
-              disabled={isBlocking}
-              className="w-full"
-              variant="destructive"
-            >
+            <Button type="submit" disabled={isBlocking} className="w-full" variant="destructive">
               {isBlocking ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
@@ -325,34 +309,31 @@ export function IpManagementSection() {
         )}
 
         {/* Pagination */}
-        {blockedIpsData?.data?.pagination &&
-          blockedIpsData.data.pagination.pages > 1 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4 border-t border-[var(--border)]">
-              <span className="text-sm text-[var(--muted-foreground)]">
-                Страница {page} из {blockedIpsData.data.pagination.pages}
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setPage(prev => Math.max(prev - 1, 1))}
-                  disabled={page === 1}
-                  variant="outline"
-                  size="sm"
-                >
-                  Назад
-                </Button>
-                <Button
-                  onClick={() =>
-                    setPage(prev => prev + 1)
-                  }
-                  disabled={page === blockedIpsData.data.pagination.pages}
-                  variant="outline"
-                  size="sm"
-                >
-                  Вперед
-                </Button>
-              </div>
+        {blockedIpsData?.data?.pagination && blockedIpsData.data.pagination.pages > 1 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4 border-t border-[var(--border)]">
+            <span className="text-sm text-[var(--muted-foreground)]">
+              Страница {page} из {blockedIpsData.data.pagination.pages}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+                variant="outline"
+                size="sm"
+              >
+                Назад
+              </Button>
+              <Button
+                onClick={() => setPage(prev => prev + 1)}
+                disabled={page === blockedIpsData.data.pagination.pages}
+                variant="outline"
+                size="sm"
+              >
+                Вперед
+              </Button>
             </div>
-          )}
+          </div>
+        )}
       </div>
 
       {/* Top IPs Table */}
@@ -368,9 +349,7 @@ export function IpManagementSection() {
             <table className="w-full">
               <thead className="bg-[var(--secondary)]">
                 <tr>
-                  <th className="text-left p-3 sm:p-4 font-medium text-[var(--foreground)]">
-                    #
-                  </th>
+                  <th className="text-left p-3 sm:p-4 font-medium text-[var(--foreground)]">#</th>
                   <th className="text-left p-3 sm:p-4 font-medium text-[var(--foreground)]">
                     IP адрес
                   </th>
@@ -412,4 +391,3 @@ export function IpManagementSection() {
     </div>
   );
 }
-

@@ -3,11 +3,7 @@
 import { useParams } from "next/navigation";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useGetUserByIdQuery } from "@/store/api/usersApi";
-import {
-  LoadingState,
-  ProfileBanner,
-  ProfileHeader,
-} from "@/shared";
+import { LoadingState, ProfileBanner, ProfileHeader } from "@/shared";
 import ErrorState from "@/shared/error-state/ErrorState";
 import { Footer, Header } from "@/widgets";
 import { useSEO } from "@/hooks/useSEO";
@@ -58,4 +54,3 @@ export default function AdminUserProfilePage() {
     </AuthGuard>
   );
 }
-

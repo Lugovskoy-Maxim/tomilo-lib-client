@@ -49,4 +49,3 @@ export const usersApi = createApi({
 });
 
 export const { useGetUsersQuery, useDeleteUserMutation, useGetUserByIdQuery } = usersApi;
-

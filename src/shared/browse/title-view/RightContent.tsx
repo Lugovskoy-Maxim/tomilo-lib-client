@@ -632,7 +632,12 @@ export function RightContent({
           {titleData?.name}
         </h1>
 
-        <GenresList genres={titleData.genres} tags={titleData.tags} isAdult={titleData.isAdult} ageLimit={titleData.ageLimit} />
+        <GenresList
+          genres={titleData.genres}
+          tags={titleData.tags}
+          isAdult={titleData.isAdult}
+          ageLimit={titleData.ageLimit}
+        />
 
         <div
           className={`text-[var(--foreground)]/80 leading-relaxed ${

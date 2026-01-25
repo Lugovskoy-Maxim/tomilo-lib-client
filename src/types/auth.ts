@@ -13,6 +13,18 @@ export interface RegisterData {
   confirmPassword: string;
 }
 
+// Privacy settings type
+export interface UserPrivacy {
+  profileVisibility: "public" | "friends" | "private";
+  readingHistoryVisibility: "public" | "friends" | "private";
+}
+
+// Display settings type (including 18+ content preference)
+export interface UserDisplaySettings {
+  isAdult: boolean;
+  theme: "light" | "dark" | "system";
+}
+
 export interface StoredUser {
   updatedAt: string;
   createdAt: string;
@@ -29,6 +41,9 @@ export interface StoredUser {
   bookmarks?: string[];
   readingHistory?: import("@/types/store").ReadingHistoryEntry[];
   birthDate?: string;
+  // Privacy and display settings
+  privacy?: UserPrivacy;
+  displaySettings?: UserDisplaySettings;
 }
 
 export interface AuthResponse {

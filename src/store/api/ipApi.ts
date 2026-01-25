@@ -29,10 +29,7 @@ export const ipApi = createApi({
       query: () => "/ip-stats",
       providesTags: ["BlockedIps"],
     }),
-    getBlockedIps: builder.query<
-      BlockedIpsResponse,
-      { page?: number; limit?: number }
-    >({
+    getBlockedIps: builder.query<BlockedIpsResponse, { page?: number; limit?: number }>({
       query: ({ page = 1, limit = 50 }) => ({
         url: `/blocked-ips?page=${page}&limit=${limit}`,
       }),
@@ -63,4 +60,3 @@ export const {
   useBlockIpMutation,
   useUnblockIpMutation,
 } = ipApi;
-

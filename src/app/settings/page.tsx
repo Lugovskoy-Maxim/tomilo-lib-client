@@ -1,10 +1,41 @@
 "use client";
-import { Settings, Palette, Languages, Bell, Eye } from "lucide-react";
+import { Settings, Bell, Eye, Star } from "lucide-react";
 import { Footer, Header } from "@/widgets";
 import { BackButton, ThemeToggle } from "@/shared";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
+import { useUpdateProfileMutation } from "@/store/api/authApi";
+import { useToast } from "@/hooks/useToast";
+import { useGetProfileQuery } from "@/store/api/authApi";
 
 export default function SettingsPage() {
+  const { data: profileData } = useGetProfileQuery();
+  const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+  const toast = useToast();
+
+  const userProfile = profileData?.data;
+  const displaySettings = userProfile?.displaySettings || {
+    isAdult: false,
+    theme: "system",
+  };
+
+  const handleAdultToggle = async () => {
+    if (isLoading) return;
+    try {
+      await updateProfile({
+        displaySettings: {
+          ...displaySettings,
+          isAdult: !displaySettings.isAdult,
+        },
+      }).unwrap();
+      toast.success(
+        !displaySettings.isAdult ? "Контент для взрослых включен" : "Контент для взрослых выключен",
+      );
+    } catch (error) {
+      console.error("Ошибка при сохранении настроек:", error);
+      toast.error("Не удалось сохранить настройки");
+    }
+  };
+
   // SEO для страницы настроек
   useSEO(
     seoConfigs.static(
@@ -34,7 +65,7 @@ export default function SettingsPage() {
             {/* Внешний вид */}
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-2">
               <div className="flex items-center gap-3 mb-4">
-                <Palette className="w-5 h-5 text-[var(--primary)]" />
+                <Star className="w-5 h-5 text-[var(--primary)]" />
                 <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
                   Внешний вид
                 </h2>
@@ -50,27 +81,34 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Язык */}
+            {/* Контент */}
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-2">
               <div className="flex items-center gap-3 mb-4">
-                <Languages className="w-5 h-5 text-[var(--primary)]" />
-                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Язык</h2>
+                <Eye className="w-5 h-5 text-[var(--primary)]" />
+                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Контент</h2>
               </div>
-              {/*
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-sm font-medium text-[var(--foreground)]">Язык интерфейса</span>
-                <p className="text-xs text-[var(--muted-foreground)]">Язык отображения сайта</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-sm font-medium text-[var(--foreground)]">18+ контент</span>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    Показывать тайтлы с возрастным рейтингом 18+
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAdultToggle}
+                  disabled={isLoading}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    displaySettings.isAdult ? "bg-[var(--primary)]" : "bg-[var(--muted)]"
+                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      displaySettings.isAdult ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
               </div>
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
-              >
-                <Languages className="w-3.5 h-3.5" />
-                {language === "ru" ? "Русский" : "English"}
-              </button>
-            </div>
-            */}
             </div>
 
             {/* Уведомления */}
@@ -120,14 +158,6 @@ export default function SettingsPage() {
                     </label>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Чтение */}
-            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-2">
-              <div className="flex items-center gap-3 mb-4">
-                <Eye className="w-5 h-5 text-[var(--primary)]" />
-                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Чтение</h2>
               </div>
             </div>
           </div>

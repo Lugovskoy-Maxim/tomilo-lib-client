@@ -60,4 +60,3 @@ export interface UnblockIpResponse {
   success: boolean;
   message: string;
 }
-

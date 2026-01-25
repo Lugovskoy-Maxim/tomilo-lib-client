@@ -1,10 +1,20 @@
 // components/UserDropdown.tsx
 "use client";
-import { useState } from "react";
-import { User, Settings, Bookmark, History, LogOut, CircleDollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  User,
+  Settings,
+  Bookmark,
+  History,
+  LogOut,
+  CircleDollarSign,
+  Shield,
+  Eye,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserAvatar } from "..";
 import { getRankDisplay } from "@/lib/rank-utils";
+import { useUpdateProfileMutation } from "@/store/api/authApi";
 
 interface UserDropdownProps {
   isOpen: boolean;
@@ -19,14 +29,50 @@ interface UserDropdownProps {
     level?: number;
     experience?: number;
     balance?: number;
+    role?: string;
+    birthDate?: string;
+    displaySettings?: {
+      isAdult?: boolean;
+      theme?: "light" | "dark" | "system";
+    };
   };
 }
 
 export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDropdownProps) {
   const [activeSubmenu] = useState<string | null>(null);
   const router = useRouter();
+  const [updateProfile] = useUpdateProfileMutation();
+  const [adultEnabled, setAdultEnabled] = useState(user?.displaySettings?.isAdult || false);
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user?.displaySettings?.isAdult !== undefined) {
+      setAdultEnabled(user.displaySettings.isAdult);
+    }
+  }, [user?.displaySettings?.isAdult]);
 
   if (!isOpen) return null;
+
+  const isAdmin = user?.role === "admin";
+  const isAdult = adultEnabled;
+
+  const handleToggleAdult = async () => {
+    const newValue = !adultEnabled;
+    setAdultEnabled(newValue); // Update local state immediately
+
+    try {
+      await updateProfile({
+        displaySettings: {
+          isAdult: newValue,
+          theme: user?.displaySettings?.theme || "system",
+        },
+      }).unwrap();
+    } catch (error) {
+      // Revert on error
+      setAdultEnabled(!newValue);
+      console.error("Ошибка при обновлении настроек:", error);
+    }
+  };
 
   const menuItems = [
     {
@@ -53,6 +99,15 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
     //   label: "Настройки",
     //   onClick: () => router.push("/settings"),
     // },
+  ];
+
+  const adminMenuItems = [
+    {
+      id: "admin",
+      icon: Shield,
+      label: "Админ панель",
+      onClick: () => router.push("/admin"),
+    },
   ];
 
   const handleLogout = () => {
@@ -107,6 +162,37 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
 
       {/* Основное меню */}
       <div className="max-h-96 overflow-y-auto">
+        {/* Кнопка 18+ контента */}
+        {user?.birthDate && (
+          <div className="p-2">
+            <button
+              type="button"
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors cursor-pointer group ${
+                isAdult
+                  ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                  : "bg-[var(--secondary)] hover:bg-[var(--secondary)]/80"
+              }`}
+              onClick={handleToggleAdult}
+            >
+              <div className="flex items-center space-x-3">
+                <Eye
+                  className={`w-4 h-4 ${isAdult ? "text-green-600" : "text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"}`}
+                />
+                <span
+                  className={`font-medium ${isAdult ? "text-green-600" : "text-[var(--foreground)] group-hover:text-[var(--primary)]"}`}
+                >
+                  18+ контент
+                </span>
+              </div>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full ${isAdult ? "bg-green-500/20" : "bg-[var(--border)]"}`}
+              >
+                {isAdult ? "Вкл" : "Выкл"}
+              </span>
+            </button>
+          </div>
+        )}
+
         <div className="p-2 space-y-1">
           {menuItems.map(item => (
             <div key={item.id}>
@@ -127,6 +213,31 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
             </div>
           ))}
         </div>
+
+        {/* Админ меню */}
+        {isAdmin && (
+          <>
+            <hr className="my-2 border-[var(--border)]" />
+            <div className="p-2 space-y-1">
+              {adminMenuItems.map(item => (
+                <div key={item.id}>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-[var(--primary)]/10 transition-colors cursor-pointer group"
+                    onClick={item.onClick}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <item.icon className="w-4 h-4 text-[var(--primary)]" />
+                      <span className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)]">
+                        {item.label}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Разделитель */}
         <hr className="my-2 border-[var(--border)]" />

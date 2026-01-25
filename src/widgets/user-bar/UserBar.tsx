@@ -17,6 +17,12 @@ interface UserDropdownUser {
   level?: number;
   experience?: number;
   balance?: number;
+  role?: string;
+  birthDate?: string;
+  displaySettings?: {
+    isAdult?: boolean;
+    theme?: "light" | "dark" | "system";
+  };
 }
 
 export default function UserBar() {
@@ -93,6 +99,9 @@ export default function UserBar() {
       level: user.level,
       experience: user.experience,
       balance: user.balance,
+      role: user.role,
+      birthDate: user.birthDate,
+      displaySettings: user.displaySettings,
     };
   };
 

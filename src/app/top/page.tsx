@@ -4,7 +4,11 @@ import { Trophy } from "lucide-react";
 
 import { Carousel, Footer, Header } from "@/widgets";
 import { TopTitleCard, PeriodFilter, LoadingSkeleton, ErrorState } from "@/shared";
-import { useGetTopTitlesDayQuery, useGetTopTitlesWeekQuery, useGetTopTitlesMonthQuery } from "@/store/api/titlesApi";
+import {
+  useGetTopTitlesDayQuery,
+  useGetTopTitlesWeekQuery,
+  useGetTopTitlesMonthQuery,
+} from "@/store/api/titlesApi";
 import { RankedTopTitle } from "@/types/home";
 import { useSEO } from "@/hooks/useSEO";
 import { useMounted } from "@/hooks/useMounted";
@@ -74,18 +78,31 @@ export default function TopPage() {
   const activeTopTitles = getActiveTopTitles();
 
   const topTitlesWithRank = useMemo<RankedTopTitle[]>(() => {
-    return activeTopTitles.data.map((title: { id: string; title: string; cover?: string; rating?: number; type?: string; releaseYear?: number; isAdult?: boolean }, index: number) => ({
-      id: title.id,
-      title: title.title,
-      type: title.type || "Неуказан",
-      year: title.releaseYear || new Date().getFullYear(),
-      rating: title.rating || 0,
-      image: title.cover || "",
-      genres: [],
-      rank: index + 1,
-      period: periodLabels[activePeriod],
-      isAdult: title.isAdult || false,
-    }));
+    return activeTopTitles.data.map(
+      (
+        title: {
+          id: string;
+          title: string;
+          cover?: string;
+          rating?: number;
+          type?: string;
+          releaseYear?: number;
+          isAdult?: boolean;
+        },
+        index: number,
+      ) => ({
+        id: title.id,
+        title: title.title,
+        type: title.type || "Неуказан",
+        year: title.releaseYear || new Date().getFullYear(),
+        rating: title.rating || 0,
+        image: title.cover || "",
+        genres: [],
+        rank: index + 1,
+        period: periodLabels[activePeriod],
+        isAdult: title.isAdult || false,
+      }),
+    );
   }, [activeTopTitles.data, activePeriod, periodLabels]);
 
   if (!mounted) {
@@ -156,4 +173,3 @@ export default function TopPage() {
     </>
   );
 }
-

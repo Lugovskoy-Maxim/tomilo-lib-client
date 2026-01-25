@@ -166,7 +166,7 @@ export function UsersSection() {
                     </td>
                     <td className="p-2 sm:p-4">
                       <div className="flex items-center justify-end gap-1 sm:gap-2">
-<button
+                        <button
                           onClick={() => window.open(`/admin/users/${user._id}`, "_blank")}
                           className="p-1 sm:p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
                           title="Просмотреть профиль"
@@ -194,4 +194,3 @@ export function UsersSection() {
     </div>
   );
 }
-
