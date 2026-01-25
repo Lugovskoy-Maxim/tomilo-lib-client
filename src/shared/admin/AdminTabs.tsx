@@ -8,9 +8,10 @@ import {
   Clock,
   MessageCircle,
   AlertTriangle,
+  Shield,
 } from "lucide-react";
 
-type AdminTab =
+export type AdminTab =
   | "overview"
   | "parser"
   | "auto-parsing"
@@ -19,7 +20,8 @@ type AdminTab =
   | "collections"
   | "users"
   | "comments"
-  | "reports";
+  | "reports"
+  | "ip-management";
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -71,6 +73,11 @@ const tabs = [
     id: "reports" as AdminTab,
     label: "Жалобы",
     icon: AlertTriangle,
+  },
+  {
+    id: "ip-management" as AdminTab,
+    label: "IP",
+    icon: Shield,
   },
 ];
 

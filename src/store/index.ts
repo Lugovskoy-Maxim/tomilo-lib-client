@@ -9,6 +9,8 @@ import { usersApi } from "./api/usersApi";
 import { collectionsApi } from "./api/collectionsApi";
 import { commentsApi } from "./api/commentsApi";
 import { reportsApi } from "./api/reportsApi";
+import { autoParsingApi } from "./api/autoParsingApi";
+import { ipApi } from "./api/ipApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
 import collectionsReducer from "./slices/collectionsSlice";
@@ -20,7 +22,6 @@ import readingHistoryReducer from "./slices/readingHistorySlice";
 import bookmarksReducer from "./slices/bookmarksSlice";
 import searchReducer from "./slices/searchSlice";
 import filterReducer from "./slices/filterSlice";
-import { autoParsingApi } from "./api/autoParsingApi";
 
 export const store = configureStore({
   reducer: {
@@ -46,6 +47,7 @@ export const store = configureStore({
     [commentsApi.reducerPath]: commentsApi.reducer,
     [reportsApi.reducerPath]: reportsApi.reducer,
     [autoParsingApi.reducerPath]: autoParsingApi.reducer,
+    [ipApi.reducerPath]: ipApi.reducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware()
@@ -59,7 +61,8 @@ export const store = configureStore({
       .concat(collectionsApi.middleware)
       .concat(commentsApi.middleware)
       .concat(reportsApi.middleware)
-      .concat(autoParsingApi.middleware),
+      .concat(autoParsingApi.middleware)
+      .concat(ipApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

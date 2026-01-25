@@ -5,6 +5,7 @@ export { CollectionsSection } from "./CollectionsSection";
 export { CommentsSection } from "./CommentsSection";
 export { CoverUploadSection } from "./CoverUploadSection";
 export { ImagePreviewModal } from "./ImagePreviewModal";
+export { IpManagementSection } from "./IpManagementSection";
 export { OverviewSection } from "./OverviewSection";
 export { ParserSection } from "./ParserSection";
 export { ReportsSection } from "./ReportsSection";

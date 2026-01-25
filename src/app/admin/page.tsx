@@ -1,6 +1,6 @@
 "use client";
 
-import { AdminTabs } from "@/shared/admin/AdminTabs";
+import { AdminTabs, type AdminTab } from "@/shared/admin/AdminTabs";
 import AutoParsingSection from "@/shared/admin/AutoParsingSection";
 import { ChaptersSection } from "@/shared/admin/ChaptersSection";
 import { CollectionsSection } from "@/shared/admin/CollectionsSection";
@@ -10,21 +10,11 @@ import { TitlesSection } from "@/shared/admin/TitlesSection";
 import { UsersSection } from "@/shared/admin/UsersSection";
 import { CommentsSection } from "@/shared/admin/CommentsSection";
 import { ReportsSection } from "@/shared/admin/ReportsSection";
+import { IpManagementSection } from "@/shared/admin/IpManagementSection";
 import { Footer, Header } from "@/widgets";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useState } from "react";
 import { Cog } from "lucide-react";
-
-type AdminTab =
-  | "overview"
-  | "parser"
-  | "auto-parsing"
-  | "titles"
-  | "chapters"
-  | "collections"
-  | "users"
-  | "comments"
-  | "reports";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
@@ -57,6 +47,8 @@ export default function AdminPage() {
         return <UsersSection />;
       case "reports":
         return <ReportsSection />;
+      case "ip-management":
+        return <IpManagementSection />;
       default:
         return <OverviewSection onTabChange={setActiveTab} />;
     }
