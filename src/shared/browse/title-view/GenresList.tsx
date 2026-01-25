@@ -7,6 +7,8 @@ import { MoreHorizontal, ChevronUp } from "lucide-react";
 interface GenresListProps {
   genres?: string[];
   tags?: string[];
+  isAdult?: boolean;
+  ageLimit?: number;
 }
 
 interface Item {
@@ -14,7 +16,11 @@ interface Item {
   value: string;
 }
 
-export function GenresList({ genres = [], tags = [] }: GenresListProps) {
+export function GenresList({ genres = [], tags = [], isAdult, ageLimit }: GenresListProps) {
+  const showAdultBadge = isAdult || (ageLimit && ageLimit >= 18);
+  const showAgeRating = ageLimit && ageLimit > 0;
+  const ageRatingLabel = ageLimit === 18 ? "18+" : ageLimit === 16 ? "16+" : ageLimit === 12 ? "12+" : `${ageLimit}+`;
+  const ageRatingColor = ageLimit === 18 ? "text-red-500" : ageLimit === 16 ? "text-orange-500" : ageLimit === 12 ? "text-yellow-500" : "text-green-500";
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCollapseButton, setShowCollapseButton] = useState(false);
@@ -85,12 +91,14 @@ export function GenresList({ genres = [], tags = [] }: GenresListProps) {
     <div className="mt-2">
       <div className="flex flex-nowrap gap-2 items-center overflow-hidden">
         {/* Возрастное ограничение */}
-        <span
-          className="px-2.5 py-1 cursor-pointer text-red-500 rounded-full text-xs font-semibold bg-[var(--background)]/60 shrink-0 whitespace-nowrap"
-          onClick={() => router.push(`/titles?ageLimit=18`)}
-        >
-          18+
-        </span>
+        {showAgeRating && (
+          <span
+            className={`px-2.5 py-1 cursor-pointer rounded-full text-xs font-semibold bg-[var(--background)]/60 shrink-0 whitespace-nowrap ${ageRatingColor}`}
+            onClick={() => router.push(`/titles?ageLimit=${ageLimit}`)}
+          >
+            {ageRatingLabel}
+          </span>
+        )}
 
         {/* Контейнер с жанрами и тегами */}
         <div ref={containerRef} className="flex flex-nowrap gap-2 overflow-hidden max-w-full">
