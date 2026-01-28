@@ -85,6 +85,8 @@ export const useAuth = () => {
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           birthDate: user.birthDate,
+          displaySettings: user.displaySettings,
+          privacy: user.privacy,
         },
       };
       dispatch(login(authResponse));
