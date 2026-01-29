@@ -66,9 +66,7 @@ export default function Error({
       <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--background)]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4" />
-          <p className="text-[var(--muted-foreground)]">
-            Перенаправление на страницу ошибки...
-          </p>
+          <p className="text-[var(--muted-foreground)]">Перенаправление на страницу ошибки...</p>
         </div>
       </div>
     );
@@ -79,9 +77,7 @@ export default function Error({
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--background)]">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-          Что-то пошло не так!
-        </h2>
+        <h2 className="text-2xl font-bold text-[var(--foreground)] mb-4">Что-то пошло не так!</h2>
         <p className="text-[var(--muted-foreground)] mb-6">
           Произошла непредвиденная ошибка. Попробуйте перезагрузить страницу.
         </p>

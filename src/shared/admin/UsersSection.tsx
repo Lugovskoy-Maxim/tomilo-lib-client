@@ -60,7 +60,6 @@ export function UsersSection() {
         </div>
       </div>
 
-
       {/* Users list */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
         {isLoading ? (

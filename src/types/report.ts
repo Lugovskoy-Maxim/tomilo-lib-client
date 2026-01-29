@@ -48,4 +48,3 @@ export interface ReportsResponse {
   totalPages: number;
   limit: number;
 }
-

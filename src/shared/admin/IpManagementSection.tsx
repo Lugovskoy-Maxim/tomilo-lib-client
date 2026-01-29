@@ -89,7 +89,7 @@ export function IpManagementSection() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 p-2">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3">

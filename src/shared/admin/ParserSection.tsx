@@ -190,7 +190,7 @@ export function ParserSection() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-2">
       {/* Supported Sites */}
       {supportedSites?.data && (
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">

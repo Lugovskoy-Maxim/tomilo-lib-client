@@ -78,7 +78,10 @@ function ChapterInfo({ chapterId, titleId }: { chapterId: string; titleId?: stri
     );
   }
 
-  const titleName = (titleData as { name?: string })?.name || (chapterData?.titleInfo?.name as string) || "Неизвестный тайтл";
+  const titleName =
+    (titleData as { name?: string })?.name ||
+    (chapterData?.titleInfo?.name as string) ||
+    "Неизвестный тайтл";
   const chapterNumber = chapterData?.chapterNumber;
   const chapterName = chapterData?.name;
 
@@ -96,4 +99,3 @@ function ChapterInfo({ chapterId, titleId }: { chapterId: string; titleId?: stri
     </div>
   );
 }
-

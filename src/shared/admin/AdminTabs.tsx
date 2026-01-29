@@ -108,7 +108,9 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
             }`}
             title={tab.label}
           >
-            <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-[var(--primary-foreground)]" : ""}`} />
+            <Icon
+              className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-[var(--primary-foreground)]" : ""}`}
+            />
             <span className="truncate">{tab.label}</span>
             {isActive && <ChevronRight className="w-4 h-4 ml-auto lg:hidden" />}
           </button>
@@ -161,9 +163,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
 
         {/* Sidebar footer */}
         <div className="mt-auto p-4 border-t border-[var(--border)]">
-          <p className="text-xs text-[var(--muted-foreground)] text-center">
-            Admin Panel v1.0
-          </p>
+          <p className="text-xs text-[var(--muted-foreground)] text-center">Admin Panel v1.0</p>
         </div>
       </aside>
     </>

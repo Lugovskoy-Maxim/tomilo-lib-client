@@ -10,7 +10,6 @@ import {
   Clock,
   Target,
   Award,
-
   Bookmark,
   Layers,
 } from "lucide-react";
@@ -18,7 +17,6 @@ import { useGetStatsQuery } from "@/store/api/statsApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useState } from "react";
 import type { StatsResponse } from "@/types/stats";
-
 
 // Helper function for formatting numbers
 function formatNumber(num: number): string {
@@ -50,7 +48,7 @@ function PopularChapterItem({
   const shouldSkipFetch = hasValidTitleName || !chapter.titleId;
   const { data: titleData, isLoading: isTitleLoading } = useGetTitleByIdQuery(
     { id: chapter.titleId },
-    { skip: shouldSkipFetch }
+    { skip: shouldSkipFetch },
   );
 
   // Determine the title name to display
@@ -100,7 +98,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-2">
         {/* Loading skeleton for stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -189,12 +187,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
             label="Новые главы"
             color="orange"
           />
-          <PeriodStat
-            icon={Target}
-            value={stats.averageRating}
-            label="Ср. оценка"
-            color="yellow"
-          />
+          <PeriodStat icon={Target} value={stats.averageRating} label="Ср. оценка" color="yellow" />
         </div>
       </div>
 

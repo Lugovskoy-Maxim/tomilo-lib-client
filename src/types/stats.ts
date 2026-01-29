@@ -54,4 +54,3 @@ export interface PopularChapter {
   name: string;
   views: number;
 }
-

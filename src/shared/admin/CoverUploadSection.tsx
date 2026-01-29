@@ -44,7 +44,7 @@ export function CoverUploadSection({
         Обложка тайтла
       </h2>
 
-      <div className="space-y-4">
+      <div className="space-y-6 p-2">
         {/* Текущая обложка */}
         {(resolvedCurrentCover || previewUrl) && (
           <div className="flex flex-col items-center gap-2">

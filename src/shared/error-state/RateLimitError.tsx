@@ -38,7 +38,7 @@ export default function RateLimitError({
     }
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => Math.max(0, prev - 1));
+      setTimeLeft(prev => Math.max(0, prev - 1));
     }, 1000);
 
     return () => clearInterval(timer);
@@ -72,9 +72,7 @@ export default function RateLimitError({
   };
 
   return (
-    <div
-      className={`flex flex-col items-center justify-center min-h-[60vh] px-4 ${className}`}
-    >
+    <div className={`flex flex-col items-center justify-center min-h-[60vh] px-4 ${className}`}>
       {/* Иконка */}
       <div className="mb-6 relative">
         <div className="w-20 h-20 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center animate-pulse">
@@ -173,4 +171,3 @@ export default function RateLimitError({
     </div>
   );
 }
-
