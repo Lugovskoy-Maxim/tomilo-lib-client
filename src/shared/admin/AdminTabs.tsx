@@ -9,7 +9,11 @@ import {
   MessageCircle,
   AlertTriangle,
   Shield,
+  Menu,
+  X,
+  ChevronRight,
 } from "lucide-react";
+import { useState } from "react";
 
 export type AdminTab =
   | "overview"
@@ -18,8 +22,8 @@ export type AdminTab =
   | "titles"
   | "chapters"
   | "collections"
-  | "users"
   | "comments"
+  | "users"
   | "reports"
   | "ip-management";
 
@@ -82,27 +86,86 @@ const tabs = [
 ];
 
 export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const sidebarContent = (
+    <nav className="flex flex-col gap-1 p-2">
+      {tabs.map(tab => {
+        const Icon = tab.icon;
+        const isActive = activeTab === tab.id;
+
+        return (
+          <button
+            key={tab.id}
+            onClick={() => {
+              onTabChange(tab.id);
+              setIsMobileOpen(false);
+            }}
+            className={`w-full px-3 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-3 text-sm ${
+              isActive
+                ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+            }`}
+            title={tab.label}
+          >
+            <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-[var(--primary-foreground)]" : ""}`} />
+            <span className="truncate">{tab.label}</span>
+            {isActive && <ChevronRight className="w-4 h-4 ml-auto lg:hidden" />}
+          </button>
+        );
+      })}
+    </nav>
+  );
+
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-1">
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1">
-        {tabs.map(tab => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`w-full px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm ${
-                activeTab === tab.id
-                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                  : "text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <>
+      {/* Mobile menu toggle */}
+      <button
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg"
+        aria-label={isMobileOpen ? "Закрыть меню" : "Открыть меню"}
+      >
+        {isMobileOpen ? (
+          <X className="w-5 h-5 text-[var(--foreground)]" />
+        ) : (
+          <Menu className="w-5 h-5 text-[var(--foreground)]" />
+        )}
+      </button>
+
+      {/* Mobile overlay */}
+      {isMobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Fixed on desktop, slide-in on mobile */}
+      <aside
+        className={`
+          fixed lg:sticky top-0 lg:top-auto left-0 z-40 lg:z-auto
+          w-64 lg:w-64 h-screen lg:h-[calc(100vh-var(--header-height))]
+          bg-[var(--card)] border-r border-[var(--border)]
+          transform transition-transform duration-300 ease-in-out
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          flex flex-col
+        `}
+      >
+        {/* Sidebar header - visible on mobile only */}
+        <div className="lg:hidden p-4 border-b border-[var(--border)]">
+          <h2 className="font-semibold text-[var(--foreground)]">Навигация</h2>
+        </div>
+
+        {/* Navigation */}
+        {sidebarContent}
+
+        {/* Sidebar footer */}
+        <div className="mt-auto p-4 border-t border-[var(--border)]">
+          <p className="text-xs text-[var(--muted-foreground)] text-center">
+            Admin Panel v1.0
+          </p>
+        </div>
+      </aside>
+    </>
   );
 }

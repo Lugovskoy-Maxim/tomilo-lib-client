@@ -81,13 +81,6 @@ export function ReportsSection() {
 
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Управление жалобами</h2>
-        <p className="text-[var(--muted-foreground)]">
-          Просмотр и управление всеми жалобами пользователей
-        </p>
-      </div>
-
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div>

@@ -52,11 +52,6 @@ export function CommentsSection() {
 
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Комментарии</h2>
-        <p className="text-[var(--muted-foreground)]">Управление комментариями пользователей</p>
-      </div>
-
       {/* Фильтры */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">

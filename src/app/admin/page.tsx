@@ -14,11 +14,27 @@ import { IpManagementSection } from "@/shared/admin/IpManagementSection";
 import { Footer, Header } from "@/widgets";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useState } from "react";
-import { Cog } from "lucide-react";
+import { Settings } from "lucide-react";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [selectedTitleId, setSelectedTitleId] = useState<string | null>(null);
+
+  const getSectionTitle = () => {
+    const titles: Record<AdminTab, string> = {
+      overview: "Обзор",
+      parser: "Парсинг",
+      "auto-parsing": "Автопарсинг",
+      titles: "Тайтлы",
+      chapters: "Главы",
+      collections: "Коллекции",
+      comments: "Комментарии",
+      users: "Пользователи",
+      reports: "Жалобы",
+      "ip-management": "IP-управление",
+    };
+    return titles[activeTab] || "Админ-панель";
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -56,27 +72,41 @@ export default function AdminPage() {
 
   return (
     <AuthGuard requiredRole="admin">
-      <main className="flex flex-col min-h-screen h-full bg-gradient-to-br from-background to-muted pb-15 md:pb-0">
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-muted">
         <Header />
 
-        <div className="max-w-7xl w-full mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col flex-1">
-          <div className="mb-4 sm:mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
-              <Cog className="w-6 h-6" />
-              Админ-панель
-            </h1>
-            <p className="text-[var(--muted-foreground)] text-sm sm:text-base">
-              Управление контентом и системой
-            </p>
-          </div>
-
+        <div className="flex flex-1">
+          {/* Sidebar Navigation */}
           <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-          <div className="mt-4 sm:mt-6">{renderTabContent()}</div>
+          {/* Main Content Area */}
+          <main className="flex-1 flex flex-col overflow-hidden">
+            {/* Page Header */}
+            <header className="flex-shrink-0 bg-[var(--card)] border-b border-[var(--border)] px-4 sm:px-6 py-4 lg:py-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[var(--primary)]/10 rounded-lg">
+                  <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--primary)]" />
+                </div>
+                <div>
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[var(--foreground)]">
+                    {getSectionTitle()}
+                  </h1>
+                  <p className="text-xs sm:text-sm text-[var(--muted-foreground)] hidden sm:block">
+                    Управление контентом и системой
+                  </p>
+                </div>
+              </div>
+            </header>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+              <div className="max-w-7xl mx-auto">{renderTabContent()}</div>
+            </div>
+          </main>
         </div>
 
-        <Footer />
-      </main>
+        {/* <Footer /> */}
+      </div>
     </AuthGuard>
   );
 }
