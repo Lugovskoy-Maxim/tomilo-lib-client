@@ -6,10 +6,13 @@ import {
   useUpdateReportStatusMutation,
   useDeleteReportMutation,
 } from "@/store/api/reportsApi";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { Report, ReportType } from "@/types/report";
 import Button from "@/shared/ui/button";
-import { AlertTriangle, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle, Trash2, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
+import { ReportEntityInfo } from "./ReportEntityInfo";
+import Skeleton from "@/shared/skeleton/skeleton";
 
 const reportTypeLabels = {
   [ReportType.ERROR]: "Ошибка",
@@ -136,6 +139,12 @@ export function ReportsSection() {
                   Описание
                 </th>
                 <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                  Пользователь
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                  Тайтл
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
                   Сущность
                 </th>
                 <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Статус</th>
@@ -162,9 +171,28 @@ export function ReportsSection() {
                   </td>
                   <td className="py-3 px-4 max-w-xs truncate">{report.content}</td>
                   <td className="py-3 px-4">
-                    <span className="capitalize">
-                      {report.entityType === "title" ? "Тайтл" : "Глава"}: {report.entityId}
-                    </span>
+                    {report.userId ? (
+                      <div className="flex flex-col">
+                        <span className="font-medium">{report.userId.username}</span>
+                        <span className="text-xs text-[var(--muted-foreground)]">{report.userId.email}</span>
+                      </div>
+                    ) : (
+                      <span className="text-[var(--muted-foreground)]">Аноним</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4">
+                    {report.titleId ? (
+                      <TitleCell titleId={report.titleId} />
+                    ) : (
+                      <span className="text-[var(--muted-foreground)]">—</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4">
+                    <ReportEntityInfo
+                      entityType={report.entityType}
+                      entityId={report.entityId}
+                      titleId={report.titleId}
+                    />
                   </td>
                   <td className="py-3 px-4">
                     {report.isResolved ? (
@@ -247,6 +275,34 @@ export function ReportsSection() {
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+function TitleCell({ titleId }: { titleId: string }) {
+  const { data: title, isLoading, error } = useGetTitleByIdQuery({ id: titleId });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center">
+        <Skeleton className="h-5 w-32" />
+      </div>
+    );
+  }
+
+  if (error || !title) {
+    return (
+      <div className="flex items-center text-[var(--muted-foreground)]">
+        <BookOpen className="w-4 h-4 mr-1" />
+        <span>Тайтл не найден</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center">
+      <BookOpen className="w-4 h-4 mr-1 text-[var(--primary)]" />
+      <span className="font-medium truncate max-w-[200px]">{title.name}</span>
     </div>
   );
 }

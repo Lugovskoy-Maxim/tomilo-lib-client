@@ -8,6 +8,7 @@ export { ImagePreviewModal } from "./ImagePreviewModal";
 export { IpManagementSection } from "./IpManagementSection";
 export { OverviewSection } from "./OverviewSection";
 export { ParserSection } from "./ParserSection";
+export { ReportEntityInfo } from "./ReportEntityInfo";
 export { ReportsSection } from "./ReportsSection";
 export { TitlesSection } from "./TitlesSection";
 export { UsersSection } from "./UsersSection";

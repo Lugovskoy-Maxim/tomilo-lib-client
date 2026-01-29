@@ -4,18 +4,28 @@ export enum ReportType {
   COMPLAINT = "complaint",
 }
 
+export interface ReportUser {
+  _id: string;
+  username: string;
+  email: string;
+}
+
 export interface Report {
   _id: string;
-  reporterId: string;
-  entityType: "title" | "chapter";
-  entityId: string;
   reportType: ReportType;
   content: string;
+  entityId: string;
+  entityType: "title" | "chapter";
+  url: string | null;
+  userId: ReportUser;
+  creatorId: string | null;
+  titleId: string;
   isResolved: boolean;
-  resolvedBy?: string;
-  resolvedAt?: string;
+  resolvedBy: string | null;
+  resolvedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  __v: number;
 }
 
 export interface CreateReportDto {
@@ -23,6 +33,8 @@ export interface CreateReportDto {
   entityId: string;
   reportType: ReportType;
   content: string;
+  creatorId?: string;
+  titleId?: string;
 }
 
 export interface UpdateReportStatusDto {
@@ -36,3 +48,4 @@ export interface ReportsResponse {
   totalPages: number;
   limit: number;
 }
+

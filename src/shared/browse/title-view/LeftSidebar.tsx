@@ -18,6 +18,8 @@ interface LeftSidebarProps {
     entityType: "title" | "chapter";
     entityId: string;
     entityTitle: string;
+    titleId?: string;
+    creatorId?: string;
   }) => void;
 }
 
@@ -82,6 +84,8 @@ export function LeftSidebar({
                 entityType: "title",
                 entityId: titleData._id as string,
                 entityTitle: titleData.name,
+                titleId: titleData._id as string,
+                creatorId: titleData.creatorId,
               });
             } else {
               // Отправляем событие вверх по иерархии компонентов
@@ -90,6 +94,8 @@ export function LeftSidebar({
                   entityType: "title",
                   entityId: titleData._id as string,
                   entityTitle: titleData.name,
+                  titleId: titleData._id as string,
+                  creatorId: titleData.creatorId,
                 },
               });
               window.dispatchEvent(event);

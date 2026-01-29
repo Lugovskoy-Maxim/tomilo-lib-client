@@ -523,6 +523,7 @@ export default function ReadChapterPage({
         canGoPrev={currentChapterIndex > 0}
         canGoNext={currentChapterIndex < chapters.length - 1}
         titleId={titleId}
+        creatorId={title.creatorId}
         isMobileControlsVisible={isMobileControlsVisible}
         imageWidth={imageWidth}
         onImageWidthChange={handleImageWidthChange}
@@ -762,6 +763,8 @@ export default function ReadChapterPage({
         entityType="chapter"
         entityId={chapterId}
         entityTitle={`Глава ${chapter.number}${chapter.title ? ` - ${chapter.title}` : ""}`}
+        titleId={title._id}
+        creatorId={title.creatorId}
       />
     </div>
   );

@@ -21,7 +21,7 @@ export const reportsApi = createApi({
   tagTypes: [REPORTS_TAG],
   endpoints: builder => ({
     // Create a new report
-    createReport: builder.mutation<ApiResponseDto<Report>, CreateReportDto>({
+    createReport: builder.mutation<ApiResponseDto<Report>, Record<string, unknown>>({
       query: data => ({
         url: "/reports",
         method: "POST",

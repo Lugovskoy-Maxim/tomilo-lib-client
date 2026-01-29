@@ -24,6 +24,8 @@ export default function TitleView({ slug }: { slug: string }) {
     entityType: "title" | "chapter";
     entityId: string;
     entityTitle: string;
+    titleId?: string;
+    creatorId?: string;
   } | null>(null);
 
   // Получаем данные тайтла по slug
@@ -466,6 +468,8 @@ export default function TitleView({ slug }: { slug: string }) {
           entityType={reportModalData.entityType}
           entityId={reportModalData.entityId}
           entityTitle={reportModalData.entityTitle}
+          titleId={reportModalData.titleId}
+          creatorId={reportModalData.creatorId}
         />
       )}
     </main>

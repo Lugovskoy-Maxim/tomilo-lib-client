@@ -29,6 +29,7 @@ interface ReaderControlsProps {
   currentPage: number;
   chapterImageLength: number;
   titleId: string;
+  creatorId?: string;
   imageWidth?: number;
   onImageWidthChange?: (width: number) => void;
 }
@@ -44,6 +45,7 @@ export default function ReaderControls({
   canGoPrev,
   canGoNext,
   titleId,
+  creatorId,
   isMobileControlsVisible = true,
   imageWidth,
   onImageWidthChange,
@@ -557,6 +559,8 @@ export default function ReaderControls({
         entityTitle={`Глава ${currentChapter.number}${
           currentChapter.title ? ` - ${currentChapter.title}` : ""
         }`}
+        titleId={titleId}
+        creatorId={creatorId}
       />
     </>
   );

@@ -48,6 +48,7 @@ export interface Title {
   coverImage?: string;
   status: TitleStatus;
   author?: string;
+  creatorId?: string;
   views: number;
   totalChapters: number;
   rating: number;
@@ -258,6 +259,7 @@ export interface ReaderTitle {
   lastUpdate: string;
   chapters: ReaderChapter[];
   alternativeTitles: string[];
+  creatorId?: string;
 }
 
 // Экспорт ReaderChapter для использования в других модулях
