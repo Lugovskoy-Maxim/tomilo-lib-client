@@ -163,35 +163,34 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       {/* Основное меню */}
       <div className="max-h-96 overflow-y-auto">
         {/* Кнопка 18+ контента */}
-        {user?.birthDate && (
-          <div className="p-2">
-            <button
-              type="button"
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors cursor-pointer group ${
-                isAdult
-                  ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
-                  : "bg-[var(--secondary)] hover:bg-[var(--secondary)]/80"
-              }`}
-              onClick={handleToggleAdult}
-            >
-              <div className="flex items-center space-x-3">
-                <Eye
-                  className={`w-4 h-4 ${isAdult ? "text-green-600" : "text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"}`}
-                />
-                <span
-                  className={`font-medium ${isAdult ? "text-green-600" : "text-[var(--foreground)] group-hover:text-[var(--primary)]"}`}
-                >
-                  18+ контент
-                </span>
-              </div>
+
+        <div className="p-2">
+          <button
+            type="button"
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors cursor-pointer group ${
+              isAdult
+                ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                : "bg-[var(--secondary)] hover:bg-[var(--secondary)]/80"
+            }`}
+            onClick={handleToggleAdult}
+          >
+            <div className="flex items-center space-x-3">
+              <Eye
+                className={`w-4 h-4 ${isAdult ? "text-green-600" : "text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"}`}
+              />
               <span
-                className={`text-xs px-2 py-0.5 rounded-full ${isAdult ? "bg-green-500/20" : "bg-[var(--border)]"}`}
+                className={`font-medium ${isAdult ? "text-green-600" : "text-[var(--foreground)] group-hover:text-[var(--primary)]"}`}
               >
-                {isAdult ? "Вкл" : "Выкл"}
+                18+ контент
               </span>
-            </button>
-          </div>
-        )}
+            </div>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full ${isAdult ? "bg-green-500/20" : "bg-[var(--border)]"}`}
+            >
+              {isAdult ? "Вкл" : "Выкл"}
+            </span>
+          </button>
+        </div>
 
         <div className="p-2 space-y-1">
           {menuItems.map(item => (
