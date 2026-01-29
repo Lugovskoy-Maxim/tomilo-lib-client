@@ -97,13 +97,13 @@ export function IpManagementSection() {
             <Globe className="w-4 h-4 text-[var(--primary)]" />
             <span className="text-xs text-[var(--muted-foreground)]">Всего</span>
           </div>
-          <p className="text-lg font-bold text-[var(--foreground)]">
+          <div className="text-lg font-bold text-[var(--foreground)]">
             {isStatsLoading ? (
               <div className="h-6 w-16 bg-[var(--accent)] animate-pulse rounded" />
             ) : (
               statsData?.data?.totalRequests?.toLocaleString() || 0
             )}
-          </p>
+          </div>
         </div>
 
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3">
@@ -111,13 +111,13 @@ export function IpManagementSection() {
             <Shield className="w-4 h-4 text-blue-500" />
             <span className="text-xs text-[var(--muted-foreground)]">Уник.</span>
           </div>
-          <p className="text-lg font-bold text-[var(--foreground)]">
+          <div className="text-lg font-bold text-[var(--foreground)]">
             {isStatsLoading ? (
               <div className="h-6 w-16 bg-[var(--accent)] animate-pulse rounded" />
             ) : (
               statsData?.data?.uniqueIps?.toLocaleString() || 0
             )}
-          </p>
+          </div>
         </div>
 
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3">
@@ -125,13 +125,13 @@ export function IpManagementSection() {
             <ShieldAlert className="w-4 h-4 text-red-500" />
             <span className="text-xs text-[var(--muted-foreground)]">Блок.</span>
           </div>
-          <p className="text-lg font-bold text-[var(--foreground)]">
+          <div className="text-lg font-bold text-[var(--foreground)]">
             {isStatsLoading ? (
               <div className="h-6 w-16 bg-[var(--accent)] animate-pulse rounded" />
             ) : (
               statsData?.data?.blockedCount?.toLocaleString() || 0
             )}
-          </p>
+          </div>
         </div>
 
         <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3">
@@ -139,13 +139,13 @@ export function IpManagementSection() {
             <Clock className="w-4 h-4 text-green-500" />
             <span className="text-xs text-[var(--muted-foreground)]">Топ</span>
           </div>
-          <p className="text-lg font-bold text-[var(--foreground)]">
+          <div className="text-lg font-bold text-[var(--foreground)]">
             {isStatsLoading ? (
               <div className="h-6 w-16 bg-[var(--accent)] animate-pulse rounded" />
             ) : (
               statsData?.data?.topIps?.length || 0
             )}
-          </p>
+          </div>
         </div>
       </div>
 
