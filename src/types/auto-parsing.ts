@@ -3,9 +3,13 @@ export interface AutoParsingJob {
   titleId: {
     _id: string;
     name: string;
+    coverImage?: string;
+    author?: string;
+    releaseYear?: number;
     // другие поля тайтла при необходимости
   };
-  url: string;
+  url?: string;
+  sources?: string[];
   frequency: string;
   enabled: boolean;
   createdAt: string;
@@ -14,13 +18,16 @@ export interface AutoParsingJob {
 
 export interface CreateAutoParsingJobDto {
   titleId: string;
-  url: string;
-  frequency: string;
+  sources?: string[];
+  url?: string; // Deprecated: for backward compatibility
+  frequency?: string;
+  enabled?: boolean;
 }
 
 export interface UpdateAutoParsingJobDto {
   titleId?: string;
-  url?: string;
+  sources?: string[];
+  url?: string; // Deprecated: for backward compatibility
   frequency?: string;
   enabled?: boolean;
 }

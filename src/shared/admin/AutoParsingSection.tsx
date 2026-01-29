@@ -11,7 +11,10 @@ import {
   ExternalLink,
   AlertCircle,
   CheckCircle,
+  X,
 } from "lucide-react";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
+import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import {
   useGetAutoParsingJobsQuery,
   useCreateAutoParsingJobMutation,
@@ -26,7 +29,6 @@ import {
 } from "@/types/auto-parsing";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
-import { formatDate } from "@/lib/date-utils";
 
 export default function AutoParsingSection() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -105,8 +107,16 @@ export default function AutoParsingSection() {
     setTitleSearch("");
   };
 
+  // Helper function to get proper image URL
+  const getImageUrl = (coverImage?: string) => {
+    if (!coverImage) return IMAGE_HOLDER.src;
+    if (coverImage.startsWith("http")) return coverImage;
+    // coverImage already contains the path (e.g., "/uploads/titles/...")
+    return `${process.env.NEXT_PUBLIC_URL}${coverImage}`;
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-2">
       {/* Result Modal */}
       {isModalOpen && modalContent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -164,80 +174,118 @@ export default function AutoParsingSection() {
             <p className="text-[var(--muted-foreground)]">Нет задач автоматического парсинга</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {jobs.map((job: AutoParsingJob) => (
-              <div key={job._id} className="border border-[var(--border)] rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-3 h-3 rounded-full ${
-                        job.enabled ? "bg-green-500" : "bg-red-500"
-                      }`}
-                    />
-                    <div>
-                      <h3 className="font-medium text-[var(--foreground)]">
-                        Задача {job._id.slice(-8)}
-                      </h3>
-                      <p className="text-sm text-[var(--muted-foreground)]">
-                        Title: {job.titleId?.name || "Не указан"}
+              <div
+                key={job._id}
+                className="border border-[var(--border)] flex flex-col  rounded-lg p-2 hover:border-[var(--primary)] transition-colors overflow-hidden"
+              >
+                <div className="flex gap-2">
+                  {/* Title Image */}
+                  <div className="w-24 h-32 bg-[var(--accent)] rounded overflow-hidden flex-shrink-0">
+                    {job.titleId?.coverImage ? (
+                      <OptimizedImage
+                        src={getImageUrl(job.titleId.coverImage)}
+                        alt={job.titleId?.name || "Title"}
+                        className="w-full h-full object-cover"
+                        width={96}
+                        height={128}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-[var(--muted)]">
+                        <div className="w-8 h-8 rounded-full border-2 border-[var(--muted)] border-t-[var(--primary)] animate-spin" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Header with image and status */}
+                  <div className="flex flex-col items-start gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div
+                          className={`w-4 h-4 rounded-full ${
+                            job.enabled ? "bg-green-500" : "bg-red-500"
+                          }`}
+                        />
+                        <h3 className="font-medium text-[var(--foreground)] truncate">
+                          {job.titleId?.name || "Не указан"}
+                        </h3>
+                      </div>
+                      <p className="text-xs text-[var(--muted-foreground)] truncate">
+                        ID: {job._id.slice(-8)}
+                      </p>
+                      <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                        {job.titleId?.releaseYear && `${job.titleId.releaseYear} • `}
+                        {job.titleId?.author || "Неизвестен"}
                       </p>
                     </div>
+
+                    {/* Sources */}
+                    <div className="mb-3 w-full">
+                      <span className="text-xs text-[var(--muted-foreground)] block mb-1">
+                        Источники:
+                      </span>
+                      <div className="flex flex-col gap-1 w-full">
+                        {(job.sources && job.sources.length > 0
+                          ? job.sources
+                          : job.url
+                            ? [job.url]
+                            : []
+                        )
+                          .slice(0, 2)
+                          .map((source, idx) => (
+                            <div key={idx} className="flex items-start gap-1 w-full break-all">
+                              <span className="text-[var(--foreground)] text-xs flex-1 min-w-0">
+                                {source}
+                              </span>
+                              <button
+                                onClick={() => window.open(source, "_blank")}
+                                className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex-shrink-0"
+                              >
+                                <ExternalLink className="w-5 h-5" />
+                              </button>
+                            </div>
+                          ))}
+                        {job.sources && job.sources.length > 2 && (
+                          <span className="text-xs text-[var(--muted-foreground)]">
+                            +{job.sources.length - 2} ещё
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer with frequency and actions */}
+                <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
+                  <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+                    <Clock className="w-5 h-5" />
+                    <span className="capitalize">{job.frequency}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleCheckChapters(job._id)}
                       disabled={checkLoading}
-                      className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
+                      className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
                       title="Проверить новые главы"
                     >
-                      <RefreshCw className={`w-4 h-4 ${checkLoading ? "animate-spin" : ""}`} />
+                      <RefreshCw className={`w-6 h-6 ${checkLoading ? "animate-spin" : ""}`} />
                     </button>
                     <button
                       onClick={() => setEditingJob(job)}
-                      className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                      className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                       title="Редактировать"
                     >
-                      <Edit className="w-4 h-4" />
+                      <Edit className="w-6 h-6" />
                     </button>
                     <button
                       onClick={() => handleDeleteJob(job._id)}
                       disabled={deleteLoading}
-                      className="p-1 text-red-500 hover:text-red-600 disabled:opacity-50"
+                      className="p-2 text-red-500 hover:text-red-600 disabled:opacity-50"
                       title="Удалить"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-6 h-6" />
                     </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
-                  <div>
-                    <span className="text-[var(--muted-foreground)]">URL:</span>
-                    <div className="flex items-center gap-1 mt-1">
-                      <span className="text-[var(--foreground)] truncate text-xs">{job.url}</span>
-                      <button
-                        onClick={() => window.open(job.url, "_blank")}
-                        className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[var(--muted-foreground)]">Частота:</span>
-                    <p className="text-[var(--foreground)] mt-1 text-xs">{job.frequency}</p>
-                  </div>
-                  <div>
-                    <span className="text-[var(--muted-foreground)]">Создано:</span>
-                    <p className="text-[var(--foreground)] mt-1 text-xs">
-                      {formatDate(job.createdAt)}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-[var(--muted-foreground)]">Обновлено:</span>
-                    <p className="text-[var(--foreground)] mt-1 text-xs">
-                      {formatDate(job.updatedAt)}
-                    </p>
                   </div>
                 </div>
               </div>
@@ -290,17 +338,36 @@ function JobModal({
   onSelectTitle,
 }: JobModalProps) {
   const [titleId, setTitleId] = useState(job?.titleId?._id || "");
-  const [url, setUrl] = useState(job?.url || "");
+  const [sources, setSources] = useState<string[]>(
+    job?.sources && job.sources.length > 0 ? job.sources : job?.url ? [job.url] : [""],
+  );
   const [frequency, setFrequency] = useState(job?.frequency || "daily");
   const [enabled, setEnabled] = useState(job?.enabled ?? true);
 
+  const handleAddSource = () => {
+    setSources([...sources, ""]);
+  };
+
+  const handleRemoveSource = (index: number) => {
+    setSources(sources.filter((_, i) => i !== index));
+  };
+
+  const handleSourceChange = (index: number, value: string) => {
+    const newSources = [...sources];
+    newSources[index] = value;
+    setSources(newSources);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Filter out empty sources
+    const validSources = sources.filter(s => s.trim());
+
     if (job && onUpdate) {
       // Update case - use UpdateAutoParsingJobDto
       const data: UpdateAutoParsingJobDto = {
         titleId: titleId || undefined,
-        url: url || undefined,
+        sources: validSources.length > 0 ? validSources : undefined,
         frequency: frequency || undefined,
         enabled,
       };
@@ -309,8 +376,9 @@ function JobModal({
       // Create case - use CreateAutoParsingJobDto
       const data: CreateAutoParsingJobDto = {
         titleId,
-        url,
-        frequency,
+        sources: validSources,
+        frequency: frequency || undefined,
+        enabled,
       };
       onCreate(data);
     }
@@ -318,7 +386,7 @@ function JobModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 w-full max-w-md mx-4">
+      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
           {job ? "Редактировать задачу" : "Создать задачу"}
         </h3>
@@ -358,19 +426,42 @@ function JobModal({
             )}
           </div>
 
-          {/* URL */}
+          {/* Sources */}
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-              URL источника *
+              Источники *
             </label>
-            <input
-              type="url"
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-              placeholder="https://example.com/manga/title"
-              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
-              required
-            />
+            <div className="space-y-2">
+              {sources.map((source, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="url"
+                    value={source}
+                    onChange={e => handleSourceChange(index, e.target.value)}
+                    placeholder="https://example.com/manga/title"
+                    className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+                    required={index === 0}
+                  />
+                  {sources.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSource(index)}
+                      className="p-2 text-red-500 hover:text-red-600 bg-[var(--background)] border border-[var(--border)] rounded-lg"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={handleAddSource}
+              className="mt-2 text-sm text-[var(--primary)] hover:text-[var(--primary)]/80 flex items-center gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              Добавить источник
+            </button>
           </div>
 
           {/* Frequency */}
@@ -387,24 +478,23 @@ function JobModal({
               <option value="daily">Ежедневно</option>
               <option value="hourly">Ежечасно</option>
               <option value="weekly">Еженедельно</option>
+              <option value="monthly">Ежемесячно</option>
             </select>
           </div>
 
           {/* Enabled Status */}
-          {job && (
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="enabled"
-                checked={enabled}
-                onChange={e => setEnabled(e.target.checked)}
-                className="rounded"
-              />
-              <label htmlFor="enabled" className="text-sm text-[var(--foreground)]">
-                Активная задача
-              </label>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="enabled"
+              checked={enabled}
+              onChange={e => setEnabled(e.target.checked)}
+              className="rounded"
+            />
+            <label htmlFor="enabled" className="text-sm text-[var(--foreground)]">
+              Активная задача
+            </label>
+          </div>
 
           {/* Buttons */}
           <div className="flex gap-3 pt-4">
