@@ -35,11 +35,11 @@ export default function ProfileBanner({
   };
 
   return (
-    <div className="bg-[var(--secondary)] rounded-xl border border-[var(--border)] overflow-hidden mb-2">
+    <div className="bg-[var(--secondary)] rounded-xl border border-[var(--border)] mb-2">
       {/* Верхняя часть - баннер */}
       <div className="h-32 sm:h-42 bg-gradient-to-r from-[var(--primary)]/20 to-[var(--chart-1)]/20 relative">
         {/* Аватар, перекрывающий обе части */}
-        <div className="absolute left-1/2 -translate-x-1/2 sm:left-8 -bottom-12 sm:-translate-x-0 sm:-bottom-16">
+        <div className="absolute left-1/2 -translate-x-1/2 sm:left-8 -bottom-12 sm:-translate-x-0 sm:-bottom-16 z-20">
           <div className="relative">
             <ProfileAvatar userProfile={userProfile} />
             <RankStarsOverlay userProfile={userProfile} />
