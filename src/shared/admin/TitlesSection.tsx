@@ -99,6 +99,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
         </button>
       </div>
 
+
       {/* Titles list */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
         {isLoading ? (
@@ -115,69 +116,96 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
             <table className="w-full">
               <thead className="bg-[var(--secondary)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Название</th>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Автор</th>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Статус</th>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Глав</th>
-                  <th className="text-left p-4 font-medium text-[var(--foreground)]">Просмотры</th>
-                  <th className="text-right p-4 font-medium text-[var(--foreground)]">Действия</th>
+                  <th className="text-left px-3 py-2.5 font-medium text-[var(--foreground)] text-sm">
+                    Название
+                  </th>
+                  <th className="text-left px-3 py-2.5 font-medium text-[var(--foreground)] text-sm hidden md:table-cell">
+                    Автор
+                  </th>
+                  <th className="text-left px-3 py-2.5 font-medium text-[var(--foreground)] text-sm hidden lg:table-cell">
+                    Статус
+                  </th>
+                  <th className="text-left px-3 py-2.5 font-medium text-[var(--foreground)] text-sm hidden sm:table-cell">
+                    Глав
+                  </th>
+                  <th className="text-left px-3 py-2.5 font-medium text-[var(--foreground)] text-sm hidden xl:table-cell">
+                    Просмотры
+                  </th>
+                  <th className="text-right px-3 py-2.5 font-medium text-[var(--foreground)] text-sm">
+                    Действия
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {titles.map((title: Title) => (
                   <tr
                     key={title._id}
-                    className="border-t border-[var(--border)] hover:bg-[var(--accent)]/30"
+                    className="border-t border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors"
                   >
-                    <td className="p-4">
-                      <div className="font-medium text-[var(--foreground)]">{title.name}</div>
-                      {title.altNames && title.altNames.length > 0 && (
-                        <div className="text-sm text-[var(--muted-foreground)]">
-                          {title.altNames.slice(0, 2).join(", ")}
-                          {title.altNames.length > 2 && "..."}
-                        </div>
-                      )}
+                    <td className="px-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="font-medium text-[var(--foreground)] text-sm truncate max-w-[150px] sm:max-w-[200px]">
+                          {title.name}
+                        </p>
+                        {title.altNames && title.altNames.length > 0 && (
+                          <p className="text-xs text-[var(--muted-foreground)] truncate max-w-[150px] sm:max-w-[200px] hidden xs:table-cell">
+                            {title.altNames.slice(0, 2).join(", ")}
+                            {title.altNames.length > 2 && "..."}
+                          </p>
+                        )}
+                      </div>
                     </td>
-                    <td className="p-4 text-[var(--foreground)]">{title.author}</td>
-                    <td className="p-4">
+                    <td className="px-3 py-2.5 hidden md:table-cell">
+                      <span className="text-[var(--foreground)] text-sm truncate max-w-[100px] block">
+                        {title.author || "—"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 hidden lg:table-cell">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                           title.status === "ongoing"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
                             : title.status === "completed"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-gray-100 text-gray-800"
+                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
                         }`}
                       >
                         {translateTitleStatus(title.status)}
                       </span>
                     </td>
-                    <td className="p-4 text-[var(--foreground)]">{title.totalChapters || 0}</td>
-                    <td className="p-4 text-[var(--foreground)]">
-                      {title.views?.toLocaleString() || 0}
+                    <td className="px-3 py-2.5 hidden sm:table-cell">
+                      <span className="text-[var(--foreground)] text-sm font-medium">
+                        {title.totalChapters || 0}
+                      </span>
                     </td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-3 py-2.5 hidden xl:table-cell">
+                      <span className="text-[var(--foreground)] text-sm">
+                        {title.views?.toLocaleString() || 0}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center justify-end gap-1">
                         <Link
                           href={getTitlePath(title)}
-                          className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
+                          className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded transition-colors"
                           title="Просмотреть"
+                          target="_blank"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5" />
                         </Link>
                         <button
                           onClick={() => onTitleSelect(title._id)}
-                          className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
+                          className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded transition-colors"
                           title="Редактировать"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(title._id, title.name)}
-                          className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                          className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                           title="Удалить"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -187,8 +215,6 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
             </table>
           </div>
         )}
-
-        {/* Pagination - TODO: Implement when API supports pagination */}
       </div>
     </div>
   );

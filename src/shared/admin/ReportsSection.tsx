@@ -80,45 +80,35 @@ export function ReportsSection() {
   }
 
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
+    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)]">
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-            Тип жалобы
-          </label>
-          <select
-            value={reportTypeFilter}
-            onChange={e => setReportTypeFilter(e.target.value)}
-            className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-          >
-            <option value="">Все типы</option>
-            {Object.entries(reportTypeLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 border-b border-[var(--border)]">
+        <select
+          value={reportTypeFilter}
+          onChange={e => setReportTypeFilter(e.target.value)}
+          className="px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+        >
+          <option value="">Все типы</option>
+          {Object.entries(reportTypeLabels).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">Статус</label>
-          <select
-            value={isResolvedFilter}
-            onChange={e => setIsResolvedFilter(e.target.value)}
-            className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-          >
-            <option value="">Все</option>
-            <option value="true">Решенные</option>
-            <option value="false">Нерешенные</option>
-          </select>
-        </div>
+        <select
+          value={isResolvedFilter}
+          onChange={e => setIsResolvedFilter(e.target.value)}
+          className="px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+        >
+          <option value="">Все статусы</option>
+          <option value="true">Решенные</option>
+          <option value="false">Нерешенные</option>
+        </select>
 
-        <div className="flex items-end">
-          <Button onClick={refetch} variant="outline" className="w-full">
-            Обновить
-          </Button>
-        </div>
+        <Button onClick={refetch} variant="outline" size="sm" className="whitespace-nowrap">
+          Обновить
+        </Button>
       </div>
 
       {/* Reports Table */}
@@ -126,24 +116,27 @@ export function ReportsSection() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[var(--border)]">
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Тип</th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+              <tr className="border-b border-[var(--border)] bg-[var(--secondary)]">
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">
+                  Тип
+                </th>
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs hidden sm:table-cell">
                   Описание
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
-                  Пользователь
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs hidden md:table-cell">
+                  Польз.
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs hidden lg:table-cell">
                   Тайтл
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
-                  Сущность
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">
+                  Статус
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Статус</th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Дата</th>
-                <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
-                  Действия
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs hidden xl:table-cell">
+                  Дата
+                </th>
+                <th className="text-right py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">
+                  Действ.
                 </th>
               </tr>
             </thead>
@@ -151,82 +144,78 @@ export function ReportsSection() {
               {data.data.reports.map((report: Report) => (
                 <tr
                   key={report._id}
-                  className="border-b border-[var(--border)] hover:bg-[var(--accent)]"
+                  className="border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors"
                 >
-                  <td className="py-3 px-4">
+                  <td className="py-2.5 px-3">
                     <span
-                      className={`inline-block px-2 py-1 rounded-full text-xs text-white ${
+                      className={`inline-block px-2 py-0.5 rounded-full text-xs text-white ${
                         reportTypeColors[report.reportType]
                       }`}
                     >
                       {reportTypeLabels[report.reportType]}
                     </span>
                   </td>
-                  <td className="py-3 px-4 max-w-xs truncate">{report.content}</td>
-                  <td className="py-3 px-4">
+                  <td className="py-2.5 px-3 hidden sm:table-cell">
+                    <span className="text-[var(--foreground)] text-sm truncate max-w-[150px] block">
+                      {report.content}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-3 hidden md:table-cell">
                     {report.userId ? (
                       <div className="flex flex-col">
-                        <span className="font-medium">{report.userId.username}</span>
-                        <span className="text-xs text-[var(--muted-foreground)]">{report.userId.email}</span>
+                        <span className="font-medium text-sm truncate max-w-[100px]">
+                          {report.userId.username}
+                        </span>
                       </div>
                     ) : (
-                      <span className="text-[var(--muted-foreground)]">Аноним</span>
+                      <span className="text-[var(--muted-foreground)] text-sm">Аноним</span>
                     )}
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="py-2.5 px-3 hidden lg:table-cell">
                     {report.titleId ? (
                       <TitleCell titleId={report.titleId} />
                     ) : (
-                      <span className="text-[var(--muted-foreground)]">—</span>
+                      <span className="text-[var(--muted-foreground)] text-sm">—</span>
                     )}
                   </td>
-                  <td className="py-3 px-4">
-                    <ReportEntityInfo
-                      entityType={report.entityType}
-                      entityId={report.entityId}
-                      titleId={report.titleId}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
+                  <td className="py-2.5 px-3">
                     {report.isResolved ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-500/10 text-green-500">
-                        <CheckCircle className="w-3 h-3 mr-1" />
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-500/10 text-green-500 dark:bg-green-900/30 dark:text-green-300">
+                        <CheckCircle className="w-3 h-3 mr-0.5" />
                         Решена
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-500/10 text-yellow-500">
-                        <AlertTriangle className="w-3 h-3 mr-1" />
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-yellow-500/10 text-yellow-500 dark:bg-yellow-900/30 dark:text-yellow-300">
+                        <AlertTriangle className="w-3 h-3 mr-0.5" />
                         Открыта
                       </span>
                     )}
                   </td>
-                  <td className="py-3 px-4">{new Date(report.createdAt).toLocaleDateString()}</td>
-                  <td className="py-3 px-4">
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
+                  <td className="py-2.5 px-3 hidden xl:table-cell">
+                    <span className="text-[var(--muted-foreground)] text-sm">
+                      {new Date(report.createdAt).toLocaleDateString()}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
                         onClick={() => handleStatusChange(report._id, !report.isResolved)}
+                        className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded transition-colors"
+                        title={report.isResolved ? "Открыть" : "Закрыть"}
                       >
                         {report.isResolved ? (
-                          <>
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Открыть
-                          </>
+                          <XCircle className="w-3.5 h-3.5" />
                         ) : (
-                          <>
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Закрыть
-                          </>
+                          <CheckCircle className="w-3.5 h-3.5" />
                         )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
+                      </button>
+                      <button
                         onClick={() => handleDelete(report._id)}
+                        className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        title="Удалить"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -246,26 +235,28 @@ export function ReportsSection() {
 
       {/* Pagination */}
       {data?.data?.totalPages && data.data.totalPages > 1 && (
-        <div className="flex justify-between items-center mt-6">
-          <Button
-            onClick={() => setPage(prev => Math.max(prev - 1, 1))}
-            disabled={page === 1}
-            variant="outline"
-          >
-            Назад
-          </Button>
-
-          <span className="text-[var(--muted-foreground)]">
+        <div className="flex justify-between items-center p-4 border-t border-[var(--border)]">
+          <span className="text-sm text-[var(--muted-foreground)]">
             Страница {page} из {data.data.totalPages}
           </span>
-
-          <Button
-            onClick={() => setPage(prev => prev + 1)}
-            disabled={page === data.data.totalPages}
-            variant="outline"
-          >
-            Вперед
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+              variant="outline"
+              size="sm"
+            >
+              Назад
+            </Button>
+            <Button
+              onClick={() => setPage(prev => prev + 1)}
+              disabled={page === data.data.totalPages}
+              variant="outline"
+              size="sm"
+            >
+              Вперед
+            </Button>
+          </div>
         </div>
       )}
     </div>
