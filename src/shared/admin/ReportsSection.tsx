@@ -6,13 +6,11 @@ import {
   useUpdateReportStatusMutation,
   useDeleteReportMutation,
 } from "@/store/api/reportsApi";
-import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { Report, ReportType } from "@/types/report";
 import Button from "@/shared/ui/button";
-import { AlertTriangle, CheckCircle, XCircle, Trash2, BookOpen } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { ReportEntityInfo } from "./ReportEntityInfo";
-import Skeleton from "@/shared/skeleton/skeleton";
 
 const reportTypeLabels = {
   [ReportType.ERROR]: "Ошибка",
@@ -172,11 +170,11 @@ export function ReportsSection() {
                     )}
                   </td>
                   <td className="py-2.5 px-3 hidden lg:table-cell">
-                    {report.titleId ? (
-                      <TitleCell titleId={report.titleId} />
-                    ) : (
-                      <span className="text-[var(--muted-foreground)] text-sm">—</span>
-                    )}
+                    <ReportEntityInfo
+                      entityType={report.entityType}
+                      entityId={report.entityId}
+                      titleId={report.titleId}
+                    />
                   </td>
                   <td className="py-2.5 px-3">
                     {report.isResolved ? (
@@ -263,30 +261,4 @@ export function ReportsSection() {
   );
 }
 
-function TitleCell({ titleId }: { titleId: string }) {
-  const { data: title, isLoading, error } = useGetTitleByIdQuery({ id: titleId });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center">
-        <Skeleton className="h-5 w-32" />
-      </div>
-    );
-  }
-
-  if (error || !title) {
-    return (
-      <div className="flex items-center text-[var(--muted-foreground)]">
-        <BookOpen className="w-4 h-4 mr-1" />
-        <span>Тайтл не найден</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center">
-      <BookOpen className="w-4 h-4 mr-1 text-[var(--primary)]" />
-      <span className="font-medium truncate max-w-[200px]">{title.name}</span>
-    </div>
-  );
-}
