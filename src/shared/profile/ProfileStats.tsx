@@ -1,6 +1,6 @@
 "use client";
 import { UserProfile } from "@/types/user";
-import { BookOpen, Clock, Star, CircleDollarSign, HelpCircle } from "lucide-react";
+import { BookOpen, Clock, Star, HelpCircle, Coins } from "lucide-react";
 import { getRankColor, getRankDisplay, levelToRank, RANK_NAMES } from "@/lib/rank-utils";
 import { useState } from "react";
 
@@ -53,7 +53,7 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
         {/* Баланс */}
         <div className="bg-[var(--secondary)] rounded-xl p-2 border border-[var(--border)] hover:border-[var(--primary)] transition-colors flex flex-col items-center justify-center">
           <div className="flex items-center gap-2 mb-1">
-            <CircleDollarSign className="w-4 h-4 text-[var(--primary)]" />
+            <Coins className="w-4 h-4 text-[var(--primary)]" />
             <span className="text-xs font-medium text-[var(--muted-foreground)]">Баланс</span>
           </div>
           <div className="text-lg font-bold text-[var(--foreground)]">{balance}</div>

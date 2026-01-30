@@ -71,7 +71,7 @@ export default function ProfileBanner({
         </div> */}
 
         {/* Аватар - перекрывает низ баннера */}
-        <div className="absolute left-1/2 -translate-x-1/2 sm:left-8 -bottom-16 sm:-translate-x-0 z-20">
+        <div className="absolute left-1/2 -translate-x-1/2 sm:left-8 -bottom-16 sm:-translate-x-0 z-9">
           <div className="relative">
             <ProfileAvatar userProfile={userProfile} />
             <RankStarsOverlay userProfile={userProfile} />
