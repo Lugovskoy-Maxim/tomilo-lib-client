@@ -99,7 +99,7 @@ export const useHomeData = (): {
     loading: boolean;
     error: unknown;
   };
-  top2025: {
+  top2026: {
     data: {
       id: string;
       slug?: string;
@@ -160,14 +160,14 @@ export const useHomeData = (): {
     limit: 5,
   });
 
-  // Топ тайтлы 2025 года
+  // Топ тайтлы 2026 года
   const {
-    data: top2025Data,
-    isLoading: top2025Loading,
-    error: top2025Error,
+    data: top2026Data,
+    isLoading: top2026Loading,
+    error: top2026Error,
   } = useSearchTitlesQuery({
     search: "",
-    releaseYear: 2025,
+    releaseYear: 2026,
     sortBy: "views",
     sortOrder: "desc",
     limit: 5,
@@ -244,9 +244,9 @@ export const useHomeData = (): {
       isAdult: item.isAdult ?? false,
     })) || [];
 
-  // Преобразование топ тайтлов 2025 года
-  const top2025 =
-    top2025Data?.data?.data?.map(item => ({
+  // Преобразование топ тайтлов 2026 года
+  const top2026 =
+    top2026Data?.data?.data?.map(item => ({
       id: item._id,
       slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
       title: item.name,
@@ -341,10 +341,10 @@ export const useHomeData = (): {
       loading: topManhwaLoading,
       error: topManhwaError,
     },
-    top2025: {
-      data: top2025,
-      loading: top2025Loading,
-      error: top2025Error,
+    top2026: {
+      data: top2026,
+      loading: top2026Loading,
+      error: top2026Error,
     },
   };
 };

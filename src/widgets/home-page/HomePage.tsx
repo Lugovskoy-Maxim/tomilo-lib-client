@@ -79,7 +79,7 @@ const DataCarousel = ({
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
-  const { popularTitles, randomTitles, readingProgress, topManhua, topManhwa, top2025 } =
+  const { popularTitles, randomTitles, readingProgress, topManhua, topManhwa, top2026 } =
     useHomeData();
   const { collections, latestUpdates } = useStaticData();
 
@@ -145,7 +145,7 @@ export default function HomePage() {
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
         />
 
-        {/* Объединенная секция топ манхв, маньхуа и новинок 2025 */}
+        {/* Объединенная секция топ манхв, маньхуа и новинок 2026 */}
         <TopCombinedSection
           data={{
             topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
@@ -160,7 +160,7 @@ export default function HomePage() {
               isAdult: item.isAdult ?? false,
             })),
 
-            top2025: (top2025.data || []).slice(0, 5).map(item => ({
+            top2026: (top2026.data || []).slice(0, 5).map(item => ({
               id: item.id,
               slug: item.slug,
               title: item.title,

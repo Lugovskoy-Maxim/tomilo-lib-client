@@ -11,7 +11,7 @@ import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVe
 
 interface CombinedTopData {
   topManhwa: TopTitleCombined[];
-  top2025: TopTitleCombined[];
+  top2026: TopTitleCombined[];
   topManhua: TopTitleCombined[];
 }
 
@@ -123,7 +123,7 @@ const CardItem = ({ item }: CardItemProps) => {
                 {translateTitleType(item.type)}
               </span>
               <span className="text-xs text-[var(--muted-foreground)]">•</span>
-              <span className="text-xs text-[var(--muted-foreground)]">{item.year || "2025"}</span>
+              <span className="text-xs text-[var(--muted-foreground)]">{item.year || "2026"}</span>
             </div>
             <h4
               className={`text-[var(--primary)] font-medium group-hover:text-[var(--chart-1)]/80 transition-colors line-clamp-2 ${
@@ -194,18 +194,18 @@ const Column = ({ title, href, items, showRating = false, showViews = true }: Co
 };
 
 /**
- * Компонент для отображения трех отдельных колонок: Топ 2025, Топ Манхв, Топ Маньхуа
+ * Компонент для отображения трех отдельных колонок: Топ 2026, Топ Манхв, Топ Маньхуа
  */
 export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-6">
       {/* Три отдельные колонки */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Колонка 1: Топ 2025 года */}
+        {/* Колонка 1: Топ 2026 года */}
         <Column
-          title="Топ 2025 года"
-          href="/titles?releaseYears=2025"
-          items={data.top2025 || []}
+          title="Топ 2026 года"
+          href="/titles?releaseYears=2026"
+          items={data.top2026 || []}
           showRating={true}
           showViews={false}
         />
