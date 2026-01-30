@@ -12,6 +12,13 @@ export type UserDisplaySettings = {
   theme: "light" | "dark" | "system";
 };
 
+export interface EquippedDecorations {
+  avatar?: string | null;
+  background?: string | null;
+  card?: string | null;
+  _id?: string;
+}
+
 export interface UserProfile {
   _id: string;
   username: string;
@@ -30,6 +37,8 @@ export interface UserProfile {
   // Privacy and display settings
   privacy?: UserPrivacy;
   displaySettings?: UserDisplaySettings;
+  // Equipped decorations (banner, avatar frame, etc.)
+  equippedDecorations?: EquippedDecorations;
 }
 
 // Дополнительные интерфейсы для расширенной функциональности

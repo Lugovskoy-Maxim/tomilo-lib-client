@@ -56,7 +56,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full">
       {/* Навигация по вкладкам */}
       <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-1">
         <div className="grid grid-cols-4 gap-0.5">

@@ -37,10 +37,10 @@ export default function ProfilePage() {
 
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] ">
         <Header />
 
-        <div className="w-full mx-auto px-3 py-3 sm:px-4 sm:py-4">
+        <div className="w-full mx-auto px-3 py-3 sm:px-4 sm:py-4 flex flex-col items-center justify-center max-w-7xl">
           <ProfileHeader />
           <ProfileBanner
             userProfile={userProfile}

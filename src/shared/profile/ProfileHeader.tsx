@@ -11,7 +11,7 @@ function ProfileHeader() {
   const router = useRouter();
 
   return (
-    <div className="mb-2">
+    <div className="mb-2 w-full">
       <div className="flex justify-between items-center gap-2">
         <div className="flex justify-center">
           <button
