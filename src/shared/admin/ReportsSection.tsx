@@ -260,5 +260,3 @@ export function ReportsSection() {
     </div>
   );
 }
-
-

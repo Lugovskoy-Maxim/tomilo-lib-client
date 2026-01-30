@@ -1,4 +1,3 @@
-
 "use client";
 
 import { UserProfile } from "@/types/user";
@@ -47,13 +46,13 @@ export default function ProfileBanner({
           src={bannerUrl}
           alt="Баннер профиля"
           className="absolute inset-0 w-full h-full object-cover "
-          onError={(e) => {
+          onError={e => {
             // Fallback на градиент при ошибке загрузки
             const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
+            target.style.display = "none";
           }}
         />
-        
+
         {/* Градиентный фон (виден если картинка не загрузилась) */}
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/20 to-[var(--chart-1)]/20" />
 
@@ -97,5 +96,3 @@ export default function ProfileBanner({
     </div>
   );
 }
-
-
