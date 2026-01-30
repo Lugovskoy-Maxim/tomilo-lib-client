@@ -39,7 +39,7 @@
 }
 
 [data-theme="dark"] {
-  --background: oklch(23.929% 0.00003 271.152);
+  --background: oklch(16.376% 0.00002 271.152);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);

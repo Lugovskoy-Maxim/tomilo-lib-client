@@ -2,13 +2,13 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Sun, Moon, Monitor, Loader2 } from "lucide-react";
 import { useGetProfileQuery, useUpdateProfileMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isUpdatingTheme, setIsUpdatingTheme] = useState(false);
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { isAuthenticated } = useAuth();
 
@@ -16,7 +16,7 @@ export default function ThemeToggle() {
   const { data: profileData } = useGetProfileQuery(undefined, {
     skip: !isAuthenticated,
   });
-  const [updateProfile] = useUpdateProfileMutation();
+  const [updateProfile, { isLoading }] = useUpdateProfileMutation();
 
   // Применяем тему из профиля при первой загрузке (только для авторизованных)
   useEffect(() => {
@@ -35,31 +35,33 @@ export default function ThemeToggle() {
     { value: "system", icon: Monitor, label: "Системная" },
   ];
 
+  const isLoadingTheme = isUpdatingTheme || (isAuthenticated && isLoading);
+
   const toggleTheme = async () => {
-    setIsAnimating(true);
+    setIsUpdatingTheme(true);
     const validThemes = ["light", "dark", "system"] as const;
     const currentIndex = validThemes.indexOf(theme as "light" | "dark" | "system") || 0;
     const nextIndex = (currentIndex + 1) % validThemes.length;
     const newTheme = validThemes[nextIndex];
 
-    // Небольшая задержка для анимации
-    await new Promise(resolve => setTimeout(resolve, 150));
-
-    // Применяем тему
+    // Применяем тему локально сразу
     setTheme(newTheme);
 
-    // Для авторизованных пользователей сохраняем в профиль
+    // Для авторизованных пользователей сохраняем в профиль и ждём ответа сервера
     if (isAuthenticated) {
       const currentDisplaySettings = profileData?.data?.displaySettings || { isAdult: false };
-      updateProfile({
+      await updateProfile({
         displaySettings: {
           ...currentDisplaySettings,
           theme: newTheme,
         },
-      });
+      }).unwrap();
+    } else {
+      // Для неавторизованных - небольшая задержка для анимации
+      await new Promise(resolve => setTimeout(resolve, 150));
     }
 
-    setIsAnimating(false);
+    setIsUpdatingTheme(false);
   };
 
   const getCurrentTheme = () => {
@@ -84,14 +86,21 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`flex items-center p-2 cursor-pointer hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)] ${
-        isAnimating ? "animate-pulse scale-90" : "hover:scale-105 active:scale-95"
+      className={`relative flex items-center justify-center p-2 cursor-pointer hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)] transition-all ${
+        isLoadingTheme
+          ? "animate-pulse scale-90"
+          : "hover:scale-105 active:scale-95"
       }`}
       aria-label={`Тема: ${currentTheme.label}. Нажмите для смены`}
       title={`Тема: ${currentTheme.label}`}
-      disabled={!mounted || isAnimating}
+      disabled={!mounted || isLoadingTheme}
     >
-      <Icon className={`w-5 h-5 ${isAnimating ? "animate-spin" : ""}`} />
+      {/* Показываем спиннер во время загрузки */}
+      {isLoadingTheme ? (
+        <Loader2 className="w-5 h-5 animate-spin" />
+      ) : (
+        <Icon className="w-5 h-5 transition-all" />
+      )}
     </button>
   );
 }
