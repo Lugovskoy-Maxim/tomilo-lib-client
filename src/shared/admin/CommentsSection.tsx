@@ -1,11 +1,67 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
+import Link from "next/link";
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
-import { Trash2, Search } from "lucide-react";
+import { Trash2, Search, ExternalLink } from "lucide-react";
 import { useGetCommentsQuery, useDeleteCommentMutation } from "@/store/api/commentsApi";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { Comment, CommentEntityType } from "@/types/comment";
+import { Title } from "@/types/title";
+
+// Компонент для отображения ссылки на тайтл/главу
+function CommentTitleLink({ comment }: { comment: Comment }) {
+  const { data: titleData } = useGetTitleByIdQuery(
+    { id: comment.entityId },
+    { skip: !comment.titleInfo && comment.entityType !== CommentEntityType.TITLE },
+  );
+
+  const titleName = comment.titleInfo?.name || titleData?.name;
+  const titleSlug = comment.titleInfo?.slug || titleData?.slug;
+  const titleId = comment.entityId;
+
+  if (comment.entityType === CommentEntityType.TITLE && (titleName || titleSlug || titleId)) {
+    return (
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-[var(--muted-foreground)]">Тайтл:</span>
+        <Link
+          href={`/titles/${titleSlug || titleId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[var(--primary)] hover:underline flex items-center gap-1"
+        >
+          {titleName || "Перейти"}
+          <ExternalLink className="w-3 h-3" />
+        </Link>
+      </div>
+    );
+  }
+
+  if (comment.entityType === CommentEntityType.CHAPTER) {
+    return (
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-[var(--muted-foreground)]">Глава:</span>
+        {titleName || titleSlug ? (
+          <Link
+            href={`/titles/${titleSlug || titleId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--primary)] hover:underline flex items-center gap-1"
+          >
+            {titleName || "Перейти к тайтлу"}
+            <ExternalLink className="w-3 h-3" />
+          </Link>
+        ) : (
+          <span className="text-[var(--muted-foreground)]">ID: {titleId}</span>
+        )}
+      </div>
+    );
+  }
+
+  return null;
+}
 
 export function CommentsSection() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -103,7 +159,11 @@ export function CommentsSection() {
                 </Button>
               </div>
               <p className="text-[var(--foreground)] mb-2">{comment.content}</p>
-              <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
+
+              {/* Ссылка на тайтл/главу */}
+              <CommentTitleLink comment={comment} />
+
+              <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)] mt-2">
                 <span>Тип: {comment.entityType}</span>
                 <span>Лайки: {comment.likes}</span>
                 <span>Дизлайки: {comment.dislikes}</span>

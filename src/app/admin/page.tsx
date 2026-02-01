@@ -80,7 +80,7 @@ export default function AdminPage() {
           <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           {/* Main Content Area */}
-          <main className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 flex flex-col overflow-hidden p-2 gap-2">
             {/* Page Header */}
             <header className="flex-shrink-0 bg-[var(--card)] border-b border-[var(--border)] px-4 sm:px-6 py-4 lg:py-6">
               <div className="flex items-center gap-3">

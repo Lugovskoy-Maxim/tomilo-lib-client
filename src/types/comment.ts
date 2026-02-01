@@ -25,6 +25,12 @@ export interface Comment {
   createdAt: string;
   updatedAt: string;
   replies?: Comment[];
+  // Информация о тайтле для отображения в админке
+  titleInfo?: {
+    _id: string;
+    name: string;
+    slug?: string;
+  };
 }
 
 export interface CommentsResponse {
