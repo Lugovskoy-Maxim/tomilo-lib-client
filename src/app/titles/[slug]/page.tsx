@@ -15,7 +15,7 @@ async function getTitleDataBySlug(slug: string) {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
       }/titles/slug/${slug}?populateChapters=false`,
       {
-        next: { revalidate: 3600 }, // Кеширование на 1 час для SEO
+        cache: "no-store", // Не кешируем для получения актуальных данных
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; SEO-Bot/1.0)",
         },
@@ -30,7 +30,14 @@ async function getTitleDataBySlug(slug: string) {
     }
 
     const data = await response.json();
-    return data.data || data;
+
+    // Проверяем поле success в ответе API
+    if (data.success === false || !data.data) {
+      console.warn("API returned success=false for slug:", slug);
+      return null;
+    }
+
+    return data.data;
   } catch (error) {
     console.error("Error fetching title data by slug:", error);
     return null;

@@ -12,10 +12,17 @@ async function getTitleDataBySlug(slug: string) {
       throw new Error(`Failed to fetch title by slug: ${response.status}`);
     }
     const data = await response.json();
-    return data.data || data;
+
+    // Проверяем поле success в ответе API
+    if (data.success === false || !data.data) {
+      console.warn("API returned success=false for slug:", slug);
+      return null;
+    }
+
+    return data.data;
   } catch (error) {
     console.error("Error fetching title data by slug:", error);
-    throw error;
+    return null;
   }
 }
 
@@ -28,10 +35,17 @@ async function getChapterData(chapterId: string) {
       throw new Error(`Failed to fetch chapter: ${response.status}`);
     }
     const data = await response.json();
-    return data.data || data;
+
+    // Проверяем поле success в ответе API
+    if (data.success === false || !data.data) {
+      console.warn("API returned success=false for chapterId:", chapterId);
+      return null;
+    }
+
+    return data.data;
   } catch (error) {
     console.error("Error fetching chapter data:", error);
-    throw error;
+    return null;
   }
 }
 
@@ -48,10 +62,30 @@ export async function generateMetadata({
 
     // Получаем данные тайтла по slug
     const titleData = await getTitleDataBySlug(slug);
+    if (!titleData) {
+      return {
+        title: "Тайтл не найден - Tomilo-lib.ru",
+        description: "Запрашиваемый тайтл не найден на сайте Tomilo-lib.ru",
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
     const titleName = titleData.name || "Без названия";
 
     // Получаем данные главы
     const chapterData = await getChapterData(chapterId);
+    if (!chapterData) {
+      return {
+        title: "Глава не найдена - Tomilo-lib.ru",
+        description: "Запрашиваемая глава не найдена на сайте Tomilo-lib.ru",
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
     const chapterNumber = Number(chapterData.chapterNumber) || 0;
     const chapterTitle = chapterData.title || "";
 
@@ -120,6 +154,10 @@ export async function generateMetadata({
     return {
       title: "Ошибка загрузки страницы | Tomilo-lib.ru",
       description: "Произошла ошибка при загрузке страницы",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 }
