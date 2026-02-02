@@ -15,7 +15,7 @@ async function getTitleDataBySlug(slug: string) {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
       }/titles/slug/${slug}?populateChapters=false`,
       {
-        cache: 'no-store', // Отключаем кеширование для гарантии свежих данных
+        next: { revalidate: 300 }, // Кеширование на 5 минут для быстрого обновления SEO новых тайтлов
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; SEO-Bot/1.0)",
         },
