@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Modal from "./modal";
 import { UserProfile } from "@/types/user";
 import { StoredUser } from "@/types/auth";
@@ -15,6 +16,7 @@ const AGE_VERIFICATION_KEY = "age-verified";
 
 export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerificationModalProps) {
   const [isChecked, setIsChecked] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (isOpen) {
@@ -28,7 +30,7 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
         localStorage.setItem(AGE_VERIFICATION_KEY, "true");
       }
       onConfirm();
-      window.location.reload();
+     router.refresh();
     }
   };
 
