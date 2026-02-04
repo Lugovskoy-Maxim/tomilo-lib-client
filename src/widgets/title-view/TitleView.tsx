@@ -258,8 +258,27 @@ export default function TitleView({ slug }: { slug: string }) {
     ? `${window.location.origin}${titleData.coverImage}`
     : undefined;
 
+  // Формируем URL обложки для фона
+  const coverImageUrl = titleData.coverImage
+    ? `${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`
+    : null;
+
   return (
-    <main className="relative min-h-screen bg-[var(--background)]">
+    <main className="relative min-h-screen ">
+      {/* Заблюренный фон обложки на весь экран - только в темной теме */}
+      {coverImageUrl && (
+        <div
+          className="fixed inset-0 -z-10 data-[theme=dark]:opacity-40 data-[theme=dark]:blur-3xl data-[theme=dark]:bg-cover data-[theme=dark]:bg-center pointer-events-none"
+          style={{
+            backgroundImage: `url(${coverImageUrl})`,
+          }}
+          data-theme="dark"
+        />
+      )}
+
+      {/* Градиент для лучшей читаемости контента */}
+      <div className="fixed inset-0 -z-5 bg-gradient-to-b from-[var(--background)]/70 via-[var(--background)]/40 to-[var(--background)] pointer-events-none" />
+
       {/* Микроразметка BreadcrumbList в формате JSON-LD */}
       <script
         type="application/ld+json"

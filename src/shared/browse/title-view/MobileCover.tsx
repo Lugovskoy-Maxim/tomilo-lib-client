@@ -74,7 +74,7 @@ export default function MobileCover({
         <BookmarkButton titleId={titleData._id as string} initialBookmarked={false} />
         <button
           onClick={() => setIsReportModalOpen(true)}
-          className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors relative z-10"
+          className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
           aria-label="Сообщить о проблеме"
         >
           <AlertTriangle className="w-4 h-4 text-[var(--foreground)]" />

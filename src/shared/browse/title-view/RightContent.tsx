@@ -570,7 +570,7 @@ export function RightContent({
           </div>
 
           <div className="flex gap-2">
-            <div className="relative flex flex-col items-end gap-1 bg-[var(--background)]/20 px-3 py-2 rounded-full min-w-[80px]">
+            <div className="relative flex flex-col items-end gap-1 px-3 py-2 rounded-full min-w-[80px]">
               <div className="flex flex-col items-end">
                 <span className="text-lg font-bold text-[var(--chart-1)]">
                   {titleData?.averageRating ? titleData?.averageRating.toFixed(2) : "0"}
