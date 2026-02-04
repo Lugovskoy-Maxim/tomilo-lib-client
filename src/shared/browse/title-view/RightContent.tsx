@@ -490,7 +490,7 @@ export function RightContent({
                       <h3 className="font-medium text-[var(--foreground)] truncate">
                         {getChapterDisplayName(chapter)}
                       </h3>
-                      <p className="text-xs sm:text-sm text-[var(--foreground)]/60 truncate hidden sm:block">
+                      <p className="text-xs sm:text-sm text-[var(--foreground)]/60 truncate">
                         {chapter.createdAt ? new Date(chapter.createdAt).toLocaleDateString() : ""}
                       </p>
                     </div>
