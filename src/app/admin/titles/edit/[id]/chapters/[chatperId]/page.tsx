@@ -108,7 +108,7 @@ export default function ChapterEditorPage() {
     if (dragItem.current === null || dragOverItem.current === null) return;
     if (dragItem.current === dragOverItem.current) return;
 
-    const newPages = [...(formData.pages || [])];
+    const newPages = [...(formData.pages ?? [])];
     const draggedItem = newPages[dragItem.current];
 
     // Удаляем элемент из старой позиции
@@ -184,7 +184,7 @@ export default function ChapterEditorPage() {
       if (result.pages && result.pages.length > 0) {
         setFormData(prev => ({
           ...prev,
-          pages: [...(prev.pages || []), ...result.pages],
+          pages: [...(prev.pages ?? []), ...((result.pages as string[]) ?? [])],
         }));
       }
     } catch (err) {
@@ -203,7 +203,9 @@ export default function ChapterEditorPage() {
       // Фильтруем страницы, исключая помеченные на удаление
       const pagesArray = formData.pages || [];
       const filteredPages =
-        Array.isArray(pagesArray) && pagesArray.filter((_, index) => !imagesToDelete.includes(index)) || [];
+        (Array.isArray(pagesArray) &&
+          pagesArray.filter((_, index) => !imagesToDelete.includes(index))) ||
+        [];
 
       const updateData: Partial<UpdateChapterDto> = {
         chapterNumber:
@@ -430,11 +432,7 @@ export default function ChapterEditorPage() {
                       >
                         {isUploading ? (
                           <>
-                            <svg
-                              className="animate-spin w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
+                            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                               <circle
                                 className="opacity-25"
                                 cx="12"
