@@ -11,6 +11,7 @@ import {
   useGetChapterByIdQuery,
   useUpdateChapterMutation,
   useDeleteChapterMutation,
+  useAddPagesToChapterMutation,
 } from "@/store/api/chaptersApi";
 import { UpdateChapterDto } from "@/types/title";
 import { Chapter } from "@/types/chapter";
@@ -51,6 +52,9 @@ export default function ChapterEditorPage() {
 
   const [updateChapterMutation, { isLoading: isUpdating }] = useUpdateChapterMutation();
   const [deleteChapter] = useDeleteChapterMutation();
+  const [addPagesToChapter, { isLoading: isUploading }] = useAddPagesToChapterMutation();
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
     if (chapter && chapter._id !== formData._id) {
@@ -128,11 +132,78 @@ export default function ChapterEditorPage() {
     dragOverItem.current = null;
   };
 
+  // Handlers for adding new images
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const newFilesArray = Array.from(files).filter(file => file.type.startsWith("image/"));
+      setNewFiles(prev => [...prev, ...newFilesArray]);
+    }
+    e.target.value = "";
+  };
+
+  const handleDropNewFiles = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const newFilesArray = Array.from(files).filter(file => file.type.startsWith("image/"));
+      setNewFiles(prev => [...prev, ...newFilesArray]);
+    }
+  };
+
+  const handleDragOverNewFiles = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeaveNewFiles = () => {
+    setIsDragOver(false);
+  };
+
+  const removeNewFile = (index: number) => {
+    setNewFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUploadNewPages = async () => {
+    if (newFiles.length === 0) {
+      toast.error("Выберите файлы для загрузки");
+      return;
+    }
+
+    try {
+      const result = await addPagesToChapter({
+        id: chapterId,
+        pages: newFiles,
+      }).unwrap();
+
+      toast.success(`Загружено ${newFiles.length} страниц(а)`);
+      setNewFiles([]);
+
+      // Update local state with new pages
+      if (result.pages && result.pages.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          pages: [...(prev.pages || []), ...result.pages],
+        }));
+      }
+    } catch (err) {
+      toast.error(
+        `Ошибка при загрузке страниц: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
+    }
+  };
+
+  const clearNewFiles = () => {
+    setNewFiles([]);
+  };
+
   const handleSaveChanges = async () => {
     try {
       // Фильтруем страницы, исключая помеченные на удаление
+      const pagesArray = formData.pages || [];
       const filteredPages =
-        formData.pages?.filter((_, index) => !imagesToDelete.includes(index)) || [];
+        Array.isArray(pagesArray) && pagesArray.filter((_, index) => !imagesToDelete.includes(index)) || [];
 
       const updateData: Partial<UpdateChapterDto> = {
         chapterNumber:
@@ -247,12 +318,172 @@ export default function ChapterEditorPage() {
               />
             </div>
 
+            {/* Секция добавления новых изображений */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-3">
+                <label className="block text-[var(--foreground)] font-medium">
+                  Добавить новые страницы
+                </label>
+                {newFiles.length > 0 && (
+                  <span className="text-sm text-[var(--primary)]">
+                    {newFiles.length} файл(ов) готовы к загрузке
+                  </span>
+                )}
+              </div>
+
+              {/* Zone for adding new files */}
+              <div
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                  isDragOver
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                    : "border-[var(--border)] hover:border-[var(--primary)]"
+                }`}
+                onDragOver={handleDragOverNewFiles}
+                onDragLeave={handleDragLeaveNewFiles}
+                onDrop={handleDropNewFiles}
+              >
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="add-pages-input"
+                />
+                <label htmlFor="add-pages-input" className="cursor-pointer">
+                  <div className="flex flex-col items-center gap-2">
+                    <svg
+                      className="w-8 h-8 text-[var(--muted-foreground)]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    <span className="text-[var(--foreground)]">
+                      Перетащите изображения сюда или{" "}
+                      <span className="text-[var(--primary)] underline">выберите файлы</span>
+                    </span>
+                    <span className="text-xs text-[var(--muted-foreground)]">
+                      Поддерживаются: JPG, PNG, WEBP, GIF
+                    </span>
+                  </div>
+                </label>
+
+                {/* Preview of selected files */}
+                {newFiles.length > 0 && (
+                  <div className="mt-4">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mb-4">
+                      {newFiles.map((file, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-[2/3] bg-gray-200 rounded overflow-hidden">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`Новая страница ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeNewFile(index)}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate">
+                            {file.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={clearNewFiles}
+                        className="px-4 py-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                        disabled={isUploading}
+                      >
+                        Очистить
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleUploadNewPages}
+                        disabled={isUploading}
+                        className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {isUploading ? (
+                          <>
+                            <svg
+                              className="animate-spin w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                              />
+                            </svg>
+                            Загрузка...
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                              />
+                            </svg>
+                            Загрузить {newFiles.length} страниц{newFiles.length > 1 ? "ы" : "у"}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Секция изображений */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="block text-[var(--foreground)] font-medium">Страницы главы</label>
+                <label className="block text-[var(--foreground)] font-medium">
+                  Страницы главы ({formData.pages?.length || 0})
+                </label>
                 <span className="text-sm text-[var(--muted-foreground)]">
-                  {formData.pages?.length || 0} изображений
+                  Перетащите для сортировки
                 </span>
               </div>
 
