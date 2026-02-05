@@ -8,7 +8,7 @@ import {
 } from "@/store/api/reportsApi";
 import { Report, ReportType } from "@/types/report";
 import Button from "@/shared/ui/button";
-import { AlertTriangle, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle, Trash2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { ReportEntityInfo } from "./ReportEntityInfo";
 
@@ -154,7 +154,7 @@ export function ReportsSection() {
                     </span>
                   </td>
                   <td className="py-2.5 px-3 hidden sm:table-cell">
-                    <span className="text-[var(--foreground)] text-sm truncate max-w-[150px] block">
+                    <span className="text-[var(--foreground)] text-sm block">
                       {report.content}
                     </span>
                   </td>

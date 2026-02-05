@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useState } from "react";
+import { useGetReportsQuery } from "@/store/api/reportsApi";
 
 export type AdminTab =
   | "overview"
@@ -88,11 +89,17 @@ const tabs = [
 export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  const { data: unprocessedReports } = useGetReportsQuery({
+    isResolved: "false",
+    limit: 1,
+  });
+
   const sidebarContent = (
     <nav className="flex flex-col gap-1 p-2">
       {tabs.map(tab => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
+        const label = tab.id === "reports" && unprocessedReports?.data?.total ? `${tab.label} (${unprocessedReports.data.total})` : tab.label;
 
         return (
           <button
@@ -106,12 +113,12 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
                 ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
                 : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
             }`}
-            title={tab.label}
+            title={label}
           >
             <Icon
               className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-[var(--primary-foreground)]" : ""}`}
             />
-            <span className="truncate">{tab.label}</span>
+            <span className="truncate">{label}</span>
             {isActive && <ChevronRight className="w-4 h-4 ml-auto lg:hidden" />}
           </button>
         );
