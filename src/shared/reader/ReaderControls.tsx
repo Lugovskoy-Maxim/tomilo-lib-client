@@ -105,17 +105,6 @@ export default function ReaderControls({
       chapter.title.toLowerCase().includes(chapterSearch.toLowerCase()),
   );
 
-  const startAutoScroll = useCallback(() => {
-    if (isAutoScrolling) return;
-    setIsAutoScrolling(true);
-    const interval = setInterval(() => {
-      if (onNextPage) {
-        onNextPage();
-      }
-    }, 3000); // Scroll every 3 seconds
-    setAutoScrollInterval(interval);
-  }, [isAutoScrolling, onNextPage]);
-
   const stopAutoScroll = useCallback(() => {
     if (!isAutoScrolling) return;
     setIsAutoScrolling(false);
@@ -124,6 +113,24 @@ export default function ReaderControls({
       setAutoScrollInterval(null);
     }
   }, [isAutoScrolling, autoScrollInterval]);
+
+  const startAutoScroll = useCallback(() => {
+    if (isAutoScrolling) return;
+    setIsAutoScrolling(true);
+    const interval = setInterval(() => {
+      // Smooth scroll down by a small amount
+      window.scrollBy({
+        top: 3, // Adjust speed as needed
+        behavior: 'smooth'
+      });
+
+      // Stop if at bottom
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+        stopAutoScroll();
+      }
+    }, 0); // More frequent for smooth scrolling
+    setAutoScrollInterval(interval);
+  }, [isAutoScrolling, stopAutoScroll]);
 
   const toggleAutoScroll = useCallback(() => {
     if (isAutoScrolling) {
