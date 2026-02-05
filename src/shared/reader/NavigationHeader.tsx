@@ -1,6 +1,6 @@
 import Link from "next/link";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, AlertTriangle } from "lucide-react";
 import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
 
 interface NavigationHeaderProps {
@@ -10,6 +10,7 @@ interface NavigationHeaderProps {
   showControls: boolean;
   onImageIndexChange: (index: number) => void;
   imagesCount: number;
+  onReportError?: () => void;
 }
 
 export default function NavigationHeader({
@@ -19,6 +20,7 @@ export default function NavigationHeader({
   showControls,
   // onImageIndexChange,
   // imagesCount,
+  onReportError,
 }: NavigationHeaderProps) {
   return (
     <div
@@ -33,8 +35,7 @@ export default function NavigationHeader({
               href={`/titles/${title.slug || title._id}`}
               className="flex items-center gap-2 text-[var(--foreground)] hover:text-[var(--primary)] transition-colors"
             >
-              <ChevronLeft className="w-5 h-5" />
-              <span className="font-medium">Назад к тайтлу</span>
+              <ChevronLeft className="w-4 h-4" />
             </Link>
 
             <div className="h-6 w-px bg-[var(--border)]" />
@@ -59,23 +60,16 @@ export default function NavigationHeader({
             </div>
           </div>
 
-          {/* <div className="flex items-center gap-4">
-            <div className="text-sm text-[var(--muted-foreground)]">
-              {currentImageIndex + 1} / {imagesCount}
-            </div>
-
-            <select
-              value={currentImageIndex}
-              onChange={(e) => onImageIndexChange(parseInt(e.target.value))}
-              className="bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--foreground)]"
+          {/* Кнопка ошибки */}
+          {onReportError && (
+            <button
+              onClick={onReportError}
+              className="p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
+              title="Сообщить об ошибке"
             >
-              {Array.from({ length: imagesCount }, (_, index) => (
-                <option key={index} value={index}>
-                  Страница {index + 1}
-                </option>
-              ))}
-            </select>
-          </div> */}
+              <AlertTriangle className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>

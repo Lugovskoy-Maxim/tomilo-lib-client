@@ -10,6 +10,8 @@ import {
   AlertTriangle,
   Bookmark,
   Settings,
+  Play,
+  Pause,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
@@ -32,6 +34,7 @@ interface ReaderControlsProps {
   creatorId?: string;
   imageWidth?: number;
   onImageWidthChange?: (width: number) => void;
+  onNextPage?: () => void;
 }
 
 export default function ReaderControls({
@@ -49,16 +52,24 @@ export default function ReaderControls({
   isMobileControlsVisible = true,
   imageWidth,
   onImageWidthChange,
+  onNextPage,
 }: ReaderControlsProps & { isMobileControlsVisible?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
   const [isWidthControlOpen, setIsWidthControlOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
   const toast = useToast();
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
-  const [isBookmarked, setIsBookmarked] = useState(user?.bookmarks?.includes(titleId) ?? false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+
+  // Update isBookmarked when user bookmarks change
+  useEffect(() => {
+    setIsBookmarked(user?.bookmarks?.includes(titleId) ?? false);
+  }, [user?.bookmarks, titleId]);
 
   // Ref для панели настроек ширины
   const widthControlRef = useRef<HTMLDivElement>(null);
@@ -93,6 +104,43 @@ export default function ReaderControls({
       chapter.number.toString().includes(chapterSearch) ||
       chapter.title.toLowerCase().includes(chapterSearch.toLowerCase()),
   );
+
+  const startAutoScroll = useCallback(() => {
+    if (isAutoScrolling) return;
+    setIsAutoScrolling(true);
+    const interval = setInterval(() => {
+      if (onNextPage) {
+        onNextPage();
+      }
+    }, 3000); // Scroll every 3 seconds
+    setAutoScrollInterval(interval);
+  }, [isAutoScrolling, onNextPage]);
+
+  const stopAutoScroll = useCallback(() => {
+    if (!isAutoScrolling) return;
+    setIsAutoScrolling(false);
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      setAutoScrollInterval(null);
+    }
+  }, [isAutoScrolling, autoScrollInterval]);
+
+  const toggleAutoScroll = useCallback(() => {
+    if (isAutoScrolling) {
+      stopAutoScroll();
+    } else {
+      startAutoScroll();
+    }
+  }, [isAutoScrolling, startAutoScroll, stopAutoScroll]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+      }
+    };
+  }, [autoScrollInterval]);
 
   const handleBookmarkToggle = async () => {
     if (!isAuthenticated) {
@@ -339,107 +387,90 @@ export default function ReaderControls({
         </div>
       </div>
 
-      {/* Мобильное меню - стиль смартфонного меню */}
+            {/* Мобильное меню - стиль смартфонного меню */}
+      {/* <div
+        className={`sm:hidden h-max fixed bottom-18 left-0 right-0 z-[45] transition-transform duration-300 ease-out will-change-transform 
+          ${
+          isMobileControlsVisible ? "translate-y-0" : "translate-y-18"
+        }
+          `}
+      ></div> */}
+
+
       <div
-        className={`sm:hidden h-max fixed bottom-20 left-0 right-0 z-[55] transition-transform duration-300 ease-out will-change-transform ${
-          isMobileControlsVisible ? "translate-y-0" : "translate-y-20"
-        }`}
+        className={`sm:hidden h-max fixed bottom-12 left-0 right-0 z-[45] transition-transform duration-300 ease-out will-change-transform`}
       >
         {/* Счётчик страниц главы */}
-        <div className="w-full flex justify-center items-center  mb-2 ">
-          <p className="text-[var(--muted-foreground)] text-sm border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-2">
-            {currentPage} {"/"} {chapterImageLength}
+        <div className="w-full flex justify-center items-center  mb-1 ">
+          <p className="text-[var(--primary)] text-xs border border-[var(--border)] bg-[var(--background)]/85 rounded-lg px-2 py-0.5">
+            {currentPage}{"/"}{chapterImageLength}
           </p>
         </div>
       </div>
 
-      <div
+
+      {/* <div
         className={`sm:hidden h-max fixed bottom-2 left-0 right-0 z-[55] transition-transform duration-300 ease-out will-change-transform ${
           isMobileControlsVisible ? "translate-y-0" : "translate-y-20"
         }`}
+      > */}
+
+      <div
+        className={`sm:hidden h-max fixed bottom-1 left-0 right-0 z-[55] transition-transform duration-300 ease-out will-change-transform`}
       >
-        <div
-          className="bg-[var(--card)]/95 backdrop-blur-sm border-t border-[var(--border)] shadow-lg rounded-xl mx-1 h-14"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-        >
-          <div className="flex items-center justify-around px-1 py-">
-            {/* Предыдущая глава */}
+        <div className="flex items-center justify-center gap-5 p-1">
+          {/* Кнопка автоматической прокрутки */}
+          <button
+            onClick={toggleAutoScroll}
+            className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+              isAutoScrolling ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
+            }`}
+            title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
+          >
+            {isAutoScrolling ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          </button>
+
+          {/* Блок с кнопками глав */}
+          <div className="flex items-center gap-5 bg-[var(--card)] border border-[var(--border)] rounded-full">
             <button
               onClick={onPrev}
               disabled={!canGoPrev}
-              className="flex flex-col items-center p-1 hover:bg-[var(--muted)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[52px] active:scale-95"
+              className="p-2 rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               title="Предыдущая глава"
             >
               <ChevronLeft className="w-4 h-4 text-[var(--muted-foreground)]" />
-              <span className="text-xs text-[var(--muted-foreground)] mt-0.5 leading-tight">
-                Пред.
-              </span>
             </button>
 
-            {/* Выбор главы */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex flex-col items-center p-1 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[52px] active:scale-95"
+              className="flex flex-col items-center px-2 py-1 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
               title={`Глава ${currentChapter.number}`}
             >
-              <div className="relative">
-                <TableOfContents className="w-4 h-4 text-[var(--muted-foreground)]" />
-                <span className="absolute -top-1 -right-1 bg-[var(--primary)] text-[var(--primary-foreground)] text-[9px] font-bold rounded-full min-w-[12px] h-[12px] flex items-center justify-center px-0.5">
-                  {currentChapter.number}
-                </span>
-              </div>
-              <span className="text-xs text-[var(--muted-foreground)] mt-0.5 leading-tight">
-                Глава
+              <span className="text-sm font-medium text-[var(--foreground)]">
+                {currentChapter.number}
               </span>
             </button>
 
-            {/* Следующая глава */}
             <button
               onClick={onNext}
               disabled={!canGoNext}
-              className="flex flex-col items-center p-2 hover:bg-[var(--muted)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[52px] active:scale-95"
+              className="p-2 rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               title="Следующая глава"
             >
               <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
-              <span className="text-xs text-[var(--muted-foreground)] mt-0.5 leading-tight">
-                След.
-              </span>
-            </button>
-
-            {/* Сообщение об ошибке */}
-            <button
-              onClick={() => setIsReportModalOpen(true)}
-              className="flex flex-col items-center p-1 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[52px] active:scale-95"
-              title="Сообщить об ошибке"
-            >
-              <AlertTriangle className="w-4 h-4 text-[var(--muted-foreground)]" />
-              <span className="text-xs text-[var(--muted-foreground)] mt-0.5 leading-tight">
-                Ошибка
-              </span>
-            </button>
-
-            {/* Комментарии */}
-            <button
-              onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-              className={`flex flex-col items-center p-1 hover:bg-[var(--muted)] rounded-lg transition-colors min-w-[52px] active:scale-95 ${
-                isCommentsOpen ? "bg-[var(--accent)]" : ""
-              }`}
-              title="Комментарии"
-            >
-              <MessageCircle
-                className={`w-4 h-4 ${
-                  isCommentsOpen ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
-                }`}
-              />
-              <span
-                className={`text-xs mt-0.5 leading-tight ${
-                  isCommentsOpen ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
-                }`}
-              >
-                Комм.
-              </span>
             </button>
           </div>
+
+          {/* Кнопка комментариев */}
+          <button
+            onClick={() => setIsCommentsOpen(!isCommentsOpen)}
+            className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+              isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
+            }`}
+            title="Комментарии"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

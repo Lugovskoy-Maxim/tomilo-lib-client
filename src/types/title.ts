@@ -260,6 +260,7 @@ export interface ReaderTitle {
   chapters: ReaderChapter[];
   alternativeTitles: string[];
   creatorId?: string;
+  slug?: string;
 }
 
 // Экспорт ReaderChapter для использования в других модулях

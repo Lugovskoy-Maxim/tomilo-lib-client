@@ -10,6 +10,7 @@ import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import ReaderControls from "@/shared/reader/ReaderControls";
+import NavigationHeader from "@/shared/reader/NavigationHeader";
 import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
 
 import {
@@ -527,69 +528,31 @@ export default function ReadChapterPage({
         isMobileControlsVisible={isMobileControlsVisible}
         imageWidth={imageWidth}
         onImageWidthChange={handleImageWidthChange}
+        onNextPage={() => {
+          // Scroll to next page within current chapter
+          const nextPage = currentPage + 1;
+          if (nextPage <= chapter.images.length) {
+            const pageElement = document.querySelector(`[data-page="${nextPage}"]`);
+            if (pageElement) {
+              pageElement.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+            }
+          }
+        }}
       />
 
       {/* Хедер */}
-      <header
-        className={`fixed top-0 left-0 right-0 bg-[var(--card)]/90 backdrop-blur-sm z-[55] border-b border-[var(--border)] transition-transform duration-300 ease-out will-change-transform ${
-          isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-        }`}
-        onMouseEnter={handleHeaderMouseEnter}
-        onMouseLeave={handleHeaderMouseLeave}
-      >
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
-            <div className="flex items-center space-x-4 w-full sm:w-auto">
-              <button
-                onClick={() => router.push(getTitlePath())}
-                className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors flex-shrink-0 cursor-pointer"
-              >
-                <ArrowBigLeft className="h-4 w-4" />
-              </button>
-
-              {/* Изображение тайтла */}
-              {title.image && (
-                <div className="relative w-10 h-12 flex-shrink-0">
-                  <Image
-                    loader={() => getImageUrl(title.image)}
-                    src={getImageUrl(title.image)}
-                    alt={title.title}
-                    fill
-                    className="object-cover rounded-md"
-                    sizes="40px"
-                  />
-                </div>
-              )}
-
-              <div className="min-w-0 flex-1">
-                <h1 className="font-semibold text-lg truncate" title={title.title}>
-                  {title.title}
-                </h1>
-                <p className="text-[var(--muted-foreground)] text-sm truncate">
-                  Глава {chapter.number} {chapter.title && `- ${chapter.title}`}
-                </p>
-              </div>
-            </div>
-
-            {/* <div className="flex items-center space-x-2 w-full sm:w-auto">
-              <select
-                value={chapter._id}
-                onChange={(e) =>
-                  router.push(`/titles/${slug || titleId}/chapter/${e.target.value}`)
-                }
-                className="bg-[var(--muted)] border border-[var(--border)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] w-full sm:min-w-[200px]"
-              >
-                {chapters.map((chapter) => (
-                  <option key={chapter._id} value={chapter._id}>
-                    Глава {chapter.number}{" "}
-                    {chapter.title && `- ${chapter.title}`}
-                  </option>
-                ))}
-              </select>
-            </div> */}
-          </div>
-        </div>
-      </header>
+      <NavigationHeader
+        title={title}
+        chapter={chapter}
+        currentImageIndex={currentPage - 1}
+        showControls={isHeaderVisible}
+        onImageIndexChange={() => {}}
+        imagesCount={chapter.images.length}
+        onReportError={() => setIsReportModalOpen(true)}
+      />
 
       {/* Основной контент - ТОЛЬКО ОДНА ГЛАВА */}
       <main ref={containerRef} className="pt-20 sm:pt-16" onClick={handleMobileTap}>
