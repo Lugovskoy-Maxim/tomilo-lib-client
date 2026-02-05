@@ -10,6 +10,8 @@ import {
   AlertTriangle,
   Bookmark,
   Settings,
+  Sun,
+  Moon,
   Play,
   Pause,
 } from "lucide-react";
@@ -61,6 +63,10 @@ export default function ReaderControls({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [autoScrollSpeed, setAutoScrollSpeed] = useState<"slow" | "medium" | "fast">("medium");
+  const [hideBottomMenu, setHideBottomMenu] = useState(false);
+  const [showPageCounter, setShowPageCounter] = useState(true);
   const toast = useToast();
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -117,20 +123,21 @@ export default function ReaderControls({
   const startAutoScroll = useCallback(() => {
     if (isAutoScrolling) return;
     setIsAutoScrolling(true);
+    const speed = autoScrollSpeed === "slow" ? 1 : autoScrollSpeed === "medium" ? 2 : 3;
     const interval = setInterval(() => {
       // Smooth scroll down by a small amount
       window.scrollBy({
-        top: 3, // Adjust speed as needed
-        behavior: 'smooth'
+        top: speed, // Adjust speed as needed
+        behavior: "smooth",
       });
 
       // Stop if at bottom
       if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
         stopAutoScroll();
       }
-    }, 0); // More frequent for smooth scrolling
+    }, 50); // More frequent for smooth scrolling
     setAutoScrollInterval(interval);
-  }, [isAutoScrolling, stopAutoScroll]);
+  }, [isAutoScrolling, stopAutoScroll, autoScrollSpeed]);
 
   const toggleAutoScroll = useCallback(() => {
     if (isAutoScrolling) {
@@ -185,6 +192,152 @@ export default function ReaderControls({
 
   return (
     <>
+      {/* Панель настроек */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-[70]">
+          <div
+            className="absolute inset-y-0 left-0 w-96 bg-[var(--card)] border-r border-[var(--border)] shadow-xl transform transition-transform duration-300 ease-in-out"
+            style={{ transform: "translateX(0)" }}
+          >
+            <div className="p-4 border-b border-[var(--border)]">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-[var(--foreground)]">Настройки</h3>
+                <button
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="p-1 hover:bg-[var(--muted)] rounded transition-colors"
+                  title="Закрыть"
+                >
+                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4 space-y-6">
+              {/* Ширина картинки (только для больших экранов) */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Ширина картинки: {imageWidth}px
+                </label>
+                <input
+                  type="range"
+                  min="768"
+                  max="1440"
+                  step="64"
+                  value={imageWidth}
+                  onChange={e => onImageWidthChange && onImageWidthChange(Number(e.target.value))}
+                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
+                  disabled={!onImageWidthChange}
+                />
+                <div className="flex justify-between text-xs text-[var(--muted-foreground)] mt-1">
+                  <span>768px</span>
+                  <span>1440px</span>
+                </div>
+              </div>
+
+              {/* Скорость автоскролла */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Скорость автоскролла</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => setAutoScrollSpeed("slow")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      autoScrollSpeed === "slow"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Медленно
+                  </button>
+                  <button
+                    onClick={() => setAutoScrollSpeed("medium")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      autoScrollSpeed === "medium"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Средне
+                  </button>
+                  <button
+                    onClick={() => setAutoScrollSpeed("fast")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      autoScrollSpeed === "fast"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Быстро
+                  </button>
+                </div>
+              </div>
+
+              {/* Переключатель темы */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Тема</label>
+                <div className="flex items-center justify-between p-3 bg-[var(--secondary)] rounded-lg">
+                  <span>Светлая</span>
+                  <button
+                    onClick={() => {
+                      // Здесь должна быть логика переключения темы
+                      document.documentElement.classList.toggle("dark");
+                    }}
+                    className="relative inline-flex h-6 w-11 items-center rounded-full bg-[var(--muted)] transition-colors"
+                  >
+                    <span className="sr-only">Переключить тему</span>
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        document.documentElement.classList.contains("dark")
+                          ? "translate-x-6"
+                          : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span>Темная</span>
+                </div>
+              </div>
+
+              {/* Отображение счётчика страниц */}
+              <div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showPageCounter}
+                    onChange={() => setShowPageCounter(!showPageCounter)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${showPageCounter ? "bg-[var(--primary)]" : ""}`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${showPageCounter ? "transform translate-x-5" : ""}`}
+                    ></div>
+                  </div>
+                  <span className="ml-3 text-sm">Отображать счетчик страниц</span>
+                </label>
+              </div>
+
+              {/* Скрывать нижнее меню */}
+              <div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hideBottomMenu}
+                    onChange={() => setHideBottomMenu(!hideBottomMenu)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${hideBottomMenu ? "bg-[var(--primary)]" : ""}`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${hideBottomMenu ? "transform translate-x-5" : ""}`}
+                    ></div>
+                  </div>
+                  <span className="ml-3 text-sm">Скрывать нижнее меню</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Стили для ползунка и анимаций */}
       <style jsx>{`
         .slider::-webkit-slider-thumb {
@@ -394,7 +547,7 @@ export default function ReaderControls({
         </div>
       </div>
 
-            {/* Мобильное меню - стиль смартфонного меню */}
+      {/* Мобильное меню - стиль смартфонного меню */}
       {/* <div
         className={`sm:hidden h-max fixed bottom-18 left-0 right-0 z-[45] transition-transform duration-300 ease-out will-change-transform 
           ${
@@ -403,18 +556,20 @@ export default function ReaderControls({
           `}
       ></div> */}
 
-
       <div
         className={`sm:hidden h-max fixed bottom-12 left-0 right-0 z-[45] transition-transform duration-300 ease-out will-change-transform`}
       >
         {/* Счётчик страниц главы */}
-        <div className="w-full flex justify-center items-center  mb-1 ">
-          <p className="text-[var(--primary)] text-xs border border-[var(--border)] bg-[var(--background)]/85 rounded-lg px-2 py-0.5">
-            {currentPage}{"/"}{chapterImageLength}
-          </p>
-        </div>
+        {showPageCounter && (
+          <div className="w-full flex justify-center items-center  mb-1 ">
+            <p className="text-[var(--primary)] text-xs border border-[var(--border)] bg-[var(--background)]/85 rounded-lg px-2 py-0.5">
+              {currentPage}
+              {"/"}
+              {chapterImageLength}
+            </p>
+          </div>
+        )}
       </div>
-
 
       {/* <div
         className={`sm:hidden h-max fixed bottom-2 left-0 right-0 z-[55] transition-transform duration-300 ease-out will-change-transform ${
@@ -423,7 +578,9 @@ export default function ReaderControls({
       > */}
 
       <div
-        className={`sm:hidden h-max fixed bottom-1 left-0 right-0 z-[55] transition-transform duration-300 ease-out will-change-transform`}
+        className={`sm:hidden h-max fixed bottom-1 left-0 right-0 z-[55] transition-transform duration-300 ease-out will-change-transform ${
+          hideBottomMenu ? "translate-y-full" : ""
+        }`}
       >
         <div className="flex items-center justify-center gap-5 p-1">
           {/* Кнопка автоматической прокрутки */}
@@ -435,6 +592,17 @@ export default function ReaderControls({
             title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
           >
             {isAutoScrolling ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          </button>
+
+          {/* Кнопка настроек */}
+          <button
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+              isSettingsOpen ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
+            }`}
+            title="Настройки"
+          >
+            <Settings className="w-4 h-4" />
           </button>
 
           {/* Блок с кнопками глав */}
