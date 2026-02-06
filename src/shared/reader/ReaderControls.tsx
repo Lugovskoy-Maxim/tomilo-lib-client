@@ -65,6 +65,7 @@ export default function ReaderControls({
   const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [autoScrollSpeed, setAutoScrollSpeed] = useState<"slow" | "medium" | "fast">("medium");
+  const autoScrollSpeedRef = useRef(autoScrollSpeed); // Добавьте этот ref
   const [hideBottomMenu, setHideBottomMenu] = useState(false);
   const [showPageCounter, setShowPageCounter] = useState(true);
   const toast = useToast();
@@ -76,6 +77,11 @@ export default function ReaderControls({
   useEffect(() => {
     setIsBookmarked(user?.bookmarks?.includes(titleId) ?? false);
   }, [user?.bookmarks, titleId]);
+
+  // Обновляем ref при изменении скорости
+  useEffect(() => {
+    autoScrollSpeedRef.current = autoScrollSpeed;
+  }, [autoScrollSpeed]);
 
   // Ref для панели настроек ширины
   const widthControlRef = useRef<HTMLDivElement>(null);
@@ -123,19 +129,19 @@ export default function ReaderControls({
   const startAutoScroll = useCallback(() => {
     if (isAutoScrolling) return;
     setIsAutoScrolling(true);
-    const speed = autoScrollSpeed === "slow" ? 1 : autoScrollSpeed === "medium" ? 2 : 3;
+    const speed = autoScrollSpeed === "slow" ? 1 : autoScrollSpeed === "medium" ? 3 : 6;
     const interval = setInterval(() => {
       // Smooth scroll down by a small amount
       window.scrollBy({
         top: speed, // Adjust speed as needed
-        behavior: "smooth",
+        behavior: "auto",
       });
 
       // Stop if at bottom
       if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
         stopAutoScroll();
       }
-    }, 50); // More frequent for smooth scrolling
+    }, 20); // More frequent for smooth scrolling
     setAutoScrollInterval(interval);
   }, [isAutoScrolling, stopAutoScroll, autoScrollSpeed]);
 
@@ -196,7 +202,7 @@ export default function ReaderControls({
       {isSettingsOpen && (
         <div className="fixed inset-0 z-[70]">
           <div
-            className="absolute inset-y-0 left-0 w-96 bg-[var(--card)] border-r border-[var(--border)] shadow-xl transform transition-transform duration-300 ease-in-out"
+            className="absolute inset-y-0 left-0 w-96 bg-[var(--card)] border-r border-[var(--border)] shadow-xl transform transition-transform duration-300 ease-in-out sm:block hidden"
             style={{ transform: "translateX(0)" }}
           >
             <div className="p-4 border-b border-[var(--border)]">
@@ -233,6 +239,125 @@ export default function ReaderControls({
                 </div>
               </div>
 
+              {/* Скорость автоскролла */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Скорость автоскролла</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => setAutoScrollSpeed("slow")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      autoScrollSpeed === "slow"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Медленно
+                  </button>
+                  <button
+                    onClick={() => setAutoScrollSpeed("medium")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      autoScrollSpeed === "medium"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Средне
+                  </button>
+                  <button
+                    onClick={() => setAutoScrollSpeed("fast")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      autoScrollSpeed === "fast"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Быстро
+                  </button>
+                </div>
+              </div>
+
+              {/* Переключатель темы */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Тема</label>
+                <div className="flex items-center justify-between p-3 bg-[var(--secondary)] rounded-lg">
+                  <span>Светлая</span>
+                  <button
+                    onClick={() => {
+                      // Здесь должна быть логика переключения темы
+                      document.documentElement.classList.toggle("dark");
+                    }}
+                    className="relative inline-flex h-6 w-11 items-center rounded-full bg-[var(--muted)] transition-colors"
+                  >
+                    <span className="sr-only">Переключить тему</span>
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        document.documentElement.classList.contains("dark")
+                          ? "translate-x-6"
+                          : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span>Темная</span>
+                </div>
+              </div>
+
+              {/* Отображение счётчика страниц */}
+              <div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showPageCounter}
+                    onChange={() => setShowPageCounter(!showPageCounter)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${showPageCounter ? "bg-[var(--primary)]" : ""}`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${showPageCounter ? "transform translate-x-5" : ""}`}
+                    ></div>
+                  </div>
+                  <span className="ml-3 text-sm">Отображать счетчик страниц</span>
+                </label>
+              </div>
+
+              {/* Скрывать нижнее меню */}
+              <div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hideBottomMenu}
+                    onChange={() => setHideBottomMenu(!hideBottomMenu)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${hideBottomMenu ? "bg-[var(--primary)]" : ""}`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${hideBottomMenu ? "transform translate-x-5" : ""}`}
+                    ></div>
+                  </div>
+                  <span className="ml-3 text-sm">Скрывать нижнее меню</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          {/* Мобильная панель настроек */}
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-[var(--card)] border-t border-[var(--border)] shadow-lg z-[70] max-h-[70vh] overflow-y-auto">
+            <div className="p-4 border-b border-[var(--border)] sticky top-0 bg-[var(--card)]">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-[var(--foreground)]">Настройки</h3>
+                <button
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="p-1 hover:bg-[var(--muted)] rounded transition-colors"
+                  title="Закрыть"
+                >
+                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4 space-y-6">
               {/* Скорость автоскролла */}
               <div>
                 <label className="block text-sm font-medium mb-2">Скорость автоскролла</label>
