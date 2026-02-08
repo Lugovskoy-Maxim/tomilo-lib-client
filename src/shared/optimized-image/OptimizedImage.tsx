@@ -15,6 +15,7 @@ interface OptimizedImageProps {
   style?: React.CSSProperties;
   onDragStart?: (e: React.DragEvent) => void;
   draggable?: boolean;
+  hidePlaceholder?: boolean;
 }
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
@@ -29,6 +30,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   style,
   onDragStart,
   draggable,
+  hidePlaceholder = false,
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const { isLoading, isLoaded, error, loadImage } = useImageState();
@@ -62,6 +64,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Placeholder для изображения во время загрузки
   const getPlaceholder = () => {
+    // Для маленьких изображений (аватаров) не показываем спиннер
+    if (hidePlaceholder || (width && width <= 60)) {
+      return null;
+    }
+    
     if (width && height) {
       return (
         <div

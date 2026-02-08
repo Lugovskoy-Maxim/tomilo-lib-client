@@ -48,15 +48,7 @@ export default function Footer() {
 
   return (
     <footer className="relative w-full">
-      {/* <Image
-        src={SnowCapImage}
-        alt="Сугроб"
-        width={300}
-        height={40}
-        className="absolute -top-5 left-1/4 hidden lg:block"
-      /> */}
-
-      <div className="w-full bg-[var(--secondary)]/40 border-t border-[var(--border)] mt-auto hidden lg:block">
+      <div className="w-full footer-glass mt-auto hidden lg:block">
         <div className="w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 md:px-8">
           {/* Основной контент футера */}
           <div
@@ -64,7 +56,7 @@ export default function Footer() {
                       md:flex-row md:items-start md:justify-between md:text-left md:space-y-0 md:space-x-8"
           >
             {/* Логотип и описание */}
-            <div className="flex flex-col items-center space-y-3 md:items-start md:max-w-sm lg:max-w-xs">
+            <div className="flex flex-col items-center space-y-3 md:items-start md:max-w-sm lg:max-w-xs hover-lift p-4 rounded-xl">
               <Logo />
               <p className="text-[var(--muted-foreground)] text-sm leading-relaxed md:text-base">
                 TOMILO-LIB — Современная платформа для чтения манги, манхвы и маньхуа.
@@ -80,7 +72,7 @@ export default function Footer() {
               </div>
               <Link
                 href="mailto:support@tomilo-lib.ru"
-                className="flex items-center gap-2 text-[var(--chart-1)] hover:text-[var(--primary)] transition-colors text-sm break-words px-2 py-1 text-center md:text-right"
+                className="flex items-center gap-2 text-[var(--chart-1)] hover:text-[var(--primary)] transition-all duration-300 text-sm break-words px-3 py-2 rounded-lg hover:bg-[var(--secondary)]/50 text-center md:text-right"
               >
                 <Mail className="w-4 h-4 flex-shrink-0" />
                 <span className="max-w-[180px] sm:max-w-[250px] md:max-w-none">
@@ -91,7 +83,7 @@ export default function Footer() {
                 href="https://t.me/tomilolib"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-[var(--chart-1)] hover:text-[var(--primary)] transition-colors text-sm break-words px-2 py-1 text-center md:text-right"
+                className="flex items-center gap-2 text-[var(--chart-1)] hover:text-[var(--primary)] transition-all duration-300 text-sm break-words px-3 py-2 rounded-lg hover:bg-[var(--secondary)]/50 text-center md:text-right"
               >
                 <Send className="w-4 h-4 flex-shrink-0" />
                 <span className="max-w-[180px] sm:max-w-[250px] md:max-w-none">Мы в телеграм</span>
@@ -100,7 +92,7 @@ export default function Footer() {
           </div>
 
           {/* Разделительная линия */}
-          <div className="border-t border-[var(--border)] my-4 md:my-6" />
+          <div className="gradient-divider my-4 md:my-6" />
 
           {/* Нижняя часть футера */}
           <div
@@ -111,19 +103,19 @@ export default function Footer() {
             <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 md:justify-start">
               <Link
                 href="/terms-of-use"
-                className="hover:text-[var(--foreground)] transition-colors text-xs sm:text-sm whitespace-nowrap"
+                className="footer-link text-[var(--muted-foreground)] text-xs sm:text-sm whitespace-nowrap"
               >
                 Пользовательское соглашение
               </Link>
               <Link
                 href="/copyright"
-                className="hover:text-[var(--foreground)] transition-colors text-xs sm:text-sm whitespace-nowrap"
+                className="footer-link text-[var(--muted-foreground)] text-xs sm:text-sm whitespace-nowrap"
               >
                 Авторское право
               </Link>
               <Link
                 href="/updates"
-                className="hover:text-[var(--foreground)] transition-colors text-xs sm:text-sm whitespace-nowrap"
+                className="footer-link text-[var(--muted-foreground)] text-xs sm:text-sm whitespace-nowrap"
               >
                 Лента новых глав
               </Link>
@@ -135,11 +127,11 @@ export default function Footer() {
                         sm:flex-row sm:space-y-0 sm:space-x-4
                         md:space-x-6 md:flex-nowrap"
             >
-              <div className="flex items-center gap-1 text-xs sm:text-sm md:text-base">
-                <Copyright className="w-4 h-4  sm:w-4 sm:h-4" />
+              <div className="flex items-center gap-1 text-xs sm:text-sm md:text-base text-[var(--muted-foreground)]">
+                <Copyright className="w-4 h-4 sm:w-4 sm:h-4" />
                 <span>2025 - {currentYear} «Tomilo-lib.ru»</span>
               </div>
-              <div className="text-xs bg-[var(--accent)] px-2 py-1 rounded border border-[var(--border)] whitespace-nowrap">
+              <div className="text-xs bg-gradient-to-r from-[var(--primary)]/10 to-[var(--chart-1)]/10 px-3 py-1.5 rounded-full border border-[var(--border)]/50 whitespace-nowrap text-[var(--muted-foreground)]">
                 Версия 16012026.091
               </div>
             </div>
@@ -148,94 +140,86 @@ export default function Footer() {
       </div>
       {/* Мобильный футер */}
       <div
-        className={`fixed bottom-2 left-1/2 transform -translate-x-1/2 max-w-[360px] w-[calc(100%-16px)] sm:w-auto rounded-md bg-[var(--background)]/90 border-t border-[var(--border)] shadow-lg z-50 backdrop-blur-sm lg:hidden transition-transform duration-300 ${
-          isVisible ? "translate-y-0" : "translate-y-20"
+        className={`fixed bottom-3 left-1/2 transform -translate-x-1/2 max-w-[380px] w-[calc(100%-24px)] sm:w-auto rounded-2xl bg-[var(--background)]/95 border border-[var(--border)]/60 shadow-2xl z-50 backdrop-blur-xl lg:hidden transition-all duration-300 ${
+          isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"
         }`}
       >
-        {/* <Image
-          src={SnowCapImageRight}
-          alt="Сугроб"
-          width={50}
-          height={10}
-          className="absolute -top-2 -right-0"
-        /> */}
-
-        <div className="flex items-center justify-around p-0 rounded-md">
+        <div className="flex items-center justify-around p-2 rounded-2xl">
           <Link
             href="/titles"
-            className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+            className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item"
             aria-label="Каталог"
           >
-            <Library className="w-4 h-4  text-[var(--muted-foreground)]" />
-            <span className=" text-sm text-[var(--muted-foreground)]  ">Каталог</span>
+            <Library className="w-5 h-5 text-[var(--muted-foreground)]" />
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">Каталог</span>
           </Link>
           <Link
             href="/notifications"
-            className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+            className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item"
             aria-label="Уведомления"
           >
-            <Bell className="w-4 h-4  text-[var(--muted-foreground)]" />
-            <span className=" text-sm text-[var(--muted-foreground)]  ">Увед.</span>
+            <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">Увед.</span>
           </Link>
 
           <Link
             href="/"
-            className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+            className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item active"
             aria-label="Главная страница"
           >
-            <Home className="w-4 h-4  text-[var(--muted-foreground)]" />
-            <span className=" text-sm text-[var(--muted-foreground)]  ">Главная</span>
+            <Home className="w-5 h-5" />
+            <span className="text-xs mt-1">Главная</span>
           </Link>
 
           <Link
             href="/bookmarks"
-            className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+            className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item"
             aria-label="Закладки"
           >
-            <Bookmark className="w-4 h-4  text-[var(--muted-foreground)]" />
-            <span className=" text-sm text-[var(--muted-foreground)]  ">Закладки</span>
+            <Bookmark className="w-5 h-5 text-[var(--muted-foreground)]" />
+            <span className="text-xs text-[var(--muted-foreground)] mt-1">Закладки</span>
           </Link>
 
           <div className="relative">
             <button
               onClick={toggleDropdown}
-              className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-[var(--accent)] transition-all duration-200 active:scale-95"
+              className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item"
               aria-label="Меню"
             >
-              <MoreVertical className="w-4 h-4  text-[var(--muted-foreground)]" />
-              <span className=" text-sm text-[var(--muted-foreground)]  ">Меню</span>
+              <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <span className="text-xs text-[var(--muted-foreground)] mt-1">Меню</span>
             </button>
 
             {/* Выпадающее меню */}
             {isDropdownOpen && (
               <>
-                <div className="absolute right-0 bottom-20 mb-3 w-56 bg-[var(--background)] border border-[var(--border)] rounded-xl shadow-xl z-50 backdrop-blur-sm">
+                <div className="absolute right-0 bottom-20 mb-3 w-56 dropdown-modern animate-fade-in-scale z-50">
                   <div className="py-2">
                     <Link
                       href="/about"
                       onClick={closeDropdown}
-                      className="flex items-center px-4 py-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2"
+                      className="flex items-center px-4 py-3 text-sm text-[var(--foreground)] dropdown-item-modern rounded-lg mx-2"
                     >
                       О нас
                     </Link>
                     <Link
                       href="/contact"
                       onClick={closeDropdown}
-                      className="flex items-center px-4 py-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2"
+                      className="flex items-center px-4 py-3 text-sm text-[var(--foreground)] dropdown-item-modern rounded-lg mx-2"
                     >
                       Контакты
                     </Link>
                     <Link
                       href="/copyright"
                       onClick={closeDropdown}
-                      className="flex items-center px-4 py-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2"
+                      className="flex items-center px-4 py-3 text-sm text-[var(--foreground)] dropdown-item-modern rounded-lg mx-2"
                     >
                       Авторские права
                     </Link>
                     <Link
                       href="/terms-of-use"
                       onClick={closeDropdown}
-                      className="flex items-center px-4 py-3 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2"
+                      className="flex items-center px-4 py-3 text-sm text-[var(--foreground)] dropdown-item-modern rounded-lg mx-2"
                     >
                       Условия использования
                     </Link>

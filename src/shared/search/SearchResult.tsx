@@ -16,7 +16,7 @@ interface SearchResultsProps {
 
 const Container = ({ children }: { children: React.ReactNode }) => (
   <div
-    className="absolute bg-[var(--background)]/90 w-80 top-full left-0 right-0 mt-1 bg-popover border border-[var(--border)] rounded-lg shadow-lg z-50 p-2"
+    className="search-results-modern w-full min-w-[450px] max-w-2xl p-3 left-1/2 -translate-x-1/2 relative"
     role="region"
     aria-label="Результаты поиска"
   >
@@ -41,9 +41,9 @@ export default function SearchResults({
   if (isLoading) {
     return (
       <Container>
-        <div className="flex justify-center items-center py-2" aria-live="polite">
-          <div className="w-6 h-6 border-2 border-[var(--border)] border-t-transparent rounded-full animate-spin"></div>
-          <span className="ml-2 text-sm text-muted-foreground">Поиск...</span>
+        <div className="flex justify-center items-center py-4" aria-live="polite">
+          <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-3 text-sm text-[var(--muted-foreground)]">Поиск...</span>
         </div>
       </Container>
     );
@@ -52,7 +52,7 @@ export default function SearchResults({
   if (error) {
     return (
       <Container>
-        <div className="text-sm text-destructive" role="alert">
+        <div className="text-sm text-[var(--destructive)] py-3 px-2" role="alert">
           {error}
         </div>
       </Container>
@@ -62,7 +62,7 @@ export default function SearchResults({
   if (!Array.isArray(results) || (results.length === 0 && normalizedSearchTerm)) {
     return (
       <Container>
-        <div className="text-sm text-muted-foreground text-center">
+        <div className="text-sm text-[var(--muted-foreground)] text-center py-4">
           {`Ничего не найдено по запросу "${normalizedSearchTerm}"`}
         </div>
       </Container>
@@ -76,7 +76,7 @@ export default function SearchResults({
           <Link
             key={result.id}
             href={getTitlePath(result)}
-            className="flex px-2 py-2 mr-1 hover:bg-[var(--accent)] rounded-lg hover:text-accent-foreground transition-colors border-b border-[var(--border)] last:border-b-0"
+            className="flex px-3 py-3 dropdown-item-modern rounded-xl border-b border-[var(--border)]/30 last:border-b-0"
             onClick={() => {
               // Опционально: логика закрытия попапа после выбора
             }}
@@ -90,7 +90,7 @@ export default function SearchResults({
                     alt={result.title}
                     width={48}
                     height={64}
-                    className="object-cover rounded"
+                    className="object-cover rounded-lg shadow-md"
                   />
                 </div>
               )}
@@ -98,7 +98,7 @@ export default function SearchResults({
                 <div className="font-medium text-foreground">{result.title}</div>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   {result.type && (
-                    <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
+                    <span className="text-xs bg-[var(--secondary)]/80 text-[var(--secondary-foreground)] px-2.5 py-1 rounded-full border border-[var(--border)]/50">
                       {translateTitleType(result.type)}
                     </span>
                   )}
@@ -106,8 +106,8 @@ export default function SearchResults({
                     <span className="text-xs text-muted-foreground">{result.releaseYear} г.</span>
                   )}
                   {result.rating !== undefined && (
-                    <span className="flex gap-1 text-xs text-muted-foreground">
-                      <Star className="w-4 h-4" />
+                    <span className="flex items-center gap-1 text-xs text-[var(--chart-1)] font-medium">
+                      <Star className="w-3.5 h-3.5 fill-[var(--chart-1)]" />
                       {result.rating.toFixed(1)}
                     </span>
                   )}

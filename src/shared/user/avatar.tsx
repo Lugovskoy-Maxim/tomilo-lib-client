@@ -48,6 +48,7 @@ export default function UserAvatar({
       className={`rounded-full object-cover h-10 w-10 ${className}`}
       onError={() => setImageError(true)}
       priority={size > 60}
+      hidePlaceholder={true}
     />
   );
 }

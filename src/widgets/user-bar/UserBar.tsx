@@ -108,10 +108,10 @@ export default function UserBar() {
   // Показываем скелетон во время загрузки или до монтирования
   if (isLoading || !isMounted) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <ThemeToggle />
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-[var(--border)] animate-pulse" />
+          <div className="w-10 h-10 rounded-full bg-[var(--secondary)] animate-pulse" />
         </div>
       </div>
     );
@@ -119,7 +119,7 @@ export default function UserBar() {
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <ThemeToggle />
 
         {isAuthenticated && <NotificationButton />}
@@ -129,7 +129,10 @@ export default function UserBar() {
             <button
               type="button"
               onClick={handleLoginModalOpen}
-              className="flex items-center px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] bg-transparent border border-[var(--border)] rounded-full hover:bg-[var(--popover)] transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="flex items-center px-4 py-2 text-sm font-medium 
+                       bg-[var(--primary)] text-[var(--primary-foreground)] 
+                       rounded-lg hover:bg-[var(--primary)]/90 
+                       transition-colors"
             >
               <LogInIcon className="w-4 h-4 mr-2" />
               Войти
@@ -139,7 +142,9 @@ export default function UserBar() {
           <div className="relative flex items-center justify-center" ref={dropdownRef}>
             <button
               type="button"
-              className="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer focus:outline-none ring hover:ring-2 ring-[var(--border)] hover:ring-[var(--border)]/80 transition-all"
+              className="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer 
+                       hover:ring-2 hover:ring-[var(--primary)]/30
+                       transition-all"
               onClick={() => setDropdownOpen(!dropdownOpen)}
               aria-label="Открыть меню пользователя"
             >
@@ -147,7 +152,7 @@ export default function UserBar() {
                 avatarUrl={user?.avatar}
                 username={user?.username}
                 size={40}
-                className="border-2 border-[var(--background)]"
+                className="rounded-full"
               />
             </button>
 
