@@ -38,8 +38,8 @@ export default function DataCarousel<T>({
         <div className="flex gap-4 overflow-hidden">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex-shrink-0">
-              <div className="w-30 h-40 bg-[var(--muted)] rounded-lg mb-2"></div>
-              <div className="h-4 bg-[var(--muted)] rounded w-24"></div>
+              <div className="w-24 sm:w-28 md:w-32 lg:w-40 h-32 sm:h-36 md:h-40 bg-[var(--muted)] rounded-lg mb-2"></div>
+              <div className="h-4 bg-[var(--muted)] rounded w-20 sm:w-24"></div>
             </div>
           ))}
         </div>

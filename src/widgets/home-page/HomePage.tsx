@@ -20,8 +20,38 @@ const CarouselSkeleton = () => (
     <div className="flex gap-4 overflow-hidden items-center justify-center">
       {[...Array(7)].map((_, i) => (
         <div key={i} className="flex-shrink-0">
-          <div className="w-40 h-64 bg-[var(--muted)] rounded-lg mb-2"></div>
-          <div className="h-4 bg-[var(--muted)] rounded w-24"></div>
+          <div className="w-24 sm:w-28 md:w-32 lg:w-40 h-32 sm:h-40 md:h-52 lg:h-64 bg-[var(--muted)] rounded-lg mb-2"></div>
+          <div className="h-4 bg-[var(--muted)] rounded w-20 sm:w-24"></div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const TopCombinedSkeleton = () => (
+  <div className="w-full max-w-7xl mx-auto px-4 py-6 animate-pulse">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {[...Array(3)].map((_, colIndex) => (
+        <div key={colIndex} className="flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <div className="h-7 bg-[var(--muted)] rounded w-32"></div>
+            <div className="h-4 bg-[var(--muted)] rounded w-12"></div>
+          </div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-2">
+                <div className="w-20 h-28 sm:w-22 sm:h-30 bg-[var(--muted)] rounded flex-shrink-0"></div>
+                <div className="flex flex-col flex-1 gap-2">
+                  <div className="h-3 bg-[var(--muted)] rounded w-16"></div>
+                  <div className="h-4 bg-[var(--muted)] rounded w-full"></div>
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="h-3 bg-[var(--muted)] rounded w-12"></div>
+                    <div className="h-3 bg-[var(--muted)] rounded w-8"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>
@@ -146,45 +176,49 @@ export default function HomePage() {
         />
 
         {/* Объединенная секция топ манхв, маньхуа и новинок 2026 */}
-        <TopCombinedSection
-          data={{
-            topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
-              id: item.id,
-              slug: item.slug,
-              title: item.title,
-              coverImage: item.image,
-              type: item.type,
-              year: item.year,
-              rating: item.rating,
-              views: item.views || "0К",
-              isAdult: item.isAdult ?? false,
-            })),
+        {topManhwa.loading || top2026.loading || topManhua.loading ? (
+          <TopCombinedSkeleton />
+        ) : topManhwa.error || top2026.error || topManhua.error ? null : (
+          <TopCombinedSection
+            data={{
+              topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
+                id: item.id,
+                slug: item.slug,
+                title: item.title,
+                coverImage: item.image,
+                type: item.type,
+                year: item.year,
+                rating: item.rating,
+                views: item.views || "0К",
+                isAdult: item.isAdult ?? false,
+              })),
 
-            top2026: (top2026.data || []).slice(0, 5).map(item => ({
-              id: item.id,
-              slug: item.slug,
-              title: item.title,
-              coverImage: item.image,
-              type: item.type,
-              year: item.year,
-              rating: item.rating,
-              views: item.views || "0К",
-              isAdult: item.isAdult ?? false,
-            })),
+              top2026: (top2026.data || []).slice(0, 5).map(item => ({
+                id: item.id,
+                slug: item.slug,
+                title: item.title,
+                coverImage: item.image,
+                type: item.type,
+                year: item.year,
+                rating: item.rating,
+                views: item.views || "0К",
+                isAdult: item.isAdult ?? false,
+              })),
 
-            topManhua: (topManhua.data || []).slice(0, 5).map(item => ({
-              id: item.id,
-              slug: item.slug,
-              title: item.title,
-              coverImage: item.image,
-              type: item.type,
-              year: item.year,
-              rating: item.rating,
-              views: item.views || "0К",
-              isAdult: item.isAdult ?? false,
-            })),
-          }}
-        />
+              topManhua: (topManhua.data || []).slice(0, 5).map(item => ({
+                id: item.id,
+                slug: item.slug,
+                title: item.title,
+                coverImage: item.image,
+                type: item.type,
+                year: item.year,
+                rating: item.rating,
+                views: item.views || "0К",
+                isAdult: item.isAdult ?? false,
+              })),
+            }}
+          />
+        )}
 
         {/* Продолжить чтение */}
         <DataCarousel
