@@ -287,7 +287,7 @@ export default function Carousel<T>({
       <div className="relative">
         <div
           ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing select-none"
+          className="flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none pb-4"
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
           onMouseUp={handleMouseUp}
@@ -297,7 +297,7 @@ export default function Carousel<T>({
           {data.map(item => (
             <div
               key={getCardId(item)}
-              className={`flex-shrink-0 flex-col ${cardWidth}`}
+              className={`flex-shrink-0 h-full ${cardWidth}`}
               data-card-id={getCardId(item)}
               data-card-type={type}
             >

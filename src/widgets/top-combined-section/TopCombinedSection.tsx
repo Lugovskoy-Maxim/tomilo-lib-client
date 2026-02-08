@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight, Eye, Star } from "lucide-react";
+import { ArrowRight, Eye, Star, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { TopTitleCombined } from "@/types/constants";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
@@ -28,7 +28,7 @@ interface CardItemProps {
 /**
  * Переиспользуемый компонент карточки
  */
-const CardItem = ({ item }: CardItemProps) => {
+const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps) => {
   const { user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
@@ -83,20 +83,31 @@ const CardItem = ({ item }: CardItemProps) => {
 
   return (
     <>
-      <div className="block group cursor-pointer" onClick={handleClick}>
-        <div className="flex items-center gap-3 hover:bg-[var(--muted)]/20 p-2 rounded-lg transition-colors">
+      <div 
+        className="block group cursor-pointer transform transition-all duration-500 ease-out hover:scale-[1.02]" 
+        onClick={handleClick}
+      >
+        {/* Glow effect */}
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-chart-1/0 to-primary/0 group-hover:from-primary/10 group-hover:via-chart-1/10 group-hover:to-primary/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-500 ease-out -z-10" />
+        
+        <div className="flex items-center gap-3 p-2 rounded-xl bg-[var(--card)]/50 hover:bg-[var(--muted)]/30 ring-1 ring-white/5 group-hover:ring-primary/20 transition-all duration-500 relative overflow-hidden">
+          {/* Shine effect */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden rounded-xl">
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out" />
+          </div>
+          
           {/* Обложка */}
-          <div className="w-22 h-30 rounded flex-shrink-0 overflow-hidden bg-gray-700 relative">
+          <div className="w-20 h-28 sm:w-22 sm:h-30 rounded-lg flex-shrink-0 overflow-hidden bg-gray-700 relative shadow-md group-hover:shadow-lg transition-shadow duration-500">
             {item.coverImage ? (
               <OptimizedImage
                 src={normalizeImageUrl(item.coverImage)}
                 alt={item.title}
                 width={88}
                 height={120}
-                className={`w-full h-full object-cover ${
+                className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${
                   item.isAdult && !isAgeVerified ? "blur-sm" : ""
                 }`}
-                quality={80}
+                quality={85}
                 priority={false}
                 onError={() => {
                   // Обработка ошибки загрузки изображения
@@ -108,8 +119,8 @@ const CardItem = ({ item }: CardItemProps) => {
               </div>
             )}
             {item.isAdult && (
-              <div className="absolute top-1 right-1 flex items-center justify-center">
-                <div className="bg-red-500/90 text-white px-1 rounded-full font-bold text-xs">
+              <div className="absolute top-1.5 right-1.5 transform translate-y-[-2px] group-hover:translate-y-0 transition-transform duration-300">
+                <div className="bg-red-500/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-full font-bold text-[10px] shadow-lg border border-red-400/30">
                   18+
                 </div>
               </div>
@@ -117,36 +128,45 @@ const CardItem = ({ item }: CardItemProps) => {
           </div>
 
           {/* Контент */}
-          <div className="flex flex-col flex-1 gap-1">
+          <div className="flex flex-col flex-1 gap-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs text-[var(--muted-foreground)]">
+              <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-2 py-0.5 rounded-full font-medium">
                 {translateTitleType(item.type)}
               </span>
-              <span className="text-xs text-[var(--muted-foreground)]">•</span>
-              <span className="text-xs text-[var(--muted-foreground)]">{item.year || "2026"}</span>
+              <span className="text-[var(--muted-foreground)]">•</span>
+              <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] font-medium">{item.year || "2026"}</span>
             </div>
             <h4
-              className={`text-[var(--primary)] font-medium group-hover:text-[var(--chart-1)]/80 transition-colors line-clamp-2 ${
+              className={`text-[var(--primary)] font-semibold text-sm group-hover:text-[var(--chart-1)] transition-colors duration-300 line-clamp-2 leading-tight ${
                 item.isAdult && !isAgeVerified ? "blur-sm" : ""
               }`}
             >
               {item.title}
             </h4>
-            <div className="flex items-center justify-between mt-1">
-              <span className="flex gap-1 text-xs items-center justify-center text-[var(--muted-foreground)]">
-                <Eye className="w-4 h-4" />
-                {item.views || "0"}
-              </span>
-
-              <span
-                className={`flex gap-1 text-xs font-medium items-center justify-center ${
-                  item.rating >= 7 ? "text-[var(--chart-5)]" : "text-[var(--muted-foreground)]"
-                }`}
-              >
-                <Star className="w-4 h-4" />
-                {item.rating ? parseFloat(item.rating.toFixed(1)).toString() : "0.0"}
-              </span>
+            <div className="flex items-center justify-between mt-1.5">
+              {showViews ? (
+                <span className="flex gap-1 text-xs items-center justify-center text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors duration-300">
+                  <Eye className="w-3.5 h-3.5" />
+                  <span className="font-medium">{item.views || "0"}</span>
+                </span>
+              ) : (
+                <div />
+              )}
+              
+              {showRating && (
+                <span
+                  className={`flex gap-1 text-xs font-semibold items-center justify-center px-2 py-0.5 rounded-full bg-[var(--muted)]/30 ${
+                    item.rating >= 7 ? "text-[var(--chart-5)]" : "text-[var(--muted-foreground)]"
+                  }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  {item.rating ? parseFloat(item.rating.toFixed(1)).toString() : "0.0"}
+                </span>
+              )}
             </div>
+            
+            {/* Animated underline */}
+            <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-primary to-transparent mt-2 transition-all duration-500 ease-out" />
           </div>
         </div>
       </div>
@@ -174,17 +194,17 @@ interface ColumnProps {
 const Column = ({ title, href, items, showRating = false, showViews = true }: ColumnProps) => {
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg md:text-2xl text-[var(--muted-foreground)] font-bold">{title}</h3>
+      <div className="flex items-center justify-between mb-6 group">
+        <h3 className="text-lg md:text-2xl text-[var(--muted-foreground)] font-bold group-hover:text-[var(--primary)] transition-colors duration-300">{title}</h3>
         <Link
           href={href}
-          className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+          className="flex items-center gap-1 text-[var(--chart-1)] hover:text-[var(--chart-5)] transition-all duration-300 hover:gap-2"
         >
-          <span className="text-sm">Ещё</span>
+          <span className="text-sm font-medium">Ещё</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {items.slice(0, 5).map(item => (
           <CardItem key={item.id} item={item} showRating={showRating} showViews={showViews} />
         ))}
@@ -200,7 +220,7 @@ export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-6">
       {/* Три отдельные колонки */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
         {/* Колонка 1: Топ 2026 года */}
         <Column
           title="Топ 2026 года"
