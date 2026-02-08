@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check,
   ChevronLeft,
@@ -83,6 +84,13 @@ export default function ReaderControls({
   const [autoScrollSpeed, setAutoScrollSpeed] = useState<"slow" | "medium" | "fast">("medium");
   const autoScrollSpeedRef = useRef(autoScrollSpeed);
   const [showPageCounter, setShowPageCounter] = useState(true);
+  
+  // Состояния для кнопки обновления с удержанием
+  const [isPressing, setIsPressing] = useState(false);
+  const [pressProgress, setPressProgress] = useState(0);
+  const [showRefreshTooltip, setShowRefreshTooltip] = useState(false);
+  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Загрузка настроек из localStorage
   useEffect(() => {
@@ -100,6 +108,7 @@ export default function ReaderControls({
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+  const router = useRouter();
 
   // Обновление закладки при изменении данных пользователя
   useEffect(() => {
@@ -128,6 +137,7 @@ export default function ReaderControls({
   }, [isMenuOpen, onMenuOpen]);
 
   const widthControlRef = useRef<HTMLDivElement>(null);
+  const settingsPanelRef = useRef<HTMLDivElement>(null);
 
   // Закрытие панели ширины при клике вне её
   const handleClickOutside = useCallback(
@@ -152,6 +162,29 @@ export default function ReaderControls({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [handleClickOutside]);
+
+  // Закрытие панели настроек при клике вне её
+  const handleSettingsClickOutside = useCallback(
+    (event: MouseEvent) => {
+      if (
+        isSettingsOpen &&
+        settingsPanelRef.current &&
+        !settingsPanelRef.current.contains(event.target as Node)
+      ) {
+        setIsSettingsOpen(false);
+      }
+    },
+    [isSettingsOpen],
+  );
+
+  useEffect(() => {
+    if (isSettingsOpen) {
+      document.addEventListener("mousedown", handleSettingsClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleSettingsClickOutside);
+    };
+  }, [isSettingsOpen, handleSettingsClickOutside]);
 
   const filteredChapters = chapters.filter(
     chapter =>
@@ -203,8 +236,62 @@ export default function ReaderControls({
   useEffect(() => {
     return () => {
       if (autoScrollInterval) clearInterval(autoScrollInterval);
+      if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
   }, [autoScrollInterval]);
+
+  // Обработчики для удержания кнопки обновления
+  const startPressing = useCallback(() => {
+    setIsPressing(true);
+    setPressProgress(0);
+    setShowRefreshTooltip(false);
+    
+    // Запускаем прогресс каждые 50мс для плавной анимации (5 секунд = 100 шагов по 5%)
+    let progress = 0;
+    progressIntervalRef.current = setInterval(() => {
+      progress += 2; // 2% каждые 100мс = 5 секунд total
+      setPressProgress(Math.min(progress, 100));
+    }, 100);
+    
+    // Таймер на 5 секунд для обновления
+    pressTimerRef.current = setTimeout(() => {
+      router.refresh();
+      setIsPressing(false);
+      setPressProgress(0);
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+    }, 5000);
+  }, [router]);
+
+  const stopPressing = useCallback(() => {
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    
+    // Если удерживали менее 5 секунд, показываем подсказку
+    if (isPressing && pressProgress < 100) {
+      setShowRefreshTooltip(true);
+      setTimeout(() => setShowRefreshTooltip(false), 2000);
+    }
+    
+    setIsPressing(false);
+    setPressProgress(0);
+  }, [isPressing, pressProgress]);
+
+  const handleSimpleClick = useCallback(() => {
+    if (!isPressing && pressProgress === 0) {
+      setShowRefreshTooltip(true);
+      setTimeout(() => setShowRefreshTooltip(false), 2000);
+    }
+  }, [isPressing, pressProgress]);
 
   const handleBookmarkToggle = async () => {
     if (!isAuthenticated) {
@@ -237,7 +324,8 @@ export default function ReaderControls({
         <div className="fixed inset-0 z-[70]">
           {/* Десктопная панель */}
           <div
-            className="absolute inset-y-0 left-0 w-96 bg-[var(--card)] border-r border-[var(--border)] shadow-xl sm:block hidden transform transition-transform duration-300 ease-in-out"
+            ref={settingsPanelRef}
+            className="absolute inset-y-0 right-0 w-96 bg-[var(--card)] border-l border-[var(--border)] shadow-xl sm:block hidden transform transition-transform duration-300 ease-in-out"
             style={{ transform: "translateX(0)" }}
           >
             <div className="p-4 border-b border-[var(--border)]">
@@ -457,7 +545,7 @@ export default function ReaderControls({
         </div>
 
         {/* Настройки ширины */}
-        {onImageWidthChange && imageWidth !== undefined && (
+        {/* {onImageWidthChange && imageWidth !== undefined && (
           <div className="relative w-full flex justify-center">
             <button
               onClick={() => setIsWidthControlOpen(!isWidthControlOpen)}
@@ -499,20 +587,33 @@ export default function ReaderControls({
               </div>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Основные кнопки управления */}
         <div className="flex flex-col items-center space-y-2 w-12">
+          {/* Кнопка автоскролла */}
           <button
-            onClick={handleMenuToggle}
-            className="relative p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
-            title={`Глава ${currentChapter.number}`}
+            onClick={toggleAutoScroll}
+            className={`p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 ${
+              isAutoScrolling ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
+            }`}
+            title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
           >
-            <TableOfContents className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 text-xs font-bold text-[var(--primary)] bg-[var(--background)] rounded-full px-1 min-w-[1.2rem] text-center">
-              {currentChapter.number}
-            </span>
+            {isAutoScrolling ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
+
+          {/* Кнопка настроек */}
+          <button
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            className={`p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 ${
+              isSettingsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
+            }`}
+            title="Настройки"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+
+
 
           <button
             onClick={onPrev}
@@ -524,6 +625,17 @@ export default function ReaderControls({
           </button>
 
           <button
+            onClick={handleMenuToggle}
+            className="relative p-1.5 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
+            title={`Глава ${currentChapter.number}`}
+          >
+            {/* <TableOfContents className="w-4 h-4" /> */}
+            <span className="text-xs font-bold text-[var(--primary)] min-w-[1.2rem] text-center">
+              {currentChapter.number}
+            </span>
+          </button>
+
+          <button
             onClick={onNext}
             disabled={!canGoNext}
             className="p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 disabled:opacity-50"
@@ -532,13 +644,13 @@ export default function ReaderControls({
             <ChevronRight className="w-4 h-4" />
           </button>
 
-          <button
+          {/* <button
             onClick={() => setIsReportModalOpen(true)}
             className="p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
             title="Сообщить об ошибке"
           >
             <AlertTriangle className="w-4 h-4" />
-          </button>
+          </button> */}
 
           <button
             onClick={handleBookmarkToggle}
@@ -576,6 +688,39 @@ export default function ReaderControls({
           >
             <MessageCircle className={`w-4 h-4 ${isCommentsOpen ? "text-[var(--primary)]" : ""}`} />
           </button>
+
+          {/* Кнопка обновления страницы с удержанием */}
+          <div className="relative">
+            <button
+              onMouseDown={startPressing}
+              onMouseUp={stopPressing}
+              onMouseLeave={stopPressing}
+              onTouchStart={startPressing}
+              onTouchEnd={stopPressing}
+              onClick={handleSimpleClick}
+              className={`relative p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
+              title="Удерживайте 5 секунд для обновления"
+            >
+              {/* Индикатор прогресса */}
+              {isPressing && (
+                <div 
+                  className="absolute inset-0 bg-[var(--primary)]/30 transition-all duration-100 ease-linear"
+                  style={{ 
+                    clipPath: `inset(0 ${100 - pressProgress}% 0 0)` 
+                  }}
+                />
+              )}
+              <RefreshCw className={`w-4 h-4 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
+            </button>
+            
+            {/* Подсказка при простом клике */}
+            {showRefreshTooltip && (
+              <div className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg text-xs text-[var(--foreground)] whitespace-nowrap z-50 animate-fade-in">
+                Удерживайте 5 секунд
+                <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-[var(--card)]" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -689,6 +834,39 @@ export default function ReaderControls({
           >
             <MessageCircle className="w-4 h-4" />
           </button>
+
+          {/* Кнопка обновления страницы с удержанием */}
+          <div className="relative">
+            <button
+              onMouseDown={startPressing}
+              onMouseUp={stopPressing}
+              onMouseLeave={stopPressing}
+              onTouchStart={startPressing}
+              onTouchEnd={stopPressing}
+              onClick={handleSimpleClick}
+              className={`relative p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
+              title="Удерживайте 5 секунд"
+            >
+              {/* Индикатор прогресса */}
+              {isPressing && (
+                <div 
+                  className="absolute inset-0 bg-[var(--primary)]/30 transition-all duration-100 ease-linear"
+                  style={{ 
+                    clipPath: `inset(0 ${100 - pressProgress}% 0 0)` 
+                  }}
+                />
+              )}
+              <RefreshCw className={`w-4 h-4 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
+            </button>
+            
+            {/* Подсказка при простом клике */}
+            {showRefreshTooltip && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg text-xs text-[var(--foreground)] whitespace-nowrap z-50 animate-fade-in">
+                Удерживайте 5 секунд
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[var(--card)]" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
