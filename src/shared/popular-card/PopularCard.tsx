@@ -5,7 +5,6 @@ import { Sparkles, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
-import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useState, useEffect } from "react";
@@ -105,19 +104,18 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
       <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-chart-1/0 to-primary/0 group-hover:from-primary/20 group-hover:via-chart-1/20 group-hover:to-primary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-500 ease-out -z-10" />
       
       <div className="relative overflow-hidden rounded-xl bg-[var(--card)] shadow-lg ring-1 ring-white/5 group-hover:ring-primary/30 transition-all duration-500 h-full flex flex-col">
-        {/* Image container - 9:16 aspect ratio */}
-        <div className="relative overflow-hidden flex-shrink-0 aspect-[11/16]">
-          <OptimizedImage
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} w-full h-full rounded-t-xl object-contain transition-transform duration-700 ease-out group-hover:scale-105`}
+        {/* Image container - 2:3 aspect ratio for manga covers */}
+        <div className="relative overflow-hidden flex-shrink-0 aspect-[2/3] w-full bg-[var(--muted)]">
+          <img
+            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full rounded-t-xl object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105`}
             src={imageSrcString}
             alt={data.title}
-            width={160}
-            height={232}
-            quality={90}
-            priority={false}
+            loading="lazy"
             onDragStart={(e: React.DragEvent) => e.preventDefault()}
             draggable={false}
           />
+
+
 
 
           {/* Adult badge */}
@@ -159,7 +157,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
           {/* Title - min-height for 2 lines consistent sizing */}
           <h3
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-xs sm:text-sm text-[var(--primary)] line-clamp-2 leading-tight group-hover:text-[var(--chart-1)] transition-colors duration-300 min-h-[2.25rem] sm:min-h-[2.5rem]`}
+            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-xs sm:text-sm text-[var(--primary)] line-clamp-2 leading-tight group-hover:text-[var(--chart-1)] transition-colors duration-300 min-h-[2rem] sm:min-h-[2rem]`}
           >
             {data.title}
           </h3>
