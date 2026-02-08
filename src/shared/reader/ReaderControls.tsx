@@ -13,6 +13,7 @@ import {
   Settings,
   Play,
   Pause,
+  RefreshCw,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
@@ -37,6 +38,14 @@ interface ReaderControlsProps {
   imageWidth?: number;
   onImageWidthChange?: (width: number) => void;
   onNextPage?: () => void;
+  isMobileControlsVisible?: boolean;
+  isMenuHidden?: boolean;
+  hideBottomMenuSetting?: boolean;
+  onHideBottomMenuChange?: (value: boolean) => void;
+  onToggleMenu?: () => void;
+  forceStopAutoScroll?: boolean;
+  onMenuOpen?: () => void;
+  onAutoScrollStart?: () => void;
 }
 
 export default function ReaderControls({
@@ -57,7 +66,12 @@ export default function ReaderControls({
   onNextPage,
   isMenuHidden = false,
   hideBottomMenuSetting = false,
-}: ReaderControlsProps & { isMobileControlsVisible?: boolean; isMenuHidden?: boolean; hideBottomMenuSetting?: boolean }) {
+  onHideBottomMenuChange,
+  onToggleMenu,
+  forceStopAutoScroll = false,
+  onMenuOpen,
+  onAutoScrollStart,
+}: ReaderControlsProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
@@ -68,7 +82,6 @@ export default function ReaderControls({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [autoScrollSpeed, setAutoScrollSpeed] = useState<"slow" | "medium" | "fast">("medium");
   const autoScrollSpeedRef = useRef(autoScrollSpeed);
-  const [hideBottomMenu, setHideBottomMenu] = useState(false);
   const [showPageCounter, setShowPageCounter] = useState(true);
 
   // Загрузка настроек из localStorage
@@ -76,11 +89,6 @@ export default function ReaderControls({
     const savedAutoScrollSpeed = localStorage.getItem("reader-auto-scroll-speed");
     if (savedAutoScrollSpeed && ["slow", "medium", "fast"].includes(savedAutoScrollSpeed)) {
       setAutoScrollSpeed(savedAutoScrollSpeed as "slow" | "medium" | "fast");
-    }
-    
-    const savedHideBottomMenu = localStorage.getItem("reader-hide-bottom-menu");
-    if (savedHideBottomMenu !== null) {
-      setHideBottomMenu(savedHideBottomMenu === "true");
     }
     
     const savedShowPageCounter = localStorage.getItem("reader-show-page-counter");
@@ -109,12 +117,15 @@ export default function ReaderControls({
   }, [autoScrollSpeed]);
 
   useEffect(() => {
-    localStorage.setItem("reader-hide-bottom-menu", hideBottomMenu.toString());
-  }, [hideBottomMenu]);
-
-  useEffect(() => {
     localStorage.setItem("reader-show-page-counter", showPageCounter.toString());
   }, [showPageCounter]);
+
+  const handleMenuToggle = useCallback(() => {
+    setIsMenuOpen(!isMenuOpen);
+    if (!isMenuOpen && onMenuOpen) {
+      onMenuOpen();
+    }
+  }, [isMenuOpen, onMenuOpen]);
 
   const widthControlRef = useRef<HTMLDivElement>(null);
 
@@ -156,6 +167,13 @@ export default function ReaderControls({
     setIsAutoScrolling(false);
   }, [autoScrollInterval]);
 
+  // Остановка автопрокрутки при открытии меню или скролле
+  useEffect(() => {
+    if (forceStopAutoScroll && isAutoScrolling) {
+      stopAutoScroll();
+    }
+  }, [forceStopAutoScroll, isAutoScrolling, stopAutoScroll]);
+
   const startAutoScroll = useCallback(() => {
     if (isAutoScrolling) return;
     setIsAutoScrolling(true);
@@ -176,7 +194,10 @@ export default function ReaderControls({
 
   const toggleAutoScroll = useCallback(() => {
     isAutoScrolling ? stopAutoScroll() : startAutoScroll();
-  }, [isAutoScrolling, startAutoScroll, stopAutoScroll]);
+    if (!isAutoScrolling && onAutoScrollStart) {
+      onAutoScrollStart();
+    }
+  }, [isAutoScrolling, startAutoScroll, stopAutoScroll, onAutoScrollStart]);
 
   // Очистка интервала при размонтировании
   useEffect(() => {
@@ -282,43 +303,53 @@ export default function ReaderControls({
                 </div>
               </div>
 
-              {/* Переключатели */}
-              {["pageCounter", "bottomMenu"].map(type => (
-                <div key={type}>
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={type === "pageCounter" ? showPageCounter : hideBottomMenu}
-                      onChange={() =>
-                        type === "pageCounter"
-                          ? setShowPageCounter(prev => !prev)
-                          : setHideBottomMenu(prev => !prev)
-                      }
-                      className="sr-only"
-                    />
+              {/* Переключатель счетчика страниц */}
+              <div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showPageCounter}
+                    onChange={() => setShowPageCounter(prev => !prev)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
+                      showPageCounter ? "bg-[var(--primary)]" : ""
+                    }`}
+                  >
                     <div
-                      className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                        (type === "pageCounter" ? showPageCounter : hideBottomMenu)
-                          ? "bg-[var(--primary)]"
-                          : ""
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                        showPageCounter ? "transform translate-x-5" : ""
                       }`}
-                    >
-                      <div
-                        className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                          (type === "pageCounter" ? showPageCounter : hideBottomMenu)
-                            ? "transform translate-x-5"
-                            : ""
-                        }`}
-                      ></div>
-                    </div>
-                    <span className="ml-3 text-sm">
-                      {type === "pageCounter"
-                        ? "Отображать счетчик страниц"
-                        : "Скрывать нижнее меню"}
-                    </span>
-                  </label>
-                </div>
-              ))}
+                    ></div>
+                  </div>
+                  <span className="ml-3 text-sm">Отображать счетчик страниц</span>
+                </label>
+              </div>
+
+              {/* Переключатель скрытия нижнего меню */}
+              <div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hideBottomMenuSetting}
+                    onChange={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
+                      hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                        hideBottomMenuSetting ? "transform translate-x-5" : ""
+                      }`}
+                    ></div>
+                  </div>
+                  <span className="ml-3 text-sm">Скрывать нижнее меню</span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -393,18 +424,18 @@ export default function ReaderControls({
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={hideBottomMenu}
-                    onChange={() => setHideBottomMenu(!hideBottomMenu)}
+                    checked={hideBottomMenuSetting}
+                    onChange={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
                     className="sr-only"
                   />
                   <div
                     className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                      hideBottomMenu ? "bg-[var(--primary)]" : ""
+                      hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
                     }`}
                   >
                     <div
                       className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        hideBottomMenu ? "transform translate-x-5" : ""
+                        hideBottomMenuSetting ? "transform translate-x-5" : ""
                       }`}
                     ></div>
                   </div>
@@ -473,7 +504,7 @@ export default function ReaderControls({
         {/* Основные кнопки управления */}
         <div className="flex flex-col items-center space-y-2 w-12">
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={handleMenuToggle}
             className="relative p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
             title={`Глава ${currentChapter.number}`}
           >
@@ -549,9 +580,9 @@ export default function ReaderControls({
       </div>
 
       {/* Мобильный счётчик */}
-      <div className="sm:hidden fixed bottom-12 left-0 right-0 z-[45]">
+      <div className={`sm:hidden fixed z-[45] ${isMenuHidden ? 'bottom-12 -right-3' : 'bottom-12 left-0 right-0'}`}>
         {showPageCounter && (
-          <div className="flex justify-center">
+          <div className={`flex ${isMenuHidden ? 'justify-center -translate-x-1/2' : 'justify-center'}`}>
             <p className="text-[var(--primary)] text-xs border border-[var(--border)] bg-[var(--background)]/85 rounded-lg px-2 py-0.5">
               {currentPage} / {chapterImageLength}
             </p>
@@ -560,103 +591,105 @@ export default function ReaderControls({
       </div>
 
       {/* Мобильное нижнее меню */}
-      <div
-        className={`sm:hidden fixed bottom-1 z-[55] transition-all duration-300 ${
-          hideBottomMenuSetting && isMenuHidden
-            ? "right-1 left-auto"
-            : "left-0 right-0"
-        }`}
-      >
-        {hideBottomMenuSetting && isMenuHidden ? (
-          // Свернутое меню - только иконка бургер
-          <button
-            onClick={() => {
-              // При клике на бургер меню разворачивается
-              // Это обрабатывается в родительском компоненте через isMenuHidden
-            }}
-            className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg"
-            title="Показать меню"
+      <div className="sm:hidden fixed bottom-2 z-[55] left-0 right-0">
+        {/* Свернутое меню - только иконка бургер */}
+        <button
+          onClick={() => {
+            onToggleMenu?.();
+            onMenuOpen?.();
+          }}
+          className={`absolute right-2 bottom-1 p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg ${
+            hideBottomMenuSetting && isMenuHidden
+              ? "opacity-100 scale-100 pointer-events-auto"
+              : "opacity-0 scale-75 pointer-events-none"
+          }`}
+          title="Показать меню"
+        >
+          <svg
+            className="w-4 h-4 text-[var(--muted-foreground)]"
+            fill="none"
+            stroke="white"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="w-5 h-5 text-[var(--muted-foreground)]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+
+        {/* Развернутое меню */}
+        <div
+          className={`flex items-center justify-center gap-5 p-1 transition-all duration-300 ${
+            hideBottomMenuSetting && isMenuHidden
+              ? "opacity-0 scale-95 pointer-events-none"
+              : "opacity-100 scale-100 pointer-events-auto"
+          }`}
+        >
+          <button
+            onClick={toggleAutoScroll}
+            className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+              isAutoScrolling ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
+            }`}
+            title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
+          >
+            {isAutoScrolling ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
-        ) : (
-          // Развернутое меню
-          <div className="flex items-center justify-center gap-5 p-1">
+
+          <button
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+              isSettingsOpen ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
+            }`}
+            title="Настройки"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+
+          {/* Блок с кнопками глав */}
+          <div className="flex items-center gap-5 bg-[var(--card)] border border-[var(--border)] rounded-full">
             <button
-              onClick={toggleAutoScroll}
-              className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
-                isAutoScrolling ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
-              }`}
-              title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
+              onClick={onPrev}
+              disabled={!canGoPrev}
+              className="p-2 rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              title="Предыдущая глава"
             >
-              {isAutoScrolling ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              <ChevronLeft className="w-4 h-4 text-[var(--muted-foreground)]" />
             </button>
 
             <button
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
-                isSettingsOpen ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
-              }`}
-              title="Настройки"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="flex flex-col items-center px-2 py-1 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
+              title={`Глава ${currentChapter.number}`}
             >
-              <Settings className="w-4 h-4" />
+              <span className="text-sm font-medium text-[var(--foreground)]">
+                {currentChapter.number}
+              </span>
             </button>
 
-            {/* Блок с кнопками глав */}
-            <div className="flex items-center gap-5 bg-[var(--card)] border border-[var(--border)] rounded-full">
-              <button
-                onClick={onPrev}
-                disabled={!canGoPrev}
-                className="p-2 rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-                title="Предыдущая глава"
-              >
-                <ChevronLeft className="w-4 h-4 text-[var(--muted-foreground)]" />
-              </button>
-
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="flex flex-col items-center px-2 py-1 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
-                title={`Глава ${currentChapter.number}`}
-              >
-                <span className="text-sm font-medium text-[var(--foreground)]">
-                  {currentChapter.number}
-                </span>
-              </button>
-
-              <button
-                onClick={onNext}
-                disabled={!canGoNext}
-                className="p-2 rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-                title="Следующая глава"
-              >
-                <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
-              </button>
-            </div>
-
-            {/* Кнопка комментариев */}
             <button
-              onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-              className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
-                isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
-              }`}
-              title="Комментарии"
+              onClick={onNext}
+              disabled={!canGoNext}
+              className="p-2 rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              title="Следующая глава"
             >
-              <MessageCircle className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
             </button>
           </div>
-        )}
+
+          {/* Кнопка комментариев */}
+          <button
+            onClick={() => setIsCommentsOpen(!isCommentsOpen)}
+            className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+              isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
+            }`}
+            title="Комментарии"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Выпадающее меню выбора главы */}

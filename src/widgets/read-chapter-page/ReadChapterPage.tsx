@@ -70,6 +70,17 @@ export default function ReadChapterPage({
   const [imageLoadPriority, setImageLoadPriority] = useState<
     Map<number, "low" | "medium" | "high">
   >(new Map());
+  const [forceStopAutoScroll, setForceStopAutoScroll] = useState(false);
+
+  // Сброс флага остановки автопрокрутки через некоторое время после остановки
+  useEffect(() => {
+    if (forceStopAutoScroll) {
+      const timeout = setTimeout(() => {
+        setForceStopAutoScroll(false);
+      }, 1000); // Сброс через 1 секунду
+      return () => clearTimeout(timeout);
+    }
+  }, [forceStopAutoScroll]);
 
   // Report state
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -98,6 +109,12 @@ export default function ReadChapterPage({
   const handleImageWidthChange = useCallback((width: number) => {
     setImageWidth(width);
     localStorage.setItem("reader-image-width", width.toString());
+  }, []);
+
+  // Обработчик изменения настройки скрытия нижнего меню
+  const handleHideBottomMenuChange = useCallback((value: boolean) => {
+    setHideBottomMenuSetting(value);
+    localStorage.setItem("reader-hide-bottom-menu", value.toString());
   }, []);
 
   useEffect(() => {
@@ -296,6 +313,10 @@ export default function ReadChapterPage({
     // Отображение нижнего меню при тапе по экрану
     if (hideBottomMenuSetting) {
       showMenuAndResetTimeout();
+      // Остановка автопрокрутки при тапе по экрану (только если меню было свернуто)
+      if (isMenuCollapsed) {
+        setForceStopAutoScroll(true);
+      }
     }
   };
 
@@ -320,6 +341,11 @@ export default function ReadChapterPage({
             if (hideBottomMenuSetting) {
               showMenuAndResetTimeout();
             }
+            // Сброс флага остановки автопрокрутки при скролле вверх
+            setForceStopAutoScroll(false);
+          } else if (currentScrollY === lastScrollY) {
+            // Сброс флага остановки автопрокрутки при остановке скролла
+            setForceStopAutoScroll(false);
           }
 
           // Проверка достижения максимальной прокрутки
@@ -591,6 +617,13 @@ export default function ReadChapterPage({
         }}
         isMenuHidden={isMenuCollapsed}
         hideBottomMenuSetting={hideBottomMenuSetting}
+        onHideBottomMenuChange={handleHideBottomMenuChange}
+        onToggleMenu={() => setIsMenuCollapsed(false)}
+        forceStopAutoScroll={forceStopAutoScroll}
+        onMenuOpen={() => setForceStopAutoScroll(true)}
+        onAutoScrollStart={() => {
+          setIsMenuCollapsed(false);
+        }}
       />
 
       {/* Хедер */}
