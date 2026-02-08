@@ -268,7 +268,7 @@ export default function TitleView({ slug }: { slug: string }) {
       {/* Заблюренный фон обложки на весь экран - только в темной теме */}
       {coverImageUrl && (
         <div
-          className="fixed inset-0 -z-10 data-[theme=dark]:opacity-40 data-[theme=dark]:blur-3xl data-[theme=dark]:bg-cover data-[theme=dark]:bg-center pointer-events-none"
+          className="fixed inset-0 -z-10 data-[theme=dark]:opacity-40 data-[theme=dark]:blur-xl data-[theme=dark]:bg-cover data-[theme=dark]:bg-center pointer-events-none"
           style={{
             backgroundImage: `url(${coverImageUrl})`,
           }}
