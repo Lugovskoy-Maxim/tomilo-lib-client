@@ -26,7 +26,7 @@ export default function CollectionCard({ data }: CollectionCardProps) {
   const collectionLink = `/collections/${collectionId}`;
   const collectionImage = data.cover;
   const collectionName = data.name;
-  const titlesCount = data.titles?.length || data.titlesCount || 0;
+  const titlesCount = data.titles?.length || 0;
 
   const handleClick = () => {
     if (collectionLink) {
