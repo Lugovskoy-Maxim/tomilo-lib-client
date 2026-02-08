@@ -56,8 +56,11 @@ export default function ReadChapterPage({
   const [, setIsFullscreen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
-  const [, setHasTapped] = useState(false);
+  const [hasTapped, setHasTapped] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [hideBottomMenuSetting, setHideBottomMenuSetting] = useState(false);
+  const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [imageWidth, setImageWidth] = useState(1200);
@@ -83,6 +86,12 @@ export default function ReadChapterPage({
         setImageWidth(width);
       }
     }
+
+    // Загрузка настройки скрытия нижнего меню
+    const savedHideBottomMenu = localStorage.getItem("reader-hide-bottom-menu");
+    if (savedHideBottomMenu !== null) {
+      setHideBottomMenuSetting(savedHideBottomMenu === "true");
+    }
   }, []);
 
   // Сохранение ширины изображений в localStorage
@@ -107,6 +116,25 @@ export default function ReadChapterPage({
   const viewsUpdatedRef = useRef<Set<string>>(new Set());
   const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mobileControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const menuHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Функция для показа меню и сброса таймера скрытия
+  const showMenuAndResetTimeout = useCallback(() => {
+    setIsMenuCollapsed(false);
+    resetHideTimeout();
+  }, []);
+
+  // Функция для сброса таймера скрытия меню
+  const resetHideTimeout = useCallback(() => {
+    if (menuHideTimeoutRef.current) {
+      clearTimeout(menuHideTimeoutRef.current);
+    }
+    if (hideBottomMenuSetting && !isMenuCollapsed) {
+      menuHideTimeoutRef.current = setTimeout(() => {
+        setIsMenuCollapsed(true);
+      }, 5000);
+    }
+  }, [hideBottomMenuSetting, isMenuCollapsed]);
 
   // Функция для получения корректного URL изображения
   const getImageUrl = useCallback((url: string) => {
@@ -264,6 +292,11 @@ export default function ReadChapterPage({
     mobileControlsTimeoutRef.current = setTimeout(() => {
       setIsMobileControlsVisible(false);
     }, 3000);
+
+    // Отображение нижнего меню при тапе по экрану
+    if (hideBottomMenuSetting) {
+      showMenuAndResetTimeout();
+    }
   };
 
   // Скрытие хедера при скролле с оптимизацией
@@ -277,8 +310,23 @@ export default function ReadChapterPage({
 
           if (currentScrollY > lastScrollY && currentScrollY > 100) {
             setIsHeaderVisible(false);
+            // Скрытие нижнего меню при скролле вниз
+            if (hideBottomMenuSetting) {
+              setIsMenuCollapsed(true);
+            }
           } else if (currentScrollY < lastScrollY) {
             setIsHeaderVisible(true);
+            // Отображение нижнего меню при скролле вверх
+            if (hideBottomMenuSetting) {
+              showMenuAndResetTimeout();
+            }
+          }
+
+          // Проверка достижения максимальной прокрутки
+          if (window.innerHeight + currentScrollY >= document.body.offsetHeight - 100) {
+            if (hideBottomMenuSetting) {
+              setIsMenuCollapsed(true);
+            }
           }
 
           setLastScrollY(currentScrollY);
@@ -291,7 +339,7 @@ export default function ReadChapterPage({
     // Используем passive: true для лучшей производительности
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, hideBottomMenuSetting, showMenuAndResetTimeout]);
 
   // Восстановление позиции чтения при загрузке компонента
   useEffect(() => {
@@ -541,6 +589,8 @@ export default function ReadChapterPage({
             }
           }
         }}
+        isMenuHidden={isMenuCollapsed}
+        hideBottomMenuSetting={hideBottomMenuSetting}
       />
 
       {/* Хедер */}
@@ -555,7 +605,11 @@ export default function ReadChapterPage({
       />
 
       {/* Основной контент - ТОЛЬКО ОДНА ГЛАВА */}
-      <main ref={containerRef} className="pt-20 sm:pt-16" onClick={handleMobileTap}>
+      <main
+        ref={containerRef}
+        className={`pt-20 sm:pt-16 ${isMenuCollapsed ? "pb-0" : "pb-16"}`}
+        onClick={handleMobileTap}
+      >
         <div className="container mx-auto">
           <div className=" chapter-container">
             {/* Заголовок главы */}

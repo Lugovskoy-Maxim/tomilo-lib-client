@@ -23,6 +23,16 @@ export default function ProfileThemeSettings({
 
   const handleThemeChange = async (theme: "light" | "dark" | "system") => {
     try {
+      // Сохраняем тему в localStorage
+      localStorage.setItem('theme', theme);
+      
+      // Обновляем классы на html элементе
+      const htmlElement = document.documentElement;
+      htmlElement.classList.remove('light', 'dark');
+      if (theme !== 'system') {
+        htmlElement.classList.add(theme);
+      }
+      
       await updateProfile({
         displaySettings: {
           ...displaySettings,
