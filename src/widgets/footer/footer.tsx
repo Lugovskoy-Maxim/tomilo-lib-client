@@ -132,7 +132,7 @@ export default function Footer() {
                 <span>2025 - {currentYear} «Tomilo-lib.ru»</span>
               </div>
               <div className="text-xs bg-gradient-to-r from-[var(--primary)]/10 to-[var(--chart-1)]/10 px-3 py-1.5 rounded-full border border-[var(--border)]/50 whitespace-nowrap text-[var(--muted-foreground)]">
-                Версия 16012026.091
+                Версия 09022026
               </div>
             </div>
           </div>
