@@ -57,23 +57,36 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6 w-full">
-      {/* Навигация по вкладкам */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-1">
-        <div className="grid grid-cols-4 gap-0.5">
-          {tabs.map(tab => {
+      {/* Навигация по вкладкам - Pill Style */}
+      <div className="glass rounded-2xl border border-[var(--border)] p-2 shadow-lg">
+        <div className="relative flex items-center justify-between gap-1 sm:gap-2">
+          {tabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full px-1 py-2 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1 text-xs ${
-                  activeTab === tab.id
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                    : "text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
+                className={`relative flex-1 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 rounded-xl font-medium transition-all duration-300 text-xs sm:text-sm ${
+                  isActive
+                    ? "text-[var(--primary-foreground)]"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)]/50"
                 }`}
               >
-                <Icon className="w-4 h-4" />
-                <span className="truncate max-w-full">{tab.label}</span>
+                {/* Active background pill */}
+                {isActive && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] rounded-xl shadow-lg shadow-[var(--primary)]/25 transition-all duration-300" />
+                )}
+                
+                {/* Icon and label */}
+                <Icon className={`w-4 h-4 sm:w-5 sm:h-5 relative z-10 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
+                <span className="relative z-10 truncate max-w-full">{tab.label}</span>
+                
+                {/* Active indicator dot */}
+                {isActive && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--primary-foreground)]/50 sm:hidden" />
+                )}
               </button>
             );
           })}
@@ -84,8 +97,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
       <div className="animate-fade-in">
         {/* Вкладка "Обзор" */}
         {activeTab === "overview" && (
-          <div className="space-y-4 sm:space-y-6">
-            {/* <ProfileStats userProfile={userProfile} /> */}
+          <div className="space-y-4 sm:space-y-6 animate-fade-in-up">
             <ProfileAdditionalInfo userProfile={userProfile} />
             <ProfileContent userProfile={userProfile} />
           </div>
@@ -93,14 +105,21 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
         {/* Вкладка "Закладки" */}
         {activeTab === "bookmarks" && (
-          <div className="space-y-4 sm:space-y-6">
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)] mb-2">
-                Мои закладки
-              </h2>
-              <p className="text-[var(--muted-foreground)] mb-4 text-sm">
-                Все сохраненные вами манги
-              </p>
+          <div className="space-y-4 sm:space-y-6 animate-fade-in-up">
+            <div className="glass rounded-2xl p-4 sm:p-6 border border-[var(--border)]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)]">
+                  <Bookmark className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
+                    Мои закладки
+                  </h2>
+                  <p className="text-[var(--muted-foreground)] text-sm">
+                    Все сохраненные вами манги
+                  </p>
+                </div>
+              </div>
               <BookmarksSection bookmarks={userProfile.bookmarks} showAll={true} />
             </div>
           </div>
@@ -108,14 +127,21 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
         {/* Вкладка "История" */}
         {activeTab === "history" && (
-          <div className="space-y-4 sm:space-y-6">
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)] mb-2">
-                История чтения
-              </h2>
-              <p className="text-[var(--muted-foreground)] mb-4 text-sm">
-                Все прочитанные вами главы
-              </p>
+          <div className="space-y-4 sm:space-y-6 animate-fade-in-up">
+            <div className="glass rounded-2xl p-4 sm:p-6 border border-[var(--border)]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-[var(--chart-2)] to-[var(--chart-3)]">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
+                    История чтения
+                  </h2>
+                  <p className="text-[var(--muted-foreground)] text-sm">
+                    Все прочитанные вами главы
+                  </p>
+                </div>
+              </div>
               <ReadingHistorySection readingHistory={userProfile.readingHistory} />
             </div>
           </div>
@@ -123,7 +149,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
         {/* Вкладка "Настройки" */}
         {activeTab === "settings" && (
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-4 sm:space-y-6 animate-fade-in-up">
             {/* Настройки уведомлений */}
             <ProfileNotificationsSettings userProfile={userProfile} />
 

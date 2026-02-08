@@ -1,4 +1,4 @@
-import { Bookmark, Calendar1, Mail } from "lucide-react";
+import { Calendar1, Mail, Sparkles, Shield } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import { Button } from "@/shared/ui/button";
 import { Pencil } from "lucide-react";
@@ -30,34 +30,50 @@ export default function UserInfo({ userProfile, onEdit }: UserInfoProps) {
     return "лет";
   };
 
+  const isAdmin = userProfile.role === "admin";
+
   return (
-    <div className="relative flex flex-col lg:flex-row lg:items-end lg:justify-between">
-      <div className="mb-4 sm:ml-40 lg:mb-0 w-full sm:w-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)] mb-1">
-            {userProfile.username}
-          </h1>
-          {onEdit && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onEdit}
-              className="h-8 w-8 p-0 rounded-full border-[var(--border)] cursor-pointer self-center sm:self-auto"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
+    <div className="relative flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+      <div className="mb-2 sm:ml-40 lg:mb-0 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[var(--foreground)] to-[var(--muted-foreground)] bg-clip-text text-transparent">
+              {userProfile.username}
+            </h1>
+            {onEdit && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onEdit}
+                className="h-8 w-8 p-0 rounded-full border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-all duration-300 cursor-pointer"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center justify-center sm:justify-start space-x-2 mb-2">
+        
+        {/* Role badge with enhanced styling */}
+        <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
           <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              userProfile.role === "admin"
-                ? "bg-red-500/10 text-red-600"
-                : "bg-[var(--primary)]/10 text-[var(--primary)]"
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 ${
+              isAdmin
+                ? "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-red-600 border border-red-500/30 shadow-lg shadow-red-500/10"
+                : "bg-gradient-to-r from-[var(--primary)]/20 to-[var(--chart-1)]/20 text-[var(--primary)] border border-[var(--primary)]/30"
             }`}
           >
-            {userProfile.role === "admin" ? "Администратор" : "Пользователь"}
+            {isAdmin ? (
+              <>
+                <Shield className="w-3 h-3" />
+                Администратор
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-3 h-3" />
+                Культиватор
+              </>
+            )}
           </span>
         </div>
       </div>
@@ -75,28 +91,27 @@ function UserStats({
   formatBirthDate: (dateStr: string) => string;
 }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 text-xs text-[var(--muted-foreground)]">
-      <div className="flex items-center space-x-1">
-        <Mail className="w-4 h-4" />
-        <span className="text-xs">{userProfile.email}</span>
+    <div className="flex flex-col gap-2 text-xs sm:text-sm text-[var(--muted-foreground)]">
+      <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 glass px-2.5 py-1 rounded-lg">
+          <Mail className="w-3.5 h-3.5 text-[var(--primary)]" />
+          <span className="font-medium">{userProfile.email}</span>
+        </div>
+        
         {userProfile.birthDate && (
-          <>
-            <span className="mx-2">•</span>
-            <Calendar1 className="w-4 h-4" />
-            <span className="text-xs font-medium">{formatBirthDate(userProfile.birthDate)}</span>
-          </>
+          <div className="flex items-center gap-1.5 glass px-2.5 py-1 rounded-lg">
+            <Calendar1 className="w-3.5 h-3.5 text-[var(--chart-1)]" />
+            <span className="font-medium">{formatBirthDate(userProfile.birthDate)}</span>
+          </div>
         )}
       </div>
-      <div className="flex items-center space-x-1">
-        <Calendar1 className="w-4 h-4" />
-        <span className="text-xs">
-          Культивирует с {new Date(userProfile.createdAt).toLocaleDateString("ru-RU")}
+      
+      <div className="flex items-center justify-center sm:justify-start gap-1.5 glass px-2.5 py-1 rounded-lg w-fit mx-auto sm:mx-0">
+        <Calendar1 className="w-3.5 h-3.5 text-[var(--chart-2)]" />
+        <span className="font-medium">
+          С нами с {new Date(userProfile.createdAt).toLocaleDateString("ru-RU")}
         </span>
       </div>
-      {/* <div className="flex items-center space-x-1">
-        <Bookmark className="w-4 h-4" />
-        <span className="text-xs">{userProfile.bookmarks.length} закладок</span>
-      </div> */}
     </div>
   );
 }
