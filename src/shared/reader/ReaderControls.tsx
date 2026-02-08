@@ -628,10 +628,14 @@ export default function ReaderControls({
       </div>
 
       {/* Мобильный счётчик */}
-      <div className={`sm:hidden fixed z-[45] ${isMenuHidden ? 'bottom-12 -right-3' : 'bottom-12 left-0 right-0'}`}>
+      <div 
+        className={`sm:hidden fixed z-[45] transition-all duration-300 ease-in-out ${
+          isMenuHidden ? 'bottom-12 right-4 opacity-100' : 'bottom-12 left-0 right-0 opacity-100'
+        }`}
+      >
         {showPageCounter && (
-          <div className={`flex ${isMenuHidden ? 'justify-center -translate-x-1/2' : 'justify-center'}`}>
-            <p className="text-[var(--primary)] text-xs border border-[var(--border)] bg-[var(--background)]/85 rounded-lg px-2 py-0.5">
+          <div className={`flex transition-all duration-300 ease-in-out ${isMenuHidden ? 'justify-end' : 'justify-center'}`}>
+            <p className={`text-[var(--primary)] text-xs border border-[var(--border)] bg-[var(--background)]/85 rounded-lg px-2 py-0.5 transition-all duration-300 ${isMenuHidden ? 'scale-90' : 'scale-100'}`}>
               {currentPage} / {chapterImageLength}
             </p>
           </div>
@@ -646,10 +650,10 @@ export default function ReaderControls({
             onToggleMenu?.();
             onMenuOpen?.();
           }}
-          className={`absolute right-5 bottom-1 p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg ${
+          className={`absolute right-5 bottom-1 p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg ${
             hideBottomMenuSetting && isMenuHidden
-              ? "opacity-100 scale-100 pointer-events-auto"
-              : "opacity-0 scale-75 pointer-events-none"
+              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 scale-50 translate-y-4 pointer-events-none"
           }`}
           title="Показать меню"
         >
@@ -670,10 +674,10 @@ export default function ReaderControls({
 
         {/* Развернутое меню */}
         <div
-          className={`flex items-center justify-center gap-5 p-1 transition-all duration-300 ${
+          className={`flex items-center justify-center gap-5 p-1 transition-all duration-500 ease-out ${
             hideBottomMenuSetting && isMenuHidden
-              ? "opacity-0 scale-95 pointer-events-none"
-              : "opacity-100 scale-100 pointer-events-auto"
+              ? "opacity-0 scale-90 translate-y-8 pointer-events-none"
+              : "opacity-100 scale-100 translate-y-0 pointer-events-auto"
           }`}
         >
           <button
