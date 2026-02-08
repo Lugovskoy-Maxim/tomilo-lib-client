@@ -27,9 +27,16 @@ export default function CollapsibleGenresList({
   return (
     <div className="space-y-2">
       {/* Список жанров */}
-      <div className="space-y-2">
+      <div className="space-y-1">
         {visibleGenres.map(genre => (
-          <label key={genre} className="flex items-center gap-2 cursor-pointer">
+          <label 
+            key={genre} 
+            className={`flex items-center gap-3 cursor-pointer p-2 rounded-lg transition-all duration-200 ${
+              selectedGenres.includes(genre) 
+                ? "bg-[var(--primary)]/10" 
+                : "hover:bg-[var(--accent)]"
+            }`}
+          >
             <div className="relative">
               <input
                 type="checkbox"
@@ -38,18 +45,22 @@ export default function CollapsibleGenresList({
                 className="sr-only"
               />
               <div
-                className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${
+                className={`w-4 h-4 border rounded flex items-center justify-center transition-all duration-200 ${
                   selectedGenres.includes(genre)
                     ? "bg-[var(--primary)] border-[var(--primary)]"
-                    : "border-[var(--border)] bg-[var(--background)] hover:border-[var(--primary)]/50"
+                    : "border-[var(--border)] bg-[var(--background)]"
                 }`}
               >
                 {selectedGenres.includes(genre) && (
-                  <Check className="w-3 h-3 text-[var(--muted-foreground)]" />
+                  <Check className="w-3 h-3 text-white" />
                 )}
               </div>
             </div>
-            <span className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+            <span className={`text-sm font-medium transition-colors ${
+              selectedGenres.includes(genre) 
+                ? "text-[var(--primary)]" 
+                : "text-[var(--muted-foreground)]"
+            }`}>
               {genre}
             </span>
           </label>
@@ -60,7 +71,7 @@ export default function CollapsibleGenresList({
       {shouldShowToggle && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 text-sm text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors cursor-pointer py-1 px-2 rounded hover:bg-[var(--primary)]/10"
+          className="flex items-center gap-1.5 text-sm font-medium text-[var(--primary)] hover:text-[var(--chart-1)] transition-colors cursor-pointer py-2 px-3 rounded-lg hover:bg-[var(--primary)]/10 w-full justify-center mt-2 border border-[var(--primary)]/20 hover:border-[var(--primary)]/40"
         >
           {isExpanded ? (
             <>

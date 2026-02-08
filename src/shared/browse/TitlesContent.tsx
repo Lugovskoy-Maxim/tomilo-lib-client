@@ -7,8 +7,8 @@ import { Filters } from "@/types/browse-page";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 import { getTitlePath } from "@/lib/title-paths";
-
 import { translateTitleType } from "@/lib/title-type-translations";
+import { Loader2, BookOpen, AlertCircle, ChevronDown } from "lucide-react";
 
 interface GridTitle {
   id: string;
@@ -100,7 +100,7 @@ export default function TitlesContent() {
   }, [filterOptions]);
 
   // Запрос тайтлов с параметрами
-  const { data: titlesData } = useSearchTitlesQuery({
+  const { data: titlesData, isLoading, isError, error } = useSearchTitlesQuery({
     search: debouncedSearch || undefined,
     genres: appliedFilters.genres[0] || undefined,
     types: appliedFilters.types[0] || undefined,
@@ -216,42 +216,91 @@ export default function TitlesContent() {
       {/* Основной контент */}
       <div className="lg:w-3/4">
         {/* Заголовок и управление */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-[var(--muted-foreground)] mb-2">
-              Каталог тайтлов
-            </h1>
-            <p className="text-[var(--muted-foreground)]">Найдено {totalTitles} тайтлов</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] rounded-xl shadow-lg shadow-[var(--primary)]/20">
+                <BookOpen className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-[var(--foreground)] to-[var(--muted-foreground)] bg-clip-text text-transparent">
+                Каталог тайтлов
+              </h1>
+            </div>
+            <p className="text-[var(--muted-foreground)] text-sm pl-1">
+              Найдено <span className="font-semibold text-[var(--primary)]">{totalTitles}</span> тайтлов
+            </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             <MobileFilterButton onClick={() => setIsMobileFilterOpen(true)} />
-            <SortAndSearch filters={appliedFilters} onFiltersChange={handleFiltersChange} />
+            <SortAndSearch 
+              filters={appliedFilters} 
+              onFiltersChange={handleFiltersChange}
+              isSearching={isLoading && debouncedSearch !== appliedFilters.search}
+            />
           </div>
         </div>
 
+        {/* Состояние загрузки */}
+        {isLoading && allTitles.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] rounded-full blur-xl opacity-30 animate-pulse"></div>
+              <Loader2 className="w-12 h-12 text-[var(--primary)] animate-spin relative z-10" />
+            </div>
+            <p className="mt-4 text-[var(--muted-foreground)] animate-pulse">Загрузка тайтлов...</p>
+          </div>
+        )}
+
+        {/* Состояние ошибки */}
+        {isError && (
+          <div className="flex flex-col items-center justify-center py-20 px-4">
+            <div className="p-4 bg-red-500/10 rounded-full mb-4">
+              <AlertCircle className="w-12 h-12 text-red-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">Ошибка загрузки</h3>
+            <p className="text-[var(--muted-foreground)] text-center max-w-md mb-6">
+              {error && typeof error === 'object' && 'data' in error 
+                ? (error.data as { message?: string })?.message || "Не удалось загрузить тайтлы. Попробуйте позже."
+                : "Не удалось загрузить тайтлы. Попробуйте позже."}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-all duration-300 hover:shadow-lg hover:shadow-[var(--primary)]/20"
+            >
+              Обновить страницу
+            </button>
+          </div>
+        )}
+
         {/* Сетка тайтлов */}
-        <TitleGrid
-          titles={allTitles}
-          onCardClick={handleCardClick}
-          isEmpty={allTitles.length === 0}
-          onResetFilters={resetFilters}
-        />
+        {!isLoading && !isError && (
+          <TitleGrid
+            titles={allTitles}
+            onCardClick={handleCardClick}
+            isEmpty={allTitles.length === 0}
+            onResetFilters={resetFilters}
+          />
+        )}
 
         {/* Load more button */}
-        {loadMorePage < totalPages && (
-          <div className="flex justify-center my-8">
+        {loadMorePage < totalPages && !isLoading && !isError && (
+          <div className="flex justify-center my-10">
             {isLoadingMore ? (
-              <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--primary)]"></div>
-                Загрузка...
+              <div className="flex items-center gap-3 px-6 py-3 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-sm">
+                <Loader2 className="w-5 h-5 text-[var(--primary)] animate-spin" />
+                <span className="text-[var(--muted-foreground)]">Загрузка...</span>
               </div>
             ) : (
               <button
                 onClick={loadMoreTitles}
-                className="bg-[var(--primary)] text-[var(--primary-foreground)] px-6 py-3 rounded-lg hover:bg-[var(--primary)]/90 transition-colors cursor-pointer"
+                className="group relative px-8 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-[var(--primary-foreground)] rounded-xl font-medium shadow-lg shadow-[var(--primary)]/20 hover:shadow-xl hover:shadow-[var(--primary)]/30 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 overflow-hidden"
               >
-                Загрузить ещё
+                <span className="relative z-10 flex items-center gap-2">
+                  Загрузить ещё
+                  <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-300" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-[var(--chart-1)] to-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
             )}
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Star } from "lucide-react";
+import { Star, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -42,6 +42,14 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     const num = typeof value === "number" ? value : 0;
     const fixed = num.toFixed(1);
     return fixed.replace(/\.0$/, "");
+  };
+
+  // Определяем цвет рейтинга
+  const getRatingColor = (rating: number) => {
+    if (rating >= 8) return "bg-emerald-500/90";
+    if (rating >= 6) return "bg-amber-500/90";
+    if (rating >= 4) return "bg-orange-500/90";
+    return "bg-slate-500/90";
   };
 
   // Функция для выполнения действия с карточкой
@@ -96,18 +104,18 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
   return (
     <div
-      className="relative group cursor-pointer select-none transform transition-all duration-500 ease-out hover:scale-[1.02] hover:-translate-y-0.5"
+      className="relative group cursor-pointer select-none transform transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1"
       onClick={handleClick}
       data-card-click-handler="true"
     >
       {/* Glow effect */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-chart-1/0 to-primary/0 group-hover:from-primary/20 group-hover:via-chart-1/20 group-hover:to-primary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-500 ease-out -z-10" />
+      <div className="absolute -inset-1 bg-gradient-to-r from-[var(--primary)]/0 via-[var(--chart-1)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/20 group-hover:via-[var(--chart-1)]/20 group-hover:to-[var(--primary)]/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out -z-10" />
       
-      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] shadow-lg ring-1 ring-white/5 group-hover:ring-primary/30 transition-all duration-500 h-full flex flex-col">
+      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] shadow-md ring-1 ring-white/5 group-hover:shadow-xl group-hover:ring-[var(--primary)]/30 transition-all duration-300 h-full flex flex-col">
         {/* Image container - 2:3 aspect ratio for manga covers */}
         <div className="relative overflow-hidden flex-shrink-0 aspect-[2/3] w-full bg-[var(--muted)]">
           <img
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full rounded-t-xl object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105`}
+            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full rounded-t-xl object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110`}
             src={imageSrcString}
             alt={data.title}
             loading="lazy"
@@ -115,55 +123,53 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
             draggable={false}
           />
 
-
-
-
           {/* Adult badge */}
           {isAdultContent && (
-            <div className="absolute top-2 right-2 transform translate-y-[-2px] group-hover:translate-y-0 transition-transform duration-300">
-              <div className="bg-red-500/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-full font-bold text-xs shadow-lg border border-red-400/30">
-                18+
+            <div className="absolute top-2 right-2 transform translate-y-0 group-hover:translate-y-0 transition-all duration-300 z-10">
+              <div className="bg-red-500/95 backdrop-blur-sm text-white px-2 py-0.5 rounded-full font-bold text-[10px] shadow-lg border border-red-400/40 flex items-center gap-1">
+                <span>18+</span>
               </div>
             </div>
           )}
 
           {/* Rating badge */}
-          <div className="absolute top-2 left-2 transform translate-y-[-2px] group-hover:translate-y-0 transition-transform duration-300">
-            <div className="bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-full flex items-center gap-1.5 text-xs font-semibold shadow-lg border border-white/10">
-              <Star className="w-3 h-3 fill-white text-white" />
+          <div className="absolute top-2 left-2 transform translate-y-0 group-hover:translate-y-0 transition-all duration-300 z-10">
+            <div className={`${getRatingColor(data.rating)} backdrop-blur-sm text-white px-2 py-1 rounded-full flex items-center gap-1 text-[10px] font-bold shadow-lg border border-white/20`}>
+              <Star className="w-3 h-3 fill-white" />
               <span>{formatRating(data.rating)}</span>
             </div>
           </div>
 
-
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           {/* Shine effect */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden rounded-t-xl">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out" />
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none overflow-hidden rounded-t-xl">
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-2 sm:p-2.5 bg-[var(--card)] rounded-b-xl flex-1 flex flex-col">
+        <div className="p-2 sm:p-3 bg-[var(--card)] rounded-b-xl flex-1 flex flex-col">
           {/* Type and year */}
-          <div className="flex justify-between items-center text-[10px] sm:text-xs text-[var(--muted-foreground)] mb-1.5">
-            <span className="bg-[var(--muted)]/50 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium border border-[var(--border)]/50">
+          <div className="flex justify-between items-center gap-2 mb-2">
+            <span className="bg-[var(--primary)]/10 text-[var(--primary)] px-2 py-0.5 rounded-full text-[10px] font-semibold border border-[var(--primary)]/20 truncate max-w-[70%]">
               {translateTitleType(data.type)}
             </span>
-            <span className="text-[9px] sm:text-[10px] font-medium">{data.year}</span>
+            <span className="text-[10px] font-medium text-[var(--muted-foreground)] bg-[var(--muted)]/30 px-2 py-0.5 rounded-full">
+              {data.year}
+            </span>
           </div>
 
           {/* Title - min-height for 2 lines consistent sizing */}
           <h3
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-xs sm:text-sm text-[var(--primary)] line-clamp-2 leading-tight group-hover:text-[var(--chart-1)] transition-colors duration-300 min-h-[2rem] sm:min-h-[2rem]`}
+            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-bold text-xs sm:text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-[var(--primary)] transition-colors duration-200 flex-1`}
           >
             {data.title}
           </h3>
           
           {/* Animated underline - always at bottom */}
-          <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-primary to-transparent mt-2 transition-all duration-500 ease-out flex-shrink-0" />
+          <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent mt-2 transition-all duration-300 ease-out flex-shrink-0" />
         </div>
       </div>
 
