@@ -3,13 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Check,
   ChevronLeft,
   ChevronRight,
   MessageCircle,
-  TableOfContents,
   X,
-  AlertTriangle,
   Bookmark,
   Settings,
   Play,
@@ -23,6 +20,7 @@ import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/hooks/useAuth";
 import { ReportModal } from "@/shared/report/ReportModal";
 import ThemeToggle from "@/shared/theme-toggle/ThemeToggle";
+import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -38,8 +36,6 @@ interface ReaderControlsProps {
   creatorId?: string;
   imageWidth?: number;
   onImageWidthChange?: (width: number) => void;
-  onNextPage?: () => void;
-  isMobileControlsVisible?: boolean;
   isMenuHidden?: boolean;
   hideBottomMenuSetting?: boolean;
   onHideBottomMenuChange?: (value: boolean) => void;
@@ -61,10 +57,8 @@ export default function ReaderControls({
   canGoNext,
   titleId,
   creatorId,
-  isMobileControlsVisible = true,
   imageWidth,
   onImageWidthChange,
-  onNextPage,
   isMenuHidden = false,
   hideBottomMenuSetting = false,
   onHideBottomMenuChange,
@@ -76,7 +70,6 @@ export default function ReaderControls({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
-  const [isWidthControlOpen, setIsWidthControlOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
@@ -104,6 +97,7 @@ export default function ReaderControls({
       setShowPageCounter(savedShowPageCounter === "true");
     }
   }, []);
+  
   const toast = useToast();
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -136,32 +130,7 @@ export default function ReaderControls({
     }
   }, [isMenuOpen, onMenuOpen]);
 
-  const widthControlRef = useRef<HTMLDivElement>(null);
   const settingsPanelRef = useRef<HTMLDivElement>(null);
-
-  // Закрытие панели ширины при клике вне её
-  const handleClickOutside = useCallback(
-    (event: MouseEvent) => {
-      if (
-        isWidthControlOpen &&
-        widthControlRef.current &&
-        !widthControlRef.current.contains(event.target as Node)
-      ) {
-        const target = event.target as HTMLElement;
-        if (!target.closest('button[title="Настройки ширины изображений"]')) {
-          setIsWidthControlOpen(false);
-        }
-      }
-    },
-    [isWidthControlOpen],
-  );
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [handleClickOutside]);
 
   // Закрытие панели настроек при клике вне её
   const handleSettingsClickOutside = useCallback(
@@ -247,14 +216,12 @@ export default function ReaderControls({
     setPressProgress(0);
     setShowRefreshTooltip(false);
     
-    // Запускаем прогресс каждые 50мс для плавной анимации (5 секунд = 100 шагов по 5%)
     let progress = 0;
     progressIntervalRef.current = setInterval(() => {
-      progress += 2; // 2% каждые 100мс = 5 секунд total
+      progress += 2;
       setPressProgress(Math.min(progress, 100));
     }, 100);
     
-    // Таймер на 5 секунд для обновления
     pressTimerRef.current = setTimeout(() => {
       router.refresh();
       setIsPressing(false);
@@ -276,7 +243,6 @@ export default function ReaderControls({
       progressIntervalRef.current = null;
     }
     
-    // Если удерживали менее 5 секунд, показываем подсказку
     if (isPressing && pressProgress < 100) {
       setShowRefreshTooltip(true);
       setTimeout(() => setShowRefreshTooltip(false), 2000);
@@ -321,10 +287,9 @@ export default function ReaderControls({
     <>
       {/* Панель настроек */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 z-[70]">
+        <div ref={settingsPanelRef} className="fixed inset-0 z-[70]">
           {/* Десктопная панель */}
           <div
-            ref={settingsPanelRef}
             className="absolute inset-y-0 right-0 w-96 bg-[var(--card)] border-l border-[var(--border)] shadow-xl sm:block hidden transform transition-transform duration-300 ease-in-out"
             style={{ transform: "translateX(0)" }}
           >
@@ -386,9 +351,7 @@ export default function ReaderControls({
               {/* Тема */}
               <div>
                 <label className="block text-sm font-medium mb-2">Тема</label>
-                <div className="flex justify-center">
-                  <ThemeToggle />
-                </div>
+                <ThemeToggleGroup />
               </div>
 
               {/* Переключатель счетчика страниц */}
@@ -442,9 +405,10 @@ export default function ReaderControls({
           </div>
 
           {/* Мобильная панель */}
-          <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-[var(--card)] border-t border-[var(--border)] shadow-lg z-[70] max-h-[70vh] overflow-y-auto">
+          <div
+            className="sm:hidden fixed bottom-0 left-0 right-0 bg-[var(--card)] border-t border-[var(--border)] shadow-lg z-[70] max-h-[70vh] overflow-y-auto"
+          >
             <div className="p-4 border-b border-[var(--border)] sticky top-0 bg-[var(--card)]">
-
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-[var(--foreground)]">Настройки</h3>
                 <button
@@ -458,7 +422,6 @@ export default function ReaderControls({
             </div>
 
             <div className="p-4 space-y-6">
-              {/* Скорость и тема  */}
               <div>
                 <label className="block text-sm font-medium mb-2">Скорость автоскролла</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -480,9 +443,7 @@ export default function ReaderControls({
 
               <div>
                 <label className="block text-sm font-medium mb-2">Тема</label>
-                <div className="flex justify-center">
-                  <ThemeToggle />
-                </div>
+                <ThemeToggleGroup />
               </div>
 
               <div>
@@ -544,51 +505,6 @@ export default function ReaderControls({
           </p>
         </div>
 
-        {/* Настройки ширины */}
-        {/* {onImageWidthChange && imageWidth !== undefined && (
-          <div className="relative w-full flex justify-center">
-            <button
-              onClick={() => setIsWidthControlOpen(!isWidthControlOpen)}
-              className={`group relative p-3 bg-gradient-to-br from-[var(--primary)]/10 to-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
-                isWidthControlOpen
-                  ? "text-[var(--primary)] bg-[var(--primary)]/20 border-[var(--primary)]"
-                  : ""
-              }`}
-              title="Настройки ширины изображений"
-            >
-              <Settings className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" />
-              {isWidthControlOpen && (
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[var(--primary)] rounded-full animate-pulse" />
-              )}
-            </button>
-
-            {isWidthControlOpen && (
-              <div
-                ref={widthControlRef}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full mr-3 flex flex-col items-center space-y-3 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl z-[60] animate-fade-in"
-              >
-                <div className="flex items-center gap-2">
-                  <Settings className="w-4 h-4 text-[var(--primary)]" />
-                  <span className="text-[var(--foreground)] font-medium">{imageWidth}px</span>
-                </div>
-                <input
-                  type="range"
-                  min="768"
-                  max="1440"
-                  step="64"
-                  value={imageWidth}
-                  onChange={e => onImageWidthChange(Number(e.target.value))}
-                  className="w-40 h-3 bg-[var(--muted)] rounded-full appearance-none cursor-pointer slider"
-                />
-                <div className="flex justify-between w-40 text-[var(--muted-foreground)] text-xs">
-                  <span>768</span>
-                  <span>1440</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )} */}
-
         {/* Основные кнопки управления */}
         <div className="flex flex-col items-center space-y-2 w-12">
           {/* Кнопка автоскролла */}
@@ -613,8 +529,6 @@ export default function ReaderControls({
             <Settings className="w-4 h-4" />
           </button>
 
-
-
           <button
             onClick={onPrev}
             disabled={!canGoPrev}
@@ -629,7 +543,6 @@ export default function ReaderControls({
             className="relative p-1.5 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
             title={`Глава ${currentChapter.number}`}
           >
-            {/* <TableOfContents className="w-4 h-4" /> */}
             <span className="text-xs font-bold text-[var(--primary)] min-w-[1.2rem] text-center">
               {currentChapter.number}
             </span>
@@ -643,14 +556,6 @@ export default function ReaderControls({
           >
             <ChevronRight className="w-4 h-4" />
           </button>
-
-          {/* <button
-            onClick={() => setIsReportModalOpen(true)}
-            className="p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
-            title="Сообщить об ошибке"
-          >
-            <AlertTriangle className="w-4 h-4" />
-          </button> */}
 
           <button
             onClick={handleBookmarkToggle}
@@ -701,7 +606,6 @@ export default function ReaderControls({
               className={`relative p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
               title="Удерживайте 5 секунд для обновления"
             >
-              {/* Индикатор прогресса */}
               {isPressing && (
                 <div 
                   className="absolute inset-0 bg-[var(--primary)]/30 transition-all duration-100 ease-linear"
@@ -713,7 +617,6 @@ export default function ReaderControls({
               <RefreshCw className={`w-4 h-4 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
             </button>
             
-            {/* Подсказка при простом клике */}
             {showRefreshTooltip && (
               <div className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg text-xs text-[var(--foreground)] whitespace-nowrap z-50 animate-fade-in">
                 Удерживайте 5 секунд
@@ -743,7 +646,7 @@ export default function ReaderControls({
             onToggleMenu?.();
             onMenuOpen?.();
           }}
-          className={`absolute right-2 bottom-1 p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg ${
+          className={`absolute right-5 bottom-1 p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg ${
             hideBottomMenuSetting && isMenuHidden
               ? "opacity-100 scale-100 pointer-events-auto"
               : "opacity-0 scale-75 pointer-events-none"
@@ -847,7 +750,6 @@ export default function ReaderControls({
               className={`relative p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
               title="Удерживайте 5 секунд"
             >
-              {/* Индикатор прогресса */}
               {isPressing && (
                 <div 
                   className="absolute inset-0 bg-[var(--primary)]/30 transition-all duration-100 ease-linear"
@@ -859,7 +761,6 @@ export default function ReaderControls({
               <RefreshCw className={`w-4 h-4 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
             </button>
             
-            {/* Подсказка при простом клике */}
             {showRefreshTooltip && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg text-xs text-[var(--foreground)] whitespace-nowrap z-50 animate-fade-in">
                 Удерживайте 5 секунд

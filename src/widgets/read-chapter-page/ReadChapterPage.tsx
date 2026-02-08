@@ -56,11 +56,9 @@ export default function ReadChapterPage({
   const [, setIsFullscreen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
-  const [hasTapped, setHasTapped] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [hideBottomMenuSetting, setHideBottomMenuSetting] = useState(false);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [imageWidth, setImageWidth] = useState(1200);
@@ -128,11 +126,9 @@ export default function ReadChapterPage({
   }, []);
 
   // Refs для предотвращения повторных вызовов
-  const containerRef = useRef<HTMLDivElement>(null);
   const historyAddedRef = useRef<Set<string>>(new Set());
   const viewsUpdatedRef = useRef<Set<string>>(new Set());
   const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const mobileControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const menuHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Функция для показа меню и сброса таймера скрытия
@@ -285,32 +281,12 @@ export default function ReadChapterPage({
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
-  // Обработчики для хедера
-  const handleHeaderMouseEnter = () => {
-    if (headerTimeoutRef.current) {
-      clearTimeout(headerTimeoutRef.current);
-    }
-    setIsHeaderVisible(true);
-  };
-
-  const handleHeaderMouseLeave = () => {
-    headerTimeoutRef.current = setTimeout(() => {
-      setIsHeaderVisible(false);
-    }, 1000);
-  };
-
   // Обработчики для мобильных контролов
   const handleMobileTap = () => {
-    setHasTapped(true);
     setIsMobileControlsVisible(true);
-    if (mobileControlsTimeoutRef.current) {
-      clearTimeout(mobileControlsTimeoutRef.current);
-    }
-    mobileControlsTimeoutRef.current = setTimeout(() => {
-      setIsMobileControlsVisible(false);
-    }, 3000);
 
     // Отображение нижнего меню при тапе по экрану
+
     if (hideBottomMenuSetting) {
       showMenuAndResetTimeout();
       // Остановка автопрокрутки при тапе по экрану (только если меню было свернуто)
@@ -599,22 +575,8 @@ export default function ReadChapterPage({
         canGoNext={currentChapterIndex < chapters.length - 1}
         titleId={titleId}
         creatorId={title.creatorId}
-        isMobileControlsVisible={isMobileControlsVisible}
         imageWidth={imageWidth}
         onImageWidthChange={handleImageWidthChange}
-        onNextPage={() => {
-          // Scroll to next page within current chapter
-          const nextPage = currentPage + 1;
-          if (nextPage <= chapter.images.length) {
-            const pageElement = document.querySelector(`[data-page="${nextPage}"]`);
-            if (pageElement) {
-              pageElement.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-              });
-            }
-          }
-        }}
         isMenuHidden={isMenuCollapsed}
         hideBottomMenuSetting={hideBottomMenuSetting}
         onHideBottomMenuChange={handleHideBottomMenuChange}
@@ -639,7 +601,6 @@ export default function ReadChapterPage({
 
       {/* Основной контент - ТОЛЬКО ОДНА ГЛАВА */}
       <main
-        ref={containerRef}
         className={`pt-20 sm:pt-16 ${isMenuCollapsed ? "pb-0" : "pb-16"}`}
         onClick={handleMobileTap}
       >
