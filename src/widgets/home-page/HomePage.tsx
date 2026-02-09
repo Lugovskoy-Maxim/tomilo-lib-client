@@ -9,66 +9,15 @@ import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSection";
 import { useHomeData } from "@/hooks/useHomeData";
 import { useStaticData } from "@/hooks/useStaticData";
+import { useAuth } from "@/hooks/useAuth";
 import RandomTitlesComponent from "@/shared/random-titles/RandomTitles";
 import { getTitlePath } from "@/lib/title-paths";
 import AdBlock from "@/shared/ad-block/AdBlock";
+import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";
+import { TopCombinedSkeleton } from "@/shared/skeleton/TopCombinedSkeleton";
+import { GridSkeleton } from "@/shared/skeleton/GridSkeleton";
+import Recommendations from "@/shared/recommendations/Recommendations";
 
-// Компоненты скелетонов
-const CarouselSkeleton = () => (
-  <div className="flex flex-col items-start justify-center carousel-skeleton animate-pulse w-full max-w-7xl mx-auto px-4 py-2 overflow-hidden">
-    <div className="h-8 bg-[var(--muted)] rounded w-48 mb-4"></div>
-    <div className="flex gap-4 overflow-hidden items-center justify-center">
-      {[...Array(7)].map((_, i) => (
-        <div key={i} className="flex-shrink-0">
-          <div className="w-24 sm:w-28 md:w-32 lg:w-40 h-32 sm:h-40 md:h-52 lg:h-64 bg-[var(--muted)] rounded-lg mb-2"></div>
-          <div className="h-4 bg-[var(--muted)] rounded w-20 sm:w-24"></div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const TopCombinedSkeleton = () => (
-  <div className="w-full max-w-7xl mx-auto px-4 py-6 animate-pulse">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {[...Array(3)].map((_, colIndex) => (
-        <div key={colIndex} className="flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <div className="h-7 bg-[var(--muted)] rounded w-32"></div>
-            <div className="h-4 bg-[var(--muted)] rounded w-12"></div>
-          </div>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-2">
-                <div className="w-20 h-28 sm:w-22 sm:h-30 bg-[var(--muted)] rounded flex-shrink-0"></div>
-                <div className="flex flex-col flex-1 gap-2">
-                  <div className="h-3 bg-[var(--muted)] rounded w-16"></div>
-                  <div className="h-4 bg-[var(--muted)] rounded w-full"></div>
-                  <div className="flex items-center justify-between mt-1">
-                    <div className="h-3 bg-[var(--muted)] rounded w-12"></div>
-                    <div className="h-3 bg-[var(--muted)] rounded w-8"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const GridSkeleton = () => (
-  <div className="grid items-center justify-center grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-pulse">
-    {[...Array(12)].map((_, i) => (
-      <div key={i}>
-        <div className="w-full h-48 bg-[var(--muted)] rounded-lg mb-2"></div>
-        <div className="h-4 bg-[var(--muted)] rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-[var(--muted)] rounded w-1/2"></div>
-      </div>
-    ))}
-  </div>
-);
 
 // Вспомогательный компонент для рендера карусели
 const DataCarousel = ({
@@ -112,6 +61,7 @@ export default function HomePage() {
   const { popularTitles, randomTitles, readingProgress, topManhua, topManhwa, top2026 } =
     useHomeData();
   const { collections, latestUpdates } = useStaticData();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -148,6 +98,11 @@ export default function HomePage() {
           cardWidth="w-35 sm:w-35 md:w-40 lg:w-44"
           getItemPath={(item: any) => getTitlePath(item)}
         />
+
+        {/* Рекомендации (только для авторизованных) */}
+        {isAuthenticated && (
+          <Recommendations limit={10} />
+        )}
 
         {/* Рекламный блок */}
         <AdBlock />

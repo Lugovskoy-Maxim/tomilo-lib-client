@@ -508,6 +508,45 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
+    // Получить рекомендации для пользователя
+    getRecommendedTitles: builder.query<
+      ApiResponseDto<
+        {
+          id: string;
+          title: string;
+          cover: string;
+          rating: number;
+          type: string;
+          releaseYear: number;
+          description: string;
+          isAdult: boolean;
+          ratingCount?: number;
+        }[]
+      >,
+      { limit?: number }
+    >({
+      query: params => ({
+        url: "/titles/recommended",
+        params,
+      }),
+      providesTags: [TITLES_TAG],
+      transformResponse: (
+        response: ApiResponseDto<
+          {
+            id: string;
+            title: string;
+            cover: string;
+            rating: number;
+            type: string;
+            releaseYear: number;
+            description: string;
+            isAdult: boolean;
+            ratingCount?: number;
+          }[]
+        >,
+      ) => response,
+    }),
+
     // Удаление тайтла
     deleteTitle: builder.mutation<void, string>({
       query: id => ({
@@ -538,5 +577,6 @@ export const {
   useGetCollectionsQuery,
   useGetRandomTitlesQuery,
   useGetLatestUpdatesQuery,
+  useGetRecommendedTitlesQuery,
   useDeleteTitleMutation,
 } = titlesApi;

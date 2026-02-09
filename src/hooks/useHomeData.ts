@@ -134,44 +134,34 @@ export const useHomeData = (): {
     error: randomTitlesError,
   } = useGetRandomTitlesQuery({ limit: 10 });
 
-  // Топ тайтлы Маньхуа
-  const {
-    data: topManhuaData,
-    isLoading: topManhuaLoading,
-    error: topManhuaError,
-  } = useSearchTitlesQuery({
-    search: "",
-    types: "manhua",
-    sortBy: "views",
-    sortOrder: "desc",
-    limit: 5,
-  });
+  // Параллельная загрузка топ тайтлов для оптимизации производительности
+  const topQueries = [
+    useSearchTitlesQuery({
+      search: "",
+      types: "manhua",
+      sortBy: "views",
+      sortOrder: "desc",
+      limit: 5,
+    }),
+    useSearchTitlesQuery({
+      search: "",
+      types: "manhwa",
+      sortBy: "views",
+      sortOrder: "desc",
+      limit: 5,
+    }),
+    useSearchTitlesQuery({
+      search: "",
+      releaseYear: 2026,
+      sortBy: "views",
+      sortOrder: "desc",
+      limit: 5,
+    }),
+  ];
 
-  // Топ тайтлы Манхва
-  const {
-    data: topManhwaData,
-    isLoading: topManhwaLoading,
-    error: topManhwaError,
-  } = useSearchTitlesQuery({
-    search: "",
-    types: "manhwa",
-    sortBy: "views",
-    sortOrder: "desc",
-    limit: 5,
-  });
-
-  // Топ тайтлы 2026 года
-  const {
-    data: top2026Data,
-    isLoading: top2026Loading,
-    error: top2026Error,
-  } = useSearchTitlesQuery({
-    search: "",
-    releaseYear: 2026,
-    sortBy: "views",
-    sortOrder: "desc",
-    limit: 5,
-  });
+  const [topManhuaData, topManhwaData, top2026Data] = topQueries.map(query => query.data);
+  const [topManhuaLoading, topManhwaLoading, top2026Loading] = topQueries.map(query => query.isLoading);
+  const [topManhuaError, topManhwaError, top2026Error] = topQueries.map(query => query.error);
 
   // История чтения
   const {
