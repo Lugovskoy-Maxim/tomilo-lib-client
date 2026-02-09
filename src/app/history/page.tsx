@@ -26,8 +26,8 @@ export default function HistoryPage() {
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
 
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="mb-6">
+        <div className="max-w-7xl mx-auto px-4 pt-[var(--header-height)] py-4">
+          <div className="mb-6 pt-8">
             <h1 className="text-2xl font-bold text-[var(--foreground)]">История чтения</h1>
             <p className="text-[var(--muted-foreground)] mt-2">Все прочитанные вами главы</p>
           </div>

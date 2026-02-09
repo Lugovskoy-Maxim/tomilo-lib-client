@@ -264,7 +264,7 @@ export default function TitleView({ slug }: { slug: string }) {
     : null;
 
   return (
-    <main className="relative min-h-screen ">
+    <main className="relative min-h-screen pt-10 ">
       {/* Заблюренный фон обложки на весь экран - только в темной теме */}
       {coverImageUrl && (
         <div

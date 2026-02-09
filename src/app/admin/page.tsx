@@ -75,7 +75,7 @@ export default function AdminPage() {
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-muted">
         <Header />
 
-        <div className="flex flex-1">
+        <div className="flex flex-1 pt-16">
           {/* Sidebar Navigation */}
           <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
