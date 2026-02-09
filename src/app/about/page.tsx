@@ -14,7 +14,7 @@ export default function AboutPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pb-20 md:pb-2">
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 pt-[var(--header-height)] py-8 sm:px-6 lg:px-8 pb-20 md:pb-2">
         <div className="prose prose-lg max-w-none">
           <Breadcrumbs className="mb-6" />
           <h1 className="text-3xl font-bold text-[var(--foreground)] mb-6">О нас</h1>

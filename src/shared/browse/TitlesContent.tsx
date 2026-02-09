@@ -212,7 +212,7 @@ export default function TitlesContent() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+    <div className="flex flex-col lg:flex-row gap-6 pt-2">
       {/* Основной контент */}
       <div className="lg:w-3/4">
         {/* Заголовок и управление */}
