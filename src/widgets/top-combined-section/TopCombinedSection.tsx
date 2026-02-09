@@ -9,6 +9,19 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 
+// Helper function for formatting views
+function formatViews(num: number | string): string {
+  const parsedNum = typeof num === 'string' ? parseFloat(num) : num;
+  if (isNaN(parsedNum)) return '0';
+  if (parsedNum >= 1000000) {
+    return `${(parsedNum / 1000000).toFixed(1)}М`;
+  }
+  if (parsedNum >= 1000) {
+    return `${(parsedNum / 1000).toFixed(1)}к`;
+  }
+  return parsedNum.toString();
+}
+
 interface CombinedTopData {
   topManhwa: TopTitleCombined[];
   top2026: TopTitleCombined[];
@@ -147,7 +160,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
               {showViews ? (
                 <span className="flex gap-1 text-xs items-center justify-center text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors duration-300">
                   <Eye className="w-3.5 h-3.5" />
-                  <span className="font-medium">{item.views || "0"}</span>
+                  <span className="font-medium">{formatViews(Number(item.views) || 0)}</span>
                 </span>
               ) : (
                 <div />
@@ -227,7 +240,7 @@ export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
           href="/titles?releaseYears=2026"
           items={data.top2026 || []}
           showRating={true}
-          showViews={false}
+          showViews={true}
         />
 
         {/* Колонка 2: Топ Манхв */}
