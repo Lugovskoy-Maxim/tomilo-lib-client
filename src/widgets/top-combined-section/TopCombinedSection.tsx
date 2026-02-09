@@ -110,13 +110,13 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
           </div>
           
           {/* Обложка */}
-          <div className="w-20 h-28 sm:w-22 sm:h-30 rounded-lg flex-shrink-0 overflow-hidden bg-gray-700 relative shadow-md group-hover:shadow-lg transition-shadow duration-500">
+          <div className="w-24 h-32 sm:w-22 sm:h-30 rounded-lg flex-shrink-0 overflow-hidden bg-gray-700 relative shadow-md group-hover:shadow-lg transition-shadow duration-500">
             {item.coverImage ? (
               <OptimizedImage
                 src={normalizeImageUrl(item.coverImage)}
                 alt={item.title}
-                width={88}
-                height={120}
+                width={96}
+                height={128}
                 className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${
                   item.isAdult && !isAgeVerified ? "blur-sm" : ""
                 }`}
