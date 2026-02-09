@@ -12,21 +12,24 @@ import {
   Award,
   Bookmark,
   Layers,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import { useGetStatsQuery } from "@/store/api/statsApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { StatsResponse } from "@/types/stats";
+import { AdminCard, StatCard } from "./ui";
+import { formatNumber } from "@/lib/utils";
 
-// Helper function for formatting numbers
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(1)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`;
-  }
-  return num.toString();
+// Calculate trend percentage
+function calculateTrend(current: number, previous: number): { value: number; isPositive: boolean } {
+  if (!previous) return { value: 0, isPositive: true };
+  const change = ((current - previous) / previous) * 100;
+  return {
+    value: Math.abs(Math.round(change * 10) / 10),
+    isPositive: change >= 0,
+  };
 }
 
 type AdminTab = "overview" | "parser" | "titles" | "chapters";
@@ -79,12 +82,7 @@ function PopularChapterItem({
 
 export function OverviewSection({ onTabChange }: OverviewSectionProps) {
   const { data: statsData, isLoading, error } = useGetStatsQuery();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activePeriod, setActivePeriod] = useState<"daily" | "weekly" | "monthly">("weekly");
-  const [modalContent] = useState<{
-    title: string;
-    message: string;
-  } | null>(null);
 
   const stats = statsData?.data;
 
@@ -95,6 +93,21 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
     newChapters: 0,
     chaptersRead: 0,
   };
+
+  // Calculate trends by comparing with previous period
+  const trends = useMemo(() => {
+    if (!stats) return null;
+    
+    const prevPeriod = activePeriod === "daily" ? "weekly" : activePeriod === "weekly" ? "monthly" : "daily";
+    const prevData = stats[prevPeriod];
+    
+    return {
+      views: calculateTrend(periodData.views, prevData.views),
+      newUsers: calculateTrend(periodData.newUsers, prevData.newUsers),
+      newTitles: calculateTrend(periodData.newTitles, prevData.newTitles),
+      newChapters: calculateTrend(periodData.newChapters, prevData.newChapters),
+    };
+  }, [stats, periodData, activePeriod]);
 
   if (isLoading) {
     return (
@@ -133,23 +146,44 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
       {/* Main Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard
-          icon={BookOpen}
-          value={stats.totalTitles}
+          value={formatNumber(stats.totalTitles)}
           label="Тайтлы"
+          icon={<BookOpen className="w-5 h-5" />}
           color="blue"
-          subtitle={`${stats.ongoingTitles} актив.`}
+          trend={trends ? { value: Math.round((stats.ongoingTitles / stats.totalTitles) * 100), isPositive: true } : undefined}
         />
-        <StatCard icon={FileText} value={stats.totalChapters} label="Главы" color="green" />
         <StatCard
-          icon={Users}
-          value={stats.totalUsers}
-          label="Пользователи"
-          color="purple"
-          subtitle={`${stats.newUsersThisMonth} нов.`}
+          value={formatNumber(stats.totalChapters)}
+          label="Главы"
+          icon={<FileText className="w-5 h-5" />}
+          color="green"
         />
-        <StatCard icon={Eye} value={stats.totalViews} label="Просмотры" color="orange" />
-        <StatCard icon={Bookmark} value={stats.totalBookmarks} label="Закладки" color="pink" />
-        <StatCard icon={Layers} value={stats.totalCollections} label="Коллекции" color="cyan" />
+        <StatCard
+          value={formatNumber(stats.totalUsers)}
+          label="Пользователи"
+          icon={<Users className="w-5 h-5" />}
+          color="purple"
+          trend={trends?.newUsers}
+        />
+        <StatCard
+          value={formatNumber(stats.totalViews)}
+          label="Просмотры"
+          icon={<Eye className="w-5 h-5" />}
+          color="orange"
+          trend={trends?.views}
+        />
+        <StatCard
+          value={formatNumber(stats.totalBookmarks)}
+          label="Закладки"
+          icon={<Bookmark className="w-5 h-5" />}
+          color="pink"
+        />
+        <StatCard
+          value={formatNumber(stats.totalCollections)}
+          label="Коллекции"
+          icon={<Layers className="w-5 h-5" />}
+          color="cyan"
+        />
       </div>
 
       {/* Period Stats */}
@@ -173,19 +207,33 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
 
         {/* Period Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4">
-          <PeriodStat icon={Eye} value={periodData.views} label="Просмотры" color="blue" />
-          <PeriodStat icon={Users} value={periodData.newUsers} label="Новые юзеры" color="green" />
+          <PeriodStat 
+            icon={Eye} 
+            value={periodData.views} 
+            label="Просмотры" 
+            color="blue" 
+            trend={trends?.views}
+          />
+          <PeriodStat 
+            icon={Users} 
+            value={periodData.newUsers} 
+            label="Новые юзеры" 
+            color="green" 
+            trend={trends?.newUsers}
+          />
           <PeriodStat
             icon={BookOpen}
             value={periodData.newTitles}
             label="Новые тайтлы"
             color="purple"
+            trend={trends?.newTitles}
           />
           <PeriodStat
             icon={FileText}
             value={periodData.newChapters}
             label="Новые главы"
             color="orange"
+            trend={trends?.newChapters}
           />
           <PeriodStat icon={Target} value={stats.averageRating} label="Ср. оценка" color="yellow" />
         </div>
@@ -342,68 +390,19 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
   );
 }
 
-// Stat Card Component
-function StatCard({
-  icon: Icon,
-  value,
-  label,
-  color,
-  subtitle,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  value: number;
-  label: string;
-  color: string;
-  subtitle?: string;
-}) {
-  const colorClasses: Record<string, { bg: string; text: string }> = {
-    blue: { bg: "bg-blue-50 dark:bg-blue-900/20", text: "text-blue-600 dark:text-blue-400" },
-    green: { bg: "bg-green-50 dark:bg-green-900/20", text: "text-green-600 dark:text-green-400" },
-    purple: {
-      bg: "bg-purple-50 dark:bg-purple-900/20",
-      text: "text-purple-600 dark:text-purple-400",
-    },
-    orange: {
-      bg: "bg-orange-50 dark:bg-orange-900/20",
-      text: "text-orange-600 dark:text-orange-400",
-    },
-    pink: { bg: "bg-pink-50 dark:bg-pink-900/20", text: "text-pink-600 dark:text-pink-400" },
-    cyan: { bg: "bg-cyan-50 dark:bg-cyan-900/20", text: "text-cyan-600 dark:text-cyan-400" },
-  };
-
-  const colors = colorClasses[color] || colorClasses.blue;
-
-  const formatValue = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
-  };
-
-  return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <div className={`p-1.5 rounded-lg ${colors.bg} ${colors.text}`}>
-          <Icon className="w-4 h-4" />
-        </div>
-        <span className="text-xs text-[var(--muted-foreground)]">{label}</span>
-      </div>
-      <p className="text-2xl font-bold text-[var(--foreground)]">{formatValue(value)}</p>
-      {subtitle && <p className="text-xs text-[var(--muted-foreground)] mt-1">{subtitle}</p>}
-    </div>
-  );
-}
-
 // Period Stat Component
 function PeriodStat({
   icon: Icon,
   value,
   label,
   color,
+  trend,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   value: number;
   label: string;
   color: string;
+  trend?: { value: number; isPositive: boolean };
 }) {
   const colorClasses: Record<string, string> = {
     blue: "text-blue-500",
@@ -424,6 +423,12 @@ function PeriodStat({
       <Icon className={`w-5 h-5 mx-auto mb-1 ${colorClasses[color] || colorClasses.blue}`} />
       <p className="text-xl font-bold text-[var(--foreground)]">{formatValue(value)}</p>
       <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
+      {trend && (
+        <div className={`flex items-center justify-center gap-1 text-xs mt-1 ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+          {trend.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+          {trend.value}%
+        </div>
+      )}
     </div>
   );
 }

@@ -12,12 +12,14 @@ import {
   Menu,
   X,
   ChevronRight,
+  TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
 import { useGetReportsQuery } from "@/store/api/reportsApi";
 
 export type AdminTab =
   | "overview"
+  | "charts"
   | "parser"
   | "auto-parsing"
   | "titles"
@@ -38,6 +40,11 @@ const tabs = [
     id: "overview" as AdminTab,
     label: "Обзор",
     icon: BarChart3,
+  },
+  {
+    id: "charts" as AdminTab,
+    label: "Графики",
+    icon: TrendingUp,
   },
   {
     id: "parser" as AdminTab,
