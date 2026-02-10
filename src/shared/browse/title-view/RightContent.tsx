@@ -11,6 +11,7 @@ import {
   BookOpen,
   Calendar,
   CheckCheck,
+  ChevronDown,
   Eye,
   EyeOff,
   Star,
@@ -20,7 +21,7 @@ import {
 } from "lucide-react";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useUpdateRatingMutation } from "@/store/api/titlesApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getChapterPath } from "@/lib/title-paths";
@@ -67,6 +68,8 @@ export function RightContent({
 }: RightContentProps): React.ReactElement {
   const router = useRouter();
   const [updateRating] = useUpdateRatingMutation();
+  const descriptionRef = useRef<HTMLDivElement>(null);
+  const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
   const [displayedChapters, setDisplayedChapters] = useState<Chapter[]>([]);
   const [visibleChapters, setVisibleChapters] = useState<Chapter[]>([]);
   const [loadedChaptersCount, setLoadedChaptersCount] = useState(20);
@@ -178,6 +181,16 @@ export function RightContent({
   const handleAgeVerificationCancel = () => {
     setIsAgeModalOpen(false);
   };
+
+  // Проверяем, нужно ли показывать кнопку развернуть/свернуть для описания
+  useEffect(() => {
+    if (descriptionRef.current && titleData?.description) {
+      const element = descriptionRef.current;
+      // Проверяем, есть ли переполнение (scrollHeight > clientHeight)
+      const hasOverflow = element.scrollHeight > element.clientHeight + 2; // +2px для погрешности
+      setIsDescriptionOverflowing(hasOverflow);
+    }
+  }, [titleData?.description]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -639,20 +652,35 @@ export function RightContent({
           ageLimit={titleData.ageLimit}
         />
 
-        <div
-          className={`text-[var(--foreground)]/80 leading-relaxed ${
-            !isDescriptionExpanded ? "line-clamp-3" : ""
-          }`}
-          dangerouslySetInnerHTML={{
-            __html: titleData?.description || "",
-          }}
-        ></div>
-        {(titleData?.description?.length || 0) > 200 && (
+        {/* Описание с улучшенным отображением */}
+        <div className="relative">
+          <div
+            ref={descriptionRef}
+            className={`text-[var(--foreground)]/85 leading-relaxed ${
+              !isDescriptionExpanded ? "line-clamp-4 max-h-[6.5rem]" : "max-h-none"
+            } transition-all duration-500 ease-in-out overflow-hidden`}
+            dangerouslySetInnerHTML={{
+              __html: titleData?.description || "",
+            }}
+          />
+          {/* Градиент для эффекта затухания при свернутом состоянии */}
+          {!isDescriptionExpanded && isDescriptionOverflowing && (
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[var(--background)] to-transparent pointer-events-none" />
+          )}
+        </div>
+        
+        {/* Кнопка развернуть/свернуть с иконкой - показываем только если есть переполнение */}
+        {isDescriptionOverflowing && (
           <button
             onClick={onDescriptionToggle}
-            className=" text-[var(--chart-1)] hover:text-[var(--chart-1)]/80 transition-colors"
+            className="flex items-center gap-1.5 text-[var(--chart-1)] hover:text-[var(--chart-1)]/80 transition-colors mt-3 group"
           >
-            {isDescriptionExpanded ? "Свернуть" : "Развернуть"}
+            <span>{isDescriptionExpanded ? "Свернуть" : "Развернуть описание"}</span>
+            <ChevronDown 
+              className={`w-4 h-4 transition-transform duration-300 ${
+                isDescriptionExpanded ? "rotate-180" : "group-hover:translate-y-0.5"
+              }`} 
+            />
           </button>
         )}
 

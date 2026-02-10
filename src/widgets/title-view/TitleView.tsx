@@ -223,9 +223,74 @@ export default function TitleView({ slug }: { slug: string }) {
     }
   };
 
-  // Показываем состояние загрузки
+  // Показываем состояние загрузки с плавным переходом
   if (titleLoading || (chaptersLoading && processedChaptersData.length === 0)) {
-    return <LoadingState />;
+    return (
+      <main className="relative min-h-screen pt-10">
+        <div className="fixed inset-0 -z-5 bg-[var(--background)]" />
+        <Header />
+        <div className="container mx-auto px-4 lg:py-8 pb-20">
+          <div className="max-w-7xl mx-auto title-page-container p-6 lg:p-8">
+            {/* Skeleton для обложки и информации */}
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+              {/* Skeleton для обложки */}
+              <div className="hidden lg:block lg:w-1/4">
+                <div className="sticky top-28 space-y-4">
+                  <div className="w-full max-w-[280px] mx-auto aspect-[2/3] rounded-xl bg-[var(--secondary)] animate-pulse" />
+                  <div className="space-y-2 mt-6">
+                    <div className="h-10 rounded-full bg-[var(--secondary)] animate-pulse" />
+                    <div className="h-10 rounded-full bg-[var(--secondary)] animate-pulse" />
+                    <div className="h-10 rounded-full bg-[var(--secondary)] animate-pulse" />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Skeleton для контента */}
+              <div className="w-full lg:w-3/4 space-y-6">
+                {/* Мобильная обложка skeleton */}
+                <div className="lg:hidden w-full max-w-[300px] mx-auto aspect-[2/3] rounded-xl bg-[var(--secondary)] animate-pulse" />
+                
+                {/* Заголовок skeleton */}
+                <div className="h-8 w-3/4 mx-auto rounded-lg bg-[var(--secondary)] animate-pulse" />
+                
+                {/* Бейджи skeleton */}
+                <div className="flex gap-2 flex-wrap">
+                  <div className="h-7 w-20 rounded-full bg-[var(--secondary)] animate-pulse" />
+                  <div className="h-7 w-24 rounded-full bg-[var(--secondary)] animate-pulse" />
+                  <div className="h-7 w-16 rounded-full bg-[var(--secondary)] animate-pulse" />
+                </div>
+                
+                {/* Жанры skeleton */}
+                <div className="flex gap-2 flex-wrap">
+                  <div className="h-6 w-16 rounded-full bg-[var(--secondary)] animate-pulse" />
+                  <div className="h-6 w-20 rounded-full bg-[var(--secondary)] animate-pulse" />
+                  <div className="h-6 w-14 rounded-full bg-[var(--secondary)] animate-pulse" />
+                  <div className="h-6 w-18 rounded-full bg-[var(--secondary)] animate-pulse" />
+                </div>
+                
+                {/* Описание skeleton */}
+                <div className="space-y-2">
+                  <div className="h-4 w-full rounded bg-[var(--secondary)] animate-pulse" />
+                  <div className="h-4 w-full rounded bg-[var(--secondary)] animate-pulse" />
+                  <div className="h-4 w-2/3 rounded bg-[var(--secondary)] animate-pulse" />
+                </div>
+                
+                {/* Табы skeleton */}
+                <div className="h-10 rounded-full bg-[var(--secondary)] animate-pulse" />
+                
+                {/* Список глав skeleton */}
+                <div className="space-y-2 mt-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-12 rounded-full bg-[var(--secondary)] animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
   }
 
   // Показываем ошибку
@@ -384,8 +449,8 @@ export default function TitleView({ slug }: { slug: string }) {
         }}
       />
       <Header />
-      <div className="container mx-auto px-4 lg:py-8 pb-20">
-        <div className="max-w-7xl mx-auto">
+      <div className="container mx-auto px-4 pb-20">
+        <div className="max-w-7xl mx-auto pt-8">
           <Breadcrumbs
             items={[
               { name: "Главная", href: "/" },
@@ -413,7 +478,7 @@ export default function TitleView({ slug }: { slug: string }) {
 
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
             {/* Десктопная версия - sticky обложка слева */}
-            <div className="hidden lg:block lg:w-1/4">
+            <div className="hidden lg:block lg:w-1/4 pt-8">
               <div className="sticky top-24">
                 <LeftSidebar
                   titleData={titleData}
