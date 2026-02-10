@@ -144,11 +144,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
   // Инициализация виджета Яндекс авторизации
   useEffect(() => {
     if (isOpen && yandexButtonRef.current) {
-      // Очищаем контейнер перед инициализацией (из очистки исчезает окно авторизации при вводе пароля)
-      // yandexButtonRef.current.innerHTML = "";
+      // Очищаем контейнер перед инициализацией
+      yandexButtonRef.current.innerHTML = "";
 
-      // Проверяем, что YaAuthSuggest доступен
-      if (typeof window !== "undefined" && window.YaAuthSuggest) {
+      // Небольшая задержка для ensure DOM ready после createPortal
+      const initTimer = setTimeout(() => {
+        // Проверяем, что YaAuthSuggest доступен
+        if (typeof window !== "undefined" && window.YaAuthSuggest && yandexButtonRef.current) {
         const tokenPageOrigin = window.location.origin;
 
         window.YaAuthSuggest.init(
@@ -198,7 +200,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
           .catch((error: { error: string; error_description: string }) => {
             console.log("Обработка ошибки", error);
           });
-      }
+        }
+      }, 100); // 100ms delay для ensure DOM ready
+
+      return () => clearTimeout(initTimer);
     }
   }, [authLogin, isOpen, onAuthSuccess, onClose, yandexAuthMutation]);
 
