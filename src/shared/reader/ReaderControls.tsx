@@ -12,6 +12,7 @@ import {
   Play,
   Pause,
   RefreshCw,
+  List,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
@@ -154,6 +155,21 @@ export default function ReaderControls({
       document.removeEventListener("mousedown", handleSettingsClickOutside);
     };
   }, [isSettingsOpen, handleSettingsClickOutside]);
+
+  // Слушатель события открытия меню главы из NavigationHeader
+  useEffect(() => {
+    const handleOpenChapterMenu = () => {
+      setIsMenuOpen(true);
+      if (onMenuOpen) {
+        onMenuOpen();
+      }
+    };
+
+    window.addEventListener('openChapterMenu', handleOpenChapterMenu);
+    return () => {
+      window.removeEventListener('openChapterMenu', handleOpenChapterMenu);
+    };
+  }, [onMenuOpen]);
 
   const filteredChapters = chapters.filter(
     chapter =>
@@ -529,33 +545,7 @@ export default function ReaderControls({
             <Settings className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={onPrev}
-            disabled={!canGoPrev}
-            className="p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 disabled:opacity-50"
-            title="Предыдущая глава"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={handleMenuToggle}
-            className="relative p-1.5 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
-            title={`Глава ${currentChapter.number}`}
-          >
-            <span className="text-xs font-bold text-[var(--primary)] min-w-[1.2rem] text-center">
-              {currentChapter.number}
-            </span>
-          </button>
-
-          <button
-            onClick={onNext}
-            disabled={!canGoNext}
-            className="p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 disabled:opacity-50"
-            title="Следующая глава"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          <div className="w-8 h-px bg-[var(--border)] my-1" />
 
           <button
             onClick={handleBookmarkToggle}
@@ -777,39 +767,106 @@ export default function ReaderControls({
 
       {/* Выпадающее меню выбора главы */}
       {isMenuOpen && (
-        <div className="fixed sm:right-14 sm:top-1/2 sm:-translate-y-1/2 bottom-20 left-4 right-4 sm:left-auto sm:w-80 w-auto max-h-96 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-[60] overflow-hidden">
-          <div className="p-4 border-b border-[var(--border)]">
-            <input
-              type="text"
-              placeholder="Поиск главы..."
-              value={chapterSearch}
-              onChange={e => setChapterSearch(e.target.value)}
-              className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-            />
-          </div>
-          <div className="max-h-80 overflow-y-auto">
-            {filteredChapters.map(chapter => (
+        <div className="fixed sm:right-20 sm:top-1/2 sm:-translate-y-1/2 bottom-0 left-0 right-0 sm:left-auto sm:w-96 w-auto max-h-[85vh] sm:max-h-[80vh] bg-[var(--card)] border border-[var(--border)] sm:rounded-2xl rounded-t-2xl shadow-2xl z-[60] overflow-hidden flex flex-col">
+          {/* Заголовок с поиском */}
+          <div className="p-4 border-b border-[var(--border)] bg-[var(--background)]">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <List className="w-5 h-5 text-[var(--primary)]" />
+                Выбор главы
+              </h3>
               <button
-                key={chapter._id}
-                onClick={() => {
-                  onChapterSelect(chapter._id);
-                  setIsMenuOpen(false);
-                  setChapterSearch("");
-                }}
-                className={`w-full px-4 py-3 text-left hover:bg-[var(--muted)] transition-colors ${
-                  chapter._id === currentChapter._id
-                    ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
-                    : ""
-                }`}
+                onClick={() => setIsMenuOpen(false)}
+                className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-h-[40px] min-w-[40px] touch-manipulation"
+                title="Закрыть"
               >
-                <div className="font-medium">Глава {chapter.number}</div>
-                {chapter.title && (
-                  <div className="text-sm text-[var(--muted-foreground)] truncate">
-                    {chapter.title}
-                  </div>
-                )}
+                <X className="w-5 h-5 text-[var(--muted-foreground)]" />
               </button>
-            ))}
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Поиск по номеру или названию..."
+                value={chapterSearch}
+                onChange={e => setChapterSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-[var(--secondary)] border border-[var(--border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all text-sm"
+              />
+              <List className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+            </div>
+          </div>
+          
+          {/* Список глав */}
+          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            {filteredChapters.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 bg-[var(--muted)] rounded-full flex items-center justify-center mb-4">
+                  <List className="w-8 h-8 text-[var(--muted-foreground)]" />
+                </div>
+                <p className="text-[var(--muted-foreground)] text-sm">Главы не найдены</p>
+                <p className="text-[var(--muted-foreground)]/60 text-xs mt-1">Попробуйте изменить поисковый запрос</p>
+              </div>
+            ) : (
+              filteredChapters.map(chapter => (
+                <button
+                  key={chapter._id}
+                  onClick={() => {
+                    onChapterSelect(chapter._id);
+                    setIsMenuOpen(false);
+                    setChapterSearch("");
+                  }}
+                  className={`w-full px-4 py-3 text-left rounded-xl transition-all duration-200 group ${
+                    chapter._id === currentChapter._id
+                      ? "bg-[var(--primary)]/10 border border-[var(--primary)]/30"
+                      : "hover:bg-[var(--accent)] border border-transparent hover:border-[var(--border)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Номер главы */}
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
+                      chapter._id === currentChapter._id
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] text-[var(--foreground)] group-hover:bg-[var(--primary)]/20"
+                    }`}>
+                      {chapter.number}
+                    </div>
+                    
+                    {/* Информация о главе */}
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-medium truncate ${
+                        chapter._id === currentChapter._id ? "text-[var(--primary)]" : "text-[var(--foreground)]"
+                      }`}>
+                        {chapter.title || `Глава ${chapter.number}`}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-0.5">
+                        <span>{chapter.date ? new Date(chapter.date).toLocaleDateString('ru-RU') : ''}</span>
+                        {chapter.views > 0 && (
+                          <>
+                            <span>•</span>
+                            <span>{chapter.views.toLocaleString('ru-RU')} просмотров</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Индикатор текущей главы */}
+                    {chapter._id === currentChapter._id && (
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center">
+                        <svg className="w-4 h-4 text-[var(--primary-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+          
+          {/* Футер с информацией */}
+          <div className="p-3 border-t border-[var(--border)] bg-[var(--background)] text-center">
+            <p className="text-xs text-[var(--muted-foreground)]">
+              {filteredChapters.length} из {chapters.length} глав
+            </p>
           </div>
         </div>
       )}

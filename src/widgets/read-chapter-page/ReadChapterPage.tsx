@@ -597,6 +597,27 @@ export default function ReadChapterPage({
         onImageIndexChange={() => {}}
         imagesCount={chapter.images.length}
         onReportError={() => setIsReportModalOpen(true)}
+        onChapterMenuOpen={() => {
+          // Открываем меню выбора главы через ReaderControls
+          const event = new CustomEvent('openChapterMenu');
+          window.dispatchEvent(event);
+        }}
+        onPrevChapter={() => {
+          if (currentChapterIndex > 0) {
+            const prevChapter = chapters[currentChapterIndex - 1];
+            clearOtherChaptersPositions(titleId, prevChapter._id);
+            router.push(getChapterPath(prevChapter._id));
+          }
+        }}
+        onNextChapter={() => {
+          if (currentChapterIndex < chapters.length - 1) {
+            const nextChapter = chapters[currentChapterIndex + 1];
+            clearOtherChaptersPositions(titleId, nextChapter._id);
+            router.push(getChapterPath(nextChapter._id));
+          }
+        }}
+        canGoPrev={currentChapterIndex > 0}
+        canGoNext={currentChapterIndex < chapters.length - 1}
       />
 
       {/* Основной контент - ТОЛЬКО ОДНА ГЛАВА */}
@@ -607,8 +628,8 @@ export default function ReadChapterPage({
         <div className="container mx-auto">
           <div className=" chapter-container">
             {/* Заголовок главы */}
-            <div className="py-2 text-center border-b border-[var(--border)] mb-2">
-              <h2 className="text-xl font-semibold">
+            <div className="py-3 sm:py-2 text-center border-b border-[var(--border)] mb-3 sm:mb-2 px-4 sm:px-0">
+              <h2 className="text-lg sm:text-xl font-semibold leading-tight">
                 Глава {chapter.number}
                 {chapter.title && ` - ${chapter.title}`}
               </h2>
@@ -623,10 +644,10 @@ export default function ReadChapterPage({
               return (
                 <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center">
                   <div
-                    className="relative w-full flex justify-center"
+                    className="relative w-full flex justify-center px-0 sm:px-4"
                     data-page={imageIndex + 1}
                     style={{
-                      maxWidth: isMobile ? "1200px" : `${imageWidth}px`,
+                      maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                     }}
                   >
                     {!isError ? (
@@ -635,9 +656,9 @@ export default function ReadChapterPage({
                         loader={imageLoader}
                         src={src}
                         alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
-                        width={isMobile ? 1200 : imageWidth}
-                        height={isMobile ? 1600 : Math.round((imageWidth * 1600) / 1200)}
-                        className="w-full h-auto shadow-2xl"
+                        width={isMobile ? 800 : imageWidth}
+                        height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                        className="w-full h-auto shadow-lg sm:shadow-2xl"
                         quality={
                           // Если есть приоритеты, используем разное качество
                           imageLoadPriority.size > 0
@@ -675,9 +696,9 @@ export default function ReadChapterPage({
                         }
                       />
                     ) : (
-                      <div className="w-full h-64 bg-[var(--card)] flex items-center justify-center">
+                      <div className="w-full min-h-[200px] sm:h-64 bg-[var(--card)] flex items-center justify-center px-4">
                         <div className="text-center">
-                          <div className="text-[var(--destructive)] mb-2">
+                          <div className="text-[var(--destructive)] mb-3 text-sm sm:text-base">
                             Ошибка загрузки изображения
                           </div>
                           <button
@@ -688,11 +709,11 @@ export default function ReadChapterPage({
                                 return newSet;
                               });
                             }}
-                            className="px-4 py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded transition-colors"
+                            className="px-4 py-3 sm:py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded-lg sm:rounded transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
                           >
                             Повторить загрузку
                           </button>
-                          <div className="mt-2 text-sm text-[var(--muted-foreground)]">
+                          <div className="mt-3 text-xs sm:text-sm text-[var(--muted-foreground)] break-all max-w-[280px] sm:max-w-md">
                             URL: {imageUrl}
                           </div>
                         </div>
@@ -707,8 +728,8 @@ export default function ReadChapterPage({
             <AdBlockReading />
 
             {/* Футер главы с кнопками навигации */}
-            <div className="py-6 border-t border-[var(--border)] mt-8">
-              <div className="flex justify-center items-center space-x-4">
+            <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10 px-4 sm:px-0">
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 max-w-2xl mx-auto">
                 <button
                   onClick={() => {
                     if (currentChapterIndex > 0) {
@@ -719,11 +740,19 @@ export default function ReadChapterPage({
                     }
                   }}
                   disabled={currentChapterIndex === 0}
-                  className="flex cursor-pointer items-center space-x-2 px-4 py-2 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="group flex cursor-pointer items-center justify-center gap-3 w-full sm:w-auto px-6 sm:px-8 py-4 sm:py-4 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--secondary)] rounded-2xl sm:rounded-xl transition-all duration-200 text-sm sm:text-base font-medium min-h-[56px] sm:min-h-[52px] touch-manipulation active:scale-95 hover:shadow-lg hover:-translate-y-0.5"
                 >
-                  <ArrowBigLeft className="w-4 h-4" />
+                  <ArrowBigLeft className="w-6 h-6 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-1" />
                   <span>Предыдущая глава</span>
                 </button>
+
+                {/* Индикатор текущей главы для десктопа */}
+                <div className="hidden sm:flex items-center px-4 py-2 bg-[var(--muted)]/50 rounded-full text-sm text-[var(--muted-foreground)]">
+                  <span className="font-medium text-[var(--foreground)]">{chapter.number}</span>
+                  <span className="mx-2">/</span>
+                  <span>{chapters.length}</span>
+                </div>
+
 
                 <button
                   onClick={() => {
@@ -735,10 +764,10 @@ export default function ReadChapterPage({
                     }
                   }}
                   disabled={currentChapterIndex === chapters.length - 1}
-                  className="flex cursor-pointer items-center space-x-2 px-4 py-2 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="group flex cursor-pointer items-center justify-center gap-3 w-full sm:w-auto px-6 sm:px-8 py-4 sm:py-4 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--secondary)] rounded-2xl sm:rounded-xl transition-all duration-200 text-sm sm:text-base font-medium min-h-[56px] sm:min-h-[52px] touch-manipulation active:scale-95 hover:shadow-lg hover:-translate-y-0.5"
                 >
                   <span>Следующая глава</span>
-                  <ArrowBigRight className="w-4 h-4" />
+                  <ArrowBigRight className="w-6 h-6 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
             </div>
@@ -746,12 +775,12 @@ export default function ReadChapterPage({
 
           {/* Сообщение о завершении всех глав */}
           {currentChapterIndex === chapters.length - 1 && (
-            <div className="py-6 text-center border-t border-[var(--border)] mt-8">
-              <p className="text-lg font-semibold mb-2">Вы дочитали до конца!</p>
+            <div className="py-6 sm:py-8 text-center border-t border-[var(--border)] mt-6 sm:mt-8 px-4 sm:px-0">
+              <p className="text-base sm:text-lg font-semibold mb-4">Вы дочитали до конца!</p>
 
               <button
                 onClick={() => router.push(getTitlePath())}
-                className="px-6 py-2 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-lg transition-colors"
+                className="w-full sm:w-auto px-6 py-4 sm:py-3 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-xl sm:rounded-lg transition-colors text-sm sm:text-base min-h-[48px] touch-manipulation active:scale-95"
               >
                 Вернуться к тайтлу
               </button>
@@ -761,11 +790,12 @@ export default function ReadChapterPage({
       </main>
 
       {/* Футер */}
-      <footer className="bg-[var(--card)] border-t border-[var(--border)] py-4">
-        <div className="container mx-auto px-4 text-center text-[var(--muted-foreground)] text-sm hidden md:block">
-          <p>Используйте ← → для навигации между главами</p>
+      {/* <footer className="bg-[var(--card)] border-t border-[var(--border)] py-4 sm:py-6">
+        <div className="container mx-auto px-4 text-center text-[var(--muted-foreground)] text-xs sm:text-sm">
+          <p className="hidden md:block">Используйте ← → для навигации между главами</p>
+          <p className="md:hidden">Свайпайте влево/вправо или используйте кнопки для навигации</p>
         </div>
-      </footer>
+      </footer> */}
 
       {/* Report Modal */}
       <ReportModal
