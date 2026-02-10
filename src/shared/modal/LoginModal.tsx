@@ -48,6 +48,23 @@ const LoginModal: React.FC<LoginModalProps> = ({
     useForgotPasswordMutation();
   const { login: authLogin } = useAuth();
 
+  // Функция для динамической загрузки SDK Яндекса (fallback для Safari)
+  const loadYandexSDK = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (typeof window !== "undefined" && window.YaAuthSuggest) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js";
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Failed to load Yandex SDK"));
+      document.head.appendChild(script);
+    });
+  };
+
   const validate = {
     email: (email: string): string | null => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -147,65 +164,76 @@ const LoginModal: React.FC<LoginModalProps> = ({
       // Очищаем контейнер перед инициализацией
       yandexButtonRef.current.innerHTML = "";
 
-      // Небольшая задержка для ensure DOM ready после createPortal
-      const initTimer = setTimeout(() => {
-        // Проверяем, что YaAuthSuggest доступен
-        if (typeof window !== "undefined" && window.YaAuthSuggest && yandexButtonRef.current) {
-        const tokenPageOrigin = window.location.origin;
+      // Увеличенная задержка для Safari (500ms вместо 100ms)
+      const initTimer = setTimeout(async () => {
+        try {
+          // Пробуем загрузить SDK если он недоступен (fallback для Safari)
+          if (typeof window !== "undefined" && !window.YaAuthSuggest) {
+            await loadYandexSDK();
+          }
 
-        window.YaAuthSuggest.init(
-          {
-            client_id: "ffd24e1c16544069bc7a1e8c66316f37",
-            response_type: "token",
-            redirect_uri: "https://tomilo-lib.ru/auth/yandex",
-          },
-          tokenPageOrigin,
-          {
-            view: "button",
-            parentId: "yandexButtonContainer",
-            buttonSize: "m",
-            buttonView: "main",
-            buttonTheme: "light",
-            buttonBorderRadius: "22",
-            buttonIcon: "ya",
-          },
-        )
-          .then(({ handler }) => handler())
-          .then(async (data: unknown) => {
-            // Явно типизируем data как объект с нужными полями
-            const tokenData = data as {
-              access_token: string;
-              expires_in: string;
-            };
-            console.log("Сообщение с токеном", tokenData);
+          // Проверяем, что YaAuthSuggest доступен и контейнер существует
+          if (typeof window !== "undefined" && window.YaAuthSuggest && yandexButtonRef.current) {
+            const tokenPageOrigin = window.location.origin;
 
-            try {
-              // Отправляем токен на сервер для авторизации
-              const response = await yandexAuthMutation({
-                access_token: tokenData.access_token,
-              }).unwrap();
+            window.YaAuthSuggest.init(
+              {
+                client_id: "ffd24e1c16544069bc7a1e8c66316f37",
+                response_type: "token",
+                redirect_uri: "https://tomilo-lib.ru/auth/yandex",
+              },
+              tokenPageOrigin,
+              {
+                view: "button",
+                parentId: "yandexButtonContainer",
+                buttonSize: "m",
+                buttonView: "main",
+                buttonTheme: "light",
+                buttonBorderRadius: "22",
+                buttonIcon: "ya",
+              },
+            )
+              .then(({ handler }) => handler())
+              .then(async (data: unknown) => {
+                // Явно типизируем data как объект с нужными полями
+                const tokenData = data as {
+                  access_token: string;
+                  expires_in: string;
+                };
+                console.log("Сообщение с токеном", tokenData);
 
-              // Сохраняем в Redux store и localStorage через useAuth хук
-              authLogin(response);
+                try {
+                  // Отправляем токен на сервер для авторизации
+                  const response = await yandexAuthMutation({
+                    access_token: tokenData.access_token,
+                  }).unwrap();
 
-              // Вызываем колбэк успешной авторизации
-              onAuthSuccess(response);
+                  // Сохраняем в Redux store и localStorage через useAuth хук
+                  authLogin(response);
 
-              // Закрываем модальное окно
-              onClose();
-            } catch (error) {
-              console.error("Ошибка авторизации через Яндекс:", error);
-            }
-          })
-          .catch((error: { error: string; error_description: string }) => {
-            console.log("Обработка ошибки", error);
-          });
+                  // Вызываем колбэк успешной авторизации
+                  onAuthSuccess(response);
+
+                  // Закрываем модальное окно
+                  onClose();
+                } catch (error) {
+                  console.error("Ошибка авторизации через Яндекс:", error);
+                }
+              })
+              .catch((error: { error: string; error_description: string }) => {
+                console.log("Обработка ошибки", error);
+              });
+          } else {
+            console.warn("YaAuthSuggest не доступен после попытки загрузки SDK");
+          }
+        } catch (sdkError) {
+          console.error("Ошибка загрузки Yandex SDK:", sdkError);
         }
-      }, 100); // 100ms delay для ensure DOM ready
+      }, 500); // 500ms delay для Safari
 
       return () => clearTimeout(initTimer);
     }
-  }, [authLogin, isOpen, onAuthSuccess, onClose, yandexAuthMutation]);
+  }, [authLogin, isOpen, onAuthSuccess, onClose, yandexAuthMutation, loadYandexSDK]);
 
   // Проверка наличия токена в localStorage для автоматического закрытия модального окна
   useEffect(() => {
