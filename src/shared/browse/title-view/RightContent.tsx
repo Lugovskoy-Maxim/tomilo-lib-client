@@ -78,6 +78,17 @@ export function RightContent({
   const [loadedChaptersCount, setLoadedChaptersCount] = useState(20);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
+  const [hoveredRating, setHoveredRating] = useState<number | null>(null);
+
+  // Загрузка сохраненной оценки из localStorage при монтировании
+  useEffect(() => {
+    if (titleData?._id && typeof window !== "undefined") {
+      const savedRating = localStorage.getItem(`title-rating-${titleData._id}`);
+      if (savedRating) {
+        setPendingRating(parseInt(savedRating, 10));
+      }
+    }
+  }, [titleData?._id]);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [hoveredChapterId, setHoveredChapterId] = useState<string | null>(null);
   const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
@@ -626,60 +637,99 @@ export function RightContent({
           </div>
 
           <div className="flex gap-2">
-            <div className="relative flex flex-col items-end gap-1 px-3 py-2 rounded-full min-w-[80px]">
-              <div className="flex flex-col items-end">
-                <span className="text-lg font-bold text-[var(--chart-1)]">
-                  {titleData?.averageRating ? titleData?.averageRating.toFixed(2) : "0"}
-                </span>
+            <div className="flex flex-col items-end gap-2 px-4 py-3 rounded-2xl transition-all duration-300 min-w-[120px]">
+              {/* Отображение среднего рейтинга со звёздами */}
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-2">
+                  Рейтинг
+                  <span className="text-xl font-bold text-[var(--chart-1)]">
+                    {titleData?.averageRating ? titleData.averageRating.toFixed(1) : "0.0"}
+                  </span>
+                </div>
                 {totalRatings > 0 && (
                   <span className="text-xs text-[var(--foreground)]/60">
-                    ({totalRatings} оценок)
+                    {totalRatings} {totalRatings === 1 ? "оценка" : totalRatings < 5 ? "оценки" : "оценок"}
                   </span>
                 )}
               </div>
-              <button
-                type="button"
-                onClick={() => setIsRatingOpen(v => !v)}
-                className="px-2 py-1 rounded-full bg-[var(--background)] text-[var(--primary)] text-xs hover:bg-[var(--background)]/90 transition-colors cursor-pointer whitespace-nowrap"
-              >
-                Оценить
-              </button>
-              {isRatingOpen && (
-                <div className="absolute top-4 right-0 flex flex-col w-max bg-[var(--accent)] rounded-lg p-4 z-20">
-                  <div className="flex items-end justify-between mb-2">
-                    <span className="text-sm text-[var(--primary)]">Ваша оценка</span>
-                    <button
-                      type="button"
-                      onClick={() => setIsRatingOpen(false)}
-                      className="p-1 rounded hover:bg-[var(--accent)]"
-                      aria-label="Закрыть"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto">
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+
+              {/* Кнопка оценки и выпадающее меню */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsRatingOpen(v => !v)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                    pendingRating
+                      ? "bg-[var(--chart-1)] text-white"
+                      : "bg-[var(--background)] text-[var(--primary)] hover:bg-[var(--chart-1)]/10 hover:text-[var(--chart-1)]"
+                  }`}
+                >
+                  <Star className={`w-3 h-3 ${pendingRating ? "fill-white" : ""}`} />
+                  {pendingRating ? `Ваша оценка: ${pendingRating}` : "Оценить"}
+                </button>
+
+                {/* Выпадающее меню с выбором оценки */}
+                {isRatingOpen && (
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 flex flex-col w-72 max-w-[calc(100vw-2rem)] bg-[var(--background)] rounded-xl p-4 z-50 shadow-xl border border-[var(--border)]/50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-semibold text-[var(--foreground)]">Выберите оценку</span>
                       <button
-                        key={n}
                         type="button"
-                        onClick={() => {
-                          setPendingRating(n);
-                          setIsRatingOpen(false);
-                          updateRating({ id: titleData?._id || "", rating: n });
-                        }}
-                        className={`min-w-8 h-8 px-2 rounded-md text-sm font-medium cursor-pointer flex items-center justify-center ${
-                          pendingRating === n
-                            ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                            : "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]/80"
-                        }`}
-                        title={`Оценка ${n}`}
+                        onClick={() => setIsRatingOpen(false)}
+                        className="p-1 rounded-full hover:bg-[var(--secondary)] transition-colors"
+                        aria-label="Закрыть"
                       >
-                        <Star className="w-4 h-4" />
+                        <X className="w-4 h-4 text-[var(--foreground)]/60" />
                       </button>
-                    ))}
+                    </div>
+
+                    {/* Интерактивные звёзды */}
+                    <div className="flex flex-col gap-3">
+                      <div className="flex justify-center gap-1">
+                        {Array.from({ length: 10 }, (_, i) => {
+                          const ratingValue = i + 1;
+                          return (
+                            <button
+                              key={ratingValue}
+                              type="button"
+                            onClick={() => {
+                              setPendingRating(ratingValue);
+                              setIsRatingOpen(false);
+                              updateRating({ id: titleData?._id || "", rating: ratingValue });
+                              // Сохранение оценки в localStorage
+                              if (typeof window !== "undefined" && titleData?._id) {
+                                localStorage.setItem(`title-rating-${titleData._id}`, ratingValue.toString());
+                              }
+                            }}
+                              onMouseEnter={() => setHoveredRating(ratingValue)}
+                              onMouseLeave={() => setHoveredRating(null)}
+                              className="relative p-1 transition-transform duration-150 hover:scale-110 focus:outline-none"
+                              title={`Оценка ${ratingValue}`}
+                            >
+                            <Star
+                              className={`w-4 h-4 transition-colors duration-150 ${
+                                (hoveredRating !== null && ratingValue <= hoveredRating) ||
+                                (hoveredRating === null && pendingRating !== null && ratingValue <= pendingRating)
+                                  ? "text-[var(--chart-1)] fill-[var(--chart-1)]"
+                                  : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]/80"
+                              }`}
+                            />
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Отображение выбранной оценки */}
+                      <div className="text-center">
+                        <span className="text-2xl font-bold text-[var(--chart-1)]">
+                          {hoveredRating || pendingRating || "?"}
+                        </span>
+                        <span className="text-sm text-[var(--foreground)]/60 ml-1">/ 10</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>

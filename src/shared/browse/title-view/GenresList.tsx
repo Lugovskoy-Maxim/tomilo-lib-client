@@ -117,7 +117,7 @@ export function GenresList({ genres = [], tags = [], isAdult, ageLimit }: Genres
           {showAgeRating && (
             <div className="">
               <span
-                className={`genre-badge age-rating-badge inline-flex items-center gap-1.5 cursor-pointer rounded-full text-xs font-bold px-3 py-1.5 transition-all duration-300 hover:scale-110 ${ageRatingLabel==="18+" ? "bg-red-500 text-white" : "bg-gray-200 text-gray-800"} `}
+                className={`genre-badge age-rating-badge inline-flex items-center gap-1.5 cursor-pointer rounded-2xl text-xs font-bold px-3 py-1.5 transition-all duration-300 hover:scale-110 ${ageRatingLabel==="18+" ? "bg-red-500 text-white" : "bg-gray-200 text-gray-800"} `}
                 onClick={() => router.push(`/titles?ageLimit=${ageLimit}`)}
               >
                 {ageRatingLabel}
@@ -143,7 +143,7 @@ export function GenresList({ genres = [], tags = [], isAdult, ageLimit }: Genres
               return (
                 <span
                   key={`genre-${index}`}
-                  className="genre-badge cursor-pointer rounded-full text-sm font-medium px-3 py-1 transition-all duration-300 hover:scale-105 hover:shadow-md border border-[var(--border)] bg-[var(--card)]/50 text-[var(--foreground)]"
+                  className="genre-badge cursor-pointer rounded-2xl text-sm font-medium px-3 py-1 transition-all duration-300 hover:scale-105 hover:shadow-md border border-[var(--border)] bg-[var(--card)]/50 text-[var(--foreground)]"
                   onClick={() => handleItemClick(item.type, item.value)}
                 >
                   {item.value}
@@ -170,7 +170,7 @@ export function GenresList({ genres = [], tags = [], isAdult, ageLimit }: Genres
               return (
                 <span
                   key={`tag-${index}`}
-                  className="genre-badge cursor-pointer rounded-full text-sm px-3 py-1.5 transition-all duration-300 hover:scale-105 hover:shadow-md"
+                  className="genre-badge cursor-pointer rounded-2xl text-sm px-3 py-1.5 transition-all duration-300 hover:scale-105 hover:shadow-md"
                   onClick={() => handleItemClick(item.type, item.value)}
                 >
                   {item.value}
