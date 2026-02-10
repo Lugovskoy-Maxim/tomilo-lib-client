@@ -513,36 +513,36 @@ export default function ReaderControls({
       )}
 
       {/* Боковое меню (десктоп) */}
-      <div className="hidden sm:flex fixed right-1 top-1/2 -translate-y-1/2 z-40 flex-col gap-5">
+      <div className="hidden sm:flex fixed right-4 top-1/2 -translate-y-1/2 z-40 flex-col gap-3">
         {/* Счётчик страниц */}
         <div className="w-full flex justify-center">
-          <p className="text-[var(--muted-foreground)] text-sm border border-[var(--border)] bg-[var(--background)]/90 rounded-xl px-2 py-1">
+          <p className="text-[var(--muted-foreground)] text-sm border border-[var(--border)] bg-[var(--card)]/95 rounded-2xl shadow-lg px-3 py-1.5 font-medium backdrop-blur-sm">
             {currentPage} / {chapterImageLength}
           </p>
         </div>
 
         {/* Основные кнопки управления */}
-        <div className="flex flex-col items-center space-y-2 w-12">
+        <div className="flex flex-col items-center gap-2 bg-[var(--card)]/95 border border-[var(--border)] rounded-2xl p-3 shadow-lg backdrop-blur-sm">
           {/* Кнопка автоскролла */}
           <button
             onClick={toggleAutoScroll}
-            className={`p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 ${
+            className={`p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95 ${
               isAutoScrolling ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
             }`}
             title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
           >
-            {isAutoScrolling ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isAutoScrolling ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
           </button>
 
           {/* Кнопка настроек */}
           <button
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className={`p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 ${
+            className={`p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95 ${
               isSettingsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
             }`}
             title="Настройки"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-5 h-5" />
           </button>
 
           <div className="w-8 h-px bg-[var(--border)] my-1" />
@@ -550,13 +550,13 @@ export default function ReaderControls({
           <button
             onClick={handleBookmarkToggle}
             disabled={isBookmarkLoading}
-            className={`p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 ${
+            className={`p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95 ${
               isBookmarked ? "text-[var(--primary)]" : ""
             } ${isBookmarkLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             title={isBookmarked ? "Удалить из закладок" : "Добавить в закладки"}
           >
             {isBookmarkLoading ? (
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -572,16 +572,16 @@ export default function ReaderControls({
                 ></path>
               </svg>
             ) : (
-              <Bookmark className="w-4 h-4" fill={isBookmarked ? "currentColor" : "none"} />
+              <Bookmark className="w-5 h-5" fill={isBookmarked ? "currentColor" : "none"} />
             )}
           </button>
 
           <button
             onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-            className="p-2 relative bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95"
+            className="p-3 min-h-[44px] min-w-[44px] flex items-center justify-center relative bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95"
             title="Комментарии"
           >
-            <MessageCircle className={`w-4 h-4 ${isCommentsOpen ? "text-[var(--primary)]" : ""}`} />
+            <MessageCircle className={`w-5 h-5 ${isCommentsOpen ? "text-[var(--primary)]" : ""}`} />
           </button>
 
           {/* Кнопка обновления страницы с удержанием */}
@@ -593,20 +593,20 @@ export default function ReaderControls({
               onTouchStart={startPressing}
               onTouchEnd={stopPressing}
               onClick={handleSimpleClick}
-              className={`relative p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-105 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
+              className={`relative p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
               title="Удерживайте 5 секунд для обновления"
             >
               {isPressing && (
-                <div 
+                <div
                   className="absolute inset-0 bg-[var(--primary)]/30 transition-all duration-100 ease-linear"
-                  style={{ 
-                    clipPath: `inset(0 ${100 - pressProgress}% 0 0)` 
+                  style={{
+                    clipPath: `inset(0 ${100 - pressProgress}% 0 0)`
                   }}
                 />
               )}
-              <RefreshCw className={`w-4 h-4 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-5 h-5 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
             </button>
-            
+
             {showRefreshTooltip && (
               <div className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg text-xs text-[var(--foreground)] whitespace-nowrap z-50 animate-fade-in">
                 Удерживайте 5 секунд
@@ -618,14 +618,14 @@ export default function ReaderControls({
       </div>
 
       {/* Мобильный счётчик */}
-      <div 
+      <div
         className={`sm:hidden fixed z-[45] transition-all duration-300 ease-in-out ${
-          isMenuHidden ? 'bottom-12 right-4 opacity-100' : 'bottom-12 left-0 right-0 opacity-100'
+          isMenuHidden ? 'bottom-16 right-4 opacity-100' : 'bottom-16 left-0 right-0 opacity-100'
         }`}
       >
         {showPageCounter && (
           <div className={`flex transition-all duration-300 ease-in-out ${isMenuHidden ? 'justify-end' : 'justify-center'}`}>
-            <p className={`text-[var(--primary)] text-xs border border-[var(--border)] bg-[var(--background)]/85 rounded-lg px-2 py-0.5 transition-all duration-300 ${isMenuHidden ? 'scale-90' : 'scale-100'}`}>
+            <p className={`text-[var(--primary)] text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-xl px-3 py-1.5 shadow-lg backdrop-blur-sm transition-all duration-300 ${isMenuHidden ? 'scale-90' : 'scale-100'}`}>
               {currentPage} / {chapterImageLength}
             </p>
           </div>
@@ -640,7 +640,7 @@ export default function ReaderControls({
             onToggleMenu?.();
             onMenuOpen?.();
           }}
-          className={`absolute right-5 bottom-1 p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg ${
+          className={`absolute right-5 bottom-1 min-h-[44px] min-w-[44px] p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center ${
             hideBottomMenuSetting && isMenuHidden
               ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
               : "opacity-0 scale-50 translate-y-4 pointer-events-none"
@@ -648,7 +648,7 @@ export default function ReaderControls({
           title="Показать меню"
         >
           <svg
-            className="w-4 h-4 text-[var(--muted-foreground)]"
+            className="w-5 h-5 text-[var(--muted-foreground)]"
             fill="none"
             stroke="white"
             viewBox="0 0 24 24"
@@ -664,7 +664,7 @@ export default function ReaderControls({
 
         {/* Развернутое меню */}
         <div
-          className={`flex items-center justify-center gap-5 p-1 transition-all duration-500 ease-out ${
+          className={`flex items-center justify-center gap-3 p-2 transition-all duration-500 ease-out ${
             hideBottomMenuSetting && isMenuHidden
               ? "opacity-0 scale-90 translate-y-8 pointer-events-none"
               : "opacity-100 scale-100 translate-y-0 pointer-events-auto"
@@ -672,38 +672,38 @@ export default function ReaderControls({
         >
           <button
             onClick={toggleAutoScroll}
-            className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`min-h-[44px] min-w-[44px] p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isAutoScrolling ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
             }`}
             title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
           >
-            {isAutoScrolling ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isAutoScrolling ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
           </button>
 
           <button
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`min-h-[44px] min-w-[44px] p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isSettingsOpen ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
             }`}
             title="Настройки"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-5 h-5" />
           </button>
 
           {/* Блок с кнопками глав */}
-          <div className="flex items-center gap-5 bg-[var(--card)] border border-[var(--border)] rounded-full">
+          <div className="flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-full px-2">
             <button
               onClick={onPrev}
               disabled={!canGoPrev}
-              className="p-2 rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               title="Предыдущая глава"
             >
-              <ChevronLeft className="w-4 h-4 text-[var(--muted-foreground)]" />
+              <ChevronLeft className="w-5 h-5 text-[var(--muted-foreground)]" />
             </button>
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex flex-col items-center px-2 py-1 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
+              className="min-h-[44px] min-w-[44px] flex flex-col items-center justify-center px-3 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
               title={`Глава ${currentChapter.number}`}
             >
               <span className="text-sm font-medium text-[var(--foreground)]">
@@ -714,22 +714,22 @@ export default function ReaderControls({
             <button
               onClick={onNext}
               disabled={!canGoNext}
-              className="p-2 rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               title="Следующая глава"
             >
-              <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
+              <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
             </button>
           </div>
 
           {/* Кнопка комментариев */}
           <button
             onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-            className={`p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`min-h-[44px] min-w-[44px] p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
             }`}
             title="Комментарии"
           >
-            <MessageCircle className="w-4 h-4" />
+            <MessageCircle className="w-5 h-5" />
           </button>
 
           {/* Кнопка обновления страницы с удержанием */}
@@ -741,7 +741,7 @@ export default function ReaderControls({
               onTouchStart={startPressing}
               onTouchEnd={stopPressing}
               onClick={handleSimpleClick}
-              className={`relative p-2 bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
+              className={`relative min-h-[44px] min-w-[44px] p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
               title="Удерживайте 5 секунд"
             >
               {isPressing && (
@@ -752,7 +752,7 @@ export default function ReaderControls({
                   }}
                 />
               )}
-              <RefreshCw className={`w-4 h-4 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-5 h-5 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
             </button>
             
             {showRefreshTooltip && (
@@ -767,7 +767,7 @@ export default function ReaderControls({
 
       {/* Выпадающее меню выбора главы */}
       {isMenuOpen && (
-        <div className="fixed sm:right-20 sm:top-1/2 sm:-translate-y-1/2 bottom-0 left-0 right-0 sm:left-auto sm:w-96 w-auto max-h-[85vh] sm:max-h-[80vh] bg-[var(--card)] border border-[var(--border)] sm:rounded-2xl rounded-t-2xl shadow-2xl z-[60] overflow-hidden flex flex-col">
+        <div className="fixed sm:right-24 sm:top-1/2 sm:-translate-y-1/2 bottom-0 left-0 right-0 sm:left-auto sm:w-96 w-auto max-h-[70vh] sm:max-h-[80vh] bg-[var(--card)] border border-[var(--border)] sm:rounded-2xl rounded-t-2xl shadow-2xl z-[60] overflow-hidden flex flex-col">
           {/* Заголовок с поиском */}
           <div className="p-4 border-b border-[var(--border)] bg-[var(--background)]">
             <div className="flex items-center justify-between mb-3">
