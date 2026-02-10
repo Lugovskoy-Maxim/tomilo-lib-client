@@ -15,7 +15,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="absolute top-1/2 left-0  inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -25,7 +25,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         className="relative w-max mx-4 bg-[var(--background)] rounded-2xl shadow-xl border border-[var(--border)] max-h-[85vh] overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-6 border-b border-[var(--border)] sticky top-0 bg-[var(--background)] z-10 rounded-t-2xl">
+        <div className="flex items-center justify-between p-2 border-b border-[var(--border)] sticky top-0 bg-[var(--background)] z-10 rounded-t-2xl">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button
             onClick={onClose}

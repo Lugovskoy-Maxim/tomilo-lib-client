@@ -49,7 +49,7 @@ export default function Header() {
   };
 
   return (
-    <header className="absolute top-0 w-full header-glass h-[var(--header-height)] z-50 transition-all duration-300">
+    <header className="relative w-full header-glass h-[var(--header-height)] z-50 transition-all duration-300">
       <div className="w-full max-w-7xl mx-auto p-4 h-16 flex items-center justify-between relative z-10">
         {/* Логотип */}
         <div className="flex items-center gap-2 hover-lift">
