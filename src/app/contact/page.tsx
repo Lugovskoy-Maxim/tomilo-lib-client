@@ -14,7 +14,7 @@ export default function ContactPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 pt-[var(--header-height)] pb-20 lg:py-8 sm:px-6 lg:px-8">
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 pb-20 lg:py-8 sm:px-6 lg:px-8">
         <div className="space-y-8 pt-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-[var(--foreground)] mb-4">Свяжитесь с нами</h1>
