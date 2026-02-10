@@ -5,7 +5,7 @@ import AutoParsingSection from "@/shared/admin/AutoParsingSection";
 import { ChaptersSection } from "@/shared/admin/ChaptersSection";
 import { CollectionsSection } from "@/shared/admin/CollectionsSection";
 import { OverviewSection } from "@/shared/admin/OverviewSection";
-import { ChartsSection } from "@/shared/admin/ChartsSection";
+import { StatsSection } from "@/shared/admin/StatsSection";
 import { ParserSection } from "@/shared/admin/ParserSection";
 import { TitlesSection } from "@/shared/admin/TitlesSection";
 import { UsersSection } from "@/shared/admin/UsersSection";
@@ -24,7 +24,7 @@ export default function AdminPage() {
   const getSectionTitle = () => {
     const titles: Record<AdminTab, string> = {
       overview: "Обзор",
-      charts: "Графики",
+      statistics: "Статистика",
       parser: "Парсинг",
       "auto-parsing": "Автопарсинг",
       titles: "Тайтлы",
@@ -38,12 +38,13 @@ export default function AdminPage() {
     return titles[activeTab] || "Админ-панель";
   };
 
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "overview":
         return <OverviewSection onTabChange={setActiveTab} />;
-      case "charts":
-        return <ChartsSection />;
+      case "statistics":
+        return <StatsSection />;
       case "parser":
         return <ParserSection />;
       case "auto-parsing":

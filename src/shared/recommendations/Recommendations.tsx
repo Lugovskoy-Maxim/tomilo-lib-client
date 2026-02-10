@@ -45,7 +45,7 @@ export default function Recommendations({
 
   return (
     <Carousel
-      title="Рекомендации для вас"
+      title="Подобрали для вас"
       data={transformedData}
       cardComponent={CarouselCard}
       description="Персональные рекомендации на основе ваших предпочтений"

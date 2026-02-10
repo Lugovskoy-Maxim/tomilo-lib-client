@@ -13,13 +13,14 @@ import {
   X,
   ChevronRight,
   TrendingUp,
+  Activity,
 } from "lucide-react";
 import { useState } from "react";
 import { useGetReportsQuery } from "@/store/api/reportsApi";
 
 export type AdminTab =
   | "overview"
-  | "charts"
+  | "statistics"
   | "parser"
   | "auto-parsing"
   | "titles"
@@ -42,9 +43,9 @@ const tabs = [
     icon: BarChart3,
   },
   {
-    id: "charts" as AdminTab,
-    label: "Графики",
-    icon: TrendingUp,
+    id: "statistics" as AdminTab,
+    label: "Статистика",
+    icon: Activity,
   },
   {
     id: "parser" as AdminTab,
@@ -106,7 +107,10 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
       {tabs.map(tab => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
-        const label = tab.id === "reports" && unprocessedReports?.data?.total ? `${tab.label} (${unprocessedReports.data.total})` : tab.label;
+        const label =
+          tab.id === "reports" && unprocessedReports?.data?.total
+            ? `${tab.label} (${unprocessedReports.data.total})`
+            : tab.label;
 
         return (
           <button
