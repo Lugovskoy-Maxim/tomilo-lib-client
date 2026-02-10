@@ -13,6 +13,9 @@ import {
   Pause,
   RefreshCw,
   List,
+  Download,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
@@ -44,6 +47,9 @@ interface ReaderControlsProps {
   forceStopAutoScroll?: boolean;
   onMenuOpen?: () => void;
   onAutoScrollStart?: () => void;
+  preloadAllImages?: boolean;
+  onPreloadChange?: (value: boolean) => void;
+  preloadProgress?: number;
 }
 
 export default function ReaderControls({
@@ -67,6 +73,9 @@ export default function ReaderControls({
   forceStopAutoScroll = false,
   onMenuOpen,
   onAutoScrollStart,
+  preloadAllImages = false,
+  onPreloadChange,
+  preloadProgress = 0,
 }: ReaderControlsProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -436,6 +445,71 @@ export default function ReaderControls({
                   <span className="ml-4 text-sm">Скрывать нижнее меню</span>
                 </label>
               </div>
+
+              {/* Переключатель предзагрузки всех изображений */}
+              {onPreloadChange && (
+                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className={`p-2 rounded-lg ${preloadAllImages ? 'bg-[var(--primary)]/10' : 'bg-[var(--muted)]'}`}>
+                      {preloadAllImages ? (
+                        <Download className="w-5 h-5 text-[var(--primary)]" />
+                      ) : (
+                        <Wifi className="w-5 h-5 text-[var(--muted-foreground)]" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={preloadAllImages}
+                          onChange={() => onPreloadChange(!preloadAllImages)}
+                          className="sr-only"
+                        />
+                        <div
+                          className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                            preloadAllImages ? "bg-[var(--primary)]" : ""
+                          }`}
+                        >
+                          <div
+                            className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                              preloadAllImages ? "transform translate-x-7" : ""
+                            }`}
+                          ></div>
+                        </div>
+                        <span className="ml-3 text-sm font-medium">Предзагружать всю главу</span>
+                      </label>
+                      <p className="text-xs text-[var(--muted-foreground)] mt-2 leading-relaxed">
+                        Для нестабильного интернета. Загружает все страницы сразу, но требует больше трафика.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Прогресс предзагрузки */}
+                  {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
+                    <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="text-[var(--muted-foreground)]">Загрузка главы...</span>
+                        <span className="font-medium text-[var(--primary)]">{preloadProgress}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-[var(--muted)] rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
+                          style={{ width: `${preloadProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {preloadAllImages && preloadProgress === 100 && (
+                    <div className="mt-3 pt-3 border-t border-[var(--border)] flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Глава полностью загружена</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -529,6 +603,62 @@ export default function ReaderControls({
                   <span className="ml-4 text-sm">Скрывать нижнее меню</span>
                 </label>
               </div>
+
+              {/* Переключатель предзагрузки - мобильная версия */}
+              {onPreloadChange && (
+                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className={`p-2 rounded-lg ${preloadAllImages ? 'bg-[var(--primary)]/10' : 'bg-[var(--muted)]'}`}>
+                      {preloadAllImages ? (
+                        <Download className="w-5 h-5 text-[var(--primary)]" />
+                      ) : (
+                        <Wifi className="w-5 h-5 text-[var(--muted-foreground)]" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={preloadAllImages}
+                          onChange={() => onPreloadChange(!preloadAllImages)}
+                          className="sr-only"
+                        />
+                        <div
+                          className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                            preloadAllImages ? "bg-[var(--primary)]" : ""
+                          }`}
+                        >
+                          <div
+                            className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                              preloadAllImages ? "transform translate-x-7" : ""
+                            }`}
+                          ></div>
+                        </div>
+                        <span className="ml-3 text-sm font-medium">Предзагружать всю главу</span>
+                      </label>
+                      <p className="text-xs text-[var(--muted-foreground)] mt-2 leading-relaxed">
+                        Для нестабильного интернета. Загружает все страницы сразу.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Прогресс предзагрузки - мобильная версия */}
+                  {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
+                    <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="text-[var(--muted-foreground)]">Загрузка...</span>
+                        <span className="font-medium text-[var(--primary)]">{preloadProgress}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-[var(--muted)] rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
+                          style={{ width: `${preloadProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -642,12 +772,12 @@ export default function ReaderControls({
       {/* Мобильный счётчик */}
       <div
         className={`sm:hidden fixed z-[45] transition-all duration-300 ease-in-out ${
-          isMenuHidden ? 'bottom-16 right-4 opacity-100' : 'bottom-16 left-0 right-0 opacity-100'
+          isMenuHidden ? 'bottom-16 right-2 xs:right-4 opacity-100' : 'bottom-16 left-0 right-0 opacity-100'
         }`}
       >
         {showPageCounter && (
           <div className={`flex transition-all duration-300 ease-in-out ${isMenuHidden ? 'justify-end' : 'justify-center'}`}>
-            <p className={`text-[var(--primary)] text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-xl px-3 py-1.5 shadow-lg backdrop-blur-sm transition-all duration-300 ${isMenuHidden ? 'scale-90' : 'scale-100'}`}>
+            <p className={`text-[var(--primary)] text-xs xs:text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-lg xs:rounded-xl px-2 xs:px-3 py-1 xs:py-1.5 shadow-lg backdrop-blur-sm transition-all duration-300 ${isMenuHidden ? 'scale-90' : 'scale-100'}`}>
               {currentPage} / {chapterImageLength}
             </p>
           </div>
@@ -662,7 +792,7 @@ export default function ReaderControls({
             onToggleMenu?.();
             onMenuOpen?.();
           }}
-          className={`absolute right-5 bottom-1 min-h-[44px] min-w-[44px] p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center ${
+          className={`absolute right-3 xs:right-5 bottom-1 min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center ${
             hideBottomMenuSetting && isMenuHidden
               ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
               : "opacity-0 scale-50 translate-y-4 pointer-events-none"
@@ -670,7 +800,7 @@ export default function ReaderControls({
           title="Показать меню"
         >
           <svg
-            className="w-5 h-5 text-[var(--muted-foreground)]"
+            className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]"
             fill="none"
             stroke="white"
             viewBox="0 0 24 24"
@@ -686,7 +816,7 @@ export default function ReaderControls({
 
         {/* Развернутое меню */}
         <div
-          className={`flex items-center justify-center gap-3 p-2 transition-all duration-500 ease-out ${
+          className={`flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-3 p-1.5 xs:p-2 transition-all duration-500 ease-out ${
             hideBottomMenuSetting && isMenuHidden
               ? "opacity-0 scale-90 translate-y-8 pointer-events-none"
               : "opacity-100 scale-100 translate-y-0 pointer-events-auto"
@@ -694,41 +824,41 @@ export default function ReaderControls({
         >
           <button
             onClick={toggleAutoScroll}
-            className={`min-h-[44px] min-w-[44px] p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isAutoScrolling ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
             }`}
             title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
           >
-            {isAutoScrolling ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+            {isAutoScrolling ? <Pause className="w-4 h-4 xs:w-5 xs:h-5" /> : <Play className="w-4 h-4 xs:w-5 xs:h-5" />}
           </button>
 
           <button
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className={`min-h-[44px] min-w-[44px] p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isSettingsOpen ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
             }`}
             title="Настройки"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-4 h-4 xs:w-5 xs:h-5" />
           </button>
 
           {/* Блок с кнопками глав */}
-          <div className="flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-full px-2">
+          <div className="flex items-center gap-1 xs:gap-2 bg-[var(--card)] border border-[var(--border)] rounded-full px-1 xs:px-2">
             <button
               onClick={onPrev}
               disabled={!canGoPrev}
-              className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               title="Предыдущая глава"
             >
-              <ChevronLeft className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <ChevronLeft className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
             </button>
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="min-h-[44px] min-w-[44px] flex flex-col items-center justify-center px-3 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
+              className="min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] flex flex-col items-center justify-center px-2 xs:px-3 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
               title={`Глава ${currentChapter.number}`}
             >
-              <span className="text-sm font-medium text-[var(--foreground)]">
+              <span className="text-xs xs:text-sm font-medium text-[var(--foreground)]">
                 {currentChapter.number}
               </span>
             </button>
@@ -736,22 +866,22 @@ export default function ReaderControls({
             <button
               onClick={onNext}
               disabled={!canGoNext}
-              className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               title="Следующая глава"
             >
-              <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <ChevronRight className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
             </button>
           </div>
 
           {/* Кнопка комментариев */}
           <button
             onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-            className={`min-h-[44px] min-w-[44px] p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
             }`}
             title="Комментарии"
           >
-            <MessageCircle className="w-5 h-5" />
+            <MessageCircle className="w-4 h-4 xs:w-5 xs:h-5" />
           </button>
 
           {/* Кнопка обновления страницы с удержанием */}
@@ -763,7 +893,7 @@ export default function ReaderControls({
               onTouchStart={startPressing}
               onTouchEnd={stopPressing}
               onClick={handleSimpleClick}
-              className={`relative min-h-[44px] min-w-[44px] p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
+              className={`relative min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
               title="Удерживайте 5 секунд"
             >
               {isPressing && (
@@ -774,11 +904,11 @@ export default function ReaderControls({
                   }}
                 />
               )}
-              <RefreshCw className={`w-5 h-5 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 xs:w-5 xs:h-5 relative z-10 ${isPressing ? 'animate-spin' : ''}`} />
             </button>
             
             {showRefreshTooltip && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg text-xs text-[var(--foreground)] whitespace-nowrap z-50 animate-fade-in">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 xs:px-3 py-1.5 xs:py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg text-xs text-[var(--foreground)] whitespace-nowrap z-50 animate-fade-in">
                 Удерживайте 5 секунд
                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[var(--card)]" />
               </div>

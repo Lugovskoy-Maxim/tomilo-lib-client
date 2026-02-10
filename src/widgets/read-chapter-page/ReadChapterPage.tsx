@@ -24,6 +24,7 @@ import {
 
 import AdBlockReading from "@/shared/ad-block/AdBlockReading";
 import ChapterErrorState from "@/shared/error-state/ChapterErrorState";
+import ReadingPositionRestoreModal from "@/shared/reader/ReadingPositionRestoreModal";
 
 export default function ReadChapterPage({
   title,
@@ -65,10 +66,14 @@ export default function ReadChapterPage({
   const [isPositionRestored, setIsPositionRestored] = useState(false);
 
   const [savedReadingPage, setSavedReadingPage] = useState<number | null>(null);
+  const [savedPositionTimestamp, setSavedPositionTimestamp] = useState<number>(0);
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [imageLoadPriority, setImageLoadPriority] = useState<
     Map<number, "low" | "medium" | "high">
   >(new Map());
   const [forceStopAutoScroll, setForceStopAutoScroll] = useState(false);
+  const [preloadAllImages, setPreloadAllImages] = useState(false);
+  const [preloadProgress, setPreloadProgress] = useState(0);
 
   // Сброс флага остановки автопрокрутки через некоторое время после остановки
   useEffect(() => {
@@ -343,121 +348,114 @@ export default function ReadChapterPage({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY, hideBottomMenuSetting, showMenuAndResetTimeout]);
 
+  // Загрузка настройки предзагрузки из localStorage
+  useEffect(() => {
+    const savedPreload = localStorage.getItem("reader-preload-all-images");
+    if (savedPreload === "true") {
+      setPreloadAllImages(true);
+    }
+  }, []);
+
+  // Функция восстановления позиции
+  const restorePosition = useCallback((page: number) => {
+    setSavedReadingPage(page);
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const pageElement = document.querySelector(`[data-page="${page}"]`);
+        if (pageElement) {
+          pageElement.scrollIntoView({
+            behavior: "auto",
+            block: "center",
+          });
+        }
+        setCurrentPage(page);
+
+        // Устанавливаем приоритеты загрузки изображений
+        const priorities = new Map<number, "low" | "medium" | "high">();
+        chapter.images.forEach((_, index) => {
+          const pageNum = index + 1;
+          if (pageNum === page) {
+            priorities.set(pageNum, "high");
+          } else if (Math.abs(pageNum - page) <= 2) {
+            priorities.set(pageNum, "medium");
+          } else {
+            priorities.set(pageNum, "low");
+          }
+        });
+        setImageLoadPriority(priorities);
+
+        setIsPositionRestored(true);
+      } catch (error) {
+        console.warn("Failed to restore reading position:", error);
+        setCurrentPage(1);
+        setIsPositionRestored(true);
+      }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [chapter.images]);
+
+  // Функция сброса позиции (начать сначала)
+  const resetPosition = useCallback(() => {
+    setSavedReadingPage(1);
+    setCurrentPage(1);
+    setIsPositionRestored(true);
+    
+    // Устанавливаем низкий приоритет для всех, кроме первых 3 страниц
+    const priorities = new Map<number, "low" | "medium" | "high">();
+    chapter.images.forEach((_, index) => {
+      const pageNum = index + 1;
+      if (pageNum <= 3) {
+        priorities.set(pageNum, "high");
+      } else {
+        priorities.set(pageNum, "low");
+      }
+    });
+    setImageLoadPriority(priorities);
+  }, [chapter.images]);
+
   // Восстановление позиции чтения при загрузке компонента
   useEffect(() => {
     if (!titleId || !chapterId) return;
 
     const savedPosition = getReadingPosition(titleId, chapterId);
     if (savedPosition && savedPosition.page > 1) {
-      // Показываем уведомление о восстановлении позиции в стиле счетчика страниц
-      const notificationId = `restore-position-${Date.now()}`;
-      const notificationElement = document.createElement("div");
-      notificationElement.id = notificationId;
-      notificationElement.className =
-        "fixed w-full max-w-[350px] top-1/2 left-1/2 transform -translate-x-1/2 text-[var(--muted-foreground)] text-sm sm:text-xs border border-[var(--border) bg-[var(--background)]/90 rounded-xl p-2 px-4 py-2  shadow-lg z-[100] flex items-center space-x-2";
-      notificationElement.innerHTML = `
-        <span>Восстановление позиции чтения на странице ${savedPosition.page}</span>
-        <button id="cancel-restore" class="ml-2 px-2 py-2 bg-[var(--destructive)] hover:bg-[var(--destructive)]/80 rounded text-xs">Отменить</button>
-        <span id="countdown" class="ml-2 text-xs">5</span>
-      `;
-      document.body.appendChild(notificationElement);
-
-      // Таймер обратного отсчета
-      let countdown = 5;
-      const countdownElement = document.getElementById("countdown");
-      const countdownInterval = setInterval(() => {
-        countdown--;
-        if (countdownElement) {
-          countdownElement.textContent = countdown.toString();
-        }
-        if (countdown <= 0) {
-          clearInterval(countdownInterval);
-          // Автоматически восстанавливаем позицию
-          restorePosition(savedPosition.page);
-          // Удаляем уведомление
-          setTimeout(() => {
-            if (document.getElementById(notificationId)) {
-              document.getElementById(notificationId)?.remove();
-            }
-          }, 1000);
-        }
-      }, 1000);
-
-      // Обработчик отмены
-      const cancelRestore = () => {
-        clearInterval(countdownInterval);
-        if (document.getElementById(notificationId)) {
-          document.getElementById(notificationId)?.remove();
-        }
-        // Устанавливаем позицию на первую страницу
-        setSavedReadingPage(1);
-        setIsPositionRestored(true);
-      };
-
-      // Добавляем обработчик клика на кнопку отмены
-      const cancelButton = document.getElementById("cancel-restore");
-      if (cancelButton) {
-        cancelButton.addEventListener("click", cancelRestore);
-      }
-
-      // Функция восстановления позиции
-      const restorePosition = (page: number) => {
-        // Сохраняем сохраненную позицию для поэтапной загрузки
-        setSavedReadingPage(page);
-
-        // Быстрая прокрутка к сохраненной странице
-        const timeoutId = setTimeout(async () => {
-          try {
-            // Быстрая прокрутка без ожидания загрузки изображений
-            const pageElement = document.querySelector(`[data-page="${page}"]`);
-            if (pageElement) {
-              pageElement.scrollIntoView({
-                behavior: "auto", // Быстрая прокрутка
-                block: "center",
-              });
-            }
-            setCurrentPage(page);
-
-            // Устанавливаем приоритеты загрузки изображений
-            const priorities = new Map<number, "low" | "medium" | "high">();
-            chapter.images.forEach((_, index) => {
-              const pageNum = index + 1;
-              if (pageNum === page) {
-                priorities.set(pageNum, "high"); // Текущая страница - высокий приоритет
-              } else if (pageNum < page) {
-                priorities.set(pageNum, "low"); // Предыдущие страницы - низкий приоритет
-              } else {
-                priorities.set(pageNum, "low"); // Следующие страницы - низкий приоритет (пока)
-              }
-            });
-            setImageLoadPriority(priorities);
-
-            setIsPositionRestored(true);
-          } catch (error) {
-            console.warn("Failed to restore reading position:", error);
-            setCurrentPage(1);
-            setIsPositionRestored(true);
-          }
-        }, 100); // Значительно сокращаем задержку для быстрой прокрутки
-
-        return () => clearTimeout(timeoutId);
-      };
-
-      // Очищаем таймеры и обработчики при размонтировании
-      return () => {
-        clearInterval(countdownInterval);
-        if (cancelButton) {
-          cancelButton.removeEventListener("click", cancelRestore);
-        }
-        if (document.getElementById(notificationId)) {
-          document.getElementById(notificationId)?.remove();
-        }
-      };
+      setSavedReadingPage(savedPosition.page);
+      setSavedPositionTimestamp(savedPosition.timestamp);
+      setIsRestoreModalOpen(true);
     } else {
-      // Если нет сохраненной позиции, сразу помечаем как восстановленное
       setIsPositionRestored(true);
     }
-  }, [titleId, chapterId, chapter.images]);
+  }, [titleId, chapterId]);
+
+  // Предзагрузка всех изображений при включенной настройке
+  useEffect(() => {
+    if (!preloadAllImages || !chapter.images.length || !isPositionRestored) return;
+
+    let loadedCount = 0;
+    const totalImages = chapter.images.length;
+
+    const updateProgress = () => {
+      loadedCount++;
+      setPreloadProgress(Math.round((loadedCount / totalImages) * 100));
+    };
+
+    // Предзагружаем все изображения
+    chapter.images.forEach((src) => {
+      const img = new window.Image();
+      img.onload = updateProgress;
+      img.onerror = updateProgress;
+      img.src = getImageUrl(src);
+    });
+
+    // Устанавливаем высокий приоритет для всех страниц
+    const priorities = new Map<number, "low" | "medium" | "high">();
+    chapter.images.forEach((_, index) => {
+      priorities.set(index + 1, "high");
+    });
+    setImageLoadPriority(priorities);
+  }, [preloadAllImages, chapter.images, isPositionRestored, getImageUrl]);
 
   // Создание дебаунс-функции для сохранения позиции
   const debouncedSavePosition = useMemo(
@@ -547,6 +545,32 @@ export default function ReadChapterPage({
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      {/* Модальное окно восстановления позиции */}
+      <ReadingPositionRestoreModal
+        isOpen={isRestoreModalOpen}
+        onClose={() => setIsRestoreModalOpen(false)}
+        onRestore={() => restorePosition(savedReadingPage || 1)}
+        onReset={resetPosition}
+        page={savedReadingPage || 1}
+        timestamp={savedPositionTimestamp}
+        totalPages={chapter.images.length}
+      />
+
+      {/* Индикатор предзагрузки */}
+      {preloadAllImages && preloadProgress < 100 && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[150] bg-[var(--card)]/95 backdrop-blur-md border border-[var(--border)] rounded-full px-4 py-2 shadow-lg flex items-center gap-3">
+          <div className="w-32 h-2 bg-[var(--muted)] rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
+              style={{ width: `${preloadProgress}%` }}
+            />
+          </div>
+          <span className="text-xs text-[var(--muted-foreground)] whitespace-nowrap">
+            Загрузка {preloadProgress}%
+          </span>
+        </div>
+      )}
+
       {/* Меню управления */}
       <ReaderControls
         key={chapter._id}
@@ -586,6 +610,12 @@ export default function ReadChapterPage({
         onAutoScrollStart={() => {
           setIsMenuCollapsed(false);
         }}
+        preloadAllImages={preloadAllImages}
+        onPreloadChange={(value) => {
+          setPreloadAllImages(value);
+          localStorage.setItem("reader-preload-all-images", value.toString());
+        }}
+        preloadProgress={preloadProgress}
       />
 
       {/* Хедер */}
