@@ -18,6 +18,9 @@ import {
   X,
   CheckCircle,
   Play,
+  Home,
+  MessageCircle,
+  List,
 } from "lucide-react";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
@@ -684,28 +687,56 @@ export function RightContent({
           </button>
         )}
 
-        <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-full p-1 relative">
-          <div className="flex">
+        {/* Улучшенные вкладки с иконками */}
+        <div className="bg-[var(--secondary)]/60 backdrop-blur-md rounded-2xl p-1.5 relative border border-[var(--border)]/50">
+          <div className="flex gap-1">
             {[
-              { key: "main" as const, label: "Главная" },
+              { 
+                key: "main" as const, 
+                label: "Главная", 
+                icon: Home,
+                count: null 
+              },
               {
                 key: "chapters" as const,
-                label: `Главы (${titleData?.chapters?.length || 0})`,
+                label: "Главы",
+                icon: List,
+                count: titleData?.chapters?.length || 0,
               },
-              { key: "comments" as const, label: "Комментарии" },
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => onTabChange(tab.key)}
-                className={`flex-1 py-1 px-2 rounded-full font-medium transition-colors ${
-                  activeTab === tab.key
-                    ? "bg-[var(--chart-1)]/90 text-[var(--foreground)]"
-                    : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+              { 
+                key: "comments" as const, 
+                label: "Комментарии", 
+                icon: MessageCircle,
+                count: null 
+              },
+            ].map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.key;
+              
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => onTabChange(tab.key)}
+                  className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-medium transition-all duration-300 ease-out ${
+                    isActive
+                      ? "bg-[var(--chart-1)] text-white shadow-lg shadow-[var(--chart-1)]/25"
+                      : "text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-[var(--background)]/50"
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 transition-transform duration-300 ${isActive ? "scale-110" : ""}`} />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  {tab.count !== null && tab.count > 0 && (
+                    <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${
+                      isActive 
+                        ? "bg-white/20 text-white" 
+                        : "bg-[var(--chart-1)]/10 text-[var(--chart-1)]"
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
