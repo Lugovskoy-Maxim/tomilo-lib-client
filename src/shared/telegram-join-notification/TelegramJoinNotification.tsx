@@ -37,8 +37,9 @@ const TelegramJoinNotification: React.FC = () => {
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-[var(--muted)] hover:bg-[var(--muted)]/80 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all duration-200 hover:rotate-90 z-10 shadow-sm"
+          className="absolute top-1 right-1 p-2 rounded-full bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all duration-200 hover:rotate-90 z-50 shadow-md cursor-pointer"
           aria-label="Закрыть"
+          type="button"
         >
           <X className="w-4 h-4" />
         </button>
