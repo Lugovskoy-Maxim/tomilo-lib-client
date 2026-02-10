@@ -537,7 +537,8 @@ export function RightContent({
                       <h3 className="font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--chart-1)] transition-colors">
                         {getChapterDisplayName(chapter)}
                       </h3>
-                      <div className="flex items-center gap-3 text-xs text-[var(--foreground)]/50 mt-0.5">
+                      {/* Мобильная версия - дата и просмотры под названием */}
+                      <div className="flex sm:hidden items-center gap-3 text-xs text-[var(--foreground)]/50 mt-0.5">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {chapter.createdAt 
@@ -553,6 +554,24 @@ export function RightContent({
                           {(chapter.views || 0).toLocaleString()}
                         </span>
                       </div>
+                    </div>
+
+                    {/* Десктопная версия - дата и просмотры справа */}
+                    <div className="hidden sm:flex items-center gap-4 text-sm text-[var(--foreground)]/60 flex-shrink-0">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-4 h-4 text-[var(--chart-1)]" />
+                        {chapter.createdAt 
+                          ? new Date(chapter.createdAt).toLocaleDateString('ru-RU', { 
+                              day: 'numeric', 
+                              month: 'short', 
+                              year: 'numeric' 
+                            }) 
+                          : "—"}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Eye className="w-4 h-4 text-[var(--chart-1)]" />
+                        {(chapter.views || 0).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 );
