@@ -16,7 +16,7 @@ export function TitlesPageClient() {
       <div className="relative z-10">
         <Header />
 
-        <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-5 pt-[var(--header-height)] pb-20 md:pb-12">
+        <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-5 pb-20 md:pb-12">
           <TitlesContent />
         </div>
 
