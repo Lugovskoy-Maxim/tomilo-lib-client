@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Send } from "lucide-react";
 
 const TelegramJoinNotification: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -29,24 +29,44 @@ const TelegramJoinNotification: React.FC = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 bg-[var(--card)]/90 border border-border p-4 shadow-lg rounded-lg z-40 max-w-md mx-auto">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-[var(--muted-foreground)]">
-          Присоединяйтесь к нашей группе в Telegram!
-        </p>
-        <div className="flex space-x-2 ml-4">
-          <button
-            onClick={handleJoin}
-            className="px-3 py-1 cursor-pointer bg-[var(--primary)]/10 text-[var(--chart-1)]/90 hover:text-[var(--chart-1)]  text-sm rounded hover:bg-[var(--chart-1)]/5 border border-transparent hover:border-[var(--border)] transition-colors"
-          >
-            Присоединиться
-          </button>
-          <button
-            onClick={handleClose}
-            className="absolute -top-3 -right-3 border border-[var(--border)] bg-[var(--muted)] hover:bg-[var(--muted)]/90 rounded-full p-2 cursor-pointer text-[var(--primary)] text-sm hover:text-[var(--chart-5)] transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+    <div className="fixed bottom-24 sm:bottom-20 left-4 right-4 z-50 max-w-md mx-auto animate-fade-in-up  ">
+      <div className="bg-[var(--card)] border-2 border-[#0088cc]/30 rounded-xl p-4 shadow-2xl hover-lift relative overflow-hidden">
+        {/* Decorative gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0088cc]/10 via-transparent to-[#00a8e6]/10 pointer-events-none" />
+        
+        {/* Close button */}
+        <button
+          onClick={handleClose}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-[var(--muted)] hover:bg-[var(--muted)]/80 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all duration-200 hover:rotate-90 z-10 shadow-sm"
+          aria-label="Закрыть"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="relative z-10 flex items-start gap-3">
+          {/* Telegram Icon */}
+          {/* <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-[#0088cc] to-[#00a8e6] flex items-center justify-center shadow-lg shadow-[#0088cc]/30">
+            <Send className="w-5 h-5 text-white" />
+          </div> */}
+
+          {/* Content */}
+          <div className="flex-1 min-w-0 pr-8">
+            <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1">
+              Наш Telegram канал
+            </h3>
+            <p className="text-xs text-[var(--muted-foreground)] leading-relaxed mb-3">
+              Получайте уведомления о новых главах, участвуйте в обсуждениях и будьте в курсе всех обновлений!
+            </p>
+            
+            {/* Action button */}
+            <button
+              onClick={handleJoin}
+              className="w-full sm:w-auto px-4 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-[#0088cc] to-[#00a8e6] text-white hover:from-[#0099dd] hover:to-[#00b9f7] transition-all duration-200 shadow-lg shadow-[#0088cc]/25 hover:shadow-[#0088cc]/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Присоединиться
+            </button>
+          </div>
         </div>
       </div>
     </div>
