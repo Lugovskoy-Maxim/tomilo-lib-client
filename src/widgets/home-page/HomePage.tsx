@@ -71,7 +71,7 @@ export default function HomePage() {
     return (
       <>
         <Header />
-        <main className="flex flex-col items-center justify-center gap-6 pb-16 pt-[var(--header-height)]">
+        <main className="flex flex-col items-center justify-center gap-6 pb-16">
           <CarouselSkeleton />
           <CarouselSkeleton />
           <CarouselSkeleton />
@@ -84,7 +84,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16 pt-[var(--header-height)]">
+      <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16">
         {/* Популярные тайтлы */}
         <DataCarousel
           title="Популярные тайтлы"

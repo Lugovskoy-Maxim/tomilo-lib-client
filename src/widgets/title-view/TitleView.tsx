@@ -226,7 +226,7 @@ export default function TitleView({ slug }: { slug: string }) {
   // Показываем состояние загрузки с плавным переходом
   if (titleLoading || (chaptersLoading && processedChaptersData.length === 0)) {
     return (
-      <main className="relative min-h-screen pt-10">
+      <main className="relative min-h-screen">
         <div className="fixed inset-0 -z-5 bg-[var(--background)]" />
         <Header />
         <div className="container mx-auto px-4 lg:py-8 pb-20">
@@ -329,7 +329,7 @@ export default function TitleView({ slug }: { slug: string }) {
     : null;
 
   return (
-    <main className="relative min-h-screen pt-10 ">
+    <main className="relative min-h-screen">
       {/* Заблюренный фон обложки на весь экран - только в темной теме */}
       {coverImageUrl && (
         <div
