@@ -171,6 +171,22 @@ export default function ReaderControls({
     };
   }, [onMenuOpen]);
 
+  // Ref для скролла к текущей главе
+  const currentChapterRef = useRef<HTMLButtonElement>(null);
+  const chapterListRef = useRef<HTMLDivElement>(null);
+
+  // Скролл к текущей главе при открытии меню
+  useEffect(() => {
+    if (isMenuOpen && currentChapterRef.current && chapterListRef.current) {
+      setTimeout(() => {
+        currentChapterRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }, 100);
+    }
+  }, [isMenuOpen]);
+
   const filteredChapters = chapters.filter(
     chapter =>
       chapter.number.toString().includes(chapterSearch) ||
@@ -306,26 +322,29 @@ export default function ReaderControls({
         <div ref={settingsPanelRef} className="fixed inset-0 z-[70]">
           {/* Десктопная панель */}
           <div
-            className="absolute inset-y-0 right-0 w-96 bg-[var(--card)] border-l border-[var(--border)] shadow-xl sm:block hidden transform transition-transform duration-300 ease-in-out"
+            className="absolute inset-y-0 right-0 w-[420px] bg-[var(--card)]/95 backdrop-blur-md border-l border-[var(--border)] shadow-2xl sm:block hidden transform transition-transform duration-300 ease-in-out rounded-l-3xl"
             style={{ transform: "translateX(0)" }}
           >
-            <div className="p-4 border-b border-[var(--border)]">
+            <div className="p-6 border-b border-[var(--border)] bg-[var(--background)]/50">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-[var(--foreground)]">Настройки</h3>
+                <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
+                  <Settings className="w-6 h-6 text-[var(--primary)]" />
+                  Настройки
+                </h3>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
-                  className="p-1 hover:bg-[var(--muted)] rounded transition-colors"
+                  className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                   title="Закрыть"
                 >
-                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                  <X className="w-6 h-6 text-[var(--muted-foreground)]" />
                 </button>
               </div>
             </div>
-            <div className="p-4 space-y-6">
+            <div className="p-6 space-y-8">
               {/* Ширина изображения */}
               {onImageWidthChange && (
-                <div>
-                  <label className="block text-sm font-medium mb-2">
+                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                  <label className="block text-sm font-medium mb-3">
                     Ширина картинки: {imageWidth}px
                   </label>
                   <input
@@ -337,7 +356,7 @@ export default function ReaderControls({
                     onChange={e => onImageWidthChange(Number(e.target.value))}
                     className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
                   />
-                  <div className="flex justify-between text-xs text-[var(--muted-foreground)] mt-1">
+                  <div className="flex justify-between text-xs text-[var(--muted-foreground)] mt-2">
                     <span>768px</span>
                     <span>1440px</span>
                   </div>
@@ -345,14 +364,14 @@ export default function ReaderControls({
               )}
 
               {/* Скорость автоскролла */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Скорость автоскролла</label>
-                <div className="grid grid-cols-3 gap-2">
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                <label className="block text-sm font-medium mb-3">Скорость автоскролла</label>
+                <div className="grid grid-cols-3 gap-3">
                   {(["slow", "medium", "fast"] as const).map(speed => (
                     <button
                       key={speed}
                       onClick={() => setAutoScrollSpeed(speed)}
-                      className={`px-3 py-2 text-sm rounded transition-colors ${
+                      className={`px-4 py-3 text-sm rounded-xl transition-colors ${
                         autoScrollSpeed === speed
                           ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                           : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
@@ -365,13 +384,13 @@ export default function ReaderControls({
               </div>
 
               {/* Тема */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Тема</label>
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                <label className="block text-sm font-medium mb-3">Тема</label>
                 <ThemeToggleGroup />
               </div>
 
               {/* Переключатель счетчика страниц */}
-              <div>
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -380,22 +399,22 @@ export default function ReaderControls({
                     className="sr-only"
                   />
                   <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
+                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
                       showPageCounter ? "bg-[var(--primary)]" : ""
                     }`}
                   >
                     <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        showPageCounter ? "transform translate-x-5" : ""
+                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                        showPageCounter ? "transform translate-x-7" : ""
                       }`}
                     ></div>
                   </div>
-                  <span className="ml-3 text-sm">Отображать счетчик страниц</span>
+                  <span className="ml-4 text-sm">Отображать счетчик страниц</span>
                 </label>
               </div>
 
               {/* Переключатель скрытия нижнего меню */}
-              <div>
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -404,17 +423,17 @@ export default function ReaderControls({
                     className="sr-only"
                   />
                   <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
+                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
                       hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
                     }`}
                   >
                     <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        hideBottomMenuSetting ? "transform translate-x-5" : ""
+                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                        hideBottomMenuSetting ? "transform translate-x-7" : ""
                       }`}
                     ></div>
                   </div>
-                  <span className="ml-3 text-sm">Скрывать нижнее меню</span>
+                  <span className="ml-4 text-sm">Скрывать нижнее меню</span>
                 </label>
               </div>
             </div>
@@ -422,30 +441,33 @@ export default function ReaderControls({
 
           {/* Мобильная панель */}
           <div
-            className="sm:hidden fixed bottom-0 left-0 right-0 bg-[var(--card)] border-t border-[var(--border)] shadow-lg z-[70] max-h-[70vh] overflow-y-auto"
+            className="sm:hidden fixed bottom-0 left-0 right-0 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] shadow-2xl z-[70] max-h-[70vh] overflow-y-auto rounded-t-3xl"
           >
-            <div className="p-4 border-b border-[var(--border)] sticky top-0 bg-[var(--card)]">
+            <div className="p-5 border-b border-[var(--border)] sticky top-0 bg-[var(--background)]/50 backdrop-blur-sm">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-[var(--foreground)]">Настройки</h3>
+                <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
+                  <Settings className="w-6 h-6 text-[var(--primary)]" />
+                  Настройки
+                </h3>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
-                  className="p-1 hover:bg-[var(--muted)] rounded transition-colors"
+                  className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                   title="Закрыть"
                 >
-                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                  <X className="w-6 h-6 text-[var(--muted-foreground)]" />
                 </button>
               </div>
             </div>
 
-            <div className="p-4 space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">Скорость автоскролла</label>
-                <div className="grid grid-cols-3 gap-2">
+            <div className="p-6 space-y-6">
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                <label className="block text-sm font-medium mb-3">Скорость автоскролла</label>
+                <div className="grid grid-cols-3 gap-3">
                   {(["slow", "medium", "fast"] as const).map(speed => (
                     <button
                       key={speed}
                       onClick={() => setAutoScrollSpeed(speed)}
-                      className={`px-3 py-2 text-sm rounded transition-colors ${
+                      className={`px-4 py-3 text-sm rounded-xl transition-colors ${
                         autoScrollSpeed === speed
                           ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                           : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
@@ -457,12 +479,12 @@ export default function ReaderControls({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Тема</label>
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                <label className="block text-sm font-medium mb-3">Тема</label>
                 <ThemeToggleGroup />
               </div>
 
-              <div>
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -471,21 +493,21 @@ export default function ReaderControls({
                     className="sr-only"
                   />
                   <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
+                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
                       showPageCounter ? "bg-[var(--primary)]" : ""
                     }`}
                   >
                     <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        showPageCounter ? "transform translate-x-5" : ""
+                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                        showPageCounter ? "transform translate-x-7" : ""
                       }`}
                     ></div>
                   </div>
-                  <span className="ml-3 text-sm">Отображать счетчик страниц</span>
+                  <span className="ml-4 text-sm">Отображать счетчик страниц</span>
                 </label>
               </div>
 
-              <div>
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -494,17 +516,17 @@ export default function ReaderControls({
                     className="sr-only"
                   />
                   <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
+                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
                       hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
                     }`}
                   >
                     <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        hideBottomMenuSetting ? "transform translate-x-5" : ""
+                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                        hideBottomMenuSetting ? "transform translate-x-7" : ""
                       }`}
                     ></div>
                   </div>
-                  <span className="ml-3 text-sm">Скрывать нижнее меню</span>
+                  <span className="ml-4 text-sm">Скрывать нижнее меню</span>
                 </label>
               </div>
             </div>
@@ -796,7 +818,7 @@ export default function ReaderControls({
           </div>
           
           {/* Список глав */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div ref={chapterListRef} className="flex-1 overflow-y-auto p-2 space-y-1">
             {filteredChapters.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="w-16 h-16 bg-[var(--muted)] rounded-full flex items-center justify-center mb-4">
@@ -809,6 +831,7 @@ export default function ReaderControls({
               filteredChapters.map(chapter => (
                 <button
                   key={chapter._id}
+                  ref={chapter._id === currentChapter._id ? currentChapterRef : null}
                   onClick={() => {
                     onChapterSelect(chapter._id);
                     setIsMenuOpen(false);
@@ -892,21 +915,21 @@ export default function ReaderControls({
           />
 
           {/* Боковая панель комментариев (десктоп) */}
-          <div className="hidden sm:block fixed right-14 top-1/2 -translate-y-1/2 w-96 max-h-[80vh] bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-[60] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
-              <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-[var(--primary)]" />
+          <div className="hidden sm:block fixed right-20 top-1/2 -translate-y-1/2 w-[420px] max-h-[85vh] bg-[var(--card)]/95 backdrop-blur-md border border-[var(--border)] rounded-3xl shadow-2xl z-[60] overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--background)]/50">
+              <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
+                <MessageCircle className="w-6 h-6 text-[var(--primary)]" />
                 Комментарии к главе
               </h3>
               <button
                 onClick={() => setIsCommentsOpen(false)}
-                className="p-1 hover:bg-[var(--muted)] rounded transition-colors"
+                className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 title="Закрыть"
               >
-                <X className="w-4 h-4 text-[var(--muted-foreground)]" />
+                <X className="w-6 h-6 text-[var(--muted-foreground)]" />
               </button>
             </div>
-            <div className="overflow-y-auto max-h-[calc(80vh-60px)] p-4">
+            <div className="overflow-y-auto max-h-[calc(85vh-80px)] p-5">
               <CommentsSection
                 entityType={CommentEntityType.CHAPTER}
                 entityId={currentChapter._id}
@@ -915,21 +938,21 @@ export default function ReaderControls({
           </div>
 
           {/* Мобильная панель комментариев */}
-          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)] border-t border-[var(--border)] shadow-lg max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
-              <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-[var(--primary)]" />
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl">
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--background)]/50 backdrop-blur-sm">
+              <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
+                <MessageCircle className="w-6 h-6 text-[var(--primary)]" />
                 Комментарии к главе
               </h3>
               <button
                 onClick={() => setIsCommentsOpen(false)}
-                className="p-1 hover:bg-[var(--muted)] rounded transition-colors"
+                className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 title="Закрыть"
               >
-                <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                <X className="w-6 h-6 text-[var(--muted-foreground)]" />
               </button>
             </div>
-            <div className="overflow-y-auto flex-1 p-4">
+            <div className="overflow-y-auto flex-1 p-5">
               <CommentsSection
                 entityType={CommentEntityType.CHAPTER}
                 entityId={currentChapter._id}
