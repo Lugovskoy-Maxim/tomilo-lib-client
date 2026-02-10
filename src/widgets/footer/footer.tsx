@@ -131,7 +131,7 @@ export default function Footer() {
                 <Copyright className="w-4 h-4 sm:w-4 sm:h-4" />
                 <span>2025 - {currentYear} «Tomilo-lib.ru»</span>
               </div>
-              <div className="text-xs bg-gradient-to-r from-[var(--primary)]/10 to-[var(--chart-1)]/10 px-3 py-1.5 rounded-full border border-[var(--border)]/50 whitespace-nowrap text-[var(--muted-foreground)]">
+              <div className="text-xs bg-gradient-to-r from-[var(--primary)]/10 to-[var(--chart-1)]/10 px-3 py-1.5 rounded-xl border border-[var(--border)]/50 whitespace-nowrap text-[var(--muted-foreground)]">
                 Версия 09022026
               </div>
             </div>
@@ -140,60 +140,60 @@ export default function Footer() {
       </div>
       {/* Мобильный футер */}
       <div
-        className={`fixed bottom-3 left-1/2 transform -translate-x-1/2 max-w-[380px] w-[calc(100%-24px)] sm:w-auto rounded-2xl bg-[var(--background)]/95 border border-[var(--border)]/60 shadow-2xl z-50 backdrop-blur-xl lg:hidden transition-all duration-300 ${
+        className={`fixed bottom-3 left-1/2 transform -translate-x-1/2 max-w-[380px] w-max sm:w-auto rounded-2xl bg-[var(--card)]/95 border border-[var(--border)] shadow-2xl z-50 backdrop-blur-xl lg:hidden transition-all duration-300 ${
           isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"
         }`}
       >
-        <div className="flex items-center justify-around p-2 rounded-2xl">
+        <div className="flex items-center justify-center gap-5 xs:gap-5 px-3 py-2 rounded-xl"> 
           <Link
             href="/titles"
-            className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item"
+            className="flex flex-col items-center justify-center min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95"
             aria-label="Каталог"
           >
-            <Library className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">Каталог</span>
+            <Library className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
+            {/* <span className="text-[10px] xs:text-xs text-[var(--muted-foreground)] mt-0.5">Каталог</span> */}
           </Link>
           <Link
             href="/notifications"
-            className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item"
+            className="flex flex-col items-center justify-center min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95"
             aria-label="Уведомления"
           >
-            <Bell className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">Увед.</span>
+            <Bell className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
+            {/* <span className="text-[10px] xs:text-xs text-[var(--muted-foreground)] mt-0.5">Увед.</span> */}
           </Link>
 
           <Link
             href="/"
-            className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item active"
+            className="flex flex-col items-center justify-center min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95"
             aria-label="Главная страница"
           >
-            <Home className="w-5 h-5" />
-            <span className="text-xs mt-1">Главная</span>
+            <Home className="w-4 h-4 xs:w-5 xs:h-5" />
+            {/* <span className="text-[10px] xs:text-xs mt-0.5">Главная</span> */}
           </Link>
 
           <Link
             href="/bookmarks"
-            className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item"
+            className="flex flex-col items-center justify-center min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95"
             aria-label="Закладки"
           >
-            <Bookmark className="w-5 h-5 text-[var(--muted-foreground)]" />
-            <span className="text-xs text-[var(--muted-foreground)] mt-1">Закладки</span>
+            <Bookmark className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
+            {/* <span className="text-[10px] xs:text-xs text-[var(--muted-foreground)] mt-0.5">Закладки</span> */}
           </Link>
 
           <div className="relative">
             <button
               onClick={toggleDropdown}
-              className="flex flex-col items-center justify-center p-3 rounded-xl mobile-nav-item"
+              className="flex flex-col items-center justify-center min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95"
               aria-label="Меню"
             >
-              <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
-              <span className="text-xs text-[var(--muted-foreground)] mt-1">Меню</span>
+              <MoreVertical className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
+              {/* <span className="text-[10px] xs:text-xs text-[var(--muted-foreground)] mt-0.5">Меню</span> */}
             </button>
 
             {/* Выпадающее меню */}
             {isDropdownOpen && (
               <>
-                <div className="absolute right-0 bottom-20 mb-3 w-56 dropdown-modern animate-fade-in-scale z-50">
+                <div className="absolute right-0 bottom-12 mb-3 w-56 dropdown-modern animate-fade-in-scale z-50">
                   <div className="py-2">
                     <Link
                       href="/about"

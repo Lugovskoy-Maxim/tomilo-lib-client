@@ -432,10 +432,20 @@ body {
   opacity: 0.5;
 }
 
-/* Mobile nav modern */
+/* Mobile nav modern - ReaderControls style */
 .mobile-nav-item {
   position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mobile-nav-item::before {
@@ -445,7 +455,7 @@ body {
   border-radius: inherit;
   background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--chart-1-rgb), 0.15) 100%);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .mobile-nav-item:hover::before {
@@ -453,12 +463,64 @@ body {
 }
 
 .mobile-nav-item:hover {
-  transform: translateY(-2px);
+  transform: scale(1.1);
+  background: var(--accent);
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.95);
 }
 
 .mobile-nav-item.active {
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.2) 0%, rgba(var(--chart-1-rgb), 0.2) 100%);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--chart-1-rgb), 0.1) 100%);
+  border-color: rgba(var(--primary-rgb), 0.3);
   color: var(--primary);
+}
+
+/* Mobile footer button - ReaderControls inspired */
+.mobile-footer-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-footer-btn:hover {
+  transform: scale(1.1);
+  background: var(--accent);
+}
+
+.mobile-footer-btn:active {
+  transform: scale(0.95);
+}
+
+.mobile-footer-btn.active {
+  background: rgba(var(--primary-rgb), 0.1);
+  border-color: rgba(var(--primary-rgb), 0.3);
+  color: var(--primary);
+}
+
+.mobile-footer-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary), 0 0 0 4px var(--background);
+}
+
+@media (min-width: 480px) {
+  .mobile-nav-item,
+  .mobile-footer-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 /* ============================================
