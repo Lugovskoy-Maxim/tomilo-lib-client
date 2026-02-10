@@ -64,7 +64,7 @@ export default function MobileCover({
       )}
 
       {/* Мобильные кнопки действий */}
-      <div className="flex justify-center gap-2 mt-4 rounded-full">
+      <div className="flex justify-center gap-2 mt-4 rounded-xl">
         <ReadButton
           titleData={titleData}
           chapters={chapters}
@@ -74,14 +74,14 @@ export default function MobileCover({
         <BookmarkButton titleId={titleData._id as string} initialBookmarked={false} />
         <button
           onClick={() => setIsReportModalOpen(true)}
-          className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
+          className="p-4 bg-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/80 transition-colors"
           aria-label="Сообщить о проблеме"
         >
           <AlertTriangle className="w-4 h-4 text-[var(--foreground)]" />
         </button>
         <button
           onClick={onShare}
-          className="p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
+          className="p-4 bg-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/80 transition-colors"
           aria-label="Поделиться"
         >
           <Share className="w-4 h-4 text-[var(--foreground)]" />
@@ -89,7 +89,7 @@ export default function MobileCover({
         {isAdmin && (
           <Link
             href={`/admin/titles/${titleData._id}/edit`}
-            className="p-3 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors"
+            className="p-3 bg-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/80 transition-colors"
             aria-label="Редактировать"
           >
             <Edit className="w-5 h-5 text-[var(--foreground)]" />

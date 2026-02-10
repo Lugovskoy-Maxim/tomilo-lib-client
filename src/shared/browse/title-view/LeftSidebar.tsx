@@ -101,7 +101,7 @@ export function LeftSidebar({
               window.dispatchEvent(event);
             }
           }}
-          className="flex items-center justify-center gap-2 lg:p-1 p-4 rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer relative z-10"
+          className="flex items-center justify-center gap-2 lg:p-1 p-4 rounded-xl hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer relative z-10"
           aria-label="Сообщить о проблеме"
         >
           <AlertTriangle className="w-4 h-4 text-[var(--foreground)]" />
@@ -109,7 +109,7 @@ export function LeftSidebar({
         </button>
         <button
           onClick={onShare}
-          className="flex items-center justify-center gap-2 lg:p-1 p-4 rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer"
+          className="flex items-center justify-center gap-2 lg:p-1 p-4 rounded-xl hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer"
           aria-label="Поделиться"
         >
           <Share className="w-4 h-4 text-[var(--foreground)]" />
@@ -118,7 +118,7 @@ export function LeftSidebar({
         {isAdmin && (
           <button
             onClick={() => router.push(`/admin/titles/edit/${titleData._id}`)}
-            className="flex items-center justify-center gap-2 lg:p-1 p-4 rounded-full hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-2 lg:p-1 p-4 rounded-xl hover:bg-[var(--secondary)]/80 transition-colors cursor-pointer"
             aria-label="Редактировать"
           >
             <Edit className="w-4 h-4 text-[var(--foreground)]" />

@@ -80,7 +80,7 @@ export function BookmarkButton({
     <button
       onClick={handleBookmarkToggle}
       disabled={isLoading}
-      className={`flex justify-center items-center gap-2 cursor-pointer lg:p-1 p-4 bg-[var(--secondary)] rounded-full hover:bg-[var(--secondary)]/80 transition-colors ${
+      className={`flex justify-center items-center gap-2 cursor-pointer lg:p-1 p-4 bg-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/80 transition-colors ${
         displayIsBookmarked
           ? "bg-[var(--primary)] border-[var(--primary)] text-[var(--chart-1)]"
           : "bg-[var(--secondary)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
