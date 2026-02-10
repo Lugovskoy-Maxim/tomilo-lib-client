@@ -485,7 +485,8 @@ export function RightContent({
                 return (
                   <div
                     key={chapter._id}
-                    className="group flex items-center gap-3 p-3 bg-[var(--secondary)]/30 backdrop-blur-sm rounded-xl border border-[var(--border)]/20 hover:bg-[var(--secondary)]/60 hover:border-[var(--chart-1)]/20 hover:shadow-lg hover:shadow-[var(--chart-1)]/5 transition-all duration-300"
+                    onClick={() => router.push(getChapterPathCallback(chapter._id))}
+                    className="group flex items-center gap-3 p-3 bg-[var(--secondary)]/30 backdrop-blur-sm rounded-xl border border-[var(--border)]/20 hover:bg-[var(--secondary)]/60 hover:border-[var(--chart-1)]/20 hover:shadow-lg hover:shadow-[var(--chart-1)]/5 transition-all duration-300 cursor-pointer"
                     style={{ animationDelay: `${index * 30}ms` }}
                   >
                     {/* Иконка статуса прочтения */}
@@ -493,10 +494,19 @@ export function RightContent({
                       className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--background)]/50 flex-shrink-0"
                       onMouseEnter={() => setHoveredChapterId(chapter._id || null)}
                       onMouseLeave={() => setHoveredChapterId(null)}
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (read && hoveredChapterId === chapter._id) {
+                          handleRemoveFromHistory(chapter._id || "", e);
+                        }
+                      }}
                     >
-                      {read && isHovered ? (
+                      {read && hoveredChapterId === chapter._id ? (
                         <button
-                          onClick={e => handleRemoveFromHistory(chapter._id || "", e)}
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleRemoveFromHistory(chapter._id || "", e);
+                          }}
                           disabled={isRemoving}
                           className={`flex items-center justify-center transition-all duration-200 hover:scale-110 ${
                             isRemoving
@@ -544,16 +554,6 @@ export function RightContent({
                         </span>
                       </div>
                     </div>
-
-                    {/* Кнопка чтения */}
-                    <button
-                      onClick={() => router.push(getChapterPathCallback(chapter._id))}
-                      className="flex items-center gap-2 px-4 py-2 bg-[var(--chart-1)]/10 text-[var(--chart-1)] rounded-lg hover:bg-[var(--chart-1)] hover:text-white transition-all duration-300 group/btn"
-                      aria-label="Читать главу"
-                    >
-                      <Play className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
-                      <span className="hidden sm:inline text-sm font-medium">Читать</span>
-                    </button>
                   </div>
                 );
               })}
