@@ -277,121 +277,132 @@ export function RightContent({
     switch (activeTab) {
       case "main":
         return (
-          <div className="bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl p-4 space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-bold mb-6 text-[var(--foreground)]">
-                Основная информация
-              </h2>
-            </div>
-
-            <div className="text-center py-2 border-b border-[var(--border)]">
-              <p className="text-[var(--foreground)]/60">
-                Последнее обновление{" "}
-                {titleData?.updatedAt ? timeAgo(titleData.updatedAt) : "неизвестно"}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[var(--primary)]/80">
-                  {titleData?.createdAt ? new Date(titleData.createdAt).toLocaleDateString() : 0}
-                </div>
-                <div className="text-sm text-[var(--foreground)]/60">Дата загрузки на сайте</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[var(--primary)]/80">
-                  {titleData?.totalChapters}
-                </div>
-                <div className="text-sm text-[var(--foreground)]/60">
-                  Загружено:{" "}
-                  {titleData?.totalChapters === 1
-                    ? " глава"
-                    : titleData?.totalChapters > 1 && titleData?.totalChapters < 5
-                      ? " главы"
-                      : " глав"}
-                </div>
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {/* Карточка с датой обновления */}
+            <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/50 transition-colors">
+              <div className="flex items-center justify-center gap-2 text-[var(--foreground)]/70">
+                <Calendar className="w-4 h-4 text-[var(--chart-1)]" />
+                <span className="text-sm">Последнее обновление:</span>
+                <span className="font-medium text-[var(--foreground)]">
+                  {titleData?.updatedAt ? timeAgo(titleData.updatedAt) : "неизвестно"}
+                </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[var(--primary)]/80">
-                  {titleData?.author ? titleData.author : "Нет доступных данных"}
+            {/* Сетка информационных карточек */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/60 hover:scale-[1.02] transition-all duration-300 group">
+                <div className="flex items-center gap-2 mb-2 text-[var(--chart-1)]">
+                  <Calendar className="w-4 h-4" />
+                  <span className="text-xs uppercase tracking-wider font-medium">Загружено</span>
                 </div>
-                <div className="text-sm text-[var(--foreground)]/60">Автор</div>
+                <div className="text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors">
+                  {titleData?.createdAt ? new Date(titleData.createdAt).toLocaleDateString() : "—"}
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[var(--primary)]/80">
-                  {titleData?.artist ? titleData.artist : "Нет доступных данных"}
+
+              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/60 hover:scale-[1.02] transition-all duration-300 group">
+                <div className="flex items-center gap-2 mb-2 text-[var(--chart-1)]">
+                  <BookOpen className="w-4 h-4" />
+                  <span className="text-xs uppercase tracking-wider font-medium">Глав</span>
                 </div>
-                <div className="text-sm text-[var(--foreground)]/60">Художник(и)</div>
+                <div className="text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors">
+                  {titleData?.totalChapters || 0}
+                </div>
+              </div>
+
+              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/60 hover:scale-[1.02] transition-all duration-300 group">
+                <div className="flex items-center gap-2 mb-2 text-[var(--chart-1)]">
+                  <Star className="w-4 h-4" />
+                  <span className="text-xs uppercase tracking-wider font-medium">Автор</span>
+                </div>
+                <div className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors line-clamp-1">
+                  {titleData?.author || "Неизвестно"}
+                </div>
+              </div>
+
+              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/60 hover:scale-[1.02] transition-all duration-300 group">
+                <div className="flex items-center gap-2 mb-2 text-[var(--chart-1)]">
+                  <Eye className="w-4 h-4" />
+                  <span className="text-xs uppercase tracking-wider font-medium">Художник</span>
+                </div>
+                <div className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors line-clamp-1">
+                  {titleData?.artist || "Неизвестно"}
+                </div>
               </div>
             </div>
 
-            <div className="text-center">
-              <div className="text-sm text-[var(--foreground)]/60 mb-2">
-                Альтернативные названия:
+            {/* Альтернативные названия */}
+            {titleData?.altNames && titleData.altNames.length > 0 && (
+              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30">
+                <div className="flex items-center gap-2 mb-3 text-[var(--chart-1)]">
+                  <BookOpen className="w-4 h-4" />
+                  <span className="text-xs uppercase tracking-wider font-medium">Альтернативные названия</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {titleData.altNames.map((name, idx) => (
+                    <span 
+                      key={idx} 
+                      className="text-sm text-[var(--foreground)]/80 bg-[var(--background)]/50 px-3 py-1.5 rounded-full"
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="text-lg font-normal text-[var(--primary)]/80">
-                {titleData?.altNames ? titleData.altNames.join(", ") : "Нет доступных данных"}
-              </div>
-            </div>
+            )}
 
-            <div className="border-t border-[var(--border)] pt-6">
-              <div className="text-center mb-6">
-                <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
-                  Статистика тайтла
-                </h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-[var(--foreground)]">
-                      {titleData?.views || 0}
-                    </div>
-                    <div className="text-sm text-[var(--foreground)]/60">Просмотров</div>
+            {/* Статистика */}
+            <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30">
+              <div className="flex items-center gap-2 mb-4 text-[var(--chart-1)]">
+                <Eye className="w-4 h-4" />
+                <span className="text-xs uppercase tracking-wider font-medium">Статистика</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="text-center p-3 bg-[var(--background)]/30 rounded-xl">
+                  <div className="text-2xl font-bold text-[var(--chart-1)] mb-1">
+                    {titleData?.views?.toLocaleString() || 0}
                   </div>
-                  <div className="text-center mb-4">
-                    <div className="text-xl font-bold text-[var(--foreground)]">{totalRatings}</div>
-                    <div className="text-sm text-[var(--foreground)]/60">Всего оценок</div>
+                  <div className="text-xs text-[var(--foreground)]/60">Просмотров</div>
+                </div>
+                <div className="text-center p-3 bg-[var(--background)]/30 rounded-xl">
+                  <div className="text-2xl font-bold text-[var(--chart-1)] mb-1">
+                    {totalRatings.toLocaleString()}
                   </div>
+                  <div className="text-xs text-[var(--foreground)]/60">Оценок</div>
                 </div>
               </div>
 
-              {totalRatings > 0 && (
-                <div>
-                  {ratingStats.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-md font-semibold text-[var(--foreground)] text-center mb-4">
-                        Распределение оценок
-                      </h4>
-                      <div className="space-y-3">
-                        {ratingStats.map(stat => (
+              {totalRatings > 0 && ratingStats.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-xs text-[var(--foreground)]/60 mb-2">Распределение оценок:</div>
+                  <div className="space-y-2">
+                    {ratingStats.slice(0, 5).map(stat => (
+                      <div
+                        key={stat.rating}
+                        className="flex items-center gap-3"
+                      >
+                        <div className="flex items-center gap-1.5 w-12">
+                          <span className="text-sm font-bold text-[var(--foreground)]">
+                            {stat.rating}
+                          </span>
+                          <Star className="w-3.5 h-3.5 text-[var(--chart-1)] fill-[var(--chart-1)]" />
+                        </div>
+
+                        <div className="flex-1 bg-[var(--background)]/50 rounded-full h-2 overflow-hidden">
                           <div
-                            key={stat.rating}
-                            className="flex items-center justify-between gap-3"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-[var(--foreground)] font-medium">
-                                {stat.rating}
-                              </span>
-                              <Star className="w-4 h-4 text-[var(--chart-1)]" />
-                            </div>
-
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              <div className="flex-1 bg-[var(--background)] rounded-full h-2 min-w-[80px]">
-                                <div
-                                  className="bg-[var(--chart-1)] h-2 rounded-full"
-                                  style={{ width: `${stat.percentage}%` }}
-                                />
-                              </div>
-                              <span className="text-[var(--foreground)]/60 whitespace-nowrap text-xs">
-                                {stat.count} ({stat.percentage}%)
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                            className="bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-5)] h-full rounded-full transition-all duration-500"
+                            style={{ width: `${stat.percentage}%` }}
+                          />
+                        </div>
+                        
+                        <span className="text-xs text-[var(--foreground)]/70 w-16 text-right">
+                          {stat.count} <span className="text-[var(--foreground)]/40">({stat.percentage}%)</span>
+                        </span>
                       </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -435,33 +446,38 @@ export function RightContent({
         }
 
         return (
-          <div className="rounded-xl">
-            <div className="flex flex-col justify-between bg-[var(--secondary)]/50 backdrop-blur-sm rounded-xl items-center p-4">
-              <div className="flex w-full flex-col sm:flex-row gap-4">
-                <input
-                  type="text"
-                  placeholder="Поиск глав..."
-                  value={searchQuery}
-                  onChange={e => onSearchChange(e.target.value)}
-                  className="flex-1 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] placeholder-[var(--foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] relative"
-                />
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {/* Панель поиска и сортировки */}
+            <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-3 border border-[var(--border)]/30">
+              <div className="flex w-full flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Поиск по номеру главы..."
+                    value={searchQuery}
+                    onChange={e => onSearchChange(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--background)]/60 border border-[var(--border)]/50 rounded-xl text-[var(--foreground)] placeholder-[var(--foreground)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/50 focus:border-[var(--chart-1)] transition-all"
+                  />
+                  <Eye className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground)]/40" />
+                </div>
 
                 <button
                   onClick={() => onSortChange(sortOrder === "desc" ? "asc" : "desc")}
-                  className="w-[160px] px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                  className="px-4 py-2.5 bg-[var(--background)]/60 border border-[var(--border)]/50 rounded-xl text-[var(--foreground)] hover:bg-[var(--chart-1)]/10 hover:border-[var(--chart-1)]/30 transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap group"
                 >
                   <ArrowUpDown
-                    className={`w-4 h-4 transition-transform duration-300 ${
+                    className={`w-4 h-4 transition-transform duration-300 text-[var(--chart-1)] ${
                       sortOrder === "desc" ? "rotate-0" : "rotate-180"
                     }`}
                   />
-                  {sortOrder === "desc" ? "Сначала новые" : "Сначала старые"}
+                  <span className="text-sm">{sortOrder === "desc" ? "Сначала новые" : "Сначала старые"}</span>
                 </button>
               </div>
             </div>
 
-            <div className="space-y-2 mt-2">
-              {visibleChapters.map(chapter => {
+            {/* Список глав */}
+            <div className="space-y-2">
+              {visibleChapters.map((chapter, index) => {
                 const read = isChapterRead(chapter._id || "");
                 const isHovered = hoveredChapterId === chapter._id;
                 const isRemoving = removingChapterId === chapter._id;
@@ -469,11 +485,12 @@ export function RightContent({
                 return (
                   <div
                     key={chapter._id}
-                    className="flex items-center justify-between gap-2 py-2 px-3 bg-[var(--card)]/50 rounded-full hover:bg-[var(--background)]/70 transition-colors"
+                    className="group flex items-center gap-3 p-3 bg-[var(--secondary)]/30 backdrop-blur-sm rounded-xl border border-[var(--border)]/20 hover:bg-[var(--secondary)]/60 hover:border-[var(--chart-1)]/20 hover:shadow-lg hover:shadow-[var(--chart-1)]/5 transition-all duration-300"
+                    style={{ animationDelay: `${index * 30}ms` }}
                   >
                     {/* Иконка статуса прочтения */}
                     <div
-                      className="flex items-center w-5 h-5 flex-shrink-0"
+                      className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--background)]/50 flex-shrink-0"
                       onMouseEnter={() => setHoveredChapterId(chapter._id || null)}
                       onMouseLeave={() => setHoveredChapterId(null)}
                     >
@@ -481,15 +498,15 @@ export function RightContent({
                         <button
                           onClick={e => handleRemoveFromHistory(chapter._id || "", e)}
                           disabled={isRemoving}
-                          className={`flex items-center justify-center transition-colors hover:text-red-600 ${
+                          className={`flex items-center justify-center transition-all duration-200 hover:scale-110 ${
                             isRemoving
-                              ? "cursor-not-allowed text-[var(--primary)]"
-                              : "text-red-500 cursor-pointer"
+                              ? "cursor-not-allowed text-[var(--foreground)]/30"
+                              : "text-red-500 hover:text-red-600 cursor-pointer"
                           }`}
                           title="Удалить из истории чтения"
                         >
                           {isRemoving ? (
-                            <div className="w-5 h-5" />
+                            <div className="w-5 h-5 border-2 border-[var(--foreground)]/20 border-t-[var(--chart-1)] rounded-full animate-spin" />
                           ) : (
                             <EyeOff className="w-5 h-5" />
                           )}
@@ -497,42 +514,46 @@ export function RightContent({
                       ) : (
                         <Eye
                           className={`w-5 h-5 transition-colors ${
-                            read ? "text-green-500" : "text-gray-400"
+                            read 
+                              ? "text-green-500" 
+                              : "text-[var(--foreground)]/30 group-hover:text-[var(--foreground)]/50"
                           }`}
                         />
                       )}
                     </div>
+
+                    {/* Информация о главе */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-[var(--foreground)] truncate">
+                      <h3 className="font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--chart-1)] transition-colors">
                         {getChapterDisplayName(chapter)}
                       </h3>
-                      <p className="text-xs sm:text-sm text-[var(--foreground)]/60 truncate">
-                        {chapter.createdAt ? new Date(chapter.createdAt).toLocaleDateString() : ""}
-                      </p>
+                      <div className="flex items-center gap-3 text-xs text-[var(--foreground)]/50 mt-0.5">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {chapter.createdAt 
+                            ? new Date(chapter.createdAt).toLocaleDateString('ru-RU', { 
+                                day: 'numeric', 
+                                month: 'short', 
+                                year: 'numeric' 
+                              }) 
+                            : "—"}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          {(chapter.views || 0).toLocaleString()}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex gap-1 sm:gap-2 items-center flex-shrink-0">
-                      <div className="hidden sm:flex gap-1 items-center">
-                        <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-                          Просмотров: {chapter.views || 0}
-                        </span>
-                      </div>
-                      {/* Mobile: only icon with number */}
-                      <div className="sm:hidden flex items-center gap-1">
-                        <Eye className="w-4 h-4 text-[var(--muted-foreground)]" />
-                        <span className="text-xs text-[var(--muted-foreground)]">
-                          {chapter.views || 0}
-                        </span>
-                      </div>
 
-                      <button
-                        onClick={() => router.push(getChapterPathCallback(chapter._id))}
-                        className="p-1.5 sm:px-4 sm:py-2 bg-[var(--chart-1)]/80 cursor-pointer text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)]/80 transition-colors flex items-center justify-center"
-                        aria-label="Читать главу"
-                      >
-                        <Play className="w-4 h-4 sm:hidden" />
-                        <span className="hidden sm:inline text-sm">Читать</span>
-                      </button>
-                    </div>
+                    {/* Кнопка чтения */}
+                    <button
+                      onClick={() => router.push(getChapterPathCallback(chapter._id))}
+                      className="flex items-center gap-2 px-4 py-2 bg-[var(--chart-1)]/10 text-[var(--chart-1)] rounded-lg hover:bg-[var(--chart-1)] hover:text-white transition-all duration-300 group/btn"
+                      aria-label="Читать главу"
+                    >
+                      <Play className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
+                      <span className="hidden sm:inline text-sm font-medium">Читать</span>
+                    </button>
                   </div>
                 );
               })}
