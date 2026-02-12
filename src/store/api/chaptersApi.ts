@@ -213,6 +213,7 @@ export const chaptersApi = createApi({
 
 export const {
   useGetChapterByIdQuery,
+  useLazyGetChapterByIdQuery,
   useGetChaptersByTitleQuery,
   useSearchChaptersQuery,
   useCreateChapterMutation,

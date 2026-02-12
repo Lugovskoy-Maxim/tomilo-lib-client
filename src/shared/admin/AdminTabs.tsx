@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Settings,
   ExternalLink,
+  ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -33,7 +34,8 @@ export type AdminTab =
   | "comments"
   | "users"
   | "reports"
-  | "ip-management";
+  | "ip-management"
+  | "shop";
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -66,7 +68,10 @@ const tabGroups = [
   {
     label: "Система",
     icon: Settings,
-    tabs: [{ id: "ip-management" as AdminTab, label: "IP-управление", icon: Shield }],
+    tabs: [
+      { id: "ip-management" as AdminTab, label: "IP-управление", icon: Shield },
+      { id: "shop" as AdminTab, label: "Магазин", icon: ShoppingBag },
+    ],
   },
 ];
 

@@ -99,6 +99,8 @@ export default function ReaderControls({
   const {
     showPageCounter,
     setShowPageCounter,
+    readChaptersInRow,
+    setReadChaptersInRow,
   } = useReaderSettings();
 
   const {
@@ -308,6 +310,33 @@ export default function ReaderControls({
                 </label>
               </div>
 
+              {/* Чтение глав подряд */}
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={readChaptersInRow}
+                    onChange={() => setReadChaptersInRow(!readChaptersInRow)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                      readChaptersInRow ? "bg-[var(--primary)]" : ""
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                        readChaptersInRow ? "transform translate-x-7" : ""
+                      }`}
+                    ></div>
+                  </div>
+                  <span className="ml-4 text-sm">Чтение глав подряд</span>
+                </label>
+                <p className="text-xs text-[var(--muted-foreground)] mt-2 ml-0">
+                  При прокрутке до конца или начала подгружается следующая/предыдущая глава, адрес обновляется.
+                </p>
+              </div>
+
               {/* Переключатель предзагрузки всех изображений */}
               {onPreloadChange && (
                 <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
@@ -464,6 +493,30 @@ export default function ReaderControls({
                   </div>
                   <span className="ml-4 text-sm">Скрывать нижнее меню</span>
                 </label>
+              </div>
+
+              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={readChaptersInRow}
+                    onChange={() => setReadChaptersInRow(!readChaptersInRow)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                      readChaptersInRow ? "bg-[var(--primary)]" : ""
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                        readChaptersInRow ? "transform translate-x-7" : ""
+                      }`}
+                    ></div>
+                  </div>
+                  <span className="ml-4 text-sm">Чтение глав подряд</span>
+                </label>
+                <p className="text-xs text-[var(--muted-foreground)] mt-2">При прокрутке подгружается следующая/предыдущая глава.</p>
               </div>
 
               {/* Переключатель предзагрузки - мобильная версия */}

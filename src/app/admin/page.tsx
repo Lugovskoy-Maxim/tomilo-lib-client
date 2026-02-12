@@ -12,6 +12,7 @@ import { UsersSection } from "@/shared/admin/UsersSection";
 import { CommentsSection } from "@/shared/admin/CommentsSection";
 import { ReportsSection } from "@/shared/admin/ReportsSection";
 import { IpManagementSection } from "@/shared/admin/IpManagementSection";
+import { ShopManagementSection } from "@/shared/admin/ShopManagementSection";
 import { Header } from "@/widgets";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useState } from "react";
@@ -36,6 +37,7 @@ export default function AdminPage() {
       users: "Пользователи",
       reports: "Жалобы",
       "ip-management": "IP-управление",
+      shop: "Магазин",
     };
     return titles[activeTab] || "Админ-панель";
   };
@@ -72,6 +74,8 @@ export default function AdminPage() {
         return <ReportsSection />;
       case "ip-management":
         return <IpManagementSection />;
+      case "shop":
+        return <ShopManagementSection />;
       default:
         return <OverviewSection onTabChange={setActiveTab} />;
     }

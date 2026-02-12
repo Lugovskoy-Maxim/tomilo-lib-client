@@ -8,10 +8,13 @@ import { ReportModal } from "@/shared/report/ReportModal";
 import { useAuth } from "@/hooks/useAuth";
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
+import { Chapter } from "@/types/title";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
-import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
+import { useIncrementChapterViewsMutation, useLazyGetChapterByIdQuery } from "@/store/api/chaptersApi";
+import { useReaderSettings } from "@/shared/reader/hooks/useReaderSettings";
+import { normalizeAssetUrl } from "@/lib/asset-url";
 
 import {
   saveReadingPosition,
@@ -25,6 +28,18 @@ import {
 import AdBlockReading from "@/shared/ad-block/AdBlockReading";
 import ChapterErrorState from "@/shared/error-state/ChapterErrorState";
 import ReadingPositionRestoreModal from "@/shared/reader/ReadingPositionRestoreModal";
+
+function apiChapterToReaderChapter(ch: Chapter): ReaderChapter {
+  const pages = ch.pages || ch.images || [];
+  return {
+    _id: ch._id,
+    number: Number(ch.chapterNumber) || 0,
+    title: ch.title || "",
+    date: ch.releaseDate || "",
+    views: Number(ch.views) || 0,
+    images: pages.map((p: string) => normalizeAssetUrl(p)),
+  };
+}
 
 export default function ReadChapterPage({
   title,
@@ -40,6 +55,8 @@ export default function ReadChapterPage({
   const router = useRouter();
 
   const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
+  const { readChaptersInRow } = useReaderSettings();
+  const [fetchChapterById] = useLazyGetChapterByIdQuery();
 
   const [incrementChapterViews] = useIncrementChapterViewsMutation();
 
@@ -74,6 +91,24 @@ export default function ReadChapterPage({
   const [forceStopAutoScroll, setForceStopAutoScroll] = useState(false);
   const [preloadAllImages, setPreloadAllImages] = useState(false);
   const [preloadProgress, setPreloadProgress] = useState(0);
+
+  // Чтение глав подряд: загруженные главы (текущая + подгруженные сверху/снизу)
+  const [loadedChapters, setLoadedChapters] = useState<ReaderChapter[]>(() => [chapter]);
+  const [firstLoadedIndex, setFirstLoadedIndex] = useState(currentChapterIndex);
+  const [lastLoadedIndex, setLastLoadedIndex] = useState(currentChapterIndex);
+  const [loadingPrev, setLoadingPrev] = useState(false);
+  const [loadingNext, setLoadingNext] = useState(false);
+  const [visibleChapterId, setVisibleChapterId] = useState<string>(chapterId);
+  const chapterSectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const loadingChapterIdsRef = useRef<Set<string>>(new Set());
+
+  // Синхронизируем loadedChapters при смене главы (напр. по URL)
+  useEffect(() => {
+    setLoadedChapters([chapter]);
+    setFirstLoadedIndex(currentChapterIndex);
+    setLastLoadedIndex(currentChapterIndex);
+    setVisibleChapterId(chapter._id);
+  }, [chapter._id, currentChapterIndex]);
 
   // Сброс флага остановки автопрокрутки через некоторое время после остановки
   useEffect(() => {
@@ -520,7 +555,86 @@ export default function ReadChapterPage({
     };
   }, [chapter.images, debouncedSavePosition, isPositionRestored, savedReadingPage]);
 
+  // Подгрузка предыдущей/следующей главы при чтении подряд
+  const loadPrevChapter = useCallback(async () => {
+    if (!readChaptersInRow || firstLoadedIndex <= 0 || loadingPrev) return;
+    const prevId = chapters[firstLoadedIndex - 1]?._id;
+    if (!prevId || loadingChapterIdsRef.current.has(prevId)) return;
+    loadingChapterIdsRef.current.add(prevId);
+    setLoadingPrev(true);
+    try {
+      const result = await fetchChapterById(prevId).unwrap();
+      const readerCh = apiChapterToReaderChapter(result);
+      setLoadedChapters(prev => [readerCh, ...prev]);
+      setFirstLoadedIndex(i => i - 1);
+      // Сохраняем позицию прокрутки: после вставки сверху контент сдвигается вниз
+      requestAnimationFrame(() => {
+        const el = chapterSectionRefs.current.get(prevId);
+        if (el) window.scrollBy(0, el.getBoundingClientRect().height + 24);
+      });
+    } finally {
+      setLoadingPrev(false);
+      loadingChapterIdsRef.current.delete(prevId);
+    }
+  }, [readChaptersInRow, firstLoadedIndex, loadingPrev, chapters, fetchChapterById]);
+
+  const loadNextChapter = useCallback(async () => {
+    if (!readChaptersInRow || lastLoadedIndex >= chapters.length - 1 || loadingNext) return;
+    const nextId = chapters[lastLoadedIndex + 1]?._id;
+    if (!nextId || loadingChapterIdsRef.current.has(nextId)) return;
+    loadingChapterIdsRef.current.add(nextId);
+    setLoadingNext(true);
+    try {
+      const result = await fetchChapterById(nextId).unwrap();
+      const readerCh = apiChapterToReaderChapter(result);
+      setLoadedChapters(prev => [...prev, readerCh]);
+      setLastLoadedIndex(i => i + 1);
+    } finally {
+      setLoadingNext(false);
+      loadingChapterIdsRef.current.delete(nextId);
+    }
+  }, [readChaptersInRow, lastLoadedIndex, chapters.length, loadingNext, chapters, fetchChapterById]);
+
+  useEffect(() => {
+    if (!readChaptersInRow) return;
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const winH = window.innerHeight;
+      const docH = document.documentElement.scrollHeight;
+      if (scrollTop < 300) loadPrevChapter();
+      if (docH - scrollTop - winH < 400) loadNextChapter();
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [readChaptersInRow, loadPrevChapter, loadNextChapter]);
+
+  // Обновление URL при смене видимой главы (чтение подряд)
+  useEffect(() => {
+    if (!readChaptersInRow || loadedChapters.length === 0) return;
+    const observer = new IntersectionObserver(
+      entries => {
+        const visible = entries.filter(e => e.isIntersecting);
+        if (visible.length === 0) return;
+        const byRatio = visible.sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
+        const id = byRatio[0]?.target.getAttribute("data-chapter-id");
+        if (id && id !== visibleChapterId) {
+          setVisibleChapterId(id);
+          const path = slug ? `/titles/${slug}/chapter/${id}` : `/titles/${titleId}/chapter/${id}`;
+          window.history.replaceState(null, "", path);
+        }
+      },
+      { root: null, rootMargin: "0px", threshold: [0.1, 0.2, 0.5, 0.8] },
+    );
+    chapterSectionRefs.current.forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, [readChaptersInRow, loadedChapters.length, visibleChapterId, slug, titleId]);
+
   const loading = !chapter;
+
+  // В режиме «главы подряд» текущая для хедера/контролов — видимая глава
+  const effectiveChapter = readChaptersInRow
+    ? (loadedChapters.find(c => c._id === visibleChapterId) ?? chapter)
+    : chapter;
 
   if (loading) {
     return (
@@ -573,10 +687,10 @@ export default function ReadChapterPage({
 
       {/* Меню управления */}
       <ReaderControls
-        key={chapter._id}
-        currentChapter={chapter}
+        key={effectiveChapter._id}
+        currentChapter={effectiveChapter}
         currentPage={currentPage}
-        chapterImageLength={chapter.images.length}
+        chapterImageLength={effectiveChapter.images.length}
         chapters={chapters}
         onChapterSelect={chapterId => router.push(getChapterPath(chapterId))}
         onPrev={() => {
@@ -621,11 +735,11 @@ export default function ReadChapterPage({
       {/* Хедер */}
       <NavigationHeader
         title={title}
-        chapter={chapter}
+        chapter={effectiveChapter}
         currentImageIndex={currentPage - 1}
         showControls={isHeaderVisible}
         onImageIndexChange={() => {}}
-        imagesCount={chapter.images.length}
+        imagesCount={effectiveChapter.images.length}
         onReportError={() => setIsReportModalOpen(true)}
         onChapterMenuOpen={() => {
           // Открываем меню выбора главы через ReaderControls
@@ -650,12 +764,97 @@ export default function ReadChapterPage({
         canGoNext={currentChapterIndex < chapters.length - 1}
       />
 
-      {/* Основной контент - ТОЛЬКО ОДНА ГЛАВА */}
+      {/* Основной контент */}
       <main
         className={`pt-20 sm:pt-16 ${isMenuCollapsed ? "pb-0" : "pb-16"}`}
         onClick={handleMobileTap}
       >
         <div className="container mx-auto">
+          {readChaptersInRow ? (
+            <>
+              {loadingPrev && (
+                <div className="py-8 text-center text-[var(--muted-foreground)]">
+                  Загрузка предыдущей главы…
+                </div>
+              )}
+              {loadedChapters.map(ch => (
+                <div
+                  key={ch._id}
+                  ref={el => {
+                    if (el) chapterSectionRefs.current.set(ch._id, el);
+                  }}
+                  data-chapter-id={ch._id}
+                  className="chapter-container"
+                >
+                  <div className="py-3 sm:py-2 text-center border-b border-[var(--border)] mb-3 sm:mb-2 px-4 sm:px-0">
+                    <h2 className="text-lg sm:text-xl font-semibold leading-tight">
+                      Глава {ch.number}
+                      {ch.title && ` - ${ch.title}`}
+                    </h2>
+                  </div>
+                  {ch.images.map((src, imageIndex) => {
+                    const errorKey = `${ch._id}-${imageIndex}`;
+                    const isError = imageLoadErrors.has(errorKey);
+                    const imageUrl = getImageUrl(src);
+                    return (
+                      <div key={`${ch._id}-${imageIndex}`} className="flex justify-center">
+                        <div
+                          className="relative w-full flex justify-center px-0 sm:px-4"
+                          data-page={imageIndex + 1}
+                          style={{
+                            maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                          }}
+                        >
+                          {!isError ? (
+                            <Image
+                              key={`${ch._id}-${imageIndex}-${imageWidth}`}
+                              loader={imageLoader}
+                              src={src}
+                              alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
+                              width={isMobile ? 800 : imageWidth}
+                              height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                              className="w-full h-auto shadow-lg sm:shadow-2xl"
+                              quality={85}
+                              loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
+                              onError={() => handleImageError(ch._id, imageIndex)}
+                              priority={imageIndex < (isMobile ? 3 : 1)}
+                            />
+                          ) : (
+                            <div className="w-full min-h-[200px] sm:h-64 bg-[var(--card)] flex items-center justify-center px-4">
+                              <div className="text-center">
+                                <div className="text-[var(--destructive)] mb-3 text-sm sm:text-base">
+                                  Ошибка загрузки изображения
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setImageLoadErrors(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.delete(errorKey);
+                                      return newSet;
+                                    });
+                                  }}
+                                  className="px-4 py-3 sm:py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded-lg sm:rounded transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
+                                >
+                                  Повторить загрузку
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {ch._id === loadedChapters[loadedChapters.length - 1]?._id && <AdBlockReading />}
+                </div>
+              ))}
+              {loadingNext && (
+                <div className="py-8 text-center text-[var(--muted-foreground)]">
+                  Загрузка следующей главы…
+                </div>
+              )}
+            </>
+          ) : (
+          <>
           <div className=" chapter-container">
             {/* Заголовок главы */}
             <div className="py-3 sm:py-2 text-center border-b border-[var(--border)] mb-3 sm:mb-2 px-4 sm:px-0">
@@ -816,6 +1015,8 @@ export default function ReadChapterPage({
               </button>
             </div>
           )}
+          </>
+          )}
         </div>
       </main>
 
@@ -832,8 +1033,8 @@ export default function ReadChapterPage({
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         entityType="chapter"
-        entityId={chapterId}
-        entityTitle={`Глава ${chapter.number}${chapter.title ? ` - ${chapter.title}` : ""}`}
+        entityId={effectiveChapter._id}
+        entityTitle={`Глава ${effectiveChapter.number}${effectiveChapter.title ? ` - ${effectiveChapter.title}` : ""}`}
         titleId={title._id}
         creatorId={title.creatorId}
       />

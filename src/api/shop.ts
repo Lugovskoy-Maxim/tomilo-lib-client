@@ -88,3 +88,65 @@ export const unequipDecoration = async (
   });
   return response.json();
 };
+
+// --- Admin API (requires admin role) ---
+
+export type DecorationType = "avatar" | "background" | "card";
+
+export interface CreateDecorationDto {
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  type: DecorationType;
+}
+
+export interface UpdateDecorationDto {
+  name?: string;
+  description?: string;
+  price?: number;
+  imageUrl?: string;
+  type?: DecorationType;
+}
+
+export const createDecoration = async (
+  dto: CreateDecorationDto,
+): Promise<ApiResponse<Decoration>> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
+  const response = await fetch(`${baseUrlAPI}/shop/admin/decorations`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(dto),
+  });
+  return response.json();
+};
+
+export const updateDecoration = async (
+  id: string,
+  dto: UpdateDecorationDto,
+): Promise<ApiResponse<Decoration>> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
+  const response = await fetch(`${baseUrlAPI}/shop/admin/decorations/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(dto),
+  });
+  return response.json();
+};
+
+export const deleteDecoration = async (id: string): Promise<ApiResponse<{ message: string }>> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
+  const response = await fetch(`${baseUrlAPI}/shop/admin/decorations/${id}`, {
+    method: "DELETE",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  return response.json();
+};

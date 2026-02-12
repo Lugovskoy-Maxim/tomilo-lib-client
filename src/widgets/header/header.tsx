@@ -14,6 +14,7 @@ import {
   Mail,
   Bookmark,
   Bell,
+  ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
 import ContactForm from "@/widgets/contact-form/ContactForm";
@@ -106,6 +107,14 @@ export default function Header() {
                     >
                       <Mail className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
                       Контакты
+                    </Link>
+                    <Link
+                      href="/tomilo-shop"
+                      onClick={closeDropdown}
+                      className="flex items-center px-4 py-2.5 text-sm text-[var(--foreground)] dropdown-item-modern"
+                    >
+                      <ShoppingBag className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
+                      Магазин
                     </Link>
                   </div>
                 </div>

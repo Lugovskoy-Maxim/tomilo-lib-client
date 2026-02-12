@@ -3,12 +3,17 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MobileFilterButton, SortAndSearch, TitleGrid, FilterSidebar } from "@/shared";
+import ActiveFilterChips from "@/shared/browse/ActiveFilterChips";
+import FilterQuickBar from "@/shared/browse/FilterQuickBar";
 import { Filters } from "@/types/browse-page";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { Loader2, BookOpen, AlertCircle, ChevronDown } from "lucide-react";
+
+const CATALOG_CACHE_KEY = "titles-catalog-state";
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 минут
 
 interface GridTitle {
   id: string;
@@ -20,6 +25,20 @@ interface GridTitle {
   image?: string;
   genres: string[];
   isAdult?: boolean;
+}
+
+function buildFiltersKey(filters: Filters): string {
+  return [
+    filters.search,
+    [...filters.genres].sort().join(","),
+    [...filters.types].sort().join(","),
+    [...filters.status].sort().join(","),
+    [...filters.ageLimits].sort().join(","),
+    [...filters.releaseYears].sort().join(","),
+    [...filters.tags].sort().join(","),
+    filters.sortBy,
+    filters.sortOrder,
+  ].join("|");
 }
 
 export default function TitlesContent() {
@@ -57,6 +76,40 @@ export default function TitlesContent() {
   const [loadMorePage, setLoadMorePage] = useState(1);
   const [limit, setLimit] = useState(15); // Default to desktop
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [restoredFromCache, setRestoredFromCache] = useState(false);
+  const [cachedTotal, setCachedTotal] = useState<{ total: number; totalPages: number } | null>(null);
+  const scrollRestoreRef = useRef<number | null>(null);
+
+  // Восстановление из sessionStorage при монтировании
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const cached = sessionStorage.getItem(CATALOG_CACHE_KEY);
+      if (!cached) return;
+      const parsed = JSON.parse(cached);
+      const { filtersKey, allTitles: cachedTitles, loadMorePage: cachedPage, scrollY, timestamp, total, totalPages } = parsed;
+      const currentKey = buildFiltersKey(appliedFilters);
+      if (filtersKey === currentKey && cachedTitles?.length > 0 && Date.now() - timestamp < CACHE_TTL_MS) {
+        setAllTitles(cachedTitles);
+        setLoadMorePage(cachedPage);
+        setCachedTotal(total != null && totalPages != null ? { total, totalPages } : null);
+        setRestoredFromCache(true);
+        if (typeof scrollY === "number") scrollRestoreRef.current = scrollY;
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- только при монтировании
+
+  // Восстановление скролла после рендера
+  useEffect(() => {
+    if (scrollRestoreRef.current !== null && restoredFromCache) {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollRestoreRef.current ?? 0);
+        scrollRestoreRef.current = null;
+      });
+    }
+  }, [restoredFromCache, allTitles.length]);
 
   // Debounce for search input (1s)
   const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
@@ -99,26 +152,87 @@ export default function TitlesContent() {
     };
   }, [filterOptions]);
 
-  // Запрос тайтлов с параметрами
-  const { data: titlesData, isLoading, isError, error } = useSearchTitlesQuery({
-    search: debouncedSearch || undefined,
-    genres: appliedFilters.genres[0] || undefined,
-    types: appliedFilters.types[0] || undefined,
-    status: appliedFilters.status[0] || undefined,
-    releaseYear: appliedFilters.releaseYears[0] || undefined,
-    ageLimits:
-      appliedFilters.ageLimits.length > 0
-        ? appliedFilters.ageLimits.toString() // Отправляем массив значений как строку
-        : undefined,
-    sortBy: appliedFilters.sortBy,
-    sortOrder: appliedFilters.sortOrder,
-    page: loadMorePage,
-    limit,
-  });
+  // Запрос тайтлов с параметрами (пропускаем при восстановлении из кеша)
+  const shouldSkipQuery = restoredFromCache;
+  const { data: titlesData, isLoading, isError, error } = useSearchTitlesQuery(
+    {
+      search: debouncedSearch || undefined,
+      genres: appliedFilters.genres[0] || undefined,
+      types: appliedFilters.types[0] || undefined,
+      status: appliedFilters.status[0] || undefined,
+      releaseYear: appliedFilters.releaseYears[0] || undefined,
+      ageLimits:
+        appliedFilters.ageLimits.length > 0
+          ? appliedFilters.ageLimits.toString()
+          : undefined,
+      sortBy: appliedFilters.sortBy,
+      sortOrder: appliedFilters.sortOrder,
+      page: loadMorePage,
+      limit,
+    },
+    { skip: shouldSkipQuery }
+  );
 
-  const totalTitles = titlesData?.data?.total ?? 0;
-  const totalPages = (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
+  const totalTitles = restoredFromCache && cachedTotal
+    ? cachedTotal.total
+    : (titlesData?.data?.total ?? 0);
+  const totalPages = restoredFromCache && cachedTotal
+    ? cachedTotal.totalPages
+    : (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
   const paginatedTitles = useMemo(() => titlesData?.data?.data ?? [], [titlesData]);
+
+  // Сохранение в sessionStorage при уходе со страницы
+  useEffect(() => {
+    const saveOnLeave = () => {
+      if (allTitles.length > 0 && !restoredFromCache) {
+        try {
+          sessionStorage.setItem(
+            CATALOG_CACHE_KEY,
+            JSON.stringify({
+              filtersKey: buildFiltersKey(appliedFilters),
+              allTitles,
+              loadMorePage,
+              total: totalTitles,
+              totalPages,
+              scrollY: typeof window !== "undefined" ? window.scrollY : 0,
+              timestamp: Date.now(),
+            })
+          );
+        } catch {
+          // ignore
+        }
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") saveOnLeave();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [allTitles, loadMorePage, appliedFilters, restoredFromCache, totalTitles, totalPages]);
+
+  // Сохранение при изменении данных (кроме восстановления)
+  useEffect(() => {
+    if (restoredFromCache || allTitles.length === 0) return;
+    const timer = setTimeout(() => {
+      try {
+        sessionStorage.setItem(
+          CATALOG_CACHE_KEY,
+          JSON.stringify({
+            filtersKey: buildFiltersKey(appliedFilters),
+            allTitles,
+            loadMorePage,
+            total: totalTitles,
+            totalPages,
+            scrollY: typeof window !== "undefined" ? window.scrollY : 0,
+            timestamp: Date.now(),
+          })
+        );
+      } catch {
+        // ignore
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [allTitles, loadMorePage, appliedFilters, restoredFromCache, totalTitles, totalPages]);
 
   const adaptedTitles = useMemo(
     () =>
@@ -157,6 +271,8 @@ export default function TitlesContent() {
   // Load more logic
   const loadMoreTitles = useCallback(() => {
     if (!isLoadingMore && loadMorePage < totalPages) {
+      setRestoredFromCache(false);
+      setCachedTotal(null);
       setIsLoadingMore(true);
       setLoadMorePage(prev => prev + 1);
     }
@@ -176,6 +292,15 @@ export default function TitlesContent() {
       sortOrder: "desc",
     };
     setAppliedFilters(defaultFilters);
+    setRestoredFromCache(false);
+    setCachedTotal(null);
+    setAllTitles([]);
+    setLoadMorePage(1);
+    try {
+      sessionStorage.removeItem(CATALOG_CACHE_KEY);
+    } catch {
+      // ignore
+    }
     updateURL(defaultFilters, 1);
   };
 
@@ -202,8 +327,30 @@ export default function TitlesContent() {
     setAppliedFilters(newFilters);
     setAllTitles([]);
     setLoadMorePage(1);
+    setRestoredFromCache(false);
+    setCachedTotal(null);
+    try {
+      sessionStorage.removeItem(CATALOG_CACHE_KEY);
+    } catch {
+      // ignore
+    }
     updateURL(newFilters, 1);
   };
+
+  // Удаление отдельных фильтров для чипов
+  const removeFilter = useCallback(
+    (type: "genre" | "type" | "status" | "ageLimit" | "releaseYear" | "tag", value: string | number) => {
+      const newFilters = { ...appliedFilters };
+      if (type === "genre") newFilters.genres = newFilters.genres.filter(g => g !== value);
+      if (type === "type") newFilters.types = newFilters.types.filter(t => t !== value);
+      if (type === "status") newFilters.status = newFilters.status.filter(s => s !== value);
+      if (type === "ageLimit") newFilters.ageLimits = newFilters.ageLimits.filter(a => a !== value);
+      if (type === "releaseYear") newFilters.releaseYears = newFilters.releaseYears.filter(y => y !== value);
+      if (type === "tag") newFilters.tags = newFilters.tags.filter(t => t !== value);
+      handleFiltersChange(newFilters);
+    },
+    [appliedFilters] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   // Обработчик клика по карточке
   const handleCardClick = (title: GridTitle) => {
@@ -239,6 +386,38 @@ export default function TitlesContent() {
               isSearching={isLoading && debouncedSearch !== appliedFilters.search}
             />
           </div>
+        </div>
+
+        {/* Быстрые фильтры (тип, статус) */}
+        <FilterQuickBar
+          filters={appliedFilters}
+          onFiltersChange={handleFiltersChange}
+          filterOptions={{
+            types: originalFilterOptions?.data?.types || [],
+            status: originalFilterOptions?.data?.status || [],
+          }}
+          onOpenFullFilters={() => setIsMobileFilterOpen(true)}
+          activeCount={
+            appliedFilters.types.length +
+            appliedFilters.status.length +
+            appliedFilters.genres.length +
+            appliedFilters.ageLimits.length +
+            appliedFilters.releaseYears.length +
+            appliedFilters.tags.length
+          }
+        />
+
+        {/* Активные фильтры — чипы для быстрого снятия */}
+        <div className="mb-6 -mt-2">
+          <ActiveFilterChips
+            filters={appliedFilters}
+            onRemoveGenre={g => removeFilter("genre", g)}
+            onRemoveType={t => removeFilter("type", t)}
+            onRemoveStatus={s => removeFilter("status", s)}
+            onRemoveAgeLimit={a => removeFilter("ageLimit", a)}
+            onRemoveReleaseYear={y => removeFilter("releaseYear", y)}
+            onRemoveTag={t => removeFilter("tag", t)}
+          />
         </div>
 
         {/* Состояние загрузки */}

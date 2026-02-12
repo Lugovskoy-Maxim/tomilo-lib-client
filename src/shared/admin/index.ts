@@ -10,6 +10,7 @@ export { OverviewSection } from "./OverviewSection";
 export { ParserSection } from "./ParserSection";
 export { ReportEntityInfo } from "./ReportEntityInfo";
 export { ReportsSection } from "./ReportsSection";
+export { ShopManagementSection } from "./ShopManagementSection";
 export { TitlesSection } from "./TitlesSection";
 export { UsersSection } from "./UsersSection";
 

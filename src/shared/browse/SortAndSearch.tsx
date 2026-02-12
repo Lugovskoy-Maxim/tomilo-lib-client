@@ -11,9 +11,9 @@ interface SortAndSearchProps {
 export default function SortAndSearch({ filters, onFiltersChange, isSearching }: SortAndSearchProps) {
   const handleSortByChange = (value: string) => {
     const sortBy =
-      value === "rating" || value === "year" || value === "views" || value === "chapters"
-        ? (value as "rating" | "year" | "views" | "chapters")
-        : "rating";
+      value === "averageRating" || value === "releaseYear" || value === "views" || value === "chapters"
+        ? (value as "averageRating" | "releaseYear" | "views" | "chapters")
+        : "averageRating";
 
     onFiltersChange({ ...filters, sortBy });
   };
@@ -44,8 +44,8 @@ export default function SortAndSearch({ filters, onFiltersChange, isSearching }:
           onChange={e => handleSortByChange(e.target.value)}
           className="appearance-none bg-[var(--card)] border border-[var(--border)] rounded-xl px-4 py-2.5 pr-10 text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 cursor-pointer hover:border-[var(--primary)]/50 transition-all duration-200 text-sm font-medium"
         >
-          <option value="rating">По рейтингу</option>
-          <option value="year">По году</option>
+          <option value="averageRating">По рейтингу</option>
+          <option value="releaseYear">По году</option>
           <option value="views">По просмотрам</option>
           <option value="chapters">По количеству глав</option>
         </select>

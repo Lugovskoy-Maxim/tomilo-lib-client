@@ -11,6 +11,7 @@ import { commentsApi } from "./api/commentsApi";
 import { reportsApi } from "./api/reportsApi";
 import { autoParsingApi } from "./api/autoParsingApi";
 import { ipApi } from "./api/ipApi";
+import { shopApi } from "./api/shopApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
 import collectionsReducer from "./slices/collectionsSlice";
@@ -48,6 +49,7 @@ export const store = configureStore({
     [reportsApi.reducerPath]: reportsApi.reducer,
     [autoParsingApi.reducerPath]: autoParsingApi.reducer,
     [ipApi.reducerPath]: ipApi.reducer,
+    [shopApi.reducerPath]: shopApi.reducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware()
@@ -62,7 +64,8 @@ export const store = configureStore({
       .concat(commentsApi.middleware)
       .concat(reportsApi.middleware)
       .concat(autoParsingApi.middleware)
-      .concat(ipApi.middleware),
+      .concat(ipApi.middleware)
+      .concat(shopApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
