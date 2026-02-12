@@ -56,6 +56,10 @@ export const authApi = createApi({
       providesTags: ["Auth"],
     }),
 
+    getProfileByUsername: builder.query<ApiResponseDto<User>, string>({
+      query: username => `/users/username/${encodeURIComponent(username)}`,
+    }),
+
     updateProfile: builder.mutation<ApiResponseDto<User>, Partial<User>>({
       query: profileData => ({
         url: "/users/profile",
@@ -169,6 +173,7 @@ export const {
   useRegisterMutation,
   useYandexAuthMutation,
   useGetProfileQuery,
+  useGetProfileByUsernameQuery,
   useUpdateProfileMutation,
   useUpdateAvatarMutation,
   useAddBookmarkMutation,
