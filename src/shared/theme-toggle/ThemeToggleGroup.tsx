@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useGetProfileQuery, useUpdateProfileMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +15,7 @@ export default function ThemeToggleGroup({ className = "" }: ThemeToggleGroupPro
   const [isUpdatingTheme, setIsUpdatingTheme] = useState(false);
   const { theme, setTheme } = useTheme();
   const { isAuthenticated } = useAuth();
+  const initialThemeSyncedRef = useRef(false);
 
   // Только для авторизованных пользователей
   const { data: profileData } = useGetProfileQuery(undefined, {
@@ -22,12 +23,20 @@ export default function ThemeToggleGroup({ className = "" }: ThemeToggleGroupPro
   });
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
 
-  // Применяем тему из профиля при первой загрузке (только для авторизованных)
+  // Применяем тему из профиля только при первой загрузке (один раз за сессию).
+  // Не перезаписываем при каждом обновлении profileData, иначе после updateProfile
+  // refetch перезаписывает тему и она "прыгает" обратно.
   useEffect(() => {
-    if (mounted && isAuthenticated && profileData?.data?.displaySettings?.theme) {
+    if (
+      mounted &&
+      isAuthenticated &&
+      profileData?.data?.displaySettings?.theme &&
+      !initialThemeSyncedRef.current
+    ) {
       setTheme(profileData.data.displaySettings.theme);
+      initialThemeSyncedRef.current = true;
     }
-  }, [mounted, isAuthenticated, profileData, setTheme]);
+  }, [mounted, isAuthenticated, profileData?.data?.displaySettings?.theme, setTheme]);
 
   useEffect(() => {
     setMounted(true);
