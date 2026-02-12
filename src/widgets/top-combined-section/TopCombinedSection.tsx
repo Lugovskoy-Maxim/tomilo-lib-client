@@ -103,14 +103,14 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
         {/* Glow effect */}
         <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-chart-1/0 to-primary/0 group-hover:from-primary/10 group-hover:via-chart-1/10 group-hover:to-primary/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-500 ease-out -z-10" />
         
-        <div className="flex items-center gap-3 p-2 rounded-xl bg-[var(--card)]/50 hover:bg-[var(--muted)]/30 ring-1 ring-white/5 group-hover:ring-primary/20 transition-all duration-500 relative overflow-hidden">
+        <div className="flex items-center gap-3 p-1 sm:p-2 rounded-xl bg-[var(--card)]/50 hover:bg-[var(--muted)]/30 ring-1 ring-white/5 group-hover:ring-primary/20 transition-all duration-500 relative overflow-hidden max-w-full">
           {/* Shine effect */}
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden rounded-xl">
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out" />
           </div>
           
           {/* Обложка */}
-          <div className="w-24 h-32 sm:w-22 sm:h-30 rounded-lg flex-shrink-0 overflow-hidden bg-gray-700 relative shadow-md group-hover:shadow-lg transition-shadow duration-500">
+          <div className="w-20 h-28 sm:w-20 sm:h-28 rounded-lg flex-shrink-0 overflow-hidden bg-gray-700 relative shadow-md group-hover:shadow-lg transition-shadow duration-500">
             {item.coverImage ? (
               <OptimizedImage
                 src={normalizeImageUrl(item.coverImage)}
@@ -206,7 +206,7 @@ interface ColumnProps {
 
 const Column = ({ title, href, items, showRating = false, showViews = true }: ColumnProps) => {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col min-w-0 overflow-hidden">
       <div className="flex items-center justify-between mb-6 group">
         <h3 className="text-lg md:text-2xl text-[var(--muted-foreground)] font-bold group-hover:text-[var(--primary)] transition-colors duration-300">{title}</h3>
         <Link
@@ -217,7 +217,7 @@ const Column = ({ title, href, items, showRating = false, showViews = true }: Co
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-3 min-w-0">
         {items.slice(0, 5).map(item => (
           <CardItem key={item.id} item={item} showRating={showRating} showViews={showViews} />
         ))}
@@ -231,9 +231,9 @@ const Column = ({ title, href, items, showRating = false, showViews = true }: Co
  */
 export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 py-6">
+    <section className="w-full max-w-7xl mx-auto px-4 py-6 overflow-x-hidden box-border">
       {/* Три отдельные колонки */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 min-w-0">
         {/* Колонка 1: Топ 2026 года */}
         <Column
           title="Топ 2026 года"

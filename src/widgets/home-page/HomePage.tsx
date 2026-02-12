@@ -84,7 +84,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16">
+      <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16 w-full overflow-x-hidden">
         {/* Популярные тайтлы */}
         <DataCarousel
           title="Популярные тайтлы"
@@ -131,49 +131,51 @@ export default function HomePage() {
         />
 
         {/* Объединенная секция топ манхв, маньхуа и новинок 2026 */}
-        {topManhwa.loading || top2026.loading || topManhua.loading ? (
-          <TopCombinedSkeleton />
-        ) : topManhwa.error || top2026.error || topManhua.error ? null : (
-          <TopCombinedSection
-            data={{
-              topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
-                id: item.id,
-                slug: item.slug,
-                title: item.title,
-                coverImage: item.image,
-                type: item.type,
-                year: item.year,
-                rating: item.rating,
-                views: item.views || "0К",
-                isAdult: item.isAdult ?? false,
-              })),
+        <div className="w-full overflow-x-hidden">
+          {topManhwa.loading || top2026.loading || topManhua.loading ? (
+            <TopCombinedSkeleton />
+          ) : topManhwa.error || top2026.error || topManhua.error ? null : (
+            <TopCombinedSection
+              data={{
+                topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
+                  id: item.id,
+                  slug: item.slug,
+                  title: item.title,
+                  coverImage: item.image,
+                  type: item.type,
+                  year: item.year,
+                  rating: item.rating,
+                  views: item.views || "0К",
+                  isAdult: item.isAdult ?? false,
+                })),
 
-              top2026: (top2026.data || []).slice(0, 5).map(item => ({
-                id: item.id,
-                slug: item.slug,
-                title: item.title,
-                coverImage: item.image,
-                type: item.type,
-                year: item.year,
-                rating: item.rating,
-                views: item.views || "0К",
-                isAdult: item.isAdult ?? false,
-              })),
+                top2026: (top2026.data || []).slice(0, 5).map(item => ({
+                  id: item.id,
+                  slug: item.slug,
+                  title: item.title,
+                  coverImage: item.image,
+                  type: item.type,
+                  year: item.year,
+                  rating: item.rating,
+                  views: item.views || "0К",
+                  isAdult: item.isAdult ?? false,
+                })),
 
-              topManhua: (topManhua.data || []).slice(0, 5).map(item => ({
-                id: item.id,
-                slug: item.slug,
-                title: item.title,
-                coverImage: item.image,
-                type: item.type,
-                year: item.year,
-                rating: item.rating,
-                views: item.views || "0К",
-                isAdult: item.isAdult ?? false,
-              })),
-            }}
-          />
-        )}
+                topManhua: (topManhua.data || []).slice(0, 5).map(item => ({
+                  id: item.id,
+                  slug: item.slug,
+                  title: item.title,
+                  coverImage: item.image,
+                  type: item.type,
+                  year: item.year,
+                  rating: item.rating,
+                  views: item.views || "0К",
+                  isAdult: item.isAdult ?? false,
+                })),
+              }}
+            />
+          )}
+        </div>
 
         {/* Продолжить чтение */}
         <DataCarousel
