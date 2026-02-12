@@ -86,6 +86,9 @@ export default function ReaderControls({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [autoScrollSpeed, setAutoScrollSpeed] = useState<"slow" | "medium" | "fast">("medium");
   const autoScrollSpeedRef = useRef(autoScrollSpeed);
+  const autoScrollRafRef = useRef<number | null>(null);
+  const autoScrollLastTimeRef = useRef<number>(0);
+  const autoScrollPositionRef = useRef<number>(0);
   const [showPageCounter, setShowPageCounter] = useState(true);
   
   // Состояния для кнопки обновления с удержанием
@@ -207,6 +210,10 @@ export default function ReaderControls({
       clearInterval(autoScrollInterval);
       setAutoScrollInterval(null);
     }
+    if (autoScrollRafRef.current) {
+      cancelAnimationFrame(autoScrollRafRef.current);
+      autoScrollRafRef.current = null;
+    }
     setIsAutoScrolling(false);
   }, [autoScrollInterval]);
 
@@ -221,18 +228,39 @@ export default function ReaderControls({
     if (isAutoScrolling) return;
     setIsAutoScrolling(true);
 
-    const speedMap = { slow: 1, medium: 3, fast: 6 };
-    const speed = speedMap[autoScrollSpeed];
+    const speedMap = { slow: 50, medium: 150, fast: 300 }; // pixels per second
+    const targetSpeed = speedMap[autoScrollSpeed];
 
-    const interval = setInterval(() => {
-      window.scrollBy({ top: speed, behavior: "auto" });
+    autoScrollPositionRef.current = window.scrollY;
+    autoScrollLastTimeRef.current = performance.now();
 
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+    const animate = (currentTime: number) => {
+      if (!isAutoScrolling) return;
+
+      const deltaTime = (currentTime - autoScrollLastTimeRef.current) / 1000; // convert to seconds
+      autoScrollLastTimeRef.current = currentTime;
+
+      // Calculate scroll amount based on time for consistent speed
+      const scrollAmount = targetSpeed * deltaTime;
+      autoScrollPositionRef.current += scrollAmount;
+
+      // Smooth scroll to calculated position
+      window.scrollTo({
+        top: autoScrollPositionRef.current,
+        behavior: "auto"
+      });
+
+      // Check if reached end
+      const maxScroll = document.body.offsetHeight - window.innerHeight;
+      if (autoScrollPositionRef.current >= maxScroll) {
         stopAutoScroll();
+        return;
       }
-    }, 20);
 
-    setAutoScrollInterval(interval);
+      autoScrollRafRef.current = requestAnimationFrame(animate);
+    };
+
+    autoScrollRafRef.current = requestAnimationFrame(animate);
   }, [isAutoScrolling, autoScrollSpeed, stopAutoScroll]);
 
   const toggleAutoScroll = useCallback(() => {
@@ -246,6 +274,7 @@ export default function ReaderControls({
   useEffect(() => {
     return () => {
       if (autoScrollInterval) clearInterval(autoScrollInterval);
+      if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current);
       if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
