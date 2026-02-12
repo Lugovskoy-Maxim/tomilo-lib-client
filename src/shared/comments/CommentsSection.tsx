@@ -58,11 +58,15 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       <div className="flex items-center gap-2">
-        <MessageCircle className="w-5 h-5 text-[var(--primary)]" />
-        <h2 className="text-xl font-semibold">Комментарии</h2>
-        {total > 0 && <span className="text-sm text-[var(--muted-foreground)]">({total})</span>}
+        <MessageCircle className="w-4 h-4 text-[var(--primary)] shrink-0" />
+        <h2 className="text-base font-semibold text-[var(--foreground)]">Комментарии</h2>
+        {total > 0 && (
+          <span className="text-xs text-[var(--muted-foreground)] bg-[var(--secondary)] px-1.5 py-0.5 rounded">
+            {total}
+          </span>
+        )}
       </div>
 
       {/* Comment Form */}
@@ -78,8 +82,10 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
 
       {/* Edit Form */}
       {editingComment && (
-        <div className="p-4 bg-[var(--secondary)] rounded-lg">
-          <div className="mb-2 text-sm font-semibold">Редактирование комментария</div>
+        <div className="rounded-lg bg-[var(--card)]/80 p-3">
+          <div className="mb-2 text-xs font-medium text-[var(--muted-foreground)]">
+            Редактирование
+          </div>
           <CommentForm
             entityType={entityType}
             entityId={entityId}
@@ -100,27 +106,27 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-1.5">
           <Button
             variant="outline"
             size="sm"
+            className="h-7 px-2 text-xs"
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
           >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Назад
+            <ChevronLeft className="w-3.5 h-3.5" />
           </Button>
-          <span className="text-sm text-[var(--muted-foreground)]">
-            Страница {page} из {totalPages}
+          <span className="text-xs text-[var(--muted-foreground)] px-2">
+            {page}/{totalPages}
           </span>
           <Button
             variant="outline"
             size="sm"
+            className="h-7 px-2 text-xs"
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
           >
-            Вперед
-            <ChevronRight className="w-4 h-4 ml-1" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </Button>
         </div>
       )}

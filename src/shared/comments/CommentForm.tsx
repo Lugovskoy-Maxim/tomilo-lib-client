@@ -74,55 +74,58 @@ export function CommentForm({
 
   if (!user) {
     return (
-      <div className="p-4 bg-[var(--secondary)] rounded-lg text-center text-[var(--muted-foreground)]">
+      <div className="rounded-lg bg-[var(--secondary)]/50 py-5 px-4 text-center text-[var(--muted-foreground)] text-xs">
         Войдите, чтобы оставить комментарий
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <textarea
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        placeholder={
-          editComment
-            ? "Редактировать комментарий..."
-            : parentId
-              ? "Написать ответ..."
-              : "Написать комментарий..."
-        }
-        rows={4}
-        maxLength={5000}
-        className="w-full px-4 py-3 bg-[var(--secondary)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
-        required
-      />
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-[var(--muted-foreground)]">{content.length}/5000</span>
-        <div className="flex gap-2">
-          {onCancel && (
-            <Button type="button" variant="outline" size="sm" onClick={onCancel}>
-              <X className="w-4 h-4 mr-2" />
-              Отмена
+    <div className="rounded-lg bg-[var(--card)]/50 p-3">
+      <form onSubmit={handleSubmit} className="space-y-2">
+        <textarea
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          placeholder={
+            editComment
+              ? "Редактировать..."
+              : parentId
+                ? "Ответ..."
+                : "Комментарий..."
+          }
+          rows={3}
+          maxLength={5000}
+          className="w-full px-3 py-2 bg-[var(--background)]/80 border border-[var(--border)]/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--primary)] focus:border-transparent resize-none text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] text-[13px] leading-snug"
+          required
+        />
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] text-[var(--muted-foreground)]">{content.length}/5000</span>
+          <div className="flex gap-1.5">
+            {onCancel && (
+              <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={onCancel}>
+                <X className="w-3.5 h-3.5 mr-1" />
+                Отмена
+              </Button>
+            )}
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              className="h-7 px-2.5 text-xs"
+              disabled={!content.trim() || isCreating || isUpdating}
+            >
+              <Send className="w-3.5 h-3.5 mr-1" />
+              {editComment
+                ? isUpdating
+                  ? "..."
+                  : "Сохранить"
+                : isCreating
+                  ? "..."
+                  : "Отправить"}
             </Button>
-          )}
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            disabled={!content.trim() || isCreating || isUpdating}
-          >
-            <Send className="w-4 h-4 mr-2" />
-            {editComment
-              ? isUpdating
-                ? "Сохранение..."
-                : "Сохранить"
-              : isCreating
-                ? "Отправка..."
-                : "Отправить"}
-          </Button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

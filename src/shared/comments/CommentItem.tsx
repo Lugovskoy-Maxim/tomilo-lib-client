@@ -10,6 +10,7 @@ import {
 } from "@/store/api/commentsApi";
 import { ThumbsUp, ThumbsDown, Reply, Edit, Trash2, MoreVertical } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface CommentItemProps {
   comment: Comment;
@@ -29,6 +30,8 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
 
   const userData = typeof comment.userId === "object" ? comment.userId : null;
   const isOwner = user && userData && user._id === userData._id;
+  const profileHref =
+    userData?.username ? (isOwner ? "/profile" : `/user/${encodeURIComponent(userData.username)}`) : null;
   const hasLiked = user && comment.likedBy.includes(user._id);
   const hasDisliked = user && comment.dislikedBy.includes(user._id);
 
@@ -89,143 +92,170 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   };
 
   return (
-    <div className={`${level > 0 ? "ml-8 mt-4" : ""} border-b border-[var(--border)] pb-4`}>
-      <div className="flex gap-3">
-        {/* Avatar */}
-        <div className="flex-shrink-0 h-14 w-14 overflow-hidden rounded-full">
-          {userData?.avatar ? (
-            <Image
-              loader={() => `${process.env.NEXT_PUBLIC_URL}${userData.avatar}`}
-              src={`${process.env.NEXT_PUBLIC_URL}${userData.avatar}`}
-              alt={userData.username}
-              width={56}
-              height={56}
-              className="rounded-full overflow-hidden"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-semibold">
-              {userData?.username?.[0]?.toUpperCase() || "U"}
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-[var(--foreground)]">
-              {userData?.username || "Анонимный пользователь"}
-            </span>
-            <span className="text-xs text-[var(--muted-foreground)]">
-              {formatDate(comment.createdAt)}
-            </span>
-            {comment.isEdited && (
-              <span className="text-xs text-[var(--muted-foreground)] italic">(изменено)</span>
-            )}
-            {isOwner && (
-              <div className="relative ml-auto">
-                <button
-                  onClick={() => setShowMenu(!showMenu)}
-                  className="p-1 rounded hover:bg-[var(--secondary)] transition-colors"
+    <article
+      className={`rounded-lg overflow-hidden ${
+        level > 0 ? "ml-5 mt-2 pl-3 border-l border-[var(--primary)]/20" : ""
+      }`}
+    >
+      <div className="p-3">
+        <div className="flex gap-2.5">
+          {/* Avatar */}
+          <div className="flex-shrink-0 h-8 w-8 overflow-hidden rounded-full">
+            {(() => {
+              const avatarContent = userData?.avatar ? (
+                <Image
+                  loader={() => `${process.env.NEXT_PUBLIC_URL}${userData.avatar}`}
+                  src={`${process.env.NEXT_PUBLIC_URL}${userData.avatar}`}
+                  alt={userData.username}
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-[var(--primary)]/80 flex items-center justify-center text-white text-xs font-semibold">
+                  {userData?.username?.[0]?.toUpperCase() || "?"}
+                </div>
+              );
+              return profileHref ? (
+                <Link
+                  href={profileHref}
+                  className="block w-full h-full rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--card)]"
                 >
-                  <MoreVertical className="w-4 h-4" />
+                  {avatarContent}
+                </Link>
+              ) : (
+                avatarContent
+              );
+            })()}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+              {profileHref ? (
+                <Link
+                  href={profileHref}
+                  className="font-medium text-[var(--foreground)] text-sm hover:text-[var(--primary)] transition-colors focus:outline-none focus:underline"
+                >
+                  {userData?.username || "Аноним"}
+                </Link>
+              ) : (
+                <span className="font-medium text-[var(--foreground)] text-sm">
+                  {userData?.username || "Аноним"}
+                </span>
+              )}
+              <span className="text-[var(--muted-foreground)] text-[10px]">·</span>
+              <span className="text-[10px] text-[var(--muted-foreground)]">
+                {formatDate(comment.createdAt)}
+              </span>
+              {comment.isEdited && (
+                <span className="text-[10px] text-[var(--muted-foreground)] italic">изм.</span>
+              )}
+              {isOwner && (
+                <div className="relative ml-auto">
+                  <button
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="p-1 rounded-md hover:bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    aria-label="Меню"
+                  >
+                    <MoreVertical className="w-3.5 h-3.5" />
+                  </button>
+                  {showMenu && (
+                    <div className="absolute right-0 top-full mt-0.5 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-10 min-w-[120px] overflow-hidden py-0.5">
+                      <button
+                        onClick={() => {
+                          onEdit?.(comment);
+                          setShowMenu(false);
+                        }}
+                        className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-[var(--foreground)]"
+                      >
+                        <Edit className="w-3.5 h-3.5 shrink-0" />
+                        Редактировать
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleDelete();
+                          setShowMenu(false);
+                        }}
+                        className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-red-500"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                        Удалить
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <p className="text-[var(--foreground)] text-[14px] leading-snug whitespace-pre-wrap break-words mb-2">
+              {comment.content}
+            </p>
+
+            {/* Actions */}
+            <div className="flex items-center gap-0.5 flex-wrap">
+              <button
+                onClick={handleLike}
+                disabled={!user}
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors ${
+                  hasLiked
+                    ? "text-[var(--primary)]"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80"
+                } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <ThumbsUp className="w-3.5 h-3.5" />
+                <span>{comment.likes}</span>
+              </button>
+              <button
+                onClick={handleDislike}
+                disabled={!user}
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors ${
+                  hasDisliked
+                    ? "text-red-500"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80"
+                } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <ThumbsDown className="w-3.5 h-3.5" />
+                <span>{comment.dislikes}</span>
+              </button>
+              {user && onReply && level < 2 && (
+                <button
+                  onClick={() => onReply(comment._id)}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80 transition-colors"
+                >
+                  <Reply className="w-3.5 h-3.5" />
+                  Ответить
                 </button>
-                {showMenu && (
-                  <div className="absolute right-0 top-8 bg-[var(--background)] border border-[var(--border)] rounded-lg shadow-lg z-10 min-w-[120px]">
-                    <button
-                      onClick={() => {
-                        onEdit?.(comment);
-                        setShowMenu(false);
-                      }}
-                      className="w-full px-4 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-sm"
-                    >
-                      <Edit className="w-4 h-4" />
-                      Редактировать
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleDelete();
-                        setShowMenu(false);
-                      }}
-                      className="w-full px-4 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-sm text-red-500"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Удалить
-                    </button>
+              )}
+            </div>
+
+            {/* Replies */}
+            {comment.replies && comment.replies.length > 0 && (
+              <div className="mt-3 pt-2 border-t border-[var(--border)]/50">
+                <button
+                  onClick={() => setShowReplies(!showReplies)}
+                  className="text-xs text-[var(--primary)] hover:underline mb-2"
+                >
+                  {showReplies ? "−" : "+"} ответы ({comment.replies.length})
+                </button>
+                {showReplies && (
+                  <div className="space-y-2">
+                    {comment.replies.map(reply => (
+                      <CommentItem
+                        key={reply._id}
+                        comment={reply}
+                        onReply={onReply}
+                        onEdit={onEdit}
+                        level={level + 1}
+                      />
+                    ))}
                   </div>
                 )}
               </div>
             )}
           </div>
-
-          <p className="text-[var(--foreground)] mb-2 whitespace-pre-wrap break-words">
-            {comment.content}
-          </p>
-
-          {/* Actions */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleLike}
-              disabled={!user}
-              className={`flex items-center gap-1 text-sm transition-colors ${
-                hasLiked
-                  ? "text-[var(--primary)]"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              <ThumbsUp className="w-4 h-4" />
-              <span>{comment.likes}</span>
-            </button>
-
-            <button
-              onClick={handleDislike}
-              disabled={!user}
-              className={`flex items-center gap-1 text-sm transition-colors ${
-                hasDisliked
-                  ? "text-red-500"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              <ThumbsDown className="w-4 h-4" />
-              <span>{comment.dislikes}</span>
-            </button>
-
-            {user && onReply && level < 2 && (
-              <button
-                onClick={() => onReply(comment._id)}
-                className="flex items-center gap-1 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-              >
-                <Reply className="w-4 h-4" />
-                Ответить
-              </button>
-            )}
-          </div>
-
-          {/* Replies */}
-          {comment.replies && comment.replies.length > 0 && (
-            <div className="mt-4">
-              <button
-                onClick={() => setShowReplies(!showReplies)}
-                className="text-sm text-[var(--primary)] hover:underline mb-2"
-              >
-                {showReplies ? "Скрыть" : "Показать"} ответы ({comment.replies.length})
-              </button>
-              {showReplies && (
-                <div className="mt-2 space-y-4">
-                  {comment.replies.map(reply => (
-                    <CommentItem
-                      key={reply._id}
-                      comment={reply}
-                      onReply={onReply}
-                      onEdit={onEdit}
-                      level={level + 1}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
