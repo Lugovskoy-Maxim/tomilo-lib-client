@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,11 +19,10 @@ import {
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
-import { useToast } from "@/hooks/useToast";
-import { useAuth } from "@/hooks/useAuth";
 import { ReportModal } from "@/shared/report/ReportModal";
 import ThemeToggle from "@/shared/theme-toggle/ThemeToggle";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
+import { useAutoScroll, useBookmark, useReaderSettings, useRefreshButton } from "./hooks";
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -81,60 +79,36 @@ export default function ReaderControls({
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
-  const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [autoScrollSpeed, setAutoScrollSpeed] = useState<"slow" | "medium" | "fast">("medium");
-  const autoScrollSpeedRef = useRef(autoScrollSpeed);
-  const autoScrollRafRef = useRef<number | null>(null);
-  const autoScrollLastTimeRef = useRef<number>(0);
-  const autoScrollPositionRef = useRef<number>(0);
-  const [showPageCounter, setShowPageCounter] = useState(true);
-  
-  // Состояния для кнопки обновления с удержанием
-  const [isPressing, setIsPressing] = useState(false);
-  const [pressProgress, setPressProgress] = useState(0);
-  const [showRefreshTooltip, setShowRefreshTooltip] = useState(false);
-  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Загрузка настроек из localStorage
-  useEffect(() => {
-    const savedAutoScrollSpeed = localStorage.getItem("reader-auto-scroll-speed");
-    if (savedAutoScrollSpeed && ["slow", "medium", "fast"].includes(savedAutoScrollSpeed)) {
-      setAutoScrollSpeed(savedAutoScrollSpeed as "slow" | "medium" | "fast");
-    }
-    
-    const savedShowPageCounter = localStorage.getItem("reader-show-page-counter");
-    if (savedShowPageCounter !== null) {
-      setShowPageCounter(savedShowPageCounter === "true");
-    }
-  }, []);
-  
-  const toast = useToast();
-  const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
-  const router = useRouter();
+  // Custom hooks
+  const {
+    isAutoScrolling,
+    autoScrollSpeed,
+    setAutoScrollSpeed,
+    stopAutoScroll,
+    toggleAutoScroll,
+  } = useAutoScroll({ onAutoScrollStart });
 
-  // Обновление закладки при изменении данных пользователя
-  useEffect(() => {
-    setIsBookmarked(user?.bookmarks?.includes(titleId) ?? false);
-  }, [user?.bookmarks, titleId]);
+  const {
+    isBookmarked,
+    isBookmarkLoading,
+    handleBookmarkToggle,
+  } = useBookmark({ titleId });
 
-  // Синхронизация ref со скоростью автоскролла
-  useEffect(() => {
-    autoScrollSpeedRef.current = autoScrollSpeed;
-  }, [autoScrollSpeed]);
+  const {
+    showPageCounter,
+    setShowPageCounter,
+  } = useReaderSettings();
 
-  // Сохранение настроек в localStorage при их изменении
-  useEffect(() => {
-    localStorage.setItem("reader-auto-scroll-speed", autoScrollSpeed);
-  }, [autoScrollSpeed]);
-
-  useEffect(() => {
-    localStorage.setItem("reader-show-page-counter", showPageCounter.toString());
-  }, [showPageCounter]);
+  const {
+    isPressing,
+    pressProgress,
+    showRefreshTooltip,
+    startPressing,
+    stopPressing,
+    handleSimpleClick,
+  } = useRefreshButton();
 
   const handleMenuToggle = useCallback(() => {
     setIsMenuOpen(!isMenuOpen);
@@ -205,153 +179,12 @@ export default function ReaderControls({
       chapter.title.toLowerCase().includes(chapterSearch.toLowerCase()),
   );
 
-  const stopAutoScroll = useCallback(() => {
-    if (autoScrollInterval) {
-      clearInterval(autoScrollInterval);
-      setAutoScrollInterval(null);
-    }
-    if (autoScrollRafRef.current) {
-      cancelAnimationFrame(autoScrollRafRef.current);
-      autoScrollRafRef.current = null;
-    }
-    setIsAutoScrolling(false);
-  }, [autoScrollInterval]);
-
   // Остановка автопрокрутки при открытии меню или скролле
   useEffect(() => {
     if (forceStopAutoScroll && isAutoScrolling) {
       stopAutoScroll();
     }
   }, [forceStopAutoScroll, isAutoScrolling, stopAutoScroll]);
-
-  const startAutoScroll = useCallback(() => {
-    if (isAutoScrolling) return;
-    setIsAutoScrolling(true);
-
-    const speedMap = { slow: 50, medium: 150, fast: 300 }; // pixels per second
-    const targetSpeed = speedMap[autoScrollSpeed];
-
-    autoScrollPositionRef.current = window.scrollY;
-    autoScrollLastTimeRef.current = performance.now();
-
-    const animate = (currentTime: number) => {
-      if (!isAutoScrolling) return;
-
-      const deltaTime = (currentTime - autoScrollLastTimeRef.current) / 1000; // convert to seconds
-      autoScrollLastTimeRef.current = currentTime;
-
-      // Calculate scroll amount based on time for consistent speed
-      const scrollAmount = targetSpeed * deltaTime;
-      autoScrollPositionRef.current += scrollAmount;
-
-      // Smooth scroll to calculated position
-      window.scrollTo({
-        top: autoScrollPositionRef.current,
-        behavior: "auto"
-      });
-
-      // Check if reached end
-      const maxScroll = document.body.offsetHeight - window.innerHeight;
-      if (autoScrollPositionRef.current >= maxScroll) {
-        stopAutoScroll();
-        return;
-      }
-
-      autoScrollRafRef.current = requestAnimationFrame(animate);
-    };
-
-    autoScrollRafRef.current = requestAnimationFrame(animate);
-  }, [isAutoScrolling, autoScrollSpeed, stopAutoScroll]);
-
-  const toggleAutoScroll = useCallback(() => {
-    isAutoScrolling ? stopAutoScroll() : startAutoScroll();
-    if (!isAutoScrolling && onAutoScrollStart) {
-      onAutoScrollStart();
-    }
-  }, [isAutoScrolling, startAutoScroll, stopAutoScroll, onAutoScrollStart]);
-
-  // Очистка интервала при размонтировании
-  useEffect(() => {
-    return () => {
-      if (autoScrollInterval) clearInterval(autoScrollInterval);
-      if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current);
-      if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    };
-  }, [autoScrollInterval]);
-
-  // Обработчики для удержания кнопки обновления
-  const startPressing = useCallback(() => {
-    setIsPressing(true);
-    setPressProgress(0);
-    setShowRefreshTooltip(false);
-    
-    let progress = 0;
-    progressIntervalRef.current = setInterval(() => {
-      progress += 2;
-      setPressProgress(Math.min(progress, 100));
-    }, 100);
-    
-    pressTimerRef.current = setTimeout(() => {
-      router.refresh();
-      setIsPressing(false);
-      setPressProgress(0);
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-        progressIntervalRef.current = null;
-      }
-    }, 5000);
-  }, [router]);
-
-  const stopPressing = useCallback(() => {
-    if (pressTimerRef.current) {
-      clearTimeout(pressTimerRef.current);
-      pressTimerRef.current = null;
-    }
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-      progressIntervalRef.current = null;
-    }
-    
-    if (isPressing && pressProgress < 100) {
-      setShowRefreshTooltip(true);
-      setTimeout(() => setShowRefreshTooltip(false), 2000);
-    }
-    
-    setIsPressing(false);
-    setPressProgress(0);
-  }, [isPressing, pressProgress]);
-
-  const handleSimpleClick = useCallback(() => {
-    if (!isPressing && pressProgress === 0) {
-      setShowRefreshTooltip(true);
-      setTimeout(() => setShowRefreshTooltip(false), 2000);
-    }
-  }, [isPressing, pressProgress]);
-
-  const handleBookmarkToggle = async () => {
-    if (!isAuthenticated) {
-      toast.warning("Пожалуйста, авторизуйтесь, чтобы добавить в закладки");
-      return;
-    }
-
-    setIsBookmarkLoading(true);
-
-    try {
-      const result = isBookmarked ? await removeBookmark(titleId) : await addBookmark(titleId);
-
-      if (result.success) {
-        setIsBookmarked(!isBookmarked);
-      } else {
-        toast.error(`Ошибка при работе с закладками: ${result.error}`);
-      }
-    } catch (error) {
-      console.error("Ошибка при работе с закладками:", error);
-      toast.error("Произошла ошибка при работе с закладками");
-    } finally {
-      setIsBookmarkLoading(false);
-    }
-  };
 
   return (
     <>
@@ -433,7 +266,7 @@ export default function ReaderControls({
                   <input
                     type="checkbox"
                     checked={showPageCounter}
-                    onChange={() => setShowPageCounter(prev => !prev)}
+                    onChange={() => setShowPageCounter(!showPageCounter)}
                     className="sr-only"
                   />
                   <div
@@ -821,7 +654,7 @@ export default function ReaderControls({
             onToggleMenu?.();
             onMenuOpen?.();
           }}
-          className={`absolute right-3 xs:right-5 bottom-1 min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 bg-[var(--card)] border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center ${
+          className={`absolute right-3 xs:right-5 bottom-1 min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 bg-[var(--chart-1)]/90 border border-[var(--border)] text-[var(--primary)] rounded-full hover:bg-[var(--accent)] transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center ${
             hideBottomMenuSetting && isMenuHidden
               ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
               : "opacity-0 scale-50 translate-y-4 pointer-events-none"
@@ -829,7 +662,7 @@ export default function ReaderControls({
           title="Показать меню"
         >
           <svg
-            className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]"
+            className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--primary)]"
             fill="none"
             stroke="white"
             viewBox="0 0 24 24"

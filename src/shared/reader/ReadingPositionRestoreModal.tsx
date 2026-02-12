@@ -45,8 +45,11 @@ export default function ReadingPositionRestoreModal({
 
     // Если включена настройка "всегда с начала", сразу сбрасываем
     if (isAlwaysStartFromBeginning) {
-      onReset();
-      onClose();
+      // Use setTimeout to avoid calling setState during render
+      setTimeout(() => {
+        onReset();
+        onClose();
+      }, 0);
       return;
     }
 
@@ -54,8 +57,11 @@ export default function ReadingPositionRestoreModal({
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          onRestore();
-          onClose();
+          // Use setTimeout to avoid calling setState during render
+          setTimeout(() => {
+            onRestore();
+            onClose();
+          }, 0);
           return 0;
         }
         return prev - 1;
