@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { AlertTriangle, Shield, Clock } from "lucide-react";
 import Modal from "./modal";
 import { UserProfile } from "@/types/user";
 import { StoredUser } from "@/types/auth";
@@ -16,13 +17,42 @@ const AGE_VERIFICATION_KEY = "age-verified";
 
 export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerificationModalProps) {
   const [isChecked, setIsChecked] = useState(false);
+  const [isButtonEnabled, setIsButtonEnabled] = useState(false);
+  const [countdown, setCountdown] = useState(3);
   const router = useRouter();
 
   useEffect(() => {
     if (isOpen) {
       setIsChecked(false);
+      setIsButtonEnabled(false);
+      setCountdown(3);
     }
   }, [isOpen]);
+
+  // Таймер задержки кнопки после включения галочки
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (isChecked && countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setIsButtonEnabled(true);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isChecked, countdown]);
+
+  // Сброс таймера при отключении галочки
+  useEffect(() => {
+    if (!isChecked) {
+      setIsButtonEnabled(false);
+      setCountdown(3);
+    }
+  }, [isChecked]);
 
   const handleConfirm = () => {
     if (isChecked) {
@@ -35,64 +65,96 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onCancel} title="⚠️ Внимание: Возрастное ограничение 18+">
-      <div className="space-y-4">
-        {/* Основной текст с иконкой-предупреждением (опционально) */}
-        <div className="flex items-start gap-3">
-          {/* Можно добавить иконку, например, <AlertTriangle className="w-5 h-5 mt-0.5 text-amber-500" /> */}
-          <div className="space-y-2">
-            <p className="text-[var(--primary)] font-medium">
-              Содержимое этого раздела предназначено{" "}
-              <strong className="text-[var(--chart-5)]">
-                исключительно для совершеннолетних пользователей (18 лет и старше)
-              </strong>
-              .
-            </p>
-            <p className="text-sm text-[var(--primary)]">
-              Данное ограничение установлено в соответствии с законодательством РФ (№436-ФЗ) и
-              внутренними правилами платформы для защиты несовершеннолетних.
+    <Modal isOpen={isOpen} onClose={onCancel} title="Возрастное ограничение 18+">
+      <div className="space-y-3 sm:space-y-5">
+        {/* Заголовок с иконкой */}
+        <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg sm:rounded-xl">
+          <div className="flex-shrink-0 w-8 h-8 sm:w-12 sm:h-12 bg-amber-500/20 rounded-full flex items-center justify-center">
+            <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-amber-500" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-sm sm:text-base text-amber-600 dark:text-amber-400">
+              Доступ ограничен
+            </h3>
+            <p className="text-xs sm:text-sm text-[var(--primary)]/80">
+              Требуется подтверждение возраста
             </p>
           </div>
         </div>
 
-        {/* Предупреждение о последствиях */}
-        {/* <div className="p-3 bg-[var(--accent)]/10 rounded-lg border border-[var(--border)]">
-      <p className="text-sm text-[var(--primary)]">
-        <strong>Важно:</strong> Предоставление заведомо ложной информации о своем возрасте является нарушением правил использования сервиса и может повлечь ограничение доступа к сервису.
-      </p>
-    </div> */}
+        {/* Основной текст */}
+        <div className="space-y-2 sm:space-y-3">
+          <p className="text-sm sm:text-base text-[var(--primary)] leading-relaxed">
+            Содержимое предназначено{" "}
+            <strong className="text-[var(--chart-5)]">
+              только для 18+
+            </strong>
+            .
+          </p>
+          <p className="text-xs sm:text-sm text-[var(--primary)]/70">
+            Ограничение по законодательству РФ (№436-ФЗ) для защиты несовершеннолетних.
+          </p>
+        </div>
+
+        {/* Разделитель */}
+        <div className="h-px bg-[var(--border)]" />
 
         {/* Чекбокс */}
-        <div className="flex items-start space-x-2 pt-2">
+        <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-[var(--accent)]/5 border border-[var(--border)] hover:bg-[var(--accent)]/10 transition-colors">
           <input
             type="checkbox"
             id="age-confirm"
             checked={isChecked}
             onChange={e => setIsChecked(e.target.checked)}
-            className="w-4 h-4 mt-1 text-[var(--primary)] bg-[var(--background)] border-[var(--border)] rounded focus:ring-[var(--primary)] focus:ring-2"
+            className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 text-[var(--primary)] bg-[var(--background)] border-[var(--border)] rounded focus:ring-[var(--primary)] focus:ring-2 cursor-pointer"
           />
-          <label htmlFor="age-confirm" className="text-sm text-[var(--primary)] cursor-pointer">
-            <span className="font-medium">Я подтверждаю, что мне исполнилось 18 лет.</span>
-            <br />
-            <span className="text-xs text-[var(--primary)]/60">
-              Я осознаю содержание материалов и несу полную ответственность за просмотр данного
-              контента.
+          <label htmlFor="age-confirm" className="text-xs sm:text-sm text-[var(--primary)] cursor-pointer select-none">
+            <span className="font-medium block mb-0.5 sm:mb-1">
+              Мне исполнилось 18 лет
+            </span>
+            <span className="text-[10px] sm:text-xs text-[var(--primary)]/60 block leading-tight">
+              Я осознаю содержание материалов и несу ответственность. Ложная информация — нарушение правил.
             </span>
           </label>
         </div>
 
         {/* Кнопки */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-1 sm:pt-2">
           <button
             onClick={handleConfirm}
-            disabled={!isChecked}
-            className="flex-1 px-4 py-2 bg-[var(--chart-1)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!isChecked || !isButtonEnabled}
+            className="relative flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl font-medium transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base overflow-hidden"
           >
-            Подтвердить возраст и продолжить
+            {/* Фоновое заполнение прогресса */}
+            {isChecked && !isButtonEnabled && (
+              <div 
+                className="absolute inset-0 bg-[var(--chart-1)] transition-all duration-1000 ease-linear"
+                style={{ 
+                  width: `${((3 - countdown) / 3) * 100}%`,
+                  opacity: 0.3 + ((3 - countdown) / 3) * 0.7
+                }}
+              />
+            )}
+            {/* Основной фон кнопки */}
+            <div className={`absolute inset-0 ${isButtonEnabled ? 'bg-[var(--chart-1)]' : 'bg-[var(--chart-1)]/30'} transition-colors duration-300`} />
+            {/* Контент кнопки */}
+            <span className="relative z-10 flex items-center gap-2 text-[var(--primary-foreground)]">
+              {isButtonEnabled ? (
+                <>
+                  <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+                  Подтвердить
+                </>
+              ) : (
+                <>
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 animate-pulse" />
+                  <span>Подтвердить ({countdown})</span>
+                </>
+              )}
+            </span>
           </button>
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2 bg-[var(--background)] text-[var(--primary)] rounded-lg font-medium hover:bg-[var(--accent)]/30 transition-colors border border-[var(--border)]"
+            className="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-[var(--background)] text-[var(--primary)] rounded-lg sm:rounded-xl font-medium hover:bg-[var(--accent)]/30 transition-all border border-[var(--border)] text-sm sm:text-base"
           >
             Отмена
           </button>
