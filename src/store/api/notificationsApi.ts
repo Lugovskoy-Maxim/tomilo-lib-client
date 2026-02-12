@@ -4,6 +4,7 @@ import {
   NotificationsResponse,
   UnreadCountResponse,
   MarkAsReadResponse,
+  MarkAsUnreadResponse,
   MarkAllAsReadResponse,
   DeleteNotificationResponse,
 } from "@/types/notifications";
@@ -26,9 +27,13 @@ export const notificationsApi = createApi({
   }),
   tagTypes: ["Notifications", "UnreadCount"],
   endpoints: builder => ({
-    // Получение уведомлений пользователя
-    getNotifications: builder.query<ApiResponseDto<NotificationsResponse>, void>({
-      query: () => "/notifications",
+    // Получение уведомлений пользователя с пагинацией
+    getNotifications: builder.query<ApiResponseDto<NotificationsResponse>, { page?: number; limit?: number } | void>({
+      query: (params) => {
+        const page = params?.page || 1;
+        const limit = params?.limit || 20;
+        return `/notifications?page=${page}&limit=${limit}`;
+      },
       providesTags: ["Notifications"],
       transformResponse: (response: ApiResponseDto<NotificationsResponse>) => response,
     }),
@@ -46,6 +51,15 @@ export const notificationsApi = createApi({
     markAsRead: builder.mutation<ApiResponseDto<MarkAsReadResponse>, string>({
       query: id => ({
         url: `/notifications/${id}/read`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Notifications", "UnreadCount"],
+    }),
+
+    // Отметить уведомление как непрочитанное
+    markAsUnread: builder.mutation<ApiResponseDto<MarkAsUnreadResponse>, string>({
+      query: id => ({
+        url: `/notifications/${id}/unread`,
         method: "POST",
       }),
       invalidatesTags: ["Notifications", "UnreadCount"],
@@ -75,6 +89,7 @@ export const {
   useGetNotificationsQuery,
   useGetUnreadCountQuery,
   useMarkAsReadMutation,
+  useMarkAsUnreadMutation,
   useMarkAllAsReadMutation,
   useDeleteNotificationMutation,
 } = notificationsApi;

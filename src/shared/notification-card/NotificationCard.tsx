@@ -2,21 +2,31 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
-import { Check, X, Clock } from "lucide-react";
+import { Check, X, Clock, MailOpen, Mail, Trash2 } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
-import { useMarkAsReadMutation, useDeleteNotificationMutation } from "@/store/api/notificationsApi";
+import { useMarkAsReadMutation, useMarkAsUnreadMutation, useDeleteNotificationMutation } from "@/store/api/notificationsApi";
 import { Notification } from "@/types/notifications";
 import { getTitlePath } from "@/lib/title-paths";
 
 interface NotificationCardProps {
   notification: Notification;
+  isSelected?: boolean;
+  onSelect?: (id: string, selected: boolean) => void;
+  selectionMode?: boolean;
 }
 
-export default function NotificationCard({ notification }: NotificationCardProps) {
+export default function NotificationCard({ 
+  notification, 
+  isSelected = false, 
+  onSelect,
+  selectionMode = false 
+}: NotificationCardProps) {
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [markAsRead] = useMarkAsReadMutation();
+  const [markAsUnread] = useMarkAsUnreadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
 
   const handleClick = async () => {
@@ -53,13 +63,29 @@ export default function NotificationCard({ notification }: NotificationCardProps
     }
   };
 
-  const handleRemove = async (e: React.MouseEvent) => {
+  const handleMarkAsUnread = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await deleteNotification(notification._id).unwrap();
+      await markAsUnread(notification._id).unwrap();
     } catch {
       // Error handling is done by the RTK Query
     }
+  };
+
+  const handleRemove = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDeleting(true);
+    try {
+      await deleteNotification(notification._id).unwrap();
+    } catch {
+      setIsDeleting(false);
+      // Error handling is done by the RTK Query
+    }
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    onSelect?.(notification._id, e.target.checked);
   };
 
   const getImageUrl = (coverImage?: string) => {
@@ -67,22 +93,30 @@ export default function NotificationCard({ notification }: NotificationCardProps
     if (coverImage.startsWith("http")) {
       return coverImage;
     }
-
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${coverImage}`;
-    return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}${coverImage}`;
+    // Ensure proper URL construction
+    const baseUrl = process.env.NEXT_PUBLIC_URL?.replace(/\/$/, "") || "http://localhost:3001";
+    const cleanPath = coverImage.startsWith("/") ? coverImage : `/${coverImage}`;
+    return `${baseUrl}${cleanPath}`;
   };
 
   const getCoverImage = () => {
-    if (typeof notification.titleId === "object" && notification.titleId?.coverImage) {
-      return notification.titleId.coverImage;
+    if (typeof notification.titleId === "object" && notification.titleId?._id) {
+      // Try to get coverImage from the populated title object
+      if (notification.titleId.coverImage) {
+        return notification.titleId.coverImage;
+      }
+      // Fallback: construct path from title ID
+      return `/uploads/titles/${notification.titleId._id}/cover.jpg`;
     }
     return undefined;
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "update":
+      case "new_chapter":
         return "bg-blue-500";
+      case "update":
+        return "bg-purple-500";
       case "user":
         return "bg-green-500";
       case "system":
@@ -92,74 +126,130 @@ export default function NotificationCard({ notification }: NotificationCardProps
     }
   };
 
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "new_chapter":
+        return "Новая глава";
+      case "update":
+        return "Обновление";
+      case "user":
+        return "Пользователь";
+      case "system":
+        return "Система";
+      default:
+        return "Другое";
+    }
+  };
+
+  if (isDeleting) {
+    return null;
+  }
+
+  const coverImageUrl = getCoverImage();
+
   return (
     <div
-      className={`w-full bg-card rounded-lg border transition-all duration-200 group cursor-pointer hover:shadow-md ${
-        notification.isRead ? "border-border opacity-75" : "border-primary/50 bg-primary/5"
-      }`}
+      className={`relative w-full bg-card rounded-xl border transition-all duration-300 group cursor-pointer hover:shadow-lg hover:-translate-y-0.5 ${
+        notification.isRead 
+          ? "border-border/50 opacity-80" 
+          : "border-primary/30 bg-gradient-to-r from-primary/5 to-transparent shadow-sm"
+      } ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""}`}
       onClick={handleClick}
     >
-      <div className="flex">
-        {/* Индикатор типа и изображения */}
-        <div className="flex flex-col items-center px-3 py-4">
-          <div className={`w-2 h-2 rounded-full ${getTypeColor(notification.type)} mb-2`} />
-          {getCoverImage() && !imageError && (
-            <div className="relative w-8 h-12 rounded overflow-hidden">
-              <OptimizedImage
-                src={getImageUrl(getCoverImage())}
-                alt=""
-                width={32}
-                height={48}
-                className="object-cover"
-                quality={80}
-                priority={false}
-                onError={() => setImageError(true)}
-              />
-            </div>
-          )}
+      {/* Индикатор непрочитанного */}
+      {!notification.isRead && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-primary rounded-r-full" />
+      )}
+      
+      <div className="flex items-stretch">
+        {/* Чекбокс для выбора */}
+        {selectionMode && (
+          <div className="flex items-center px-3 py-4 border-r border-border/50" onClick={e => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={handleCheckboxChange}
+              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+            />
+          </div>
+        )}
+
+        {/* Изображение тайтла */}
+        <div className="flex-shrink-0 p-3">
+          <div className="relative w-14 h-20 rounded-lg overflow-hidden bg-muted shadow-sm">
+            <img
+              src={getImageUrl(coverImageUrl)}
+              alt={typeof notification.titleId === "object" ? notification.titleId?.name || "Обложка" : "Обложка"}
+              className="w-full h-full object-cover"
+              onError={() => setImageError(true)}
+              loading="lazy"
+            />
+            {/* Бейдж типа уведомления */}
+            <div 
+              className={`absolute top-1 left-1 w-2 h-2 rounded-full ${getTypeColor(notification.type)} ring-2 ring-white`} 
+              title={getTypeLabel(notification.type)}
+            />
+          </div>
         </div>
 
         {/* Контент */}
-        <div className="flex-1 p-4 min-w-0">
-          <div className="flex items-start justify-between">
+        <div className="flex-1 p-3 min-w-0 flex flex-col justify-center">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <h3
-                className={`font-semibold text-sm mb-1 ${
+                className={`font-semibold text-sm leading-tight mb-1 ${
                   notification.isRead ? "text-muted-foreground" : "text-foreground"
                 }`}
               >
                 {notification.title}
               </h3>
               <p
-                className={`text-sm mb-2 line-clamp-2 ${
-                  notification.isRead ? "text-muted-foreground" : "text-foreground"
+                className={`text-sm line-clamp-2 leading-relaxed ${
+                  notification.isRead ? "text-muted-foreground/80" : "text-foreground/90"
                 }`}
               >
                 {notification.message}
               </p>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
                 <Clock className="w-3 h-3" />
-                <span>{new Date(notification.createdAt).toLocaleString("ru-RU")}</span>
+                <span>{new Date(notification.createdAt).toLocaleString("ru-RU", {
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                })}</span>
+                <span className="mx-1">•</span>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full bg-muted ${getTypeColor(notification.type).replace("bg-", "text-")}`}>
+                  {getTypeLabel(notification.type)}
+                </span>
               </div>
             </div>
 
             {/* Кнопки действий */}
-            <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              {!notification.isRead && (
+            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+              {notification.isRead ? (
+                <button
+                  onClick={handleMarkAsUnread}
+                  className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors"
+                  title="Отметить как непрочитанное"
+                >
+                  <Mail className="w-4 h-4" />
+                </button>
+              ) : (
                 <button
                   onClick={handleMarkAsRead}
-                  className="p-1 text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                  className="p-2 text-green-500 hover:bg-green-50 rounded-xl transition-colors"
                   title="Отметить как прочитанное"
                 >
-                  <Check className="w-4 h-4" />
+                  <MailOpen className="w-4 h-4" />
                 </button>
               )}
               <button
                 onClick={handleRemove}
-                className="p-1 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
                 title="Удалить уведомление"
               >
-                <X className="w-4 h-4" />
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>

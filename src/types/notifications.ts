@@ -76,6 +76,10 @@ export interface MarkAsReadResponse {
   message: string;
 }
 
+export interface MarkAsUnreadResponse {
+  message: string;
+}
+
 export interface MarkAllAsReadResponse {
   message: string;
 }

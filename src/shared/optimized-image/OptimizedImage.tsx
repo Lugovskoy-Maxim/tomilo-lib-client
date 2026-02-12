@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useImageState } from "@/lib/image-optimizer";
 
 interface OptimizedImageProps {
@@ -8,6 +8,7 @@ interface OptimizedImageProps {
   className?: string;
   width?: number;
   height?: number;
+  fill?: boolean;
   quality?: number;
   priority?: boolean;
   onLoad?: () => void;
@@ -16,6 +17,7 @@ interface OptimizedImageProps {
   onDragStart?: (e: React.DragEvent) => void;
   draggable?: boolean;
   hidePlaceholder?: boolean;
+  fallbackSrc?: string;
 }
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
@@ -24,6 +26,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   className = "",
   width,
   height,
+  fill = false,
   priority = false,
   onLoad,
   onError,
@@ -31,13 +34,16 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   onDragStart,
   draggable,
   hidePlaceholder = false,
+  fallbackSrc,
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const { isLoading, isLoaded, error, loadImage } = useImageState();
+  const [hasError, setHasError] = useState(false);
 
   // Отслеживаем изменения src и priority для перезагрузки изображения при необходимости
   useEffect(() => {
     if (src) {
+      setHasError(false);
       // Если priority=true, загружаем немедленно
       // Иначе начинаем загрузку сразу (без ожидания видимости)
       loadImage(src);
@@ -49,8 +55,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   };
 
   const handleError = () => {
+    setHasError(true);
     if (onError) onError();
   };
+
+  // Определяем реальный src (fallback если есть ошибка)
+  const actualSrc = hasError && fallbackSrc ? fallbackSrc : src;
 
   // Определяем классы для изображения
   const imageClasses = [
@@ -69,11 +79,19 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       return null;
     }
     
-    if (width && height) {
-      return (
-        <div
-          className="image-placeholder"
-          style={{
+    // Для fill mode используем абсолютное позиционирование
+    const placeholderStyle: React.CSSProperties = fill
+      ? {
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "var(--muted)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "var(--radius)",
+        }
+      : width && height
+        ? {
             width: "100%",
             aspectRatio: width / height,
             backgroundColor: "var(--muted)",
@@ -81,35 +99,19 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             alignItems: "center",
             justifyContent: "center",
             borderRadius: "var(--radius)",
-          }}
-        >
-          <div
-            style={{
-              border: "2px solid var(--muted)",
-              borderTop: "2px solid var(--primary)",
-              borderRadius: "50%",
-              width: "20px",
-              height: "20px",
-              animation: "spin 1s linear infinite",
-            }}
-          />
-        </div>
-      );
-    }
-    // Если размеры не указаны, используем skeleton с 100% width
+          }
+        : {
+            width: "100%",
+            paddingBottom: "137.5%",
+            backgroundColor: "var(--muted)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "var(--radius)",
+          };
+
     return (
-      <div
-        className="image-placeholder"
-        style={{
-          width: "100%",
-          paddingBottom: "137.5%", // Соотношение 220/160 = 1.375 (137.5%)
-          backgroundColor: "var(--muted)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: "var(--radius)",
-        }}
-      >
+      <div className="image-placeholder" style={placeholderStyle}>
         <div
           style={{
             border: "2px solid var(--muted)",
@@ -126,13 +128,10 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Отображение ошибки
   const renderError = () => {
-    const aspectRatio = width && height ? width / height : 160 / 220;
-    return (
-      <div
-        className="image-error"
-        style={{
-          width: "100%",
-          aspectRatio: aspectRatio,
+    const errorStyle: React.CSSProperties = fill
+      ? {
+          position: "absolute",
+          inset: 0,
           backgroundColor: "var(--destructive)",
           display: "flex",
           alignItems: "center",
@@ -142,25 +141,50 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           borderRadius: "var(--radius)",
           fontSize: "14px",
           fontWeight: 500,
-        }}
-      >
+        }
+      : {
+          width: "100%",
+          aspectRatio: width && height ? width / height : 160 / 220,
+          backgroundColor: "var(--destructive)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--destructive-foreground)",
+          border: "1px solid var(--destructive)",
+          borderRadius: "var(--radius)",
+          fontSize: "14px",
+          fontWeight: 500,
+        };
+
+    return (
+      <div className="image-error" style={errorStyle}>
         Ошибка
       </div>
     );
   };
 
-  // Если есть ошибка, отображаем сообщение об ошибке
-  if (error) {
+  // Если есть ошибка и нет fallback, отображаем сообщение об ошибке
+  if (error && !fallbackSrc) {
     return renderError();
   }
 
   // Определяем стиль отображения в зависимости от состояния загрузки
-  const imageStyle = {
-    display: isLoading ? "none" : "block",
-    width: width ? `${width}px` : "100%",
-    height: "auto",
-    ...style,
-  };
+  const imageStyle: React.CSSProperties = fill
+    ? {
+        display: isLoading ? "none" : "block",
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        ...style,
+      }
+    : {
+        display: isLoading ? "none" : "block",
+        width: width ? `${width}px` : "100%",
+        height: height ? `${height}px` : "auto",
+        ...style,
+      };
 
   return (
     <>
@@ -170,11 +194,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       {/* Основное изображение */}
       <img
         ref={imgRef}
-        src={src}
+        src={actualSrc}
         alt={alt}
         className={imageClasses}
-        width={width}
-        height={height}
+        width={fill ? undefined : width}
+        height={fill ? undefined : height}
         onLoad={handleLoad}
         onError={handleError}
         loading={priority ? "eager" : "lazy"}
