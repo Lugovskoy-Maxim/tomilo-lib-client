@@ -88,7 +88,7 @@ export default function MobileCover({
         </button>
         {isAdmin && (
           <Link
-            href={`/admin/titles/${titleData._id}/edit`}
+            href={`/admin/titles/edit/${titleData._id}`}
             className="p-3 bg-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/80 transition-colors"
             aria-label="Редактировать"
           >
