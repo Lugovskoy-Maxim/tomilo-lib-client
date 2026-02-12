@@ -20,7 +20,7 @@ import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-veri
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -243,7 +243,8 @@ export const useAuth = () => {
         updatedAt: result.data?.updatedAt,
       });
 
-      refetchProfile();
+      // Do not refetch profile: GET /users/profile may return empty bookmarks
+      // while POST bookmark returns full user; we already have correct data above.
 
       return { success: true };
     } catch (error: unknown) {
@@ -273,7 +274,7 @@ export const useAuth = () => {
         bookmarks: result.data?.bookmarks,
         updatedAt: result.data?.updatedAt,
       });
-      refetchProfile();
+      // Do not refetch profile (GET may return empty bookmarks).
       return { success: true };
     } catch (error: unknown) {
       console.error("Error updating bookmark category:", error);
@@ -304,8 +305,7 @@ export const useAuth = () => {
         updatedAt: result.data?.updatedAt,
       });
 
-      refetchProfile();
-
+      // Do not refetch profile (GET may return empty bookmarks).
       return { success: true };
     } catch (error: unknown) {
       console.error("Error removing bookmark:", error);

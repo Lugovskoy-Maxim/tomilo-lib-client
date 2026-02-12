@@ -14,9 +14,10 @@ const UPDATES_PAGE_SIZE = 18;
 export default function UpdatesPage() {
   const [mounted, setMounted] = useState(false);
   const [page, setPage] = useState(1);
-  const [accumulatedData, setAccumulatedData] = useState<
-    NonNullable<ReturnType<typeof useGetLatestUpdatesQuery>["data"]>["data"]
-  >([]);
+  type UpdateItem = NonNullable<
+    ReturnType<typeof useGetLatestUpdatesQuery>["data"]
+  >["data"][number];
+  const [accumulatedData, setAccumulatedData] = useState<UpdateItem[]>([]);
 
   const { data: latestUpdatesData, isLoading, isFetching, error } = useGetLatestUpdatesQuery(
     { page, limit: UPDATES_PAGE_SIZE },
@@ -29,7 +30,7 @@ export default function UpdatesPage() {
     if (page === 1) {
       setAccumulatedData(list);
     } else {
-      setAccumulatedData(prev => [...prev, ...list]);
+      setAccumulatedData((prev: UpdateItem[]) => [...prev, ...list]);
     }
   }, [latestUpdatesData?.data, page]);
 

@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { AuthResponse, User } from "@/types/auth";
 import { LoginData, RegisterData } from "@/types/form";
 import { ApiResponseDto } from "@/types/api";
-import { ReadingHistoryEntry, AvatarResponse } from "@/types/store";
+import { ReadingHistoryEntry, ReadingHistoryChapter, AvatarResponse } from "@/types/store";
 import { BookmarkEntry, BookmarkCategory } from "@/types/user";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
@@ -50,7 +50,7 @@ function normalizeHistoryItem(item: RawHistoryItem): ReadingHistoryEntry {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
     prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -128,7 +128,6 @@ export const authApi = createApi({
       query: ({ titleId, category = "reading" }) => ({
         url: `/users/profile/bookmarks/${titleId}?category=${category}`,
         method: "POST",
-        body: { titleId, category },
       }),
       transformResponse(response: ApiResponseDto<User>) {
         // Сервер может вернуть 201 с success: false при ошибке валидации
@@ -225,8 +224,35 @@ export const authApi = createApi({
       providesTags: ["ReadingHistory"],
     }),
 
+    // Сервер возвращает data: chapters[] — оборачиваем в ReadingHistoryEntry
     getReadingHistoryByTitle: builder.query<ApiResponseDto<ReadingHistoryEntry>, string>({
       query: titleId => `/users/profile/history/${titleId}`,
+      transformResponse(
+        response: ApiResponseDto<ReadingHistoryChapter[] | ReadingHistoryEntry>,
+        meta,
+        titleId,
+      ): ApiResponseDto<ReadingHistoryEntry> {
+        if (!response?.data) {
+          return { ...response, data: { titleId, chapters: [], readAt: new Date().toISOString() } };
+        }
+        const raw = response.data;
+        if (Array.isArray(raw)) {
+          return {
+            ...response,
+            data: {
+              titleId,
+              chapters: raw.map(ch => ({
+                chapterId: typeof ch.chapterId === "object" && ch.chapterId != null ? (ch.chapterId as { _id: string })._id : String(ch.chapterId),
+                chapterNumber: ch.chapterNumber,
+                chapterTitle: (ch as { chapterTitle?: string | null }).chapterTitle ?? null,
+                readAt: ch.readAt,
+              })),
+              readAt: raw[0]?.readAt ?? new Date().toISOString(),
+            },
+          };
+        }
+        return response as ApiResponseDto<ReadingHistoryEntry>;
+      },
       providesTags: (result, error, titleId) => [
         { type: "ReadingHistory", id: titleId },
         "ReadingHistory",

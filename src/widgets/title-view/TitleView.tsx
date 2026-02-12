@@ -409,7 +409,8 @@ export default function TitleView({ slug }: { slug: string }) {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Article",
+            "@type":
+              titleData.type === "novel" || titleData.type === "light_novel" ? "Book" : "Article",
             headline: titleWithType,
             description: titleData.description
               ? titleData.description.replace(/<[^>]*>/g, "").substring(0, 500)
@@ -464,14 +465,9 @@ export default function TitleView({ slug }: { slug: string }) {
               ? {
                   bookFormat: "EBook",
                   numberOfPages: processedChaptersData?.length || 0,
-                  "@type": "Book",
                 }
               : {
                   articleSection: titleData.type,
-                  wordCount: titleData.description
-                    ? titleData.description.replace(/<[^>]*>/g, "").split(" ").length
-                    : 0,
-                  "@type": "Article",
                 }),
           }),
         }}
