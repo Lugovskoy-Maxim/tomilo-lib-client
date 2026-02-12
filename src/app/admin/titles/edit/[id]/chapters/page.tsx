@@ -13,6 +13,7 @@ import { useMemo, useCallback, useState, useRef } from "react";
 import { Header, Footer } from "@/widgets";
 import { useToast } from "@/hooks/useToast";
 import { Chapter } from "@/types/title";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 export default function ChaptersManagementPage() {
   const params = useParams();
@@ -157,6 +158,17 @@ export default function ChaptersManagementPage() {
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
         <div className="max-w-5xl mx-auto px-4 py-8">
+          <Breadcrumbs
+            items={[
+              { name: "Главная", href: "/" },
+              { name: "Админка", href: "/admin" },
+              { name: "Тайтлы", href: "/admin?tab=titles" },
+              { name: "Редактирование", href: `/admin/titles/edit/${titleId}` },
+              { name: titleData?.name || "Тайтл", href: `/admin/titles/edit/${titleId}` },
+              { name: "Главы", isCurrent: true },
+            ]}
+            className="mb-6"
+          />
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <Link href={`/admin/titles/edit/${titleId}`} className="px-3 py-2 rounded border">

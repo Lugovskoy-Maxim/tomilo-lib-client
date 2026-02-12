@@ -107,7 +107,7 @@ export function CommentsSection() {
   }
 
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6">
+    <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4 sm:p-6">
       {/* Фильтры */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
@@ -124,7 +124,7 @@ export function CommentsSection() {
         <select
           value={entityType}
           onChange={e => setEntityType(e.target.value as CommentEntityType | "all")}
-          className="px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+          className="admin-input"
         >
           <option value="all">Все типы</option>
           <option value={CommentEntityType.TITLE}>Тайтлы</option>
@@ -138,7 +138,7 @@ export function CommentsSection() {
           filteredComments.map((comment: Comment) => (
             <div
               key={comment._id}
-              className="border border-[var(--border)] rounded-lg p-4 bg-[var(--background)]"
+              className="border border-[var(--border)] rounded-[var(--admin-radius)] p-4 bg-[var(--background)]"
             >
               <div className="flex justify-between items-start mb-2">
                 <div>

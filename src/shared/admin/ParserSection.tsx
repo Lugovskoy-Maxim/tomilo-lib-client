@@ -193,7 +193,7 @@ export function ParserSection() {
     <div className="space-y-6 p-2">
       {/* Supported Sites */}
       {supportedSites?.data && (
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
           <h2 className="text-xl font-semibold text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
             <Globe className="w-5 h-5" />
             Поддерживаемые сайты
@@ -214,7 +214,7 @@ export function ParserSection() {
       {/* Result Modal */}
       {isModalOpen && modalContent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 w-full max-w-md mx-4">
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
               {modalContent.title.includes("Ошибка") ? (
                 <AlertCircle className="w-5 h-5 text-red-500" />
@@ -227,7 +227,7 @@ export function ParserSection() {
             <div className="flex justify-end">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90"
+                className="admin-btn admin-btn-primary"
               >
                 Закрыть
               </button>
@@ -281,7 +281,7 @@ export function ParserSection() {
                 onClick={() =>
                   setParsingMode(mode.value as "chapters_info" | "title_import" | "chapter_import")
                 }
-                className={`p-4 rounded-lg border transition-colors ${
+                className={`p-4 rounded-[var(--admin-radius)] border transition-colors ${
                   parsingMode === mode.value
                     ? "border-[var(--primary)] bg-[var(--primary)]/10"
                     : "border-[var(--border)] hover:border-[var(--primary)]/50"
@@ -305,13 +305,13 @@ export function ParserSection() {
               value={url}
               onChange={e => setUrl(e.target.value)}
               placeholder="https://example.com/manga/title"
-              className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+              className="admin-input flex-1"
               disabled={isParsing}
             />
             <button
               onClick={() => window.open(url, "_blank")}
               disabled={!url.trim()}
-              className="px-3 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg hover:bg-[var(--accent)]/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="admin-btn admin-btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ExternalLink className="w-4 h-4" />
             </button>
@@ -331,7 +331,7 @@ export function ParserSection() {
             value={chapterNumbers}
             onChange={e => setChapterNumbers(e.target.value)}
             placeholder="1,2,3 или 1-5,8,10-15"
-            className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+            className="admin-input w-full"
             disabled={isParsing}
           />
           <p className="text-xs text-[var(--muted-foreground)] mt-1">
@@ -350,16 +350,16 @@ export function ParserSection() {
               value={titleId}
               onChange={e => setTitleId(e.target.value)}
               placeholder="Введите ID тайтла или начните поиск..."
-              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+              className="admin-input w-full"
               disabled={isParsing}
             />
             {searchResults?.data?.data && searchResults.data.data.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] shadow-lg max-h-48 overflow-y-auto">
                 {searchResults.data.data.map((title: Title) => (
                   <div
                     key={title._id}
                     onClick={() => selectTitle(title)}
-                    className="px-3 py-2 hover:bg-[var(--accent)] cursor-pointer border-b border-[var(--border)] last:border-b-0"
+                    className="px-3 py-2.5 hover:bg-[var(--accent)] cursor-pointer border-b border-[var(--border)] last:border-b-0"
                   >
                     <div className="font-medium">{title.name}</div>
                     <div className="text-sm text-[var(--muted-foreground)]">
@@ -374,7 +374,7 @@ export function ParserSection() {
 
         {/* Custom Fields for Title Import */}
         {parsingMode === "title_import" && (
-          <div className="mb-4 space-y-4 p-4 bg-[var(--background)] rounded-lg">
+          <div className="mb-4 space-y-4 p-4 bg-[var(--background)] rounded-[var(--admin-radius)]">
             <h3 className="font-medium text-[var(--foreground)]">Настройки импорта</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -387,7 +387,7 @@ export function ParserSection() {
                   value={customTitle}
                   onChange={e => setCustomTitle(e.target.value)}
                   placeholder="Оставить пустым для автоопределения"
-                  className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+                  className="admin-input w-full bg-[var(--card)]"
                   disabled={isParsing}
                 />
               </div>
@@ -399,7 +399,7 @@ export function ParserSection() {
                 <select
                   value={customType}
                   onChange={e => setCustomType(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+                  className="admin-input w-full bg-[var(--card)]"
                   disabled={isParsing}
                 >
                   <option value="">Автоопределение</option>
@@ -433,7 +433,7 @@ export function ParserSection() {
                 onChange={e => setCustomDescription(e.target.value)}
                 placeholder="Оставить пустым для автоопределения"
                 rows={3}
-                className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] resize-none"
+                className="admin-input w-full bg-[var(--card)] resize-none min-h-[80px]"
                 disabled={isParsing}
               />
             </div>
@@ -442,7 +442,7 @@ export function ParserSection() {
 
         {/* Progress Display */}
         {(currentProgress || isParsing) && (
-          <div className="mb-4 p-4 bg-[var(--background)] rounded-lg">
+          <div className="mb-4 p-4 bg-[var(--background)] rounded-[var(--admin-radius)]">
             <div className="flex items-center gap-3 mb-3">
               {isParsing && !currentProgress && (
                 <Loader2 className="w-5 h-5 animate-spin text-[var(--chart-2)]" />
@@ -487,7 +487,7 @@ export function ParserSection() {
 
         {/* Chapters Info Display */}
         {chaptersInfo && (
-          <div className="mb-4 p-4 bg-[var(--background)] rounded-lg">
+          <div className="mb-4 p-4 bg-[var(--background)] rounded-[var(--admin-radius)]">
             <h3 className="font-medium text-[var(--foreground)] mb-3">
               Найденные главы ({chaptersInfo.totalChapters})
             </h3>
@@ -513,7 +513,7 @@ export function ParserSection() {
           <button
             onClick={handleStartParsing}
             disabled={!isConnected || !url.trim() || isParsing}
-            className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="admin-btn admin-btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isParsing ? (
               <>

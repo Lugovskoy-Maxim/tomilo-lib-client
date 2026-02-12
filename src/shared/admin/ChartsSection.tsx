@@ -40,7 +40,7 @@ export function ChartsSection() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+            <div key={i} className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
               <div className="h-4 bg-[var(--muted)] rounded animate-pulse mb-4"></div>
               <div className="h-64 bg-[var(--muted)] rounded animate-pulse"></div>
             </div>
@@ -108,7 +108,7 @@ export function ChartsSection() {
         </div>
         <button
           onClick={exportData}
-          className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2"
+          className="admin-btn admin-btn-primary flex items-center gap-2"
         >
           <Download className="w-4 h-4" />
           Экспорт данных
@@ -119,7 +119,7 @@ export function ChartsSection() {
       <div className="flex items-center gap-2">
         <Calendar className="w-5 h-5 text-[var(--muted-foreground)]" />
         <span className="text-sm font-medium text-[var(--foreground)]">Период:</span>
-        <div className="flex bg-[var(--secondary)] rounded-lg p-1">
+        <div className="flex bg-[var(--secondary)] rounded-[var(--admin-radius)] p-1">
           {[
             { key: "daily", label: "Сегодня" },
             { key: "weekly", label: "Неделя" },
@@ -143,7 +143,7 @@ export function ChartsSection() {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Views and Users Over Time */}
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
           <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
             Просмотры и пользователи
@@ -184,7 +184,7 @@ export function ChartsSection() {
         </div>
 
         {/* Title Status Distribution */}
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
           <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-[var(--primary)]" />
             Распределение тайтлов
@@ -211,7 +211,7 @@ export function ChartsSection() {
         </div>
 
         {/* Popular Titles */}
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
           <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <Eye className="w-5 h-5 text-[var(--primary)]" />
             Популярные тайтлы
@@ -236,7 +236,7 @@ export function ChartsSection() {
         </div>
 
         {/* Activity Metrics */}
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
           <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-[var(--primary)]" />
             Активность ({selectedPeriod === "daily" ? "сегодня" : selectedPeriod === "weekly" ? "за неделю" : "за месяц"})
@@ -269,7 +269,7 @@ export function ChartsSection() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
           <div className="flex items-center gap-2 mb-2">
             <Eye className="w-5 h-5 text-blue-500" />
             <span className="text-sm font-medium text-[var(--foreground)]">Просмотры</span>
@@ -280,7 +280,7 @@ export function ChartsSection() {
           </p>
         </div>
 
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-5 h-5 text-green-500" />
             <span className="text-sm font-medium text-[var(--foreground)]">Новые пользователи</span>
@@ -291,7 +291,7 @@ export function ChartsSection() {
           </p>
         </div>
 
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
           <div className="flex items-center gap-2 mb-2">
             <BookOpen className="w-5 h-5 text-purple-500" />
             <span className="text-sm font-medium text-[var(--foreground)]">Новые тайтлы</span>
@@ -302,7 +302,7 @@ export function ChartsSection() {
           </p>
         </div>
 
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-5 h-5 text-orange-500" />
             <span className="text-sm font-medium text-[var(--foreground)]">Новые главы</span>

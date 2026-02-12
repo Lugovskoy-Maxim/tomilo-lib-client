@@ -103,7 +103,7 @@ export function AdminModal({
       <div
         ref={contentRef}
         className={cn(
-          "bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-2xl",
+          "bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] shadow-2xl",
           "w-full max-h-[90vh] overflow-hidden flex flex-col",
           "animate-in fade-in zoom-in-95 duration-200",
           sizeClasses[size],
@@ -122,11 +122,11 @@ export function AdminModal({
               </h2>
             )}
             {showCloseButton && (
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
-                aria-label="Закрыть"
-              >
+            <button
+              onClick={onClose}
+              className="p-2 rounded-[var(--admin-radius)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+              aria-label="Закрыть"
+            >
                 <X className="w-5 h-5" />
               </button>
             )}
@@ -171,12 +171,6 @@ export function ConfirmModal({
   confirmVariant = "danger",
   isLoading = false,
 }: ConfirmModalProps) {
-  const variantClasses = {
-    danger: "bg-red-500 hover:bg-red-600 text-white",
-    primary: "bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)]",
-    warning: "bg-yellow-500 hover:bg-yellow-600 text-white",
-  };
-
   return (
     <AdminModal
       isOpen={isOpen}
@@ -190,7 +184,7 @@ export function ConfirmModal({
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors disabled:opacity-50"
+            className="admin-btn admin-btn-secondary"
           >
             {cancelText}
           </button>
@@ -198,8 +192,10 @@ export function ConfirmModal({
             onClick={onConfirm}
             disabled={isLoading}
             className={cn(
-              "px-4 py-2 rounded-lg transition-colors disabled:opacity-50",
-              variantClasses[confirmVariant]
+              "admin-btn disabled:opacity-50",
+              confirmVariant === "primary" && "admin-btn-primary",
+              confirmVariant === "danger" && "bg-[var(--destructive)] hover:bg-[var(--destructive)]/90 text-white border-0",
+              confirmVariant === "warning" && "bg-[var(--chart-5)] hover:bg-[var(--chart-5)]/90 text-[var(--foreground)] border-0"
             )}
           >
             {isLoading ? "Загрузка..." : confirmText}
@@ -224,22 +220,22 @@ interface AlertModalProps {
 
 const alertIcons = {
   success: (
-    <svg className="w-12 h-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="w-12 h-12 text-[var(--chart-2)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
   ),
   error: (
-    <svg className="w-12 h-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="w-12 h-12 text-[var(--destructive)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
   warning: (
-    <svg className="w-12 h-12 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="w-12 h-12 text-[var(--chart-5)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
     </svg>
   ),
   info: (
-    <svg className="w-12 h-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="w-12 h-12 text-[var(--chart-1)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   ),
@@ -262,7 +258,7 @@ export function AlertModal({
         <div className="flex justify-center">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+            className="admin-btn admin-btn-primary"
           >
             {buttonText}
           </button>

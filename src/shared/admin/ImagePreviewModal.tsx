@@ -25,7 +25,7 @@ export function ImagePreviewModal({
             alt={altText}
             width={400}
             height={600}
-            className="max-w-full h-auto rounded-lg"
+            className="max-w-full h-auto rounded-[var(--admin-radius)]"
             unoptimized
           />
         ) : (

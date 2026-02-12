@@ -13,10 +13,13 @@ import {
   useDeleteChapterMutation,
   useAddPagesToChapterMutation,
 } from "@/store/api/chaptersApi";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { UpdateChapterDto } from "@/types/title";
 import { Chapter } from "@/types/chapter";
 import { ImagePreviewModal } from "@/shared/admin/ImagePreviewModal";
 import { Button } from "@/shared/ui/button";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import { Header } from "@/widgets";
 
 interface FormActionsProps {
   isSaving: boolean;
@@ -33,6 +36,7 @@ export default function ChapterEditorPage() {
     isLoading,
     error: apiError,
   } = useGetChapterByIdQuery(chapterId, { skip: !chapterId });
+  const { data: titleData } = useGetTitleByIdQuery({ id: titleId }, { skip: !titleId });
 
   const [formData, setFormData] = useState<Chapter>({
     _id: "",
@@ -274,7 +278,20 @@ export default function ChapterEditorPage() {
   return (
     <AuthGuard requiredRole="admin">
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+        <Header />
         <div className="max-w-4xl mx-auto px-4 py-6">
+          <Breadcrumbs
+            items={[
+              { name: "Главная", href: "/" },
+              { name: "Админка", href: "/admin" },
+              { name: "Тайтлы", href: "/admin?tab=titles" },
+              { name: "Редактирование", href: `/admin/titles/edit/${titleId}` },
+              { name: titleData?.name || "Тайтл", href: `/admin/titles/edit/${titleId}` },
+              { name: "Главы", href: `/admin/titles/edit/${titleId}/chapters` },
+              { name: `Глава ${formData.chapterNumber || ""}`.trim() || "Редактирование", isCurrent: true },
+            ]}
+            className="mb-6"
+          />
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-[var(--foreground)] flex items-center gap-2">
               <Edit className="w-6 h-6" />
@@ -291,37 +308,42 @@ export default function ChapterEditorPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block mb-1 text-[var(--foreground)] font-medium">
-                Название главы
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={handleInputChange("name")}
-                className="w-full px-3 py-2 rounded border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
-                required
-              />
-            </div>
-            <div>
-              <label className="block mb-1 text-[var(--foreground)] font-medium">Номер главы</label>
-              <input
-                type="number"
-                value={formData.chapterNumber}
-                onChange={e =>
-                  setFormData((prev: Chapter) => ({
-                    ...prev,
-                    chapterNumber: Number(e.target.value),
-                  }))
-                }
-                className="w-full px-3 py-2 rounded border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
-                required
-                min={0}
-              />
+            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Основные данные</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-[var(--foreground)]">
+                    Название главы
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={handleInputChange("name")}
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-[var(--foreground)]">Номер главы</label>
+                  <input
+                    type="number"
+                    value={formData.chapterNumber}
+                    onChange={e =>
+                      setFormData((prev: Chapter) => ({
+                        ...prev,
+                        chapterNumber: Number(e.target.value),
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
+                    required
+                    min={0}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Секция добавления новых изображений */}
-            <div className="mb-6">
+            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 mb-6">
               <div className="flex justify-between items-center mb-3">
                 <label className="block text-[var(--foreground)] font-medium">
                   Добавить новые страницы

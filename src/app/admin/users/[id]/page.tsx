@@ -8,6 +8,7 @@ import ErrorState from "@/shared/error-state/ErrorState";
 import { Footer, Header } from "@/widgets";
 import { useSEO } from "@/hooks/useSEO";
 import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 export default function AdminUserProfilePage() {
   const params = useParams();
@@ -38,6 +39,15 @@ export default function AdminUserProfilePage() {
         <Header />
 
         <div className="max-w-7xl mx-auto px-4 py-4">
+          <Breadcrumbs
+            items={[
+              { name: "Главная", href: "/" },
+              { name: "Админка", href: "/admin" },
+              { name: "Пользователи", href: "/admin?tab=users" },
+              { name: userProfile?.username ?? "Профиль", isCurrent: true },
+            ]}
+            className="mb-4"
+          />
           <ProfileHeader />
           <ProfileBanner
             userProfile={userProfile}

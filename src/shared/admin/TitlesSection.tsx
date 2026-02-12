@@ -278,7 +278,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
       onClick={() => handleSort(field)}
-      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+      className={`flex items-center gap-1 px-3 py-1.5 rounded-[var(--admin-radius)] text-sm transition-colors ${
         sortField === field
           ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
           : "bg-[var(--accent)] text-[var(--foreground)] hover:bg-[var(--accent)]/80"
@@ -403,7 +403,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                 placeholder="Поиск тайтлов..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm"
+                className="admin-input w-full pl-10"
               />
               {searchTerm && (
                 <button
@@ -417,7 +417,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
               {/* View mode toggle */}
-              <div className="flex bg-[var(--accent)] rounded-lg p-1">
+              <div className="flex bg-[var(--accent)] rounded-[var(--admin-radius)] p-1">
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded-md transition-colors ${
@@ -443,7 +443,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
               {/* Filter toggle */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`p-2 rounded-lg border transition-colors ${
+                className={`p-2 rounded-[var(--admin-radius)] border transition-colors ${
                   showFilters
                     ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
                     : "bg-[var(--card)] border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--accent)]"
@@ -455,7 +455,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
               {/* Add button */}
               <button
                 onClick={() => router.push("/admin/titles/create")}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors text-sm font-medium"
+                className="admin-btn admin-btn-primary flex items-center gap-2 text-sm font-medium"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Создать</span>
@@ -483,7 +483,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                   <button
                     key={filter.value}
                     onClick={() => setStatusFilter(filter.value)}
-                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    className={`px-3 py-1.5 rounded-[var(--admin-radius)] text-sm transition-colors ${
                       statusFilter === filter.value
                         ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                         : "bg-[var(--accent)] text-[var(--foreground)] hover:bg-[var(--accent)]/80"
@@ -511,7 +511,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
               <div className="flex-1" />
               <button
                 onClick={handleBulkDelete}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[var(--destructive)] hover:bg-[var(--destructive)]/10 rounded-[var(--admin-radius)] transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
                 Удалить
@@ -527,7 +527,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
           {Array.from({ length: 10 }).map((_, i) => (
             <div
               key={i}
-              className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden"
+              className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden"
             >
               <div className="aspect-[2/3] bg-[var(--muted)] animate-pulse" />
               <div className="p-3 space-y-2">
@@ -538,7 +538,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
           ))}
         </div>
       ) : filteredTitles.length === 0 ? (
-        <div className="text-center py-12 bg-[var(--card)] rounded-xl border border-[var(--border)]">
+        <div className="text-center py-12 bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)]">
           <Grid3X3 className="w-12 h-12 mx-auto text-[var(--muted-foreground)] mb-4" />
           <h3 className="text-lg font-medium text-[var(--foreground)] mb-1">Тайтлы не найдены</h3>
           <p className="text-[var(--muted-foreground)]">
@@ -587,7 +587,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
           {filteredTitles.map((title: Title) => (
             <div
               key={title._id}
-              className={`group bg-[var(--card)] rounded-xl border overflow-hidden transition-all duration-200 hover:shadow-lg ${
+              className={`group bg-[var(--card)] rounded-[var(--admin-radius)] border overflow-hidden transition-all duration-200 hover:shadow-lg ${
                 selectedIds.includes(title._id)
                   ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20"
                   : "border-[var(--border)] hover:border-[var(--primary)]/50"
@@ -612,7 +612,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                           : [...prev, title._id]
                       );
                     }}
-                    className={`p-1.5 rounded-lg transition-colors ${
+                    className={`p-1.5 rounded-[var(--admin-radius)] transition-colors ${
                       selectedIds.includes(title._id)
                         ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                         : "bg-black/50 text-white hover:bg-black/70"
@@ -629,7 +629,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                 {/* Status badge */}
                 <div className="absolute top-2 right-2">
                   <span
-                    className={`px-2 py-1 rounded-lg text-xs font-medium backdrop-blur-sm ${
+                    className={`px-2 py-1 rounded-[var(--admin-radius)] text-xs font-medium backdrop-blur-sm ${
                       title.status === "ongoing"
                         ? "bg-green-500/90 text-white"
                         : title.status === "completed"

@@ -201,14 +201,14 @@ export function StatsSection() {
           <button
             onClick={handleRecordStats}
             disabled={isRecording}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="admin-btn admin-btn-primary flex items-center gap-2 bg-[var(--chart-2)] hover:bg-[var(--chart-2)]/90 text-white border-0"
           >
             <Play className="w-4 h-4" />
             {isRecording ? "Запись..." : "Записать сегодня"}
           </button>
           <button
             onClick={exportData}
-            className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2"
+            className="admin-btn admin-btn-primary flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
             Экспорт
@@ -231,10 +231,10 @@ export function StatsSection() {
             <button
               key={view.key}
               onClick={() => setActiveView(view.key as StatsView)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+              className={`admin-btn flex items-center gap-2 ${
                 activeView === view.key
-                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                  : "bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)]"
+                  ? "admin-btn-primary"
+                  : "admin-btn-secondary"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -245,7 +245,7 @@ export function StatsSection() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
         {activeView === "history" && (
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
@@ -253,7 +253,7 @@ export function StatsSection() {
               <select
                 value={historyType}
                 onChange={(e) => setHistoryType(e.target.value as "daily" | "monthly" | "yearly")}
-                className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm"
+                className="admin-input"
               >
                 <option value="daily">По дням</option>
                 <option value="monthly">По месяцам</option>
@@ -269,7 +269,7 @@ export function StatsSection() {
                   onChange={(e) => setHistoryDays(Number(e.target.value))}
                   min={1}
                   max={365}
-                  className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm w-20"
+                  className="admin-input w-20"
                 />
               </div>
             )}
@@ -280,7 +280,7 @@ export function StatsSection() {
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(Number(e.target.value))}
-                    className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm"
+                    className="admin-input"
                   >
                     {availableYears?.data?.years.map((year) => (
                       <option key={year} value={year}>{year}</option>
@@ -298,7 +298,7 @@ export function StatsSection() {
                     <select
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                      className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm"
+                      className="admin-input"
                     >
                       {Array.from({ length: 12 }, (_, i) => (
                         <option key={i + 1} value={i + 1}>
@@ -320,7 +320,7 @@ export function StatsSection() {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm"
+              className="admin-input"
             />
           </div>
         )}
@@ -333,7 +333,7 @@ export function StatsSection() {
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
-                className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm"
+                className="admin-input"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ export function StatsSection() {
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
-                className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm"
+                className="admin-input"
               />
             </div>
           </div>
@@ -355,7 +355,7 @@ export function StatsSection() {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm"
+                className="admin-input"
               >
                 {availableYears?.data?.years.map((year) => (
                   <option key={year} value={year}>{year}</option>
@@ -372,7 +372,7 @@ export function StatsSection() {
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm"
+                className="admin-input"
               >
                 {Array.from({ length: 12 }, (_, i) => (
                   <option key={i + 1} value={i + 1}>
@@ -390,7 +390,7 @@ export function StatsSection() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm"
+              className="admin-input"
             >
               {availableYears?.data?.years.map((year) => (
                 <option key={year} value={year}>{year}</option>
@@ -413,7 +413,7 @@ export function StatsSection() {
               onChange={(e) => setRecentDays(Number(e.target.value))}
               min={1}
               max={365}
-              className="px-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm w-20"
+              className="admin-input w-20"
             />
           </div>
         )}
@@ -422,14 +422,14 @@ export function StatsSection() {
       {/* Content */}
       {isLoading ? (
         <div className="space-y-4">
-          <div className="h-64 bg-[var(--muted)] rounded-xl animate-pulse"></div>
-          <div className="h-64 bg-[var(--muted)] rounded-xl animate-pulse"></div>
+          <div className="h-64 bg-[var(--muted)] rounded-[var(--admin-radius)] animate-pulse"></div>
+          <div className="h-64 bg-[var(--muted)] rounded-[var(--admin-radius)] animate-pulse"></div>
         </div>
       ) : (
         <>
           {/* Chart */}
           {chartData.length > 0 && (
-            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+            <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
                 График активности
@@ -471,7 +471,7 @@ export function StatsSection() {
           )}
 
           {/* Data Table */}
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
             <h3 className="text-lg font-semibold text-[var(--foreground)] p-4 border-b border-[var(--border)] flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-[var(--primary)]" />
               Данные

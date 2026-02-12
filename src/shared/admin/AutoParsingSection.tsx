@@ -116,12 +116,12 @@ export default function AutoParsingSection() {
       {/* Result Modal */}
       {isModalOpen && modalContent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 w-full max-w-md mx-4">
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
               {modalContent.title.includes("Ошибка") ? (
-                <AlertCircle className="w-5 h-5 text-red-500" />
+                <AlertCircle className="w-5 h-5 text-[var(--destructive)]" />
               ) : (
-                <CheckCircle className="w-5 h-5 text-green-500" />
+                <CheckCircle className="w-5 h-5 text-[var(--chart-2)]" />
               )}
               {modalContent.title}
             </h3>
@@ -129,7 +129,7 @@ export default function AutoParsingSection() {
             <div className="flex justify-end">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90"
+                className="admin-btn admin-btn-primary"
               >
                 Закрыть
               </button>
@@ -151,7 +151,7 @@ export default function AutoParsingSection() {
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 flex items-center gap-2"
+          className="admin-btn admin-btn-primary flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Создать задачу
@@ -159,7 +159,7 @@ export default function AutoParsingSection() {
       </div>
 
       {/* Jobs List */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
         {jobsLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
@@ -174,7 +174,7 @@ export default function AutoParsingSection() {
             {jobs.map((job: AutoParsingJob) => (
               <div
                 key={job._id}
-                className="border border-[var(--border)] flex flex-col rounded-lg p-2 hover:border-[var(--primary)] transition-colors overflow-hidden"
+                className="border border-[var(--border)] flex flex-col rounded-[var(--admin-radius)] p-2 hover:border-[var(--primary)] transition-colors overflow-hidden"
               >
                 <div className="flex gap-2">
                   <div className="w-24 h-32 bg-[var(--accent)] rounded overflow-hidden flex-shrink-0">
@@ -197,8 +197,8 @@ export default function AutoParsingSection() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <div
-                          className={`w-4 h-4 rounded-full ${
-                            job.enabled ? "bg-green-500" : "bg-red-500"
+                          className={`w-4 h-4 rounded-[var(--admin-radius)] ${
+                            job.enabled ? "bg-[var(--chart-2)]" : "bg-[var(--destructive)]"
                           }`}
                         />
                         <h3 className="font-medium text-[var(--foreground)] truncate">
@@ -375,7 +375,7 @@ function JobModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
           {job ? "Редактировать задачу" : "Создать задачу"}
         </h3>
@@ -393,16 +393,16 @@ function JobModal({
                 setTitleSearch(e.target.value);
               }}
               placeholder="Введите ID тайтла или начните поиск..."
-              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+              className="admin-input w-full"
               required
             />
             {searchResults.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] shadow-lg max-h-48 overflow-y-auto">
                 {searchResults.map(title => (
                   <div
                     key={title._id}
                     onClick={() => onSelectTitle(title, setTitleId)}
-                    className="px-3 py-2 hover:bg-[var(--accent)] cursor-pointer border-b border-[var(--border)] last:border-b-0"
+                    className="px-3 py-2.5 hover:bg-[var(--accent)] cursor-pointer border-b border-[var(--border)] last:border-b-0 rounded-[var(--admin-radius)]"
                   >
                     <div className="font-medium">{title.name}</div>
                     <div className="text-sm text-[var(--muted-foreground)]">
@@ -426,14 +426,14 @@ function JobModal({
                     value={source}
                     onChange={e => handleSourceChange(index, e.target.value)}
                     placeholder="https://example.com/manga/title"
-                    className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+                    className="admin-input flex-1"
                     required={index === 0}
                   />
                   {sources.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveSource(index)}
-                      className="p-2 text-red-500 hover:text-red-600 bg-[var(--background)] border border-[var(--border)] rounded-lg"
+                      className="p-2 text-[var(--destructive)] hover:bg-[var(--destructive)]/10 bg-[var(--background)] border border-[var(--border)] rounded-[var(--admin-radius)]"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -458,7 +458,7 @@ function JobModal({
             <select
               value={frequency}
               onChange={e => setFrequency(e.target.value)}
-              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+              className="admin-input w-full"
               required
             >
               <option value="daily">Ежедневно</option>
@@ -474,7 +474,7 @@ function JobModal({
               id="enabled"
               checked={enabled}
               onChange={e => setEnabled(e.target.checked)}
-              className="rounded"
+              className="rounded-[var(--admin-radius)]"
             />
             <label htmlFor="enabled" className="text-sm text-[var(--foreground)]">
               Активная задача
@@ -485,14 +485,14 @@ function JobModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg hover:bg-[var(--accent)]/80"
+              className="admin-btn admin-btn-secondary flex-1"
             >
               Отмена
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="admin-btn admin-btn-primary flex-1 flex items-center justify-center gap-2"
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               {job ? "Сохранить" : "Создать"}

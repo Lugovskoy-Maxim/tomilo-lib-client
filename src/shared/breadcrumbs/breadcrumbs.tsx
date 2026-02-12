@@ -24,10 +24,11 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
     if (items) return items;
 
     const pathSegments = pathname.split("/").filter(Boolean);
+    const isAdminPath = pathSegments[0] === "admin";
 
     // Специальные названия для определенных сегментов
     const segmentNames: Record<string, string> = {
-      titles: "Каталог",
+      titles: isAdminPath ? "Тайтлы" : "Каталог",
       browse: "Просмотр",
       collections: "Коллекции",
       chapter: "Глава",
@@ -38,6 +39,10 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
       settings: "Настройки",
       notifications: "Уведомления",
       admin: "Админка",
+      edit: "Редактирование",
+      new: "Новый тайтл",
+      chapters: "Главы",
+      users: "Пользователи",
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -54,15 +59,21 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
       accumulatedPath += `/${segment}`;
       const isLast = index === pathSegments.length - 1;
 
-      // Попытка извлечь номер главы из сегмента
       let displayName = segmentNames[segment] || segment;
 
-      // Если это числовой сегмент и предыдущий был "chapter", то это номер главы
-      if (index > 0 && pathSegments[index - 1] === "chapter" && !isNaN(Number(segment))) {
-        displayName = `Глава ${segment}`;
+      // В админке: после "chapters" сегмент может быть "new" или id главы
+      if (isAdminPath && index > 0 && pathSegments[index - 1] === "chapters") {
+        if (segment === "new") displayName = "Новая глава";
+        else if (segment !== "chapters" && !segmentNames[segment]) displayName = "Глава";
+      }
+      // ID (Mongo ObjectId или число) — короткая подпись в админке
+      if (isAdminPath && (/^[a-f0-9]{24}$/i.test(segment) || /^\d+$/.test(segment))) {
+        const prev = pathSegments[index - 1];
+        if (prev === "edit" && pathSegments[index - 2] === "titles") displayName = "Тайтл";
+        else if (prev === "chapters") displayName = "Глава";
+        else if (pathSegments[index - 1] === "users") displayName = "Профиль";
       }
 
-      // Для ID в URL оставляем как есть, но можно добавить логику для получения настоящих названий
       breadcrumbs.push({
         name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
         href: isLast ? undefined : accumulatedPath,
@@ -79,7 +90,7 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
 
   return (
     <nav className={`my-2 ${className}`} aria-label="Breadcrumb">
-      <ol className="flex items-center space-x-2 text-sm text-gray-500">
+      <ol className="flex items-center flex-wrap gap-x-2 text-sm text-[var(--muted-foreground)]">
         {generatedItems.map((item, index) => (
           <li key={index} className="flex items-center">
             {item.href && !item.isCurrent ? (
@@ -99,7 +110,7 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
             )}
 
             {!item.isCurrent && index < generatedItems.length - 1 && (
-              <ChevronRight className="mx-2 h-4 w-4" />
+              <ChevronRight className="mx-1 h-4 w-4 shrink-0 text-[var(--muted-foreground)]" />
             )}
           </li>
         ))}

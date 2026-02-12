@@ -4,7 +4,6 @@ import { AuthGuard } from "@/guard/AuthGuard";
 
 import { Footer, Header } from "@/widgets";
 import {
-  // Upload,
   BookOpen,
   User,
   Tag,
@@ -13,13 +12,13 @@ import {
   Edit,
   Save,
   AlertCircle,
-  Eye,
-  Star,
-  Users,
   AlertTriangle,
   Globe,
   LucideIcon,
   Wand2,
+  Search,
+  X,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
@@ -40,65 +39,38 @@ import { useToast } from "@/hooks/useToast";
 import { CoverUploadSection } from "@/shared/admin/CoverUploadSection";
 import { normalizeGenres } from "@/lib/genre-normalizer";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import { GENRES } from "@/constants/genres";
+
+// Теги для тайтлов (дополнительные метки)
+const TAGS_LIST = [
+  "Магия",
+  "Боевые искусства",
+  "ГГ имба",
+  "ГГ слабый",
+  "Ромком",
+  "Гарем",
+  "Обратный гарем",
+  "Трагедия",
+  "Меха",
+  "Зомби",
+  "Вампиры",
+  "Перерождение",
+  "Попадание в другой мир",
+  "Система",
+  "Виртуальная реальность",
+  "Школа",
+  "Работа",
+  "Музыка",
+  "Спорт",
+  "Кулинария",
+] as const;
 
 // Конфигурация API
 const API_CONFIG = {
   baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
-
-  genres: [
-    "Фэнтези",
-    "Романтика",
-    "Приключения",
-    "Драма",
-    "Комедия",
-    "Боевик",
-    "Детектив",
-    "Ужасы",
-    "Научная фантастика",
-    "Повседневность",
-    "Психологическое",
-    "Исторический",
-    "Спокон",
-    "Гарем",
-    "Исекай",
-    "Махва",
-    "Манхва",
-    "Сёнэн",
-    "Сёдзе",
-    "Сейнен",
-    // Новые жанры из задания
-    "Жестокий мир",
-    "Драконы",
-    "Главная героиня",
-    "Дружба",
-    "Игровые элементы",
-    "Мурим",
-    "Всесильный главный герой",
-    "Разумные расы",
-    "Видеоигры",
-  ],
-  tags: [
-    "Магия",
-    "Боевые искусства",
-    "ГГ имба",
-    "ГГ слабый",
-    "Ромком",
-    "Гарем",
-    "Обратный гарем",
-    "Трагедия",
-    "Меха",
-    "Зомби",
-    "Вампиры",
-    "Перерождение",
-    "Попадание в другой мир",
-    "Система",
-    "Виртуальная реальность",
-    "Школа",
-    "Работа",
-    "Музыка",
-    "Спорт",
-    "Кулинария",
-  ],
+  genres: [...GENRES],
+  tags: [...TAGS_LIST],
   ageLimits: [
     { value: 0, label: "0+ Для всех возрастов" },
     { value: 12, label: "12+ Для детей старше 12" },
@@ -219,10 +191,6 @@ interface BasicInfoSectionProps {
   onSlugGenerate: () => void;
 }
 
-interface StatsSectionProps {
-  formData: Title;
-}
-
 interface ChaptersSectionProps {
   titleId: string;
   chaptersCount: number;
@@ -267,17 +235,22 @@ interface CheckboxFieldProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-interface CheckboxGroupProps {
-  label: string;
-  items: string[];
-  selectedItems: string[];
-  onChange: (value: string, isChecked: boolean) => void;
-  onInputChange?: (values: string[]) => void;
-  onNormalize?: (values: string[]) => {
+// Пропсы для секции «Жанры и теги»
+interface GenresTagsSectionProps {
+  genres: string[];
+  tags: string[];
+  onGenresChange: (value: string, isChecked: boolean) => void;
+  onTagsChange: (value: string, isChecked: boolean) => void;
+  onGenresReplace: (values: string[]) => void;
+  onTagsReplace: (values: string[]) => void;
+  onNormalizeGenres: (values: string[]) => {
     normalized: string[];
     changes: Array<{ original: string; normalized: string }>;
   };
-  icon?: LucideIcon;
+  onNormalizeTags: (values: string[]) => {
+    normalized: string[];
+    changes: Array<{ original: string; normalized: string }>;
+  };
 }
 
 // interface ImageUploadFieldProps {
@@ -542,10 +515,22 @@ export default function TitleEditorPage() {
       <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
         <Header />
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <HeaderSection />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
-              <BasicInfoSection
+          <Breadcrumbs
+            items={[
+              { name: "Главная", href: "/" },
+              { name: "Админка", href: "/admin" },
+              { name: "Тайтлы", href: "/admin?tab=titles" },
+              { name: "Редактирование", href: `/admin/titles/edit/${titleId}` },
+              { name: formData.name || "Тайтл", isCurrent: true },
+            ]}
+            className="mb-6"
+          />
+          <HeaderSection titleName={formData.name} />
+          <div className="flex flex-col items-stretch sm:items-end mb-6">
+            <ChaptersSection titleId={titleId} chaptersCount={chaptersCount} />
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6 w-full">
+            <BasicInfoSection
                 formData={formData}
                 titleId={titleId}
                 handleInputChange={handleInputChange}
@@ -566,18 +551,13 @@ export default function TitleEditorPage() {
                 rows={8}
                 required
               /> */}
-              <div className="flex items-center justify-between gap-3">
-                <Link href={`/titles/${formData.slug}`} className="px-4 py-2 rounded border">
-                  Открыть страницу тайтла
-                </Link>
-                <FormActions isSaving={isSaving || isUpdating} />
-              </div>
-            </form>
-            <div className="space-y-6 lg:col-span-1">
-              <StatsSection formData={formData} />
-              <ChaptersSection titleId={titleId} chaptersCount={chaptersCount} />
+            <div className="flex items-center justify-between gap-3">
+              <Link href={`/titles/${formData.slug}`} className="px-4 py-2 rounded border">
+                Открыть страницу тайтла
+              </Link>
+              <FormActions isSaving={isSaving || isUpdating} />
             </div>
-          </div>
+          </form>
         </div>
         <Footer />
       </main>
@@ -630,14 +610,18 @@ function ErrorState({ error }: ErrorStateProps) {
 }
 
 // Компоненты секций
-function HeaderSection() {
+function HeaderSection({ titleName }: { titleName?: string }) {
   return (
     <div className="mb-6">
-      <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2 flex items-center gap-2">
-        <Edit className="w-6 h-6" />
+      <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1 flex items-center gap-2">
+        <Edit className="w-6 h-6 text-[var(--primary)]" />
         Редактировать тайтл
       </h1>
-      <p className="text-[var(--muted-foreground)]">Обновите информацию о тайтле</p>
+      {titleName ? (
+        <p className="text-[var(--muted-foreground)] text-sm">«{titleName}»</p>
+      ) : (
+        <p className="text-[var(--muted-foreground)] text-sm">Обновите информацию о тайтле</p>
+      )}
     </div>
   );
 }
@@ -662,8 +646,9 @@ function BasicInfoSection({
         Основная информация
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="md:col-span-2">
+      {/* Адаптивная сетка: на xl обложка в отдельной колонке слева, поля справа; на малых экранах — одна колонка */}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(200px,260px)_1fr] gap-6 xl:gap-8">
+        <div className="w-full xl:w-auto xl:shrink-0">
           <CoverUploadSection
             titleId={titleId}
             currentCover={formData.coverImage}
@@ -671,7 +656,9 @@ function BasicInfoSection({
             selectedFile={selectedFile}
             onImageChange={handleImageChange}
           />
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
           <InputField
             label="Название *"
             value={formData.name}
@@ -680,7 +667,7 @@ function BasicInfoSection({
             required
           />
 
-          <div>
+          <div className="md:col-span-2">
             <label className="text-sm font-medium text-[var(--foreground)] mb-1 flex items-center gap-2">
               <Globe className="w-3 h-3" />
               Slug
@@ -691,12 +678,12 @@ function BasicInfoSection({
                 value={formData.slug || ""}
                 onChange={handleInputChange("slug")}
                 placeholder="Введите slug тайтла"
-                className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+                className="flex-1 min-w-0 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
               />
               <button
                 type="button"
                 onClick={onSlugGenerate}
-                className="px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-1 text-sm"
+                className="px-3 py-2 shrink-0 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-1 text-sm"
                 title="Генерировать slug из названия"
               >
                 <Wand2 className="w-3 h-3" />
@@ -704,7 +691,6 @@ function BasicInfoSection({
               </button>
             </div>
           </div>
-        </div>
 
         <div className="md:col-span-2">
           <InputField
@@ -778,95 +764,230 @@ function BasicInfoSection({
           checked={formData.isPublished}
           onChange={handleInputChange("isPublished")}
         />
+        </div>
       </div>
 
-      <CheckboxGroup
-        label="Жанры"
-        items={API_CONFIG.genres}
-        selectedItems={formData.genres}
-        onChange={(value, checked) => handleArrayFieldChange("genres")(value, checked)}
-        onInputChange={handleInputArrayChange("genres")}
-        onNormalize={handleNormalize("genres")}
-        icon={Tag}
+      <GenresTagsSection
+        genres={formData.genres}
+        tags={formData.tags}
+        onGenresChange={handleArrayFieldChange("genres")}
+        onTagsChange={handleArrayFieldChange("tags")}
+        onGenresReplace={handleInputArrayChange("genres")}
+        onTagsReplace={handleInputArrayChange("tags")}
+        onNormalizeGenres={handleNormalize("genres")}
+        onNormalizeTags={handleNormalize("tags")}
       />
 
-      <CheckboxGroup
-        label="Теги"
-        items={API_CONFIG.tags}
-        selectedItems={formData.tags}
-        onChange={(value, checked) => handleArrayFieldChange("tags")(value, checked)}
-        onInputChange={handleInputArrayChange("tags")}
-        onNormalize={handleNormalize("tags")}
-      />
-
-      <TextareaField
-        label="Описание *"
-        value={formData.description}
-        onChange={handleInputChange("description")}
-        placeholder="Описание тайтла..."
-        rows={4}
-        required
-      />
+      <div className="pt-4 border-t border-[var(--border)]">
+        <TextareaField
+          label="Описание *"
+          value={formData.description}
+          onChange={handleInputChange("description")}
+          placeholder="Краткое описание сюжета и особенностей тайтла..."
+          rows={5}
+          required
+        />
+      </div>
     </div>
   );
 }
-function StatsSection({ formData }: StatsSectionProps) {
-  const stats: Array<{
-    icon: LucideIcon;
-    value: string | number;
-    label: string;
-    color: "blue" | "green" | "yellow" | "purple";
-  }> = [
-    {
-      icon: Eye,
-      value: formData.views.toLocaleString(),
-      label: "Просмотры",
-      color: "blue",
-    },
-    {
-      icon: FileText,
-      value: formData.totalChapters,
-      label: "Глав",
-      color: "green",
-    },
-    {
-      icon: Star,
-      value: formData.rating.toFixed(1),
-      label: "Рейтинг",
-      color: "yellow",
-    },
-    {
-      icon: Users,
-      value: formData.isPublished ? "Опубликован" : "Черновик",
-      label: "Статус",
-      color: "purple",
-    },
-  ];
+// Один блок: жанры или теги — выбранные чипы, поиск, список, нормализация
+function GenreTagBlock({
+  title,
+  icon: Icon,
+  items,
+  selectedItems,
+  onChange,
+  onReplace,
+  onNormalize,
+  toast,
+}: {
+  title: string;
+  icon: LucideIcon;
+  items: string[];
+  selectedItems: string[];
+  onChange: (value: string, isChecked: boolean) => void;
+  onReplace: (values: string[]) => void;
+  onNormalize: (values: string[]) => { normalized: string[]; changes: Array<{ original: string; normalized: string }> };
+  toast: { success: (m: string) => void; info: (m: string) => void };
+}) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [pasteInput, setPasteInput] = useState("");
+  const safeSelected = Array.isArray(selectedItems) ? selectedItems : [];
+  const filteredItems = searchQuery.trim()
+    ? items.filter(item =>
+        item.toLowerCase().includes(searchQuery.toLowerCase().trim()),
+      )
+    : items;
 
-  const colorClasses = {
-    blue: "bg-[var(--primary)]/10 text-[var(--primary)]",
-    green: "bg-[var(--primary)]/10 text-[var(--primary)]",
-    yellow: "bg-[var(--primary)]/10 text-[var(--primary)]",
-    purple: "bg-[var(--primary)]/10 text-[var(--primary)]",
+  const handleNormalize = () => {
+    const result = onNormalize(safeSelected);
+    if (result.changes.length > 0) {
+      toast.success(
+        `Исправлено: ${result.changes.map(c => `${c.original} → ${c.normalized}`).join(", ")}`,
+      );
+    } else {
+      toast.info(`Все значения уже в стандартном виде`);
+    }
+  };
+
+  const handleAddFromText = () => {
+    const newParts = pasteInput
+      .split(/[,;]/)
+      .map(s => s.trim())
+      .filter(Boolean);
+    if (newParts.length === 0) return;
+    const combined = [...safeSelected, ...newParts];
+    const result = onNormalize(combined);
+    if (result.changes.length > 0) {
+      toast.success(`Добавлено и приведено к стандарту: ${result.changes.length} шт.`);
+    }
+    setPasteInput("");
   };
 
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-      <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">Статистика</h2>
-      <div className="grid grid-cols-2 gap-4">
-        {stats.map((stat, index) => (
-          <div key={index} className="text-center p-4 bg-[var(--secondary)] rounded-lg">
-            <div
-              className={`flex items-center justify-center w-10 h-10 ${
-                colorClasses[stat.color]
-              } rounded-full mx-auto mb-2`}
-            >
-              <stat.icon className="w-5 h-5" />
-            </div>
-            <p className="text-lg font-bold text-[var(--foreground)]">{stat.value}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">{stat.label}</p>
-          </div>
-        ))}
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        {Icon && <Icon className="w-4 h-4 text-[var(--primary)]" />}
+        <h3 className="text-sm font-semibold text-[var(--foreground)]">{title}</h3>
+      </div>
+
+      {/* Выбранные — чипы с удалением */}
+      <div>
+        <p className="text-xs font-medium text-[var(--muted-foreground)] mb-1.5">Выбранные</p>
+        <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+          {safeSelected.length === 0 ? (
+            <span className="text-xs text-[var(--muted-foreground)]">Ничего не выбрано</span>
+          ) : (
+            safeSelected.map(item => (
+              <span
+                key={item}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--primary)]/15 text-[var(--primary)] border border-[var(--primary)]/30"
+              >
+                {item}
+                <button
+                  type="button"
+                  onClick={() => onChange(item, false)}
+                  className="p-0.5 rounded hover:bg-[var(--primary)]/20 text-[var(--foreground)]"
+                  aria-label={`Удалить ${item}`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Поиск по списку */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder={`Поиск по списку ${title.toLowerCase()}...`}
+          className="w-full pl-8 pr-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+        />
+      </div>
+
+      {/* Список вариантов — клик добавляет/убирает */}
+      <div className="max-h-40 overflow-y-auto rounded-lg border border-[var(--border)] p-2 bg-[var(--background)]">
+        <div className="flex flex-wrap gap-1.5">
+          {filteredItems.map(item => {
+            const isSelected = safeSelected.includes(item);
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => onChange(item, !isSelected)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                  isSelected
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                    : "bg-[var(--accent)] text-[var(--foreground)] hover:border-[var(--primary)] border border-transparent"
+                }`}
+              >
+                {item}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Добавить из текста (через запятую) */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={pasteInput}
+          onChange={e => setPasteInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && (e.preventDefault(), handleAddFromText())}
+          placeholder={`Введите через запятую и нажмите «Добавить»`}
+          className="flex-1 px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+        />
+        <button
+          type="button"
+          onClick={handleAddFromText}
+          className="px-3 py-2 text-sm font-medium rounded-lg bg-[var(--accent)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--accent)]/80 shrink-0"
+        >
+          Добавить
+        </button>
+      </div>
+
+      {/* Нормализация */}
+      <button
+        type="button"
+        onClick={handleNormalize}
+        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--primary)]/50 transition-colors"
+        title="Привести регистр и варианты написания к стандартному виду"
+      >
+        <Sparkles className="w-4 h-4 text-[var(--primary)]" />
+        Привести к стандартному виду
+      </button>
+    </div>
+  );
+}
+
+function GenresTagsSection({
+  genres,
+  tags,
+  onGenresChange,
+  onTagsChange,
+  onGenresReplace,
+  onTagsReplace,
+  onNormalizeGenres,
+  onNormalizeTags,
+}: GenresTagsSectionProps) {
+  const toast = useToast();
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
+      <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+        <Tag className="w-5 h-5 text-[var(--primary)]" />
+        Жанры и теги
+      </h2>
+      <p className="text-sm text-[var(--muted-foreground)] mb-4">
+        Выберите из списка или введите через запятую. Кнопка «Привести к стандартному виду» исправит регистр и варианты написания.
+      </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <GenreTagBlock
+          title="Жанры"
+          icon={BookOpen}
+          items={API_CONFIG.genres}
+          selectedItems={genres}
+          onChange={onGenresChange}
+          onReplace={onGenresReplace}
+          onNormalize={onNormalizeGenres}
+          toast={toast}
+        />
+        <GenreTagBlock
+          title="Теги"
+          icon={Tag}
+          items={API_CONFIG.tags}
+          selectedItems={tags}
+          onChange={onTagsChange}
+          onReplace={onTagsReplace}
+          onNormalize={onNormalizeTags}
+          toast={toast}
+        />
       </div>
     </div>
   );
@@ -874,7 +995,7 @@ function StatsSection({ formData }: StatsSectionProps) {
 
 function ChaptersSection({ titleId, chaptersCount }: ChaptersSectionProps) {
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+    <div className="w-full sm:w-auto sm:min-w-[280px] lg:min-w-[320px] bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-[var(--foreground)] flex items-center gap-2">
           <FileText className="w-5 h-5" />
@@ -990,95 +1111,6 @@ function CheckboxField({ label, ...props }: CheckboxFieldProps) {
         />
         <span className="text-sm font-medium text-[var(--foreground)]">{label}</span>
       </label>
-    </div>
-  );
-}
-
-function CheckboxGroup({
-  label,
-  items,
-  selectedItems,
-  onChange,
-  onInputChange,
-  onNormalize,
-  icon: Icon,
-}: CheckboxGroupProps) {
-  // Обеспечиваем, что selectedItems всегда является массивом
-  const safeSelectedItems = Array.isArray(selectedItems) ? selectedItems : [];
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (onInputChange) {
-      const values = e.target.value
-        .split(",")
-        .map(item => item.trim())
-        .filter(item => item.length > 0);
-      onInputChange(values);
-    }
-  };
-
-  const handleCheckboxChange = (item: string, isChecked: boolean) => {
-    if (isChecked && onInputChange) {
-      // Добавляем элемент к существующим через input
-      const newSelected = [...safeSelectedItems, item];
-      onInputChange(newSelected);
-    } else {
-      onChange(item, isChecked);
-    }
-  };
-
-  const handleNormalize = () => {
-    if (onNormalize) {
-      // Вызываем обработчик нормализации напрямую
-      onNormalize(safeSelectedItems);
-    }
-  };
-
-  return (
-    <div>
-      <label className="text-sm font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
-        {Icon && <Icon className="w-3 h-3" />}
-        {label}
-      </label>
-      <div className="flex flex-wrap gap-1">
-        {items.map((item: string) => (
-          <label key={item} className="inline-flex items-center">
-            <input
-              type="checkbox"
-              checked={safeSelectedItems.includes(item)}
-              onChange={e => handleCheckboxChange(item, e.target.checked)}
-              className="hidden peer"
-            />
-            <span className="px-2 py-1 rounded-full text-xs border border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)] hover:border-[var(--primary)] transition-colors peer-checked:bg-[var(--primary)] peer-checked:text-[var(--primary-foreground)] peer-checked:border-[var(--primary)] cursor-pointer">
-              {item}
-            </span>
-          </label>
-        ))}
-      </div>
-
-      <div className="mt-3">
-        <div className="flex items-center justify-between mb-1">
-          <label className="text-sm font-medium text-[var(--foreground)]">
-            Установленные {label.toLowerCase()}
-          </label>
-          {onNormalize && (
-            <button
-              type="button"
-              onClick={handleNormalize}
-              className="px-2 py-1 text-xs bg-[var(--accent)] text-[var(--foreground)] rounded hover:bg-[var(--accent)]/80 transition-colors"
-              title="Нормализовать жанры/теги"
-            >
-              Нормализовать
-            </button>
-          )}
-        </div>
-        <input
-          type="text"
-          value={safeSelectedItems.join(", ")}
-          onChange={handleInputChange}
-          placeholder={`Введите ${label.toLowerCase()} через запятую`}
-          className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
-        />
-      </div>
     </div>
   );
 }

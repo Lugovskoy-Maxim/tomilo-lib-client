@@ -48,7 +48,7 @@ export function AdminCard({
   return (
     <div
       className={cn(
-        "bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden",
+        "bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden",
         "transition-all duration-200",
         !noHover && "hover:shadow-lg hover:border-[var(--primary)]/20",
         className
@@ -59,7 +59,7 @@ export function AdminCard({
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--secondary)]/30">
           <div className="flex items-center gap-2">
             {icon && (
-              <div className="p-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <div className="p-1.5 rounded-[var(--admin-radius)] bg-[var(--primary)]/10 text-[var(--primary)]">
                 {icon}
               </div>
             )}
@@ -110,15 +110,16 @@ interface StatCardProps {
   onClick?: () => void;
 }
 
+/* Сбалансированные цвета через переменные темы для единого тона */
 const colorMap = {
-  blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  green: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
-  purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
-  orange: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
-  red: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
-  cyan: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
-  pink: "bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/20",
-  yellow: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
+  blue: "bg-[var(--chart-1)]/12 text-[var(--chart-1)] border-[var(--chart-1)]/25",
+  green: "bg-[var(--chart-2)]/12 text-[var(--chart-2)] border-[var(--chart-2)]/25",
+  purple: "bg-[var(--chart-3)]/12 text-[var(--chart-3)] border-[var(--chart-3)]/25",
+  orange: "bg-[var(--chart-4)]/12 text-[var(--chart-4)] border-[var(--chart-4)]/25",
+  red: "bg-[var(--destructive)]/12 text-[var(--destructive)] border-[var(--destructive)]/25",
+  cyan: "bg-[var(--chart-2)]/12 text-[var(--chart-2)] border-[var(--chart-2)]/25",
+  pink: "bg-[var(--chart-4)]/12 text-[var(--chart-4)] border-[var(--chart-4)]/25",
+  yellow: "bg-[var(--chart-5)]/12 text-[var(--chart-5)] border-[var(--chart-5)]/25",
 };
 
 export function StatCard({
@@ -134,7 +135,7 @@ export function StatCard({
     <div
       onClick={onClick}
       className={cn(
-        "bg-[var(--card)] rounded-xl border p-4",
+        "bg-[var(--card)] rounded-[var(--admin-radius)] border p-4",
         "transition-all duration-200",
         "hover:shadow-md",
         onClick && "cursor-pointer hover:scale-[1.02]",
@@ -155,7 +156,7 @@ export function StatCard({
             </>
           )}
         </div>
-        <div className="p-2 rounded-lg bg-white/50 dark:bg-black/20">{icon}</div>
+        <div className="p-2 rounded-[var(--admin-radius)] bg-white/50 dark:bg-black/20">{icon}</div>
       </div>
 
       {trend && !loading && (
@@ -163,7 +164,7 @@ export function StatCard({
           <span
             className={cn(
               "font-medium",
-              trend.isPositive ? "text-green-600" : "text-red-600"
+              trend.isPositive ? "text-[var(--chart-2)]" : "text-[var(--destructive)]"
             )}
           >
             {trend.isPositive ? "↑" : "↓"} {Math.abs(trend.value)}%
@@ -193,7 +194,7 @@ export function MiniCard({
     <div
       onClick={onClick}
       className={cn(
-        "p-3 rounded-lg border transition-all duration-200",
+        "p-3 rounded-[var(--admin-radius)] border transition-all duration-200",
         "bg-[var(--card)] border-[var(--border)]",
         onClick && "cursor-pointer hover:border-[var(--primary)]/50",
         active && "border-[var(--primary)] bg-[var(--primary)]/5",

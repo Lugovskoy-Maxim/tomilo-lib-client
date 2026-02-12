@@ -17,6 +17,7 @@ import { AuthGuard } from "@/guard/AuthGuard";
 import { useState } from "react";
 import { Settings, Home } from "lucide-react";
 import Link from "next/link";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
@@ -81,7 +82,7 @@ export default function AdminPage() {
       <div className="flex flex-col min-h-screen bg-[var(--background)]">
         <Header />
 
-        <div className="flex flex-1 pt-[var(--header-height)]">
+        <div className="flex flex-1">
           {/* Sidebar Navigation */}
           <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -89,6 +90,13 @@ export default function AdminPage() {
           <main className="flex-1 flex flex-col overflow-hidden min-w-0">
             {/* Page Header */}
             <header className="flex-shrink-0 bg-[var(--card)] border-b border-[var(--border)] px-4 sm:px-6 py-4 lg:py-5">
+              <Breadcrumbs
+                items={[
+                  { name: "Главная", href: "/" },
+                  { name: "Админка", href: "/admin", isCurrent: true },
+                ]}
+                className="mb-3"
+              />
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-[var(--primary)]/10 rounded-xl">

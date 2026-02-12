@@ -12,7 +12,7 @@ interface UserCardProps {
 
 export function UserCard({ user, onView, onDelete, normalizeUrl, formatDate }: UserCardProps) {
   return (
-    <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 hover:shadow-md transition-shadow">
+    <div className="bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start gap-3">
         <div className="w-12 h-12 bg-[var(--secondary)] rounded-full flex items-center justify-center flex-shrink-0">
           {user.avatar ? (

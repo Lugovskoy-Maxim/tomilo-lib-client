@@ -92,7 +92,7 @@ export function IpManagementSection() {
     <div className="space-y-6 p-2">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-3">
           <div className="flex items-center gap-2 mb-1">
             <Globe className="w-4 h-4 text-[var(--primary)]" />
             <span className="text-xs text-[var(--muted-foreground)]">Всего</span>
@@ -106,7 +106,7 @@ export function IpManagementSection() {
           </div>
         </div>
 
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-3">
           <div className="flex items-center gap-2 mb-1">
             <Shield className="w-4 h-4 text-blue-500" />
             <span className="text-xs text-[var(--muted-foreground)]">Уник.</span>
@@ -120,7 +120,7 @@ export function IpManagementSection() {
           </div>
         </div>
 
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-3">
           <div className="flex items-center gap-2 mb-1">
             <ShieldAlert className="w-4 h-4 text-red-500" />
             <span className="text-xs text-[var(--muted-foreground)]">Блок.</span>
@@ -134,7 +134,7 @@ export function IpManagementSection() {
           </div>
         </div>
 
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-3">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-3">
           <div className="flex items-center gap-2 mb-1">
             <Clock className="w-4 h-4 text-green-500" />
             <span className="text-xs text-[var(--muted-foreground)]">Топ</span>
@@ -150,21 +150,21 @@ export function IpManagementSection() {
       </div>
 
       {/* Block IP Form */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
         <form onSubmit={handleBlockIp} className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             placeholder="IP адрес"
             value={blockIpForm.ip}
             onChange={e => setBlockIpForm({ ...blockIpForm, ip: e.target.value })}
-            className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+            className="admin-input flex-1 text-sm"
           />
           <input
             type="text"
             placeholder="Причина"
             value={blockIpForm.reason}
             onChange={e => setBlockIpForm({ ...blockIpForm, reason: e.target.value })}
-            className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+            className="admin-input flex-1 text-sm"
           />
           <Button type="submit" disabled={isBlocking} variant="destructive" size="sm">
             {isBlocking ? "..." : "Блок."}
@@ -173,7 +173,7 @@ export function IpManagementSection() {
       </div>
 
       {/* Blocked IPs List */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
         {/* Header with search */}
         <div className="p-3 border-b border-[var(--border)] flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -183,7 +183,7 @@ export function IpManagementSection() {
               placeholder="Поиск..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+              className="admin-input w-full pl-10 text-sm"
             />
           </div>
         </div>
@@ -292,7 +292,7 @@ export function IpManagementSection() {
 
       {/* Top IPs Table */}
       {statsData?.data?.topIps && statsData.data.topIps.length > 0 && (
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
           <div className="p-3 border-b border-[var(--border)]">
             <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
               <Globe className="w-4 h-4 text-[var(--primary)]" />

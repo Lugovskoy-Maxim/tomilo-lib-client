@@ -69,7 +69,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
       {/* Result Modal */}
       {isModalOpen && modalContent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 w-full max-w-md mx-4">
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
               {modalContent.title.includes("Ошибка") ? (
                 <AlertCircle className="w-5 h-5 text-red-500" />
@@ -82,7 +82,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
             <div className="flex justify-end">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90"
+                className="admin-btn admin-btn-primary"
               >
                 Закрыть
               </button>
@@ -92,7 +92,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
       )}
 
       {/* Title selection */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
         <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
           <BookOpen className="w-5 h-5" />
           Выберите тайтл
@@ -102,7 +102,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
           <select
             value={titleId || ""}
             onChange={e => onTitleChange(e.target.value || null)}
-            className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+            className="admin-input w-full pl-10"
           >
             <option value="">Выберите тайтл...</option>
             {titles.map(title => (
@@ -113,7 +113,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
           </select>
         </div>
         {titleId && (
-          <div className="mt-4 p-4 bg-[var(--secondary)] rounded-lg">
+          <div className="mt-4 p-4 bg-[var(--secondary)] rounded-[var(--admin-radius)]">
             <h3 className="font-medium text-[var(--foreground)]">
               {titles.find(t => t._id === titleId)?.name}
             </h3>
@@ -133,14 +133,14 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
             <div className="flex items-center gap-2">
               <Link
                 href={`/admin/titles/edit/${titleId}`}
-                className="px-4 py-2 bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--accent)] transition-colors flex items-center gap-2"
+                className="admin-btn admin-btn-secondary flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
                 Редактировать тайтл
               </Link>
               <Link
                 href={`/admin/titles/edit/${titleId}/chapters/new`}
-                className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2"
+                className="admin-btn admin-btn-primary flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Добавить главу
@@ -149,7 +149,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
           </div>
 
           {/* Chapters list */}
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
             {isLoading ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
@@ -160,7 +160,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
                 <p className="text-[var(--muted-foreground)]">Нет глав</p>
                 <Link
                   href={`/admin/titles/edit/${titleId}/chapters/new`}
-                  className="inline-block mt-4 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+                  className="admin-btn admin-btn-primary inline-block mt-4 font-medium"
                 >
                   Добавить первую главу
                 </Link>
@@ -269,7 +269,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
               </div>
             )}
             {chaptersResponse && chaptersResponse.hasMore && (
-              <div className="mt-6 p-4 bg-[var(--secondary)] rounded-lg flex justify-center">
+              <div className="mt-6 p-4 bg-[var(--secondary)] rounded-[var(--admin-radius)] flex justify-center">
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={isLoading}

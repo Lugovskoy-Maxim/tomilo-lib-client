@@ -76,12 +76,12 @@ export function UsersSection() {
             placeholder="Поиск пользователей..."
             value={searchTerm}
             onChange={e => handleSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+            className="admin-input w-full pl-10"
           />
         </div>
 
         {/* View mode toggle */}
-        <div className="flex items-center gap-2 bg-[var(--secondary)] rounded-lg p-1">
+        <div className="flex items-center gap-2 bg-[var(--secondary)] rounded-[var(--admin-radius)] p-1">
           <button
             onClick={() => setViewMode("list")}
             className={`p-2 rounded-md transition-colors ${
@@ -108,7 +108,7 @@ export function UsersSection() {
       </div>
 
       {/* Users display */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
         {isLoading ? (
           <div className="p-4 sm:p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>

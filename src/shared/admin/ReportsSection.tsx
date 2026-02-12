@@ -19,9 +19,9 @@ const reportTypeLabels = {
 };
 
 const reportTypeColors = {
-  [ReportType.ERROR]: "bg-red-500",
-  [ReportType.TYPO]: "bg-blue-500",
-  [ReportType.COMPLAINT]: "bg-yellow-500",
+  [ReportType.ERROR]: "bg-[var(--destructive)]",
+  [ReportType.TYPO]: "bg-[var(--chart-1)]",
+  [ReportType.COMPLAINT]: "bg-[var(--chart-5)]",
 };
 
 export function ReportsSection() {
@@ -71,20 +71,20 @@ export function ReportsSection() {
 
   if (error) {
     return (
-      <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)] rounded-lg p-4">
+      <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)] rounded-[var(--admin-radius)] p-4">
         <p className="text-[var(--destructive)]">Ошибка загрузки жалоб: {JSON.stringify(error)}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)]">
+    <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)]">
       {/* Filters */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 border-b border-[var(--border)]">
         <select
           value={reportTypeFilter}
           onChange={e => setReportTypeFilter(e.target.value)}
-          className="px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          className="admin-input w-full"
         >
           <option value="">Все типы</option>
           {Object.entries(reportTypeLabels).map(([value, label]) => (
@@ -97,7 +97,7 @@ export function ReportsSection() {
         <select
           value={isResolvedFilter}
           onChange={e => setIsResolvedFilter(e.target.value)}
-          className="px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          className="admin-input w-full"
         >
           <option value="">Все статусы</option>
           <option value="true">Решенные</option>
@@ -146,7 +146,7 @@ export function ReportsSection() {
                 >
                   <td className="py-2.5 px-3">
                     <span
-                      className={`inline-block px-2 py-0.5 rounded-full text-xs text-white ${
+                      className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${
                         reportTypeColors[report.reportType]
                       }`}
                     >
@@ -178,12 +178,12 @@ export function ReportsSection() {
                   </td>
                   <td className="py-2.5 px-3">
                     {report.isResolved ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-500/10 text-green-500 dark:bg-green-900/30 dark:text-green-300">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-[var(--admin-radius)] text-xs bg-[var(--chart-2)]/15 text-[var(--chart-2)]">
                         <CheckCircle className="w-3 h-3 mr-0.5" />
                         Решена
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-yellow-500/10 text-yellow-500 dark:bg-yellow-900/30 dark:text-yellow-300">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-[var(--admin-radius)] text-xs bg-[var(--chart-5)]/15 text-[var(--chart-5)]">
                         <AlertTriangle className="w-3 h-3 mr-0.5" />
                         Открыта
                       </span>
@@ -198,7 +198,7 @@ export function ReportsSection() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => handleStatusChange(report._id, !report.isResolved)}
-                        className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded transition-colors"
+                        className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
                         title={report.isResolved ? "Открыть" : "Закрыть"}
                       >
                         {report.isResolved ? (
@@ -209,7 +209,7 @@ export function ReportsSection() {
                       </button>
                       <button
                         onClick={() => handleDelete(report._id)}
-                        className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        className="p-2 text-[var(--destructive)] hover:bg-[var(--destructive)]/10 rounded-[var(--admin-radius)] transition-colors"
                         title="Удалить"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

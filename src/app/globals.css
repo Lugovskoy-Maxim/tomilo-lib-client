@@ -122,6 +122,12 @@ body {
 .admin-input::placeholder {
   color: var(--muted-foreground);
 }
+textarea.admin-input {
+  height: auto;
+  min-height: 5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
 /* Единые стили кнопок в админке */
 .admin-btn {
   height: var(--admin-input-h);

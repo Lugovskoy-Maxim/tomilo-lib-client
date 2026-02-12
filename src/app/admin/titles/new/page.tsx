@@ -23,6 +23,7 @@ import { VALIDATION_MESSAGES } from "@/constants/validation";
 import { MESSAGES } from "@/constants/messages";
 import { GENRES } from "@/constants/genres";
 import { UI_ELEMENTS } from "@/constants/uiElements";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 interface TitleFormData {
   name: string;
@@ -419,6 +420,15 @@ export default function TitleEditorPage() {
         <Header />
 
         <div className="max-w-4xl mx-auto px-4 py-8">
+          <Breadcrumbs
+            items={[
+              { name: "Главная", href: "/" },
+              { name: "Админка", href: "/admin" },
+              { name: "Тайтлы", href: "/admin?tab=titles" },
+              { name: "Новый тайтл", isCurrent: true },
+            ]}
+            className="mb-6"
+          />
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
               {isEditMode ? <Edit className="w-8 h-8" /> : <Plus className="w-8 h-8" />}
@@ -790,17 +800,17 @@ export default function TitleEditorPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-4">
+            <div className="flex flex-wrap justify-end gap-4 pt-4">
               <Link
                 href="/admin"
-                className="px-6 py-3 bg-[var(--accent)] text-[var(--muted-foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
+                className="px-6 py-3 rounded-lg font-medium border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
               >
                 {UI_ELEMENTS.FIELD_LABELS.CANCEL}
               </Link>
               <button
                 type="submit"
                 disabled={isCreating || isUpdating || isCreatingWithCover}
-                className="px-8 py-3 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-lg font-medium cursor-pointer hover:bg-[var(--secondary-foreground)]/10 transition-colors flex items-center gap-2 disabled:opacity-50"
+                className="px-8 py-3 rounded-lg font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 {isEditMode ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
 

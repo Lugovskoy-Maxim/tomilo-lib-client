@@ -109,7 +109,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
                     onTabChange(tab.id);
                     setIsMobileOpen(false);
                   }}
-                  className={`w-full px-3 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)] ${
+                  className={`w-full px-3 py-2.5 rounded-[var(--admin-radius)] font-medium transition-all duration-200 flex items-center gap-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)] ${
                     isActive
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
                       : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
@@ -136,7 +136,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
       {/* Mobile menu toggle - below header */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed z-50 p-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-lg transition-all hover:bg-[var(--accent)] admin-sidebar-toggle"
+        className="lg:hidden fixed z-50 p-2.5 bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] shadow-lg transition-all hover:bg-[var(--accent)] admin-sidebar-toggle"
         style={{ top: "calc(var(--header-height) + 12px)", left: 12 }}
         aria-label={isMobileOpen ? "Закрыть меню" : "Открыть меню"}
       >
@@ -170,7 +170,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
         {/* Sidebar header - logo/name */}
         <div className="flex-shrink-0 p-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-[var(--primary)]/10">
+            <div className="p-2 rounded-[var(--admin-radius)] bg-[var(--primary)]/10">
               <LayoutDashboard className="w-5 h-5 text-[var(--primary)]" />
             </div>
             <div>
@@ -187,7 +187,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
         <div className="flex-shrink-0 p-3 border-t border-[var(--border)] space-y-2">
           <Link
             href="/"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            className="flex items-center gap-2 px-3 py-2 rounded-[var(--admin-radius)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
           >
             <ExternalLink className="w-4 h-4" />
             На главную

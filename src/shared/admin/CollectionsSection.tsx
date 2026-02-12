@@ -332,7 +332,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+          className="admin-btn admin-btn-primary flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Создать коллекцию
@@ -358,7 +358,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
           </p>
           <button
             onClick={() => setIsModalOpen(false)}
-            className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+            className="admin-btn admin-btn-primary"
           >
             Закрыть
           </button>
@@ -374,7 +374,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             placeholder="Поиск коллекций..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            className="admin-input w-full pl-10 bg-[var(--secondary)] text-[var(--muted-foreground)]"
           />
         </div>
         <select
@@ -384,7 +384,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             setSortBy(field);
             setSortOrder(order);
           }}
-          className="px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)]"
+          className="admin-btn admin-btn-secondary"
         >
           <option value="createdAt-desc">Сначала новые</option>
           <option value="createdAt-asc">Сначала старые</option>
@@ -410,7 +410,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
           collections.map((collection: Collection, index: number) => (
             <div
               key={`${collection.id}-${index}`}
-              className="bg-[var(--card)] rounded-lg border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors"
+              className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors"
             >
               <div className="flex justify-between items-start mb-3">
                 <h3 className="font-semibold text-[var(--muted-foreground)] truncate">
@@ -679,7 +679,7 @@ function CollectionModal({
             onChange={e => handleChange("name", e.target.value)}
             required
             placeholder="Введите название коллекции"
-            className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            className="w-full px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-[var(--admin-radius)] text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
         </div>
 
@@ -690,7 +690,7 @@ function CollectionModal({
           <textarea
             value={formData.description || ""}
             onChange={e => handleChange("description", e.target.value)}
-            className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] resize-none"
+            className="w-full px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] text-[var(--muted-foreground)] resize-none"
             rows={3}
             placeholder="Введите описание коллекции"
           />
@@ -710,11 +710,11 @@ function CollectionModal({
                   alt="Cover preview"
                   width={200}
                   height={300}
-                  className="rounded-lg border border-[var(--border)]"
+                  className="rounded-[var(--admin-radius)] border border-[var(--border)]"
                   unoptimized
                 />
                 {previewUrl && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-[var(--admin-radius)]">
                     <span className="text-white font-medium">Предпросмотр</span>
                   </div>
                 )}
@@ -723,7 +723,7 @@ function CollectionModal({
           )}
 
           {/* File Upload */}
-          <div className="border border-dashed border-[var(--border)] rounded-lg p-4">
+          <div className="border border-dashed border-[var(--border)] rounded-[var(--admin-radius)] p-4">
             <input
               type="file"
               accept="image/*"
@@ -751,7 +751,7 @@ function CollectionModal({
               <button
                 type="button"
                 onClick={() => onCoverUpdate(selectedFile)}
-                className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
+                className="admin-btn admin-btn-primary"
               >
                 Обновить только обложку
               </button>
@@ -763,14 +763,14 @@ function CollectionModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-[var(--muted-foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors"
+            className="admin-btn admin-btn-secondary"
           >
             Отмена
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-[var(--primary)] text-white rounded-[var(--admin-radius)] hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
           >
             {isLoading ? "Сохранение..." : "Сохранить"}
           </button>
@@ -874,7 +874,7 @@ function TitlesModal({
             <select
               value={selectedTitleId}
               onChange={e => setSelectedTitleId(e.target.value)}
-              className="flex-1 px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)]"
+              className="flex-1 px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-[var(--admin-radius)] text-[var(--muted-foreground)]"
             >
               <option value="">Выберите тайтл...</option>
               {availableTitles.map((title: Title) => (
@@ -886,7 +886,7 @@ function TitlesModal({
             <button
               onClick={handleAddTitle}
               disabled={!selectedTitleId || isAdding}
-              className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50"
+              className="px-4 py-2 bg-[var(--primary)] text-white rounded-[var(--admin-radius)] hover:bg-[var(--primary)]/90 disabled:opacity-50"
             >
               {isAdding ? "Добавление..." : "Добавить"}
             </button>
@@ -896,7 +896,7 @@ function TitlesModal({
         <div className="flex justify-end gap-3 pt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-[var(--muted-foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors"
+            className="admin-btn admin-btn-secondary"
           >
             Закрыть
           </button>
@@ -985,13 +985,13 @@ function CommentsModal({
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
               placeholder="Введите комментарий..."
-              className="flex-1 px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-lg text-[var(--muted-foreground)] resize-none"
+              className="flex-1 px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-[var(--admin-radius)] text-[var(--muted-foreground)] resize-none"
               rows={3}
             />
             <button
               onClick={handleAddComment}
               disabled={!newComment.trim() || isAdding}
-              className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90 disabled:opacity-50 self-end"
+              className="px-4 py-2 bg-[var(--primary)] text-white rounded-[var(--admin-radius)] hover:bg-[var(--primary)]/90 disabled:opacity-50 self-end"
             >
               {isAdding ? "Добавление..." : "Добавить"}
             </button>
@@ -1001,7 +1001,7 @@ function CommentsModal({
         <div className="flex justify-end gap-3 pt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-[var(--muted-foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors"
+            className="admin-btn admin-btn-secondary"
           >
             Закрыть
           </button>

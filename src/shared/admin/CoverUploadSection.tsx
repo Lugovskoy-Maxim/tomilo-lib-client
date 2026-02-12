@@ -38,7 +38,7 @@ export function CoverUploadSection({
     : "";
 
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+    <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
       <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
         <ImageIcon className="w-5 h-5" />
         Обложка тайтла
@@ -71,7 +71,7 @@ export function CoverUploadSection({
         )}
 
         {/* Загрузка новой обложки */}
-        <div className="border border-dashed border-[var(--border)] rounded-lg p-4">
+        <div className="border border-dashed border-[var(--border)] rounded-[var(--admin-radius)] p-4">
           <input
             type="file"
             accept="image/*"

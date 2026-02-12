@@ -64,7 +64,7 @@ function PopularChapterItem({
 
   return (
     <div className="flex items-center gap-3 p-3 hover:bg-[var(--accent)]/30 transition-colors">
-      <span className="w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-xs font-medium text-yellow-700 dark:text-yellow-300 shrink-0">
+      <span className="w-5 h-5 rounded-[var(--admin-radius)] bg-[var(--chart-5)]/15 flex items-center justify-center text-xs font-medium text-[var(--chart-5)] shrink-0">
         {index + 1}
       </span>
       <div className="flex-1 min-w-0">
@@ -115,7 +115,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
         {/* Loading skeleton for stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+            <div key={i} className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
               <div className="h-4 w-12 bg-[var(--muted)] rounded animate-pulse mb-2"></div>
               <div className="h-6 w-16 bg-[var(--muted)] rounded animate-pulse"></div>
             </div>
@@ -127,9 +127,9 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
 
   if (error || !stats) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-        <p className="text-red-800 font-medium">Ошибка загрузки статистики</p>
-        <p className="text-red-600 text-sm mt-1">Не удалось получить данные с сервера</p>
+      <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/30 rounded-[var(--admin-radius)] p-6">
+        <p className="text-[var(--destructive)] font-medium">Ошибка загрузки статистики</p>
+        <p className="text-[var(--destructive)]/80 text-sm mt-1">Не удалось получить данные с сервера</p>
       </div>
     );
   }
@@ -187,7 +187,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
       </div>
 
       {/* Period Stats */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)]">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)]">
         {/* Period Tabs */}
         <div className="flex border-b border-[var(--border)]">
           {(["daily", "weekly", "monthly"] as const).map(period => (
@@ -242,7 +242,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
       {/* Two Column Layout: Popular Titles & Quick Actions */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Popular Titles */}
-        <div className="lg:col-span-2 bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="lg:col-span-2 bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
           <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
             <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
@@ -288,14 +288,14 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
         {/* Right Column: Quick Actions & Top Chapters */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
             <h3 className="font-semibold text-[var(--foreground)] mb-4">Действия</h3>
             <div className="grid grid-cols-2 gap-2">
               {quickActions.map((action, i) => (
                 <button
                   key={i}
                   onClick={action.action}
-                  className="p-3 border border-[var(--border)] rounded-lg hover:bg-[var(--accent)] transition-colors flex flex-col items-center gap-1"
+                  className="p-3 border border-[var(--border)] rounded-[var(--admin-radius)] hover:bg-[var(--accent)] transition-colors flex flex-col items-center gap-1"
                 >
                   <action.icon className="w-5 h-5 text-[var(--primary)]" />
                   <span className="text-xs font-medium">{action.label}</span>
@@ -305,10 +305,10 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
           </div>
 
           {/* Popular Chapters */}
-          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
             <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
               <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
-                <Award className="w-5 h-5 text-yellow-500" />
+                <Award className="w-5 h-5 text-[var(--chart-5)]" />
                 Топ глав
               </h3>
             </div>
@@ -323,7 +323,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
 
       {/* Activity Summary */}
       <div className="grid md:grid-cols-3 gap-4">
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
           <div className="flex items-center gap-2 mb-3">
             <Calendar className="w-5 h-5 text-[var(--primary)]" />
             <h3 className="font-medium text-[var(--foreground)]">Активность</h3>
@@ -344,19 +344,19 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
           </div>
         </div>
 
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Layers className="w-5 h-5 text-green-500" />
+            <Layers className="w-5 h-5 text-[var(--chart-2)]" />
             <h3 className="font-medium text-[var(--foreground)]">Статус тайтлов</h3>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-[var(--muted-foreground)]">Онгоинг</span>
-              <span className="font-medium text-green-500">{stats.ongoingTitles}</span>
+              <span className="font-medium text-[var(--chart-2)]">{stats.ongoingTitles}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-[var(--muted-foreground)]">Завершённые</span>
-              <span className="font-medium text-blue-500">{stats.completedTitles}</span>
+              <span className="font-medium text-[var(--chart-1)]">{stats.completedTitles}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-[var(--muted-foreground)]">Всего</span>
@@ -365,9 +365,9 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
           </div>
         </div>
 
-        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Clock className="w-5 h-5 text-orange-500" />
+            <Clock className="w-5 h-5 text-[var(--chart-4)]" />
             <h3 className="font-medium text-[var(--foreground)]">Сессия</h3>
           </div>
           <div className="space-y-2">
@@ -405,11 +405,11 @@ function PeriodStat({
   trend?: { value: number; isPositive: boolean };
 }) {
   const colorClasses: Record<string, string> = {
-    blue: "text-blue-500",
-    green: "text-green-500",
-    purple: "text-purple-500",
-    orange: "text-orange-500",
-    yellow: "text-yellow-500",
+    blue: "text-[var(--chart-1)]",
+    green: "text-[var(--chart-2)]",
+    purple: "text-[var(--chart-3)]",
+    orange: "text-[var(--chart-4)]",
+    yellow: "text-[var(--chart-5)]",
   };
 
   const formatValue = (num: number) => {
@@ -424,7 +424,7 @@ function PeriodStat({
       <p className="text-xl font-bold text-[var(--foreground)]">{formatValue(value)}</p>
       <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
       {trend && (
-        <div className={`flex items-center justify-center gap-1 text-xs mt-1 ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+        <div className={`flex items-center justify-center gap-1 text-xs mt-1 ${trend.isPositive ? 'text-[var(--chart-2)]' : 'text-[var(--destructive)]'}`}>
           {trend.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
           {trend.value}%
         </div>

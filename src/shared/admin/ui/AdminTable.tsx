@@ -180,7 +180,7 @@ export function AdminTable<T>({
 
   if (loading) {
     return (
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
         <div className="p-4 space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex gap-4">
@@ -204,7 +204,7 @@ export function AdminTable<T>({
               placeholder="Поиск..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] text-sm"
+              className="admin-input w-full pl-10"
               aria-label="Поиск по таблице"
             />
           </div>
@@ -217,7 +217,7 @@ export function AdminTable<T>({
       )}
 
       {/* Table */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-[var(--secondary)]">
@@ -348,7 +348,7 @@ export function AdminTable<T>({
               <button
                 onClick={() => pagination.onPageChange(pagination.page - 1)}
                 disabled={pagination.page === 1}
-                className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg disabled:opacity-50 hover:bg-[var(--accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                className="admin-btn admin-btn-secondary"
                 aria-label="Предыдущая страница"
               >
                 Назад
@@ -361,7 +361,7 @@ export function AdminTable<T>({
                 disabled={
                   pagination.page >= Math.ceil(pagination.total / pagination.limit)
                 }
-                className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg disabled:opacity-50 hover:bg-[var(--accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                className="admin-btn admin-btn-secondary"
                 aria-label="Следующая страница"
               >
                 Вперед
