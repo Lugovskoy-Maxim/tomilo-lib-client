@@ -3,7 +3,7 @@ import type { Decoration } from "@/api/shop";
 import type { ApiResponse } from "@/api/shop";
 import type { CreateDecorationDto, UpdateDecorationDto } from "@/api/shop";
 
-const SHOP_TAG = "Shop";
+const SHOP_TAG = "Shop" as const;
 
 export const shopApi = createApi({
   reducerPath: "shopApi",
@@ -28,7 +28,7 @@ export const shopApi = createApi({
       providesTags: result =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: SHOP_TAG as const, id })),
+              ...result.map(({ id }) => ({ type: SHOP_TAG, id })),
               { type: SHOP_TAG, id: "LIST" },
             ]
           : [{ type: SHOP_TAG, id: "LIST" }],
@@ -44,7 +44,7 @@ export const shopApi = createApi({
       providesTags: result =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: SHOP_TAG as const, id })),
+              ...result.map(({ id }) => ({ type: SHOP_TAG, id })),
               { type: SHOP_TAG, id: "LIST" },
             ]
           : [{ type: SHOP_TAG, id: "LIST" }],
