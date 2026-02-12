@@ -10,7 +10,7 @@ export const CarouselSkeleton: React.FC<CarouselSkeletonProps> = ({
   itemCount = 7
 }) => (
   <div className="flex flex-col items-start justify-center carousel-skeleton animate-pulse w-full max-w-7xl mx-auto px-4 py-2 overflow-hidden">
-    <div className="h-8 bg-[var(--muted)] rounded w-48 mb-4">{title}</div>
+    <div className="h-8 bg-[var(--muted)] rounded w-48 mb-4" aria-hidden />
     <div className="flex gap-4 overflow-hidden items-center justify-center">
       {[...Array(itemCount)].map((_, i) => (
         <div key={i} className="flex-shrink-0">

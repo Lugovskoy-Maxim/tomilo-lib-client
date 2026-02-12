@@ -295,11 +295,27 @@ export default function TitleView({ slug }: { slug: string }) {
 
   // Показываем ошибку
   if (titleError) {
-    return <ErrorState title={"Ошибка загрузки тайтла"} />;
+    return (
+      <>
+        <Header />
+        <main className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)]">
+          <ErrorState title="Ошибка загрузки тайтла" message="Попробуйте обновить страницу" />
+        </main>
+        <Footer />
+      </>
+    );
   }
 
   if (!titleData) {
-    return <ErrorState title={"Тайтл не найден"} />;
+    return (
+      <>
+        <Header />
+        <main className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)]">
+          <ErrorState title="Тайтл не найден" message="Запрашиваемый тайтл не существует или был удалён" />
+        </main>
+        <Footer />
+      </>
+    );
   }
 
   // Определяем тип тайтла для хлебных крошек

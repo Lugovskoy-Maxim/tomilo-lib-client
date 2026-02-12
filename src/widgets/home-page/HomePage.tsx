@@ -64,10 +64,15 @@ export default function HomePage() {
     return (
       <>
         <Header />
-        <main className="flex flex-col items-center justify-center gap-6">
+        <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16 w-full overflow-x-hidden">
           <CarouselSkeleton />
           <CarouselSkeleton />
+          <div className="w-full overflow-x-hidden">
+            <TopCombinedSkeleton />
+          </div>
           <CarouselSkeleton />
+          <CarouselSkeleton />
+          <GridSkeleton showTitle />
         </main>
         <Footer />
       </>

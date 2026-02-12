@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Star, TrendingUp } from "lucide-react";
+import { Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -44,12 +44,12 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     return fixed.replace(/\.0$/, "");
   };
 
-  // Определяем цвет рейтинга
-  const getRatingColor = (rating: number) => {
-    if (rating >= 8) return "bg-emerald-500/90";
-    if (rating >= 6) return "bg-amber-500/90";
-    if (rating >= 4) return "bg-orange-500/90";
-    return "bg-slate-500/90";
+  // Цвет акцента рейтинга (border/glow)
+  const getRatingAccent = (rating: number) => {
+    if (rating >= 8) return "border-amber-400/60 text-amber-300 shadow-amber-500/20";
+    if (rating >= 6) return "border-amber-500/50 text-amber-400 shadow-amber-600/15";
+    if (rating >= 4) return "border-orange-500/50 text-orange-400 shadow-orange-500/15";
+    return "border-white/30 text-white/90 shadow-black/20";
   };
 
   // Функция для выполнения действия с карточкой
@@ -126,16 +126,18 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           {/* Adult badge */}
           {isAdultContent && (
             <div className="absolute top-2 right-2 z-10">
-              <div className="bg-red-500/95 backdrop-blur-sm text-white px-2 py-0.5 rounded-md font-bold text-[10px] shadow-lg border border-red-400/40 flex items-center gap-1">
+              <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2.5 py-1 rounded-md text-xs font-bold shadow-lg border flex items-center gap-1.5">
                 <span>18+</span>
               </div>
             </div>
           )}
 
-          {/* Rating badge */}
+          {/* Rating badge — glass style */}
           <div className="absolute top-2 left-2 z-10">
-            <div className={`${getRatingColor(data.rating)} backdrop-blur-sm text-white px-2 py-1 rounded-md flex items-center gap-1 text-[10px] font-bold shadow-lg border border-white/20`}>
-              <Star className="w-3 h-3 fill-white" />
+            <div
+              className={`${getRatingAccent(data.rating)} bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-md flex items-center gap-1.5 text-xs font-semibold shadow-lg border`}
+            >
+              <Star className="w-3.5 h-3.5 fill-current shrink-0" />
               <span>{formatRating(data.rating)}</span>
             </div>
           </div>
@@ -153,7 +155,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
         <div className="p-3 bg-[var(--card)] rounded-b-xl flex flex-col min-h-[5.5rem]">
           {/* Type and year */}
           <div className="flex justify-between items-center gap-2 mb-2 flex-shrink-0">
-            <span className="bg-[var(--primary)]/10 text-[var(--primary)] px-2 py-0.5 rounded-md text-xs font-semibold border border-[var(--primary)]/20 truncate max-w-[70%]">
+            <span className="bg-[var(--primary)]/10 text-[var(--primary)] px-2.5 py-1 rounded-md text-xs font-semibold border border-[var(--primary)]/20 truncate max-w-[70%]">
               {translateTitleType(data.type)}
             </span>
             <span className="text-xs font-medium text-[var(--muted-foreground)] bg-[var(--muted)]/30 px-2 py-0.5 rounded-md">
