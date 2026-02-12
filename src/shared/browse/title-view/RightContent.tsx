@@ -26,6 +26,7 @@ import { translateTitleStatus, translateTitleType } from "@/lib/title-type-trans
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useUpdateRatingMutation } from "@/store/api/titlesApi";
+import { useGetReadingHistoryReadIdsQuery } from "@/store/api/authApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getChapterPath } from "@/lib/title-paths";
 import { useAuth } from "@/hooks/useAuth";
@@ -125,28 +126,35 @@ export function RightContent({
     }
   }, [user]);
 
-  // Получаем историю чтения для текущего тайтла
+  // Лёгкий запрос: только id прочитанных глав (для статуса «прочитано» на странице тайтла)
+  const { data: readIdsData } = useGetReadingHistoryReadIdsQuery(titleId, {
+    skip: !user || !titleId,
+  });
   const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
 
-  // Функция для проверки, прочитана ли глава
+  // Функция для проверки, прочитана ли глава (приоритет: read-ids API, затем полная история по тайтлу)
   const isChapterRead = useCallback(
     (chapterId: string): boolean => {
+      if (readIdsData?.data?.chapterIds?.length) {
+        return readIdsData.data.chapterIds.includes(chapterId);
+      }
       if (!readingHistoryData?.data) return false;
 
-      // API returns array directly, but type says ReadingHistoryEntry
-      const historyData = (readingHistoryData.data || []) as unknown as Array<{
-        chapterId?: { _id: string } | null | undefined;
-        chapterNumber: number;
-        readAt: string;
-      }>;
-
-      return historyData.some(ch => {
+      const entry = readingHistoryData.data as unknown as {
+        chapters?: Array<{
+          chapterId?: { _id: string } | string | null;
+          chapterNumber: number;
+          readAt: string;
+        }>;
+      };
+      const chaptersList = entry?.chapters ?? [];
+      return chaptersList.some(ch => {
         if (!ch.chapterId) return false;
-        // chapterId is an object with _id property
-        return ch.chapterId._id === chapterId;
+        const id = typeof ch.chapterId === "object" && ch.chapterId !== null ? (ch.chapterId as { _id: string })._id : String(ch.chapterId);
+        return id === chapterId;
       });
     },
-    [readingHistoryData],
+    [readIdsData, readingHistoryData],
   );
 
   // Функция для удаления из истории чтения

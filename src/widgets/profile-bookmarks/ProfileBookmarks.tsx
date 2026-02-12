@@ -30,6 +30,24 @@ interface BookmarksSectionProps {
   showSectionHeader?: boolean;
 }
 
+/** Минимальный объект тайтла для карточки (API может отдавать populated titleId) */
+function toCardTitle(
+  entry: BookmarkEntry,
+  fullTitle: { _id: string; name: string; coverImage?: string; slug?: string; status?: string } | null,
+): { _id: string; name: string; coverImage?: string; slug?: string; status?: string } {
+  if (fullTitle) return fullTitle;
+  if (entry.title?.name) {
+    return {
+      _id: entry.titleId,
+      name: entry.title.name,
+      coverImage: entry.title.coverImage,
+      slug: entry.title.slug,
+      status: entry.title.status,
+    };
+  }
+  return { _id: entry.titleId, name: `Манга #${entry.titleId.slice(-6)}` };
+}
+
 function BookmarkItem({
   entry,
   onRemove,
@@ -40,11 +58,12 @@ function BookmarkItem({
   onCategoryChange: (titleId: string, category: BookmarkCategory) => void;
 }) {
   const titleId = entry.titleId;
+  const hasTitleFromApi = Boolean(entry.title?.name);
   const {
-    data: title,
+    data: fetchedTitle,
     isLoading,
     error,
-  } = useGetTitleByIdQuery({ id: titleId || "null" }, { skip: !titleId });
+  } = useGetTitleByIdQuery({ id: titleId || "null" }, { skip: !titleId || hasTitleFromApi });
   const [isRemoving, setIsRemoving] = useState(false);
 
   const handleRemove = () => {
@@ -55,7 +74,10 @@ function BookmarkItem({
     }, 300);
   };
 
-  if (isLoading || isRemoving) {
+  const title = toCardTitle(entry, fetchedTitle ?? null);
+  const showError = !hasTitleFromApi && (error || (!isLoading && !fetchedTitle));
+
+  if ((isLoading && !hasTitleFromApi) || isRemoving) {
     return (
       <div className="flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/40 border border-[var(--border)] animate-pulse">
         <div className="w-20 h-28 sm:w-24 sm:h-32 rounded-lg bg-[var(--muted)] flex-shrink-0" />
@@ -68,14 +90,14 @@ function BookmarkItem({
     );
   }
 
-  if (error || !title) {
+  if (showError) {
     return (
       <div className="flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/40 border border-[var(--border)]">
         <div className="w-20 h-28 rounded-lg bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 flex items-center justify-center flex-shrink-0">
           <Bookmark className="w-6 h-6 text-[var(--chart-1)]" />
         </div>
         <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <h3 className="font-medium text-[var(--muted-foreground)] text-sm">Манга #{titleId.slice(-6)}</h3>
+          <h3 className="font-medium text-[var(--muted-foreground)] text-sm">{title.name}</h3>
           <p className="text-xs text-red-500 mt-1">Ошибка загрузки</p>
         </div>
       </div>
@@ -84,7 +106,7 @@ function BookmarkItem({
 
   return (
     <BookmarkCard
-      title={title}
+      title={title as import("@/types/title").Title}
       category={entry.category}
       onRemove={handleRemove}
       onCategoryChange={onCategoryChange}

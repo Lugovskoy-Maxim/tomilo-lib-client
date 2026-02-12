@@ -50,9 +50,12 @@ export const useAuth = () => {
     data: readingHistoryData,
     isLoading: readingHistoryLoading,
     error: readingHistoryError,
-  } = useGetReadingHistoryQuery(undefined, {
-    skip: !getToken(),
-  });
+  } = useGetReadingHistoryQuery(
+    { limit: 200 },
+    {
+      skip: !getToken(),
+    },
+  );
 
   const useGetReadingHistoryByTitle = (titleId: string) => {
     return useGetReadingHistoryByTitleQuery(titleId, {
@@ -228,7 +231,11 @@ export const useAuth = () => {
       const result = await addBookmarkMutation({ titleId, category }).unwrap();
 
       if (!result.success) {
-        throw new Error(result.message || "Ошибка при добавлении в закладки");
+        const msg =
+          (result as { errors?: string[] }).errors?.[0] ||
+          (result as { message?: string }).message ||
+          "Ошибка при добавлении в закладки";
+        throw new Error(msg);
       }
 
       updateUserData({
@@ -239,12 +246,13 @@ export const useAuth = () => {
       refetchProfile();
 
       return { success: true };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error adding bookmark:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Неизвестная ошибка",
-      };
+      const message =
+        (error as { data?: { errors?: string[]; message?: string } })?.data?.errors?.[0] ||
+        (error as { data?: { message?: string } })?.data?.message ||
+        (error instanceof Error ? error.message : "Неизвестная ошибка");
+      return { success: false, error: message };
     }
   };
 
@@ -254,19 +262,26 @@ export const useAuth = () => {
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await updateBookmarkCategoryMutation({ titleId, category }).unwrap();
-      if (!result.success) throw new Error(result.message);
+      if (!result.success) {
+        const msg =
+          (result as { errors?: string[] }).errors?.[0] ||
+          (result as { message?: string }).message ||
+          "Не удалось изменить категорию";
+        throw new Error(msg);
+      }
       updateUserData({
         bookmarks: result.data?.bookmarks,
         updatedAt: result.data?.updatedAt,
       });
       refetchProfile();
       return { success: true };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error updating bookmark category:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Неизвестная ошибка",
-      };
+      const message =
+        (error as { data?: { errors?: string[]; message?: string } })?.data?.errors?.[0] ||
+        (error as { data?: { message?: string } })?.data?.message ||
+        (error instanceof Error ? error.message : "Неизвестная ошибка");
+      return { success: false, error: message };
     }
   };
 
@@ -277,7 +292,11 @@ export const useAuth = () => {
       const result = await removeBookmarkMutation(titleId).unwrap();
 
       if (!result.success) {
-        throw new Error(result.message || "Ошибка при удалении из закладок");
+        const msg =
+          (result as { errors?: string[] }).errors?.[0] ||
+          (result as { message?: string }).message ||
+          "Ошибка при удалении из закладок";
+        throw new Error(msg);
       }
 
       updateUserData({
@@ -288,12 +307,13 @@ export const useAuth = () => {
       refetchProfile();
 
       return { success: true };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error removing bookmark:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Неизвестная ошибка",
-      };
+      const message =
+        (error as { data?: { errors?: string[]; message?: string } })?.data?.errors?.[0] ||
+        (error as { data?: { message?: string } })?.data?.message ||
+        (error instanceof Error ? error.message : "Неизвестная ошибка");
+      return { success: false, error: message };
     }
   };
 
@@ -329,7 +349,10 @@ export const useAuth = () => {
         }).unwrap();
 
         if (!result.success) {
-          const errorMessage = result.message || "Ошибка при добавлении в историю чтения";
+          const errorMessage =
+            (result as { errors?: string[] }).errors?.[0] ||
+            (result as { message?: string }).message ||
+            "Ошибка при добавлении в историю чтения";
           console.error("Error adding to reading history:", errorMessage);
           return { success: false, error: errorMessage };
         }
@@ -337,12 +360,13 @@ export const useAuth = () => {
         refetchProfile();
 
         return { success: true };
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error adding to reading history:", error);
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : "Неизвестная ошибка",
-        };
+        const message =
+          (error as { data?: { errors?: string[]; message?: string } })?.data?.errors?.[0] ||
+          (error as { data?: { message?: string } })?.data?.message ||
+          (error instanceof Error ? error.message : "Неизвестная ошибка");
+        return { success: false, error: message };
       }
     },
     [addToReadingHistory, refetchProfile],

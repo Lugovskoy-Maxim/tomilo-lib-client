@@ -179,14 +179,17 @@ export const useHomeData = (): {
   const [topManhuaLoading, topManhwaLoading, top2026Loading] = topQueries.map(query => query.isLoading);
   const [topManhuaError, topManhwaError, top2026Error] = topQueries.map(query => query.error);
 
-  // История чтения
+  // История чтения (лёгкий формат с пагинацией для блока «Продолжить чтение»)
   const {
     data: readingHistory,
     isLoading: readingHistoryLoading,
     error: readingHistoryError,
-  } = useGetReadingHistoryQuery(undefined, {
-    skip: !getToken(),
-  });
+  } = useGetReadingHistoryQuery(
+    { limit: 100 },
+    {
+      skip: !getToken(),
+    },
+  );
 
   // Преобразование популярных тайтлов
   const popularTitles =
