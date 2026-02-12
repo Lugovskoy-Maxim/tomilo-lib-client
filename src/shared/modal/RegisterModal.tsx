@@ -358,7 +358,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
             Я согласен с{" "}
             <button
               type="button"
-              className="text-[var(--primary)] hover:underline"
+              className="text-[var(--chart-1)] hover:underline "
               onClick={() => setShowTermsModal(true)}
             >
               условиями использования

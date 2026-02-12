@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import {
   useLoginMutation,
-  useYandexAuthMutation,
   useForgotPasswordMutation,
 } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,8 +33,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
 }) => {
   const [form, setForm] = useState<LoginData>({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const yandexButtonRef = useRef<HTMLDivElement>(null);
-  const vkButtonRef = useRef<HTMLDivElement>(null);
   const [touched, setTouched] = useState<FormTouched<LoginData>>({
     email: false,
     password: false,
@@ -43,27 +40,9 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
   // Используем RTK Query для логина
   const [loginMutation, { isLoading, error }] = useLoginMutation();
-  const [yandexAuthMutation] = useYandexAuthMutation();
   const [forgotPasswordMutation, { isLoading: isForgotPasswordLoading }] =
     useForgotPasswordMutation();
   const { login: authLogin } = useAuth();
-
-  // Функция для динамической загрузки SDK Яндекса (fallback для Safari)
-  const loadYandexSDK = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (typeof window !== "undefined" && window.YaAuthSuggest) {
-        resolve();
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = "https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js";
-      script.async = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load Yandex SDK"));
-      document.head.appendChild(script);
-    });
-  };
 
   const validate = {
     email: (email: string): string | null => {
@@ -158,11 +137,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
-  // Инициализация виджета Яндекс авторизации
+  // SDK Яндекса временно отключен
+  /*
   useEffect(() => {
     if (isOpen && yandexButtonRef.current) {
       // Очищаем контейнер перед инициализацией
       yandexButtonRef.current.innerHTML = "";
+      setYandexSdkLoaded(false);
 
       // Увеличенная задержка для Safari (500ms вместо 100ms)
       const initTimer = setTimeout(async () => {
@@ -174,6 +155,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
           // Проверяем, что YaAuthSuggest доступен и контейнер существует
           if (typeof window !== "undefined" && window.YaAuthSuggest && yandexButtonRef.current) {
+            setYandexSdkLoaded(true);
             const tokenPageOrigin = window.location.origin;
 
             window.YaAuthSuggest.init(
@@ -186,6 +168,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
               {
                 view: "button",
                 parentId: "yandexButtonContainer",
+                buttonSize: "m",
                 buttonSize: "m",
                 buttonView: "main",
                 buttonTheme: "light",
@@ -234,6 +217,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       return () => clearTimeout(initTimer);
     }
   }, [authLogin, isOpen, onAuthSuccess, onClose, yandexAuthMutation, loadYandexSDK]);
+  */
 
   // Проверка наличия токена в localStorage для автоматического закрытия модального окна
   useEffect(() => {
@@ -256,14 +240,17 @@ const LoginModal: React.FC<LoginModalProps> = ({
     return () => clearInterval(interval);
   }, [isOpen, onClose]);
 
-  // Инициализация виджета VK авторизации
+  // SDK VK временно отключен
+  /*
   useEffect(() => {
     if (isOpen && vkButtonRef.current) {
       // Очищаем контейнер перед инициализацией
       vkButtonRef.current.innerHTML = "";
+      setVkSdkLoaded(false);
 
       // Проверяем, что VKIDSDK доступен
       if (typeof window !== "undefined" && window.VKIDSDK) {
+        setVkSdkLoaded(true);
         const VKID = window.VKIDSDK;
 
         try {
@@ -318,6 +305,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       }
     }
   }, [isOpen]);
+  */
 
   useEffect(() => {
     if (!isOpen) {
@@ -498,10 +486,36 @@ const LoginModal: React.FC<LoginModalProps> = ({
         <div className="flex-grow border-t border-[var(--border)]"></div>
       </div>
 
-      {/* Контейнеры для кнопок авторизации */}
-      <div className="px-6 py-2 space-y-3 relative">
-        <div ref={yandexButtonRef} id="yandexButtonContainer" className="flex justify-center"></div>
-        <div ref={vkButtonRef} className="flex justify-center" />
+      {/* Кнопки авторизации */}
+      <div className="px-6 py-4 space-y-3 relative">
+        <div className="flex justify-center gap-3">
+          {/* Кнопка Яндекса */}
+          <button
+            type="button"
+            onClick={() => {
+              // Перенаправляем на прямую авторизацию через Яндекс
+              const clientId = "ffd24e1c16544069bc7a1e8c66316f37";
+              const redirectUri = encodeURIComponent("https://tomilo-lib.ru/auth/yandex");
+              const authUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
+              window.location.href = authUrl;
+            }}
+            className="w-26 h-12 bg-black hover:bg-[#ff0000] text-white font-bold text-sm rounded-lg transition-colors duration-200 flex items-center justify-center border border-gray-600"
+            title="Войти через Я.ID"
+          >
+            Яндекс.ID
+          </button>
+          
+          {/* Кнопка VK - пока недоступна */}
+          <button
+            type="button"
+            disabled
+            className="w-26 h-12 bg-gray-400 text-white font-bold text-sm rounded-lg flex items-center justify-center cursor-not-allowed border border-gray-500"
+            title="Скоро будет доступно"
+          >
+            VK.ID
+          </button>
+
+        </div>
       </div>
 
       <div className="p-6 border-t border-[var(--border)] text-center">

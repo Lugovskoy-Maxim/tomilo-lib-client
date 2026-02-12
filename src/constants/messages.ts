@@ -171,7 +171,7 @@ export const MESSAGES = {
     ADD_TITLE: "Добавить тайтл",
     HIDE_PASSWORD: "Скрыть пароль",
     SHOW_PASSWORD: "Показать пароль",
-    OR: "или",
+    OR: "или авторизуйтесь с помощью",
     ALREADY_HAVE_ACCOUNT: "Ещё нет аккаунта?",
     PASSWORD_PLACEHOLDER: "Введите пароль",
     EMAIL_PLACEHOLDER: "email@domen.ru",
