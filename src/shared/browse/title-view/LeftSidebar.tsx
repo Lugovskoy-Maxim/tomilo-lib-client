@@ -75,7 +75,7 @@ export function LeftSidebar({
           className="w-full"
           onAgeVerificationRequired={onAgeVerificationRequired}
         />
-        <BookmarkButton titleId={titleData._id as string} initialBookmarked={false} />
+        <BookmarkButton titleId={titleData._id as string} initialBookmarked={false} className="w-full" />
         <button
           onClick={() => {
             // Если передана функция onReportClick, вызываем её
