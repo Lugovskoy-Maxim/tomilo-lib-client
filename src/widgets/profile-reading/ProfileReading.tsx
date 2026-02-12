@@ -1,13 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { BookOpen, Clock, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getChapterPath } from "@/lib/title-paths";
+import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
 
 interface TitleData {
   _id: string;
@@ -27,6 +28,8 @@ interface HistoryItem {
   titleId: string | TitleData;
   titleData?: TitleData;
   chapters: ChapterData[];
+  /** Общее число прочитанных глав (из API, когда приходит лёгкий формат с одной главой в chapters) */
+  chaptersCount?: number;
   readAt: string;
 }
 
@@ -42,7 +45,136 @@ interface GroupedTitleHistory {
   titleId: string;
   titleData?: TitleData;
   chapters: ChapterData[];
+  /** Число прочитанных глав (chaptersCount из API или chapters.length) */
+  chaptersCount?: number;
   lastReadAt: string;
+}
+
+/** При развороте подгружает полный список глав по тайтлу и отображает их */
+function ExpandedHistoryContent({
+  titleId,
+  fallbackChapters,
+  onRemove,
+  formatChapterRange,
+  formatSessionTime,
+  groupChaptersBySession,
+  sortSessionsByTime,
+}: {
+  titleId: string;
+  fallbackChapters: ChapterData[];
+  onRemove: (titleId: string, chapterId: string) => void;
+  formatChapterRange: (chapters: ChapterData[]) => string;
+  formatSessionTime: (chapters: ChapterData[]) => string;
+  groupChaptersBySession: (chapters: ChapterData[]) => ChapterData[][];
+  sortSessionsByTime: (sessions: ChapterData[][]) => ChapterData[][];
+}) {
+  const { data, isLoading } = useGetReadingHistoryByTitleQuery(titleId);
+
+  const chaptersToShow = useMemo(() => {
+    const raw = isLoading || !data?.data?.chapters?.length ? fallbackChapters : data.data.chapters;
+    const normalized: ChapterData[] = raw.map(ch => ({
+      chapterId:
+        typeof ch.chapterId === "object" && ch.chapterId !== null
+          ? (ch.chapterId as { _id: string })._id
+          : String(ch.chapterId),
+      chapterNumber: ch.chapterNumber,
+      chapterTitle: (ch as { chapterTitle?: string | null }).chapterTitle ?? null,
+      readAt: ch.readAt,
+    }));
+    const seen = new Set<string>();
+    return normalized.filter(c => {
+      if (seen.has(c.chapterId)) return false;
+      seen.add(c.chapterId);
+      return true;
+    });
+  }, [isLoading, data?.data?.chapters, fallbackChapters]);
+
+  const sortedSessions = useMemo(
+    () => sortSessionsByTime(groupChaptersBySession(chaptersToShow)),
+    [chaptersToShow, groupChaptersBySession, sortSessionsByTime],
+  );
+
+  if (sortedSessions.length === 0) {
+    return (
+      <div className="border-t border-[var(--border)] bg-[var(--secondary)]/40 px-4 py-3 text-sm text-[var(--muted-foreground)]">
+        {isLoading ? "Загрузка…" : "Нет прочитанных глав"}
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-[var(--border)] bg-[var(--secondary)]/40">
+      {sortedSessions.map((session, sessionIdx) => (
+        <div
+          key={sessionIdx}
+          className="px-4 py-3 border-b border-[var(--border)]/50 last:border-0"
+        >
+          {session.length === 1 ? (
+            <div className="flex items-center justify-between text-sm py-1">
+              <span className="font-medium text-[var(--foreground)]">
+                Глава {session[0].chapterNumber}
+              </span>
+              <span className="text-xs text-[var(--muted-foreground)]">
+                {formatSessionTime(session)}
+              </span>
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  onRemove(titleId, session[0].chapterId);
+                }}
+                className="text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-1 rounded text-xs font-medium transition-colors"
+                title="Удалить из истории"
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-[var(--foreground)]">
+                  {formatChapterRange(session)}
+                </span>
+                <span className="text-xs text-[var(--muted-foreground)]">
+                  {formatSessionTime(session)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
+                {session.map(chapter => (
+                  <div
+                    key={chapter.chapterId}
+                    className="flex items-center justify-between text-xs py-1 px-2 rounded-lg hover:bg-[var(--background)]/50"
+                  >
+                    <span className="text-[var(--foreground)]">
+                      Глава {chapter.chapterNumber}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[var(--muted-foreground)]">
+                        {new Date(chapter.readAt).toLocaleDateString("ru-RU")},{" "}
+                        {new Date(chapter.readAt).toLocaleTimeString("ru-RU", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          onRemove(titleId, chapter.chapterId);
+                        }}
+                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-1 rounded font-medium transition-colors"
+                        title="Удалить из истории"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function ReadingHistorySection({ readingHistory, showAll = false, showSectionHeader = true }: ReadingHistorySectionProps) {
@@ -66,22 +198,31 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
           titleId,
           titleData: isTitleObject ? (item.titleId as TitleData) : undefined,
           chapters: [],
+          chaptersCount: (item as HistoryItem).chaptersCount,
           lastReadAt: item.readAt,
         });
       }
 
       const group = groups.get(titleId)!;
-      // Добавляем главы с преобразованием chapterId
+      // Используем chaptersCount из API (в лёгком формате там только lastChapter, но приходит chaptersCount)
+      if ((item as HistoryItem).chaptersCount != null) {
+        group.chaptersCount = Math.max(group.chaptersCount ?? 0, (item as HistoryItem).chaptersCount ?? 0);
+      }
+      // Добавляем главы с преобразованием chapterId (без дубликатов по chapterId)
+      const existingIds = new Set(group.chapters.map(c => c.chapterId));
       item.chapters.forEach(chapter => {
         const chapterIdValue =
           typeof chapter.chapterId === "object" && chapter.chapterId !== null
             ? (chapter.chapterId as { _id: string })._id
             : String(chapter.chapterId);
 
-        group.chapters.push({
-          ...chapter,
-          chapterId: chapterIdValue,
-        });
+        if (!existingIds.has(chapterIdValue)) {
+          existingIds.add(chapterIdValue);
+          group.chapters.push({
+            ...chapter,
+            chapterId: chapterIdValue,
+          });
+        }
       });
 
       // Обновляем lastReadAt если эта запись новее
@@ -304,7 +445,9 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
           const sessions = groupChaptersBySession(group.chapters);
           const sortedSessions = sortSessionsByTime(sessions);
           const isExpandedTitle = expandedTitles.has(group.titleId);
-          // Последняя прочитанная глава - первая глава из первой (новой) сессии
+          // Все прочитанные главы (полный список по номерам) для отображения
+          const allChaptersSorted = sortChaptersByNumber(group.chapters);
+          // Последняя прочитанная глава - для перехода по клику
           const lastChapter = sortedSessions[0]?.[0];
           const title = group.titleData;
           const titleName = title?.name || "";
@@ -358,15 +501,19 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
                         {title?.name || `Манга #${group.titleId}`}
                       </h3>
                       <p className="text-xs text-[var(--primary)] font-medium mb-1.5">
-                        {formatChapterRange(sortedSessions[0])}
+                        {allChaptersSorted.length > 0
+                          ? formatChapterRange(allChaptersSorted)
+                          : "—"}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
-                        {formatSessionTime(sortedSessions[0])}
+                        {sortedSessions[0] ? formatSessionTime(sortedSessions[0]) : "—"}
                       </span>
-                      <span>Прочитано глав: {group.chapters.length}</span>
+                      <span>
+                        Прочитано глав: {group.chaptersCount ?? group.chapters.length}
+                      </span>
                     </div>
                   </div>
 
@@ -406,50 +553,16 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
                 </div>
               </div>
 
-              {isExpandedTitle && sortedSessions.length > 0 && (
-                <div className="border-t border-[var(--border)] bg-[var(--secondary)]/40">
-                  {sortedSessions.map((session, sessionIdx) => (
-                    <div
-                      key={sessionIdx}
-                      className="px-4 py-3 border-b border-[var(--border)]/50 last:border-0"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-[var(--foreground)]">
-                          {formatChapterRange(session)}
-                        </span>
-                        <span className="text-xs text-[var(--muted-foreground)]">
-                          {formatSessionTime(session)}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        {session.map(chapter => (
-                          <div
-                            key={chapter.chapterId}
-                            className="flex items-center justify-between text-xs py-1 px-2 rounded-lg hover:bg-[var(--background)]/50"
-                          >
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                handleRemoveFromHistory(group.titleId, chapter.chapterId);
-                              }}
-                              className="text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-1 rounded font-medium transition-colors"
-                              title="Удалить из истории"
-                            >
-                              Глава {chapter.chapterNumber} ×
-                            </button>
-                            <span className="text-[var(--muted-foreground)]">
-                              {new Date(chapter.readAt).toLocaleDateString("ru-RU")},{" "}
-                              {new Date(chapter.readAt).toLocaleTimeString("ru-RU", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              {isExpandedTitle && (
+                <ExpandedHistoryContent
+                  titleId={group.titleId}
+                  fallbackChapters={group.chapters}
+                  onRemove={handleRemoveFromHistory}
+                  formatChapterRange={formatChapterRange}
+                  formatSessionTime={formatSessionTime}
+                  groupChaptersBySession={groupChaptersBySession}
+                  sortSessionsByTime={sortSessionsByTime}
+                />
               )}
             </div>
           );

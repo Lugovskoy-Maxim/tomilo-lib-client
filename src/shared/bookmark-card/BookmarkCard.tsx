@@ -23,6 +23,8 @@ const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
 interface BookmarkCardProps {
   title: Title;
   category?: BookmarkCategory;
+  /** Количество прочитанных глав у тайтла (из истории чтения) */
+  chaptersRead?: number;
   onRemove?: (titleId: string) => void;
   onCategoryChange?: (titleId: string, category: BookmarkCategory) => void;
   isLoading?: boolean;
@@ -31,6 +33,7 @@ interface BookmarkCardProps {
 export default function BookmarkCard({
   title,
   category = "reading",
+  chaptersRead,
   onRemove,
   onCategoryChange,
   isLoading,
@@ -92,9 +95,20 @@ export default function BookmarkCard({
   const showImage = title.coverImage && !imageError;
   const categories: BookmarkCategory[] = ["reading", "planned", "completed", "favorites", "dropped"];
 
+  const totalChapters = title.totalChapters ?? 0;
+  const isFullyRead =
+    chaptersRead != null && totalChapters > 0 && chaptersRead >= totalChapters;
+  const isTwoLeft =
+    chaptersRead != null && totalChapters >= 2 && chaptersRead === totalChapters - 2;
+  const borderClass = isFullyRead
+    ? "border-amber-500"
+    : isTwoLeft
+      ? "border-[var(--chart-1)]"
+      : "border-[var(--border)]";
+
   return (
     <div
-      className="group relative flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border border-[var(--border)] hover:border-[var(--primary)]/50 hover:shadow-md hover:shadow-[var(--primary)]/5 transition-all duration-300 cursor-pointer overflow-visible"
+      className={`group relative flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border ${borderClass} hover:border-[var(--primary)]/50 hover:shadow-md hover:shadow-[var(--primary)]/5 transition-all duration-300 cursor-pointer overflow-visible`}
       onClick={handleClick}
     >
       <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 ring-1 ring-[var(--border)]/50">
@@ -185,9 +199,19 @@ export default function BookmarkCard({
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]">
           <span>{translateTitleStatus(title.status)}</span>
-          <span>
-            <span className="font-semibold text-[var(--primary)]">{title.totalChapters}</span> глав
-          </span>
+          {chaptersRead != null && chaptersRead > 0 && title.totalChapters != null ? (
+            <span>
+              прочитано{" "}
+              <span className="font-semibold text-[var(--chart-1)]">
+                {chaptersRead} / {title.totalChapters}
+              </span>{" "}
+              глав
+            </span>
+          ) : (
+            <span>
+              <span className="font-semibold text-[var(--primary)]">{title.totalChapters}</span> глав
+            </span>
+          )}
         </div>
       </div>
 

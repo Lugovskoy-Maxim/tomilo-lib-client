@@ -62,9 +62,9 @@ export function useProfile() {
   // Получаем профиль пользователя напрямую из API
   const { data: profileData, isLoading: profileLoading } = useGetProfileQuery();
 
-  // Получаем историю чтения напрямую из API (лёгкий формат, достаточный лимит для профиля)
+  // Получаем историю чтения в полном формате (все главы по каждому тайтлу) для секции «История чтения»
   const { data: readingHistoryData, isLoading: readingHistoryLoading } =
-    useGetReadingHistoryQuery({ limit: 200 });
+    useGetReadingHistoryQuery({ limit: 200, light: false });
 
   // Обновление userProfile при получении данных из API
   useEffect(() => {

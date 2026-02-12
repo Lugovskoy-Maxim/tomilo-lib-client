@@ -43,6 +43,7 @@ function normalizeHistoryItem(item: RawHistoryItem): ReadingHistoryEntry {
   return {
     titleId: item.titleId ?? "",
     chapters,
+    chaptersCount: item.chaptersCount,
     readAt: item.readAt,
   };
 }

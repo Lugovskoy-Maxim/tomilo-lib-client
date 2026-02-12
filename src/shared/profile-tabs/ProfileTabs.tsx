@@ -120,7 +120,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
                   </p>
                 </div>
               </div>
-              <BookmarksSection bookmarks={userProfile.bookmarks} showAll={true} showSectionHeader={false} />
+              <BookmarksSection bookmarks={userProfile.bookmarks} readingHistory={userProfile.readingHistory} showAll={true} showSectionHeader={false} />
             </div>
           </div>
         )}

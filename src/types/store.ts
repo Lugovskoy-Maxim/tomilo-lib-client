@@ -19,6 +19,8 @@ export interface ReadingHistoryEntry {
         chapters?: { chapterNumber: number }[];
       };
   chapters: ReadingHistoryChapter[];
+  /** Общее количество прочитанных глав (приходит в «лёгком» формате API, когда chapters содержит только lastChapter) */
+  chaptersCount?: number;
   readAt: string;
 }
 

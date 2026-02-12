@@ -32,7 +32,7 @@ export default function BookmarksPage() {
             <p className="text-[var(--muted-foreground)] mt-2">Все сохраненные вами манги</p>
           </div>
 
-          <BookmarksSection bookmarks={userProfile.bookmarks} showAll={true} />
+          <BookmarksSection bookmarks={userProfile.bookmarks} readingHistory={userProfile.readingHistory} showAll={true} />
         </div>
 
         <Footer />

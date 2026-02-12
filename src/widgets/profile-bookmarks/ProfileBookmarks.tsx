@@ -3,10 +3,15 @@
 import { useState, useMemo, useEffect } from "react";
 import { UserProfile } from "@/types/user";
 import type { BookmarkEntry, BookmarkCategory } from "@/types/user";
+import type { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import BookmarkCard from "@/shared/bookmark-card/BookmarkCard";
 import { Bookmark, ChevronUp } from "lucide-react";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+
+function getTitleIdFromHistoryEntry(entry: ReadingHistoryEntry): string {
+  return typeof entry.titleId === "string" ? entry.titleId : entry.titleId?._id ?? "";
+}
 
 const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
   reading: "Читаю",
@@ -26,6 +31,8 @@ const CATEGORY_ORDER: BookmarkCategory[] = [
 
 interface BookmarksSectionProps {
   bookmarks: UserProfile["bookmarks"];
+  /** История чтения для отображения количества прочитанных глав в карточках */
+  readingHistory?: ReadingHistoryEntry[];
   showAll?: boolean;
   showSectionHeader?: boolean;
 }
@@ -50,10 +57,12 @@ function toCardTitle(
 
 function BookmarkItem({
   entry,
+  chaptersRead,
   onRemove,
   onCategoryChange,
 }: {
   entry: BookmarkEntry;
+  chaptersRead?: number;
   onRemove: (titleId: string) => void;
   onCategoryChange: (titleId: string, category: BookmarkCategory) => void;
 }) {
@@ -108,6 +117,7 @@ function BookmarkItem({
     <BookmarkCard
       title={title as import("@/types/title").Title}
       category={entry.category}
+      chaptersRead={chaptersRead}
       onRemove={handleRemove}
       onCategoryChange={onCategoryChange}
       isLoading={false}
@@ -119,6 +129,7 @@ function BookmarkCategorySection({
   label,
   count,
   entries,
+  chaptersReadByTitleId,
   maxPerSection,
   showAll,
   onRemove,
@@ -127,6 +138,7 @@ function BookmarkCategorySection({
   label: string;
   count: number;
   entries: BookmarkEntry[];
+  chaptersReadByTitleId: Map<string, number>;
   maxPerSection: number | undefined;
   showAll: boolean;
   onRemove: (titleId: string) => void;
@@ -150,6 +162,7 @@ function BookmarkCategorySection({
           <BookmarkItem
             key={entry.titleId}
             entry={entry}
+            chaptersRead={chaptersReadByTitleId.get(entry.titleId)}
             onRemove={onRemove}
             onCategoryChange={onCategoryChange}
           />
@@ -177,13 +190,28 @@ function BookmarkCategorySection({
   );
 }
 
-function BookmarksSection({ bookmarks, showAll = false, showSectionHeader = true }: BookmarksSectionProps) {
+function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSectionHeader = true }: BookmarksSectionProps) {
   const normalized = useMemo(() => normalizeBookmarks(bookmarks), [bookmarks]);
   const [currentBookmarks, setCurrentBookmarks] = useState(normalized);
 
   useEffect(() => {
     setCurrentBookmarks(normalizeBookmarks(bookmarks));
   }, [bookmarks]);
+
+  const chaptersReadByTitleId = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!readingHistory?.length) return map;
+    readingHistory.forEach(entry => {
+      const titleId = getTitleIdFromHistoryEntry(entry);
+      if (!titleId) return;
+      // Используем chaptersCount из API (лёгкий формат), иначе считаем по массиву chapters; суммируем, если по одному тайтлу несколько записей
+      const count = entry.chaptersCount ?? entry.chapters?.length ?? 0;
+      if (count > 0) {
+        map.set(titleId, (map.get(titleId) ?? 0) + count);
+      }
+    });
+    return map;
+  }, [readingHistory]);
 
   const byCategory = useMemo(() => {
     const map = new Map<BookmarkCategory, BookmarkEntry[]>();
@@ -252,6 +280,7 @@ function BookmarksSection({ bookmarks, showAll = false, showSectionHeader = true
           label={label}
           count={count}
           entries={byCategory.get(category) ?? []}
+          chaptersReadByTitleId={chaptersReadByTitleId}
           maxPerSection={maxPerSection}
           showAll={showAll}
           onRemove={handleRemoveBookmark}
