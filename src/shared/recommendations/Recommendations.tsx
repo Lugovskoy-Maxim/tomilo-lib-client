@@ -45,12 +45,18 @@ export default function Recommendations({
   );
 
   if (!shouldFetch) {
-    return <div ref={sectionRef} className="min-h-[200px]" aria-hidden />;
+    return (
+      <div
+        ref={sectionRef}
+        className="w-full min-w-0 min-h-[200px]"
+        aria-hidden
+      />
+    );
   }
 
   if (isLoading) {
     return (
-      <div ref={sectionRef}>
+      <div ref={sectionRef} className="w-full min-w-0">
         <CarouselSkeleton />
       </div>
     );
@@ -77,7 +83,7 @@ export default function Recommendations({
   }));
 
   return (
-    <div ref={sectionRef}>
+    <div ref={sectionRef} className="w-full min-w-0">
     <Carousel
       title="Подобрали для вас"
       data={transformedData}

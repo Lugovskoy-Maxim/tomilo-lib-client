@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, ReactNode, useCallback } from "react";
+import { useRef, useState, ReactNode, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -100,9 +100,28 @@ export default function Carousel<T>({
   const startScrollLeftRef = useRef(0);
 
   /**
+   * Ширина контейнера — для адаптивной прокрутки и реакции на размер экрана.
+   */
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  /**
    * Хук для навигации между страницами.
    */
   const router = useRouter();
+
+  /**
+   * ResizeObserver: пересчитываем ширину контейнера при изменении размера (в т.ч. при монтировании).
+   */
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setContainerWidth(el.offsetWidth);
+    });
+    ro.observe(el);
+    setContainerWidth(el.offsetWidth);
+    return () => ro.disconnect();
+  }, [data.length]);
 
   /**
    * Получает уникальный ID карточки из данных.
@@ -116,15 +135,23 @@ export default function Carousel<T>({
 
   /**
    * Прокручивает карусель в указанном направлении.
-   * @param direction - Направление прокрутки ("left" или "right").
+   * Адаптивно: прокручивает на ширину видимой области или на scrollAmount карточек.
    */
   const scroll = (direction: "left" | "right") => {
-    if (!scrollContainerRef.current) return;
-
     const container = scrollContainerRef.current;
-    const cardElement = container.children[0] as HTMLElement;
-    const cardWidth = cardElement?.offsetWidth || 150;
-    const scrollDistance = cardWidth * scrollAmount;
+    if (!container) return;
+
+    const cardEl = container.children[0] as HTMLElement | undefined;
+    const cardWidthPx = cardEl?.offsetWidth ?? 150;
+    const gap = 16; // gap-4
+    const cardWithGap = cardWidthPx + gap;
+
+    // Сколько карточек влезает в видимую область (если контейнер уже измерен)
+    const visibleCount =
+      containerWidth > 0
+        ? Math.max(1, Math.floor((containerWidth + gap) / cardWithGap))
+        : scrollAmount;
+    const scrollDistance = cardWithGap * Math.min(visibleCount, scrollAmount);
 
     container.scrollBy({
       left: direction === "left" ? -scrollDistance : scrollDistance,
@@ -316,57 +343,37 @@ export default function Carousel<T>({
   };
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 py-2">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex flex-col w-full">
-          <div className="flex items-center gap-1">
-            {icon && <div className="w-6 h-6 text-[var(--muted-foreground)]">{icon}</div>}
+    <section className="w-full min-w-0 max-w-7xl mx-auto px-4 py-2">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+        <div className="flex flex-col w-full min-w-0 flex-1">
+          <div className="flex items-center gap-1 min-w-0">
+            {icon && <div className="w-6 h-6 shrink-0 text-[var(--muted-foreground)]">{icon}</div>}
             {title && (
-              <h2 className="text-lg md:text-2xl font-bold text-[var(--muted-foreground)]">
+              <h2 className="text-lg md:text-2xl font-bold text-[var(--muted-foreground)] truncate min-w-0">
                 {title}
               </h2>
             )}
           </div>
-          <div className="flex justify-between items-center w-full">
-            <p className="text-[var(--muted-foreground)] text-sm max-w-3xl">
+          <div className="flex flex-wrap justify-between items-center gap-2 w-full mt-0.5 min-w-0">
+            <p className="text-[var(--muted-foreground)] text-sm max-w-3xl min-w-0">
               {_renderDescription()}
             </p>
-            <div className="flex items-center gap-2 mt-1">
-              {href && (
-                <Link
-                  href={href}
-                  className="text-[var(--chart-1)] hover:underline flex items-center gap-1"
-                >
-                  {navigationIcon || <ExternalLink className="w-4 h-4" />}
-                </Link>
-              )}
-            </div>
+            {href && (
+              <Link
+                href={href}
+                className="text-[var(--chart-1)] hover:underline flex items-center gap-1 shrink-0"
+              >
+                {navigationIcon || <ExternalLink className="w-4 h-4" />}
+              </Link>
+            )}
           </div>
         </div>
-
-        {showNavigation && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => scroll("left")}
-              className="p-2 rounded-full bg-[var(--secondary)] border border-[var(--border)] hover:bg-[var(--accent)] transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={() => scroll("right")}
-              className="p-2 rounded-full bg-[var(--secondary)] border border-[var(--border)] hover:bg-[var(--accent)] transition-colors"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        )}
       </div>
 
-      <div className="relative">
+      <div className="relative group/carousel">
         <div
           ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none p-4 snap-x snap-mandatory scroll-smooth will-change-scroll"
+          className="flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none p-4 snap-x snap-mandatory scroll-smooth will-change-scroll min-w-0"
           onMouseDown={handleMouseDown}
           onMouseLeave={handleDragEnd}
           onMouseUp={handleMouseUp}
@@ -391,6 +398,28 @@ export default function Carousel<T>({
             </div>
           ))}
         </div>
+
+        {/* Кнопки по бокам карусели (видны на средних и больших экранах) */}
+        {showNavigation && data.length > 0 && (
+          <>
+            <button
+              type="button"
+              onClick={() => scroll("left")}
+              aria-label="Прокрутить влево"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[var(--secondary)]/95 dark:bg-[var(--card)]/95 border border-[var(--border)] shadow-md hover:bg-[var(--accent)] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] touch-manipulation"
+            >
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[var(--muted-foreground)]" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scroll("right")}
+              aria-label="Прокрутить вправо"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[var(--secondary)]/95 dark:bg-[var(--card)]/95 border border-[var(--border)] shadow-md hover:bg-[var(--accent)] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] touch-manipulation"
+            >
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[var(--muted-foreground)]" />
+            </button>
+          </>
+        )}
       </div>
     </section>
   );
