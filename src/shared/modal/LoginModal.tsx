@@ -499,7 +499,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
               const authUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
               window.location.href = authUrl;
             }}
-            className="w-26 h-12 bg-black hover:bg-[#ff0000] text-white font-bold text-sm rounded-lg transition-colors duration-200 flex items-center justify-center border border-gray-600"
+            className="w-26 h-12 bg-[#ff0000] hover:bg-[#ff0000]/80 text-[var(--primary)] font-bold text-sm rounded-lg transition-colors duration-200 flex items-center justify-center border border-gray-600"
             title="Войти через Я.ID"
           >
             Яндекс.ID
@@ -509,7 +509,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           <button
             type="button"
             disabled
-            className="w-26 h-12 bg-gray-400 text-white font-bold text-sm rounded-lg flex items-center justify-center cursor-not-allowed border border-gray-500"
+            className="w-26 h-12 bg-gray-400 text-[var(--primary)] font-bold text-sm rounded-lg flex items-center justify-center cursor-not-allowed border border-gray-500"
             title="Скоро будет доступно"
           >
             VK.ID
