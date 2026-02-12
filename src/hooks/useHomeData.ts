@@ -291,10 +291,10 @@ export const useHomeData = (): {
         const totalChapters = titleChapters.length;
         const currentChapter = latestChapter?.chapterNumber || 0;
 
-        // Calculate new chapters based on release date vs last read date
-        const lastReadDate = latestChapter ? new Date(latestChapter.readAt) : new Date(0);
+        // Считаем новые главы по номеру: главы с номером больше последней прочитанной
+        // (releaseDate не используется, т.к. API истории часто не возвращает его для глав)
         const newChapters = titleChapters.filter(
-          (ch: Chapter) => ch.releaseDate && new Date(ch.releaseDate) > lastReadDate,
+          (ch: Chapter) => (ch.chapterNumber ?? 0) > currentChapter,
         ).length;
 
         return {
