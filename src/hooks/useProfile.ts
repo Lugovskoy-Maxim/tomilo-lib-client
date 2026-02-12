@@ -93,9 +93,20 @@ export function useProfile() {
     }
   }, [userProfile]);
 
+  // Показываем загрузку, пока запросы идут или пока данные уже пришли, но ещё не синхронизированы в userProfile (useEffect выполняется после рендера)
+  const isSyncingProfile =
+    isAuthenticated &&
+    Boolean(profileData?.success && profileData?.data) &&
+    userProfile === null;
+  const isLoading =
+    profileLoading ||
+    readingHistoryLoading ||
+    authLoading ||
+    isSyncingProfile;
+
   return {
     userProfile,
-    isLoading: profileLoading || readingHistoryLoading || authLoading,
+    isLoading,
     authLoading,
     handleAvatarUpdate,
   };

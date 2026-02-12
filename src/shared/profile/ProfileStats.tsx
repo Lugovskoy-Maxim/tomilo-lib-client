@@ -2,7 +2,13 @@
 
 import { UserProfile } from "@/types/user";
 import { BookOpen, Clock, HelpCircle, Coins, TrendingUp, Bookmark, Zap } from "lucide-react";
-import { getRankColor, getRankDisplay, levelToRank, RANK_NAMES } from "@/lib/rank-utils";
+import {
+  getRankColor,
+  getRankDisplay,
+  getLevelProgress,
+  levelToRank,
+  RANK_NAMES,
+} from "@/lib/rank-utils";
 import { useState } from "react";
 
 interface ProfileStatsProps {
@@ -19,14 +25,15 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
       return total + (item.chapters?.length || 0);
     }, 0) || 0;
 
-  const level = userProfile.level || 0;
-  const experience = userProfile.experience || 0;
-  const balance = userProfile.balance || 0;
+  const level = userProfile.level ?? 0;
+  const experience = userProfile.experience ?? 0;
+  const balance = userProfile.balance ?? 0;
 
-  // Расчет прогресса до следующего уровня
-  const currentLevelBaseExp = level * 100;
-  const nextLevelExp = (level + 1) * 100;
-  const expProgress = Math.min(((experience - currentLevelBaseExp) / 100) * 100, 100);
+  // Расчёт прогресса по формуле сервера: 100 * level^1.5 (см. users.service.ts)
+  const {
+    progressPercent: expProgress,
+    nextLevelExp,
+  } = getLevelProgress(level, experience);
 
   // Форматирование времени чтения (примерное, предполагаем 2 минуты на главу)
   const formatReadingTime = (chapters: number) => {
@@ -124,9 +131,9 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
           </span>
         </div>
         <div className="exp-bar-container h-2.5">
-          <div 
-            className="exp-bar-fill h-full progress-animated"
-            style={{ "--progress-width": `${expProgress}%` } as React.CSSProperties}
+          <div
+            className="exp-bar-fill h-full"
+            style={{ width: `${expProgress}%` }}
           />
         </div>
         <div className="flex justify-between mt-1.5 text-xs text-[var(--muted-foreground)]">

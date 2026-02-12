@@ -3,6 +3,41 @@
 // Ранги от слабейшего к сильнейшему:
 // 1-й ранг → 9-й ранг (самый слабый → сильнейший)
 
+/**
+ * Порог суммарного XP для перехода на следующий уровень.
+ * Должно совпадать с сервером: users.service.ts calculateNextLevelExp()
+ * Формула: 100 * level^1.5 (экспоненциальный рост).
+ */
+export function getNextLevelExp(level: number): number {
+  return Math.floor(100 * Math.pow(level, 1.5));
+}
+
+/**
+ * Порог XP для входа в текущий уровень (суммарный XP на начало уровня).
+ */
+export function getCurrentLevelExp(level: number): number {
+  if (level <= 0) return 0;
+  return getNextLevelExp(level - 1);
+}
+
+/**
+ * Прогресс до следующего уровня: 0..100.
+ * experience — суммарный XP пользователя.
+ */
+export function getLevelProgress(level: number, experience: number): {
+  progressPercent: number;
+  currentLevelExp: number;
+  nextLevelExp: number;
+} {
+  const currentLevelExp = getCurrentLevelExp(level);
+  const nextLevelExp = getNextLevelExp(level);
+  const segment = nextLevelExp - currentLevelExp;
+  const expInSegment = Math.max(0, experience - currentLevelExp);
+  const progressPercent =
+    segment <= 0 ? 100 : Math.min(100, (expInSegment / segment) * 100);
+  return { progressPercent, currentLevelExp, nextLevelExp };
+}
+
 export interface RankInfo {
   rank: number; // Ранг (1-9), 1 - самый слабый, 9 - самый сильный
   stars: number; // Звезды (1-9)
