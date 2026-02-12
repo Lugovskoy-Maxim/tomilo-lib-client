@@ -18,6 +18,7 @@ const TITLES_TAG = "Titles";
 
 export const titlesApi = createApi({
   reducerPath: "titlesApi",
+  keepUnusedDataFor: 300, // 5 мин по умолчанию — меньше запросов к серверу при переходах
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
     prepareHeaders: headers => {

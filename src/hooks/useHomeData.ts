@@ -120,43 +120,59 @@ export const useHomeData = (): {
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
 
+  // Опции кэша: не дергать сервер при каждом заходе на главную.
+  // refetchOnMountOrArgChange: 600 — обновлять только если данные старше 10 мин.
+  const popularCacheOptions = {
+    keepUnusedDataFor: 600,
+    refetchOnMountOrArgChange: 600,
+  };
+
   // Популярные тайтлы
   const {
     data: popularTitlesData,
     isLoading: popularTitlesLoading,
     error: popularTitlesError,
-  } = useGetPopularTitlesQuery();
+  } = useGetPopularTitlesQuery(undefined, popularCacheOptions);
 
   // Случайные тайтлы
   const {
     data: randomTitlesData,
     isLoading: randomTitlesLoading,
     error: randomTitlesError,
-  } = useGetRandomTitlesQuery({ limit: 10 });
+  } = useGetRandomTitlesQuery({ limit: 10 }, popularCacheOptions);
 
   // Параллельная загрузка топ тайтлов для оптимизации производительности
   const topQueries = [
-    useSearchTitlesQuery({
-      search: "",
-      types: "manhua",
-      sortBy: "views",
-      sortOrder: "desc",
-      limit: 5,
-    }),
-    useSearchTitlesQuery({
-      search: "",
-      types: "manhwa",
-      sortBy: "views",
-      sortOrder: "desc",
-      limit: 5,
-    }),
-    useSearchTitlesQuery({
-      search: "",
-      releaseYear: 2026,
-      sortBy: "views",
-      sortOrder: "desc",
-      limit: 5,
-    }),
+    useSearchTitlesQuery(
+      {
+        search: "",
+        types: "manhua",
+        sortBy: "views",
+        sortOrder: "desc",
+        limit: 5,
+      },
+      popularCacheOptions,
+    ),
+    useSearchTitlesQuery(
+      {
+        search: "",
+        types: "manhwa",
+        sortBy: "views",
+        sortOrder: "desc",
+        limit: 5,
+      },
+      popularCacheOptions,
+    ),
+    useSearchTitlesQuery(
+      {
+        search: "",
+        releaseYear: 2026,
+        sortBy: "views",
+        sortOrder: "desc",
+        limit: 5,
+      },
+      popularCacheOptions,
+    ),
   ];
 
   const [topManhuaData, topManhwaData, top2026Data] = topQueries.map(query => query.data);

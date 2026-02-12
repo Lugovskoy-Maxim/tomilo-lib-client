@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Star, TrendingUp } from "lucide-react";
 import { CarouselCard } from "@/shared";
 import { Carousel } from "@/widgets";
@@ -12,15 +12,48 @@ interface RecommendationsProps {
   limit?: number;
 }
 
+// refetch только если данные старше 5 мин (keepUnusedDataFor задаётся в titlesApi).
+const RECOMMENDED_REFETCH_SEC = 300;
+
 export default function Recommendations({
   userId,
   limit = 10
 }: RecommendationsProps) {
-  // Получаем персональные рекомендации
-  const { data, isLoading, error } = useGetRecommendedTitlesQuery({ limit });
+  const [shouldFetch, setShouldFetch] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    const el = sectionRef.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) setShouldFetch(true);
+      },
+      { rootMargin: "200px", threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Персональные рекомендации — запрос после появления секции в viewport
+  const { data, isLoading, error } = useGetRecommendedTitlesQuery(
+    { limit },
+    {
+      skip: !shouldFetch,
+      refetchOnMountOrArgChange: RECOMMENDED_REFETCH_SEC,
+    }
+  );
+
+  if (!shouldFetch) {
+    return <div ref={sectionRef} className="min-h-[200px]" aria-hidden />;
+  }
 
   if (isLoading) {
-    return <CarouselSkeleton />;
+    return (
+      <div ref={sectionRef}>
+        <CarouselSkeleton />
+      </div>
+    );
   }
 
   if (error) {
@@ -44,6 +77,7 @@ export default function Recommendations({
   }));
 
   return (
+    <div ref={sectionRef}>
     <Carousel
       title="Подобрали для вас"
       data={transformedData}
@@ -55,5 +89,6 @@ export default function Recommendations({
       cardWidth="w-35 sm:w-35 md:w-40 lg:w-44 xl:w-52 2xl:w-56"
       getItemPath={(item) => getTitlePath(item)}
     />
+    </div>
   );
 }
