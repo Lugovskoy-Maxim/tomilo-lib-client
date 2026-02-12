@@ -1045,3 +1045,101 @@ body {
     opacity: 0.6;
   }
 }
+
+/* ============================================
+   CAROUSEL SCROLL-SNAP & SMOOTH SCROLLING
+   ============================================ */
+
+/* Scroll snap for carousel items */
+.snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-scroll-snap-type: x mandatory;
+}
+
+.snap-mandatory {
+  scroll-snap-type: x mandatory;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+  -webkit-scroll-snap-align: start;
+}
+
+/* Smooth scrolling with momentum */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* iOS momentum scrolling */
+@supports (-webkit-overflow-scrolling: touch) {
+  .carousel-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Will-change optimization for scroll performance */
+.will-change-scroll {
+  will-change: scroll-position;
+}
+
+/* Touch action optimization */
+.touch-pan-x {
+  touch-action: pan-x;
+}
+
+/* Prevent text selection during drag */
+.select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Cursor styles for carousel */
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grabbing {
+  cursor: grabbing;
+}
+
+/* Active state for better touch feedback */
+.active\:cursor-grabbing:active {
+  cursor: grabbing;
+}
+
+/* ============================================
+   CAROUSEL ACCESSIBILITY & PERFORMANCE
+   ============================================ */
+
+/* Focus visible styles for keyboard navigation */
+.carousel-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Reduced motion for carousel */
+@media (prefers-reduced-motion: reduce) {
+  .snap-x {
+    scroll-snap-type: none;
+  }
+  
+  .scroll-smooth {
+    scroll-behavior: auto;
+  }
+  
+  .will-change-scroll {
+    will-change: auto;
+  }
+}

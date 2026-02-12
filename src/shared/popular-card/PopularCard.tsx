@@ -104,7 +104,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
   return (
     <div
-      className="relative group cursor-pointer select-none transform transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1"
+      className="relative group cursor-pointer select-none transform transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 will-change-transform"
       onClick={handleClick}
       data-card-click-handler="true"
     >

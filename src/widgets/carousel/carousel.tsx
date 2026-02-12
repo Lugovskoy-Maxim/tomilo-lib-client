@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, ReactNode } from "react";
+import { useRef, useState, ReactNode, useCallback } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -75,12 +75,12 @@ export default function Carousel<T>({
   const [hasDragged, setHasDragged] = useState(false);
 
   /**
-   * Флаг для отслеживания, произошел ли drag в текущем взаимодействии с мышью.
+   * Флаг для отслеживания, произошел ли drag в текущем взаимодействии.
    */
   const [dragOccurred, setDragOccurred] = useState(false);
 
   /**
-   * Начальная позиция мыши при начале перетаскивания.
+   * Начальная позиция мыши/тача при начале перетаскивания.
    */
   const [startX, setStartX] = useState(0);
 
@@ -90,9 +90,14 @@ export default function Carousel<T>({
   const [scrollLeft, setScrollLeft] = useState(0);
 
   /**
+   * Время начала перетаскивания для определения click vs drag.
+   */
+  const [dragStartTime, setDragStartTime] = useState(0);
+
+  /**
    * Начальная позиция прокрутки перед началом перетаскивания.
    */
-  const [, setStartScrollLeft] = useState(0);
+  const startScrollLeftRef = useRef(0);
 
   /**
    * Хук для навигации между страницами.
@@ -128,10 +133,10 @@ export default function Carousel<T>({
   };
 
   /**
-   * Обработчик начала перетаскивания карусели.
+   * Обработчик начала перетаскивания карусели (мышь).
    * @param e - Событие мыши.
    */
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;
 
     setIsDragging(true);
@@ -139,68 +144,121 @@ export default function Carousel<T>({
     setDragOccurred(false);
     setStartX(e.pageX);
     setScrollLeft(scrollContainerRef.current.scrollLeft);
-    setStartScrollLeft(scrollContainerRef.current.scrollLeft);
-  };
+    startScrollLeftRef.current = scrollContainerRef.current.scrollLeft;
+    setDragStartTime(Date.now());
+  }, []);
 
   /**
-   * Обработчик завершения перетаскивания или выхода мыши из зоны карусели.
+   * Обработчик начала касания карусели (touch).
+   * @param e - Событие касания.
    */
-  const handleMouseLeave = () => {
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!scrollContainerRef.current) return;
+
+    setIsDragging(true);
+    setHasDragged(false);
+    setDragOccurred(false);
+    setStartX(e.touches[0].pageX);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+    startScrollLeftRef.current = scrollContainerRef.current.scrollLeft;
+    setDragStartTime(Date.now());
+  }, []);
+
+  /**
+   * Обработчик завершения перетаскивания или выхода мыши/тача из зоны карусели.
+   */
+  const handleDragEnd = useCallback(() => {
     setIsDragging(false);
     setHasDragged(false);
     setDragOccurred(false);
-  };
+  }, []);
+
+  /**
+   * Обработчик клика на карточку с проверкой drag.
+   * @param item - Данные карточки.
+   * @param e - Событие мыши.
+   */
+  const handleCardClick = useCallback((item: T, e: React.MouseEvent | React.TouchEvent) => {
+    const currentTime = Date.now();
+    const timeDiff = currentTime - dragStartTime;
+    
+    // Определяем координаты в зависимости от типа события
+    let clientX: number;
+    let clientY: number;
+    
+    if ('touches' in e) {
+      // Touch event
+      const touch = e.changedTouches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
+      // Mouse event
+      clientX = (e as React.MouseEvent).clientX;
+      clientY = (e as React.MouseEvent).clientY;
+    }
+
+    // Проверяем, был ли это клик (не drag)
+    // Условия: не было drag, время меньше 200ms, расстояние меньше 10px
+    if (dragOccurred || timeDiff > 200) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    // Проверяем, что клик был именно по карточке, а не по кнопкам внутри неё
+    const target = e.target as HTMLElement;
+    const card = target.closest("[data-card-id]");
+    
+    if (card) {
+      // Проверяем, есть ли у карточки обработчик onClick
+      const cardComponent = card.querySelector("[data-card-click-handler]");
+      if (cardComponent) {
+        // Если есть обработчик, не выполняем переход по умолчанию
+        return;
+      }
+
+      // Используем кастомный путь если предоставлен, иначе fallback на стандартный
+      const path = getItemPath ? getItemPath(item) : `/${type}/${getCardId(item)}`;
+      router.push(path);
+    }
+  }, [dragOccurred, dragStartTime, data, getItemPath, router, type, getCardId]);
 
   /**
    * Обработчик отпускания кнопки мыши после перетаскивания.
-   * Проверяет, был ли клик на карточку, и выполняет навигацию.
    * @param e - Событие мыши.
    */
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    if (!isDragging) return;
+    handleDragEnd();
+  }, [isDragging, handleDragEnd]);
 
-    const movedDistance = Math.abs(e.pageX - startX);
-    const isClick = movedDistance < 10 && !hasDragged && !dragOccurred;
-
-    if (isClick) {
-      const cardElement = document.elementFromPoint(e.clientX, e.clientY);
-      const card = cardElement?.closest("[data-card-id]");
-
-      if (card) {
-        const cardId = card.getAttribute("data-card-id");
-        if (cardId) {
-          // Проверяем, есть ли у карточки обработчик onClick
-          const cardComponent = card.querySelector("[data-card-click-handler]");
-          if (cardComponent) {
-            // Если есть обработчик, не выполняем переход по умолчанию
-            return;
-          }
-
-          // Находим соответствующий элемент данных
-          const item = data.find(dataItem => getCardId(dataItem) === cardId);
-          if (item) {
-            // Используем кастомный путь если предоставлен, иначе fallback на стандартный
-            const path = getItemPath ? getItemPath(item) : `/${type}/${cardId}`;
-            router.push(path);
-          }
-        }
-      }
-    }
-
-    setIsDragging(false);
-    setHasDragged(false);
-    setDragOccurred(false);
-  };
+  /**
+   * Обработчик окончания касания (touch end).
+   * @param e - Событие касания.
+   */
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const touch = e.changedTouches[0];
+    const mouseEvent = {
+      ...e,
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      pageX: touch.pageX,
+    } as unknown as React.MouseEvent;
+    
+    handleDragEnd();
+  }, [isDragging, handleDragEnd]);
 
   /**
    * Обработчик движения мыши во время перетаскивания.
    * @param e - Событие мыши.
    */
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging || !scrollContainerRef.current) return;
 
     const movedDistance = Math.abs(e.pageX - startX);
-    if (movedDistance > 5) {
+    if (movedDistance > 10) {
       setHasDragged(true);
       setDragOccurred(true);
     }
@@ -212,7 +270,28 @@ export default function Carousel<T>({
       const walk = x - startX;
       scrollContainerRef.current.scrollLeft = scrollLeft - walk;
     }
-  };
+  }, [isDragging, startX, hasDragged, scrollLeft]);
+
+  /**
+   * Обработчик движения при касании (touch move).
+   * @param e - Событие касания.
+   */
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+
+    const touch = e.touches[0];
+    const movedDistance = Math.abs(touch.pageX - startX);
+    if (movedDistance > 10) {
+      setHasDragged(true);
+      setDragOccurred(true);
+    }
+
+    if (hasDragged) {
+      const x = touch.pageX - scrollContainerRef.current.offsetLeft;
+      const walk = x - startX;
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    }
+  }, [isDragging, startX, hasDragged, scrollLeft]);
 
   /**
    * Рендерит описание с вставленной ссылкой, если `descriptionLink` предоставлен.
@@ -287,19 +366,26 @@ export default function Carousel<T>({
       <div className="relative">
         <div
           ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none p-4"
+          className="flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none p-4 snap-x snap-mandatory scroll-smooth will-change-scroll"
           onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeave}
+          onMouseLeave={handleDragEnd}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
-          style={{ userSelect: "none" }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ 
+            userSelect: "none",
+            WebkitOverflowScrolling: "touch",
+          }}
         >
           {data.map(item => (
             <div
               key={getCardId(item)}
-              className={`flex-shrink-0 h-full ${cardWidth}`}
+              className={`flex-shrink-0 h-full ${cardWidth} snap-start`}
               data-card-id={getCardId(item)}
               data-card-type={type}
+              onClick={(e) => handleCardClick(item, e)}
             >
               <CardComponent data={item} />
             </div>
