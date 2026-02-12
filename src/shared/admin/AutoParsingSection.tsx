@@ -326,6 +326,7 @@ function JobModal({
   onUpdate,
   isLoading,
   searchResults,
+  titleSearch,
   setTitleSearch,
   onSelectTitle,
 }: JobModalProps) {
@@ -396,7 +397,7 @@ function JobModal({
               className="admin-input w-full"
               required
             />
-            {searchResults.length > 0 && (
+            {searchResults.length > 0 && titleSearch.length >= 2 && (
               <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] shadow-lg max-h-48 overflow-y-auto">
                 {searchResults.map(title => (
                   <div
