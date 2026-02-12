@@ -1,48 +1,68 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useMemo, useEffect } from "react";
 import { UserProfile } from "@/types/user";
+import type { BookmarkEntry, BookmarkCategory } from "@/types/user";
+import { normalizeBookmarks } from "@/lib/bookmarks";
 import BookmarkCard from "@/shared/bookmark-card/BookmarkCard";
 import { Bookmark, ChevronDown, ChevronUp } from "lucide-react";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 
+const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
+  reading: "Читаю",
+  planned: "В планах",
+  completed: "Прочитано",
+  favorites: "Избранное",
+  dropped: "Брошено",
+};
+
+const CATEGORY_ORDER: BookmarkCategory[] = [
+  "reading",
+  "planned",
+  "completed",
+  "favorites",
+  "dropped",
+];
+
 interface BookmarksSectionProps {
   bookmarks: UserProfile["bookmarks"];
   showAll?: boolean;
+  showSectionHeader?: boolean;
 }
 
-// Отдельный компонент для одной закладки
 function BookmarkItem({
-  bookmarkId,
+  entry,
   onRemove,
+  onCategoryChange,
 }: {
-  bookmarkId: string;
-  onRemove: (id: string) => void;
+  entry: BookmarkEntry;
+  onRemove: (titleId: string) => void;
+  onCategoryChange: (titleId: string, category: BookmarkCategory) => void;
 }) {
+  const titleId = entry.titleId;
   const {
     data: title,
     isLoading,
     error,
-  } = useGetTitleByIdQuery({ id: bookmarkId || "null" }, { skip: !bookmarkId });
+  } = useGetTitleByIdQuery({ id: titleId || "null" }, { skip: !titleId });
   const [isRemoving, setIsRemoving] = useState(false);
 
   const handleRemove = () => {
     setIsRemoving(true);
     setTimeout(() => {
-      onRemove(bookmarkId);
+      onRemove(titleId);
       setIsRemoving(false);
     }, 300);
   };
 
   if (isLoading || isRemoving) {
     return (
-      <div className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] animate-pulse">
-        <div className="flex items-start space-x-3">
-          <div className="w-12 h-16 bg-[var(--muted)] rounded flex-shrink-0"></div>
-          <div className="flex-1 min-w-0">
-            <div className="h-4 bg-[var(--muted)] rounded mb-2 w-3/4"></div>
-            <div className="h-3 bg-[var(--muted)] rounded mb-2 w-1/2"></div>
-            <div className="h-3 bg-[var(--muted)] rounded w-1/3"></div>
-          </div>
+      <div className="flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/40 border border-[var(--border)] animate-pulse">
+        <div className="w-20 h-28 sm:w-24 sm:h-32 rounded-lg bg-[var(--muted)] flex-shrink-0" />
+        <div className="flex-1 min-w-0 py-1 space-y-2">
+          <div className="h-4 bg-[var(--muted)] rounded w-3/4" />
+          <div className="h-3 bg-[var(--muted)] rounded w-1/2" />
+          <div className="h-3 bg-[var(--muted)] rounded w-1/3 mt-3" />
         </div>
       </div>
     );
@@ -50,109 +70,162 @@ function BookmarkItem({
 
   if (error || !title) {
     return (
-      <div className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)]">
-        <div className="flex items-start space-x-3">
-          <div className="w-12 h-16 bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 rounded flex items-center justify-center flex-shrink-0">
-            <svg
-              className="w-6 h-6 text-[var(--chart-1)]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-              />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1">
-              Манга #{bookmarkId.slice(-6)}
-            </h3>
-            <p className="text-xs text-red-500 mb-2">Ошибка загрузки данных</p>
-          </div>
+      <div className="flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/40 border border-[var(--border)]">
+        <div className="w-20 h-28 rounded-lg bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 flex items-center justify-center flex-shrink-0">
+          <Bookmark className="w-6 h-6 text-[var(--chart-1)]" />
         </div>
-      </div>
-    );
-  }
-
-  return <BookmarkCard title={title} onRemove={handleRemove} isLoading={false} />;
-}
-
-function BookmarksSection({ bookmarks, showAll = false }: BookmarksSectionProps) {
-  const [currentBookmarks, setCurrentBookmarks] = useState(bookmarks);
-  const [isExpanded, setIsExpanded] = useState(showAll);
-
-  // Определяем, какие закладки показывать
-  const visibleBookmarks = isExpanded ? currentBookmarks : currentBookmarks.slice(0, 4);
-  const hasMoreBookmarks = currentBookmarks.length > 4;
-
-  const handleRemoveBookmark = (bookmarkId: string) => {
-    setCurrentBookmarks(prev => prev.filter((id: string) => id !== bookmarkId));
-  };
-
-  // Если закладок нет
-  if (!currentBookmarks || currentBookmarks.length === 0) {
-    return (
-      <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
-            <Bookmark className="h-5 w-5" />
-            <span>Закладки</span>
-          </h2>
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <h3 className="font-medium text-[var(--muted-foreground)] text-sm">Манга #{titleId.slice(-6)}</h3>
+          <p className="text-xs text-red-500 mt-1">Ошибка загрузки</p>
         </div>
-        <div className="text-center py-8 text-[var(--muted-foreground)]">У вас нет закладок</div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl p-2 border border-dotted border-[var(--border)]">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
-          <span>Закладки</span>
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="text-xs flex items-center gap-2 text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
-            <Bookmark className="h-3 w-3" />
-            {currentBookmarks.length}
-          </span>
-          {hasMoreBookmarks && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors bg-[var(--background)] px-2 py-1 rounded"
-            >
-              {isExpanded ? (
-                <>
-                  <ChevronUp className="h-3 w-3" />
-                  <span>Свернуть</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-3 w-3" />
-                  <span>Показать все</span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
-      </div>
+    <BookmarkCard
+      title={title}
+      category={entry.category}
+      onRemove={handleRemove}
+      onCategoryChange={onCategoryChange}
+      isLoading={false}
+    />
+  );
+}
 
-      <div className="grid grid-cols-1 gap-4">
-        {visibleBookmarks.map((bookmarkId: string) => (
-          <BookmarkItem key={bookmarkId} bookmarkId={bookmarkId} onRemove={handleRemoveBookmark} />
+function BookmarksSection({ bookmarks, showAll = false, showSectionHeader = true }: BookmarksSectionProps) {
+  const normalized = useMemo(() => normalizeBookmarks(bookmarks), [bookmarks]);
+  const [currentBookmarks, setCurrentBookmarks] = useState(normalized);
+  const [activeCategory, setActiveCategory] = useState<BookmarkCategory | "all">("all");
+  const [isExpanded, setIsExpanded] = useState(showAll);
+
+  useEffect(() => {
+    setCurrentBookmarks(normalizeBookmarks(bookmarks));
+  }, [bookmarks]);
+
+  const byCategory = useMemo(() => {
+    const map = new Map<BookmarkCategory, BookmarkEntry[]>();
+    CATEGORY_ORDER.forEach(c => map.set(c, []));
+    currentBookmarks.forEach(entry => {
+      const list = map.get(entry.category) ?? [];
+      list.push(entry);
+      map.set(entry.category, list);
+    });
+    return map;
+  }, [currentBookmarks]);
+
+  const categoriesWithCount = useMemo(
+    () =>
+      CATEGORY_ORDER.map(cat => ({
+        category: cat,
+        label: CATEGORY_LABELS[cat],
+        count: byCategory.get(cat)?.length ?? 0,
+      })).filter(c => c.count > 0),
+    [byCategory],
+  );
+
+  const visibleEntries =
+    activeCategory === "all"
+      ? currentBookmarks
+      : byCategory.get(activeCategory) ?? [];
+  const visibleList = isExpanded ? visibleEntries : visibleEntries.slice(0, 6);
+  const hasMore = visibleEntries.length > 6;
+
+  const handleRemoveBookmark = (titleId: string) => {
+    setCurrentBookmarks(prev => prev.filter(e => e.titleId !== titleId));
+  };
+
+  const handleCategoryChange = (titleId: string, category: BookmarkCategory) => {
+    setCurrentBookmarks(prev =>
+      prev.map(e => (e.titleId === titleId ? { ...e, category } : e)),
+    );
+  };
+
+  if (!currentBookmarks || currentBookmarks.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4 min-h-[240px]">
+        <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-4">
+          <Bookmark className="h-8 w-8 text-[var(--primary)]" />
+        </div>
+        <h3 className="text-base font-semibold text-[var(--foreground)] mb-1">Нет закладок</h3>
+        <p className="text-sm text-[var(--muted-foreground)] text-center">
+          Сохраняйте тайтлы в закладки и распределяйте по категориям
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 min-h-[280px] flex flex-col">
+      {showSectionHeader && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h2 className="text-base font-semibold text-[var(--foreground)] flex items-center gap-2">
+            <Bookmark className="h-4 w-4 text-[var(--primary)]" />
+            <span>Закладки</span>
+            <span className="text-xs font-normal text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-0.5 rounded-full">
+              {currentBookmarks.length}
+            </span>
+          </h2>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => setActiveCategory("all")}
+              className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                activeCategory === "all"
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                  : "bg-[var(--background)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+              }`}
+            >
+              Все
+            </button>
+            {categoriesWithCount.map(({ category, label, count }) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setActiveCategory(category)}
+                className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                  activeCategory === category
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                    : "bg-[var(--background)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                {label} ({count})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-3 flex-1">
+        {visibleList.map(entry => (
+          <BookmarkItem
+            key={entry.titleId}
+            entry={entry}
+            onRemove={handleRemoveBookmark}
+            onCategoryChange={handleCategoryChange}
+          />
         ))}
       </div>
 
-      {hasMoreBookmarks && !isExpanded && (
-        <div className="text-center mt-4">
+      {hasMore && !isExpanded && (
+        <div className="text-center pt-2">
           <button
-            className="text-xs text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]/80 transition-colors"
+            type="button"
+            className="text-sm text-[var(--primary)] hover:underline font-medium"
             onClick={() => setIsExpanded(true)}
           >
-            Показать все {currentBookmarks.length} закладок
+            Показать все ({visibleEntries.length})
+          </button>
+        </div>
+      )}
+      {hasMore && isExpanded && visibleEntries.length > 6 && (
+        <div className="text-center pt-2">
+          <button
+            type="button"
+            className="text-sm text-[var(--muted-foreground)] hover:underline font-medium flex items-center gap-1 mx-auto"
+            onClick={() => setIsExpanded(false)}
+          >
+            <ChevronUp className="h-3.5 w-3.5" /> Свернуть
           </button>
         </div>
       )}

@@ -38,40 +38,37 @@ export default function ProfileBanner({
   };
 
   return (
-    <div className="flex flex-col rounded-2xl border border-[var(--border)] mb-4 overflow-hidden w-full shadow-xl animate-fade-in-up bg-[var(--card)]">
+    <div className="flex flex-col rounded-2xl border border-[var(--border)] mb-6 overflow-hidden w-full shadow-xl animate-fade-in-up bg-[var(--card)] ring-1 ring-[var(--border)]/50">
       {/* Верхняя часть - баннер с аватаром */}
-      <div className="relative flex flex-col items-center justify-center h-56 sm:h-72 lg:h-80">
+      <div className="relative flex flex-col items-center justify-center h-52 sm:h-64 lg:h-72">
         {/* Изображение баннера - на весь контейнер */}
         <img
           src={bannerUrl}
           alt="Баннер профиля"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-center"
           onError={e => {
-            // Fallback на градиент при ошибке загрузки
             const target = e.target as HTMLImageElement;
             target.style.display = "none";
           }}
         />
 
-        {/* Enhanced gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/30 via-[var(--chart-1)]/20 to-[var(--chart-2)]/30" />
-        
-        {/* Bottom fade for smooth transition */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--card)] via-transparent to-transparent" />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[var(--card)]/95" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--card)] via-[var(--card)]/80 to-transparent" />
 
         {/* Decorative elements */}
-        <div className="absolute top-4 right-4 flex gap-2">
-          <div className="glass px-3 py-1.5 rounded-full text-xs font-medium text-[var(--foreground)] flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        <div className="absolute top-4 right-4 z-10">
+          <div className="glass px-3 py-1.5 rounded-full text-xs font-medium text-[var(--foreground)] flex items-center gap-1.5 shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Онлайн
           </div>
         </div>
 
         {/* Аватар - перекрывает низ баннера */}
-        <div className="absolute left-1/2 -translate-x-1/2 sm:left-8 sm:translate-x-0 -bottom-14 sm:-bottom-16 z-10">
-          <div className="relative">
+        <div className="absolute left-1/2 -translate-x-1/2 sm:left-8 sm:translate-x-0 -bottom-12 sm:-bottom-14 z-10">
+          <div className="relative ring-4 ring-[var(--card)] rounded-2xl shadow-xl">
             <ProfileAvatar userProfile={userProfile} />
-            <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-0 pointer-events-none rounded-2xl overflow-hidden">
               <RankStarsOverlay userProfile={userProfile} size={150} />
             </div>
             <div className="absolute bottom-0 right-0 transform translate-x-1/4 translate-y-1/4">
@@ -81,13 +78,13 @@ export default function ProfileBanner({
         </div>
       </div>
 
-      {/* Нижняя часть - информация о пользователе с glassmorphism */}
-      <div className="relative pt-16 pb-6 px-4 sm:pt-6 sm:pb-8 sm:px-8">
+      {/* Нижняя часть - информация о пользователе */}
+      <div className="relative pt-14 pb-5 px-4 sm:pt-5 sm:pb-6 sm:px-8 bg-[var(--card)]">
         <UserInfo userProfile={userProfile} onEdit={handleEdit} />
       </div>
 
       {/* Статистика пользователя */}
-      <div className="px-4 pb-6 sm:px-8 sm:pb-8">
+      <div className="px-4 pb-6 sm:px-8 sm:pb-8 border-t border-[var(--border)]/50 bg-[var(--card)]">
         <ProfileStats userProfile={userProfile} />
       </div>
 

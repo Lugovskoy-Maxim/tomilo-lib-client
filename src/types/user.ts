@@ -19,6 +19,15 @@ export interface EquippedDecorations {
   _id?: string;
 }
 
+/** Категории закладок */
+export type BookmarkCategory = "reading" | "planned" | "completed" | "favorites" | "dropped";
+
+export interface BookmarkEntry {
+  titleId: string;
+  category: BookmarkCategory;
+  addedAt: string;
+}
+
 export interface UserProfile {
   _id: string;
   username: string;
@@ -28,7 +37,7 @@ export interface UserProfile {
   level?: number;
   experience?: number;
   balance?: number;
-  bookmarks: string[];
+  bookmarks: BookmarkEntry[];
   readingHistory: ReadingHistoryEntry[];
   birthDate?: string;
   createdAt: string;

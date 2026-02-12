@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
+import { normalizeBookmarks } from "@/lib/bookmarks";
 
 interface UseBookmarkOptions {
   titleId: string;
@@ -20,9 +21,14 @@ export function useBookmark({ titleId }: UseBookmarkOptions): UseBookmarkReturn 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
 
-  // Update bookmark state when user data changes
+  // Update bookmark state when user data changes (raw API or normalized)
   useEffect(() => {
-    setIsBookmarked(user?.bookmarks?.includes(titleId) ?? false);
+    if (!user?.bookmarks) {
+      setIsBookmarked(false);
+      return;
+    }
+    const isInList = normalizeBookmarks(user.bookmarks).some(e => e.titleId === titleId);
+    setIsBookmarked(isInList);
   }, [user?.bookmarks, titleId]);
 
   const handleBookmarkToggle = useCallback(async () => {

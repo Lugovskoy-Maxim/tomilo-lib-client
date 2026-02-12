@@ -38,7 +38,7 @@ export interface StoredUser {
   level?: number;
   experience?: number;
   balance?: number;
-  bookmarks?: string[];
+  bookmarks?: import("@/types/user").BookmarkEntry[];
   readingHistory?: import("@/types/store").ReadingHistoryEntry[];
   birthDate?: string;
   // Privacy and display settings

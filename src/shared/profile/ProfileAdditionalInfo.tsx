@@ -1,5 +1,5 @@
 import { UserProfile } from "@/types/user";
-import { Calendar, Clock, UserCheck } from "lucide-react";
+import { Calendar, Clock, Mail, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useState } from "react";
 interface ProfileAdditionalInfoProps {
@@ -105,35 +105,43 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
   };
 
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-      <h2 className="text-lg font-semibold text-[var(--muted-foreground)] mb-4">
-        Дополнительная информация
-      </h2>
+    <div className="glass rounded-2xl border border-[var(--border)] p-4 sm:p-6 shadow-sm">
+      <div className="flex items-center gap-3 mb-5">
+        <div className="p-2.5 rounded-xl bg-gradient-to-br from-[var(--chart-2)] to-[var(--chart-3)] shadow-lg">
+          <UserCheck className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
+            Дополнительная информация
+          </h2>
+          <p className="text-[var(--muted-foreground)] text-sm">Регистрация и статус аккаунта</p>
+        </div>
+      </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[var(--muted-foreground)]" />
+        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+          <div className="flex items-center gap-2.5">
+            <Calendar className="w-4 h-4 text-[var(--primary)]" />
             <span className="text-sm text-[var(--muted-foreground)]">Зарегистрирован</span>
           </div>
           <span className="text-sm font-medium text-[var(--foreground)]">
-            {userProfile.createdAt ? formatRegistrationDate(userProfile.createdAt) : "Не указана"}
+            {userProfile.createdAt ? formatRegistrationDate(userProfile.createdAt) : "—"}
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[var(--muted-foreground)]" />
+        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+          <div className="flex items-center gap-2.5">
+            <Clock className="w-4 h-4 text-[var(--chart-1)]" />
             <span className="text-sm text-[var(--muted-foreground)]">Последний вход</span>
           </div>
           <span className="text-sm font-medium text-[var(--foreground)]">
-            {userProfile.updatedAt ? formatLastLogin(userProfile.updatedAt) : "Не указана"}
+            {userProfile.updatedAt ? formatLastLogin(userProfile.updatedAt) : "—"}
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-[var(--muted-foreground)]" />
+        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+          <div className="flex items-center gap-2.5">
+            <UserCheck className="w-4 h-4 text-[var(--chart-2)]" />
             <span className="text-sm text-[var(--muted-foreground)]">Статус</span>
           </div>
           <span className="text-sm font-medium text-[var(--foreground)]">
@@ -141,10 +149,10 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-[var(--muted-foreground)]" />
-            <span className="text-sm text-[var(--muted-foreground)]">Email подтвержден</span>
+        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+          <div className="flex items-center gap-2.5">
+            <Mail className="w-4 h-4 text-[var(--chart-3)]" />
+            <span className="text-sm text-[var(--muted-foreground)]">Email подтверждён</span>
           </div>
           <span className="text-sm font-medium text-[var(--foreground)]">
             {userProfile.emailVerified === true ? "Да" : "Нет"}
@@ -152,23 +160,22 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         </div>
       </div>
 
-      {/* Кнопка для отправки письма подтверждения email */}
       {userProfile.emailVerified !== true && (
-        <div className="mt-4 flex justify-center">
+        <div className="mt-5 flex justify-center">
           <button
             onClick={handleSendVerificationEmail}
             disabled={isCooldown || isLoading}
-            className={`px-4 py-2 rounded-lg transition-colors text-sm ${
+            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
               isCooldown || isLoading
-                ? "bg-[var(--muted)] cursor-not-allowed text-[var(--primary)]"
-                : "bg-[var(--chart-1)] text-[var(--primary)] hover:bg-[var(--chart-1)]/90"
+                ? "bg-[var(--muted)] cursor-not-allowed text-[var(--muted-foreground)]"
+                : "bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-[var(--primary-foreground)] hover:opacity-90 shadow-md"
             }`}
           >
             {isLoading
               ? "Отправка..."
               : isCooldown
-                ? `Отправить повторно через ${cooldownTime} сек`
-                : "Отправить письмо подтверждения email"}
+                ? `Повторно через ${cooldownTime} сек`
+                : "Отправить письмо подтверждения"}
           </button>
         </div>
       )}

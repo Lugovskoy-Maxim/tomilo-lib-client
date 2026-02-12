@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   useGetProfileQuery,
   useAddBookmarkMutation,
+  useUpdateBookmarkCategoryMutation,
   useRemoveBookmarkMutation,
   useGetReadingHistoryQuery,
   useGetReadingHistoryByTitleQuery,
@@ -38,8 +39,9 @@ export const useAuth = () => {
     skip: !getToken(),
   });
 
-  const [addBookmark] = useAddBookmarkMutation();
-  const [removeBookmark] = useRemoveBookmarkMutation();
+  const [addBookmarkMutation] = useAddBookmarkMutation();
+  const [updateBookmarkCategoryMutation] = useUpdateBookmarkCategoryMutation();
+  const [removeBookmarkMutation] = useRemoveBookmarkMutation();
   const [updateChapter] = useUpdateChapterMutation();
   const [addToReadingHistory] = useAddToReadingHistoryMutation();
   const [removeFromReadingHistory] = useRemoveFromReadingHistoryMutation();
@@ -220,9 +222,10 @@ export const useAuth = () => {
 
   const addBookmarkToUser = async (
     titleId: string,
+    category: import("@/types/user").BookmarkCategory = "reading",
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const result = await addBookmark(titleId).unwrap();
+      const result = await addBookmarkMutation({ titleId, category }).unwrap();
 
       if (!result.success) {
         throw new Error(result.message || "Ошибка при добавлении в закладки");
@@ -245,11 +248,33 @@ export const useAuth = () => {
     }
   };
 
+  const updateBookmarkCategoryToUser = async (
+    titleId: string,
+    category: import("@/types/user").BookmarkCategory,
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await updateBookmarkCategoryMutation({ titleId, category }).unwrap();
+      if (!result.success) throw new Error(result.message);
+      updateUserData({
+        bookmarks: result.data?.bookmarks,
+        updatedAt: result.data?.updatedAt,
+      });
+      refetchProfile();
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating bookmark category:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Неизвестная ошибка",
+      };
+    }
+  };
+
   const removeBookmarkFromUser = async (
     titleId: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const result = await removeBookmark(titleId).unwrap();
+      const result = await removeBookmarkMutation(titleId).unwrap();
 
       if (!result.success) {
         throw new Error(result.message || "Ошибка при удалении из закладок");
@@ -387,6 +412,7 @@ export const useAuth = () => {
     updateAvatar,
     updateProfile,
     addBookmark: addBookmarkToUser,
+    updateBookmarkCategory: updateBookmarkCategoryToUser,
     removeBookmark: removeBookmarkFromUser,
     updateChapterViews: updateChapterViewsCount,
     addToReadingHistory: addToReadingHistoryFunc,

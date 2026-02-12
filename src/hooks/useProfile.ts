@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { pageTitle } from "@/lib/page-title";
+import { normalizeBookmarks } from "@/lib/bookmarks";
 import { useGetProfileQuery, useGetReadingHistoryQuery } from "@/store/api/authApi";
 import { ReadingHistoryEntry } from "@/types/store";
 
@@ -20,7 +21,7 @@ function transformUserToProfile(user: User): UserProfile | null {
     level: user.level,
     experience: user.experience,
     balance: user.balance,
-    bookmarks: user.bookmarks || [],
+    bookmarks: normalizeBookmarks(user.bookmarks as unknown),
     readingHistory: Array.isArray(user.readingHistory)
       ? transformReadingHistory(user.readingHistory)
       : [],
@@ -34,8 +35,9 @@ function transformUserToProfile(user: User): UserProfile | null {
 }
 
 // Transform reading history to ensure chapterId is string while preserving titleId object
-function transformReadingHistory(history: ReadingHistoryEntry[]): ReadingHistoryEntry[] {
-  return history.map(item => ({
+function transformReadingHistory(history: ReadingHistoryEntry[] | unknown): ReadingHistoryEntry[] {
+  if (!Array.isArray(history)) return [];
+  return history.map((item: ReadingHistoryEntry) => ({
     ...item,
     // Keep titleId as is (can be string or object), but ensure it's consistent
     titleId: item.titleId,

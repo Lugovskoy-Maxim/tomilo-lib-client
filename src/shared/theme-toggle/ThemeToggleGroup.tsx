@@ -78,13 +78,13 @@ export default function ThemeToggleGroup({ className = "" }: ThemeToggleGroupPro
   if (!mounted) {
     return (
       <div className={`grid grid-cols-3 gap-2 ${className}`}>
-        {themes.map((theme) => (
+        {themes.map((t) => (
           <button
-            key={theme.value}
+            key={t.value}
             disabled
-            className="px-3 py-2 text-sm rounded bg-[var(--muted)] text-[var(--muted-foreground)] opacity-50 cursor-not-allowed"
+            className="px-3 py-2.5 text-sm font-medium rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] opacity-50 cursor-not-allowed"
           >
-            {theme.label}
+            {t.label}
           </button>
         ))}
       </div>
@@ -94,7 +94,7 @@ export default function ThemeToggleGroup({ className = "" }: ThemeToggleGroupPro
   return (
     <div className={`grid grid-cols-3 gap-2 ${className}`}>
       {isLoadingTheme ? (
-        <div className="col-span-3 flex justify-center py-2">
+        <div className="col-span-3 flex justify-center py-3">
           <Loader2 className="w-5 h-5 animate-spin text-[var(--primary)]" />
         </div>
       ) : (
@@ -103,10 +103,10 @@ export default function ThemeToggleGroup({ className = "" }: ThemeToggleGroupPro
             key={value}
             onClick={() => handleThemeChange(value)}
             disabled={isLoadingTheme}
-            className={`px-3 py-2 text-sm rounded transition-colors ${
+            className={`px-3 py-2.5 text-sm font-medium rounded-xl transition-all ${
               theme === value
-                ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                : "bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)]"
+                ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md"
+                : "bg-[var(--background)]/60 border border-[var(--border)] hover:bg-[var(--accent)] text-[var(--foreground)]"
             } ${isLoadingTheme ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {label}

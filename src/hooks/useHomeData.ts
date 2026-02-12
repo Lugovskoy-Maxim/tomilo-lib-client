@@ -267,9 +267,12 @@ export const useHomeData = (): {
     })) || [];
 
   // Преобразование прогресса чтения (сортировка по дате последнего чтения, самые свежие сначала)
+  const readingHistoryArray = Array.isArray(readingHistory?.data)
+    ? readingHistory.data
+    : [];
   const readingProgress =
-    readingHistory?.data
-      ?.map(item => {
+    readingHistoryArray
+      .map(item => {
         // Проверяем, что chapters существует и это массив
         const chaptersArray = item.chapters && Array.isArray(item.chapters) ? item.chapters : [];
 
@@ -319,7 +322,7 @@ export const useHomeData = (): {
       })
       .filter(item => item.currentChapter <= item.totalChapters && item.totalChapters > 0)
       // Сортировка по дате последнего чтения (свежие сначала)
-      .sort((a, b) => b.lastReadTimestamp - a.lastReadTimestamp) || [];
+      .sort((a, b) => b.lastReadTimestamp - a.lastReadTimestamp);
 
   return {
     popularTitles: {

@@ -33,6 +33,8 @@ interface HistoryItem {
 interface ReadingHistorySectionProps {
   readingHistory: HistoryItem[] | undefined;
   showAll?: boolean;
+  /** Скрыть заголовок секции (для вкладки «История») */
+  showSectionHeader?: boolean;
 }
 
 // Тип для сгруппированной истории по тайтлам
@@ -43,7 +45,7 @@ interface GroupedTitleHistory {
   lastReadAt: string;
 }
 
-function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHistorySectionProps) {
+function ReadingHistorySection({ readingHistory, showAll = false, showSectionHeader = true }: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [expandedTitles, setExpandedTitles] = useState<Set<string>>(new Set());
   const [isExpanded, setIsExpanded] = useState(showAll);
@@ -250,54 +252,53 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
     return `${dateStr}, ${timeStr}`;
   };
 
-  // Если история чтения пуста
   if (!readingHistory || readingHistory.length === 0 || groupedHistory.length === 0) {
     return (
-      <div className="bg-[var(--secondary)] rounded-xl p-6 border border-[var(--border)]">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
-            <BookOpen className="h-5 w-5" />
-            <span>История чтения</span>
-          </h2>
+      <div className="flex flex-col items-center justify-center py-12 px-4 min-h-[240px]">
+        <div className="w-16 h-16 rounded-2xl bg-[var(--chart-2)]/20 flex items-center justify-center mb-4">
+          <BookOpen className="h-8 w-8 text-[var(--chart-2)]" />
         </div>
-        <div className="text-center py-8 text-[var(--muted-foreground)]">История чтения пуста</div>
+        <h3 className="text-base font-semibold text-[var(--foreground)] mb-1">История пуста</h3>
+        <p className="text-sm text-[var(--muted-foreground)] text-center">
+          Здесь появятся главы, которые вы прочитаете
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl p-2 border border-dotted border-[var(--border)]">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-semibold text-[var(--muted-foreground)] flex items-center space-x-2">
-          <span>История чтения</span>
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="text-xs flex gap-2 items-center text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded">
-            <BookOpen className="h-3 w-3" />
-            {groupedHistory.length}
-          </span>
+    <div className="space-y-4 min-h-[280px] flex flex-col">
+      {showSectionHeader && (
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h2 className="text-base font-semibold text-[var(--foreground)] flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-[var(--chart-2)]" />
+            <span>История чтения</span>
+            <span className="text-xs font-normal text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-0.5 rounded-full">
+              {groupedHistory.length}
+            </span>
+          </h2>
           {hasMoreTitles && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors bg-[var(--background)] px-2 py-1 rounded"
+              className="flex items-center gap-1 text-xs font-medium text-[var(--chart-2)] hover:opacity-80 transition-colors px-3 py-1.5 rounded-lg bg-[var(--chart-2)]/10 hover:bg-[var(--chart-2)]/15"
             >
               {isExpanded ? (
                 <>
-                  <ChevronUp className="h-3 w-3" />
-                  <span>Свернуть</span>
+                  <ChevronUp className="h-3.5 w-3.5" />
+                  Свернуть
                 </>
               ) : (
                 <>
-                  <ChevronDown className="h-3 w-3" />
-                  <span>Показать все</span>
+                  <ChevronDown className="h-3.5 w-3.5" />
+                  Показать все
                 </>
               )}
             </button>
           )}
         </div>
-      </div>
+      )}
 
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 gap-3">
         {displayedTitles.map(group => {
           // Группируем главы по сессиям и сортируем сессии по времени (новые первыми)
           const sessions = groupChaptersBySession(group.chapters);
@@ -311,11 +312,10 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
           return (
             <div
               key={group.titleId}
-              className="bg-[var(--background)] rounded-lg border border-[var(--border)] hover:border-[var(--primary)] transition-colors overflow-hidden"
+              className="rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--chart-2)]/50 overflow-hidden transition-all duration-300 shadow-sm hover:shadow-md"
             >
-              {/* Основная карточка тайтла */}
               <div
-                className="p-2 cursor-pointer"
+                className="p-3 cursor-pointer group/card"
                 onClick={() => {
                   if (lastChapter && group.titleId) {
                     router.push(
@@ -327,15 +327,15 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                   }
                 }}
               >
-                <div className="flex items-start space-x-3">
-                  <div className="w-18 h-24 bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="flex items-stretch gap-3">
+                  <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-[var(--chart-2)]/20 to-[var(--chart-3)]/20 ring-1 ring-[var(--border)]/50">
                     {title?.coverImage ? (
                       <OptimizedImage
                         src={getImageUrlString(title.coverImage)}
                         alt={title.name || `Манга #${group.titleId}`}
-                        width={72}
-                        height={96}
-                        className="w-full h-full object-cover"
+                        width={96}
+                        height={128}
+                        className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"
                         quality={80}
                         priority={false}
                       />
@@ -343,8 +343,8 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                       <OptimizedImage
                         src={IMAGE_HOLDER.src}
                         alt="Заглушка"
-                        width={72}
-                        height={96}
+                        width={96}
+                        height={128}
                         className="w-full h-full object-cover"
                         quality={80}
                         priority={false}
@@ -352,36 +352,32 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                     )}
                   </div>
 
-                  <div className="flex-1 flex flex-col justify-between h-full gap-2 my-auto min-w-0">
-                    <h3 className="font-medium text-[var(--muted-foreground)] text-sm mb-1 truncate">
-                      {title?.name || `Манга #${group.titleId}`}
-                    </h3>
-                    <p className="text-xs text-[var(--muted-foreground)] mb-1">
-                      {
-                        // Показываем только последнюю сессию
-                        <>{formatChapterRange(sortedSessions[0])}</>
-                      }
-                    </p>
-                    <div className="block sm:flex items-center justify-between text-xs text-[var(--muted-foreground)]">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-3 h-3" />
-                        <span>{formatSessionTime(sortedSessions[0])}</span>
-                      </div>
-                      <span className="text-[var(--muted-foreground)]/60">
-                        Всего глав прочитано: {group.chapters.length}
+                  <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
+                    <div>
+                      <h3 className="font-semibold text-[var(--foreground)] text-sm sm:text-base truncate mb-1">
+                        {title?.name || `Манга #${group.titleId}`}
+                      </h3>
+                      <p className="text-xs text-[var(--primary)] font-medium mb-1.5">
+                        {formatChapterRange(sortedSessions[0])}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {formatSessionTime(sortedSessions[0])}
                       </span>
+                      <span>Прочитано глав: {group.chapters.length}</span>
                     </div>
                   </div>
 
-                  {/* Кнопки управления */}
-                  <div className="flex flex-col h-full gap-7">
-                    {/* Кнопка разворачивания/сворачивания */}
+                  <div className="flex flex-col justify-between items-end gap-2">
                     <button
                       onClick={e => {
                         e.stopPropagation();
                         toggleTitleExpanded(group.titleId);
                       }}
-                      className="flex items-center justify-center w-8 h-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] rounded transition-colors"
+                      className="p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+                      title={isExpandedTitle ? "Свернуть" : "Развернуть"}
                     >
                       {isExpandedTitle ? (
                         <ChevronUp className="w-4 h-4" />
@@ -389,33 +385,19 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                         <ChevronDown className="w-4 h-4" />
                       )}
                     </button>
-
-                    {/* Кнопка удаления - для одной главы */}
-                    {!isExpandedTitle && group.chapters.length === 1 && (
+                    {!isExpandedTitle && (
                       <button
                         onClick={e => {
                           e.stopPropagation();
-                          handleRemoveFromHistory(
-                            String(group.titleId),
-                            sortedSessions[0]?.[0]?.chapterId,
-                          );
+                          group.chapters.length === 1
+                            ? handleRemoveFromHistory(
+                                String(group.titleId),
+                                sortedSessions[0]?.[0]?.chapterId,
+                              )
+                            : handleRemoveTitleFromHistory(String(group.titleId), titleName);
                         }}
-                        className="flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded transition-colors"
-                        title="Удалить из истории"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    {/* Кнопка удаления - для нескольких глав */}
-                    {!isExpandedTitle && group.chapters.length > 1 && (
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleRemoveTitleFromHistory(String(group.titleId), titleName);
-                        }}
-                        className="flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded transition-colors"
-                        title="Удалить все главы"
+                        className="p-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors"
+                        title={group.chapters.length === 1 ? "Удалить из истории" : "Удалить все главы"}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -424,40 +406,38 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
                 </div>
               </div>
 
-              {/* Развернутый список глав */}
               {isExpandedTitle && sortedSessions.length > 0 && (
-                <div className="border-t border-[var(--border)] bg-[var(--secondary)]/30">
+                <div className="border-t border-[var(--border)] bg-[var(--secondary)]/40">
                   {sortedSessions.map((session, sessionIdx) => (
                     <div
                       key={sessionIdx}
-                      className="px-3 py-2 border-b border-[var(--border)] last:border-0"
+                      className="px-4 py-3 border-b border-[var(--border)]/50 last:border-0"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-[var(--muted-foreground)]">
+                        <span className="text-sm font-medium text-[var(--foreground)]">
                           {formatChapterRange(session)}
                         </span>
-                        <span className="text-xs text-[var(--muted-foreground)]/60">
+                        <span className="text-xs text-[var(--muted-foreground)]">
                           {formatSessionTime(session)}
                         </span>
                       </div>
-                      {/* Список отдельных глав с датой и временем */}
                       <div className="flex flex-col gap-1">
                         {session.map(chapter => (
                           <div
                             key={chapter.chapterId}
-                            className="flex items-center justify-between text-xs"
+                            className="flex items-center justify-between text-xs py-1 px-2 rounded-lg hover:bg-[var(--background)]/50"
                           >
                             <button
                               onClick={e => {
                                 e.stopPropagation();
                                 handleRemoveFromHistory(group.titleId, chapter.chapterId);
                               }}
-                              className="text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-0.5 rounded transition-colors"
+                              className="text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-1 rounded font-medium transition-colors"
                               title="Удалить из истории"
                             >
                               Глава {chapter.chapterNumber} ×
                             </button>
-                            <span className="text-[var(--muted-foreground)]/60">
+                            <span className="text-[var(--muted-foreground)]">
                               {new Date(chapter.readAt).toLocaleDateString("ru-RU")},{" "}
                               {new Date(chapter.readAt).toLocaleTimeString("ru-RU", {
                                 hour: "2-digit",
@@ -477,9 +457,9 @@ function ReadingHistorySection({ readingHistory, showAll = false }: ReadingHisto
       </div>
 
       {hasMoreTitles && !isExpanded && (
-        <div className="text-center mt-4">
+        <div className="text-center pt-2">
           <button
-            className="text-xs text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]/80 transition-colors"
+            className="text-sm text-[var(--chart-2)] hover:underline font-medium"
             onClick={() => setIsExpanded(true)}
           >
             Показать все {groupedHistory.length} тайтлов

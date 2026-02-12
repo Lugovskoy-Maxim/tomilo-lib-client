@@ -11,7 +11,6 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // Загружаем сохраненную ширину изображений из localStorage
     const savedWidth = localStorage.getItem("reader-image-width");
     if (savedWidth) {
       const width = parseInt(savedWidth, 10);
@@ -24,9 +23,7 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Сохраняем настройки локально
       localStorage.setItem("reader-image-width", imageWidth.toString());
-      console.log("Сохранена ширина изображений:", imageWidth);
     } catch (error) {
       console.error("Ошибка при сохранении настроек:", error);
     } finally {
@@ -35,110 +32,116 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
   };
 
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-      <div className="flex items-center gap-3 mb-4">
-        <Eye className="w-5 h-5 text-[var(--primary)]" />
-        <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Чтение</h2>
+    <div className="glass rounded-2xl border border-[var(--border)] p-4 sm:p-6 shadow-sm">
+      <div className="flex items-center gap-3 mb-5">
+        <div className="p-2.5 rounded-xl bg-gradient-to-br from-[var(--chart-2)] to-[var(--chart-3)] shadow-lg">
+          <Eye className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
+            Чтение
+          </h2>
+          <p className="text-[var(--muted-foreground)] text-sm">
+            Режим отображения и ширина страниц
+          </p>
+        </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Настройки типа отображения */}
-        <div>
-          <span className="text-sm font-medium text-[var(--foreground)] block mb-2">
+      <div className="space-y-5">
+        <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+          <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
             Тип отображения
           </span>
-          <p className="text-xs text-[var(--muted-foreground)] mb-2">
+          <p className="text-xs text-[var(--muted-foreground)] mb-3">
             Как отображать страницы при чтении
           </p>
           <div className="flex gap-2">
             <button
-              className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
+              type="button"
+              className="flex-1 py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
               onClick={() => console.log("single")}
             >
-              По одной странице
+              По одной
             </button>
             <button
-              className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
+              type="button"
+              className="flex-1 py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
               onClick={() => console.log("continuous")}
             >
-              Непрерывная прокрутка
+              Прокрутка
             </button>
           </div>
         </div>
 
-        {/* Настройки ориентации экрана */}
-        <div>
-          <span className="text-sm font-medium text-[var(--foreground)] block mb-2">
+        <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+          <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
             Ориентация экрана
           </span>
-          <p className="text-xs text-[var(--muted-foreground)] mb-2">
+          <p className="text-xs text-[var(--muted-foreground)] mb-3">
             Предпочтительная ориентация при чтении
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
-              className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
+              type="button"
+              className="py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
               onClick={() => console.log("auto")}
             >
-              Автоматически
+              Авто
             </button>
             <button
-              className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
+              type="button"
+              className="py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
               onClick={() => console.log("portrait")}
             >
-              Портретная
+              Портрет
             </button>
             <button
-              className="flex-1 py-2 px-3 bg-[var(--accent)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/80 transition-colors text-sm"
+              type="button"
+              className="py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
               onClick={() => console.log("landscape")}
             >
-              Альбомная
+              Альбом
             </button>
           </div>
         </div>
 
-        {/* Настройка ширины изображений */}
-        <div className="space-y-3">
+        <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50 space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-sm font-medium text-[var(--foreground)] block">
+              <span className="text-sm font-semibold text-[var(--foreground)] block">
                 Ширина изображений
               </span>
-              <p className="text-xs text-[var(--muted-foreground)]">
-                Настройте ширину изображений в читалке
+              <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                Ширина страниц в читалке (768–1440 px)
               </p>
             </div>
-            <span className="text-sm font-medium text-[var(--foreground)]">{imageWidth}px</span>
+            <span className="text-sm font-bold text-[var(--primary)] tabular-nums">
+              {imageWidth} px
+            </span>
           </div>
-
-          <div className="pl-0">
-            <input
-              type="range"
-              min="768"
-              max="1440"
-              step="64"
-              value={imageWidth}
-              onChange={e => setImageWidth(Number(e.target.value))}
-              className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
-              style={{
-                background: "var(--muted)",
-                outline: "none",
-              }}
-            />
-            <div className="flex justify-between mt-2 text-xs text-[var(--muted-foreground)]">
-              <span>768px</span>
-              <span>1440px</span>
-            </div>
+          <input
+            type="range"
+            min={768}
+            max={1440}
+            step={64}
+            value={imageWidth}
+            onChange={e => setImageWidth(Number(e.target.value))}
+            className="w-full h-2.5 rounded-full appearance-none cursor-pointer bg-[var(--muted)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md"
+          />
+          <div className="flex justify-between text-xs text-[var(--muted-foreground)]">
+            <span>768</span>
+            <span>1440</span>
           </div>
         </div>
 
-        {/* Кнопка сохранения */}
-        <div className="flex justify-end pt-4 border-t border-[var(--border)]">
+        <div className="flex justify-end pt-2 border-t border-[var(--border)]/50">
           <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
-            {isSaving ? "Сохранение..." : "Сохранить"}
+            {isSaving ? "Сохранение…" : "Сохранить"}
           </button>
         </div>
       </div>

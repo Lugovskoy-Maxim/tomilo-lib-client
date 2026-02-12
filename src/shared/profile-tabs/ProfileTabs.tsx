@@ -97,7 +97,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
       <div className="animate-fade-in">
         {/* Вкладка "Обзор" */}
         {activeTab === "overview" && (
-          <div className="space-y-4 sm:space-y-6 animate-fade-in-up">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 animate-fade-in-up">
             <ProfileAdditionalInfo userProfile={userProfile} />
             <ProfileContent userProfile={userProfile} />
           </div>
@@ -106,7 +106,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
         {/* Вкладка "Закладки" */}
         {activeTab === "bookmarks" && (
           <div className="space-y-4 sm:space-y-6 animate-fade-in-up">
-            <div className="glass rounded-2xl p-4 sm:p-6 border border-[var(--border)]">
+            <div className="glass rounded-2xl p-4 sm:p-6 border border-[var(--border)] min-h-[400px] flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)]">
                   <Bookmark className="w-5 h-5 text-white" />
@@ -120,7 +120,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
                   </p>
                 </div>
               </div>
-              <BookmarksSection bookmarks={userProfile.bookmarks} showAll={true} />
+              <BookmarksSection bookmarks={userProfile.bookmarks} showAll={true} showSectionHeader={false} />
             </div>
           </div>
         )}
@@ -128,7 +128,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
         {/* Вкладка "История" */}
         {activeTab === "history" && (
           <div className="space-y-4 sm:space-y-6 animate-fade-in-up">
-            <div className="glass rounded-2xl p-4 sm:p-6 border border-[var(--border)]">
+            <div className="glass rounded-2xl p-4 sm:p-6 border border-[var(--border)] min-h-[400px] flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-[var(--chart-2)] to-[var(--chart-3)]">
                   <Clock className="w-5 h-5 text-white" />
@@ -142,28 +142,21 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
                   </p>
                 </div>
               </div>
-              <ReadingHistorySection readingHistory={userProfile.readingHistory} />
+              <ReadingHistorySection readingHistory={userProfile.readingHistory} showAll={true} showSectionHeader={false} />
             </div>
           </div>
         )}
 
         {/* Вкладка "Настройки" */}
         {activeTab === "settings" && (
-          <div className="space-y-4 sm:space-y-6 animate-fade-in-up">
-            {/* Настройки уведомлений */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 animate-fade-in-up">
             <ProfileNotificationsSettings userProfile={userProfile} />
-
-            {/* Настройки отображения (включает тему и 18+) */}
             <ProfileDisplaySettings userProfile={userProfile} />
-
-            {/* Настройки чтения */}
             <ProfileReadingSettings userProfile={userProfile} />
-
-            {/* Настройки приватности */}
             <ProfilePrivacySettings userProfile={userProfile} />
-
-            {/* Настройки безопасности */}
-            <ProfileSecuritySettings userProfile={userProfile} />
+            <div className="lg:col-span-2">
+              <ProfileSecuritySettings userProfile={userProfile} />
+            </div>
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import { useGetProfileByUsernameQuery } from "@/store/api/authApi";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
+import { normalizeBookmarks } from "@/lib/bookmarks";
 import { Footer, Header } from "@/widgets";
 import { LoadingState } from "@/shared";
 import PublicProfileBanner from "@/shared/profile/PublicProfileBanner";
@@ -22,7 +23,7 @@ function transformUserToProfile(user: User): UserProfile {
     level: user.level,
     experience: user.experience,
     balance: user.balance,
-    bookmarks: user.bookmarks || [],
+    bookmarks: normalizeBookmarks(user.bookmarks),
     readingHistory: Array.isArray(user.readingHistory)
       ? (user.readingHistory as ReadingHistoryEntry[]).map(item => ({
           ...item,

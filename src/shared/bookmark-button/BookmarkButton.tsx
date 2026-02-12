@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
+import { normalizeBookmarks } from "@/lib/bookmarks";
 import { Bookmark } from "lucide-react";
 
 interface BookmarkButtonProps {
@@ -27,12 +28,13 @@ export function BookmarkButton({
     setIsClient(true);
   }, []);
 
-  // Обновляем состояние закладок после монтирования компонента
+  // Обновляем состояние закладок (сырой ответ API или нормализованный)
   useEffect(() => {
-    if (isClient) {
-      setIsBookmarked(initialBookmarked || (user?.bookmarks?.includes(titleId) ?? false));
+    if (isClient && user?.bookmarks) {
+      const inList = normalizeBookmarks(user.bookmarks).some(e => e.titleId === titleId);
+      setIsBookmarked(initialBookmarked || inList);
     }
-  }, [isClient, initialBookmarked, user, titleId]);
+  }, [isClient, initialBookmarked, user?.bookmarks, titleId]);
 
   const handleBookmarkToggle = async () => {
     // Проверяем, что пользователь авторизован

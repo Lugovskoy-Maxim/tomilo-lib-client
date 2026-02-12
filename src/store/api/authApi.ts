@@ -2,7 +2,8 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { AuthResponse, User } from "@/types/auth";
 import { LoginData, RegisterData } from "@/types/form";
 import { ApiResponseDto } from "@/types/api";
-import { ReadingHistoryEntry, BookmarkItem, AvatarResponse } from "@/types/store";
+import { ReadingHistoryEntry, AvatarResponse } from "@/types/store";
+import { BookmarkEntry, BookmarkCategory } from "@/types/user";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
@@ -78,11 +79,27 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
-    // Закладки
-    addBookmark: builder.mutation<ApiResponseDto<User>, string>({
-      query: titleId => ({
-        url: `/users/profile/bookmarks/${titleId}`,
+    // Закладки (с категориями: reading, planned, completed, favorites, dropped)
+    addBookmark: builder.mutation<
+      ApiResponseDto<User>,
+      { titleId: string; category?: BookmarkCategory }
+    >({
+      query: ({ titleId, category = "reading" }) => ({
+        url: "/users/profile/bookmarks",
         method: "POST",
+        body: { titleId, category },
+      }),
+      invalidatesTags: ["Bookmarks", "Auth"],
+    }),
+
+    updateBookmarkCategory: builder.mutation<
+      ApiResponseDto<User>,
+      { titleId: string; category: BookmarkCategory }
+    >({
+      query: ({ titleId, category }) => ({
+        url: `/users/profile/bookmarks/${titleId}`,
+        method: "PATCH",
+        body: { category },
       }),
       invalidatesTags: ["Bookmarks", "Auth"],
     }),
@@ -95,7 +112,7 @@ export const authApi = createApi({
       invalidatesTags: ["Bookmarks", "Auth"],
     }),
 
-    getBookmarks: builder.query<ApiResponseDto<BookmarkItem[]>, void>({
+    getBookmarks: builder.query<ApiResponseDto<BookmarkEntry[]>, void>({
       query: () => "/users/profile/bookmarks",
       providesTags: ["Bookmarks"],
     }),
@@ -177,6 +194,7 @@ export const {
   useUpdateProfileMutation,
   useUpdateAvatarMutation,
   useAddBookmarkMutation,
+  useUpdateBookmarkCategoryMutation,
   useRemoveBookmarkMutation,
   useGetBookmarksQuery,
   useGetReadingHistoryQuery,

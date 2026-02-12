@@ -1,5 +1,5 @@
 import { UserProfile } from "@/types/user";
-import { Shield, Lock } from "lucide-react";
+import { Lock, Shield } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import { useState } from "react";
@@ -33,9 +33,8 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
         newPassword,
       }).unwrap();
 
-      toast.success("Пароль успешно изменен");
+      toast.success("Пароль успешно изменён");
 
-      // Очистка формы после успешного изменения
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -47,76 +46,91 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
   };
 
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-      <div className="flex items-center gap-3 mb-4">
-        <Shield className="w-5 h-5 text-[var(--primary)]" />
-        <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Безопасность</h2>
+    <div className="glass rounded-2xl border border-[var(--border)] p-4 sm:p-6 shadow-sm">
+      <div className="flex items-center gap-3 mb-5">
+        <div className="p-2.5 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] shadow-lg">
+          <Shield className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
+            Безопасность
+          </h2>
+          <p className="text-[var(--muted-foreground)] text-sm">
+            Смена пароля аккаунта
+          </p>
+        </div>
       </div>
 
-      <form onSubmit={handleChangePassword} className="space-y-2">
-        <div>
-          <label
-            htmlFor="currentPassword"
-            className="block text-sm font-medium text-[var(--muted-foreground)] mb-1"
-          >
-            Текущий пароль
-          </label>
-          <Input
-            id="currentPassword"
-            type="password"
-            value={currentPassword}
-            onChange={e => setCurrentPassword(e.target.value)}
-            placeholder="Введите текущий пароль"
-            icon={Lock}
-            showPasswordToggle={true}
-            isPasswordVisible={isCurrentPasswordVisible}
-            onTogglePassword={() => setIsCurrentPasswordVisible(!isCurrentPasswordVisible)}
-          />
-        </div>
+      <form onSubmit={handleChangePassword} className="space-y-4">
+        <div className="rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50 p-4 space-y-4">
+          <div>
+            <label
+              htmlFor="currentPassword"
+              className="block text-sm font-semibold text-[var(--foreground)] mb-1.5"
+            >
+              Текущий пароль
+            </label>
+            <Input
+              id="currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              placeholder="Введите текущий пароль"
+              icon={Lock}
+              showPasswordToggle={true}
+              isPasswordVisible={isCurrentPasswordVisible}
+              onTogglePassword={() => setIsCurrentPasswordVisible(!isCurrentPasswordVisible)}
+            />
+          </div>
 
-        <div>
-          <label
-            htmlFor="newPassword"
-            className="block text-sm font-medium text-[var(--muted-foreground)] mb-1"
-          >
-            Новый пароль
-          </label>
-          <Input
-            id="newPassword"
-            type="password"
-            value={newPassword}
-            onChange={e => setNewPassword(e.target.value)}
-            placeholder="Введите новый пароль"
-            icon={Lock}
-            showPasswordToggle={true}
-            isPasswordVisible={isNewPasswordVisible}
-            onTogglePassword={() => setIsNewPasswordVisible(!isNewPasswordVisible)}
-          />
-        </div>
+          <div>
+            <label
+              htmlFor="newPassword"
+              className="block text-sm font-semibold text-[var(--foreground)] mb-1.5"
+            >
+              Новый пароль
+            </label>
+            <Input
+              id="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              placeholder="Введите новый пароль"
+              icon={Lock}
+              showPasswordToggle={true}
+              isPasswordVisible={isNewPasswordVisible}
+              onTogglePassword={() => setIsNewPasswordVisible(!isNewPasswordVisible)}
+            />
+          </div>
 
-        <div>
-          <label
-            htmlFor="confirmPassword"
-            className="block text-sm font-medium text-[var(--muted-foreground)] mb-1"
-          >
-            Подтвердите новый пароль
-          </label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-            placeholder="Подтвердите новый пароль"
-            icon={Lock}
-            showPasswordToggle={true}
-            isPasswordVisible={isConfirmPasswordVisible}
-            onTogglePassword={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
-          />
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-semibold text-[var(--foreground)] mb-1.5"
+            >
+              Подтверждение пароля
+            </label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              placeholder="Повторите новый пароль"
+              icon={Lock}
+              showPasswordToggle={true}
+              isPasswordVisible={isConfirmPasswordVisible}
+              onTogglePassword={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+            />
+          </div>
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" className="w-full sm:w-auto">
-            Изменить пароль
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="px-5 py-2.5 rounded-xl font-medium shadow-md min-w-[160px]"
+          >
+            {isLoading ? "Сохранение…" : "Изменить пароль"}
           </Button>
         </div>
       </form>
