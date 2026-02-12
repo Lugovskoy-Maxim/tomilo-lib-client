@@ -85,7 +85,6 @@ export default function AutoParsingSection() {
   const handleCheckChapters = async (id: string) => {
     try {
       await checkChapters(id).unwrap();
-      // Показываем модальное окно с результатом
       setModalContent({
         title: "Проверка завершена",
         message: "Проверка новых глав успешно завершена",
@@ -93,7 +92,6 @@ export default function AutoParsingSection() {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Failed to check chapters:", error);
-      // Показываем модальное окно с ошибкой
       setModalContent({
         title: "Ошибка проверки",
         message: "Произошла ошибка при проверке новых глав",
@@ -107,11 +105,9 @@ export default function AutoParsingSection() {
     setTitleSearch("");
   };
 
-  // Helper function to get proper image URL
   const getImageUrl = (coverImage?: string) => {
     if (!coverImage) return IMAGE_HOLDER.src;
     if (coverImage.startsWith("http")) return coverImage;
-    // coverImage already contains the path (e.g., "/uploads/titles/...")
     return `${process.env.NEXT_PUBLIC_URL}${coverImage}`;
   };
 
@@ -178,10 +174,9 @@ export default function AutoParsingSection() {
             {jobs.map((job: AutoParsingJob) => (
               <div
                 key={job._id}
-                className="border border-[var(--border)] flex flex-col  rounded-lg p-2 hover:border-[var(--primary)] transition-colors overflow-hidden"
+                className="border border-[var(--border)] flex flex-col rounded-lg p-2 hover:border-[var(--primary)] transition-colors overflow-hidden"
               >
                 <div className="flex gap-2">
-                  {/* Title Image */}
                   <div className="w-24 h-32 bg-[var(--accent)] rounded overflow-hidden flex-shrink-0">
                     {job.titleId?.coverImage ? (
                       <OptimizedImage
@@ -198,7 +193,6 @@ export default function AutoParsingSection() {
                     )}
                   </div>
 
-                  {/* Header with image and status */}
                   <div className="flex flex-col items-start gap-3 mb-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -220,18 +214,12 @@ export default function AutoParsingSection() {
                       </p>
                     </div>
 
-                    {/* Sources */}
                     <div className="mb-3 w-full">
                       <span className="text-xs text-[var(--muted-foreground)] block mb-1">
                         Источники:
                       </span>
                       <div className="flex flex-col gap-1 w-full">
-                        {(job.sources && job.sources.length > 0
-                          ? job.sources
-                          : job.url
-                            ? [job.url]
-                            : []
-                        )
+                        {(job.sources && job.sources.length > 0 ? job.sources : [])
                           .slice(0, 2)
                           .map((source, idx) => (
                             <div key={idx} className="flex items-start gap-1 w-full break-all">
@@ -251,12 +239,16 @@ export default function AutoParsingSection() {
                             +{job.sources.length - 2} ещё
                           </span>
                         )}
+                        {(!job.sources || job.sources.length === 0) && (
+                          <span className="text-xs text-[var(--muted-foreground)]">
+                            Не указаны
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Footer with frequency and actions */}
                 <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
                   <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
                     <Clock className="w-5 h-5" />
@@ -339,7 +331,7 @@ function JobModal({
 }: JobModalProps) {
   const [titleId, setTitleId] = useState(job?.titleId?._id || "");
   const [sources, setSources] = useState<string[]>(
-    job?.sources && job.sources.length > 0 ? job.sources : job?.url ? [job.url] : [""],
+    job?.sources && job.sources.length > 0 ? job.sources : [""],
   );
   const [frequency, setFrequency] = useState(job?.frequency || "daily");
   const [enabled, setEnabled] = useState(job?.enabled ?? true);
@@ -360,11 +352,9 @@ function JobModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Filter out empty sources
     const validSources = sources.filter(s => s.trim());
 
     if (job && onUpdate) {
-      // Update case - use UpdateAutoParsingJobDto
       const data: UpdateAutoParsingJobDto = {
         titleId: titleId || undefined,
         sources: validSources.length > 0 ? validSources : undefined,
@@ -373,7 +363,6 @@ function JobModal({
       };
       onUpdate(data);
     } else {
-      // Create case - use CreateAutoParsingJobDto
       const data: CreateAutoParsingJobDto = {
         titleId,
         sources: validSources,
@@ -392,7 +381,6 @@ function JobModal({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title ID */}
           <div className="relative">
             <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
               ID тайтла *
@@ -426,7 +414,6 @@ function JobModal({
             )}
           </div>
 
-          {/* Sources */}
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
               Источники *
@@ -464,7 +451,6 @@ function JobModal({
             </button>
           </div>
 
-          {/* Frequency */}
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
               Частота *
@@ -482,7 +468,6 @@ function JobModal({
             </select>
           </div>
 
-          {/* Enabled Status */}
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -496,7 +481,6 @@ function JobModal({
             </label>
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"

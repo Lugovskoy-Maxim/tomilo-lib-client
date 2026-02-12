@@ -10,8 +10,7 @@ export interface ParseTitleDto {
 export interface ParseChaptersDto {
   url: string;
   titleId: string;
-  chapterNumbers: string[];
-  customName?: string;
+  chapterNumbers?: string[];
 }
 
 export interface ParseChaptersInfoDto {

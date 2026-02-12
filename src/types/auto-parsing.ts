@@ -19,7 +19,6 @@ export interface AutoParsingJob {
 export interface CreateAutoParsingJobDto {
   titleId: string;
   sources?: string[];
-  url?: string; // Deprecated: for backward compatibility
   frequency?: string;
   enabled?: boolean;
 }
@@ -27,7 +26,6 @@ export interface CreateAutoParsingJobDto {
 export interface UpdateAutoParsingJobDto {
   titleId?: string;
   sources?: string[];
-  url?: string; // Deprecated: for backward compatibility
   frequency?: string;
   enabled?: boolean;
 }
