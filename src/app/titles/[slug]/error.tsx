@@ -2,13 +2,28 @@
 import { Footer, Header } from "@/widgets";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-// Улучшенный компонент ошибки с отладочной информацией
-export default function ErrorState({ error, slug }: { error: string; slug?: string }) {
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return String(error ?? "Неизвестная ошибка");
+}
+
+// Улучшенный компонент ошибки с отладочной информацией (Next.js error boundary передаёт error: Error)
+export default function ErrorState({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset?: () => void;
+}) {
   const router = useRouter();
+  const params = useParams();
+  const slug = typeof params?.slug === "string" ? params.slug : undefined;
   const [isClient, setIsClient] = useState(false);
+  const message = getErrorMessage(error);
 
   useEffect(() => {
     setIsClient(true);
@@ -16,17 +31,18 @@ export default function ErrorState({ error, slug }: { error: string; slug?: stri
 
   // Проверяем, является ли это ошибкой Server Action
   const isServerActionError =
-    error?.toLowerCase().includes("server action") ||
-    error?.toLowerCase().includes("failed to find server action");
+    message.toLowerCase().includes("server action") ||
+    message.toLowerCase().includes("failed to find server action");
 
   // Проверяем, является ли это ошибкой deployment mismatch
   const isDeploymentError =
-    error?.toLowerCase().includes("older or newer deployment") ||
-    error?.toLowerCase().includes("deployment");
+    message.toLowerCase().includes("older or newer deployment") ||
+    message.toLowerCase().includes("deployment");
 
   const handleReload = () => {
-    if (isClient) {
-      // Используем router.refresh() для обновления данных без полной перезагрузки страницы
+    if (reset) {
+      reset();
+    } else if (isClient) {
       router.refresh();
     }
   };
@@ -47,7 +63,7 @@ export default function ErrorState({ error, slug }: { error: string; slug?: stri
             <div className="text-center">
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
               <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-                {isServerActionError ? "Ошибка сервера" : error}
+                {isServerActionError ? "Ошибка сервера" : message}
               </h1>
 
               {/* Специальное сообщение для Server Action ошибок */}
@@ -83,10 +99,9 @@ export default function ErrorState({ error, slug }: { error: string; slug?: stri
                 </Link>
                 <button
                   onClick={handleReload}
-                  disabled={!isClient}
                   className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors disabled:opacity-50"
                 >
-                  Перезагрузить страницу
+                  Попробовать снова
                 </button>
               </div>
             </div>

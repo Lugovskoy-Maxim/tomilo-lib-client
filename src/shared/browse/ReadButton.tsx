@@ -26,6 +26,7 @@ export function ReadButton({
   const { user, readingHistoryLoading } = useAuth();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const userHistoryArray = Array.isArray(user?.readingHistory) ? user.readingHistory : [];
 
   useEffect(() => {
     setIsClient(true);
@@ -47,7 +48,7 @@ export function ReadButton({
     // Если есть продолжение чтения и оно относится к текущему тайтлу
     const readingHistoryItem =
       readingHistory ||
-      user?.readingHistory?.find((item: ReadingHistoryEntry) => {
+      userHistoryArray.find((item: ReadingHistoryEntry) => {
         const titleId = typeof item.titleId === "string" ? item.titleId : item.titleId?._id;
         return titleId === titleData?._id;
       });
@@ -123,7 +124,7 @@ export function ReadButton({
   // Если есть продолжение чтения для этого тайтла
   const readingHistoryItem =
     readingHistory ||
-    user?.readingHistory?.find((item: ReadingHistoryEntry) => {
+    userHistoryArray.find((item: ReadingHistoryEntry) => {
       const titleId = typeof item.titleId === "string" ? item.titleId : item.titleId?._id;
       return titleId === titleData?._id;
     });
