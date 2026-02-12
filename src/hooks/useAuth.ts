@@ -361,11 +361,12 @@ export const useAuth = () => {
 
         return { success: true };
       } catch (error: unknown) {
-        console.error("Error adding to reading history:", error);
         const message =
           (error as { data?: { errors?: string[]; message?: string } })?.data?.errors?.[0] ||
           (error as { data?: { message?: string } })?.data?.message ||
           (error instanceof Error ? error.message : "Неизвестная ошибка");
+        // Log message only (not error object) to avoid Next.js digest Symbol extensibility issue
+        console.error("Error adding to reading history:", message);
         return { success: false, error: message };
       }
     },
@@ -390,11 +391,9 @@ export const useAuth = () => {
 
       return { success: true };
     } catch (error) {
-      console.error("Error removing from reading history:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Неизвестная ошибка",
-      };
+      const message = error instanceof Error ? error.message : "Неизвестная ошибка";
+      console.error("Error removing from reading history:", message);
+      return { success: false, error: message };
     }
   };
 

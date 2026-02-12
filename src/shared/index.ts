@@ -55,6 +55,7 @@ export { default as ProfileAvatar } from "./profile/ProfileAvatar";
 export { default as PeriodFilter } from "./period-filter/PeriodFilter";
 export { default as LoadingSkeleton } from "./skeleton/skeleton";
 export { default as SharedErrorState } from "./error-state/ErrorState";
+export { default as SectionLoadError } from "./error-state/SectionLoadError";
 export { default as DataCarousel } from "./data-carousel/DataCarousel";
 export { default as SnowEffect } from "./snow-cap/SnowCap";
 export { default as Breadcrumbs } from "./breadcrumbs/breadcrumbs";

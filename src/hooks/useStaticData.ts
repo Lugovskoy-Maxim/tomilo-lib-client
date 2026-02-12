@@ -94,45 +94,10 @@ export const useStaticData = (): StaticData => {
           error: null,
         });
       } catch {
-        // Возвращаем к статическим данным в случае ошибки
         setCollections({
-          data: [
-            {
-              id: "1",
-              cover: "/collections/1.webp",
-              name: "Сёнен",
-              description: "Коллекция сёнэн манги",
-              titles: [],
-              comments: [],
-              views: 0,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-            {
-              id: "2",
-              cover: "/collections/2.webp",
-              name: "Романтика",
-              description: "Коллекция романтических произведений",
-              titles: [],
-              comments: [],
-              views: 0,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-            {
-              id: "3",
-              cover: "/collections/3.webp",
-              name: "Фэнтези",
-              description: "Коллекция фэнтези произведений",
-              titles: [],
-              comments: [],
-              views: 0,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-          ],
+          data: [],
           loading: false,
-          error: null,
+          error: "load_failed",
         });
       }
     };

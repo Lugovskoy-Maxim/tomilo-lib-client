@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { BookOpen, Clock, LibraryIcon, SquareArrowOutUpRight, Trophy } from "lucide-react";
 
-import { CarouselCard, CollectionCard, ReadingCard } from "@/shared";
+import { CarouselCard, CollectionCard, ReadingCard, SectionLoadError } from "@/shared";
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSection";
@@ -35,13 +35,7 @@ const DataCarousel = ({
   [key: string]: any;
 }) => {
   if (loading) return <CarouselSkeleton />;
-  if (error) {
-    return (
-      <div className="text-red-600 font-semibold p-4">
-        Ошибка загрузки {title}. Пожалуйста, попробуйте позже.
-      </div>
-    );
-  }
+  if (error) return <SectionLoadError sectionTitle={title} />;
   if (!data?.length) return null;
 
   return (

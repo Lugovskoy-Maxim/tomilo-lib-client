@@ -94,7 +94,7 @@ export default function BookmarkCard({
 
   return (
     <div
-      className="group relative flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border border-[var(--border)] hover:border-[var(--primary)]/50 hover:shadow-md hover:shadow-[var(--primary)]/5 transition-all duration-300 cursor-pointer overflow-hidden"
+      className="group relative flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border border-[var(--border)] hover:border-[var(--primary)]/50 hover:shadow-md hover:shadow-[var(--primary)]/5 transition-all duration-300 cursor-pointer overflow-visible"
       onClick={handleClick}
     >
       <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 ring-1 ring-[var(--border)]/50">
@@ -128,8 +128,8 @@ export default function BookmarkCard({
         )}
       </div>
 
-      <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
-        <div>
+      <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5 overflow-visible">
+        <div className="overflow-visible">
           {onCategoryChange && (
             <div className="relative mb-1.5">
               <button
@@ -139,11 +139,11 @@ export default function BookmarkCard({
                   setCategoryOpen(prev => !prev);
                 }}
                 disabled={isUpdatingCategory}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-medium bg-[var(--primary)]/15 text-[var(--primary)] hover:bg-[var(--primary)]/25 transition-colors"
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--primary)]/15 text-[var(--primary)] hover:bg-[var(--primary)]/25 transition-colors"
               >
-                {CATEGORY_LABELS[category]}
+                <span className="truncate max-w-[72px] sm:max-w-[88px]">{CATEGORY_LABELS[category]}</span>
                 <ChevronDown
-                  className={`w-3 h-3 transition-transform ${categoryOpen ? "rotate-180" : ""}`}
+                  className={`w-3 h-3 flex-shrink-0 transition-transform ${categoryOpen ? "rotate-180" : ""}`}
                 />
               </button>
               {categoryOpen && (
@@ -156,23 +156,21 @@ export default function BookmarkCard({
                       setCategoryOpen(false);
                     }}
                   />
-                  <div className="absolute left-0 top-full mt-1 z-20 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[140px]">
-                    {categories.map(cat => {
-                      return (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={e => handleCategorySelect(e, cat)}
-                          className={
-                            cat === category
-                              ? "w-full text-left px-3 py-1.5 text-xs font-medium bg-[var(--primary)]/20 text-[var(--primary)]"
-                              : "w-full text-left px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--accent)]"
-                          }
-                        >
-                          {CATEGORY_LABELS[cat]}
-                        </button>
-                      );
-                    })}
+                  <div className="absolute left-0 top-full mt-1 z-20 py-0.5 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[120px] max-w-[min(100%,180px)] max-h-[200px] overflow-y-auto">
+                    {categories.map(cat => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={e => handleCategorySelect(e, cat)}
+                        className={
+                          cat === category
+                            ? "w-full text-left px-2 py-1 text-[10px] font-medium bg-[var(--primary)]/20 text-[var(--primary)]"
+                            : "w-full text-left px-2 py-1 text-[10px] font-medium text-[var(--foreground)] hover:bg-[var(--accent)]"
+                        }
+                      >
+                        {CATEGORY_LABELS[cat]}
+                      </button>
+                    ))}
                   </div>
                 </>
               )}

@@ -95,9 +95,9 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
       {/* Контент вкладок */}
       <div className="animate-fade-in">
-        {/* Вкладка "Обзор" */}
+        {/* Вкладка "Обзор": сверху информация, под ней закладки и история в одну строку */}
         {activeTab === "overview" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 animate-fade-in-up">
+          <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
             <ProfileAdditionalInfo userProfile={userProfile} />
             <ProfileContent userProfile={userProfile} />
           </div>

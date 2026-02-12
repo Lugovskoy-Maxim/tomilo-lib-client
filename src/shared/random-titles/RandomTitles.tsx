@@ -1,5 +1,5 @@
 import React from "react";
-import { CarouselCard } from "@/shared";
+import { CarouselCard, SectionLoadError } from "@/shared";
 import { Carousel } from "@/widgets";
 import { SquareArrowOutUpRight } from "lucide-react";
 
@@ -38,13 +38,7 @@ const RandomTitles: React.FC<RandomTitlesProps> = ({ data, loading, error }) => 
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-red-600 font-semibold p-4">
-        Ошибка загрузки случайных тайтлов. Пожалуйста, попробуйте позже.
-      </div>
-    );
-  }
+  if (error) return <SectionLoadError sectionTitle="Рекомендуем для просмотра" />;
 
   if (!data?.length)
     return (

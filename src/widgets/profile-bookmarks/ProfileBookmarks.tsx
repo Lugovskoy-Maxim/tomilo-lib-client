@@ -5,7 +5,7 @@ import { UserProfile } from "@/types/user";
 import type { BookmarkEntry, BookmarkCategory } from "@/types/user";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import BookmarkCard from "@/shared/bookmark-card/BookmarkCard";
-import { Bookmark, ChevronDown, ChevronUp } from "lucide-react";
+import { Bookmark, ChevronUp } from "lucide-react";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 
 const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
@@ -115,11 +115,71 @@ function BookmarkItem({
   );
 }
 
+function BookmarkCategorySection({
+  label,
+  count,
+  entries,
+  maxPerSection,
+  showAll,
+  onRemove,
+  onCategoryChange,
+}: {
+  label: string;
+  count: number;
+  entries: BookmarkEntry[];
+  maxPerSection: number | undefined;
+  showAll: boolean;
+  onRemove: (titleId: string) => void;
+  onCategoryChange: (titleId: string, category: BookmarkCategory) => void;
+}) {
+  const [sectionExpanded, setSectionExpanded] = useState(false);
+  const visible = maxPerSection != null ? entries.slice(0, maxPerSection) : entries;
+  const hasMore = maxPerSection != null && entries.length > maxPerSection;
+  const displayList = showAll || sectionExpanded ? entries : visible;
+
+  return (
+    <section className="space-y-3">
+      <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+        <span className="text-[var(--primary)]">{label}</span>
+        <span className="text-xs font-normal text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-0.5 rounded-full">
+          {count}
+        </span>
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {displayList.map(entry => (
+          <BookmarkItem
+            key={entry.titleId}
+            entry={entry}
+            onRemove={onRemove}
+            onCategoryChange={onCategoryChange}
+          />
+        ))}
+      </div>
+      {hasMore && !sectionExpanded && (
+        <button
+          type="button"
+          className="text-sm text-[var(--primary)] hover:underline font-medium"
+          onClick={() => setSectionExpanded(true)}
+        >
+          Показать все ({entries.length})
+        </button>
+      )}
+      {hasMore && sectionExpanded && (
+        <button
+          type="button"
+          className="text-sm text-[var(--muted-foreground)] hover:underline font-medium flex items-center gap-1"
+          onClick={() => setSectionExpanded(false)}
+        >
+          <ChevronUp className="h-3.5 w-3.5" /> Свернуть
+        </button>
+      )}
+    </section>
+  );
+}
+
 function BookmarksSection({ bookmarks, showAll = false, showSectionHeader = true }: BookmarksSectionProps) {
   const normalized = useMemo(() => normalizeBookmarks(bookmarks), [bookmarks]);
   const [currentBookmarks, setCurrentBookmarks] = useState(normalized);
-  const [activeCategory, setActiveCategory] = useState<BookmarkCategory | "all">("all");
-  const [isExpanded, setIsExpanded] = useState(showAll);
 
   useEffect(() => {
     setCurrentBookmarks(normalizeBookmarks(bookmarks));
@@ -146,13 +206,6 @@ function BookmarksSection({ bookmarks, showAll = false, showSectionHeader = true
     [byCategory],
   );
 
-  const visibleEntries =
-    activeCategory === "all"
-      ? currentBookmarks
-      : byCategory.get(activeCategory) ?? [];
-  const visibleList = isExpanded ? visibleEntries : visibleEntries.slice(0, 6);
-  const hasMore = visibleEntries.length > 6;
-
   const handleRemoveBookmark = (titleId: string) => {
     setCurrentBookmarks(prev => prev.filter(e => e.titleId !== titleId));
   };
@@ -177,8 +230,10 @@ function BookmarksSection({ bookmarks, showAll = false, showSectionHeader = true
     );
   }
 
+  const maxPerSection = showAll ? undefined : 6;
+
   return (
-    <div className="space-y-4 min-h-[280px] flex flex-col">
+    <div className="space-y-6 min-h-[280px] flex flex-col">
       {showSectionHeader && (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h2 className="text-base font-semibold text-[var(--foreground)] flex items-center gap-2">
@@ -188,69 +243,21 @@ function BookmarksSection({ bookmarks, showAll = false, showSectionHeader = true
               {currentBookmarks.length}
             </span>
           </h2>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => setActiveCategory("all")}
-              className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                activeCategory === "all"
-                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                  : "bg-[var(--background)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              Все
-            </button>
-            {categoriesWithCount.map(({ category, label, count }) => (
-              <button
-                key={category}
-                type="button"
-                onClick={() => setActiveCategory(category)}
-                className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                  activeCategory === category
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                    : "bg-[var(--background)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                {label} ({count})
-              </button>
-            ))}
-          </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 flex-1">
-        {visibleList.map(entry => (
-          <BookmarkItem
-            key={entry.titleId}
-            entry={entry}
-            onRemove={handleRemoveBookmark}
-            onCategoryChange={handleCategoryChange}
-          />
-        ))}
-      </div>
-
-      {hasMore && !isExpanded && (
-        <div className="text-center pt-2">
-          <button
-            type="button"
-            className="text-sm text-[var(--primary)] hover:underline font-medium"
-            onClick={() => setIsExpanded(true)}
-          >
-            Показать все ({visibleEntries.length})
-          </button>
-        </div>
-      )}
-      {hasMore && isExpanded && visibleEntries.length > 6 && (
-        <div className="text-center pt-2">
-          <button
-            type="button"
-            className="text-sm text-[var(--muted-foreground)] hover:underline font-medium flex items-center gap-1 mx-auto"
-            onClick={() => setIsExpanded(false)}
-          >
-            <ChevronUp className="h-3.5 w-3.5" /> Свернуть
-          </button>
-        </div>
-      )}
+      {categoriesWithCount.map(({ category, label, count }) => (
+        <BookmarkCategorySection
+          key={category}
+          label={label}
+          count={count}
+          entries={byCategory.get(category) ?? []}
+          maxPerSection={maxPerSection}
+          showAll={showAll}
+          onRemove={handleRemoveBookmark}
+          onCategoryChange={handleCategoryChange}
+        />
+      ))}
     </div>
   );
 }

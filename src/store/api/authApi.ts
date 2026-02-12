@@ -128,7 +128,17 @@ export const authApi = createApi({
       query: ({ titleId, category = "reading" }) => ({
         url: `/users/profile/bookmarks/${titleId}?category=${category}`,
         method: "POST",
+        body: { titleId, category },
       }),
+      transformResponse(response: ApiResponseDto<User>) {
+        // Сервер может вернуть 201 с success: false при ошибке валидации
+        if (response && (response as { success?: boolean }).success === false) {
+          const r = response as { message?: string; errors?: string[] };
+          const msg = r.errors?.[0] ?? r.message ?? "Failed to add bookmark";
+          throw new Error(msg);
+        }
+        return response;
+      },
       invalidatesTags: ["Bookmarks", "Auth"],
     }),
 
@@ -141,6 +151,13 @@ export const authApi = createApi({
         method: "PUT",
         body: { category },
       }),
+      transformResponse(response: ApiResponseDto<User>) {
+        if (response && (response as { success?: boolean }).success === false) {
+          const r = response as { message?: string; errors?: string[] };
+          throw new Error(r.errors?.[0] ?? r.message ?? "Failed to update bookmark");
+        }
+        return response;
+      },
       invalidatesTags: ["Bookmarks", "Auth"],
     }),
 
@@ -149,6 +166,13 @@ export const authApi = createApi({
         url: `/users/profile/bookmarks/${titleId}`,
         method: "DELETE",
       }),
+      transformResponse(response: ApiResponseDto<User>) {
+        if (response && (response as { success?: boolean }).success === false) {
+          const r = response as { message?: string; errors?: string[] };
+          throw new Error(r.errors?.[0] ?? r.message ?? "Failed to remove bookmark");
+        }
+        return response;
+      },
       invalidatesTags: ["Bookmarks", "Auth"],
     }),
 
@@ -229,6 +253,13 @@ export const authApi = createApi({
         url: `/users/profile/history/${titleId}/${chapterId}`,
         method: "POST",
       }),
+      transformResponse(response: ApiResponseDto<User>) {
+        if (response && (response as { success?: boolean }).success === false) {
+          const r = response as { message?: string; errors?: string[] };
+          throw new Error(r.errors?.[0] ?? r.message ?? "Failed to add to reading history");
+        }
+        return response;
+      },
       invalidatesTags: ["ReadingHistory", "Auth"],
     }),
 
@@ -242,6 +273,13 @@ export const authApi = createApi({
           : `/users/profile/history/${titleId}`,
         method: "DELETE",
       }),
+      transformResponse(response: ApiResponseDto<User>) {
+        if (response && (response as { success?: boolean }).success === false) {
+          const r = response as { message?: string; errors?: string[] };
+          throw new Error(r.errors?.[0] ?? r.message ?? "Failed to remove from reading history");
+        }
+        return response;
+      },
       invalidatesTags: ["ReadingHistory", "Auth"],
     }),
 
@@ -250,6 +288,13 @@ export const authApi = createApi({
         url: "/users/profile/history",
         method: "DELETE",
       }),
+      transformResponse(response: ApiResponseDto<User>) {
+        if (response && (response as { success?: boolean }).success === false) {
+          const r = response as { message?: string; errors?: string[] };
+          throw new Error(r.errors?.[0] ?? r.message ?? "Failed to clear reading history");
+        }
+        return response;
+      },
       invalidatesTags: ["ReadingHistory", "Auth"],
     }),
 
