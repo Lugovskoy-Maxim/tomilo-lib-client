@@ -142,16 +142,14 @@ export default function UserBar() {
           <div className="relative flex items-center justify-center" ref={dropdownRef}>
             <button
               type="button"
-              className="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer 
-                       hover:ring-2 hover:ring-[var(--primary)]/30
-                       transition-all"
+              className="flex items-center justify-center min-h-[40px] min-w-[40px] p-1 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer overflow-hidden"
               onClick={() => setDropdownOpen(!dropdownOpen)}
               aria-label="Открыть меню пользователя"
             >
               <UserAvatar
                 avatarUrl={user?.avatar}
                 username={user?.username}
-                size={40}
+                size={36}
                 className="rounded-full"
               />
             </button>

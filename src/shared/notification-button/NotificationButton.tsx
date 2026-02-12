@@ -15,12 +15,12 @@ export function NotificationButton() {
     <Link href="/notifications" className="relative">
       <button
         type="button"
-        className="flex items-center p-2 cursor-pointer hover:bg-[var(--popover)] bg-[var(--secondary)] rounded-full border border-[var(--border)] text-[var(--muted-foreground)]"
+        className="flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer"
         aria-label={
           notificationCount > 0 ? `Уведомления (${notificationCount} новых)` : "Уведомления"
         }
       >
-        <Bell className="w-5 h-5" />
+        <Bell className="w-4 h-4 xs:w-5 xs:h-5" />
 
         {/* Бейдж с анимацией появления */}
         <span

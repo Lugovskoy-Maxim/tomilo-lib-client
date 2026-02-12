@@ -71,20 +71,20 @@ export default function Header() {
             onClick={toggleSearch}
             className={`${
               isSearchOpen ? "hidden" : "lg:hidden"
-            } lg:hidden p-2.5 btn-modern bg-[var(--secondary)]/80 cursor-pointer text-[var(--muted-foreground)] border border-[var(--border)]/60 rounded-full hover:text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-ring/50`}
+            } flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer`}
             aria-label="Поиск"
           >
-            {isSearchOpen ? null : <SearchIcon className="w-5 h-5" />}
+            {isSearchOpen ? null : <SearchIcon className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />}
           </button>
 
           {/* Кнопка "..." с выпадающим меню */}
           <div className="relative hidden md:block">
             <button
               onClick={toggleDropdown}
-              className="flex items-center p-2.5 cursor-pointer btn-modern bg-[var(--secondary)]/80 rounded-full border border-[var(--border)]/60 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              className="flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="Дополнительное меню"
             >
-              <MoreVertical className="w-5 h-5" />
+              <MoreVertical className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
             </button>
 
             {/* Выпадающее меню */}
