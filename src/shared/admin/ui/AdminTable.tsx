@@ -4,8 +4,7 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Search,
-  Filter,
-  MoreHorizontal,
+  Inbox,
 } from "lucide-react";
 
 // Simple cn utility function
@@ -205,7 +204,8 @@ export function AdminTable<T>({
               placeholder="Поиск..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm"
+              className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] text-sm"
+              aria-label="Поиск по таблице"
             />
           </div>
           {selectedIds.length > 0 && (
@@ -268,9 +268,15 @@ export function AdminTable<T>({
                       (selectable ? 1 : 0) +
                       (actions ? 1 : 0)
                     }
-                    className="p-8 text-center text-[var(--muted-foreground)]"
+                    className="p-12 text-center"
                   >
-                    {emptyMessage}
+                    <div className="flex flex-col items-center gap-3 text-[var(--muted-foreground)]">
+                      <div className="p-4 rounded-full bg-[var(--muted)]/50">
+                        <Inbox className="w-10 h-10 text-[var(--muted-foreground)]/70" />
+                      </div>
+                      <p className="font-medium text-[var(--foreground)]">{emptyMessage}</p>
+                      <p className="text-sm">Данные появятся здесь после добавления</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -342,19 +348,21 @@ export function AdminTable<T>({
               <button
                 onClick={() => pagination.onPageChange(pagination.page - 1)}
                 disabled={pagination.page === 1}
-                className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg disabled:opacity-50 hover:bg-[var(--accent)]"
+                className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg disabled:opacity-50 hover:bg-[var(--accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                aria-label="Предыдущая страница"
               >
                 Назад
               </button>
-              <span className="text-sm text-[var(--foreground)]">
-                {pagination.page} / {Math.ceil(pagination.total / pagination.limit)}
+              <span className="text-sm text-[var(--foreground)]" aria-live="polite">
+                {pagination.page} / {Math.ceil(pagination.total / pagination.limit) || 1}
               </span>
               <button
                 onClick={() => pagination.onPageChange(pagination.page + 1)}
                 disabled={
                   pagination.page >= Math.ceil(pagination.total / pagination.limit)
                 }
-                className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg disabled:opacity-50 hover:bg-[var(--accent)]"
+                className="px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg disabled:opacity-50 hover:bg-[var(--accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                aria-label="Следующая страница"
               >
                 Вперед
               </button>

@@ -12,10 +12,11 @@ import { UsersSection } from "@/shared/admin/UsersSection";
 import { CommentsSection } from "@/shared/admin/CommentsSection";
 import { ReportsSection } from "@/shared/admin/ReportsSection";
 import { IpManagementSection } from "@/shared/admin/IpManagementSection";
-import { Footer, Header } from "@/widgets";
+import { Header } from "@/widgets";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useState } from "react";
-import { Settings } from "lucide-react";
+import { Settings, Home } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
@@ -77,40 +78,49 @@ export default function AdminPage() {
 
   return (
     <AuthGuard requiredRole="admin">
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="flex flex-col min-h-screen bg-[var(--background)]">
         <Header />
 
-        <div className="flex flex-1 pt-16">
+        <div className="flex flex-1 pt-[var(--header-height)]">
           {/* Sidebar Navigation */}
           <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           {/* Main Content Area */}
-          <main className="flex-1 flex flex-col overflow-hidden p-2 gap-2">
+          <main className="flex-1 flex flex-col overflow-hidden min-w-0">
             {/* Page Header */}
-            <header className="flex-shrink-0 bg-[var(--card)] border-b border-[var(--border)] px-4 sm:px-6 py-4 lg:py-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[var(--primary)]/10 rounded-lg">
-                  <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--primary)]" />
+            <header className="flex-shrink-0 bg-[var(--card)] border-b border-[var(--border)] px-4 sm:px-6 py-4 lg:py-5">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-[var(--primary)]/10 rounded-xl">
+                    <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--primary)]" />
+                  </div>
+                  <div>
+                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[var(--foreground)]">
+                      {getSectionTitle()}
+                    </h1>
+                    <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">
+                      Управление контентом и системой
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[var(--foreground)]">
-                    {getSectionTitle()}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-[var(--muted-foreground)] hidden sm:block">
-                    Управление контентом и системой
-                  </p>
-                </div>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] border border-[var(--border)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                >
+                  <Home className="w-4 h-4" />
+                  На сайт
+                </Link>
               </div>
             </header>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="w-full">{renderTabContent()}</div>
+            {/* Scrollable Content - max-width для читаемости на больших экранах */}
+            <div className="flex-1 overflow-y-auto admin-content-scroll">
+              <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-6">
+                {renderTabContent()}
+              </div>
             </div>
           </main>
         </div>
-
-        {/* <Footer /> */}
       </div>
     </AuthGuard>
   );

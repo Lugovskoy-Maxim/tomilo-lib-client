@@ -96,6 +96,7 @@ export default function HomePage() {
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
           cardWidth="w-35 sm:w-35 md:w-40 lg:w-44 xl:w-52 2xl:w-56"
           getItemPath={(item: any) => getTitlePath(item)}
+          autoScrollInterval={5000}
         />
 
         {/* Случайные тайтлы */}

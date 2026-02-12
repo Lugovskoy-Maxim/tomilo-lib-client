@@ -89,6 +89,74 @@ body {
 }
 
 /* ============================================
+   ADMIN PANEL — единые размеры и скругления
+   ============================================ */
+:root {
+  --admin-radius: var(--radius);
+  --admin-input-h: 2.5rem;   /* 40px — высота инпутов и кнопок */
+  --admin-btn-px: 1rem;      /* 16px — горизонтальный паддинг кнопок */
+  --admin-input-px: 0.75rem; /* 12px — горизонтальный паддинг инпутов */
+}
+.admin-sidebar-toggle {
+  /* Кнопка меню сайдбара на мобильных — позиция задаётся inline (под header) */
+}
+.admin-content-scroll {
+  scroll-behavior: smooth;
+}
+/* Единые стили инпутов и селектов в админке */
+.admin-input {
+  height: var(--admin-input-h);
+  padding: 0  var(--admin-input-px);
+  border-radius: var(--admin-radius);
+  background: var(--background);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.admin-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--ring);
+}
+.admin-input::placeholder {
+  color: var(--muted-foreground);
+}
+/* Единые стили кнопок в админке */
+.admin-btn {
+  height: var(--admin-input-h);
+  padding: 0 var(--admin-btn-px);
+  border-radius: var(--admin-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.admin-btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid transparent;
+}
+.admin-btn-primary:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+.admin-btn-secondary {
+  background: var(--accent);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+.admin-btn-secondary:hover:not(:disabled) {
+  background: var(--muted);
+}
+.admin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.admin-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+/* ============================================
    PROFILE PAGE ENHANCED STYLES
    ============================================ */
 
@@ -1095,6 +1163,20 @@ body {
 /* Touch action optimization */
 .touch-pan-x {
   touch-action: pan-x;
+}
+
+/* Бесконечная плавная лента в одну сторону (без возврата в начало) */
+.carousel-marquee-track {
+  animation: carousel-marquee var(--marquee-duration, 120s) linear infinite;
+}
+
+@keyframes carousel-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 /* Prevent text selection during drag */
