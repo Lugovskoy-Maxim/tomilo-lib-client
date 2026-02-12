@@ -58,14 +58,14 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
   return (
     <div
-      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 group relative cursor-pointer transform transition-all duration-500 ease-out hover:scale-[1.02] hover:-translate-y-1"
+      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1"
       data-card-id={data.id}
       onClick={handleClick}
     >
-      {/* Glow effect */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-chart-1/0 via-primary/0 to-chart-1/0 group-hover:from-chart-1/20 group-hover:via-primary/20 group-hover:to-chart-1/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-500 ease-out -z-10" />
+      {/* Glow — единый с остальными карточками */}
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)]/0 via-[var(--chart-1)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/20 group-hover:via-[var(--chart-1)]/20 group-hover:to-[var(--primary)]/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out -z-10" />
       
-      <div className="relative flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden shadow-lg ring-1 ring-white/5 group-hover:ring-primary/30 transition-all duration-500">
+      <div className="relative flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden shadow-lg ring-1 ring-white/5 group-hover:shadow-xl group-hover:ring-[var(--chart-1)]/30 transition-all duration-300">
         {/* Image section */}
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
@@ -73,7 +73,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
               src={imageUrlString}
               alt={data.title}
               width={128}
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
               quality={85}
               priority={false}
               onError={() => {
@@ -83,29 +83,29 @@ export default function ReadingCard({ data }: ReadingCardProps) {
           </div>
 
           {/* Type badge */}
-          <div className="absolute bottom-2 left-2 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-            <div className="bg-black/70 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border border-white/10 shadow-lg">
+          <div className="absolute bottom-2 left-2">
+            <div className="bg-black/70 backdrop-blur-sm text-white px-2 py-0.5 rounded-md text-xs font-medium border border-white/10 shadow-lg">
               {translateTitleType(data.type || "")}
             </div>
           </div>
           
-          {/* Shine effect on image */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out" />
+          {/* Shine — единый с остальными карточками */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
           </div>
         </div>
 
-        {/* Content section */}
-        <div className="relative flex-1 px-3 py-2 sm:px-4 sm:py-3 min-w-0 flex flex-col">
+        {/* Content section — единые отступы */}
+        <div className="relative flex-1 p-3 min-w-0 flex flex-col">
           {/* Title */}
-          <h3 className="font-semibold text-[var(--primary)] line-clamp-2 leading-tight text-sm sm:text-base mb-2 group-hover:text-[var(--chart-1)] transition-colors duration-300">
+          <h3 className="font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-tight mb-2 group-hover:text-[var(--chart-1)] transition-colors duration-300">
             {data.title}
           </h3>
 
           {/* New chapters indicator */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm mb-auto">
+          <div className="flex items-center gap-2 text-xs mb-auto">
             {data.newChaptersSinceLastRead > 0 ? (
-              <div className="flex items-center gap-1.5 text-[var(--chart-1)] bg-[var(--chart-1)]/10 px-2 py-0.5 rounded-full border border-[var(--chart-1)]/20">
+              <div className="flex items-center gap-1.5 text-[var(--chart-1)] bg-[var(--chart-1)]/10 px-2 py-0.5 rounded-md border border-[var(--chart-1)]/20">
                 <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-[var(--chart-1)]" />
                 <span className="font-medium">
                   {data.newChaptersSinceLastRead} новых
@@ -121,9 +121,9 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
           {/* Progress section */}
           <div className="mt-auto pt-2">
-            <div className="flex items-center justify-between text-xs sm:text-sm text-[var(--primary)] mb-1.5">
+            <div className="flex items-center justify-between text-xs text-[var(--foreground)] mb-1.5">
               <div className="flex items-center gap-1.5">
-                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-[var(--muted-foreground)]" />
+                <BookOpen className="w-3 h-3 flex-shrink-0 text-[var(--muted-foreground)]" />
                 <span className="truncate font-medium">
                   Глава {data.currentChapter} из {data.totalChapters}
                 </span>

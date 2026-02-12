@@ -115,6 +115,9 @@ export default function Carousel<T>({
   /** Длительность одного цикла marquee (сек) для плавной ленты в одну сторону. */
   const [marqueeDurationSec, setMarqueeDurationSec] = useState(120);
 
+  /** При наведении на бесконечную карусель — останавливаем анимацию. */
+  const [isMarqueePaused, setIsMarqueePaused] = useState(false);
+
   /**
    * ResizeObserver: пересчитываем ширину контейнера и длительность marquee при изменении размера.
    */
@@ -357,7 +360,7 @@ export default function Carousel<T>({
   };
 
   return (
-    <section className="w-full min-w-0 max-w-7xl mx-auto px-4 py-2">
+    <section className="w-full min-w-0 max-w-7xl mx-auto px-4 py-6">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div className="flex flex-col w-full min-w-0 flex-1">
           <div className="flex items-center gap-1 min-w-0">
@@ -387,7 +390,11 @@ export default function Carousel<T>({
       <div className="relative group/carousel">
         {autoScrollInterval && data.length > 1 ? (
           /* Плавная бесконечная лента в одну сторону (CSS marquee, без возврата в начало) */
-          <div className="overflow-x-hidden p-4 min-w-0">
+          <div
+            className="overflow-x-hidden p-4 min-w-0"
+            onMouseEnter={() => setIsMarqueePaused(true)}
+            onMouseLeave={() => setIsMarqueePaused(false)}
+          >
             <div
               ref={scrollContainerRef}
               className="flex gap-4 w-max select-none carousel-marquee-track will-change-transform"
@@ -395,6 +402,7 @@ export default function Carousel<T>({
                 {
                   ["--marquee-duration" as string]: `${marqueeDurationSec}s`,
                   userSelect: "none",
+                  animationPlayState: isMarqueePaused ? "paused" : "running",
                 } as React.CSSProperties
               }
             >
@@ -414,7 +422,7 @@ export default function Carousel<T>({
         ) : (
           <div
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none p-4 will-change-scroll min-w-0 touch-pan-x snap-x snap-proximity scroll-smooth"
+            className="flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none py-4 will-change-scroll min-w-0 touch-pan-x snap-x snap-proximity scroll-smooth"
             onMouseDown={handleMouseDown}
             onMouseLeave={handleDragEnd}
             onMouseUp={handleMouseUp}

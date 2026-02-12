@@ -36,6 +36,21 @@
   --sidebar-ring: oklch(0.708 0 0);
   --header-height: 65px;
   --footer-height: 220px;
+  /* Карточки главной страницы — единая система */
+  --card-radius: 0.75rem;
+  --card-padding: 0.75rem;
+  --card-padding-sm: 0.625rem;
+  --card-gap: 0.75rem;
+  --card-hover-scale: 1.02;
+  --card-hover-lift: -4px;
+  --card-transition-duration: 300ms;
+  --card-glow-opacity: 0.2;
+  --card-ring-default: 1px solid rgba(255, 255, 255, 0.05);
+  --card-ring-hover: 1px solid color-mix(in oklch, var(--chart-1) 30%, transparent);
+  --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --card-shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --card-title-size: 0.875rem;
+  --card-meta-size: 0.75rem;
 }
 
 [data-theme="dark"] {

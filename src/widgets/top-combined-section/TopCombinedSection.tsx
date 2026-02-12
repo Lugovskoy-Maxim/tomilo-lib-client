@@ -97,60 +97,58 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
   return (
     <>
       <div 
-        className="block group cursor-pointer transform transition-all duration-500 ease-out hover:scale-[1.02]" 
+        className="block group cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 relative" 
         onClick={handleClick}
       >
-        {/* Glow effect */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-chart-1/0 to-primary/0 group-hover:from-primary/10 group-hover:via-chart-1/10 group-hover:to-primary/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-500 ease-out -z-10" />
+        {/* Glow — единый с остальными карточками */}
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)]/0 via-[var(--chart-1)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/20 group-hover:via-[var(--chart-1)]/20 group-hover:to-[var(--primary)]/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out -z-10" />
         
-        <div className="flex items-center gap-3 p-1 sm:p-2 rounded-xl bg-[var(--card)]/50 hover:bg-[var(--muted)]/30 ring-1 ring-white/5 group-hover:ring-primary/20 transition-all duration-500 relative overflow-hidden max-w-full">
-          {/* Shine effect */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden rounded-xl">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out" />
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] shadow-lg ring-1 ring-white/5 group-hover:shadow-xl group-hover:ring-[var(--chart-1)]/30 transition-all duration-300 relative overflow-hidden max-w-full">
+          {/* Shine — единый с остальными карточками */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden rounded-xl">
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
           </div>
           
-          {/* Обложка */}
-          <div className="w-20 h-28 sm:w-20 sm:h-28 rounded-lg flex-shrink-0 overflow-hidden bg-gray-700 relative shadow-md group-hover:shadow-lg transition-shadow duration-500">
+          {/* Обложка — пропорционально */}
+          <div className="w-20 h-28 sm:w-22 sm:h-32 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--muted)] relative">
             {item.coverImage ? (
               <OptimizedImage
                 src={normalizeImageUrl(item.coverImage)}
                 alt={item.title}
                 width={96}
                 height={128}
-                className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${
+                className={`w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-110 ${
                   item.isAdult && !isAgeVerified ? "blur-sm" : ""
                 }`}
                 quality={85}
                 priority={false}
-                onError={() => {
-                  // Обработка ошибки загрузки изображения
-                }}
+                onError={() => {}}
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-br from-[var(--muted)] to-[var(--card)] flex items-center justify-center">
                 <span className="text-xs text-[var(--muted-foreground)]">Нет фото</span>
               </div>
             )}
             {item.isAdult && (
-              <div className="absolute top-1.5 right-1.5 transform translate-y-[-2px] group-hover:translate-y-0 transition-transform duration-300">
-                <div className="bg-red-500/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-full font-bold text-[10px] shadow-lg border border-red-400/30">
+              <div className="absolute top-2 right-2">
+                <div className="bg-red-500/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold text-[10px] shadow-lg border border-red-400/30">
                   18+
                 </div>
               </div>
             )}
           </div>
 
-          {/* Контент */}
+          {/* Контент — единые отступы и шрифты */}
           <div className="flex flex-col flex-1 gap-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-2 py-0.5 rounded-md font-medium">
                 {translateTitleType(item.type)}
               </span>
               <span className="text-[var(--muted-foreground)]">•</span>
-              <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] font-medium">{item.year || "2026"}</span>
+              <span className="text-xs text-[var(--muted-foreground)] font-medium">{item.year || "2026"}</span>
             </div>
             <h4
-              className={`text-[var(--primary)] font-semibold text-sm group-hover:text-[var(--chart-1)] transition-colors duration-300 line-clamp-2 leading-tight ${
+              className={`font-semibold text-sm text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors duration-300 line-clamp-2 leading-tight ${
                 item.isAdult && !isAgeVerified ? "blur-sm" : ""
               }`}
             >
@@ -158,7 +156,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
             </h4>
             <div className="flex items-center justify-between mt-1.5">
               {showViews ? (
-                <span className="flex gap-1 text-xs items-center justify-center text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors duration-300">
+                <span className="flex gap-1 text-xs items-center text-[var(--muted-foreground)] group-hover:text-[var(--chart-1)] transition-colors duration-300">
                   <Eye className="w-3.5 h-3.5" />
                   <span className="font-medium">{formatViews(Number(item.views) || 0)}</span>
                 </span>
@@ -168,7 +166,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
               
               {showRating && (
                 <span
-                  className={`flex gap-1 text-xs font-semibold items-center justify-center px-2 py-0.5 rounded-full bg-[var(--muted)]/30 ${
+                  className={`flex gap-1 text-xs font-semibold items-center px-2 py-0.5 rounded-md bg-[var(--muted)]/30 ${
                     item.rating >= 7 ? "text-[var(--chart-5)]" : "text-[var(--muted-foreground)]"
                   }`}
                 >
@@ -178,8 +176,8 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
               )}
             </div>
             
-            {/* Animated underline */}
-            <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-primary to-transparent mt-2 transition-all duration-500 ease-out" />
+            {/* Animated underline — единый цвет */}
+            <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-[var(--chart-1)] to-transparent mt-2 transition-all duration-300 ease-out" />
           </div>
         </div>
       </div>
@@ -206,7 +204,7 @@ interface ColumnProps {
 
 const Column = ({ title, href, items, showRating = false, showViews = true }: ColumnProps) => {
   return (
-    <div className="flex flex-col min-w-0 overflow-hidden">
+    <div className="flex flex-col min-w-0">
       <div className="flex items-center justify-between mb-6 group">
         <h3 className="text-lg md:text-2xl text-[var(--muted-foreground)] font-bold group-hover:text-[var(--primary)] transition-colors duration-300">{title}</h3>
         <Link
@@ -217,7 +215,8 @@ const Column = ({ title, href, items, showRating = false, showViews = true }: Co
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-      <div className="space-y-3 min-w-0">
+      {/* py-1 даёт тени и подсветке при наведении место, чтобы не обрезаться */}
+      <div className="space-y-4 min-w-0 py-1">
         {items.slice(0, 5).map(item => (
           <CardItem key={item.id} item={item} showRating={showRating} showViews={showViews} />
         ))}

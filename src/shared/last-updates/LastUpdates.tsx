@@ -77,22 +77,22 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
 
   return (
     <div
-      className="w-full group relative cursor-pointer transform transition-all duration-500 ease-out hover:scale-[1.02]"
+      className="w-full group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1"
       onClick={handleClick}
     >
-      {/* Glow effect */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-chart-1/0 to-primary/0 group-hover:from-primary/15 group-hover:via-chart-1/15 group-hover:to-primary/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-500 ease-out -z-10" />
+      {/* Glow — единый с остальными карточками */}
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)]/0 via-[var(--chart-1)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/20 group-hover:via-[var(--chart-1)]/20 group-hover:to-[var(--primary)]/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out -z-10" />
       
-      <div className="relative flex bg-[var(--card)] rounded-xl overflow-hidden shadow-md ring-1 ring-white/5 group-hover:ring-primary/25 group-hover:shadow-lg transition-all duration-500">
-        {/* Image section */}
-        <div className="relative w-20 sm:w-22 h-28 sm:h-30 flex-shrink-0 overflow-hidden">
+      <div className="relative flex bg-[var(--card)] rounded-xl overflow-hidden shadow-lg ring-1 ring-white/5 group-hover:shadow-xl group-hover:ring-[var(--chart-1)]/30 transition-all duration-300">
+        {/* Image section — пропорциональные размеры */}
+        <div className="relative w-20 sm:w-24 h-28 sm:h-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
             <Image
               loader={() => `${imageUrl}`}
               src={imageUrl}
               alt={data.title}
               fill
-              className={`object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
+              className={`object-cover transition-transform duration-300 ease-out group-hover:scale-110 ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
               sizes="64px"
               unoptimized
               onError={e => {
@@ -103,39 +103,39 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
           </div>
           
           {/* Gradient overlay on image */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
-          {/* Shine effect */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out" />
+          {/* Shine — единый с остальными карточками */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
           </div>
 
           {/* Adult badge */}
           {data.isAdult && (
-            <div className="absolute top-1.5 right-1.5 transform translate-y-[-2px] group-hover:translate-y-0 transition-transform duration-300">
-              <div className="bg-red-500/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-full font-bold text-[10px] shadow-lg border border-red-400/30">
+            <div className="absolute top-2 right-2">
+              <div className="bg-red-500/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold text-[10px] shadow-lg border border-red-400/30">
                 18+
               </div>
             </div>
           )}
         </div>
 
-        {/* Content section */}
-        <div className="flex flex-col flex-1 p-2.5 sm:p-3 justify-between min-w-0">
+        {/* Content section — единые отступы и шрифты */}
+        <div className="flex flex-col flex-1 p-3 justify-between min-w-0">
           {/* Type and year */}
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-2 py-0.5 rounded-md font-medium">
               {translateTitleType(data.type || "")}
             </span>
             <span className="text-[var(--muted-foreground)]">•</span>
-            <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] font-medium">
+            <span className="text-xs text-[var(--muted-foreground)] font-medium">
               {data.releaseYear || "2025"}
             </span>
           </div>
           
           {/* Title */}
           <h3
-            className={`font-semibold text-[var(--primary)] line-clamp-1 leading-tight text-sm group-hover:text-[var(--chart-1)] transition-colors duration-300 ${
+            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-1 leading-tight group-hover:text-[var(--chart-1)] transition-colors duration-300 ${
               data.isAdult && !isAgeVerified ? "blur-sm" : ""
             }`}
           >
@@ -145,15 +145,13 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
           {/* Chapter info and time */}
           <div className="flex items-center justify-between mt-1.5">
             <div className="flex items-center gap-2">
-              {/* Chapter number with sparkles */}
-              <div className="flex items-center gap-1.5 text-[var(--primary)]">
+              <div className="flex items-center gap-1.5 text-[var(--foreground)]">
                 <Sparkles className="w-3 h-3 text-[var(--chart-1)]" />
                 <span className="font-semibold text-sm">{data.chapter}</span>
               </div>
 
-              {/* New chapters badge */}
               {data.newChapters && data.newChapters > 0 && (
-                <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border border-[var(--chart-1)]/20 transform group-hover:scale-105 transition-transform duration-300">
+                <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-2 py-0.5 rounded-md text-xs font-medium border border-[var(--chart-1)]/20">
                   <Plus className="w-3 h-3" />
                   <span>
                     {data.newChapters} {getChaptersText(data.newChapters)}
@@ -162,15 +160,14 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               )}
             </div>
 
-            {/* Time ago */}
-            <div className="flex items-center gap-1 text-[var(--muted-foreground)] text-[10px] sm:text-xs">
+            <div className="flex items-center gap-1 text-[var(--muted-foreground)] text-xs">
               <Clock className="w-3 h-3" />
               <span>{timeAgo(data.timeAgo)}</span>
             </div>
           </div>
           
-          {/* Animated underline */}
-          <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-primary to-transparent mt-2 transition-all duration-500 ease-out" />
+          {/* Animated underline — единый цвет */}
+          <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-[var(--chart-1)] to-transparent mt-2 transition-all duration-300 ease-out" />
         </div>
       </div>
 

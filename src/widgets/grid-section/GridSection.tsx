@@ -93,8 +93,8 @@ export default function GridSection<T>({
         </div>
       </div>
 
-      {/* Grid с карточками - 3 колонки */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+      {/* Grid с карточками — единые отступы между карточками */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {data.length > 0 ? (
           data.map(item => (
             <div
