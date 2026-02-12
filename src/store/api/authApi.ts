@@ -7,6 +7,46 @@ import { BookmarkEntry, BookmarkCategory } from "@/types/user";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
+/** Формат элемента истории с сервера (пагинированный ответ: data.items) */
+interface RawHistoryItem {
+  titleId: ReadingHistoryEntry["titleId"] | null;
+  readAt: string;
+  lastChapter?: {
+    chapterId: string;
+    chapterNumber: number;
+    chapterTitle?: string | null;
+    readAt: string;
+  };
+  chaptersCount?: number;
+  chapters?: ReadingHistoryEntry["chapters"];
+}
+
+function normalizeHistoryItem(item: RawHistoryItem): ReadingHistoryEntry {
+  const chapters: ReadingHistoryEntry["chapters"] =
+    Array.isArray(item.chapters) && item.chapters.length > 0
+      ? item.chapters.map(ch => ({
+          chapterId: typeof ch.chapterId === "object" && ch.chapterId != null ? (ch.chapterId as { _id: string })._id : String(ch.chapterId),
+          chapterNumber: ch.chapterNumber,
+          chapterTitle: (ch as { chapterTitle?: string | null }).chapterTitle ?? null,
+          readAt: ch.readAt,
+        }))
+      : item.lastChapter
+        ? [
+            {
+              chapterId: item.lastChapter.chapterId,
+              chapterNumber: item.lastChapter.chapterNumber,
+              chapterTitle: item.lastChapter.chapterTitle ?? null,
+              readAt: item.lastChapter.readAt,
+            },
+          ]
+        : [];
+  return {
+    titleId: item.titleId ?? "",
+    chapters,
+    readAt: item.readAt,
+  };
+}
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
@@ -80,14 +120,14 @@ export const authApi = createApi({
     }),
 
     // Закладки (с категориями: reading, planned, completed, favorites, dropped)
+    // POST /users/profile/bookmarks/:titleId?category=...
     addBookmark: builder.mutation<
       ApiResponseDto<User>,
       { titleId: string; category?: BookmarkCategory }
     >({
       query: ({ titleId, category = "reading" }) => ({
-        url: "/users/profile/bookmarks",
+        url: `/users/profile/bookmarks/${titleId}?category=${category}`,
         method: "POST",
-        body: { titleId, category },
       }),
       invalidatesTags: ["Bookmarks", "Auth"],
     }),
@@ -98,7 +138,7 @@ export const authApi = createApi({
     >({
       query: ({ titleId, category }) => ({
         url: `/users/profile/bookmarks/${titleId}`,
-        method: "PATCH",
+        method: "PUT",
         body: { category },
       }),
       invalidatesTags: ["Bookmarks", "Auth"],
@@ -112,20 +152,73 @@ export const authApi = createApi({
       invalidatesTags: ["Bookmarks", "Auth"],
     }),
 
-    getBookmarks: builder.query<ApiResponseDto<BookmarkEntry[]>, void>({
-      query: () => "/users/profile/bookmarks",
+    getBookmarks: builder.query<
+      ApiResponseDto<BookmarkEntry[] | Record<BookmarkCategory, BookmarkEntry[]>>,
+      { category?: BookmarkCategory; grouped?: boolean } | void
+    >({
+      query: (params) => {
+        const searchParams = new URLSearchParams();
+        if (params?.category) searchParams.set("category", params.category);
+        if (params?.grouped === true) searchParams.set("grouped", "true");
+        const qs = searchParams.toString();
+        return `/users/profile/bookmarks${qs ? `?${qs}` : ""}`;
+      },
       providesTags: ["Bookmarks"],
     }),
 
-    // История чтения
-    getReadingHistory: builder.query<ApiResponseDto<ReadingHistoryEntry[]>, void>({
-      query: () => "/users/profile/history",
+    // История чтения (query: page, limit, light=true для лёгкого формата с пагинацией)
+    // Сервер возвращает data: { items: [...], pagination } — нормализуем в массив ReadingHistoryEntry[]
+    getReadingHistory: builder.query<
+      ApiResponseDto<ReadingHistoryEntry[]>,
+      { page?: number; limit?: number; light?: boolean } | void
+    >({
+      query: (params) => {
+        const searchParams = new URLSearchParams();
+        if (params?.page != null) searchParams.set("page", String(params.page));
+        if (params?.limit != null) searchParams.set("limit", String(params.limit));
+        if (params?.light === true) searchParams.set("light", "true");
+        const qs = searchParams.toString();
+        return `/users/profile/history${qs ? `?${qs}` : ""}`;
+      },
+      transformResponse(
+        response: ApiResponseDto<
+          | ReadingHistoryEntry[]
+          | { items: RawHistoryItem[]; pagination?: { page: number; limit: number; total: number; pages: number } }
+        >,
+      ): ApiResponseDto<ReadingHistoryEntry[]> {
+        if (!response?.data) {
+          return { ...response, data: [] } as ApiResponseDto<ReadingHistoryEntry[]>;
+        }
+        const raw = response.data;
+        const items: RawHistoryItem[] = Array.isArray(raw)
+          ? (raw as unknown as RawHistoryItem[])
+          : "items" in raw && Array.isArray((raw as { items: RawHistoryItem[] }).items)
+            ? (raw as { items: RawHistoryItem[] }).items
+            : [];
+        const data = items.map(normalizeHistoryItem);
+        return { ...response, data } as ApiResponseDto<ReadingHistoryEntry[]>;
+      },
       providesTags: ["ReadingHistory"],
     }),
 
     getReadingHistoryByTitle: builder.query<ApiResponseDto<ReadingHistoryEntry>, string>({
       query: titleId => `/users/profile/history/${titleId}`,
-      providesTags: ["ReadingHistory"],
+      providesTags: (result, error, titleId) => [
+        { type: "ReadingHistory", id: titleId },
+        "ReadingHistory",
+      ],
+    }),
+
+    // Только chapterIds и chapterNumbers прочитанных глав (лёгкий ответ для статуса «прочитано» на странице тайтла)
+    getReadingHistoryReadIds: builder.query<
+      ApiResponseDto<{ chapterIds: string[]; chapterNumbers: number[] }>,
+      string
+    >({
+      query: titleId => `/users/profile/history/${titleId}/read-ids`,
+      providesTags: (result, error, titleId) => [
+        { type: "ReadingHistory", id: titleId },
+        "ReadingHistory",
+      ],
     }),
 
     addToReadingHistory: builder.mutation<
@@ -199,6 +292,7 @@ export const {
   useGetBookmarksQuery,
   useGetReadingHistoryQuery,
   useGetReadingHistoryByTitleQuery,
+  useGetReadingHistoryReadIdsQuery,
   useAddToReadingHistoryMutation,
   useRemoveFromReadingHistoryMutation,
   useClearReadingHistoryMutation,

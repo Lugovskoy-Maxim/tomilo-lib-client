@@ -50,9 +50,12 @@ export const useAuth = () => {
     data: readingHistoryData,
     isLoading: readingHistoryLoading,
     error: readingHistoryError,
-  } = useGetReadingHistoryQuery(undefined, {
-    skip: !getToken(),
-  });
+  } = useGetReadingHistoryQuery(
+    { limit: 200 },
+    {
+      skip: !getToken(),
+    },
+  );
 
   const useGetReadingHistoryByTitle = (titleId: string) => {
     return useGetReadingHistoryByTitleQuery(titleId, {
