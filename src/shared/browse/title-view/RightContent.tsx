@@ -734,7 +734,7 @@ export function RightContent({
                     </div>
 
                     {/* Десктопная версия - выпадающее меню под кнопкой */}
-                    <div className="hidden sm:absolute sm:top-full sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:mt-2 sm:flex sm:flex-col sm:w-72 sm:max-w-[calc(100vw-2rem)] sm:bg-[var(--background)] sm:rounded-xl sm:p-4 sm:z-50 sm:shadow-xl sm:border sm:border-[var(--border)]/50 sm:animate-in sm:fade-in sm:slide-in-from-top-2 sm:duration-200">
+                    <div className="hidden sm:absolute sm:top-full sm:right-1/2 sm:mt-2 sm:flex sm:flex-col sm:w-72 sm:max-w-[calc(100vw-2rem)] sm:bg-[var(--background)] sm:rounded-xl sm:p-4 sm:z-50 sm:shadow-xl sm:border sm:border-[var(--border)]/50 sm:animate-in sm:fade-in sm:slide-in-from-top-2 sm:duration-200">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm font-semibold text-[var(--foreground)]">Выберите оценку</span>
                         <button

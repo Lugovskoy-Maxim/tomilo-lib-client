@@ -18,7 +18,6 @@ import { TopCombinedSkeleton } from "@/shared/skeleton/TopCombinedSkeleton";
 import { GridSkeleton } from "@/shared/skeleton/GridSkeleton";
 import Recommendations from "@/shared/recommendations/Recommendations";
 
-
 // Вспомогательный компонент для рендера карусели
 const DataCarousel = ({
   title,
@@ -99,35 +98,11 @@ export default function HomePage() {
           getItemPath={(item: any) => getTitlePath(item)}
         />
 
-        {/* Рекомендации (только для авторизованных) */}
-        {isAuthenticated && (
-          <Recommendations limit={10} />
-        )}
-
-        {/* Рекламный блок */}
-        <AdBlock />
-
         {/* Случайные тайтлы */}
         <RandomTitlesComponent
           data={randomTitles.data}
           loading={randomTitles.loading}
           error={randomTitles.error}
-        />
-
-        {/* Коллекции */}
-        <DataCarousel
-          title="Коллекции по темам"
-          data={collections.data}
-          loading={collections.loading}
-          error={collections.error}
-          cardComponent={CollectionCard}
-          description="Здесь подобраны самые популярные коллекции, которые вы можете прочитать."
-          type="collection"
-          href="/collections"
-          cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
-          icon={<LibraryIcon className="w-6 h-6" />}
-          showNavigation={false}
-          navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
         />
 
         {/* Объединенная секция топ манхв, маньхуа и новинок 2026 */}
@@ -176,6 +151,29 @@ export default function HomePage() {
             />
           )}
         </div>
+
+        {/* Рекламный блок */}
+        <AdBlock />
+
+        {/* Рекомендации (только для авторизованных) */}
+        {isAuthenticated && <Recommendations limit={10} />}
+
+        {/* Коллекции */}
+        <DataCarousel
+          title="Коллекции по темам"
+          data={collections.data}
+          loading={collections.loading}
+          error={collections.error}
+          cardComponent={CollectionCard}
+          description="Здесь подобраны самые популярные коллекции, которые вы можете прочитать."
+          type="collection"
+          href="/collections"
+          cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
+          icon={<LibraryIcon className="w-6 h-6" />}
+          showNavigation={false}
+          navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
+        />
+
 
         {/* Продолжить чтение */}
         <DataCarousel
