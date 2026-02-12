@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Collection } from "@/types/collection";
+import { formatChapterRanges } from "@/lib/format-chapter-ranges";
 
 interface ApiCollection {
   id: string;
@@ -13,17 +14,21 @@ interface ApiCollection {
 
 interface ApiLatestUpdate {
   id: string;
+  slug?: string;
   title: string;
   cover: string;
   chapter: string;
   chapterNumber: number;
+  chapters?: number[];
   timeAgo: string;
   releaseYear?: number;
   type?: string;
+  isAdult?: boolean;
 }
 
 interface LatestUpdate {
   id: string;
+  slug?: string;
   title: string;
   cover: string;
   chapter: string;
@@ -32,6 +37,7 @@ interface LatestUpdate {
   timeAgo: string;
   type?: string;
   newChapters?: number;
+  isAdult?: boolean;
 }
 
 interface StaticData {
@@ -140,12 +146,19 @@ export const useStaticData = (): StaticData => {
         if (!response.ok) throw new Error("Failed to fetch latest updates");
 
         const result = await response.json();
-        // Преобразуем данные, добавляя недостающие поля с дефолтными значениями
-        const transformedData = (result.data || []).map((item: ApiLatestUpdate) => ({
-          ...item,
-          releaseYear: item.releaseYear || new Date().getFullYear(),
-          type: item.type || "manga",
-        }));
+        // Преобразуем данные: при наличии chapters[] формируем корректную строку диапазонов (например "24, 34-55")
+        const transformedData = (result.data || []).map((item: ApiLatestUpdate) => {
+          const chapter =
+            item.chapters?.length !== undefined && item.chapters.length > 0
+              ? `Главы ${formatChapterRanges(item.chapters)}`
+              : item.chapter;
+          return {
+            ...item,
+            chapter,
+            releaseYear: item.releaseYear || new Date().getFullYear(),
+            type: item.type || "manga",
+          };
+        });
         setLatestUpdates({
           data: transformedData,
           loading: false,

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Clock } from "lucide-react";
+import { Clock, BookOpen, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { GridSection, Footer, Header } from "@/widgets";
@@ -8,9 +9,38 @@ import { pageTitle } from "@/lib/page-title";
 import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
 import { useSEO } from "@/hooks/useSEO";
 
+const UPDATES_PAGE_SIZE = 18;
+
 export default function UpdatesPage() {
   const [mounted, setMounted] = useState(false);
-  const { data: latestUpdatesData, isLoading, error } = useGetLatestUpdatesQuery();
+  const [page, setPage] = useState(1);
+  const [accumulatedData, setAccumulatedData] = useState<
+    NonNullable<ReturnType<typeof useGetLatestUpdatesQuery>["data"]>["data"]
+  >([]);
+
+  const { data: latestUpdatesData, isLoading, isFetching, error } = useGetLatestUpdatesQuery(
+    { page, limit: UPDATES_PAGE_SIZE },
+    { refetchOnMountOrArgChange: false }
+  );
+
+  useEffect(() => {
+    const list = latestUpdatesData?.data ?? [];
+    if (list.length === 0) return;
+    if (page === 1) {
+      setAccumulatedData(list);
+    } else {
+      setAccumulatedData(prev => [...prev, ...list]);
+    }
+  }, [latestUpdatesData?.data, page]);
+
+  const hasMore = (latestUpdatesData?.data?.length ?? 0) >= UPDATES_PAGE_SIZE;
+  const isLoadingMore = isFetching && page > 1;
+  const displayData =
+    accumulatedData.length > 0
+      ? accumulatedData
+      : page === 1
+        ? (latestUpdatesData?.data ?? [])
+        : [];
 
   // SEO для страницы ленты обновлений
   useSEO({
@@ -69,19 +99,51 @@ export default function UpdatesPage() {
               Ошибка загрузки обновлений
             </div>
           </div>
-        ) : latestUpdatesData?.data && latestUpdatesData.data.length > 0 ? (
-          <GridSection
-            title="Лента новых глав"
-            description="Свежие главы, которые только что вышли. Следите за обновлениями ваших любимых тайтлов."
-            type="browse"
-            icon={<Clock className="w-6 h-6" />}
-            data={latestUpdatesData.data}
-            cardComponent={LatestUpdateCard}
-          />
+        ) : displayData.length > 0 ? (
+          <>
+            <GridSection
+              title="Лента новых глав"
+              description="Свежие главы, которые только что вышли. Следите за обновлениями ваших любимых тайтлов."
+              type="browse"
+              icon={<Clock className="w-6 h-6" />}
+              data={displayData}
+              cardComponent={LatestUpdateCard}
+            />
+            {hasMore && (
+              <div className="w-full max-w-7xl mx-auto px-4 flex justify-center mt-2 pb-10">
+                <button
+                  type="button"
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={isLoadingMore}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--secondary)] border border-[var(--border)] hover:bg-[var(--accent)] transition-colors rounded-xl text-[var(--foreground)] font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Загрузка...
+                    </>
+                  ) : (
+                    "Загрузить ещё"
+                  )}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
-          <div className="w-full max-w-7xl mx-auto px-4 py-6">
-            <div className="flex justify-center items-center h-32 text-[var(--muted-foreground)]">
-              Нет новых обновлений
+          <div className="w-full max-w-7xl mx-auto px-4 py-12">
+            <div className="flex flex-col items-center justify-center min-h-[280px] text-center">
+              <Clock className="w-14 h-14 text-[var(--muted-foreground)]/50 mb-4" />
+              <p className="text-[var(--muted-foreground)] text-lg mb-2">Нет новых обновлений</p>
+              <p className="text-[var(--muted-foreground)] text-sm mb-6 max-w-md">
+                Свежие главы появятся здесь после выхода новых релизов. Загляните в каталог, чтобы выбрать тайтлы для чтения.
+              </p>
+              <Link
+                href="/browse"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-xl hover:opacity-90 transition-opacity font-medium text-sm"
+              >
+                <BookOpen className="w-4 h-4" />
+                В каталог
+              </Link>
             </div>
           </div>
         )}

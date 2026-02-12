@@ -81,6 +81,7 @@ export interface ReadingCardData {
 
 export interface LatestUpdateCardData {
   id: string;
+  slug?: string;
   title: string;
   cover: string;
   chapter: string;

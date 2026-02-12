@@ -2,6 +2,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Title, CreateTitleDto, UpdateTitleDto } from "@/types/title";
 import { ApiResponseDto } from "@/types/api";
+import { formatChapterRanges } from "@/lib/format-chapter-ranges";
 
 interface PopularTitle {
   id: string;
@@ -475,38 +476,59 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
-    // Получить последние обновления
+    // Получить последние обновления.
+    // Для корректного отображения диапазонов (например "Главы 24, 34-55" вместо "24-55") бэкенд может
+    // возвращать опциональное поле chapters: number[] — массив номеров обновлённых глав.
     getLatestUpdates: builder.query<
       ApiResponseDto<
         {
           id: string;
+          slug?: string;
           title: string;
           cover: string;
           chapter: string;
           chapterNumber: number;
+          chapters?: number[];
           timeAgo: string;
           releaseYear?: number;
           type?: string;
+          isAdult?: boolean;
         }[]
       >,
-      void
+      { page?: number; limit?: number }
     >({
-      query: () => "/titles/latest-updates",
+      query: ({ page = 1, limit = 18 } = {}) => ({
+        url: "/titles/latest-updates",
+        params: { page, limit },
+      }),
       providesTags: [TITLES_TAG],
       transformResponse: (
         response: ApiResponseDto<
           {
             id: string;
+            slug?: string;
             title: string;
             cover: string;
             chapter: string;
             chapterNumber: number;
+            chapters?: number[];
             timeAgo: string;
             releaseYear?: number;
             type?: string;
+            isAdult?: boolean;
           }[]
         >,
-      ) => response,
+      ) => {
+        if (!response?.data?.length) return response;
+        const data = response.data.map(item => {
+          const chapter =
+            item.chapters?.length !== undefined && item.chapters.length > 0
+              ? `Главы ${formatChapterRanges(item.chapters)}`
+              : item.chapter;
+          return { ...item, chapter };
+        });
+        return { ...response, data };
+      },
     }),
 
     // Получить рекомендации для пользователя
