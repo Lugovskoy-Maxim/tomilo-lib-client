@@ -375,13 +375,41 @@ export default function TitleView({ slug }: { slug: string }) {
         }}
       />
 
-      {/* Структурированная разметка Article для поисковых систем */}
+      {/* Структурированная разметка ComicSeries для поисковых систем */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            // "@type": contentType === "Book" ? "Book" : "Article",
+            "@type": "ComicSeries",
+            name: titleData.name,
+            description: titleData.description
+              ? titleData.description.replace(/<[^>]*>/g, "").substring(0, 500)
+              : `Читать ${titleWithType} онлайн на Tomilo-lib.ru`,
+            image: image,
+            author: titleData.author
+              ? { "@type": "Person", name: titleData.author }
+              : undefined,
+            publisher: {
+              "@type": "Organization",
+              name: "Tomilo-lib.ru",
+              url: "https://tomilo-lib.ru",
+            },
+            genre: titleData.genres?.join(", "),
+            url: `https://tomilo-lib.ru/titles/${titleData.slug}`,
+            datePublished: titleData.createdAt,
+            dateModified: titleData.updatedAt,
+          }),
+        }}
+      />
+
+      {/* Дополнительная разметка Article для совместимости */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
             headline: titleWithType,
             description: titleData.description
               ? titleData.description.replace(/<[^>]*>/g, "").substring(0, 500)

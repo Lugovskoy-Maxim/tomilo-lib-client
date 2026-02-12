@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import ServerChapterPage from "./ServerPage";
 import { Metadata } from "next";
 
@@ -65,56 +65,50 @@ export async function generateMetadata({
     } онлайн. Манга, манхва, маньхуа, комиксы.`;
 
     const image = titleData.coverImage ? `${baseUrl}${titleData.coverImage}` : undefined;
+    const chapterUrl = `${baseUrl}/titles/${slug}/chapter/${chapterId}`;
+    const titleUrl = `${baseUrl}/titles/${slug}`;
 
     // Формируем метаданные
     const metadata: Metadata = {
       title: formattedTitle,
       description: shortDescription,
-      keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, онлайн чтение, манга, маньхуа, манхва`,
+      keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, читать онлайн, манга, маньхуа, манхва, комиксы`,
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      },
+      alternates: {
+        canonical: chapterUrl,
+        languages: { "ru-RU": chapterUrl },
+      },
       openGraph: {
-        title: `Глава ${chapterNumber}${
-          chapterTitle ? ` "${chapterTitle}"` : ""
-        } - ${titleName} - Tomilo-lib.ru`,
+        title: formattedTitle,
         description: shortDescription,
         type: "article",
-        url: `${baseUrl}/titles/${slug}/chapter/${chapterId}`,
+        url: chapterUrl,
         siteName: "Tomilo-lib.ru",
-        images: image ? [{ url: image }] : [],
+        locale: "ru_RU",
+        images: image
+          ? [{ url: image, width: 1200, height: 630, alt: `${titleName} — глава ${chapterNumber}` }]
+          : [],
       },
       twitter: {
         card: "summary_large_image",
         title: formattedTitle,
         description: shortDescription,
         images: image ? [image] : [],
+        creator: "@tomilo_lib",
+        site: "@tomilo_lib",
       },
     };
 
-    // Добавляем микроразметку Schema.org
-    const schemaOrgData = {
-      "@context": "https://schema.org",
-      "@type": "Chapter",
-      name: `Глава ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ""}`,
-      position: chapterNumber,
-      hasPart: {
-        "@type": "ComicIssue",
-        name: titleName,
-        author: titleData.author || "",
-        datePublished: chapterData.releaseDate || "",
-        genre: titleData.genres || [],
-        image: image || "",
-        description: shortDescription,
-      },
-    };
-
-    // Добавляем JSON-LD микроразметку в head
-    const schemaOrgJsonLd = JSON.stringify(schemaOrgData);
-
-    return {
-      ...metadata,
-      other: {
-        "script:ld+json": schemaOrgJsonLd,
-      },
-    };
+    return metadata;
   } catch (error) {
     console.error("Ошибка при генерации метаданных:", error);
     return {
@@ -129,18 +123,75 @@ export default async function ChapterPage({
 }: {
   params: Promise<{ slug: string; chapterId: string }>;
 }) {
+  const resolved = await params;
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+  let jsonLdScripts: React.ReactNode = null;
+
+  try {
+    const titleData = await getTitleDataBySlug(resolved.slug);
+    const chapterData = await getChapterData(resolved.chapterId);
+    const titleName = titleData?.name || "Без названия";
+    const chapterNumber = Number(chapterData?.chapterNumber) || 0;
+    const chapterTitle = chapterData?.title || "";
+    const chapterUrl = `${baseUrl}/titles/${resolved.slug}/chapter/${resolved.chapterId}`;
+    const titleUrl = `${baseUrl}/titles/${resolved.slug}`;
+
+    const breadcrumbList = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Tomilo-lib.ru", item: baseUrl },
+        { "@type": "ListItem", position: 2, name: titleName, item: titleUrl },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: `Глава ${chapterNumber}${chapterTitle ? ` — ${chapterTitle}` : ""}`,
+          item: chapterUrl,
+        },
+      ],
+    };
+    const comicIssue = {
+      "@context": "https://schema.org",
+      "@type": "ComicIssue",
+      name: `Глава ${chapterNumber}${chapterTitle ? ` — ${chapterTitle}` : ""}`,
+      description: `Читать ${titleName} главу ${chapterNumber} онлайн.`,
+      position: chapterNumber,
+      image: titleData?.coverImage ? `${baseUrl}${titleData.coverImage}` : undefined,
+      datePublished: chapterData?.releaseDate || undefined,
+      isPartOf: { "@type": "ComicSeries", name: titleName, url: titleUrl },
+    };
+
+    jsonLdScripts = (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbList) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(comicIssue) }}
+        />
+      </>
+    );
+  } catch {
+    // JSON-LD опционален, страница всё равно рендерится
+  }
+
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-            <div className="text-[var(--foreground)]">Загрузка данных...</div>
+    <>
+      {jsonLdScripts}
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+              <div className="text-[var(--foreground)]">Загрузка данных...</div>
+            </div>
           </div>
-        </div>
-      }
-    >
-      <ServerChapterPage params={params} />
-    </Suspense>
+        }
+      >
+        <ServerChapterPage params={params} />
+      </Suspense>
+    </>
   );
 }

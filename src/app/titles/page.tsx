@@ -30,6 +30,8 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     title: seoData.title,
     description: seoData.description,
     keywords: seoData.keywords,
+    robots: seoData.robots,
+    alternates: seoData.alternates,
     openGraph: seoData.openGraph,
     twitter: seoData.twitter,
   };

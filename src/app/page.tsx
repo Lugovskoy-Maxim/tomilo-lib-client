@@ -4,25 +4,53 @@ import { HomePage } from "@/widgets";
 // Функция для генерации SEO метаданных
 export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+  const title = "Tomilo-lib.ru — Манга, манхва и маньхуа читать онлайн бесплатно";
+  const description =
+    "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, удобный ридер, закладки и история чтения. Регулярные обновления, каталог по жанрам и коллекции.";
 
   return {
-    title: "Tomilo-lib.ru - Читать мангу, манхву и маньхуа онлайн",
-    description:
-      "Большая коллекция манги, манхвы и маньхуа  для чтения онлайн бесплатно. Удобный интерфейс, регулярные обновления, закладки и история чтения.",
-    keywords: "манга, маньхуа, чтение онлайн, тайтлы, главы, манхва, бесплатно, онлайн, читать",
+    title,
+    description,
+    keywords:
+      "манга читать онлайн, манхва, маньхуа, комиксы онлайн, читать мангу бесплатно, тайтлы, главы манги, каталог манги, обновления манги, Tomilo-lib",
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    alternates: {
+      canonical: baseUrl,
+      languages: { "ru-RU": baseUrl },
+    },
     openGraph: {
-      title: "Tomilo-lib.ru - Читать мангу, манхву и маньхуа онлайн",
-      description:
-        "Большая коллекция манги, манхвы и маньхуа  для чтения онлайн бесплатно. Удобный интерфейс, регулярные обновления, закладки и история чтения.",
+      title,
+      description,
       type: "website",
       url: baseUrl,
       siteName: "Tomilo-lib.ru",
+      locale: "ru_RU",
+      images: [
+        {
+          url: `${baseUrl}/logo/tomilo_color.svg`,
+          width: 1200,
+          height: 630,
+          alt: "Tomilo-lib — манга, манхва, маньхуа онлайн",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Tomilo-lib.ru - Читать мангу, манхву и маньхуа онлайн",
-      description:
-        "Большая коллекция манги, манхвы и маньхуа  для чтения онлайн бесплатно. Удобный интерфейс, регулярные обновления, закладки и история чтения.",
+      title,
+      description,
+      images: [`${baseUrl}/logo/tomilo_color.svg`],
+      creator: "@tomilo_lib",
+      site: "@tomilo_lib",
     },
   };
 }

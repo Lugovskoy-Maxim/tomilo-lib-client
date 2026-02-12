@@ -118,17 +118,44 @@ export function generateDynamicSEOMetadata(filters: Filters) {
     title,
     description,
     keywords,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    alternates: {
+      canonical: url.toString(),
+      languages: { "ru-RU": url.toString() },
+    },
     openGraph: {
       title,
       description,
       type: "website",
       url: url.toString(),
       siteName: "Tomilo-lib.ru",
+      locale: "ru_RU",
+      images: [
+        {
+          url: `${baseUrl}/logo/tomilo_color.svg`,
+          width: 1200,
+          height: 630,
+          alt: "Tomilo-lib — каталог манги, манхвы, маньхуа",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [`${baseUrl}/logo/tomilo_color.svg`],
+      creator: "@tomilo_lib",
+      site: "@tomilo_lib",
     },
   };
 }

@@ -41,28 +41,49 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
       ? `${baseUrl}${collectionData.cover}`
       : `${baseUrl}/logo/tomilo_color.svg`;
 
+    const pageTitle = `Коллекция «${collectionName}» — Tomilo-lib.ru`;
+    const canonicalUrl = `${baseUrl}/collections/${id}`;
+
     // Формируем метаданные
     const metadata: Metadata = {
-      title: `Посмотрите коллекцию "${collectionName}" - Tomilo-lib.ru`,
+      title: pageTitle,
       description: description,
-
-      keywords: `${collectionName}, коллекция, тайтлы, манга, маньхуа, комиксы, онлайн чтение, ${collectionData.titles
+      keywords: `${collectionName}, коллекция, тайтлы, манга, маньхуа, манхва, комиксы, онлайн чтение, ${collectionData.titles
         ?.slice(0, 5)
         .map((title: { name: string }) => title.name)
         .join(", ")}`,
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+      },
+      alternates: {
+        canonical: canonicalUrl,
+        languages: { "ru-RU": canonicalUrl },
+      },
       openGraph: {
-        title: `Посмотрите коллекцию "${collectionName}" - Tomilo-lib.ru`,
+        title: pageTitle,
         description: description,
         type: "website",
-        url: `${baseUrl}/collections/${id}`,
+        url: canonicalUrl,
         siteName: "Tomilo-lib.ru",
-        images: [{ url: image }],
+        locale: "ru_RU",
+        images: [
+          {
+            url: image,
+            width: 1200,
+            height: 630,
+            alt: `Коллекция: ${collectionName}`,
+          },
+        ],
       },
       twitter: {
         card: "summary_large_image",
-        title: `Посмотрите коллекцию "${collectionName}" - Tomilo-lib.ru`,
+        title: pageTitle,
         description: description,
         images: [image],
+        creator: "@tomilo_lib",
+        site: "@tomilo_lib",
       },
     };
 
