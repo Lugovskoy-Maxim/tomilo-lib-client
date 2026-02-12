@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // /collection/:id → /collections/:id (исправление опечатки/старого URL)
+      {
+        source: "/collection/:id",
+        destination: "/collections/:id",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     // Allow common mock/demo hosts
     domains: [],

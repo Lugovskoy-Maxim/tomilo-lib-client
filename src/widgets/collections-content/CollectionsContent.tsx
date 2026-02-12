@@ -1,10 +1,9 @@
 "use client";
-import React from "react";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Pagination } from "@/shared";
+import { Library, RefreshCw } from "lucide-react";
+import { Pagination, CollectionCard } from "@/shared";
 import { useGetCollectionsQuery } from "@/store/api/collectionsApi";
-import Image from "next/image";
 import { CollectionsQuery, Collection } from "@/types/collection";
 
 export type CollectionsFilters = CollectionsQuery;
@@ -18,7 +17,6 @@ function CollectionsContent() {
     return Number.isFinite(p) && p > 0 ? p : 1;
   }, [searchParams]);
 
-  // Запрос коллекций с параметрами
   const {
     data: collectionsResponse,
     isLoading,
@@ -33,25 +31,26 @@ function CollectionsContent() {
   const currentPage = collectionsResponse?.data?.page || page;
   const totalPages = collectionsResponse?.data?.totalPages || 1;
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (pageNum: number) => {
     const params = new URLSearchParams();
-    if (page > 1) params.set("page", page.toString());
+    if (pageNum > 1) params.set("page", pageNum.toString());
     const newUrl = params.toString() ? `/collections?${params.toString()}` : "/collections";
     router.replace(newUrl, { scroll: false });
   };
 
-  // Обработчик клика по карточке коллекции
-  const handleCardClick = (id: string) => {
-    router.push(`/collections/${id}`);
-  };
-
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="h-12 bg-[var(--card)] rounded-lg animate-pulse" />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-32 bg-[var(--card)] rounded-lg animate-pulse" />
+      <div className="space-y-8">
+        <div className="flex items-center gap-3">
+          <div className="h-6 w-40 bg-[var(--muted)] rounded-xl animate-pulse" />
+          <div className="h-5 w-24 bg-[var(--muted)]/70 rounded-lg animate-pulse" />
+        </div>
+        <div className="grid gap-5 sm:gap-6 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="aspect-[3/4] bg-[var(--card)] rounded-2xl animate-pulse border border-[var(--border)]"
+            />
           ))}
         </div>
       </div>
@@ -60,12 +59,21 @@ function CollectionsContent() {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-[var(--muted-foreground)] mb-4">Не удалось загрузить коллекции</p>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 sm:p-12 text-center shadow-sm">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--destructive)]/10 text-[var(--destructive)] mb-4">
+          <Library className="w-7 h-7" />
+        </div>
+        <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">
+          Не удалось загрузить коллекции
+        </h2>
+        <p className="text-[var(--muted-foreground)] text-sm mb-6 max-w-sm mx-auto">
+          Проверьте соединение и попробуйте обновить страницу.
+        </p>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--primary)] text-primary-foreground rounded-xl hover:opacity-90 transition-opacity font-medium text-sm"
         >
+          <RefreshCw className="w-4 h-4" />
           Попробовать снова
         </button>
       </div>
@@ -73,83 +81,45 @@ function CollectionsContent() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Основной контент */}
-      <div>
-        {/* Заголовок */}
-        <div className="mb-6">
-          <h1 className="text-2xl lg:text-3xl font-bold text-[var(--muted-foreground)] mb-2">
-            Коллекции
-          </h1>
-          <p className="text-[var(--muted-foreground)]">Найдено {totalCollections} коллекций</p>
-        </div>
+    <div className="flex flex-col gap-8">
+      {/* Bar: count + optional filters */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[var(--muted-foreground)] text-sm sm:text-base">
+          <span className="font-medium text-[var(--foreground)]">{totalCollections}</span>{" "}
+          {totalCollections === 1 ? "коллекция" : totalCollections < 5 ? "коллекции" : "коллекций"}
+        </p>
+      </div>
 
-        {/* Сетка коллекций */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {collections.map((collection: Collection) => (
-            <div
-              key={collection.id}
-              onClick={() => handleCardClick(collection.id)}
-              className=" rounded-lg p-4 border border-transparent hover:border-[var(--chart-1)] transition-colors cursor-pointer"
-            >
-              {collection.cover && (
-                <div className="mb-3">
-                  <Image
-                    loader={() => {
-                      return process.env.NEXT_PUBLIC_URL + collection.cover;
-                    }}
-                    src={process.env.NEXT_PUBLIC_URL + collection.cover}
-                    alt={collection.name}
-                    width={328}
-                    height={328}
-                    className="w-full h-90 object-cover rounded-lg"
-                  />
-                </div>
-              )}
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="flex w-full text-xl font-semibold justify-center items-center text-[var(--muted-foreground)] truncate">
-                  {collection.name}
-                </h3>
-              </div>
+      {/* Grid */}
+      <div className="grid gap-5 sm:gap-6 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {collections.map((collection: Collection) => (
+          <CollectionCard key={collection.id} data={collection} variant="grid" />
+        ))}
+      </div>
 
-              {collection.description && (
-                <p className="text-sm text-[var(--muted-foreground)] mb-3 line-clamp-2">
-                  {collection.description}
-                </p>
-              )}
-
-              <div className="flex justify-between items-center text-xs text-[var(--muted-foreground)]">
-                <span className="flex items-center gap-1">
-                  <span>👁️</span>
-                  {collection.views} просмотров
-                </span>
-                <span>{collection.titles?.length || 0} тайтлов</span>
-              </div>
-
-              {collection.createdAt && (
-                <div className="mt-2 text-xs text-[var(--muted-foreground)]">
-                  Создано: {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {collections.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-[var(--muted-foreground)] mb-4">Коллекции не найдены</p>
+      {collections.length === 0 && (
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 sm:p-12 text-center shadow-sm">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--muted)] text-[var(--muted-foreground)] mb-4">
+            <Library className="w-7 h-7" />
           </div>
-        )}
+          <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">
+            Коллекции не найдены
+          </h2>
+          <p className="text-[var(--muted-foreground)] text-sm">
+            Пока нет ни одной подборки. Загляните позже.
+          </p>
+        </div>
+      )}
 
-        {/* Пагинация */}
-        {totalPages > 1 && (
+      {totalPages > 1 && (
+        <div className="flex justify-center pt-2">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

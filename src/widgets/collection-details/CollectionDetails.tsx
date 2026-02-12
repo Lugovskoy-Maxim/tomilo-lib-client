@@ -119,7 +119,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
           </p>
           <button
             onClick={() => router.push("/collections")}
-            className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary)]/90"
+            className="px-5 py-2.5 bg-[var(--primary)] text-primary-foreground rounded-xl hover:opacity-90 transition-opacity font-medium"
           >
             Вернуться к коллекциям
           </button>
@@ -143,46 +143,50 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
       </div>
 
       <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4">
-        {/* Заголовок и информация о коллекции */}
-        <div className="mb-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--muted-foreground)] mb-2 break-words">
-              {collection.name}
-            </h1>
-            {collection.description && (
-              <p className="text-[var(--muted-foreground)] mb-4 leading-relaxed">
-                {collection.description}
-              </p>
-            )}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-[var(--muted-foreground)]">
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <Eye className="w-4 h-4" />
-                {collection.views} просмотров
-              </span>
-              <span className="whitespace-nowrap">{collection.titles?.length || 0} тайтлов</span>
-              {collection.createdAt && (
-                <span className="whitespace-nowrap">
-                  Создано: {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
-                </span>
+        {/* Карточка-хедер коллекции */}
+        <div className="mb-8 rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)] shadow-xl ring-1 ring-white/5">
+          <div className="flex flex-col lg:flex-row gap-0">
+            <div className="flex-1 min-w-0 p-5 sm:p-6 lg:p-8 flex flex-col justify-center">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--foreground)] mb-2 break-words">
+                {collection.name}
+              </h1>
+              {collection.description && (
+                <p className="text-[var(--muted-foreground)] mb-4 leading-relaxed text-sm sm:text-base">
+                  {collection.description}
+                </p>
               )}
+              <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-sm text-[var(--muted-foreground)]">
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  <Eye className="w-4 h-4 text-[var(--primary)]" />
+                  {collection.views} просмотров
+                </span>
+                <span className="whitespace-nowrap">{collection.titles?.length || 0} тайтлов</span>
+                {collection.createdAt && (
+                  <span className="whitespace-nowrap">
+                    Создано: {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
+                  </span>
+                )}
+              </div>
             </div>
+            {collection.cover && (
+              <div className="flex-shrink-0 w-full lg:w-auto flex justify-center lg:justify-end p-4 lg:p-6">
+                <div className="relative rounded-2xl overflow-hidden shadow-xl ring-1 ring-white/10 aspect-square w-36 h-36 sm:w-44 sm:h-44 lg:w-52 lg:h-52">
+                  <Image
+                    loader={({ src, width }) => `${src}?w=${width}`}
+                    src={normalizeImageUrl(collection.cover)}
+                    alt={collection.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 176px, 208px"
+                  />
+                </div>
+              </div>
+            )}
           </div>
-          {collection.cover && (
-            <div className="flex-shrink-0 w-full lg:w-auto flex justify-center lg:justify-end">
-              <Image
-                loader={({ src, width }) => `${src}?w=${width}`}
-                src={normalizeImageUrl(collection.cover)}
-                alt={collection.name}
-                width={192}
-                height={192}
-                className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 object-cover rounded-lg shadow-lg"
-              />
-            </div>
-          )}
         </div>
 
         {/* Сетка тайтлов */}
-        <div className="pb-6 grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5">
+        <div className="pb-6 grid gap-4 sm:gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5">
           {collection.titles?.map((title: Title) => {
             const isContentHidden = shouldHideContent(title);
 
@@ -192,37 +196,41 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                 onClick={() =>
                   !isContentHidden && router.push(getTitlePath({ id: title._id, slug: title.slug }))
                 }
-                className={`bg-[var(--card)] max-h-[580px] overflow-hidden rounded-lg border border-[var(--border)] p-2 sm:p-3 lg:p-4 hover:border-[var(--primary)] transition-colors cursor-pointer group relative ${
+                className={`bg-[var(--card)] max-h-[580px] overflow-hidden rounded-2xl border border-[var(--border)] p-2 sm:p-3 shadow-lg ring-1 ring-white/5 hover:ring-primary/30 hover:shadow-xl transition-all duration-300 cursor-pointer group relative ${
                   isContentHidden ? "cursor-not-allowed opacity-75" : ""
                 }`}
               >
-                {/* Views Rating */}
-                <div className="absolute flex gap-1 top-2 left-2 z-10 bg-[var(--muted)] text-[var(--primary)] text-xs font-bold px-2 py-1 rounded-md shadow-lg">
-                  <Eye className="w-4 h-4" />
+                {/* Glow on hover */}
+                {!isContentHidden && (
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-chart-1/0 to-primary/0 group-hover:from-primary/15 group-hover:via-chart-1/15 group-hover:to-primary/15 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-300 -z-10" />
+                )}
+
+                {/* Views */}
+                <div className="absolute flex gap-1 top-2 left-2 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-xl border border-white/20 shadow-lg">
+                  <Eye className="w-3.5 h-3.5" />
                   {title.views?.toFixed(0) || 0}
                 </div>
 
-                {/* Star Rating */}
-                <div className="absolute gap-1 flex top-2 right-2 z-10 bg-[var(--muted)] text-[var(--primary)] text-xs font-bold p-1 rounded-md shadow-lg">
-                  <Star className="w-4 h-4" />
+                {/* Rating */}
+                <div className="absolute gap-1 flex top-2 right-2 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-xl border border-white/20 shadow-lg">
+                  <Star className="w-3.5 h-3.5" />
                   {title.averageRating?.toFixed(1) || 0}
                 </div>
 
-                <div className="aspect-[3/4] mb-2 sm:mb-3 overflow-hidden rounded relative">
+                <div className="aspect-[3/4] mb-2 sm:mb-3 overflow-hidden rounded-xl relative">
                   <Image
                     loader={() => normalizeImageUrl(title?.coverImage || "")}
                     src={normalizeImageUrl(title?.coverImage || "")}
                     alt={title.name}
-                    width={280}
-                    height={380}
-                    className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 280px"
+                    className={`object-cover group-hover:scale-105 transition-transform duration-500 ${
                       isContentHidden ? "blur-md" : ""
                     }`}
                   />
-                  {/* Overlay for adult content */}
                   {isContentHidden && (
-                    <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] flex items-center justify-center">
-                      <div className="text-white text-sm font-bold bg-red-600 px-3 py-1 rounded">
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center">
+                      <div className="text-white text-sm font-bold bg-red-600/90 px-3 py-1.5 rounded-xl border border-white/20">
                         18+
                       </div>
                     </div>
@@ -230,23 +238,21 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                 </div>
 
                 <h3
-                  className={`font-semibold text-[var(--muted-foreground)] truncate text-sm sm:text-base ${
+                  className={`font-semibold text-[var(--foreground)] truncate text-sm sm:text-base group-hover:text-[var(--primary)] transition-colors ${
                     isContentHidden ? "blur-sm" : ""
                   }`}
                 >
                   {title.name}
                 </h3>
 
-                {/* Метаданные тайтла */}
-                <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-1">
+                <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-1 flex-wrap">
                   {title.releaseYear && (
-                    <span className="bg-[var(--secondary)] px-2 py-0.5 rounded">
+                    <span className="bg-[var(--secondary)] px-2 py-0.5 rounded-lg">
                       {title.releaseYear}
                     </span>
                   )}
-
                   {title.type && (
-                    <span className="bg-[var(--secondary)] px-2 py-0.5 rounded">
+                    <span className="bg-[var(--secondary)] px-2 py-0.5 rounded-lg">
                       {translateTitleType(String(title.type))}
                     </span>
                   )}
@@ -264,16 +270,15 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                   </p>
                 )}
 
-                {/* Age verification prompt */}
                 {isContentHidden && (
-                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                    <div className="bg-[var(--card)] p-4 rounded-lg text-center max-w-xs">
+                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-2xl">
+                    <div className="bg-[var(--card)] p-4 rounded-2xl text-center max-w-xs border border-[var(--border)] shadow-xl">
                       <p className="text-sm font-medium text-[var(--muted-foreground)] mb-3">
                         Для просмотра этого контента необходимо подтвердить возраст 18+
                       </p>
                       <button
                         onClick={() => setShowAgeModal(true)}
-                        className="px-3 py-1 bg-[var(--primary)] text-white text-xs rounded hover:bg-[var(--primary)]/90"
+                        className="px-4 py-2 bg-[var(--primary)] text-primary-foreground text-sm rounded-xl hover:opacity-90 transition-opacity font-medium"
                       >
                         Подтвердить возраст
                       </button>
@@ -286,7 +291,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
         </div>
 
         {(!collection.titles || collection.titles.length === 0) && (
-          <div className="text-center py-12">
+          <div className="text-center py-16 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
             <p className="text-[var(--muted-foreground)]">В этой коллекции пока нет тайтлов.</p>
           </div>
         )}
