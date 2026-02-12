@@ -11,7 +11,7 @@ import {
 import { LoadingSkeleton } from "@/shared";
 import { Title } from "@/types/title";
 import Image from "next/image";
-import { Eye, Star } from "lucide-react";
+import { ArrowLeft, Eye, FolderX, Star } from "lucide-react";
 import { getTitlePath } from "@/lib/title-paths";
 import { useAuth } from "@/hooks/useAuth";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
@@ -108,21 +108,29 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
 
   if (error || !collection) {
     return (
-      <main className="flex flex-col h-full min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+      <main className="flex flex-col min-h-screen bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)]">
         <Header />
-        <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4 text-center">
-          <h1 className="text-2xl font-bold text-[var(--muted-foreground)] mb-4">
-            Коллекция не найдена
-          </h1>
-          <p className="text-[var(--muted-foreground)] mb-6">
-            Возможно, коллекция была удалена или ссылка неверна.
-          </p>
-          <button
-            onClick={() => router.push("/collections")}
-            className="px-5 py-2.5 bg-[var(--primary)] text-primary-foreground rounded-xl hover:opacity-90 transition-opacity font-medium"
-          >
-            Вернуться к коллекциям
-          </button>
+        <div className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="max-w-md w-full text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="rounded-2xl bg-[var(--card)] border border-[var(--border)] p-6 shadow-lg ring-1 ring-white/5">
+                <FolderX className="w-16 h-16 text-[var(--muted-foreground)]/70" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-3">
+              Коллекция не найдена
+            </h1>
+            <p className="text-[var(--muted-foreground)] mb-10 leading-relaxed">
+              Возможно, она была удалена или ссылка неверна. Вернитесь к списку коллекций.
+            </p>
+            <button
+              onClick={() => router.push("/collections")}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 transition-colors font-medium"
+            >
+              <ArrowLeft className="w-5 h-5 shrink-0" />
+              Вернуться к коллекциям
+            </button>
+          </div>
         </div>
         <Footer />
       </main>
