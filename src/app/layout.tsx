@@ -53,6 +53,14 @@ export default function RootLayout({
         />
         <link rel="apple-touch-icon" href="/favicons/apple-touch-icon.png" />
 
+        {/* RSS */}
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Tomilo-lib — Новые тайтлы и главы"
+          href={`${process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru"}/rss`}
+        />
+
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
 
