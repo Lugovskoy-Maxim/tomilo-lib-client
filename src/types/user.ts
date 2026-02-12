@@ -22,10 +22,25 @@ export interface EquippedDecorations {
 /** Категории закладок */
 export type BookmarkCategory = "reading" | "planned" | "completed" | "favorites" | "dropped";
 
+/** Минимальные поля тайтла из API (когда сервер возвращает populated titleId) */
+export interface BookmarkTitleInfo {
+  _id: string;
+  name: string;
+  slug?: string;
+  coverImage?: string;
+  type?: string;
+  status?: string;
+  totalChapters?: number;
+  averageRating?: number;
+  releaseYear?: number;
+}
+
 export interface BookmarkEntry {
   titleId: string;
   category: BookmarkCategory;
   addedAt: string;
+  /** Заполняется при наличии populated titleId в ответе API (избегаем лишних запросов) */
+  title?: BookmarkTitleInfo | null;
 }
 
 export interface UserProfile {
