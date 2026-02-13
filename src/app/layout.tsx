@@ -6,6 +6,19 @@ import { ToastProvider } from "@/contexts/ToastContext";
 
 import Script from "next/script";
 import { TelegramJoinNotification, ToastContainer } from "@/shared";
+import type { Metadata } from "next";
+
+/** Дефолтные метаданные для всего сайта — гарантируют, что роботы всегда видят осмысленный title */
+export const metadata: Metadata = {
+  title: {
+    default: "Tomilo-lib.ru — Манга, манхва и маньхуа читать онлайн бесплатно",
+    template: "%s",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 const exo_2 = Exo_2({
   variable: "--font-exo_2",

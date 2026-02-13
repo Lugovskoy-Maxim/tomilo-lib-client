@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import ServerChapterPage from "./ServerPage";
 import { Metadata } from "next";
+import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 
 // Функция для получения данных тайтла по slug на сервере
 async function getTitleDataBySlug(slug: string) {
@@ -48,7 +49,7 @@ export async function generateMetadata({
 
     // Получаем данные тайтла по slug
     const titleData = await getTitleDataBySlug(slug);
-    const titleName = titleData.name || "Без названия";
+    const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
 
     // Получаем данные главы
     const chapterData = await getChapterData(chapterId);

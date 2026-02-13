@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { TitleView } from "@/widgets";
 import { Metadata } from "next";
 import { translateTitleType } from "@/lib/title-type-translations";
+import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -58,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       };
     }
 
-    const titleName = titleData.name || "Без названия";
+    const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
     const titleType = titleData.type || "other";
     const titleTypeTranslate = translateTitleType(titleType);
     const shortDescription = titleData.description
