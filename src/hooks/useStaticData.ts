@@ -82,12 +82,21 @@ export const useStaticData = (): StaticData => {
         const raw = result.data?.collections ?? result.data?.data ?? result.data;
         const collectionsData = Array.isArray(raw) ? raw : [];
 
-        // Преобразуем данные в формат, ожидаемый компонентом CollectionCard
-        const formattedCollections = collectionsData.map((collection: ApiCollection) => ({
-          ...collection,
-          _id: collection.id || collection._id,
-          link: collection.link || `/collections/${collection.id || collection._id}`,
-        }));
+        // Преобразуем данные в формат Collection для CollectionCard
+        const formattedCollections: Collection[] = collectionsData.map((collection: ApiCollection) => {
+          const id = String((collection.id || collection._id) ?? "");
+          return {
+            id,
+            cover: (collection.image as string) ?? "",
+            name: collection.name ?? "",
+            description: undefined,
+            titles: [],
+            comments: [],
+            views: Number(collection.views) || 0,
+            createdAt: "",
+            updatedAt: "",
+          };
+        });
 
         setCollections({
           data: formattedCollections,
