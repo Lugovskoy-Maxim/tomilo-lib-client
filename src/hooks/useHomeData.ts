@@ -132,7 +132,7 @@ export const useHomeData = (): {
     data: popularTitlesData,
     isLoading: popularTitlesLoading,
     error: popularTitlesError,
-  } = useGetPopularTitlesQuery(undefined, popularCacheOptions);
+  } = useGetPopularTitlesQuery({ limit: 35 }, popularCacheOptions);
 
   // Случайные тайтлы
   const {

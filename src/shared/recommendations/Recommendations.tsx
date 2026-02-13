@@ -92,7 +92,7 @@ export default function Recommendations({
       type="browse"
       icon={<Star className="w-6 h-6" />}
       navigationIcon={<TrendingUp className="w-6 h-6" />}
-      cardWidth="w-35 sm:w-35 md:w-40 lg:w-44 xl:w-52 2xl:w-56"
+      cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56"
       getItemPath={(item) => getTitlePath(item)}
     />
     </div>

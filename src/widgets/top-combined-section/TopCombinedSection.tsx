@@ -230,9 +230,9 @@ const Column = ({ title, href, items, showRating = false, showViews = true }: Co
  */
 export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 py-6 overflow-x-hidden box-border">
+    <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6 overflow-x-hidden box-border">
       {/* Три отдельные колонки */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 min-w-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 min-w-0">
         {/* Колонка 1: Топ 2026 года */}
         <Column
           title="Топ 2026 года"

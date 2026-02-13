@@ -33,9 +33,9 @@ export default function DataCarousel<T>({
 }: DataCarouselProps<T>) {
   if (loading) {
     return (
-      <div className="carousel-skeleton animate-pulse">
-        <div className="h-8 bg-[var(--muted)] rounded w-48 mb-4"></div>
-        <div className="flex gap-4 overflow-hidden">
+      <div className="carousel-skeleton animate-pulse w-full max-w-7xl mx-auto px-3 py-2 sm:px-4">
+        <div className="h-8 bg-[var(--muted)] rounded w-48 mb-3 sm:mb-4"></div>
+        <div className="flex gap-3 sm:gap-4 overflow-hidden">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex-shrink-0">
               <div className="w-24 sm:w-28 md:w-32 lg:w-40 h-32 sm:h-36 md:h-40 bg-[var(--muted)] rounded-lg mb-2"></div>

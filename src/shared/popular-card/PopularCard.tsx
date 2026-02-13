@@ -123,22 +123,34 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
             draggable={false}
           />
 
-          {/* Adult badge */}
+          {/* Adult badge — компактнее на мобильных */}
           {isAdultContent && (
-            <div className="absolute top-2 right-2 z-10">
-              <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2.5 py-1 rounded-md text-xs font-bold shadow-lg border flex items-center gap-1.5">
+            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
+              <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
                 <span>18+</span>
               </div>
             </div>
           )}
 
-          {/* Rating badge — glass style */}
-          <div className="absolute top-2 left-2 z-10">
+          {/* Rating badge — glass style, компактнее на мобильных */}
+          <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-10">
             <div
-              className={`${getRatingAccent(data.rating)} bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-md flex items-center gap-1.5 text-xs font-semibold shadow-lg border`}
+              className={`${getRatingAccent(data.rating)} bg-black/50 backdrop-blur-md px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium sm:font-semibold shadow-lg border`}
             >
-              <Star className="w-3.5 h-3.5 fill-current shrink-0" />
+              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current shrink-0" />
               <span>{formatRating(data.rating)}</span>
+            </div>
+          </div>
+
+          {/* Type and year — над обложкой внизу, читаемо и без ляпистости */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 p-1.5 sm:p-2 bg-gradient-to-t from-black/75 to-transparent rounded-t-md">
+            <div className="flex justify-between items-center gap-1.5 sm:gap-2 min-w-0">
+              <span className="bg-black/50 backdrop-blur-md text-amber-50 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[12px] sm:text-xs font-medium sm:font-semibold border border-amber-400/25 truncate min-w-0 max-w-[85%] sm:max-w-[70%] shadow-sm w-fit">
+                {translateTitleType(data.type)}
+              </span>
+              <span className="text-[12px] sm:text-xs font-medium text-slate-100 bg-black/45 backdrop-blur-md px-1.5 py-0.5 sm:px-2 rounded-md flex-shrink-0 border border-white/15 shadow-sm">
+                {data.year}
+              </span>
             </div>
           </div>
 
@@ -153,16 +165,6 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
         {/* Content — фиксированная высота блока, чтобы все карточки были одной высоты */}
         <div className="p-3 bg-[var(--card)] rounded-b-xl flex flex-col min-h-[5.5rem]">
-          {/* Type and year */}
-          <div className="flex justify-between items-center gap-2 mb-2 flex-shrink-0">
-            <span className="bg-[var(--primary)]/10 text-[var(--primary)] px-2.5 py-1 rounded-md text-xs font-semibold border border-[var(--primary)]/20 truncate max-w-[70%]">
-              {translateTitleType(data.type)}
-            </span>
-            <span className="text-xs font-medium text-[var(--muted-foreground)] bg-[var(--muted)]/30 px-2 py-0.5 rounded-md">
-              {data.year}
-            </span>
-          </div>
-
           {/* Title — всегда резервируем место под 2 строки */}
           <h3
             className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-[var(--chart-1)] transition-colors duration-300 min-h-[2.5rem] flex-1`}

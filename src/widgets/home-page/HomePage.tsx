@@ -64,7 +64,7 @@ export default function HomePage() {
     return (
       <>
         <Header />
-        <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16 w-full overflow-x-hidden">
+        <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full overflow-x-hidden">
           <CarouselSkeleton />
           <CarouselSkeleton />
           <div className="w-full overflow-x-hidden">
@@ -82,7 +82,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="flex flex-col items-center justify-center gap-6 md:pb-2 pb-16 w-full overflow-x-hidden">
+      <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full overflow-x-hidden">
         {/* Популярные тайтлы */}
         <DataCarousel
           title="Популярные тайтлы"
@@ -93,7 +93,7 @@ export default function HomePage() {
           type="browse"
           icon={<Trophy className="w-6 h-6" />}
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-          cardWidth="w-35 sm:w-35 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
+          cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
           getItemPath={(item: any) => getTitlePath(item)}
           autoScrollInterval={5000}
         />

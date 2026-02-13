@@ -65,9 +65,9 @@ export default function GridSection<T>({
   };
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 py-6">
+    <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
       {/* Заголовок секции */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
         <div className="flex flex-col w-full">
           <div className="flex items-center gap-2 mb-2">
             {icon && <div className="w-6 h-6 text-[var(--muted-foreground)]">{icon}</div>}

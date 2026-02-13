@@ -1,11 +1,11 @@
 import React from "react";
 
 export const TopCombinedSkeleton: React.FC = () => (
-  <div className="w-full max-w-7xl mx-auto px-4 py-6 animate-pulse">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+  <div className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6 animate-pulse">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
       {[...Array(3)].map((_, colIndex) => (
         <div key={colIndex} className="flex flex-col">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
             <div className="h-7 bg-[var(--muted)] rounded w-32"></div>
             <div className="h-4 bg-[var(--muted)] rounded w-12"></div>
           </div>

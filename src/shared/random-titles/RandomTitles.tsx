@@ -29,7 +29,7 @@ const RandomTitles: React.FC<RandomTitlesProps> = ({ data, loading, error }) => 
         <div className="flex gap-4 overflow-hidden items-center justify-center">
           {[...Array(7)].map((_, i) => (
             <div key={i} className="flex-shrink-0">
-              <div className="w-35 sm:w-35 md:w-40 lg:w-44 h-32 sm:h-40 md:h-52 lg:h-64 bg-[var(--muted)] rounded-lg mb-2"></div>
+              <div className="w-40 sm:w-40 md:w-40 lg:w-44 h-32 sm:h-40 md:h-52 lg:h-64 bg-[var(--muted)] rounded-lg mb-2"></div>
               <div className="h-4 bg-[var(--muted)] rounded w-20 sm:w-24"></div>
             </div>
           ))}
@@ -54,7 +54,7 @@ const RandomTitles: React.FC<RandomTitlesProps> = ({ data, loading, error }) => 
       cardComponent={CarouselCard}
       type="browse"
       navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-      cardWidth="w-35 sm:w-35 md:w-40 lg:w-44 xl:w-52 2xl:w-56"
+      cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56"
       showNavigation={true}
     />
   );

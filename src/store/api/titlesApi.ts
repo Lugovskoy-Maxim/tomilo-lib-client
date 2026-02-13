@@ -301,8 +301,11 @@ export const titlesApi = createApi({
     }),
 
     // Получить популярные тайтлы
-    getPopularTitles: builder.query<ApiResponseDto<PopularTitle[]>, void>({
-      query: () => "/titles/popular",
+    getPopularTitles: builder.query<ApiResponseDto<PopularTitle[]>, { limit?: number } | void>({
+      query: (params = {}) => ({
+        url: "/titles/popular",
+        params: { limit: params?.limit ?? 35 },
+      }),
       providesTags: [TITLES_TAG],
       transformResponse: (response: ApiResponseDto<PopularTitle[]>) => response,
     }),
