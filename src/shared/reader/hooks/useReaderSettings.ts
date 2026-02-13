@@ -12,9 +12,12 @@ interface UseReaderSettingsReturn {
   setReadChaptersInRow: (value: boolean) => void;
 }
 
+/** Чтение глав подряд отключено. Включить: поменять на true и показать переключатель в ReaderControls. */
+export const READ_CHAPTERS_IN_ROW_ENABLED = false;
+
 export function useReaderSettings(): UseReaderSettingsReturn {
   const [showPageCounter, setShowPageCounterState] = useState(true);
-  const [readChaptersInRow, setReadChaptersInRowState] = useState(false);
+  const [readChaptersInRowState, setReadChaptersInRowState] = useState(false);
 
   // Load saved settings from localStorage
   useEffect(() => {
@@ -24,9 +27,11 @@ export function useReaderSettings(): UseReaderSettingsReturn {
     if (savedShowPageCounter !== null) {
       setShowPageCounterState(savedShowPageCounter === "true");
     }
-    const savedChaptersInRow = localStorage.getItem(CHAPTERS_IN_ROW_KEY);
-    if (savedChaptersInRow !== null) {
-      setReadChaptersInRowState(savedChaptersInRow === "true");
+    if (READ_CHAPTERS_IN_ROW_ENABLED) {
+      const savedChaptersInRow = localStorage.getItem(CHAPTERS_IN_ROW_KEY);
+      if (savedChaptersInRow !== null) {
+        setReadChaptersInRowState(savedChaptersInRow === "true");
+      }
     }
   }, []);
 
@@ -42,11 +47,14 @@ export function useReaderSettings(): UseReaderSettingsReturn {
   }, [showPageCounter, setShowPageCounter]);
 
   const setReadChaptersInRow = useCallback((value: boolean) => {
+    if (!READ_CHAPTERS_IN_ROW_ENABLED) return;
     setReadChaptersInRowState(value);
     if (typeof window !== "undefined") {
       localStorage.setItem(CHAPTERS_IN_ROW_KEY, value.toString());
     }
   }, []);
+
+  const readChaptersInRow = READ_CHAPTERS_IN_ROW_ENABLED && readChaptersInRowState;
 
   return {
     showPageCounter,

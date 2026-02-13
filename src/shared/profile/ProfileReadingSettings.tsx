@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { UserProfile } from "@/types/user";
 import { Eye } from "lucide-react";
+import { READ_CHAPTERS_IN_ROW_ENABLED } from "@/shared/reader/hooks";
 
 interface ProfileReadingSettingsProps {
   userProfile: UserProfile;
@@ -81,23 +82,25 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
           </div>
         </div>
 
-        <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
-          <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
-            Чтение глав подряд
-          </span>
-          <p className="text-xs text-[var(--muted-foreground)] mb-3">
-            При прокрутке до конца или начала главы подгружается следующая или предыдущая глава; адрес в строке обновляется на ту, что вы читаете.
-          </p>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={readChaptersInRow}
-              onChange={e => setReadChaptersInRow(e.target.checked)}
-              className="w-5 h-5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
-            />
-            <span className="text-sm text-[var(--foreground)]">Включить чтение глав подряд</span>
-          </label>
-        </div>
+        {READ_CHAPTERS_IN_ROW_ENABLED && (
+          <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+            <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
+              Чтение глав подряд
+            </span>
+            <p className="text-xs text-[var(--muted-foreground)] mb-3">
+              При прокрутке до конца или начала главы подгружается следующая или предыдущая глава; адрес в строке обновляется на ту, что вы читаете.
+            </p>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={readChaptersInRow}
+                onChange={e => setReadChaptersInRow(e.target.checked)}
+                className="w-5 h-5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+              />
+              <span className="text-sm text-[var(--foreground)]">Включить чтение глав подряд</span>
+            </label>
+          </div>
+        )}
 
         <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
           <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">

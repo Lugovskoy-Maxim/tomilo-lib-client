@@ -22,7 +22,7 @@ import { CommentEntityType } from "@/types/comment";
 import { ReportModal } from "@/shared/report/ReportModal";
 import ThemeToggle from "@/shared/theme-toggle/ThemeToggle";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
-import { useAutoScroll, useBookmark, useReaderSettings, useRefreshButton } from "./hooks";
+import { useAutoScroll, useBookmark, useReaderSettings, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED } from "./hooks";
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -310,32 +310,34 @@ export default function ReaderControls({
                 </label>
               </div>
 
-              {/* Чтение глав подряд */}
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={readChaptersInRow}
-                    onChange={() => setReadChaptersInRow(!readChaptersInRow)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
-                      readChaptersInRow ? "bg-[var(--primary)]" : ""
-                    }`}
-                  >
+              {/* Чтение глав подряд (отключено) */}
+              {READ_CHAPTERS_IN_ROW_ENABLED && (
+                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={readChaptersInRow}
+                      onChange={() => setReadChaptersInRow(!readChaptersInRow)}
+                      className="sr-only"
+                    />
                     <div
-                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                        readChaptersInRow ? "transform translate-x-7" : ""
+                      className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                        readChaptersInRow ? "bg-[var(--primary)]" : ""
                       }`}
-                    ></div>
-                  </div>
-                  <span className="ml-4 text-sm">Чтение глав подряд</span>
-                </label>
-                <p className="text-xs text-[var(--muted-foreground)] mt-2 ml-0">
-                  При прокрутке до конца или начала подгружается следующая/предыдущая глава, адрес обновляется.
-                </p>
-              </div>
+                    >
+                      <div
+                        className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                          readChaptersInRow ? "transform translate-x-7" : ""
+                        }`}
+                      ></div>
+                    </div>
+                    <span className="ml-4 text-sm">Чтение глав подряд</span>
+                  </label>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-2 ml-0">
+                    При прокрутке до конца или начала подгружается следующая/предыдущая глава, адрес обновляется.
+                  </p>
+                </div>
+              )}
 
               {/* Переключатель предзагрузки всех изображений */}
               {onPreloadChange && (
@@ -495,29 +497,31 @@ export default function ReaderControls({
                 </label>
               </div>
 
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={readChaptersInRow}
-                    onChange={() => setReadChaptersInRow(!readChaptersInRow)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
-                      readChaptersInRow ? "bg-[var(--primary)]" : ""
-                    }`}
-                  >
+              {READ_CHAPTERS_IN_ROW_ENABLED && (
+                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={readChaptersInRow}
+                      onChange={() => setReadChaptersInRow(!readChaptersInRow)}
+                      className="sr-only"
+                    />
                     <div
-                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                        readChaptersInRow ? "transform translate-x-7" : ""
+                      className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                        readChaptersInRow ? "bg-[var(--primary)]" : ""
                       }`}
-                    ></div>
-                  </div>
-                  <span className="ml-4 text-sm">Чтение глав подряд</span>
-                </label>
-                <p className="text-xs text-[var(--muted-foreground)] mt-2">При прокрутке подгружается следующая/предыдущая глава.</p>
-              </div>
+                    >
+                      <div
+                        className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
+                          readChaptersInRow ? "transform translate-x-7" : ""
+                        }`}
+                      ></div>
+                    </div>
+                    <span className="ml-4 text-sm">Чтение глав подряд</span>
+                  </label>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-2">При прокрутке подгружается следующая/предыдущая глава.</p>
+                </div>
+              )}
 
               {/* Переключатель предзагрузки - мобильная версия */}
               {onPreloadChange && (
