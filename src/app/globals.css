@@ -1647,4 +1647,8 @@ textarea.admin-input {
   .will-change-scroll {
     will-change: auto;
   }
+  
+  .carousel-marquee-track {
+    animation: none;
+  }
 }
