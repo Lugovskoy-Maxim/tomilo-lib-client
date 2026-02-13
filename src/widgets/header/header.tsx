@@ -1,9 +1,10 @@
 "use client";
-import { Logo, Search, ThemeToggle } from "@/shared";
+import { Logo, Search, ThemeToggle, ErrorBoundary } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState, useEffect } from "react";
 import {
   X,
+  Menu,
   Search as SearchIcon,
   Home,
   User,
@@ -14,149 +15,185 @@ import {
   Mail,
   Bookmark,
   Bell,
+  LayoutList,
   ShoppingBag,
+  Send,
 } from "lucide-react";
 import Link from "next/link";
-import ContactForm from "@/widgets/contact-form/ContactForm";
+
+const HEADER_DROPDOWN_ITEMS = [
+  { href: "/about", label: "О нас", icon: Info },
+  { href: "/contact", label: "Контакты", icon: Mail },
+  { href: "/tomilo-shop", label: "Магазин", icon: ShoppingBag },
+  { href: "/copyright", label: "Авторские права", icon: Shield },
+  { href: "/terms-of-use", label: "Условия использования", icon: FileText },
+];
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuReady, setIsMobileMenuReady] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleSearch = () => {
-    setIsSearchOpen(!isSearchOpen);
-  };
+  // Рендер содержимого мобильного меню после открытия (избегаем ошибок при первом показе)
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      setIsMobileMenuReady(false);
+      return;
+    }
+    const t = requestAnimationFrame(() => setIsMobileMenuReady(true));
+    return () => cancelAnimationFrame(t);
+  }, [isMobileMenuOpen]);
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  const closeDropdown = () => {
-    setIsDropdownOpen(false);
-  };
+  const toggleSearch = () => setIsSearchOpen((v) => !v);
+  const toggleDropdown = () => setIsDropdownOpen((v) => !v);
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+  const closeDropdown = () => setIsDropdownOpen(false);
 
   return (
-    <header className="relative w-full header-glass h-[var(--header-height)] z-50 transition-all duration-300">
-      <div className="w-full max-w-7xl mx-auto p-4 h-16 flex items-center justify-between relative z-10">
-        {/* Логотип */}
-        <div className="flex items-center gap-2 hover-lift">
-          <Logo />
+    <header
+      className={`relative w-full header-glass h-[var(--header-height)] z-50 transition-all duration-300 ${
+        isScrolled ? "header-scrolled" : ""
+      }`}
+    >
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-4 relative z-10">
+        <div className="flex items-center gap-2">
+          {/* Кнопка меню только на мобильных */}
+          <div className="shrink-0 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="header-icon-btn"
+              aria-label="Открыть меню"
+            >
+              <Menu className="w-5 h-5 text-[var(--muted-foreground)]" />
+            </button>
+          </div>
+          <div className="flex items-center hover-lift rounded-xl -m-2 p-2">
+            <Logo />
+          </div>
         </div>
 
-        {/* Навигация для пк */}
-        <div className="hidden lg:block flex-1 mx-8">
+        {/* Навигация для десктопа */}
+        <div className="hidden lg:block flex-1 mx-6">
           <Navigation />
         </div>
-        <div className="flex gap-2 justify-center items-center">
-          {/* Поиск для пк */}
-          <div className="hidden lg:block flex-1 max-w-md">
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Поиск для десктопа */}
+          <div className="hidden lg:block flex-1 min-w-0 max-w-sm">
             <Search />
           </div>
 
-          {/* Кнопка поиска для мобильных */}
+          {/* Кнопка поиска на мобильных */}
           <button
             onClick={toggleSearch}
-            className={`${
-              isSearchOpen ? "hidden" : "lg:hidden"
-            } flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer`}
+            className={`${isSearchOpen ? "hidden" : "lg:hidden"} header-icon-btn`}
             aria-label="Поиск"
           >
-            {isSearchOpen ? null : <SearchIcon className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />}
+            <SearchIcon className="w-5 h-5 text-[var(--muted-foreground)]" />
           </button>
 
-          {/* Кнопка "..." с выпадающим меню */}
+          {/* Кнопка «Ещё» и выпадающее меню */}
           <div className="relative hidden md:block">
             <button
+              type="button"
               onClick={toggleDropdown}
-              className="flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer"
+              className="header-icon-btn"
               aria-label="Дополнительное меню"
+              aria-expanded={isDropdownOpen}
             >
-              <MoreVertical className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
+              <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
             </button>
 
-            {/* Выпадающее меню */}
             {isDropdownOpen && (
               <>
-                <div className="absolute right-0 top-full mt-3 w-52 dropdown-modern animate-fade-in-scale z-50">
+                <div className="fixed inset-0 z-40" onClick={closeDropdown} aria-hidden />
+                <div className="absolute right-0 top-full mt-2 w-56 dropdown-modern animate-fade-in-scale z-50">
                   <div className="py-2">
-                    <Link
-                      href="/about"
-                      onClick={closeDropdown}
-                      className="flex items-center px-4 py-2.5 text-sm text-[var(--foreground)] dropdown-item-modern"
-                    >
-                      <Info className="w-4 h-4 mr-3 text-[var(--chart-1)]" />О нас
-                    </Link>
-                    <Link
-                      href="/contact"
-                      onClick={closeDropdown}
-                      className="flex items-center px-4 py-2.5 text-sm text-[var(--foreground)] dropdown-item-modern"
-                    >
-                      <Mail className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
-                      Контакты
-                    </Link>
-                    <Link
-                      href="/tomilo-shop"
-                      onClick={closeDropdown}
-                      className="flex items-center px-4 py-2.5 text-sm text-[var(--foreground)] dropdown-item-modern"
-                    >
-                      <ShoppingBag className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
-                      Магазин
-                    </Link>
+                    {HEADER_DROPDOWN_ITEMS.map(({ href, label, icon: Icon }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        onClick={closeDropdown}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] dropdown-item-modern rounded-lg mx-2"
+                      >
+                        <Icon className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                        {label}
+                      </Link>
+                    ))}
                   </div>
                 </div>
-
-                {/* Overlay для закрытия меню */}
-                <div className="fixed inset-0 z-40" onClick={closeDropdown} />
               </>
             )}
           </div>
 
-          {/* UserBar */}
           <div className="flex items-center">
             <UserBar />
           </div>
         </div>
+      </div>
 
-        {/* Мобильное поисковое окно */}
-        {isSearchOpen && (
-          <div className="lg:hidden absolute top-[var(--header-height)] left-0 right-0 header-glass border-b border-[var(--border)]/50 p-4 z-40 items-center justify-center flex animate-slide-down">
-            <Search />
+      {/* Мобильная панель поиска */}
+      {isSearchOpen && (
+        <div className="lg:hidden absolute top-full left-0 right-0 header-glass border-b border-[var(--border)]/50 z-40 animate-slide-down">
+          <div className="relative flex items-center gap-2 p-3">
+            <div className="flex-1 min-w-0">
+              <Search />
+            </div>
             <button
+              type="button"
               onClick={toggleSearch}
-              className="absolute -bottom-[33px] right-4 rounded-xl rounded-t-none bg-[var(--secondary)]/90 border border-t-0 border-[var(--border)]/60 flex items-center justify-center hover-lift"
+              className="header-icon-btn flex-shrink-0"
               aria-label="Закрыть поиск"
             >
-              <div className="w-10 h-8 flex items-center justify-center">
-                <X className="w-4 h-4" />
-              </div>
+              <X className="w-5 h-5" />
             </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Мобильное меню */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 top-[var(--header-height)] bg-[var(--background)]/98 backdrop-blur-xl z-50 overflow-y-auto animate-fade-in-scale">
-            <div className="p-4 border-b border-[var(--border)]/50">
-              <Navigation onItemClick={closeMobileMenu} />
+      {/* Мобильное меню */}
+      {isMobileMenuOpen && (
+        <>
+          <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={closeMobileMenu} aria-hidden />
+          <div className="lg:hidden fixed inset-x-0 top-[var(--header-height)] bottom-0 bg-[var(--background)]/98 backdrop-blur-xl z-50 overflow-y-auto animate-fade-in-scale">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 p-3 border-b border-[var(--border)]/50 bg-[var(--background)]/98 backdrop-blur-sm">
+              <span className="text-sm font-semibold text-[var(--foreground)]">Меню</span>
+              <button
+                type="button"
+                onClick={closeMobileMenu}
+                className="header-icon-btn ml-auto"
+                aria-label="Закрыть меню"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+            <ErrorBoundary
+              fallback={
+                <div className="p-4 text-center text-sm text-[var(--muted-foreground)]">
+                  Не удалось загрузить меню. Закройте и попробуйте снова.
+                </div>
+              }
+            >
+              {!isMobileMenuReady ? (
+                <div className="p-4 text-center text-sm text-[var(--muted-foreground)]" aria-hidden>
+                  Загрузка…
+                </div>
+              ) : (
+                <>
+                  <div className="p-4 border-b border-[var(--border)]/50">
+                    <Navigation onItemClick={closeMobileMenu} />
+                  </div>
 
-            {/* Дополнительные пункты меню для мобильных */}
-            <div className="p-4 space-y-6">
-              {/* Секция настроек */}
+                  <div className="p-4 space-y-6">
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
                   Настройки
@@ -167,114 +204,90 @@ export default function Header() {
                 </div>
               </div>
 
-              {/* Секция аккаунта */}
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
                   Аккаунт
                 </h3>
                 <div className="space-y-1">
-                  <Link
-                    href="/updates"
-                    onClick={closeMobileMenu}
-                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] mobile-nav-item rounded-xl"
-                  >
-                    <Home className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
+                  <Link href="/" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                    <Home className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                    Главная
+                  </Link>
+                  <Link href="/updates" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                    <LayoutList className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
                     Обновления
                   </Link>
-                  <Link
-                    href="/profile"
-                    onClick={closeMobileMenu}
-                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] mobile-nav-item rounded-xl"
-                  >
-                    <User className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
+                  <Link href="/profile" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                    <User className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
                     Профиль
                   </Link>
-                  <Link
-                    href="/"
-                    onClick={closeMobileMenu}
-                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] mobile-nav-item rounded-xl"
-                  >
-                    <Home className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
-                    Главная страница
-                  </Link>
-                  <Link
-                    href="/bookmarks"
-                    onClick={closeMobileMenu}
-                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] mobile-nav-item rounded-xl"
-                  >
-                    <Bookmark className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
+                  <Link href="/bookmarks" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                    <Bookmark className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
                     Закладки
                   </Link>
-                  <Link
-                    href="/notifications"
-                    onClick={closeMobileMenu}
-                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] mobile-nav-item rounded-xl"
-                  >
-                    <Bell className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
+                  <Link href="/notifications" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                    <Bell className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
                     Уведомления
                   </Link>
                 </div>
               </div>
 
-              {/* Секция информации */}
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
                   Информация
                 </h3>
                 <div className="space-y-1">
-                  <Link
-                    href="/about"
-                    onClick={closeMobileMenu}
-                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] mobile-nav-item rounded-xl"
-                  >
-                    <Info className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
+                  <Link href="/about" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                    <Info className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
                     О нас
                   </Link>
-                  <Link
-                    href="/contact"
-                    onClick={closeMobileMenu}
-                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] mobile-nav-item rounded-xl"
-                  >
-                    <Mail className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
+                  <Link href="/contact" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                    <Mail className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
                     Контакты
                   </Link>
-                  <Link
-                    href="/copyright"
-                    onClick={closeMobileMenu}
-                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] mobile-nav-item rounded-xl"
-                  >
-                    <Shield className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
+                  <Link href="/copyright" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                    <Shield className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
                     Авторские права
                   </Link>
-                  <Link
-                    href="/terms-of-use"
-                    onClick={closeMobileMenu}
-                    className="flex items-center py-3 px-3 text-sm text-[var(--foreground)] mobile-nav-item rounded-xl"
-                  >
-                    <FileText className="w-4 h-4 mr-3 text-[var(--chart-1)]" />
+                  <Link href="/terms-of-use" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                    <FileText className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
                     Условия использования
                   </Link>
                 </div>
               </div>
 
-              {/* Форма обратной связи в мобильном меню */}
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
-                  Обратная связь
+                  Связаться
                 </h3>
-                <div className="bg-[var(--secondary)]/60 p-4 rounded-xl border border-[var(--border)]/50">
-                  <ContactForm compact />
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href="mailto:support@tomilo-lib.ru"
+                    onClick={closeMobileMenu}
+                    className="header-mobile-nav-link"
+                  >
+                    <Mail className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                    support@tomilo-lib.ru
+                  </Link>
+                  <Link
+                    href="https://t.me/tomilolib"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeMobileMenu}
+                    className="header-mobile-nav-link"
+                  >
+                    <Send className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                    Telegram
+                  </Link>
                 </div>
               </div>
-            </div>
+                  </div>
+                </>
+              )}
+            </ErrorBoundary>
           </div>
-        )}
-
-        {/* Overlay для мобильного меню */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={closeMobileMenu} />
-        )}
-      </div>
+        </>
+      )}
     </header>
   );
 }

@@ -118,7 +118,9 @@ export default function RootLayout({
         <ToastProvider>
           <Providers>
             <ThemeProvider>
-              {children}
+              <div className="mobile-footer-spacer">
+                {children}
+              </div>
               <TelegramJoinNotification />
               {/* Обработчик сообщений от окна авторизации через Яндекс */}
               <script

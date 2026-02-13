@@ -36,6 +36,8 @@
   --sidebar-ring: oklch(0.708 0 0);
   --header-height: 65px;
   --footer-height: 220px;
+  /* Высота фиксированной нижней панели на мобильных (чтобы контент не перекрывался) */
+  --mobile-footer-bar-height: calc(5.5rem + env(safe-area-inset-bottom, 0px));
   /* Карточки главной страницы — единая система */
   --card-radius: 0.75rem;
   --card-padding: 0.75rem;
@@ -440,6 +442,46 @@ textarea.admin-input {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
+/* Header icon buttons (search, menu, close) */
+.header-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.header-icon-btn:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+.header-icon-btn:active {
+  transform: scale(0.96);
+}
+.header-icon-btn[aria-expanded="true"] {
+  background: var(--accent);
+}
+
+/* Mobile menu nav links */
+.header-mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  border-radius: 0.75rem;
+  transition: background 0.2s ease;
+}
+.header-mobile-nav-link:hover {
+  background: var(--accent);
+}
+
 /* Modern button styles */
 .btn-modern {
   position: relative;
@@ -539,6 +581,13 @@ textarea.admin-input {
   border-radius: 0.75rem;
   color: var(--muted-foreground);
   white-space: nowrap;
+}
+
+/* Отступ снизу на мобильных, чтобы контент не перекрывался фиксированной панелью */
+@media (max-width: 1023px) {
+  .mobile-footer-spacer {
+    padding-bottom: var(--mobile-footer-bar-height);
+  }
 }
 
 /* Mobile footer bar */

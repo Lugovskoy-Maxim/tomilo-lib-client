@@ -1,6 +1,9 @@
 "use client";
 
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { AlertCircle, Home, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Footer, Header } from "@/widgets";
 
 interface RateLimitErrorData {
   remainingMs?: number;
@@ -15,6 +18,7 @@ export default function Error({
   reset: () => void;
 }) {
   const router = useRouter();
+  usePageTitle("Ошибка");
 
   // Проверяем, является ли это ошибкой rate limit (429)
   const isRateLimitError =
@@ -75,19 +79,43 @@ export default function Error({
   console.error(error);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--background)]">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-[var(--foreground)] mb-4">Что-то пошло не так!</h2>
-        <p className="text-[var(--muted-foreground)] mb-6">
-          Произошла непредвиденная ошибка. Попробуйте перезагрузить страницу.
-        </p>
-        <button
-          onClick={() => reset()}
-          className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
-        >
-          Попробовать снова
-        </button>
-      </div>
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="rounded-full bg-[var(--destructive)]/10 p-4" aria-hidden>
+              <AlertCircle className="w-12 h-12 text-[var(--destructive)]" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
+            Что-то пошло не так!
+          </h1>
+          <p className="text-[var(--muted-foreground)] mb-8 leading-relaxed">
+            Произошла непредвиденная ошибка. Попробуйте перезагрузить страницу или вернуться на
+            главную.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <button
+              type="button"
+              onClick={() => reset()}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity min-w-[180px]"
+            >
+              <RefreshCw className="w-5 h-5 shrink-0" />
+              Попробовать снова
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-[var(--border)] text-[var(--foreground)] font-medium hover:bg-[var(--muted)] transition-colors min-w-[180px]"
+            >
+              <Home className="w-5 h-5 shrink-0" />
+              На главную
+            </button>
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

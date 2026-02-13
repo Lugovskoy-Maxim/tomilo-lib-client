@@ -5,7 +5,7 @@ import LOGO_IMAGE_COLOR from "../../../public/logo/tomilo_color.svg";
 import Link from "next/link";
 export default function Logo() {
   return (
-    <Link href="/" className="flex items-end  relative">
+    <Link href="/" className="flex items-end relative" aria-label="На главную">
       <Image
         src={LOGO_IMAGE_COLOR}
         alt="Logo"
