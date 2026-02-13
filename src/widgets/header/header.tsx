@@ -2,6 +2,7 @@
 import { Logo, Search, ThemeToggle, ErrorBoundary } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Menu,
@@ -160,11 +161,17 @@ export default function Header() {
         </div>
       )}
 
-      {/* Мобильное меню */}
-      {isMobileMenuOpen && (
-        <>
-          <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={closeMobileMenu} aria-hidden />
-          <div className="lg:hidden fixed inset-x-0 top-[var(--header-height)] bottom-0 bg-[var(--background)]/98 backdrop-blur-xl z-50 overflow-y-auto animate-fade-in-scale">
+      {/* Мобильное меню: портал в body, чтобы всегда поверх контента (на мобильных меню уходило под main). */}
+      {isMobileMenuOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <>
+            <div
+              className="lg:hidden fixed inset-0 bg-black/50 z-[9998]"
+              onClick={closeMobileMenu}
+              aria-hidden
+            />
+            <div className="lg:hidden fixed inset-x-0 top-[var(--header-height)] bottom-0 bg-[var(--background)]/98 backdrop-blur-xl z-[9999] overflow-y-auto animate-fade-in-scale">
             <div className="sticky top-0 z-10 flex items-center justify-between gap-3 p-3 border-b border-[var(--border)]/50 bg-[var(--background)]/98 backdrop-blur-sm">
               <span className="text-sm font-semibold text-[var(--foreground)]">Меню</span>
               <button
@@ -285,9 +292,10 @@ export default function Header() {
                 </>
               )}
             </ErrorBoundary>
-          </div>
-        </>
-      )}
+            </div>
+          </>,
+          document.body,
+        )}
     </header>
   );
 }
