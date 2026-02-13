@@ -105,9 +105,15 @@ export const useAuth = () => {
 
   useEffect(() => {
     if (error && getToken()) {
-      console.error("Auth check failed:", error);
-      if ("status" in error && (error.status === 401 || error.status === 404)) {
+      const status = "status" in error ? error.status : undefined;
+      const message =
+        (error as { data?: { message?: string } })?.data?.message ??
+        (error as { message?: string })?.message ??
+        String(error);
+      if (status === 401 || status === 404) {
         dispatch(logout());
+      } else if (message && message !== "[object Object]") {
+        console.error("Auth check failed:", message);
       }
     }
   }, [error, token, dispatch]);
