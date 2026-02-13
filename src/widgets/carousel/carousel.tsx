@@ -450,7 +450,7 @@ export default function Carousel<T>({
         {/* С автопрокруткой: CSS marquee (работает на мобильных; requestAnimationFrame + scrollLeft там часто не применяется). */}
         {autoScrollInterval && data.length > 1 ? (
           <div
-            className="overflow-x-hidden overflow-y-hidden py-2 sm:py-4 min-w-0 select-none touch-pan-x cursor-grab active:cursor-grabbing"
+            className="overflow-x-hidden overflow-y-hidden py-2 sm:py-4 min-w-0 select-none touch-pan-both cursor-grab active:cursor-grabbing"
             onMouseDown={handleMouseDown}
             onMouseLeave={handleDragEnd}
             onMouseUp={handleMouseUp}
@@ -487,7 +487,7 @@ export default function Carousel<T>({
           /* Без автопрокрутки: обычная прокручиваемая карусель с snap. */
           <div
             ref={scrollContainerRef}
-            className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none py-2 sm:py-4 min-w-0 touch-pan-x will-change-scroll snap-x snap-proximity scroll-smooth"
+            className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none py-2 sm:py-4 min-w-0 touch-pan-both will-change-scroll snap-x snap-proximity scroll-smooth"
             onMouseDown={handleMouseDown}
             onMouseLeave={handleDragEnd}
             onMouseUp={handleMouseUp}

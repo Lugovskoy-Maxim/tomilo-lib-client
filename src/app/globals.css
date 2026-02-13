@@ -1588,6 +1588,11 @@ textarea.admin-input {
   touch-action: pan-x;
 }
 
+/* Карусель: и вертикальная прокрутка страницы, и горизонтальная прокрутка карусели */
+.touch-pan-both {
+  touch-action: pan-x pan-y;
+}
+
 /* Бесконечная плавная лента в одну сторону (без возврата в начало) */
 .carousel-marquee-track {
   animation: carousel-marquee var(--marquee-duration, 120s) linear infinite;
