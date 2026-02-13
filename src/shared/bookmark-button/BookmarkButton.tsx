@@ -154,7 +154,7 @@ export function BookmarkButton({
               setCategoryOpen(prev => !prev);
             }}
             disabled={isLoading}
-            className={`flex justify-center items-center gap-2 cursor-pointer lg:p-1 p-4 bg-[var(--secondary)] border-[var(--border)] text-[var(--muted-foreground)] rounded-xl hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors ${className} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`flex justify-center items-center gap-2 cursor-pointer lg:p-1 p-4 bg-[var(--secondary)] border-[var(--border)] text-[var(--muted-foreground)] rounded-xl hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-[var(--primary-foreground)] transition-colors ${className} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             title={displayTitle}
           >
             {isLoading ? (

@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import ServerChapterPage from "./ServerPage";
 import { Metadata } from "next";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
+import { getOgImageUrl } from "@/lib/seo-og-image";
 
 // Функция для получения данных тайтла по slug на сервере
 async function getTitleDataBySlug(slug: string) {
@@ -65,11 +66,10 @@ export async function generateMetadata({
       chapterTitle ? ` "${chapterTitle}"` : ""
     } онлайн. Манга, манхва, маньхуа, комиксы.`;
 
-    const image = titleData.coverImage ? `${baseUrl}${titleData.coverImage}` : undefined;
+    const ogImageUrl = getOgImageUrl(baseUrl, titleData.coverImage);
     const chapterUrl = `${baseUrl}/titles/${slug}/chapter/${chapterId}`;
-    const titleUrl = `${baseUrl}/titles/${slug}`;
 
-    // Формируем метаданные
+    // Формируем метаданные (всегда передаём одно изображение для превью в мессенджерах)
     const metadata: Metadata = {
       title: formattedTitle,
       description: shortDescription,
@@ -95,15 +95,22 @@ export async function generateMetadata({
         url: chapterUrl,
         siteName: "Tomilo-lib.ru",
         locale: "ru_RU",
-        images: image
-          ? [{ url: image, width: 1200, height: 630, alt: `${titleName} — глава ${chapterNumber}` }]
-          : [],
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+            alt: titleData.coverImage
+              ? `${titleName} — глава ${chapterNumber}`
+              : "Tomilo-lib — читать мангу, манхву, маньхуа",
+          },
+        ],
       },
       twitter: {
         card: "summary_large_image",
         title: formattedTitle,
         description: shortDescription,
-        images: image ? [image] : [],
+        images: [ogImageUrl],
         creator: "@tomilo_lib",
         site: "@tomilo_lib",
       },
@@ -112,9 +119,26 @@ export async function generateMetadata({
     return metadata;
   } catch (error) {
     console.error("Ошибка при генерации метаданных:", error);
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+    const fallbackImage = getOgImageUrl(baseUrl, null);
     return {
       title: "Ошибка загрузки страницы | Tomilo-lib.ru",
       description: "Произошла ошибка при загрузке страницы",
+      openGraph: {
+        title: "Читать главу | Tomilo-lib.ru",
+        description: "Манга, манхва, маньхуа — читать онлайн на Tomilo-lib.ru",
+        type: "website",
+        url: baseUrl,
+        siteName: "Tomilo-lib.ru",
+        locale: "ru_RU",
+        images: [{ url: fallbackImage, width: 1200, height: 630, alt: "Tomilo-lib" }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "Читать главу | Tomilo-lib.ru",
+        description: "Манга, манхва, маньхуа — читать онлайн на Tomilo-lib.ru",
+        images: [fallbackImage],
+      },
     };
   }
 }

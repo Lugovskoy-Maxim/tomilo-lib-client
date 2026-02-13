@@ -3,6 +3,7 @@ import { TitleView } from "@/widgets";
 import { Metadata } from "next";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
+import { getOgImageUrl } from "@/lib/seo-og-image";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -66,8 +67,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, "")
       : `Читать ${titleName} онлайн на Tomilo-lib.ru. ${titleData.genres?.join(", ")}`;
 
-    const image = titleData.coverImage ? `${baseUrl}${titleData.coverImage}` : undefined;
-    // Формируем расширенные метаданные
+    const ogImageUrl = getOgImageUrl(baseUrl, titleData.coverImage);
+    // Формируем расширенные метаданные (всегда одно изображение для превью в мессенджерах)
     const metadata: Metadata = {
       title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
       description: shortDescription,
@@ -108,22 +109,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         url: `${baseUrl}/titles/${slug}`,
         siteName: "Tomilo-lib.ru",
         locale: "ru_RU",
-        images: image
-          ? [
-              {
-                url: image,
-                width: 1200,
-                height: 630,
-                alt: `${titleName} - обложка`,
-              },
-            ]
-          : [],
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+            alt: titleData.coverImage ? `${titleName} - обложка` : "Tomilo-lib — читать онлайн",
+          },
+        ],
       },
       twitter: {
         card: "summary_large_image",
         title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
         description: shortDescription,
-        images: image ? [image] : [],
+        images: [ogImageUrl],
         creator: "@tomilo_lib",
         site: "@tomilo_lib",
       },
