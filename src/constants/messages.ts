@@ -30,6 +30,39 @@ export const MESSAGES = {
     ADMIN: "Админка",
   },
 
+  // Хлебные крошки — короткие подписи для сегментов пути
+  BREADCRUMBS: {
+    HOME: "Главная",
+    TITLES: "Каталог",
+    TITLES_ADMIN: "Тайтлы",
+    BROWSE: "Просмотр",
+    COLLECTIONS: "Коллекции",
+    CHAPTER: "Глава",
+    CHAPTERS: "Главы",
+    TOP: "Топ",
+    BOOKMARKS: "Закладки",
+    HISTORY: "История",
+    PROFILE: "Профиль",
+    SETTINGS: "Настройки",
+    NOTIFICATIONS: "Уведомления",
+    ADMIN: "Админка",
+    EDIT: "Редактирование",
+    NEW_TITLE: "Новый тайтл",
+    NEW_CHAPTER: "Новая глава",
+    TITLE: "Тайтл",
+    USERS: "Пользователи",
+    ABOUT: "О нас",
+    CONTACT: "Контакты",
+    TERMS_OF_USE: "Пользовательское соглашение",
+    COPYRIGHT: "Правообладателям",
+    UPDATES: "Лента новых глав",
+    USER: "Профиль",
+    RESET_PASSWORD: "Восстановление пароля",
+    VERIFY_EMAIL: "Подтверждение email",
+    RATE_LIMIT: "Ограничение запросов",
+    TOMILO_SHOP: "Магазин",
+  },
+
   // Действия
   ACTIONS: {
     VIEW: "Посмотреть",
@@ -280,6 +313,7 @@ export const MESSAGES = {
 export type MessageKey = keyof typeof MESSAGES;
 export type PageTitleKey = keyof typeof MESSAGES.PAGE_TITLES;
 export type NavigationKey = keyof typeof MESSAGES.NAVIGATION;
+export type BreadcrumbKey = keyof typeof MESSAGES.BREADCRUMBS;
 export type ActionKey = keyof typeof MESSAGES.ACTIONS;
 export type ContentStatusKey = keyof typeof MESSAGES.CONTENT_STATUS;
 export type InfoKey = keyof typeof MESSAGES.INFO;

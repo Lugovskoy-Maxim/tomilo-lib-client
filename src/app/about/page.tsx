@@ -1,11 +1,14 @@
 import { Metadata } from "next";
+import Link from "next/link";
+import { Mail, Send } from "lucide-react";
 import { Header, Footer } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
 import { Breadcrumbs } from "@/shared";
+
 export const metadata: Metadata = {
   title: "О нас - Tomilo-lib.ru",
   description:
-    "Узнайте больше о платформе Tomilo-lib.ru - современной платформе для чтения маньхуа и комиксов.",
+    "Узнайте больше о платформе Tomilo-lib.ru - современной платформе для чтения манги, манхвы и маньхуа.",
 };
 
 export default function AboutPage() {
@@ -14,59 +17,76 @@ export default function AboutPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pb-20 md:pb-2">
-        <div className="prose prose-lg max-w-none">
+      <main className="content-page flex-1">
+        <div className="content-page-inner">
           <Breadcrumbs className="mb-6" />
-          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-6">О нас</h1>
-
-          <div className="space-y-6 text-[var(--foreground)]">
-            <p className="text-lg leading-relaxed">
-              <strong className="text-[var(--primary)]">TOMILO-LIB</strong> — это современная
-              платформа, созданная для любителей манги, манхвы и маньхуа. Мы стремимся предоставить
-              удобный и качественный сервис для чтения и изучения азиатской комиксной культуры.
+          <div className="content-page-hero">
+            <h1>О нас</h1>
+            <p>
+              <strong className="text-[var(--primary)]">TOMILO-LIB</strong> — современная
+              платформа для любителей манги, манхвы и маньхуа. Удобный сервис для чтения и изучения
+              азиатской комиксной культуры.
             </p>
+          </div>
 
-            <div className="bg-[var(--secondary)] p-6 rounded-lg border border-[var(--border)]">
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">Наша задача</h2>
-              <p className="leading-relaxed">
+          <div className="space-y-6">
+            <section className="content-card">
+              <h2 className="content-card-section-title">Наша задача</h2>
+              <p className="content-card-body">
                 Мы верим, что каждый человек должен иметь доступ к качественному контенту. Наша
                 платформа объединяет сотни произведений, делая их доступными для читателей по всему
                 миру. Мы заботимся о комфорте пользователей и постоянно улучшаем наш сервис.
               </p>
-            </div>
+            </section>
 
-            <div className="bg-[var(--secondary)] p-6 rounded-lg border border-[var(--border)]">
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">
-                Что мы предлагаем
-              </h2>
-              <ul className="space-y-2 list-disc list-inside leading-relaxed">
-                <li>Обширная коллекция манги и манхвы и маньхуа и комиксов</li>
+            <section className="content-card">
+              <h2 className="content-card-section-title">Что мы предлагаем</h2>
+              <ul className="content-card-body space-y-1">
+                <li>Обширная коллекция манги, манхвы, маньхуа и комиксов</li>
                 <li>Удобный интерфейс для чтения на любых устройствах</li>
                 <li>Регулярные обновления с новыми главами</li>
                 <li>Персонализированные рекомендации</li>
                 <li>Система закладок и отслеживания прогресса чтения</li>
-                <li>Поддержка темной и светлой темы</li>
+                <li>Поддержка тёмной и светлой темы</li>
               </ul>
-            </div>
+            </section>
 
-            <div className="bg-[var(--secondary)] p-6 rounded-lg border border-[var(--border)]">
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">Наша команда</h2>
-              <p className="leading-relaxed">
+            <section className="content-card">
+              <h2 className="content-card-section-title">Наша команда</h2>
+              <p className="content-card-body">
                 Каждый член нашей команды вносит свой вклад в развитие платформы, чтобы сделать ваше
                 чтение максимально комфортным и приятным.
               </p>
-            </div>
+            </section>
 
-            <div className="bg-[var(--secondary)] p-6 rounded-lg border border-[var(--border)]">
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">
+            <section className="content-card">
+              <h2 className="content-card-section-title">
+                <Mail className="w-5 h-5" />
                 Свяжитесь с нами
               </h2>
-              <p className="leading-relaxed">
-                Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме, пожалуйста,
-                свяжитесь с нами по электронной почте или в группе в Telegram. Мы всегда рады
-                услышать ваше мнение и готовы помочь!
+              <p className="content-card-body">
+                Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме — мы всегда
+                рады услышать ваше мнение и готовы помочь.
               </p>
-            </div>
+              <div className="content-link-group">
+                <Link href="mailto:support@tomilo-lib.ru" className="content-link-primary">
+                  <Mail className="w-4 h-4" />
+                  support@tomilo-lib.ru
+                </Link>
+                <Link
+                  href="https://t.me/tomilolib"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="content-link-primary"
+                >
+                  <Send className="w-4 h-4" />
+                  Мы в Telegram
+                </Link>
+                <Link href="/contact" className="content-link-outline">
+                  Страница контактов
+                </Link>
+              </div>
+            </section>
           </div>
         </div>
       </main>

@@ -127,8 +127,16 @@ export default function Footer() {
                 2025–{currentYear} «Tomilo-lib.ru»
               </span>
             </div>
-            <div className="footer-version text-xs">
-              Версия 09022026
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[var(--muted-foreground)]">
+              <Link
+                href="https://t.me/TomiloDev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--muted-foreground)] hover:text-[var(--chart-1)] transition-colors"
+              >
+                Сайт разработан: @TomiloDev
+              </Link>
+              <span className="footer-version">Версия 13022026</span>
             </div>
           </div>
         </div>

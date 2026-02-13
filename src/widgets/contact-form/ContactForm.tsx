@@ -17,6 +17,7 @@ export default function ContactForm({ className = "", compact = false }: Contact
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -30,24 +31,32 @@ export default function ContactForm({ className = "", compact = false }: Contact
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     setIsSubmitting(true);
 
-    // Имитация отправки формы
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-
-    // Сброс формы через 3 секунды
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
-    }, 3000);
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setIsSubmitting(false);
+        setSubmitError(data.message || "Ошибка отправки. Попробуйте позже.");
+        return;
+      }
+
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+
+      setTimeout(() => setIsSubmitted(false), 4000);
+    } catch {
+      setIsSubmitting(false);
+      setSubmitError("Ошибка соединения. Проверьте интернет или напишите на support@tomilo-lib.ru");
+    }
   };
 
   if (isSubmitted) {
@@ -70,6 +79,12 @@ export default function ContactForm({ className = "", compact = false }: Contact
         <div className="flex items-center gap-2 mb-4">
           <Mail className="w-5 h-5 text-[var(--primary)]" />
           <h3 className="text-lg font-semibold text-[var(--foreground)]">Свяжитесь с нами</h3>
+        </div>
+      )}
+
+      {submitError && (
+        <div className="mb-4 p-3 rounded-md bg-destructive/10 border border-destructive/30 text-sm text-[var(--foreground)]">
+          {submitError}
         </div>
       )}
 

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Home } from "lucide-react";
 import { useMemo } from "react";
+import { MESSAGES } from "@/constants/messages";
 
 interface BreadcrumbItem {
   name: string;
@@ -16,38 +17,48 @@ interface BreadcrumbsProps {
   className?: string;
 }
 
+// Соответствие сегментов URL ключам в MESSAGES.BREADCRUMBS
+const SEGMENT_TO_KEY: Record<string, keyof typeof MESSAGES.BREADCRUMBS> = {
+  about: "ABOUT",
+  contact: "CONTACT",
+  "terms-of-use": "TERMS_OF_USE",
+  copyright: "COPYRIGHT",
+  updates: "UPDATES",
+  titles: "TITLES",
+  browse: "BROWSE",
+  collections: "COLLECTIONS",
+  chapter: "CHAPTER",
+  chapters: "CHAPTERS",
+  top: "TOP",
+  bookmarks: "BOOKMARKS",
+  history: "HISTORY",
+  profile: "PROFILE",
+  settings: "SETTINGS",
+  notifications: "NOTIFICATIONS",
+  admin: "ADMIN",
+  edit: "EDIT",
+  new: "NEW_TITLE",
+  users: "USERS",
+  user: "USER",
+  "reset-password": "RESET_PASSWORD",
+  "verify-email": "VERIFY_EMAIL",
+  "rate-limit": "RATE_LIMIT",
+  "tomilo-shop": "TOMILO_SHOP",
+};
+
 export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps) {
   const pathname = usePathname();
 
-  // Генерация хлебных крошек на основе текущего пути, если не переданы явно
   const generatedItems = useMemo(() => {
     if (items) return items;
 
     const pathSegments = pathname.split("/").filter(Boolean);
     const isAdminPath = pathSegments[0] === "admin";
-
-    // Специальные названия для определенных сегментов
-    const segmentNames: Record<string, string> = {
-      titles: isAdminPath ? "Тайтлы" : "Каталог",
-      browse: "Просмотр",
-      collections: "Коллекции",
-      chapter: "Глава",
-      top: "Топ",
-      bookmarks: "Закладки",
-      history: "История",
-      profile: "Профиль",
-      settings: "Настройки",
-      notifications: "Уведомления",
-      admin: "Админка",
-      edit: "Редактирование",
-      new: "Новый тайтл",
-      chapters: "Главы",
-      users: "Пользователи",
-    };
+    const BC = MESSAGES.BREADCRUMBS;
 
     const breadcrumbs: BreadcrumbItem[] = [
       {
-        name: "Главная",
+        name: BC.HOME,
         href: "/",
         isCurrent: pathSegments.length === 0,
       },
@@ -59,23 +70,39 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
       accumulatedPath += `/${segment}`;
       const isLast = index === pathSegments.length - 1;
 
-      let displayName = segmentNames[segment] || segment;
+      let displayName: string;
 
+      const key = SEGMENT_TO_KEY[segment];
+      if (key) {
+        displayName = BC[key];
+      } else {
+        displayName = segment;
+      }
+
+      // В админке: каталог — «Тайтлы», не «Каталог»
+      if (isAdminPath && segment === "titles") {
+        displayName = BC.TITLES_ADMIN;
+      }
       // В админке: после "chapters" сегмент может быть "new" или id главы
       if (isAdminPath && index > 0 && pathSegments[index - 1] === "chapters") {
-        if (segment === "new") displayName = "Новая глава";
-        else if (segment !== "chapters" && !segmentNames[segment]) displayName = "Глава";
+        if (segment === "new") displayName = BC.NEW_CHAPTER;
+        else if (segment !== "chapters" && !key) displayName = BC.CHAPTER;
       }
       // ID (Mongo ObjectId или число) — короткая подпись в админке
       if (isAdminPath && (/^[a-f0-9]{24}$/i.test(segment) || /^\d+$/.test(segment))) {
         const prev = pathSegments[index - 1];
-        if (prev === "edit" && pathSegments[index - 2] === "titles") displayName = "Тайтл";
-        else if (prev === "chapters") displayName = "Глава";
-        else if (pathSegments[index - 1] === "users") displayName = "Профиль";
+        if (prev === "edit" && pathSegments[index - 2] === "titles") displayName = BC.TITLE;
+        else if (prev === "chapters") displayName = BC.CHAPTER;
+        else if (pathSegments[index - 1] === "users") displayName = BC.PROFILE;
+      }
+
+      // Для неизвестных сегментов — первая буква заглавная (slug тайтла и т.д.)
+      if (displayName === segment && segment.length > 0) {
+        displayName = segment.charAt(0).toUpperCase() + segment.slice(1);
       }
 
       breadcrumbs.push({
-        name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
+        name: displayName,
         href: isLast ? undefined : accumulatedPath,
         isCurrent: isLast,
       });
@@ -85,32 +112,48 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
   }, [pathname, items]);
 
   if (generatedItems.length <= 1) {
-    return null; // Не показываем хлебные крошки на главной странице
+    return null;
   }
 
   return (
-    <nav className={`my-2 ${className}`} aria-label="Breadcrumb">
-      <ol className="flex items-center flex-wrap gap-x-2 text-sm text-[var(--muted-foreground)]">
+    <nav
+      className={`breadcrumbs-nav ${className}`}
+      aria-label="Хлебные крошки"
+    >
+      <ol className="breadcrumbs-list">
         {generatedItems.map((item, index) => (
-          <li key={index} className="flex items-center">
+          <li key={index} className="breadcrumbs-item">
             {item.href && !item.isCurrent ? (
-              <Link href={item.href} className="hover:text-[var(--primary)] transition-colors">
-                <span
-                  className={`max-w-[120px] sm:max-w-xs md:max-w-sm truncate ${item.isCurrent ? "text-[var(--foreground)] font-medium" : ""}`}
-                >
-                  {item.name}
-                </span>
+              <Link href={item.href} className="breadcrumbs-link">
+                {index === 0 ? (
+                  <span className="breadcrumbs-link-inner">
+                    <Home className="breadcrumbs-home-icon" aria-hidden />
+                    <span className="sr-only">{item.name}</span>
+                  </span>
+                ) : (
+                  <span className="breadcrumbs-link-inner breadcrumbs-text truncate">
+                    {item.name}
+                  </span>
+                )}
               </Link>
             ) : (
               <span
-                className={`max-w-[120px] sm:max-w-xs md:max-w-sm truncate ${item.isCurrent ? "text-[var(--foreground)] font-medium" : ""}`}
+                className={`breadcrumbs-text truncate ${item.isCurrent ? "breadcrumbs-current" : ""}`}
+                aria-current={item.isCurrent ? "page" : undefined}
               >
-                {item.name}
+                {index === 0 && !item.href ? (
+                  <>
+                    <Home className="breadcrumbs-home-icon" aria-hidden />
+                    <span className="sr-only">{item.name}</span>
+                  </>
+                ) : index === 0 ? null : (
+                  item.name
+                )}
               </span>
             )}
 
             {!item.isCurrent && index < generatedItems.length - 1 && (
-              <ChevronRight className="mx-1 h-4 w-4 shrink-0 text-[var(--muted-foreground)]" />
+              <ChevronRight className="breadcrumbs-separator" aria-hidden />
             )}
           </li>
         ))}

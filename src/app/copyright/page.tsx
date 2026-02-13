@@ -27,109 +27,75 @@ export default async function CopyrightPage({ searchParams }: CopyrightPageProps
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1 bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] pb-16 md:pb-0">
-        <div className="container mx-auto px-4 py-12 max-w-4xl">
-          <Breadcrumbs className="mb-6 pt-8" />
-          {/* Переключатель языка */}
+      <main className="content-page flex-1 pb-20 md:pb-0">
+        <div className="content-page-inner">
+          <Breadcrumbs className="mb-6" />
           <div className="flex justify-end mb-6">
             <a
               href={`?lang=${language === "ru" ? "en" : "ru"}`}
-              className="flex items-center gap-2 px-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)] transition-colors"
+              className="btn-lang"
             >
               <Languages className="w-4 h-4" />
               {currentContent.languageButton}
             </a>
           </div>
 
-          {/* Заголовок */}
-          <div className="text-center mb-12">
-            <div className="relative mb-8">
-              {/* <div className="w-32 h-32 mx-auto flex items-center justify-center">
-                <Scale className="w-20 h-20 text-[var(--primary)]" />
-              </div> */}
-            </div>
-            <h1 className="text-4xl font-bold text-[var(--muted-foreground)] mb-4">
-              {currentContent.title}
-            </h1>
-            <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
-              {currentContent.description}
-            </p>
+          <div className="content-page-hero mb-10">
+            <h1>{currentContent.title}</h1>
+            <p>{currentContent.description}</p>
           </div>
 
-          {/* Основной контент */}
-          <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-8 mb-8">
-            <div className="prose prose-lg max-w-none text-[var(--muted-foreground)]">
-              {/* Первый раздел */}
-              <div className="mb-8">
-                <p className="mb-4 leading-relaxed">{currentContent.section1}</p>
-              </div>
+          <div className="content-card mb-8">
+            <div className="space-y-8">
+              <p className="content-card-body">{currentContent.section1}</p>
 
-              {/* Уведомление о нарушении */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-semibold text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
-                  <FileText className="w-6 h-6 text-[var(--primary)]" />
+              <div>
+                <h2 className="content-card-section-title">
+                  <FileText className="w-6 h-6" />
                   {currentContent.notificationTitle}
                 </h2>
-                <p className="mb-4 leading-relaxed">{currentContent.notificationText}</p>
+                <p className="content-card-body">{currentContent.notificationText}</p>
               </div>
 
-              {/* Требования DMCA */}
-              <div className="mb-8">
-                <h3 className="text-xl font-semibold text-[var(--muted-foreground)] mb-4">
+              <div>
+                <h3 className="content-card-section-title text-base">
                   {currentContent.requirementsTitle}
                 </h3>
-                <p className="mb-4 leading-relaxed">{currentContent.requirementsText}</p>
-                <ul className="list-disc list-inside space-y-2 mb-4 text-[var(--muted-foreground)] leading-relaxed">
+                <p className="content-card-body mb-4">{currentContent.requirementsText}</p>
+                <ul className="content-card-body list-disc list-inside space-y-1">
                   {currentContent.requirementsList.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
               </div>
 
-              {/* Время обработки */}
-              <div className="mb-8">
-                <div className="flex items-start gap-3 p-4 bg-[var(--accent)] rounded-lg">
-                  <Clock className="w-5 h-5 text-[var(--primary)] mt-0.5 flex-shrink-0" />
-                  <p className="text-[var(--muted-foreground)] leading-relaxed">
-                    {currentContent.processingTime}
-                  </p>
-                </div>
+              <div className="flex items-start gap-3 p-4 bg-[var(--accent)] rounded-lg">
+                <Clock className="w-5 h-5 text-[var(--primary)] mt-0.5 flex-shrink-0" />
+                <p className="content-card-body mb-0">
+                  {currentContent.processingTime}
+                </p>
               </div>
 
-              {/* Предупреждение */}
               <div className="border-l-4 border-[var(--primary)] pl-4 py-2 bg-[var(--accent)]/30 rounded-r-lg">
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-[var(--primary)] mt-0.5 flex-shrink-0" />
-                  <p className="text-[var(--muted-foreground)] leading-relaxed">
-                    {currentContent.warning}
-                  </p>
+                  <p className="content-card-body mb-0">{currentContent.warning}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Контактная информация */}
-          <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-8 mb-8">
-            <div className="text-center">
-              <h3 className="text-2xl font-semibold text-[var(--muted-foreground)] mb-4 flex items-center justify-center gap-2">
-                <Mail className="w-6 h-6 text-[var(--primary)]" />
-                {currentContent.contactTitle}
-              </h3>
-              <p className="text-[var(--muted-foreground)] mb-4">
-                {currentContent.contactDescription}
-              </p>
-              <div className="bg-[var(--accent)] rounded-lg p-4 inline-block">
-                <a
-                  href={`mailto:${currentContent.email}`}
-                  className="text-[var(--chart-1)] font-medium hover:underline"
-                >
-                  {currentContent.email}
-                </a>
-              </div>
+          <div className="content-card mb-8 text-center">
+            <h3 className="content-card-section-title justify-center">
+              <Mail className="w-6 h-6" />
+              {currentContent.contactTitle}
+            </h3>
+            <p className="content-card-body mb-2">{currentContent.contactDescription}</p>
+            <div className="content-contact-email">
+              <a href={`mailto:${currentContent.email}`}>{currentContent.email}</a>
             </div>
           </div>
 
-          {/* Кнопка назад */}
           <BackButton />
         </div>
       </main>
