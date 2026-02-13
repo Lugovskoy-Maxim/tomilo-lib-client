@@ -521,6 +521,68 @@ textarea.admin-input {
   opacity: 0.5;
 }
 
+/* Footer contact links */
+.footer-contact-link {
+  color: var(--chart-1);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.footer-contact-link:hover {
+  color: var(--primary);
+  transform: translateX(2px);
+}
+
+/* Footer version badge */
+.footer-version {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.12), rgba(var(--primary-rgb), 0.06));
+  border: 1px solid rgba(var(--border-rgb), 0.6);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.75rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* Mobile footer bar */
+.footer-mobile-bar {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+}
+
+.shadow-footer-mobile {
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+[data-theme="dark"] .shadow-footer-mobile {
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.footer-mobile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+.footer-mobile-btn:active {
+  transform: scale(0.95);
+}
+.footer-mobile-btn:hover {
+  color: var(--foreground);
+  background: var(--accent);
+}
+.footer-mobile-btn-home {
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.12);
+  border-color: rgba(var(--primary-rgb), 0.25);
+}
+.footer-mobile-btn-home:hover {
+  background: rgba(var(--primary-rgb), 0.2);
+  color: var(--primary);
+}
+
 /* Mobile nav modern - ReaderControls style */
 .mobile-nav-item {
   position: relative;
