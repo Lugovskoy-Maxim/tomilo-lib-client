@@ -194,7 +194,7 @@ export default function HomePage() {
         {/* Последние обновления */}
         {latestUpdates.loading ? (
           <GridSkeleton />
-        ) : latestUpdates.error ? null : latestUpdates.data.length > 0 ? (
+        ) : latestUpdates.error ? null : Array.isArray(latestUpdates.data) && latestUpdates.data.length > 0 ? (
           <GridSection
             title="Последние обновления"
             description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."

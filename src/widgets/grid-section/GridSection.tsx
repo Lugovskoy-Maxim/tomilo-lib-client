@@ -35,6 +35,8 @@ export default function GridSection<T>({
   navigationIcon,
   descriptionLink,
 }: GridSectionProps<T>) {
+  const safeData = Array.isArray(data) ? data : [];
+
   /**
    * Получает уникальный ID карточки из данных.
    */
@@ -95,8 +97,8 @@ export default function GridSection<T>({
 
       {/* Grid с карточками — единые отступы между карточками */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {data.length > 0 ? (
-          data.map(item => (
+        {safeData.length > 0 ? (
+          safeData.map(item => (
             <div
               key={getCardId(item)}
               data-card-id={getCardId(item)}
@@ -114,7 +116,7 @@ export default function GridSection<T>({
       </div>
 
       {/* Кнопка "Показать еще" для мобильных устройств */}
-      {href && data.length >= 6 && (
+      {href && safeData.length >= 6 && (
         <div className="flex justify-center mt-6 lg:hidden">
           <Link
             href={href}

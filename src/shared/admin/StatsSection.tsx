@@ -60,6 +60,59 @@ const COLORS = {
   chart5: "#8dd1e1",
 };
 
+/** Нормализация полей с сервера: views = titleViews+chapterViews, date как строка */
+function normItem(item: Record<string, unknown>) {
+  const views =
+    typeof item.views === "number"
+      ? item.views
+      : (Number(item.titleViews) || 0) + (Number(item.chapterViews) || 0);
+  const date =
+    typeof item.date === "string"
+      ? item.date
+      : (item.date as Date)?.toISOString?.()?.split("T")[0] ?? String(item.date ?? "");
+  return {
+    date,
+    views,
+    newUsers: Number(item.newUsers) || 0,
+    newTitles: Number(item.newTitles) || 0,
+    newChapters: Number(item.newChapters) || 0,
+    chaptersRead: Number(item.chaptersRead) || 0,
+  };
+}
+
+/** Нормализация месячной записи с сервера (totalNewUsers → newUsers, totalTitleViews+totalChapterViews → views) */
+function normMonthly(rec: Record<string, unknown> | null | undefined) {
+  if (!rec) return null;
+  return {
+    ...rec,
+    year: Number(rec.year),
+    month: Number(rec.month),
+    views:
+      typeof rec.views === "number"
+        ? rec.views
+        : (Number(rec.totalTitleViews) || 0) + (Number(rec.totalChapterViews) || 0),
+    newUsers: Number(rec.newUsers) ?? Number(rec.totalNewUsers) ?? 0,
+    newTitles: Number(rec.newTitles) ?? Number(rec.totalNewTitles) ?? 0,
+    newChapters: Number(rec.newChapters) ?? Number(rec.totalNewChapters) ?? 0,
+  };
+}
+
+/** Нормализация годовой записи с сервера (yearlyTotals) */
+function normYearly(rec: Record<string, unknown> | null | undefined) {
+  if (!rec) return null;
+  const totals = (rec.yearlyTotals || rec) as Record<string, unknown>;
+  return {
+    year: Number(rec.year),
+    views:
+      typeof totals.views === "number"
+        ? totals.views
+        : (Number(totals.totalTitleViews) || 0) + (Number(totals.totalChapterViews) || 0),
+    newUsers: Number(totals.newUsers) ?? Number(totals.totalNewUsers) ?? 0,
+    newTitles: Number(totals.newTitles) ?? Number(totals.totalNewTitles) ?? 0,
+    newChapters: Number(totals.newChapters) ?? Number(totals.totalNewChapters) ?? 0,
+  };
+}
+
 export function StatsSection() {
   const [activeView, setActiveView] = useState<StatsView>("history");
   const [historyType, setHistoryType] = useState<"daily" | "monthly" | "yearly">("daily");
@@ -110,37 +163,64 @@ export function StatsSection() {
   const { data: availableYears } = useGetAvailableYearsQuery();
   const [recordStats, { isLoading: isRecording }] = useRecordStatsMutation();
 
-  // Prepare chart data
+  const availableYearsList = useMemo(() => {
+    const d = availableYears?.data as unknown;
+    if (Array.isArray(d)) return d as number[];
+    if (d && typeof d === "object" && "years" in d) return (d as { years: number[] }).years ?? [];
+    return [];
+  }, [availableYears]);
+
+  // API: history is ApiResponseDto<StatsHistoryResponse>, so array at data.data.data
+  const historyArray = useMemo(() => {
+    const d = historyData?.data as Record<string, unknown> | undefined;
+    const inner = d?.data as { data?: unknown } | undefined;
+    const raw = inner?.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [historyData]);
+
+  // API: recent/range are ApiResponseDto<Array>, so array at data.data
+  const recentArray = useMemo(() => {
+    const d = recentData?.data as Record<string, unknown> | undefined;
+    const raw = d?.data ?? recentData?.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [recentData]);
+
+  const rangeArray = useMemo(() => {
+    const d = rangeData?.data as Record<string, unknown> | undefined;
+    const raw = d?.data ?? rangeData?.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [rangeData]);
+
+  // API может возвращать { data: T } — тогда запись в data.data или data
+  const dailyRecordRaw = (dailyData?.data as Record<string, unknown> | undefined)?.data ?? dailyData?.data;
+  const monthlyRecordRaw = (monthlyData?.data as Record<string, unknown> | undefined)?.data ?? monthlyData?.data;
+  const yearlyRecordRaw = (yearlyData?.data as Record<string, unknown> | undefined)?.data ?? yearlyData?.data;
+  const dailyRecord = dailyRecordRaw ? normItem(dailyRecordRaw as Record<string, unknown>) : null;
+  const monthlyRecord = normMonthly(monthlyRecordRaw as Record<string, unknown> | undefined);
+  const yearlyRecord = normYearly(yearlyRecordRaw as Record<string, unknown> | undefined);
+
   const chartData = useMemo(() => {
-    if (activeView === "history" && historyData?.data?.data) {
-      return (historyData.data.data as (DailyStatsHistory | MonthlyStatsHistory | YearlyStatsHistory)[]).map((item) => ({
-        name: "date" in item ? item.date : `${item.year}-${"month" in item ? item.month : ""}`,
-        views: item.views,
-        newUsers: item.newUsers,
-        newTitles: item.newTitles,
-        newChapters: item.newChapters,
-      }));
+    if (activeView === "history" && historyArray.length > 0) {
+      return historyArray.map((item: DailyStatsHistory | MonthlyStatsHistory | YearlyStatsHistory | Record<string, unknown>) => {
+        const n = normItem(item as Record<string, unknown>);
+        const name = "date" in item && item.date ? n.date : `${(item as { year?: number }).year}-${(item as { month?: number }).month ?? ""}`;
+        return { name, views: n.views, newUsers: n.newUsers, newTitles: n.newTitles, newChapters: n.newChapters };
+      });
     }
-    if (activeView === "recent" && recentData?.data) {
-      return recentData.data.map((item) => ({
-        name: item.date,
-        views: item.views,
-        newUsers: item.newUsers,
-        newTitles: item.newTitles,
-        newChapters: item.newChapters,
-      }));
+    if (activeView === "recent" && recentArray.length > 0) {
+      return recentArray.map((item) => {
+        const n = normItem(item as Record<string, unknown>);
+        return { name: n.date, views: n.views, newUsers: n.newUsers, newTitles: n.newTitles, newChapters: n.newChapters };
+      });
     }
-    if (activeView === "range" && rangeData?.data) {
-      return rangeData.data.map((item) => ({
-        name: item.date,
-        views: item.views,
-        newUsers: item.newUsers,
-        newTitles: item.newTitles,
-        newChapters: item.newChapters,
-      }));
+    if (activeView === "range" && rangeArray.length > 0) {
+      return rangeArray.map((item) => {
+        const n = normItem(item as Record<string, unknown>);
+        return { name: n.date, views: n.views, newUsers: n.newUsers, newTitles: n.newTitles, newChapters: n.newChapters };
+      });
     }
     return [];
-  }, [activeView, historyData, recentData, rangeData]);
+  }, [activeView, historyArray, recentArray, rangeArray]);
 
   const handleRecordStats = async () => {
     try {
@@ -282,7 +362,7 @@ export function StatsSection() {
                     onChange={(e) => setSelectedYear(Number(e.target.value))}
                     className="admin-input"
                   >
-                    {availableYears?.data?.years.map((year) => (
+                    {availableYearsList.map((year) => (
                       <option key={year} value={year}>{year}</option>
                     )) || (
                       <>
@@ -357,7 +437,7 @@ export function StatsSection() {
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
                 className="admin-input"
               >
-                {availableYears?.data?.years.map((year) => (
+                {availableYearsList.map((year) => (
                   <option key={year} value={year}>{year}</option>
                 )) || (
                   <>
@@ -392,7 +472,7 @@ export function StatsSection() {
               onChange={(e) => setSelectedYear(Number(e.target.value))}
               className="admin-input"
             >
-              {availableYears?.data?.years.map((year) => (
+              {availableYearsList.map((year) => (
                 <option key={year} value={year}>{year}</option>
               )) || (
                 <>
@@ -490,62 +570,70 @@ export function StatsSection() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
-                  {activeView === "history" && historyData?.data?.data?.map((item, index: number) => (
+                  {activeView === "history" && historyArray.map((item, index: number) => {
+                    const n = normItem(item as Record<string, unknown>);
+                    const name = "date" in item && item.date ? n.date : `${(item as { year?: number }).year}-${(item as { month?: number }).month ?? ""}`;
+                    return (
                     <tr key={index} className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">
-                        {"date" in item ? item.date : `${item.year}-${"month" in item ? item.month : ""}`}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.newChapters)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{name}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.views)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newUsers)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newTitles)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newChapters)}</td>
                     </tr>
-                  ))}
-                  {activeView === "daily" && dailyData?.data && (
+                    );
+                  })}
+                  {activeView === "daily" && dailyRecord && (
                     <tr className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{dailyData.data.date}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyData.data.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyData.data.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyData.data.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyData.data.newChapters)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{dailyRecord.date}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyRecord.views)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyRecord.newUsers)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyRecord.newTitles)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyRecord.newChapters)}</td>
                     </tr>
                   )}
-                  {activeView === "range" && rangeData?.data?.map((item, index: number) => (
+                  {activeView === "range" && rangeArray.map((item, index: number) => {
+                    const n = normItem(item as Record<string, unknown>);
+                    return (
                     <tr key={index} className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{item.date}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.newChapters)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{n.date}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.views)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newUsers)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newTitles)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newChapters)}</td>
                     </tr>
-                  ))}
-                  {activeView === "monthly" && monthlyData?.data && (
+                    );
+                  })}
+                  {activeView === "monthly" && monthlyRecord && (
                     <tr className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{monthlyData.data.year}-{monthlyData.data.month}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyData.data.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyData.data.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyData.data.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyData.data.newChapters)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{monthlyRecord.year}-{monthlyRecord.month}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyRecord.views)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyRecord.newUsers)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyRecord.newTitles)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyRecord.newChapters)}</td>
                     </tr>
                   )}
-                  {activeView === "yearly" && yearlyData?.data && (
+                  {activeView === "yearly" && yearlyRecord && (
                     <tr className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{yearlyData.data.year}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyData.data.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyData.data.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyData.data.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyData.data.newChapters)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{yearlyRecord.year}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyRecord.views)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyRecord.newUsers)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyRecord.newTitles)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyRecord.newChapters)}</td>
                     </tr>
                   )}
-                  {activeView === "recent" && recentData?.data?.map((item, index: number) => (
+                  {activeView === "recent" && recentArray.map((item, index: number) => {
+                    const n = normItem(item as Record<string, unknown>);
+                    return (
                     <tr key={index} className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{item.date}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(item.newChapters)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{n.date}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.views)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newUsers)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newTitles)}</td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newChapters)}</td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -556,17 +644,17 @@ export function StatsSection() {
             <StatCard
               label="Всего просмотров"
               value={formatNumber(
-                activeView === "history" 
-                  ? (historyData?.data?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.views || 0), 0) || 0
+                activeView === "history"
+                  ? historyArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).views, 0)
                   : activeView === "daily"
-                  ? dailyData?.data?.views || 0
+                  ? (dailyRecord?.views ?? 0)
                   : activeView === "range"
-                  ? (rangeData?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.views || 0), 0) || 0
+                  ? rangeArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).views, 0)
                   : activeView === "monthly"
-                  ? monthlyData?.data?.views || 0
+                  ? (monthlyRecord?.views ?? 0)
                   : activeView === "yearly"
-                  ? yearlyData?.data?.views || 0
-                  : (recentData?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.views || 0), 0) || 0
+                  ? (yearlyRecord?.views ?? 0)
+                  : recentArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).views, 0)
               )}
               icon={<Eye className="w-5 h-5" />}
               color="blue"
@@ -574,17 +662,17 @@ export function StatsSection() {
             <StatCard
               label="Новые пользователи"
               value={formatNumber(
-                activeView === "history" 
-                  ? (historyData?.data?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.newUsers || 0), 0) || 0
+                activeView === "history"
+                  ? historyArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newUsers, 0)
                   : activeView === "daily"
-                  ? dailyData?.data?.newUsers || 0
+                  ? (dailyRecord?.newUsers ?? 0)
                   : activeView === "range"
-                  ? (rangeData?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.newUsers || 0), 0) || 0
+                  ? rangeArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newUsers, 0)
                   : activeView === "monthly"
-                  ? monthlyData?.data?.newUsers || 0
+                  ? (monthlyRecord?.newUsers ?? 0)
                   : activeView === "yearly"
-                  ? yearlyData?.data?.newUsers || 0
-                  : (recentData?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.newUsers || 0), 0) || 0
+                  ? (yearlyRecord?.newUsers ?? 0)
+                  : recentArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newUsers, 0)
               )}
               icon={<Users className="w-5 h-5" />}
               color="green"
@@ -592,17 +680,17 @@ export function StatsSection() {
             <StatCard
               label="Новые тайтлы"
               value={formatNumber(
-                activeView === "history" 
-                  ? (historyData?.data?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.newTitles || 0), 0) || 0
+                activeView === "history"
+                  ? historyArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newTitles, 0)
                   : activeView === "daily"
-                  ? dailyData?.data?.newTitles || 0
+                  ? (dailyRecord?.newTitles ?? 0)
                   : activeView === "range"
-                  ? (rangeData?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.newTitles || 0), 0) || 0
+                  ? rangeArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newTitles, 0)
                   : activeView === "monthly"
-                  ? monthlyData?.data?.newTitles || 0
+                  ? (monthlyRecord?.newTitles ?? 0)
                   : activeView === "yearly"
-                  ? yearlyData?.data?.newTitles || 0
-                  : (recentData?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.newTitles || 0), 0) || 0
+                  ? (yearlyRecord?.newTitles ?? 0)
+                  : recentArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newTitles, 0)
               )}
               icon={<BookOpen className="w-5 h-5" />}
               color="purple"
@@ -610,17 +698,17 @@ export function StatsSection() {
             <StatCard
               label="Новые главы"
               value={formatNumber(
-                activeView === "history" 
-                  ? (historyData?.data?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.newChapters || 0), 0) || 0
+                activeView === "history"
+                  ? historyArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newChapters, 0)
                   : activeView === "daily"
-                  ? dailyData?.data?.newChapters || 0
+                  ? (dailyRecord?.newChapters ?? 0)
                   : activeView === "range"
-                  ? (rangeData?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.newChapters || 0), 0) || 0
+                  ? rangeArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newChapters, 0)
                   : activeView === "monthly"
-                  ? monthlyData?.data?.newChapters || 0
+                  ? (monthlyRecord?.newChapters ?? 0)
                   : activeView === "yearly"
-                  ? yearlyData?.data?.newChapters || 0
-                  : (recentData?.data as DailyStatsHistory[])?.reduce((sum, item) => sum + (item.newChapters || 0), 0) || 0
+                  ? (yearlyRecord?.newChapters ?? 0)
+                  : recentArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newChapters, 0)
               )}
               icon={<TrendingUp className="w-5 h-5" />}
               color="orange"

@@ -63,17 +63,17 @@ function PopularChapterItem({
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 hover:bg-[var(--accent)]/30 transition-colors">
-      <span className="w-5 h-5 rounded-[var(--admin-radius)] bg-[var(--chart-5)]/15 flex items-center justify-center text-xs font-medium text-[var(--chart-5)] shrink-0">
+    <div className="flex items-center gap-3 px-5 py-3.5 hover:bg-[var(--accent)]/40 transition-colors">
+      <span className="w-8 h-8 rounded-xl bg-[var(--chart-5)]/15 flex items-center justify-center text-sm font-bold text-[var(--chart-5)] shrink-0">
         {index + 1}
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-[var(--foreground)] truncate">{chapter.name}</p>
+        <p className="text-sm font-medium text-[var(--foreground)] truncate">{chapter.name}</p>
         <p className="text-xs text-[var(--muted-foreground)] truncate" title={displayTitleName}>
           {displayTitleName}
         </p>
       </div>
-      <span className="text-xs font-medium text-[var(--primary)] shrink-0 ml-2">
+      <span className="text-sm font-semibold text-[var(--primary)] shrink-0">
         {formatNumber(chapter.views)}
       </span>
     </div>
@@ -111,279 +111,287 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-2">
-        {/* Loading skeleton for stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
-              <div className="h-4 w-12 bg-[var(--muted)] rounded animate-pulse mb-2"></div>
-              <div className="h-6 w-16 bg-[var(--muted)] rounded animate-pulse"></div>
-            </div>
-          ))}
+      <div className="space-y-8">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] h-20 animate-pulse" />
+        <div>
+          <div className="h-4 w-32 bg-[var(--muted)] rounded animate-pulse mb-3" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4">
+                <div className="h-8 w-16 bg-[var(--muted)] rounded-lg animate-pulse mb-2" />
+                <div className="h-4 w-20 bg-[var(--muted)] rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
         </div>
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] h-48 animate-pulse" />
       </div>
     );
   }
 
   if (error || !stats) {
     return (
-      <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/30 rounded-[var(--admin-radius)] p-6">
-        <p className="text-[var(--destructive)] font-medium">Ошибка загрузки статистики</p>
-        <p className="text-[var(--destructive)]/80 text-sm mt-1">Не удалось получить данные с сервера</p>
+      <div className="rounded-2xl border border-[var(--destructive)]/30 bg-[var(--destructive)]/5 p-6 text-center">
+        <p className="font-semibold text-[var(--destructive)]">Ошибка загрузки статистики</p>
+        <p className="text-sm text-[var(--destructive)]/80 mt-1">Не удалось получить данные с сервера</p>
       </div>
     );
   }
 
   const quickActions = [
-    { icon: Plus, label: "Создать", action: () => onTabChange("titles"), color: "blue" },
+    { icon: Plus, label: "Создать тайтл", action: () => onTabChange("titles"), color: "blue" },
     { icon: Download, label: "Парсинг", action: () => onTabChange("parser"), color: "green" },
     { icon: BookOpen, label: "Тайтлы", action: () => onTabChange("titles"), color: "purple" },
     { icon: FileText, label: "Главы", action: () => onTabChange("chapters"), color: "orange" },
   ];
 
+  const popularTitles = Array.isArray(stats.popularTitles) ? stats.popularTitles : [];
+  const popularChapters = Array.isArray(stats.popularChapters) ? stats.popularChapters : [];
+  const ongoingShare = stats.totalTitles ? Math.round(((stats.ongoingTitles ?? 0) / stats.totalTitles) * 100) : 0;
+
   return (
-    <div className="space-y-6">
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard
-          value={formatNumber(stats.totalTitles)}
-          label="Тайтлы"
-          icon={<BookOpen className="w-5 h-5" />}
-          color="blue"
-          trend={trends ? { value: Math.round((stats.ongoingTitles / stats.totalTitles) * 100), isPositive: true } : undefined}
-        />
-        <StatCard
-          value={formatNumber(stats.totalChapters)}
-          label="Главы"
-          icon={<FileText className="w-5 h-5" />}
-          color="green"
-        />
-        <StatCard
-          value={formatNumber(stats.totalUsers)}
-          label="Пользователи"
-          icon={<Users className="w-5 h-5" />}
-          color="purple"
-          trend={trends?.newUsers}
-        />
-        <StatCard
-          value={formatNumber(stats.totalViews)}
-          label="Просмотры"
-          icon={<Eye className="w-5 h-5" />}
-          color="orange"
-          trend={trends?.views}
-        />
-        <StatCard
-          value={formatNumber(stats.totalBookmarks)}
-          label="Закладки"
-          icon={<Bookmark className="w-5 h-5" />}
-          color="pink"
-        />
-        <StatCard
-          value={formatNumber(stats.totalCollections)}
-          label="Коллекции"
-          icon={<Layers className="w-5 h-5" />}
-          color="cyan"
-        />
+    <div className="space-y-8">
+      {/* Заголовок секции */}
+      <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--card)] to-[var(--secondary)]/30 px-5 py-4">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Сводка по платформе</h2>
+        <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
+          Ключевые метрики и быстрые действия для управления контентом
+        </p>
       </div>
 
-      {/* Period Stats */}
-      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)]">
-        {/* Period Tabs */}
-        <div className="flex border-b border-[var(--border)]">
+      {/* Основные метрики */}
+      <div>
+        <h3 className="text-sm font-medium text-[var(--muted-foreground)] mb-3 uppercase tracking-wider">Основные показатели</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <StatCard
+            value={formatNumber(stats.totalTitles)}
+            label="Тайтлы"
+            icon={<BookOpen className="w-5 h-5" />}
+            color="blue"
+            trend={trends && stats.totalTitles ? { value: ongoingShare, isPositive: true } : undefined}
+          />
+          <StatCard
+            value={formatNumber(stats.totalChapters)}
+            label="Главы"
+            icon={<FileText className="w-5 h-5" />}
+            color="green"
+          />
+          <StatCard
+            value={formatNumber(stats.totalUsers)}
+            label="Пользователи"
+            icon={<Users className="w-5 h-5" />}
+            color="purple"
+            trend={trends?.newUsers}
+          />
+          <StatCard
+            value={formatNumber(stats.totalViews)}
+            label="Просмотры"
+            icon={<Eye className="w-5 h-5" />}
+            color="orange"
+            trend={trends?.views}
+          />
+          <StatCard
+            value={formatNumber(stats.totalBookmarks)}
+            label="Закладки"
+            icon={<Bookmark className="w-5 h-5" />}
+            color="pink"
+          />
+          <StatCard
+            value={formatNumber(stats.totalCollections)}
+            label="Коллекции"
+            icon={<Layers className="w-5 h-5" />}
+            color="cyan"
+          />
+        </div>
+      </div>
+
+      {/* Период: вкладки + метрики */}
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm">
+        <div className="flex gap-1 p-2 border-b border-[var(--border)] bg-[var(--secondary)]/20">
           {(["daily", "weekly", "monthly"] as const).map(period => (
             <button
               key={period}
               onClick={() => setActivePeriod(period)}
-              className={`px-4 py-3 text-sm font-medium transition-colors ${
+              className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                 activePeriod === period
-                  ? "text-[var(--primary)] border-b-2 border-[var(--primary)] bg-[var(--accent)]/50"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)]"
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                  : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
               }`}
             >
               {period === "daily" ? "Сегодня" : period === "weekly" ? "Неделя" : "Месяц"}
             </button>
           ))}
         </div>
-
-        {/* Period Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4">
-          <PeriodStat 
-            icon={Eye} 
-            value={periodData.views} 
-            label="Просмотры" 
-            color="blue" 
-            trend={trends?.views}
-          />
-          <PeriodStat 
-            icon={Users} 
-            value={periodData.newUsers} 
-            label="Новые юзеры" 
-            color="green" 
-            trend={trends?.newUsers}
-          />
-          <PeriodStat
-            icon={BookOpen}
-            value={periodData.newTitles}
-            label="Новые тайтлы"
-            color="purple"
-            trend={trends?.newTitles}
-          />
-          <PeriodStat
-            icon={FileText}
-            value={periodData.newChapters}
-            label="Новые главы"
-            color="orange"
-            trend={trends?.newChapters}
-          />
-          <PeriodStat icon={Target} value={stats.averageRating} label="Ср. оценка" color="yellow" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 p-6">
+          <PeriodStat icon={Eye} value={periodData.views} label="Просмотры" color="blue" trend={trends?.views} />
+          <PeriodStat icon={Users} value={periodData.newUsers} label="Новые пользователи" color="green" trend={trends?.newUsers} />
+          <PeriodStat icon={BookOpen} value={periodData.newTitles} label="Новые тайтлы" color="purple" trend={trends?.newTitles} />
+          <PeriodStat icon={FileText} value={periodData.newChapters} label="Новые главы" color="orange" trend={trends?.newChapters} />
+          <PeriodStat icon={Target} value={typeof stats.averageRating === "number" ? stats.averageRating : 0} label="Ср. оценка" color="yellow" />
         </div>
       </div>
 
-      {/* Two Column Layout: Popular Titles & Quick Actions */}
+      {/* Две колонки: популярные тайтлы + действия и топ глав */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Popular Titles */}
-        <div className="lg:col-span-2 bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
-          <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+        {/* Популярные тайтлы */}
+        <div className="lg:col-span-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] bg-[var(--secondary)]/20">
             <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
+              <span className="p-1.5 rounded-lg bg-[var(--chart-1)]/15 text-[var(--chart-1)]">
+                <TrendingUp className="w-5 h-5" />
+              </span>
               Популярные тайтлы
             </h3>
             <button
               onClick={() => onTabChange("titles")}
-              className="text-xs text-[var(--primary)] hover:underline"
+              className="text-sm font-medium text-[var(--primary)] hover:underline flex items-center gap-1"
             >
-              Все →
+              Все <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
           <div className="divide-y divide-[var(--border)]">
-            {stats.popularTitles.slice(0, 8).map((title, index) => (
+            {popularTitles.slice(0, 8).map((title, index) => (
               <div
                 key={title.id}
-                className="flex items-center gap-3 p-3 hover:bg-[var(--accent)]/30 transition-colors"
+                className="flex items-center gap-4 px-5 py-3.5 hover:bg-[var(--accent)]/40 transition-colors"
               >
-                <span className="w-6 h-6 rounded-full bg-[var(--secondary)] flex items-center justify-center text-xs font-medium text-[var(--muted-foreground)]">
+                <span className="w-8 h-8 rounded-xl bg-[var(--chart-1)]/15 text-[var(--chart-1)] flex items-center justify-center text-sm font-bold shrink-0">
                   {index + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[var(--foreground)] text-sm truncate">
-                    {title.name}
-                  </p>
-                  <p className="text-xs text-[var(--muted-foreground)]">
-                    {formatNumber(title.views)} просмотров
+                  <p className="font-medium text-[var(--foreground)] truncate">{title.name}</p>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                    {formatNumber(title.views ?? 0)} просмотров
+                    {typeof title.dayViews === "number" && (
+                      <span className="ml-2 text-[var(--primary)]">· {formatNumber(title.dayViews)} сегодня</span>
+                    )}
                   </p>
                 </div>
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-medium text-[var(--primary)]">
-                    {title.dayViews} сегодня
-                  </p>
-                  <p className="text-xs text-[var(--muted-foreground)]">
-                    {formatNumber(title.weekViews)} за неделю
-                  </p>
+                <div className="text-right shrink-0 hidden sm:block">
+                  <p className="text-xs text-[var(--muted-foreground)]">{formatNumber(title.weekViews ?? 0)} за неделю</p>
                 </div>
               </div>
             ))}
+            {popularTitles.length === 0 && (
+              <div className="px-5 py-8 text-center text-sm text-[var(--muted-foreground)]">Нет данных за выбранный период</div>
+            )}
           </div>
         </div>
 
-        {/* Right Column: Quick Actions & Top Chapters */}
         <div className="space-y-6">
-          {/* Quick Actions */}
-          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
-            <h3 className="font-semibold text-[var(--foreground)] mb-4">Действия</h3>
-            <div className="grid grid-cols-2 gap-2">
+          {/* Быстрые действия */}
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
+            <h3 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                <Target className="w-4 h-4" />
+              </span>
+              Быстрые действия
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
               {quickActions.map((action, i) => (
                 <button
                   key={i}
                   onClick={action.action}
-                  className="p-3 border border-[var(--border)] rounded-[var(--admin-radius)] hover:bg-[var(--accent)] transition-colors flex flex-col items-center gap-1"
+                  className="flex flex-col items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--secondary)]/30 p-4 hover:bg-[var(--accent)] hover:border-[var(--primary)]/30 transition-all"
                 >
-                  <action.icon className="w-5 h-5 text-[var(--primary)]" />
-                  <span className="text-xs font-medium">{action.label}</span>
+                  <action.icon className="w-6 h-6 text-[var(--primary)]" />
+                  <span className="text-xs font-medium text-center">{action.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Popular Chapters */}
-          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden">
-            <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+          {/* Топ глав */}
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm">
+            <div className="px-5 py-4 border-b border-[var(--border)] bg-[var(--secondary)]/20">
               <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
-                <Award className="w-5 h-5 text-[var(--chart-5)]" />
+                <span className="p-1.5 rounded-lg bg-[var(--chart-5)]/15 text-[var(--chart-5)]">
+                  <Award className="w-5 h-5" />
+                </span>
                 Топ глав
               </h3>
             </div>
             <div className="divide-y divide-[var(--border)]">
-              {stats.popularChapters.slice(0, 5).map((chapter, index) => (
+              {popularChapters.slice(0, 5).map((chapter, index) => (
                 <PopularChapterItem key={chapter.id} chapter={chapter} index={index} />
               ))}
+              {popularChapters.length === 0 && (
+                <div className="px-5 py-6 text-center text-sm text-[var(--muted-foreground)]">Нет данных</div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Activity Summary */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar className="w-5 h-5 text-[var(--primary)]" />
-            <h3 className="font-medium text-[var(--foreground)]">Активность</h3>
+      {/* Блоки: Активность, Статус тайтлов, Сессия */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="p-2 rounded-xl bg-[var(--chart-1)]/15 text-[var(--chart-1)]">
+              <Calendar className="w-5 h-5" />
+            </span>
+            <h3 className="font-semibold text-[var(--foreground)]">Активность</h3>
           </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Онлайн сегодня</span>
-              <span className="font-medium">{stats.activeUsersToday}</span>
+          <dl className="space-y-3">
+            <div className="flex justify-between items-center text-sm">
+              <dt className="text-[var(--muted-foreground)]">Онлайн сегодня</dt>
+              <dd className="font-semibold">{stats.activeUsersToday ?? 0}</dd>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Рейтингов</span>
-              <span className="font-medium">{stats.totalRatings}</span>
+            <div className="flex justify-between items-center text-sm">
+              <dt className="text-[var(--muted-foreground)]">Рейтингов</dt>
+              <dd className="font-semibold">{stats.totalRatings ?? 0}</dd>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Ср. оценка</span>
-              <span className="font-medium">{stats.averageRating.toFixed(2)}</span>
+            <div className="flex justify-between items-center text-sm">
+              <dt className="text-[var(--muted-foreground)]">Ср. оценка</dt>
+              <dd className="font-semibold">{typeof stats.averageRating === "number" ? stats.averageRating.toFixed(2) : "—"}</dd>
             </div>
-          </div>
+          </dl>
         </div>
 
-        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Layers className="w-5 h-5 text-[var(--chart-2)]" />
-            <h3 className="font-medium text-[var(--foreground)]">Статус тайтлов</h3>
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="p-2 rounded-xl bg-[var(--chart-2)]/15 text-[var(--chart-2)]">
+              <Layers className="w-5 h-5" />
+            </span>
+            <h3 className="font-semibold text-[var(--foreground)]">Статус тайтлов</h3>
           </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Онгоинг</span>
-              <span className="font-medium text-[var(--chart-2)]">{stats.ongoingTitles}</span>
+          <dl className="space-y-3">
+            <div className="flex justify-between items-center text-sm">
+              <dt className="text-[var(--muted-foreground)]">Онгоинг</dt>
+              <dd className="font-semibold text-[var(--chart-2)]">{stats.ongoingTitles ?? 0}</dd>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Завершённые</span>
-              <span className="font-medium text-[var(--chart-1)]">{stats.completedTitles}</span>
+            <div className="flex justify-between items-center text-sm">
+              <dt className="text-[var(--muted-foreground)]">Завершённые</dt>
+              <dd className="font-semibold text-[var(--chart-1)]">{stats.completedTitles ?? 0}</dd>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Всего</span>
-              <span className="font-medium">{stats.totalTitles}</span>
+            <div className="flex justify-between items-center text-sm">
+              <dt className="text-[var(--muted-foreground)]">Всего</dt>
+              <dd className="font-semibold">{stats.totalTitles}</dd>
             </div>
-          </div>
+          </dl>
         </div>
 
-        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="w-5 h-5 text-[var(--chart-4)]" />
-            <h3 className="font-medium text-[var(--foreground)]">Сессия</h3>
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="p-2 rounded-xl bg-[var(--chart-4)]/15 text-[var(--chart-4)]">
+              <Clock className="w-5 h-5" />
+            </span>
+            <h3 className="font-semibold text-[var(--foreground)]">Пользователи и главы</h3>
           </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Новые за месяц</span>
-              <span className="font-medium">{stats.newUsersThisMonth}</span>
+          <dl className="space-y-3">
+            <div className="flex justify-between items-center text-sm">
+              <dt className="text-[var(--muted-foreground)]">Новые за месяц</dt>
+              <dd className="font-semibold">{stats.newUsersThisMonth ?? 0}</dd>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Новые сегодня</span>
-              <span className="font-medium">{stats.daily.newUsers}</span>
+            <div className="flex justify-between items-center text-sm">
+              <dt className="text-[var(--muted-foreground)]">Новые сегодня</dt>
+              <dd className="font-semibold">{stats.daily?.newUsers ?? 0}</dd>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Глав за месяц</span>
-              <span className="font-medium">{formatNumber(stats.monthly.newChapters)}</span>
+            <div className="flex justify-between items-center text-sm">
+              <dt className="text-[var(--muted-foreground)]">Глав за месяц</dt>
+              <dd className="font-semibold">{formatNumber(stats.monthly?.newChapters ?? 0)}</dd>
             </div>
-          </div>
+          </dl>
         </div>
       </div>
     </div>
@@ -405,12 +413,13 @@ function PeriodStat({
   trend?: { value: number; isPositive: boolean };
 }) {
   const colorClasses: Record<string, string> = {
-    blue: "text-[var(--chart-1)]",
-    green: "text-[var(--chart-2)]",
-    purple: "text-[var(--chart-3)]",
-    orange: "text-[var(--chart-4)]",
-    yellow: "text-[var(--chart-5)]",
+    blue: "text-[var(--chart-1)] bg-[var(--chart-1)]/10",
+    green: "text-[var(--chart-2)] bg-[var(--chart-2)]/10",
+    purple: "text-[var(--chart-3)] bg-[var(--chart-3)]/10",
+    orange: "text-[var(--chart-4)] bg-[var(--chart-4)]/10",
+    yellow: "text-[var(--chart-5)] bg-[var(--chart-5)]/10",
   };
+  const cls = colorClasses[color] || colorClasses.blue;
 
   const formatValue = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -420,12 +429,14 @@ function PeriodStat({
 
   return (
     <div className="text-center">
-      <Icon className={`w-5 h-5 mx-auto mb-1 ${colorClasses[color] || colorClasses.blue}`} />
+      <span className={`inline-flex items-center justify-center w-10 h-10 rounded-xl mb-2 ${cls}`}>
+        <Icon className="w-5 h-5" />
+      </span>
       <p className="text-xl font-bold text-[var(--foreground)]">{formatValue(value)}</p>
-      <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
+      <p className="text-xs text-[var(--muted-foreground)] mt-0.5">{label}</p>
       {trend && (
-        <div className={`flex items-center justify-center gap-1 text-xs mt-1 ${trend.isPositive ? 'text-[var(--chart-2)]' : 'text-[var(--destructive)]'}`}>
-          {trend.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+        <div className={`flex items-center justify-center gap-1 text-xs mt-2 font-medium ${trend.isPositive ? "text-[var(--chart-2)]" : "text-[var(--destructive)]"}`}>
+          {trend.isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
           {trend.value}%
         </div>
       )}

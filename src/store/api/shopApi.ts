@@ -26,7 +26,7 @@ export const shopApi = createApi({
       transformResponse: (response: ApiResponse<Decoration[]>) =>
         response.success && response.data ? response.data : [],
       providesTags: result =>
-        result
+        Array.isArray(result)
           ? [
               ...result.map(({ id }) => ({ type: SHOP_TAG, id })),
               { type: SHOP_TAG, id: "LIST" },
@@ -42,7 +42,7 @@ export const shopApi = createApi({
       transformResponse: (response: ApiResponse<Decoration[]>) =>
         response.success && response.data ? response.data : [],
       providesTags: result =>
-        result
+        Array.isArray(result)
           ? [
               ...result.map(({ id }) => ({ type: SHOP_TAG, id })),
               { type: SHOP_TAG, id: "LIST" },

@@ -24,23 +24,27 @@ export default function UpdatesPage() {
     { refetchOnMountOrArgChange: false }
   );
 
-  useEffect(() => {
-    const list = latestUpdatesData?.data ?? [];
-    if (list.length === 0) return;
-    if (page === 1) {
-      setAccumulatedData(list);
-    } else {
-      setAccumulatedData((prev: UpdateItem[]) => [...prev, ...list]);
-    }
-  }, [latestUpdatesData?.data, page]);
+  const rawPageData = latestUpdatesData?.data;
+  const pageList: UpdateItem[] = Array.isArray(rawPageData)
+    ? rawPageData
+    : (rawPageData as { data?: UpdateItem[] } | undefined)?.data ?? [];
 
-  const hasMore = (latestUpdatesData?.data?.length ?? 0) >= UPDATES_PAGE_SIZE;
+  useEffect(() => {
+    if (pageList.length === 0) return;
+    if (page === 1) {
+      setAccumulatedData(pageList);
+    } else {
+      setAccumulatedData((prev: UpdateItem[]) => [...prev, ...pageList]);
+    }
+  }, [page, latestUpdatesData]);
+
+  const hasMore = pageList.length >= UPDATES_PAGE_SIZE;
   const isLoadingMore = isFetching && page > 1;
   const displayData =
     accumulatedData.length > 0
       ? accumulatedData
       : page === 1
-        ? (latestUpdatesData?.data ?? [])
+        ? pageList
         : [];
 
   // SEO для страницы ленты обновлений

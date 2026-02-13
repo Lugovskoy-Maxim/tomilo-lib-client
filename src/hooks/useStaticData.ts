@@ -79,7 +79,8 @@ export const useStaticData = (): StaticData => {
           throw new Error(`Failed to fetch collections: ${response.status} ${response.statusText}`);
 
         const result = await response.json();
-        const collectionsData = result.data?.collections || result.data?.data || result.data || [];
+        const raw = result.data?.collections ?? result.data?.data ?? result.data;
+        const collectionsData = Array.isArray(raw) ? raw : [];
 
         // Преобразуем данные в формат, ожидаемый компонентом CollectionCard
         const formattedCollections = collectionsData.map((collection: ApiCollection) => ({
@@ -111,8 +112,10 @@ export const useStaticData = (): StaticData => {
         if (!response.ok) throw new Error("Failed to fetch latest updates");
 
         const result = await response.json();
+        const raw = result.data?.data ?? result.data?.items ?? result.data;
+        const list = Array.isArray(raw) ? raw : [];
         // Преобразуем данные: при наличии chapters[] формируем корректную строку диапазонов (например "24, 34-55")
-        const transformedData = (result.data || []).map((item: ApiLatestUpdate) => {
+        const transformedData = list.map((item: ApiLatestUpdate) => {
           const chapter =
             item.chapters?.length !== undefined && item.chapters.length > 0
               ? `Главы ${formatChapterRanges(item.chapters)}`
