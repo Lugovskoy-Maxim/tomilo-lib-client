@@ -5,6 +5,8 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
+  const deviceId = searchParams.get("device_id");
+  const stateFromUrl = searchParams.get("state");
 
   const html = `<!DOCTYPE html>
 <html>
@@ -32,6 +34,8 @@ export async function GET(request: Request) {
             var code = ${JSON.stringify(code)};
             var error = ${JSON.stringify(error)};
             var errorDescription = ${JSON.stringify(errorDescription)};
+            var deviceId = ${JSON.stringify(deviceId)};
+            var stateFromUrl = ${JSON.stringify(stateFromUrl)};
 
             if (error) {
                 showError('Ошибка авторизации VK', (errorDescription || error).replace(/</g, ''));
@@ -43,13 +47,33 @@ export async function GET(request: Request) {
                 return;
             }
 
+            var redirectUri = window.location.origin + '/auth/vk';
+            var codeVerifier = null;
+            var savedState = null;
+            try {
+                codeVerifier = sessionStorage.getItem('vk_code_verifier');
+                savedState = sessionStorage.getItem('vk_state');
+            } catch (e) {}
+            if (!codeVerifier) {
+                showError('Ошибка входа', 'Сессия истекла. Вернитесь на страницу входа и нажмите «VK ID» снова.');
+                return;
+            }
+            var body = {
+                code: code,
+                redirect_uri: redirectUri,
+                code_verifier: codeVerifier,
+                device_id: deviceId || undefined,
+                state: stateFromUrl || savedState || undefined
+            };
+            try {
+                sessionStorage.removeItem('vk_code_verifier');
+                sessionStorage.removeItem('vk_state');
+            } catch (e) {}
+
             fetch('/api/auth/vk-token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    code: code,
-                    redirect_uri: window.location.origin + '/auth/vk'
-                }),
+                body: JSON.stringify(body),
             })
             .then(function(res) {
                 return res.json().then(function(data) { return { ok: res.ok, data: data }; }).catch(function() {

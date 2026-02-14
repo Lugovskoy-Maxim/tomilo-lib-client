@@ -46,8 +46,9 @@ interface Window {
         app: number;
         redirectUrl: string;
         responseMode: string;
-        source: string;
-        scope: string;
+        state?: string;
+        source?: string;
+        scope?: string;
       }) => void;
       ResponseMode: {
         Callback: string;

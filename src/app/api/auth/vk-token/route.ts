@@ -10,10 +10,16 @@ export async function POST(request: Request) {
     const {
       code,
       redirect_uri,
+      code_verifier: codeVerifier,
+      device_id: deviceId,
+      state,
       access_token: accessToken,
     } = body as {
       code?: string;
       redirect_uri?: string;
+      code_verifier?: string;
+      device_id?: string;
+      state?: string;
       access_token?: string;
     };
 
@@ -27,13 +33,16 @@ export async function POST(request: Request) {
     }
 
     const backendUrl = `${BACKEND_BASE}/auth/vk-token`;
+    const defaultRedirect =
+      process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
     const backendBody = hasToken
       ? { access_token: accessToken }
       : {
           code,
-          redirect_uri:
-            redirect_uri ||
-            `${process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru"}/auth/vk`,
+          redirect_uri: redirect_uri || `${defaultRedirect}/auth/vk`,
+          ...(codeVerifier && { code_verifier: codeVerifier }),
+          ...(deviceId && { device_id: deviceId }),
+          ...(state && { state }),
         };
     const backendResponse = await fetch(backendUrl, {
       method: "POST",
