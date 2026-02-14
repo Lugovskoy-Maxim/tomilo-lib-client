@@ -105,21 +105,21 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
   };
 
   return (
-    <div className="glass rounded-2xl border border-[var(--border)] p-4 sm:p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-[var(--chart-2)] to-[var(--chart-3)] shadow-lg">
-          <UserCheck className="w-5 h-5 text-white" />
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[var(--border)]/60">
+        <div className="p-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+          <UserCheck className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
-            Дополнительная информация
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+            О аккаунте
           </h2>
-          <p className="text-[var(--muted-foreground)] text-sm">Регистрация и статус аккаунта</p>
+          <p className="text-[var(--muted-foreground)] text-sm">Регистрация и статус</p>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50">
           <div className="flex items-center gap-2.5">
             <Calendar className="w-4 h-4 text-[var(--primary)]" />
             <span className="text-sm text-[var(--muted-foreground)]">Зарегистрирован</span>
@@ -129,7 +129,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           </span>
         </div>
 
-        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50">
           <div className="flex items-center gap-2.5">
             <Clock className="w-4 h-4 text-[var(--chart-1)]" />
             <span className="text-sm text-[var(--muted-foreground)]">Последний вход</span>
@@ -139,7 +139,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           </span>
         </div>
 
-        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50">
           <div className="flex items-center gap-2.5">
             <UserCheck className="w-4 h-4 text-[var(--chart-2)]" />
             <span className="text-sm text-[var(--muted-foreground)]">Статус</span>
@@ -149,7 +149,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           </span>
         </div>
 
-        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50">
           <div className="flex items-center gap-2.5">
             <Mail className="w-4 h-4 text-[var(--chart-3)]" />
             <span className="text-sm text-[var(--muted-foreground)]">Email подтверждён</span>
@@ -163,12 +163,13 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       {userProfile.emailVerified !== true && (
         <div className="mt-5 flex justify-center">
           <button
+            type="button"
             onClick={handleSendVerificationEmail}
             disabled={isCooldown || isLoading}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
               isCooldown || isLoading
                 ? "bg-[var(--muted)] cursor-not-allowed text-[var(--muted-foreground)]"
-                : "bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-[var(--primary-foreground)] hover:opacity-90 shadow-md"
+                : "bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90"
             }`}
           >
             {isLoading

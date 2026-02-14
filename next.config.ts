@@ -3,11 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      // /collection/:id → /collections/:id (исправление опечатки/старого URL)
       {
         source: "/collection/:id",
         destination: "/collections/:id",
         permanent: true,
+      },
+      // Настройки перенесены в профиль
+      {
+        source: "/settings",
+        destination: "/profile/settings",
+        permanent: false,
       },
     ];
   },

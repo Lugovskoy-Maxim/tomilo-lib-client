@@ -50,6 +50,7 @@ export { default as LoadingState } from "./profile/ProfileLoading";
 export { default as ProfileBanner } from "./profile/ProfileBanner";
 export { default as ProfileContent } from "./profile/ProfileContent";
 export { default as ProfileAvatar } from "./profile/ProfileAvatar";
+export { default as ProfileNav } from "./profile/ProfileNav";
 
 // Utilities
 export { default as PeriodFilter } from "./period-filter/PeriodFilter";

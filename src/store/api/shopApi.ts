@@ -110,13 +110,45 @@ export const shopApi = createApi({
         { type: SHOP_TAG, id: "LIST" },
       ],
     }),
+
+    /** Декорации пользователя (инвентарь) */
+    getUserProfileDecorations: builder.query<Decoration[], void>({
+      query: () => "/shop/profile/decorations",
+      transformResponse: parseDecorationsResponse,
+      providesTags: [{ type: SHOP_TAG, id: "PROFILE" }],
+    }),
+
+    equipDecoration: builder.mutation<
+      { message: string; decorationId?: string },
+      { type: "avatar" | "background" | "card"; decorationId: string }
+    >({
+      query: ({ type, decorationId }) => ({
+        url: `/shop/equip/${type}/${decorationId}`,
+        method: "PUT",
+      }),
+      invalidatesTags: [{ type: SHOP_TAG, id: "PROFILE" }, { type: SHOP_TAG, id: "LIST" }],
+    }),
+
+    unequipDecoration: builder.mutation<
+      { message: string },
+      { type: "avatar" | "background" | "card" }
+    >({
+      query: ({ type }) => ({
+        url: `/shop/equip/${type}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: SHOP_TAG, id: "PROFILE" }, { type: SHOP_TAG, id: "LIST" }],
+    }),
   }),
 });
 
 export const {
   useGetDecorationsQuery,
   useGetDecorationsByTypeQuery,
+  useGetUserProfileDecorationsQuery,
   useCreateDecorationMutation,
   useUpdateDecorationMutation,
   useDeleteDecorationMutation,
+  useEquipDecorationMutation,
+  useUnequipDecorationMutation,
 } = shopApi;

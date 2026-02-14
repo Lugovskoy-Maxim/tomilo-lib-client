@@ -89,85 +89,82 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
 
   return (
     <div className="space-y-4">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {stats.map((stat, index) => (
+      {/* Stats: компактные плитки */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+        {stats.map((stat) => (
           <div
             key={stat.label}
-            className="group relative bg-[var(--card)] rounded-xl p-3 border border-[var(--border)] hover:border-[var(--primary)]/50 transition-all duration-300 profile-card-hover overflow-hidden"
-            style={{ animationDelay: `${index * 100}ms` }}
+            className="flex items-center gap-3 rounded-xl p-3 bg-[var(--secondary)]/50 border border-[var(--border)]/60 hover:border-[var(--border)] hover:bg-[var(--secondary)]/80 transition-colors"
           >
-            {/* Gradient background on hover */}
-            <div className={`absolute inset-0 ${stat.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-            
-            <div className="relative flex flex-col items-center justify-center gap-2">
-              {/* Icon with gradient */}
-              <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.color} shadow-lg`}>
-                <stat.icon className="w-4 h-4 text-white" />
+            <div className={`flex-shrink-0 p-2 rounded-lg bg-gradient-to-br ${stat.color} shadow-sm`}>
+              <stat.icon className="w-4 h-4 text-white" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-base sm:text-lg font-bold text-[var(--foreground)] tabular-nums leading-tight">
+                {stat.value}
               </div>
-              
-              <div className="text-center">
-                <div className="text-lg sm:text-xl font-bold text-[var(--foreground)] group-hover:scale-105 transition-transform duration-300">
-                  {stat.value}
-                </div>
-                <div className="text-xs font-medium text-[var(--muted-foreground)]">
-                  {stat.label}
-                </div>
+              <div className="text-[11px] sm:text-xs text-[var(--muted-foreground)] truncate">
+                {stat.label}
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Experience Progress Bar */}
-      <div className="glass rounded-xl p-4 border border-[var(--border)]">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
-            <span className="text-sm font-medium text-[var(--foreground)]">Прогресс уровня</span>
+      {/* Прогресс уровня + Ранг в одну строку на десктопе */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 rounded-xl p-4 bg-[var(--secondary)]/30 border border-[var(--border)]/60">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-[var(--foreground)] flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+              Прогресс уровня
+            </span>
+            <span className="text-xs text-[var(--muted-foreground)] tabular-nums">
+              {experience} / {nextLevelExp} XP
+            </span>
           </div>
-          <span className="text-xs text-[var(--muted-foreground)]">
-            {experience} / {nextLevelExp} XP
-          </span>
+          <div className="exp-bar-container h-2.5 rounded-full overflow-hidden">
+            <div
+              className="exp-bar-fill h-full rounded-full transition-[width] duration-500"
+              style={{ width: `${expProgress}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1.5 text-xs text-[var(--muted-foreground)]">
+            <span>Ур. {level}</span>
+            <span>Ур. {level + 1}</span>
+          </div>
         </div>
-        <div className="exp-bar-container h-2.5">
-          <div
-            className="exp-bar-fill h-full"
-            style={{ width: `${expProgress}%` }}
-          />
-        </div>
-        <div className="flex justify-between mt-1.5 text-xs text-[var(--muted-foreground)]">
-          <span>Уровень {level}</span>
-          <span>Уровень {level + 1}</span>
-        </div>
-      </div>
 
-      {/* Rank Display */}
-      <div className="glass rounded-xl p-4 border border-[var(--border)] flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div 
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold rank-badge"
-            style={{ color: getRankColor(levelToRank(level).rank) }}
-          >
-            {levelToRank(level).rank}
-          </div>
-          <div>
-            <div className="text-sm text-[var(--muted-foreground)]">Ранг силы</div>
-            <div 
-              className="text-lg font-bold"
-              style={{ color: getRankColor(levelToRank(level).rank) }}
+        <div className="rounded-xl p-4 bg-[var(--secondary)]/30 border border-[var(--border)]/60 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold rank-badge border-2"
+              style={{
+                color: getRankColor(levelToRank(level).rank),
+                borderColor: `${getRankColor(levelToRank(level).rank)}40`,
+              }}
             >
-              {getRankDisplay(level)}
+              {levelToRank(level).rank}
+            </div>
+            <div>
+              <div className="text-xs text-[var(--muted-foreground)]">Ранг</div>
+              <div
+                className="font-bold text-[var(--foreground)]"
+                style={{ color: getRankColor(levelToRank(level).rank) }}
+              >
+                {getRankDisplay(level)}
+              </div>
             </div>
           </div>
+          <button
+            type="button"
+            className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            onClick={() => setIsModalOpen(true)}
+            title="Подробнее о рангах"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </button>
         </div>
-        <button
-          className="p-2 rounded-lg hover:bg-[var(--secondary)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-          onClick={() => setIsModalOpen(true)}
-          title="Подробнее о рангах"
-        >
-          <HelpCircle className="w-5 h-5" />
-        </button>
       </div>
 
       {/* Rank Modal */}
