@@ -97,7 +97,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
       // Сериализованная ошибка (SerializedError)
       if ("message" in error && error.message) {
-        return normalizeErrorMessage(error.message);
+        return normalizeErrorMessage(String(error.message));
       }
 
       // Ошибка с статусом (сетевая ошибка)
