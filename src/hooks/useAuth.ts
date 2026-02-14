@@ -105,7 +105,10 @@ export const useAuth = () => {
 
   useEffect(() => {
     if (error && getToken()) {
-      const status = "status" in error ? error.status : undefined;
+      const status =
+        typeof error === "object" && error !== null && "status" in error
+          ? (error as { status?: number }).status
+          : undefined;
       const message =
         (error as { data?: { message?: string } })?.data?.message ??
         (error as { message?: string })?.message ??
