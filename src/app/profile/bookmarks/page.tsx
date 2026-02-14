@@ -2,7 +2,7 @@
 
 import { Bookmark } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
-import { default as BookmarksSection } from "@/widgets/profile-bookmarks/ProfileBookmarks";
+import ProfileBookmarksGrid from "@/widgets/profile-bookmarks/ProfileBookmarksGrid";
 
 export default function ProfileBookmarksPage() {
   const { userProfile } = useProfile();
@@ -18,18 +18,16 @@ export default function ProfileBookmarksPage() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-[var(--foreground)]">
-              Мои закладки
+              Закладки
             </h2>
             <p className="text-[var(--muted-foreground)] text-sm">
-              Все сохранённые тайтлы
+              Манга, манхва и маньхуа — фильтр по спискам
             </p>
           </div>
         </div>
-        <BookmarksSection
+        <ProfileBookmarksGrid
           bookmarks={userProfile.bookmarks}
           readingHistory={userProfile.readingHistory}
-          showAll={true}
-          showSectionHeader={false}
         />
       </div>
     </div>

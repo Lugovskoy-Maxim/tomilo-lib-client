@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { BookOpen, Clock, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Clock, ChevronDown, ChevronRight, ChevronUp, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
@@ -38,6 +39,8 @@ interface ReadingHistorySectionProps {
   showAll?: boolean;
   /** Скрыть заголовок секции (для вкладки «История») */
   showSectionHeader?: boolean;
+  /** Ссылка «Вся история» (для блока на странице О себе) */
+  historyHref?: string;
 }
 
 // Тип для сгруппированной истории по тайтлам
@@ -96,14 +99,14 @@ function ExpandedHistoryContent({
 
   if (sortedSessions.length === 0) {
     return (
-      <div className="border-t border-[var(--border)] bg-[var(--secondary)]/40 px-4 py-3 text-sm text-[var(--muted-foreground)]">
+      <div className="border-t border-[var(--border)] bg-[var(--secondary)]/30 px-4 py-3 text-sm text-[var(--muted-foreground)]">
         {isLoading ? "Загрузка…" : "Нет прочитанных глав"}
       </div>
     );
   }
 
   return (
-    <div className="border-t border-[var(--border)] bg-[var(--secondary)]/40">
+    <div className="border-t border-[var(--border)] bg-[var(--secondary)]/30">
       {sortedSessions.map((session, sessionIdx) => (
         <div
           key={sessionIdx}
@@ -122,7 +125,7 @@ function ExpandedHistoryContent({
                   e.stopPropagation();
                   onRemove(titleId, session[0].chapterId);
                 }}
-                className="text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-1 rounded text-xs font-medium transition-colors"
+                className="text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-1 rounded-lg text-xs font-medium transition-colors"
                 title="Удалить из истории"
               >
                 ×
@@ -177,7 +180,7 @@ function ExpandedHistoryContent({
   );
 }
 
-function ReadingHistorySection({ readingHistory, showAll = false, showSectionHeader = true }: ReadingHistorySectionProps) {
+function ReadingHistorySection({ readingHistory, showAll = false, showSectionHeader = true, historyHref }: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [expandedTitles, setExpandedTitles] = useState<Set<string>>(new Set());
   const [isExpanded, setIsExpanded] = useState(showAll);
@@ -395,14 +398,19 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
 
   if (!readingHistory || readingHistory.length === 0 || groupedHistory.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 min-h-[240px]">
-        <div className="w-16 h-16 rounded-2xl bg-[var(--chart-2)]/20 flex items-center justify-center mb-4">
-          <BookOpen className="h-8 w-8 text-[var(--chart-2)]" />
-        </div>
-        <h3 className="text-base font-semibold text-[var(--foreground)] mb-1">История пуста</h3>
-        <p className="text-sm text-[var(--muted-foreground)] text-center">
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-sm text-[var(--muted-foreground)]">
           Здесь появятся главы, которые вы прочитаете
         </p>
+        {historyHref && (
+          <Link
+            href={historyHref}
+            className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+          >
+            Вся история
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        )}
       </div>
     );
   }
@@ -410,32 +418,43 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
   return (
     <div className="space-y-4 min-h-[280px] flex flex-col">
       {showSectionHeader && (
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <h2 className="text-base font-semibold text-[var(--foreground)] flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-[var(--chart-2)]" />
-            <span>История чтения</span>
-            <span className="text-xs font-normal text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-0.5 rounded-full">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
+            История чтения
+            <span className="text-base sm:text-lg font-normal text-[var(--muted-foreground)]">
               {groupedHistory.length}
             </span>
           </h2>
-          {hasMoreTitles && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 text-xs font-medium text-[var(--chart-2)] hover:opacity-80 transition-colors px-3 py-1.5 rounded-lg bg-[var(--chart-2)]/10 hover:bg-[var(--chart-2)]/15"
-            >
-              {isExpanded ? (
-                <>
-                  <ChevronUp className="h-3.5 w-3.5" />
-                  Свернуть
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-3.5 w-3.5" />
-                  Показать все
-                </>
-              )}
-            </button>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {hasMoreTitles && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors"
+              >
+                {isExpanded ? (
+                  <>
+                    <ChevronUp className="w-4 h-4" />
+                    Свернуть
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4" />
+                    Показать все
+                  </>
+                )}
+              </button>
+            )}
+            {historyHref && (
+              <Link
+                href={historyHref}
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
+              >
+                Вся история
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
         </div>
       )}
 
@@ -455,7 +474,7 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
           return (
             <div
               key={group.titleId}
-              className="rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:border-[var(--chart-2)]/50 overflow-hidden transition-all duration-300 shadow-sm hover:shadow-md"
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/50 overflow-hidden transition-all duration-200 shadow-sm"
             >
               <div
                 className="p-3 cursor-pointer group/card"
@@ -471,7 +490,7 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
                 }}
               >
                 <div className="flex items-stretch gap-3">
-                  <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-[var(--chart-2)]/20 to-[var(--chart-3)]/20 ring-1 ring-[var(--border)]/50">
+                  <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-[var(--secondary)]">
                     {title?.coverImage ? (
                       <OptimizedImage
                         src={getImageUrlString(title.coverImage)}
@@ -572,7 +591,8 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
       {hasMoreTitles && !isExpanded && (
         <div className="text-center pt-2">
           <button
-            className="text-sm text-[var(--chart-2)] hover:underline font-medium"
+            type="button"
+            className="text-sm font-medium text-[var(--primary)] hover:underline"
             onClick={() => setIsExpanded(true)}
           >
             Показать все {groupedHistory.length} тайтлов

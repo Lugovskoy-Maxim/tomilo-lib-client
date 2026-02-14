@@ -62,7 +62,11 @@ export default function UserAboutPage() {
 
   return (
     <div className="w-full animate-fade-in-up">
-      <ProfileContent userProfile={userProfile} />
+      <ProfileContent
+        userProfile={userProfile}
+        allBookmarksHref={`/user/${username}/bookmarks`}
+        historyHref={`/user/${username}/history`}
+      />
     </div>
   );
 }

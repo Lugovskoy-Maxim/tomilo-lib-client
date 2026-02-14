@@ -29,6 +29,8 @@ interface CarouselProps<T> {
   getItemPath?: (item: T) => string;
   /** Интервал автопрокрутки вправо (мс). Если задан, карусель автоматически прокручивается. */
   autoScrollInterval?: number;
+  /** Не показывать блок заголовка (title, description, href). Для встраивания в свой layout. */
+  hideHeader?: boolean;
 }
 
 /**
@@ -66,6 +68,7 @@ export default function Carousel<T>({
   descriptionLink,
   getItemPath,
   autoScrollInterval,
+  hideHeader = false,
 }: CarouselProps<T>) {
   /**
    * Ссылка на контейнер карусели для управления прокруткой.
@@ -253,6 +256,7 @@ export default function Carousel<T>({
    * @param e - Событие мыши.
    */
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault(); // чтобы ссылки/картинки внутри не перехватывали драг
     pauseAutoScroll();
     setIsDragging(true);
     setHasDragged(false);
@@ -404,20 +408,20 @@ export default function Carousel<T>({
     if (!isDragging) return;
 
     const movedDistance = Math.abs(e.pageX - startX);
-    if (movedDistance > 10) {
+    const overThreshold = movedDistance > 10;
+    if (overThreshold) {
       setHasDragged(true);
       setDragOccurred(true);
       dragOccurredRef.current = true;
     }
 
     const container = scrollContainerRef.current;
-    if (hasDragged && container) {
+    // Скролл сразу при сдвиге >10px (без ожидания state), чтобы драг не забирала ссылка
+    if (overThreshold && container) {
       e.preventDefault();
-      const x = e.pageX - container.offsetLeft;
-      const walk = x - startX;
-      container.scrollLeft = scrollLeft - walk;
+      container.scrollLeft = startScrollLeftRef.current - (e.pageX - startX);
     }
-  }, [isDragging, startX, hasDragged, scrollLeft]);
+  }, [isDragging, startX]);
 
   /**
    * Обработчик движения при касании (touch move).
@@ -458,35 +462,8 @@ export default function Carousel<T>({
     );
   };
 
-  return (
-    <section className="w-full min-w-0 max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-3 sm:mb-4">
-        <div className="flex flex-col w-full min-w-0 flex-1">
-          <div className="flex items-center gap-1 min-w-0">
-            {icon && <div className="w-6 h-6 shrink-0 text-[var(--muted-foreground)]">{icon}</div>}
-            {title && (
-              <h2 className="text-lg md:text-2xl font-bold text-[var(--muted-foreground)] truncate min-w-0">
-                {title}
-              </h2>
-            )}
-          </div>
-          <div className="flex flex-wrap justify-between items-center gap-2 w-full mt-0.5 min-w-0">
-            <p className="text-[var(--muted-foreground)] text-sm max-w-3xl min-w-0">
-              {_renderDescription()}
-            </p>
-            {href && (
-              <Link
-                href={href}
-                className="text-[var(--chart-1)] hover:underline flex items-center gap-1 shrink-0"
-              >
-                {navigationIcon || <ExternalLink className="w-4 h-4" />}
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="relative group/carousel">
+  const content = (
+    <div className="relative group/carousel">
         {/* Прокручиваемая карусель: с autoScroll — автопрокрутка + перетаскивание, без — обычная. */}
         <div
             ref={scrollContainerRef}
@@ -544,6 +521,40 @@ export default function Carousel<T>({
           </>
         )}
       </div>
+  );
+
+  if (hideHeader) {
+    return <div className="w-full min-w-0 py-2 sm:py-4">{content}</div>;
+  }
+
+  return (
+    <section className="w-full min-w-0 max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex flex-col w-full min-w-0 flex-1">
+          <div className="flex items-center gap-1 min-w-0">
+            {icon && <div className="w-6 h-6 shrink-0 text-[var(--muted-foreground)]">{icon}</div>}
+            {title && (
+              <h2 className="text-lg md:text-2xl font-bold text-[var(--muted-foreground)] truncate min-w-0">
+                {title}
+              </h2>
+            )}
+          </div>
+          <div className="flex flex-wrap justify-between items-center gap-2 w-full mt-0.5 min-w-0">
+            <p className="text-[var(--muted-foreground)] text-sm max-w-3xl min-w-0">
+              {_renderDescription()}
+            </p>
+            {href && (
+              <Link
+                href={href}
+                className="text-[var(--chart-1)] hover:underline flex items-center gap-1 shrink-0"
+              >
+                {navigationIcon || <ExternalLink className="w-4 h-4" />}
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+      {content}
     </section>
   );
 }

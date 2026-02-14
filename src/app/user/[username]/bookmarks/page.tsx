@@ -7,7 +7,7 @@ import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
-import { default as BookmarksSection } from "@/widgets/profile-bookmarks/ProfileBookmarks";
+import ProfileBookmarksGrid from "@/widgets/profile-bookmarks/ProfileBookmarksGrid";
 
 function transformUserToProfile(user: User): UserProfile {
   const u = user as User & { equippedDecorations?: UserProfile["equippedDecorations"] };
@@ -77,11 +77,10 @@ export default function UserBookmarksPage() {
             </p>
           </div>
         </div>
-        <BookmarksSection
+        <ProfileBookmarksGrid
           bookmarks={userProfile.bookmarks}
           readingHistory={userProfile.readingHistory}
-          showAll={true}
-          showSectionHeader={false}
+          canEdit={false}
         />
       </div>
     </div>

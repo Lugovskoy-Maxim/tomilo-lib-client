@@ -6,6 +6,7 @@ export { default as GridSection } from "./grid-section/GridSection";
 export { default as Footer } from "./footer/footer";
 export { default as ReadChapterPage } from "./read-chapter-page/ReadChapterPage";
 export { default as BookmarksSection } from "./profile-bookmarks/ProfileBookmarks";
+export { default as ProfileBookmarksLibrary } from "./profile-bookmarks/ProfileBookmarksLibrary";
 export { default as ReadingHistorySection } from "./profile-reading/ProfileReading";
 export { default as CollectionsContent } from "./collections-content/CollectionsContent";
 export { default as TitlesPage } from "./titles-page/TitlesPage";
