@@ -39,22 +39,22 @@ export default function ProfileDisplaySettings({ userProfile }: ProfileDisplaySe
     <div className="space-y-4 sm:space-y-5">
       <ProfileThemeSettings displaySettings={displaySettings} isLoading={isLoading} />
 
-      <div className="glass rounded-2xl border border-[var(--border)] p-4 sm:p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-[var(--chart-2)] to-[var(--chart-3)] shadow-lg">
-            <Monitor className="w-5 h-5 text-white" />
+      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
+          <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+            <Monitor className="w-5 h-5 text-[var(--primary)]" />
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
+            <h2 className="text-sm font-bold text-[var(--foreground)]">
               Контент
             </h2>
-            <p className="text-[var(--muted-foreground)] text-sm">
+            <p className="text-[var(--muted-foreground)] text-xs">
               Отображение тайтлов 18+
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+        <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
           <div className="flex items-center gap-3 min-w-0">
             <Sparkles className="w-4 h-4 text-[var(--chart-2)] flex-shrink-0" />
             <div>

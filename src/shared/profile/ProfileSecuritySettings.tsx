@@ -46,23 +46,23 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
   };
 
   return (
-    <div className="glass rounded-2xl border border-[var(--border)] p-4 sm:p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] shadow-lg">
-          <Shield className="w-5 h-5 text-white" />
+    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+          <Shield className="w-5 h-5 text-[var(--primary)]" />
         </div>
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
+          <h2 className="text-sm font-bold text-[var(--foreground)]">
             Безопасность
           </h2>
-          <p className="text-[var(--muted-foreground)] text-sm">
+          <p className="text-[var(--muted-foreground)] text-xs">
             Смена пароля аккаунта
           </p>
         </div>
       </div>
 
       <form onSubmit={handleChangePassword} className="space-y-4">
-        <div className="rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50 p-4 space-y-4">
+        <div className="rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60 p-4 space-y-4">
           <div>
             <label
               htmlFor="currentPassword"

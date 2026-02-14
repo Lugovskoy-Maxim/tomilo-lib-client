@@ -3,15 +3,17 @@
 import { useState } from "react";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useProfile } from "@/hooks/useProfile";
-import { ErrorState, LoadingState, ProfileHeader } from "@/shared";
+import { ProfileHeader } from "@/shared";
+import Link from "next/link";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { Footer, Header } from "@/widgets";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { UserProfile } from "@/types/user";
-import ProfileNav from "@/shared/profile/ProfileNav";
+import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";
 import ProfileCover from "@/shared/profile/ProfileCover";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
 import ProfileEditForm from "@/shared/profile/ProfileEditForm";
+import { ProfileProvider } from "@/shared/profile/ProfileContext";
 import Modal from "@/shared/modal/modal";
 
 export default function ProfileLayout({
@@ -20,34 +22,10 @@ export default function ProfileLayout({
   children: React.ReactNode;
 }) {
   const { userProfile, isLoading, authLoading, handleAvatarUpdate } = useProfile();
-  const [updateProfile] = useUpdateProfileMutation();
+  const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
 
   useSEO(seoConfigs.profile(userProfile?.username || userProfile?.email));
-
-  if (authLoading || isLoading) {
-    return (
-      <AuthGuard>
-        <main className="min-h-screen bg-[var(--background)]">
-          <Header />
-          <LoadingState />
-          <Footer />
-        </main>
-      </AuthGuard>
-    );
-  }
-
-  if (!userProfile) {
-    return (
-      <AuthGuard>
-        <main className="min-h-screen bg-[var(--background)]">
-          <Header />
-          <ErrorState />
-          <Footer />
-        </main>
-      </AuthGuard>
-    );
-  }
 
   const handleUpdateProfile = async (updatedProfile: Partial<UserProfile>) => {
     try {
@@ -58,35 +36,73 @@ export default function ProfileLayout({
     }
   };
 
-  return (
-    <AuthGuard>
-      <main className="min-h-screen bg-[var(--background)]">
-        <Header />
-        {/* Полноширинная обложка в стиле Senkuro */}
-        <ProfileCover userProfile={userProfile} />
-        <div className="w-full mx-auto px-3 py-4 sm:px-4 sm:py-6 max-w-6xl">
-          <ProfileHeader />
-          <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8 items-start">
-            <ProfileSidebar
-              userProfile={userProfile}
-              onEdit={() => setIsEditing(true)}
-              onAvatarUpdate={handleAvatarUpdate}
-            />
-            <div className="min-w-0">
-              <ProfileNav basePath="/profile" showSettings />
-              {children}
-            </div>
+  const profileContextValue = {
+    userProfile,
+    isLoading,
+    authLoading,
+    handleAvatarUpdate,
+  };
+
+  // Хедер и футер только в layout; при загрузке/ошибке — контент без своего Header/Footer, чтобы не было двойного хедера
+  const content = authLoading || isLoading ? (
+    <div className="flex flex-1 flex-col items-center justify-center min-h-[60vh]">
+      <div className="animate-pulse text-center">
+        <div className="w-24 h-24 bg-[var(--border)] rounded-full mx-auto mb-4" />
+        <div className="h-6 bg-[var(--border)] rounded w-48 mx-auto mb-2" />
+        <div className="h-4 bg-[var(--border)] rounded w-32 mx-auto" />
+      </div>
+    </div>
+  ) : !userProfile ? (
+    <div className="flex flex-1 flex-col items-center justify-center min-h-[60vh]">
+      <div className="text-center">
+        <h1 className="text-lg sm:text-xl font-bold text-[var(--foreground)] mb-4 px-2">
+          Пользователь не найден
+        </h1>
+        <p className="text-sm text-[var(--muted-foreground)] mb-6 px-2">Не удалось загрузить данные профиля</p>
+        <Link
+          href="/"
+          className="px-4 py-2.5 sm:px-6 sm:py-3 text-sm bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors"
+        >
+          Вернуться на главную
+        </Link>
+      </div>
+    </div>
+  ) : (
+    <ProfileProvider value={profileContextValue}>
+      <ProfileCover userProfile={userProfile} />
+      <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden">
+        <ProfileHeader />
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 sm:gap-6 lg:gap-8 items-start">
+          <ProfileSidebar
+            userProfile={userProfile}
+            onEdit={() => setIsEditing(true)}
+            onAvatarUpdate={handleAvatarUpdate}
+          />
+          <div className="min-w-0">
+            <ProfileTabs userProfile={userProfile} />
           </div>
         </div>
-        <Footer />
-      </main>
+      </div>
       <Modal isOpen={isEditing} onClose={() => setIsEditing(false)} title="Данные профиля">
         <ProfileEditForm
           userProfile={userProfile}
           onSave={handleUpdateProfile}
           onCancel={() => setIsEditing(false)}
+          isLoading={isUpdatingProfile}
         />
       </Modal>
-    </AuthGuard>
+    </ProfileProvider>
+  );
+
+  return (
+    <>
+      <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
+        <Header />
+        <AuthGuard>
+          <div className="flex flex-1 flex-col min-h-0">{content}</div>
+        </AuthGuard>
+        <Footer />
+      </main>
+    </>
   );
 }

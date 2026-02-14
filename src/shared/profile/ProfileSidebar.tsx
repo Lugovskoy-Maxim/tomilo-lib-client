@@ -25,7 +25,7 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate }: 
 
   return (
     <aside className="w-full lg:w-72 shrink-0">
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 shadow-sm sticky top-4">
+      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm sticky top-2 sm:top-4">
         {/* Аватар по центру + смена аватара (только свой профиль) */}
         <div className="flex justify-center mb-4">
           <div className="relative">
@@ -42,7 +42,7 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate }: 
         </div>
 
         <div className="text-center mb-3">
-          <h1 className="text-lg font-bold text-[var(--foreground)] truncate px-1">
+          <h1 className="text-sm font-bold text-[var(--foreground)] truncate px-1">
             {userProfile.username}
           </h1>
           <span
@@ -63,10 +63,10 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate }: 
             variant="outline"
             size="sm"
             onClick={onEdit}
-            className="w-full mb-4 rounded-xl border-[var(--border)] hover:bg-[var(--accent)] hover:border-[var(--primary)]/50"
+            className="w-full mb-3 sm:mb-4 rounded-xl border-[var(--border)] hover:bg-[var(--accent)] hover:border-[var(--primary)]/50 text-xs sm:text-sm px-3 py-2"
           >
-            <Pencil className="h-4 w-4 mr-2 shrink-0" />
-            Редактировать профиль
+            <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 shrink-0" />
+            <span className="truncate">Редактировать профиль</span>
           </Button>
         )}
 

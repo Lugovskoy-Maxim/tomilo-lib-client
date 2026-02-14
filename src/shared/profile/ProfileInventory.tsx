@@ -87,7 +87,7 @@ export default function ProfileInventory() {
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">
+              <h2 className="text-sm font-semibold text-[var(--foreground)]">
                 Инвентарь
               </h2>
               <p className="text-[var(--muted-foreground)] text-sm">

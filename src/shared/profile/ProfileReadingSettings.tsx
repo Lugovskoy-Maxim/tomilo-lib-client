@@ -1,53 +1,113 @@
 import { useState, useEffect } from "react";
-import { UserProfile } from "@/types/user";
+import { UserProfile, ReadingSettings } from "@/types/user";
 import { Eye } from "lucide-react";
 import { READ_CHAPTERS_IN_ROW_ENABLED } from "@/shared/reader/hooks";
+import { useUpdateProfileMutation } from "@/store/api/authApi";
+import { useToast } from "@/hooks/useToast";
 
 interface ProfileReadingSettingsProps {
   userProfile: UserProfile;
 }
 
 const CHAPTERS_IN_ROW_KEY = "reader-chapters-in-row";
+const IMAGE_WIDTH_KEY = "reader-image-width";
 
-export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) {
-  const [imageWidth, setImageWidth] = useState(768);
-  const [readChaptersInRow, setReadChaptersInRow] = useState(false);
+function getInitialFromProfileOrStorage(
+  profile: UserProfile | undefined,
+): Partial<ReadingSettings> & { imageWidth: number; readChaptersInRow: boolean } {
+  const fromProfile = profile?.readingSettings;
+  if (typeof window === "undefined") {
+    return {
+      readingMode: fromProfile?.readingMode ?? "single",
+      orientation: fromProfile?.orientation ?? "auto",
+      imageWidth: fromProfile?.imageWidth ?? 768,
+      readChaptersInRow: fromProfile?.readChaptersInRow ?? false,
+    };
+  }
+  const storedWidth = localStorage.getItem(IMAGE_WIDTH_KEY);
+  const width =
+    fromProfile?.imageWidth ??
+    (storedWidth ? Math.min(1440, Math.max(768, parseInt(storedWidth, 10))) : 768);
+  const storedChaptersInRow = localStorage.getItem(CHAPTERS_IN_ROW_KEY);
+  const readChaptersInRow =
+    fromProfile?.readChaptersInRow ?? storedChaptersInRow === "true";
+  return {
+    readingMode: fromProfile?.readingMode ?? "single",
+    orientation: fromProfile?.orientation ?? "auto",
+    imageWidth: Number.isNaN(width) ? 768 : width,
+    readChaptersInRow,
+  };
+}
+
+export default function ProfileReadingSettings({
+  userProfile,
+}: ProfileReadingSettingsProps) {
+  const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+  const toast = useToast();
+
+  const initial = getInitialFromProfileOrStorage(userProfile);
+  const [readingMode, setReadingMode] = useState<
+    "single" | "continuous"
+  >(initial.readingMode ?? "single");
+  const [orientation, setOrientation] = useState<
+    "auto" | "portrait" | "landscape"
+  >(initial.orientation ?? "auto");
+  const [imageWidth, setImageWidth] = useState(initial.imageWidth);
+  const [readChaptersInRow, setReadChaptersInRow] = useState(
+    initial.readChaptersInRow,
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const savedWidth = localStorage.getItem("reader-image-width");
-    if (savedWidth) {
-      const width = parseInt(savedWidth, 10);
-      if (width >= 768 && width <= 1440) {
-        setImageWidth(width);
-      }
-    }
-    const savedChaptersInRow = localStorage.getItem(CHAPTERS_IN_ROW_KEY);
-    if (savedChaptersInRow !== null) {
-      setReadChaptersInRow(savedChaptersInRow === "true");
-    }
-  }, []);
+    const next = getInitialFromProfileOrStorage(userProfile);
+    setReadingMode((next.readingMode as "single" | "continuous") ?? "single");
+    setOrientation((next.orientation as "auto" | "portrait" | "landscape") ?? "auto");
+    setImageWidth(next.imageWidth);
+    setReadChaptersInRow(next.readChaptersInRow);
+  }, [userProfile._id, userProfile.readingSettings]);
+
+  const readingSettings: ReadingSettings = {
+    readingMode,
+    orientation,
+    imageWidth,
+    readChaptersInRow,
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      localStorage.setItem("reader-image-width", imageWidth.toString());
-      localStorage.setItem(CHAPTERS_IN_ROW_KEY, readChaptersInRow.toString());
+      if (typeof window !== "undefined") {
+        localStorage.setItem(IMAGE_WIDTH_KEY, imageWidth.toString());
+        localStorage.setItem(CHAPTERS_IN_ROW_KEY, readChaptersInRow.toString());
+      }
+      await updateProfile({ readingSettings }).unwrap();
+      toast.success("Настройки чтения сохранены");
     } catch (error) {
-      console.error("Ошибка при сохранении настроек:", error);
+      console.error("Ошибка при сохранении настроек чтения:", error);
+      toast.error("Не удалось сохранить настройки");
     } finally {
       setIsSaving(false);
     }
   };
 
+  const setMode = (mode: "single" | "continuous") => {
+    setReadingMode(mode);
+  };
+
+  const setOri = (ori: "auto" | "portrait" | "landscape") => {
+    setOrientation(ori);
+  };
+
+  const saving = isSaving || isLoading;
+
   return (
-    <div className="glass rounded-2xl border border-[var(--border)] p-4 sm:p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-[var(--chart-2)] to-[var(--chart-3)] shadow-lg">
-          <Eye className="w-5 h-5 text-white" />
+    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+          <Eye className="w-5 h-5 text-[var(--primary)]" />
         </div>
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
+          <h2 className="text-sm font-bold text-[var(--foreground)]">
             Чтение
           </h2>
           <p className="text-[var(--muted-foreground)] text-sm">
@@ -57,7 +117,7 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
       </div>
 
       <div className="space-y-5">
-        <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+        <div className="py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
           <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
             Тип отображения
           </span>
@@ -67,15 +127,23 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
           <div className="flex gap-2">
             <button
               type="button"
-              className="flex-1 py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
-              onClick={() => console.log("single")}
+              onClick={() => setMode("single")}
+              className={`flex-1 py-2.5 px-3 text-sm font-medium rounded-xl border transition-colors ${
+                readingMode === "single"
+                  ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)]"
+                  : "border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)]"
+              }`}
             >
               По одной
             </button>
             <button
               type="button"
-              className="flex-1 py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
-              onClick={() => console.log("continuous")}
+              onClick={() => setMode("continuous")}
+              className={`flex-1 py-2.5 px-3 text-sm font-medium rounded-xl border transition-colors ${
+                readingMode === "continuous"
+                  ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)]"
+                  : "border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)]"
+              }`}
             >
               Прокрутка
             </button>
@@ -83,7 +151,7 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
         </div>
 
         {READ_CHAPTERS_IN_ROW_ENABLED && (
-          <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+          <div className="py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
             <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
               Чтение глав подряд
             </span>
@@ -102,7 +170,7 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
           </div>
         )}
 
-        <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+        <div className="py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
           <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
             Ориентация экрана
           </span>
@@ -110,31 +178,30 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
             Предпочтительная ориентация при чтении
           </p>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
-              onClick={() => console.log("auto")}
-            >
-              Авто
-            </button>
-            <button
-              type="button"
-              className="py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
-              onClick={() => console.log("portrait")}
-            >
-              Портрет
-            </button>
-            <button
-              type="button"
-              className="py-2.5 px-3 text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
-              onClick={() => console.log("landscape")}
-            >
-              Альбом
-            </button>
+            {(
+              [
+                { value: "auto" as const, label: "Авто" },
+                { value: "portrait" as const, label: "Портрет" },
+                { value: "landscape" as const, label: "Альбом" },
+              ] as const
+            ).map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setOri(value)}
+                className={`py-2.5 px-3 text-sm font-medium rounded-xl border transition-colors ${
+                  orientation === value
+                    ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)]"
+                    : "border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)]"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50 space-y-3">
+        <div className="py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60 space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-sm font-semibold text-[var(--foreground)] block">
@@ -167,10 +234,10 @@ export default function ProfileReadingSettings({}: ProfileReadingSettingsProps) 
           <button
             type="button"
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={saving}
             className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
-            {isSaving ? "Сохранение…" : "Сохранить"}
+            {saving ? "Сохранение…" : "Сохранить"}
           </button>
         </div>
       </div>

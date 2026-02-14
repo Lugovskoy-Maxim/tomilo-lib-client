@@ -100,7 +100,7 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
               <stat.icon className="w-4 h-4 text-white" />
             </div>
             <div className="min-w-0">
-              <div className="text-base sm:text-lg font-bold text-[var(--foreground)] tabular-nums leading-tight">
+              <div className="text-sm font-bold text-[var(--foreground)] tabular-nums leading-tight">
                 {stat.value}
               </div>
               <div className="text-[11px] sm:text-xs text-[var(--muted-foreground)] truncate">
@@ -138,7 +138,7 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
         <div className="rounded-xl p-4 bg-[var(--secondary)]/30 border border-[var(--border)]/60 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold rank-badge border-2"
+              className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold rank-badge border-2"
               style={{
                 color: getRankColor(levelToRank(level).rank),
                 borderColor: `${getRankColor(levelToRank(level).rank)}40`,
@@ -180,7 +180,7 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
           <div className="bg-[var(--card)] rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto border border-[var(--border)] shadow-2xl animate-fade-in-up">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h3 className="text-xl font-bold text-[var(--foreground)]">Система рангов</h3>
+                <h3 className="text-sm font-bold text-[var(--foreground)]">Система рангов</h3>
                 <p className="text-sm text-[var(--muted-foreground)] mt-1">
                   Повышайте уровень, чтобы достичь новых высот
                 </p>

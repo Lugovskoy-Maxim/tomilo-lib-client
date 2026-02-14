@@ -7,21 +7,33 @@ interface ProfileContentProps {
   allBookmarksHref?: string;
   /** Ссылка «Вся история» (для публичного профиля — /user/username/history) */
   historyHref?: string;
+  /** При клике «Все тайтлы» переключить на вкладку закладок (без смены URL) */
+  onShowBookmarks?: () => void;
+  /** При клике «Вся история» переключить на вкладку истории (без смены URL) */
+  onShowHistory?: () => void;
 }
 
-export default function ProfileContent({ userProfile, allBookmarksHref, historyHref = "/profile/history" }: ProfileContentProps) {
+export default function ProfileContent({
+  userProfile,
+  allBookmarksHref,
+  historyHref = "/profile",
+  onShowBookmarks,
+  onShowHistory,
+}: ProfileContentProps) {
   return (
-    <div className="flex flex-col gap-4 sm:gap-6 items-stretch max-w-4xl">
+    <div className="flex flex-col gap-3 sm:gap-6 items-stretch max-w-4xl min-w-0">
       <ProfileBookmarksLibrary
         bookmarks={userProfile.bookmarks}
         readingHistory={userProfile.readingHistory}
-        allBookmarksHref={allBookmarksHref ?? "/profile/bookmarks"}
+        allBookmarksHref={onShowBookmarks ? undefined : (allBookmarksHref ?? "/profile/bookmarks")}
+        onShowAllBookmarks={onShowBookmarks}
         maxItems={10}
       />
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 shadow-sm min-h-[280px] flex flex-col">
+      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-6 shadow-sm min-h-[240px] sm:min-h-[280px] flex flex-col">
         <ReadingHistorySection
           readingHistory={userProfile.readingHistory}
-          historyHref={historyHref}
+          historyHref={onShowHistory ? undefined : historyHref}
+          onShowAllHistory={onShowHistory}
         />
       </div>
     </div>

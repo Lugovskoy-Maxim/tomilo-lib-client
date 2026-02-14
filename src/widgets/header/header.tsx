@@ -36,7 +36,6 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -161,12 +160,13 @@ export default function Header() {
         </div>
       )}
 
-      {/* Мобильное меню: портал в body, чтобы всегда поверх контента (на мобильных меню уходило под main). */}
+      {/* Мобильное меню: портал в portal-root, чтобы при клиентской навигации не было removeChild. */}
       {isMobileMenuOpen &&
         typeof document !== "undefined" &&
         createPortal(
           <>
             <div
+              data-header-portal
               className="lg:hidden fixed inset-0 bg-black/50 z-[9998]"
               onClick={closeMobileMenu}
               aria-hidden
@@ -294,7 +294,7 @@ export default function Header() {
             </ErrorBoundary>
             </div>
           </>,
-          document.body,
+          document.getElementById("portal-root") ?? document.body,
         )}
     </header>
   );

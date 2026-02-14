@@ -105,13 +105,13 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
   };
 
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[var(--border)]/60">
-        <div className="p-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
-          <UserCheck className="w-5 h-5" />
+    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-6 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5 pb-3 sm:pb-4 border-b border-[var(--border)]/60">
+        <div className="p-1.5 sm:p-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] shrink-0">
+          <UserCheck className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+          <h2 className="text-sm font-semibold text-[var(--foreground)]">
             О аккаунте
           </h2>
           <p className="text-[var(--muted-foreground)] text-sm">Регистрация и статус</p>
@@ -119,42 +119,42 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50">
-          <div className="flex items-center gap-2.5">
-            <Calendar className="w-4 h-4 text-[var(--primary)]" />
-            <span className="text-sm text-[var(--muted-foreground)]">Зарегистрирован</span>
+        <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--primary)]" />
+            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Зарегистрирован</span>
           </div>
-          <span className="text-sm font-medium text-[var(--foreground)]">
+          <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] text-right truncate">
             {userProfile.createdAt ? formatRegistrationDate(userProfile.createdAt) : "—"}
           </span>
         </div>
 
-        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50">
-          <div className="flex items-center gap-2.5">
-            <Clock className="w-4 h-4 text-[var(--chart-1)]" />
-            <span className="text-sm text-[var(--muted-foreground)]">Последний вход</span>
+        <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--chart-1)]" />
+            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Последний вход</span>
           </div>
-          <span className="text-sm font-medium text-[var(--foreground)]">
+          <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] text-right truncate">
             {userProfile.updatedAt ? formatLastLogin(userProfile.updatedAt) : "—"}
           </span>
         </div>
 
-        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50">
-          <div className="flex items-center gap-2.5">
-            <UserCheck className="w-4 h-4 text-[var(--chart-2)]" />
-            <span className="text-sm text-[var(--muted-foreground)]">Статус</span>
+        <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--chart-2)]" />
+            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Статус</span>
           </div>
-          <span className="text-sm font-medium text-[var(--foreground)]">
+          <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] text-right truncate">
             {userProfile.role === "admin" ? "Администратор" : "Пользователь"}
           </span>
         </div>
 
-        <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50">
-          <div className="flex items-center gap-2.5">
-            <Mail className="w-4 h-4 text-[var(--chart-3)]" />
-            <span className="text-sm text-[var(--muted-foreground)]">Email подтверждён</span>
+        <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--chart-3)]" />
+            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Email подтверждён</span>
           </div>
-          <span className="text-sm font-medium text-[var(--foreground)]">
+          <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] text-right truncate">
             {userProfile.emailVerified === true ? "Да" : "Нет"}
           </span>
         </div>

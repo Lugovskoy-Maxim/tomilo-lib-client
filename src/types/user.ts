@@ -12,6 +12,28 @@ export type UserDisplaySettings = {
   theme: "light" | "dark" | "system";
 };
 
+/** Настройки уведомлений (сохраняются в профиле) */
+export type NotificationPreferences = {
+  newChapters: boolean;
+  comments: boolean;
+  recommendations: boolean;
+};
+
+/** Настройки читалки (сохраняются в профиле, fallback на localStorage) */
+export type ReadingSettings = {
+  readingMode?: "single" | "continuous";
+  orientation?: "auto" | "portrait" | "landscape";
+  imageWidth?: number;
+  readChaptersInRow?: boolean;
+  showPageCounter?: boolean;
+  hideBottomMenu?: boolean;
+  preloadAllImages?: boolean;
+  autoScrollSpeed?: number;
+  alwaysStartFromBeginning?: boolean;
+};
+
+export type UserLocale = "ru" | "en";
+
 export interface EquippedDecorations {
   avatar?: string | null;
   background?: string | null;
@@ -61,6 +83,10 @@ export interface UserProfile {
   // Privacy and display settings
   privacy?: UserPrivacy;
   displaySettings?: UserDisplaySettings;
+  // Notifications, reading, locale
+  notificationPreferences?: NotificationPreferences;
+  readingSettings?: ReadingSettings;
+  locale?: UserLocale;
   // Equipped decorations (banner, avatar frame, etc.)
   equippedDecorations?: EquippedDecorations;
 }

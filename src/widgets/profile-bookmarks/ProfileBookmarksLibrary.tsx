@@ -34,8 +34,10 @@ function getTitleIdFromHistoryEntry(entry: ReadingHistoryEntry): string {
 interface ProfileBookmarksLibraryProps {
   bookmarks: BookmarkEntry[];
   readingHistory?: ReadingHistoryEntry[];
-  /** Ссылка «Вся манга» ведёт сюда (для своего профиля /profile/bookmarks) */
+  /** Ссылка «Вся манга» (если нет onShowAllBookmarks) */
   allBookmarksHref?: string;
+  /** При клике «Все тайтлы» переключить вкладку (без перехода по URL) */
+  onShowAllBookmarks?: () => void;
   /** Лимит карточек (например 6 = один ряд). Без лимита показываются все */
   maxItems?: number;
 }
@@ -98,6 +100,7 @@ export default function ProfileBookmarksLibrary({
   bookmarks,
   readingHistory,
   allBookmarksHref = "/profile/bookmarks",
+  onShowAllBookmarks,
   maxItems,
 }: ProfileBookmarksLibraryProps) {
   const normalized = useMemo(() => normalizeBookmarks(bookmarks), [bookmarks]);
@@ -157,7 +160,7 @@ export default function ProfileBookmarksLibrary({
     return (
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[var(--foreground)] flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
             <Bookmark className="w-5 h-5 text-[var(--primary)]" />
             Библиотека манги
             <span className="text-sm font-normal text-[var(--muted-foreground)]">0</span>
@@ -167,13 +170,24 @@ export default function ProfileBookmarksLibrary({
           <p className="text-sm text-[var(--muted-foreground)]">
             Пока нет закладок. Добавляйте тайтлы со страницы произведения.
           </p>
-          <Link
-            href={allBookmarksHref}
-            className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
-          >
-            Все тайтлы
-            <ChevronRight className="w-4 h-4" />
-          </Link>
+          {onShowAllBookmarks ? (
+            <button
+              type="button"
+              onClick={onShowAllBookmarks}
+              className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+            >
+              Все тайтлы
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <Link
+              href={allBookmarksHref}
+              className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+            >
+              Все тайтлы
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -183,19 +197,30 @@ export default function ProfileBookmarksLibrary({
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 shadow-sm">
       {/* Заголовок: Библиотека манги N + Вся манга > */}
       <div className="flex items-center justify-between gap-4 mb-4">
-        <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
+        <h2 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
           Закладки
-          <span className="text-base sm:text-lg font-normal text-[var(--muted-foreground)]">
+          <span className="text-xs font-normal text-[var(--muted-foreground)]">
             {currentBookmarks.length}
           </span>
         </h2>
-        <Link
-          href={allBookmarksHref}
-          className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors shrink-0"
-        >
-          Все тайтлы
-          <ChevronRight className="w-4 h-4" />
-        </Link>
+        {onShowAllBookmarks ? (
+          <button
+            type="button"
+            onClick={onShowAllBookmarks}
+            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors shrink-0"
+          >
+            Все тайтлы
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        ) : (
+          <Link
+            href={allBookmarksHref}
+            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors shrink-0"
+          >
+            Все тайтлы
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        )}
       </div>
 
       {/* Табы: Все, затем категории с количеством */}

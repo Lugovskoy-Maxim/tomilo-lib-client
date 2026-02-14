@@ -192,7 +192,7 @@ export function BookmarkButton({
                   </button>
                 ))}
               </div>,
-              document.body,
+              document.getElementById("portal-root") ?? document.body,
             )}
         </>
       )}

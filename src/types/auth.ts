@@ -44,6 +44,10 @@ export interface StoredUser {
   // Privacy and display settings
   privacy?: UserPrivacy;
   displaySettings?: UserDisplaySettings;
+  // Notifications, reading, locale
+  notificationPreferences?: import("@/types/user").NotificationPreferences;
+  readingSettings?: import("@/types/user").ReadingSettings;
+  locale?: import("@/types/user").UserLocale;
 }
 
 export interface AuthResponse {

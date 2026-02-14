@@ -45,23 +45,23 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
   ];
 
   return (
-    <div className="glass rounded-2xl border border-[var(--border)] p-4 sm:p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-[var(--chart-3)] to-[var(--primary)] shadow-lg">
-          <Lock className="w-5 h-5 text-white" />
+    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+          <Lock className="w-5 h-5 text-[var(--primary)]" />
         </div>
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
+          <h2 className="text-sm font-bold text-[var(--foreground)]">
             Приватность
           </h2>
-          <p className="text-[var(--muted-foreground)] text-sm">
+          <p className="text-[var(--muted-foreground)] text-xs">
             Кто может видеть ваш профиль и историю
           </p>
         </div>
       </div>
 
       <div className="space-y-5">
-        <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+        <div className="py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
           <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
             Видимость профиля
           </span>
@@ -90,7 +90,7 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
           </div>
         </div>
 
-        <div className="py-3 px-4 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]/50">
+        <div className="py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
           <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
             История чтения
           </span>

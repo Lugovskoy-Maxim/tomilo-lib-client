@@ -1,14 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-
+/** Контент профиля рендерится в layout через ProfileTabs; эта страница не отображает ничего. */
 export default function ProfilePage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace("/profile/about");
-  }, [router]);
-
   return null;
 }

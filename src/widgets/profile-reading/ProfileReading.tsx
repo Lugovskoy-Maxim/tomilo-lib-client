@@ -41,6 +41,8 @@ interface ReadingHistorySectionProps {
   showSectionHeader?: boolean;
   /** Ссылка «Вся история» (для блока на странице О себе) */
   historyHref?: string;
+  /** При клике «Вся история» переключить вкладку (без перехода по URL) */
+  onShowAllHistory?: () => void;
 }
 
 // Тип для сгруппированной истории по тайтлам
@@ -180,7 +182,7 @@ function ExpandedHistoryContent({
   );
 }
 
-function ReadingHistorySection({ readingHistory, showAll = false, showSectionHeader = true, historyHref }: ReadingHistorySectionProps) {
+function ReadingHistorySection({ readingHistory, showAll = false, showSectionHeader = true, historyHref, onShowAllHistory }: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [expandedTitles, setExpandedTitles] = useState<Set<string>>(new Set());
   const [isExpanded, setIsExpanded] = useState(showAll);
@@ -402,7 +404,16 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
         <p className="text-sm text-[var(--muted-foreground)]">
           Здесь появятся главы, которые вы прочитаете
         </p>
-        {historyHref && (
+        {onShowAllHistory ? (
+          <button
+            type="button"
+            onClick={onShowAllHistory}
+            className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+          >
+            Вся история
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        ) : historyHref ? (
           <Link
             href={historyHref}
             className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
@@ -410,7 +421,7 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
             Вся история
             <ChevronRight className="w-4 h-4" />
           </Link>
-        )}
+        ) : null}
       </div>
     );
   }
@@ -419,9 +430,9 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
     <div className="space-y-4 min-h-[280px] flex flex-col">
       {showSectionHeader && (
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
+          <h2 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
             История чтения
-            <span className="text-base sm:text-lg font-normal text-[var(--muted-foreground)]">
+            <span className="text-xs font-normal text-[var(--muted-foreground)]">
               {groupedHistory.length}
             </span>
           </h2>
@@ -445,7 +456,16 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
                 )}
               </button>
             )}
-            {historyHref && (
+            {onShowAllHistory ? (
+              <button
+                type="button"
+                onClick={onShowAllHistory}
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
+              >
+                Вся история
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : historyHref ? (
               <Link
                 href={historyHref}
                 className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
@@ -453,7 +473,7 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
                 Вся история
                 <ChevronRight className="w-4 h-4" />
               </Link>
-            )}
+            ) : null}
           </div>
         </div>
       )}
@@ -516,7 +536,7 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
 
                   <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
                     <div>
-                      <h3 className="font-semibold text-[var(--foreground)] text-sm sm:text-base truncate mb-1">
+                      <h3 className="font-semibold text-[var(--foreground)] text-sm truncate mb-1">
                         {title?.name || `Манга #${group.titleId}`}
                       </h3>
                       <p className="text-xs text-[var(--primary)] font-medium mb-1.5">
