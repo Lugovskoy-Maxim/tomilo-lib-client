@@ -22,7 +22,24 @@ interface Window {
     }>;
   };
 
-  // Расширение для VK авторизации
+  // VK ID SDK (UMD экспортирует VKID; в части сборок — VKIDSDK)
+  VKID?: {
+    Config: {
+      init: (params: {
+        app: number;
+        redirectUrl: string;
+        responseMode: string;
+        source: string;
+        scope: string;
+      }) => void;
+      ResponseMode: { Callback: string };
+      Source: { LOWCODE: string };
+    };
+    OneTap: new () => VKIDWidget;
+    Auth: { exchangeCode: (code: string, deviceId: string) => Promise<unknown> };
+    WidgetEvents: { ERROR: string };
+    OneTapInternalEvents: { LOGIN_SUCCESS: string };
+  };
   VKIDSDK: {
     Config: {
       init: (params: {

@@ -14,8 +14,15 @@ import { AuthResponse } from "@/types/auth";
 import { VALIDATION_MESSAGES } from "@/constants/validation";
 import { MESSAGES } from "@/constants/messages";
 
-const VK_ID_SDK_URL = "https://unpkg.com/@vkid/sdk@2/dist-sdk/umd/index.js";
+// Официальный CDN; UMD экспортирует глобальную переменную VKID (или VKIDSDK в старых сборках)
+const VK_ID_SDK_URL =
+  "https://cdn.jsdelivr.net/npm/@vkid/sdk@2/dist-sdk/umd/index.js";
 const VK_APP_ID = 54445438;
+
+function getVKID(): typeof window.VKIDSDK | undefined {
+  if (typeof window === "undefined") return undefined;
+  return (window as Window & { VKID?: typeof window.VKIDSDK }).VKID ?? window.VKIDSDK;
+}
 
 // Типы для обработки ошибок RTK Query
 interface ServerError {
@@ -50,6 +57,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const { login: authLogin } = useAuth();
   const vkContainerRef = useRef<HTMLDivElement>(null);
   const vkOneTapInitialized = useRef(false);
+  const [showVkFallback, setShowVkFallback] = useState(false);
 
   const validate = {
     email: (email: string): string | null => {
@@ -328,9 +336,19 @@ const LoginModal: React.FC<LoginModalProps> = ({
       setForm({ email: "", password: "" });
       setTouched({ email: false, password: false });
       setShowPassword(false);
+      setShowVkFallback(false);
       vkOneTapInitialized.current = false;
       if (vkContainerRef.current) vkContainerRef.current.innerHTML = "";
     }
+  }, [isOpen]);
+
+  // Если виджет VK не появился за 2.5 с — показываем ссылку-запасной вариант
+  useEffect(() => {
+    if (!isOpen) return;
+    const t = setTimeout(() => {
+      if (!vkOneTapInitialized.current) setShowVkFallback(true);
+    }, 2500);
+    return () => clearTimeout(t);
   }, [isOpen]);
 
   // VK ID One Tap: загрузка SDK и рендер виджета в контейнер
@@ -343,14 +361,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
         : "https://tomilo-lib.ru/auth/vk";
 
     const initVkOneTap = () => {
+      const VKID = getVKID();
       if (
         !vkContainerRef.current ||
         vkOneTapInitialized.current ||
         typeof window === "undefined" ||
-        !window.VKIDSDK
+        !VKID
       )
         return;
-      const VKID = window.VKIDSDK;
       try {
         VKID.Config.init({
           app: VK_APP_ID,
@@ -359,10 +377,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
           source: VKID.Config.Source.LOWCODE,
           scope: "",
         });
+        const container = vkContainerRef.current;
         const oneTap = new VKID.OneTap();
         oneTap
           .render({
-            container: vkContainerRef.current,
+            container: container.id ? `#${container.id}` : container,
             showAlternativeLogin: true,
           })
           .on(VKID.WidgetEvents.ERROR, (err: unknown) => {
@@ -388,7 +407,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       }
     };
 
-    if (typeof window !== "undefined" && "VKIDSDK" in window) {
+    if (typeof window !== "undefined" && getVKID()) {
       setTimeout(initVkOneTap, 100);
       return;
     }
@@ -403,7 +422,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
     script.onerror = () => {
       if (!cancelled && vkContainerRef.current) {
         vkContainerRef.current.innerHTML =
-          '<a href="/auth/vk" class="text-[var(--primary)] text-sm">Войти через VK (переход)</a>';
+          '<p class="text-sm text-[var(--muted-foreground)]">Виджет VK не загрузился.</p><a href="/auth/vk" class="text-[var(--primary)] text-sm hover:underline">Войти через VK (переход)</a>';
       }
     };
     document.head.appendChild(script);
@@ -601,9 +620,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
             Яндекс.ID
           </button>
 
-          {/* VK ID One Tap — официальный виджет */}
+          {/* VK ID One Tap — официальный виджет (id для селектора) */}
           <div className="w-full max-w-[280px] flex flex-col items-center gap-1">
             <div
+              id="vk-onetap-container"
               ref={vkContainerRef}
               className="min-h-[44px] w-full flex items-center justify-center"
               aria-label="Войти через VK ID"
@@ -612,6 +632,18 @@ const LoginModal: React.FC<LoginModalProps> = ({
               <span className="text-xs text-[var(--muted-foreground)]">
                 {MESSAGES.UI_ELEMENTS.LOADING}
               </span>
+            )}
+            {showVkFallback && (
+              <a
+                href={
+                  typeof window !== "undefined"
+                    ? `https://id.vk.com/authorize?client_id=${VK_APP_ID}&redirect_uri=${encodeURIComponent(window.location.origin + "/auth/vk")}&response_type=code&scope=${encodeURIComponent("openid email")}`
+                    : "#"
+                }
+                className="text-sm text-[var(--primary)] hover:underline"
+              >
+                Войти через VK
+              </a>
             )}
           </div>
         </div>
