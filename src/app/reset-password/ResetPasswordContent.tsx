@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Lock, CheckCircle2 } from "lucide-react";
 import { BackButton } from "@/shared";
 import { useToast } from "@/hooks/useToast";
 import Button from "@/shared/ui/button";
@@ -33,6 +33,7 @@ export default function ResetPasswordContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Получаем токен из URL
   useEffect(() => {
@@ -112,11 +113,7 @@ export default function ResetPasswordContent() {
 
       if (response.ok) {
         success("Пароль успешно изменен");
-
-        // Ждем 5 секунд перед перенаправлением
-        setTimeout(() => {
-          router.push("/");
-        }, 5000);
+        setIsSuccess(true);
       } else {
         error(result.message || "Не удалось сбросить пароль");
       }
@@ -128,8 +125,42 @@ export default function ResetPasswordContent() {
     }
   };
 
+  // Экран успешного сброса пароля
+  if (isSuccess) {
+    return (
+      <>
+        <div className="mb-6">
+          <BackButton text="На главную" />
+        </div>
+        <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-8 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
+              <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+          <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">
+            Пароль успешно изменён
+          </h2>
+          <p className="text-[var(--muted-foreground)] mb-6">
+            Теперь вы можете войти в аккаунт с новым паролем
+          </p>
+          <Button
+            onClick={() => router.push("/")}
+            className="w-full cursor-pointer border-2 border-[var(--border)] rounded-full bg-[var(--chart-1)] text-[var(--primary)] hover:bg-[var(--chart-1)]/80 transition-all duration-300"
+          >
+            Перейти на главную
+          </Button>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
+      <div className="mb-6">
+        <BackButton text="Назад" />
+      </div>
+
       {/* Заголовок */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-[var(--muted-foreground)] mb-2">Сброс пароля</h1>

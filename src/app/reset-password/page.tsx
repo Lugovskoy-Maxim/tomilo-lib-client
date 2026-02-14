@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import ResetPasswordContent from "./ResetPasswordContent";
 import { Header, Footer } from "@/widgets";
-import { BackButton } from "@/shared";
 
 export const metadata: Metadata = {
   title: "Сброс пароля - Tomilo-lib.ru",
