@@ -5,6 +5,33 @@ import type { CreateDecorationDto, UpdateDecorationDto } from "@/api/shop";
 
 const SHOP_TAG = "Shop" as const;
 
+/** Нормализует ответ API к массиву Decoration — поддерживает разные форматы бэкенда */
+function parseDecorationsResponse(response: unknown): Decoration[] {
+  if (!response || typeof response !== "object") return [];
+
+  const r = response as Record<string, unknown>;
+
+  // { data: Decoration[] } или { success: true, data: Decoration[] }
+  const data = r.data;
+  if (Array.isArray(data) && data.length > 0 && data[0] && typeof data[0] === "object") {
+    return data as Decoration[];
+  }
+  if (Array.isArray(data)) return data as Decoration[];
+
+  // { decorations: Decoration[] }
+  const decorations = r.decorations;
+  if (Array.isArray(decorations)) return decorations as Decoration[];
+
+  // Вложенная структура { data: { data: [...] } } или { data: { decorations: [...] } }
+  if (data && typeof data === "object") {
+    const inner = data as Record<string, unknown>;
+    const arr = (inner.data ?? inner.decorations) as unknown;
+    if (Array.isArray(arr)) return arr as Decoration[];
+  }
+
+  return [];
+}
+
 export const shopApi = createApi({
   reducerPath: "shopApi",
   baseQuery: fetchBaseQuery({
@@ -23,8 +50,7 @@ export const shopApi = createApi({
   endpoints: builder => ({
     getDecorations: builder.query<Decoration[], void>({
       query: () => "/shop/decorations",
-      transformResponse: (response: ApiResponse<Decoration[]>) =>
-        response.success && response.data ? response.data : [],
+      transformResponse: parseDecorationsResponse,
       providesTags: result =>
         Array.isArray(result)
           ? [
@@ -39,8 +65,7 @@ export const shopApi = createApi({
       { type: "avatar" | "background" | "card" }
     >({
       query: ({ type }) => `/shop/decorations/${type}`,
-      transformResponse: (response: ApiResponse<Decoration[]>) =>
-        response.success && response.data ? response.data : [],
+      transformResponse: parseDecorationsResponse,
       providesTags: result =>
         Array.isArray(result)
           ? [

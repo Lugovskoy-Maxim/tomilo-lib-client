@@ -14,6 +14,8 @@ import { AdminCard } from "./ui";
 import { AdminModal, ConfirmModal } from "./ui";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { ErrorState as SharedErrorState } from "@/shared/error-state";
+import { useToast } from "@/hooks/useToast";
 
 const DECORATION_TYPES: { value: DecorationType; label: string }[] = [
   { value: "avatar", label: "Аватар" },
@@ -30,6 +32,7 @@ const emptyForm = {
 };
 
 export function ShopManagementSection() {
+  const toast = useToast();
   const [typeFilter, setTypeFilter] = useState<DecorationType | "all">("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDecoration, setEditingDecoration] = useState<Decoration | null>(null);
@@ -37,7 +40,7 @@ export function ShopManagementSection() {
   const [deleteTarget, setDeleteTarget] = useState<Decoration | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const { data: decorations = [], isLoading, refetch } = useGetDecorationsQuery();
+  const { data: decorations = [], isLoading, error, refetch } = useGetDecorationsQuery();
   const [createDecoration, { isLoading: isCreating }] = useCreateDecorationMutation();
   const [updateDecoration, { isLoading: isUpdating }] = useUpdateDecorationMutation();
   const [deleteDecoration] = useDeleteDecorationMutation();
@@ -87,6 +90,7 @@ export function ShopManagementSection() {
             type: form.type,
           },
         }).unwrap();
+        toast.success("Украшение обновлено");
         closeForm();
         refetch();
       } else {
@@ -97,11 +101,15 @@ export function ShopManagementSection() {
           imageUrl: form.imageUrl.trim(),
           type: form.type,
         }).unwrap();
+        toast.success("Украшение добавлено");
         closeForm();
         refetch();
       }
-    } catch {
-      // Error handled by mutation / could add toast
+    } catch (e) {
+      const msg = e && typeof e === "object" && "data" in e
+        ? String((e as { data?: { message?: string } }).data?.message ?? "Ошибка сохранения")
+        : "Ошибка сохранения";
+      toast.error(msg);
     }
   };
 
@@ -110,10 +118,14 @@ export function ShopManagementSection() {
     setDeleteLoading(true);
     try {
       await deleteDecoration(deleteTarget.id).unwrap();
+      toast.success("Украшение удалено");
       setDeleteTarget(null);
       refetch();
-    } catch {
-      // Error handled by mutation
+    } catch (e) {
+      const msg = e && typeof e === "object" && "data" in e
+        ? String((e as { data?: { message?: string } }).data?.message ?? "Ошибка удаления")
+        : "Ошибка удаления";
+      toast.error(msg);
     } finally {
       setDeleteLoading(false);
     }
@@ -121,6 +133,30 @@ export function ShopManagementSection() {
 
   const typeLabel = (t: DecorationType) =>
     DECORATION_TYPES.find(x => x.value === t)?.label ?? t;
+
+  if (error) {
+    let errMsg = "Не удалось загрузить украшения магазина.";
+    if (error && typeof error === "object") {
+      const e = error as { status?: number; data?: { message?: string } };
+      if (e.status === 404) errMsg = "API магазина не найден (404). Возможно, модуль магазина не подключён на бэкенде.";
+      else if (e.status === 401 || e.status === 403) errMsg = "Доступ запрещён. Проверьте авторизацию.";
+      else if (e.data?.message) errMsg = String(e.data.message);
+    }
+    return (
+      <div className="space-y-4">
+        <SharedErrorState title="Ошибка загрузки" message={errMsg} />
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="admin-btn admin-btn-primary"
+          >
+            Повторить попытку
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

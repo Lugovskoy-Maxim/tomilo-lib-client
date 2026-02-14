@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent, useRef, useEffect } from "react";
 import {
   Plus,
   Search,
@@ -15,6 +15,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
+import Link from "next/link";
 import {
   useGetCollectionsQuery,
   useCreateCollectionMutation,
@@ -33,6 +34,9 @@ import Modal from "@/shared/modal/modal";
 import LoadingSkeleton from "@/shared/skeleton/skeleton";
 import { ErrorState as SharedErrorState } from "@/shared/error-state";
 import Image from "next/image";
+import Pagination from "@/shared/browse/pagination";
+import { baseUrl } from "@/api/config";
+import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
 interface CollectionsSectionProps {
   onTabChange?: (tab: string) => void;
@@ -41,7 +45,7 @@ interface CollectionsSectionProps {
 export function CollectionsSection({}: CollectionsSectionProps) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(12);
   const [sortBy, setSortBy] = useState<"name" | "views" | "createdAt">("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -82,11 +86,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
 
   const collections = collectionsResponse?.data?.collections || [];
   const totalPages = collectionsResponse?.data?.totalPages || 1;
-
-  // Debug logging
-  console.log("Collections response:", collectionsResponse);
-  console.log("Collections:", collections);
-  console.log("First collection:", collections[0]);
+  const total = collectionsResponse?.data?.total || 0;
 
   const handleCreate = async (data: CreateCollectionDto | FormData) => {
     try {
@@ -327,7 +327,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             Управление коллекциями
           </h2>
           <p className="text-[var(--muted-foreground)] mt-1">
-            Всего коллекций: {collectionsResponse?.data?.total || collections.length || 0}
+            Всего коллекций: {total}
           </p>
         </div>
         <button
@@ -407,101 +407,115 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             </p>
           </div>
         ) : (
-          collections.map((collection: Collection, index: number) => (
-            <div
-              key={`${collection.id}-${index}`}
-              className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4 hover:border-[var(--primary)] transition-colors"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="font-semibold text-[var(--muted-foreground)] truncate">
-                  {collection.name}
-                </h3>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => openTitlesModal(collection)}
-                    className="p-1 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
-                    title="Управление тайтлами"
-                  >
-                    <BookOpen className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => openCommentsModal(collection)}
-                    className="p-1 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
-                    title="Управление комментариями"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => openEditModal(collection)}
-                    className="p-1 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
-                    title="Редактировать"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(collection.id)}
-                    disabled={isDeleting}
-                    className="p-1 text-[var(--muted-foreground)] hover:text-red-500 transition-colors disabled:opacity-50"
-                    title="Удалить"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+          collections.map((collection: Collection, index: number) => {
+            const coverUrl = collection.cover
+              ? collection.cover.startsWith("http")
+                ? collection.cover
+                : `${baseUrl}${collection.cover.startsWith("/") ? "" : "/"}${collection.cover}`
+              : typeof IMAGE_HOLDER === "string"
+                ? IMAGE_HOLDER
+                : IMAGE_HOLDER.src;
+            return (
+              <div
+                key={`${collection.id}-${index}`}
+                className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden hover:border-[var(--primary)]/50 transition-colors flex flex-col"
+              >
+                <div className="relative aspect-[3/4] bg-[var(--muted)]">
+                  <Image
+                    src={coverUrl}
+                    alt={collection.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+                    }}
+                  />
+                </div>
+                <div className="p-4 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-[var(--foreground)] truncate flex-1 pr-2">
+                      {collection.name}
+                    </h3>
+                    <div className="flex gap-1 flex-shrink-0">
+                      <Link
+                        href={`/collections/${collection.id}`}
+                        target="_blank"
+                        className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors rounded"
+                        title="Открыть на сайте"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+                      <button
+                        onClick={() => openTitlesModal(collection)}
+                        className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors rounded"
+                        title="Управление тайтлами"
+                      >
+                        <BookOpen className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => openCommentsModal(collection)}
+                        className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors rounded"
+                        title="Управление комментариями"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => openEditModal(collection)}
+                        className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors rounded"
+                        title="Редактировать"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(collection.id)}
+                        disabled={isDeleting}
+                        className="p-1.5 text-[var(--muted-foreground)] hover:text-red-500 transition-colors disabled:opacity-50 rounded"
+                        title="Удалить"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {collection.description && (
+                    <p
+                      className="text-sm text-[var(--muted-foreground)] mb-3 line-clamp-2 flex-1"
+                      style={{ minHeight: "2.8em" }}
+                    >
+                      {collection.description}
+                    </p>
+                  )}
+
+                  <div className="flex justify-between items-center text-xs text-[var(--muted-foreground)] mt-auto">
+                    <span className="flex items-center gap-1">
+                      <Eye className="w-3 h-3" />
+                      {collection.views} просмотров
+                    </span>
+                    <span>{collection.titles?.length || 0} тайтлов</span>
+                  </div>
+
+                  {collection.createdAt && (
+                    <div className="mt-1 text-xs text-[var(--muted-foreground)]">
+                      Создано: {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {collection.description && (
-                <p
-                  className="text-sm text-[var(--muted-foreground)] mb-3 overflow-hidden"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    lineHeight: "1.4em",
-                    maxHeight: "2.8em",
-                  }}
-                >
-                  {collection.description}
-                </p>
-              )}
-
-              <div className="flex justify-between items-center text-xs text-[var(--muted-foreground)]">
-                <span className="flex items-center gap-1">
-                  <Eye className="w-3 h-3" />
-                  {collection.views} просмотров
-                </span>
-                <span>{collection.titles?.length || 0} тайтлов</span>
-              </div>
-
-              {collection.createdAt && (
-                <div className="mt-2 text-xs text-[var(--muted-foreground)]">
-                  Создано: {new Date(collection.createdAt).toLocaleDateString("ru-RU")}
-                </div>
-              )}
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          <button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 bg-[var(--card)] border border-[var(--border)] rounded disabled:opacity-50"
-          >
-            Назад
-          </button>
-          <span className="px-3 py-1 text-[var(--muted-foreground)]">
-            {page} из {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1 bg-[var(--card)] border border-[var(--border)] rounded disabled:opacity-50"
-          >
-            Далее
-          </button>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Страница {page} из {totalPages} • Всего: {total} коллекций
+          </p>
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       )}
 
@@ -604,7 +618,7 @@ function CollectionModal({
         titles: initialData.titles || [],
         comments: initialData.comments || [],
       });
-      setPreviewUrl(initialData.cover || null);
+      setPreviewUrl(null);
     } else {
       setFormData({
         name: "",
@@ -659,11 +673,14 @@ function CollectionModal({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const imageCover = () => {
+  const imageCover = (): string => {
     if (selectedFile) return URL.createObjectURL(selectedFile);
-    if (previewUrl) return `${process.env.NEXT_PUBLIC_URL}${previewUrl}`;
-    if (formData?.cover) return `${process.env.NEXT_PUBLIC_URL}${formData.cover}`;
-    return "/404/image-holder.png"; // placeholder
+    if (previewUrl && previewUrl.startsWith("data:")) return previewUrl;
+    const cover = formData?.cover;
+    if (cover) {
+      return cover.startsWith("http") ? cover : `${baseUrl}${cover.startsWith("/") ? "" : "/"}${cover}`;
+    }
+    return typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
   };
 
   return (
@@ -702,20 +719,24 @@ function CollectionModal({
           </label>
 
           {/* Current/Preview Image */}
-          {(previewUrl || formData.cover) && (
+          {(previewUrl || formData.cover || selectedFile) && (
             <div className="mb-4 flex justify-center">
-              <div className="relative">
+              <div className="relative w-[200px] aspect-[2/3] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden bg-[var(--muted)]">
                 <Image
                   src={imageCover()}
-                  alt="Cover preview"
-                  width={200}
-                  height={300}
-                  className="rounded-[var(--admin-radius)] border border-[var(--border)]"
+                  alt="Обложка коллекции"
+                  fill
+                  className="object-cover"
+                  sizes="200px"
                   unoptimized
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+                  }}
                 />
-                {previewUrl && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-[var(--admin-radius)]">
-                    <span className="text-white font-medium">Предпросмотр</span>
+                {selectedFile && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">Новое изображение</span>
                   </div>
                 )}
               </div>
@@ -800,15 +821,34 @@ function TitlesModal({
   isAdding,
   isRemoving,
 }: TitlesModalProps) {
-  const [search] = useState("");
+  const [search, setSearch] = useState("");
   const [selectedTitleId, setSelectedTitleId] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { data: titlesResponse } = useSearchTitlesQuery({
-    search: search || undefined,
-    limit: 50,
-  });
+  const { data: titlesResponse, isLoading: isLoadingTitles } = useSearchTitlesQuery(
+    {
+      search: search || undefined,
+      limit: search ? 50 : 100,
+      page: 1,
+    },
+    { skip: !isOpen },
+  );
 
-  const { data: collectionDetails } = useGetCollectionByIdQuery(collection.id);
+  const { data: collectionDetails, isLoading: isLoadingCollection } = useGetCollectionByIdQuery(
+    collection.id,
+    { skip: !isOpen },
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const titles = titlesResponse?.data?.data || [];
   const collectionTitles = collectionDetails?.data?.titles || collection.titles || [];
@@ -816,7 +856,8 @@ function TitlesModal({
   const availableTitles = titles.filter(
     (title: Title) =>
       !collectionTitles.some(
-        (ct: string | Title) => (typeof ct === "string" ? ct : ct._id) === title._id,
+        (ct: string | Title) =>
+          (typeof ct === "string" ? ct : (ct as Title)._id) === title._id,
       ),
   );
 
@@ -824,6 +865,7 @@ function TitlesModal({
     if (selectedTitleId) {
       onAddTitle(collection.id, selectedTitleId);
       setSelectedTitleId("");
+      setSearch("");
     }
   };
 
@@ -831,73 +873,154 @@ function TitlesModal({
     onRemoveTitle(collection.id, titleId);
   };
 
+  const getTitleImageUrl = (t: Title) => {
+    const cover = t.coverImage;
+    if (!cover) return typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+    if (cover.startsWith("http")) return cover;
+    return `${baseUrl}${cover.startsWith("/") ? "" : "/"}${cover}`;
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Управление тайтлами - ${collection.name}`}>
+    <Modal isOpen={isOpen} onClose={onClose} title={`Управление тайтлами — ${collection.name}`}>
       <div className="space-y-6">
         {/* Current Titles */}
         <div>
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-3">
-            Текущие тайтлы ({collectionTitles.length})
+          <h3 className="text-lg font-semibold text-[var(--foreground)] mb-3">
+            Тайтлы в коллекции ({collectionTitles.length})
           </h3>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {collectionTitles.map((title: string | Title) => {
-              const titleData =
-                typeof title === "string" ? { _id: title, name: `Title ${title}` } : title;
-              return (
-                <div
-                  key={titleData._id}
-                  className="flex justify-between items-center p-2 bg-[var(--secondary)] rounded"
-                >
-                  <span className="text-[var(--muted-foreground)]">{titleData.name}</span>
-                  <button
-                    onClick={() => handleRemoveTitle(titleData._id)}
-                    disabled={isRemoving}
-                    className="p-1 text-red-500 hover:text-red-700 disabled:opacity-50"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              );
-            })}
-            {collectionTitles.length === 0 && (
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {isLoadingCollection ? (
+              <p className="text-sm text-[var(--muted-foreground)]">Загрузка...</p>
+            ) : collectionTitles.length === 0 ? (
               <p className="text-sm text-[var(--muted-foreground)]">Нет тайтлов в коллекции</p>
+            ) : (
+              collectionTitles.map((title: string | Title) => {
+                const titleData = typeof title === "string" ? { _id: title, name: "—", coverImage: undefined } : title;
+                return (
+                  <div
+                    key={titleData._id}
+                    className="flex items-center justify-between gap-3 p-2 bg-[var(--secondary)] rounded-[var(--admin-radius)]"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="relative w-10 h-14 flex-shrink-0 rounded overflow-hidden bg-[var(--muted)]">
+                        <Image
+                          src={getTitleImageUrl(titleData as Title)}
+                          alt={titleData.name}
+                          fill
+                          className="object-cover"
+                          sizes="40px"
+                          unoptimized
+                        />
+                      </div>
+                      <span className="text-[var(--foreground)] truncate">{titleData.name}</span>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveTitle(titleData._id)}
+                      disabled={isRemoving}
+                      className="p-2 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded disabled:opacity-50 flex-shrink-0"
+                      title="Удалить из коллекции"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
 
         {/* Add Title */}
         <div>
-          <h3 className="text-lg font-semibold text-[var(--muted-foreground)] mb-3">
+          <h3 className="text-lg font-semibold text-[var(--foreground)] mb-3">
             Добавить тайтл
           </h3>
-          <div className="flex gap-2">
-            <select
-              value={selectedTitleId}
-              onChange={e => setSelectedTitleId(e.target.value)}
-              className="flex-1 px-3 py-2 bg-[var(--secondary)] border border-[var(--border)] rounded-[var(--admin-radius)] text-[var(--muted-foreground)]"
-            >
-              <option value="">Выберите тайтл...</option>
-              {availableTitles.map((title: Title) => (
-                <option key={title._id} value={title._id}>
-                  {title.name}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={handleAddTitle}
-              disabled={!selectedTitleId || isAdding}
-              className="px-4 py-2 bg-[var(--primary)] text-white rounded-[var(--admin-radius)] hover:bg-[var(--primary)]/90 disabled:opacity-50"
-            >
-              {isAdding ? "Добавление..." : "Добавить"}
-            </button>
+          <div className="relative" ref={dropdownRef}>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                placeholder="Поиск по названию или автору..."
+                className="admin-input w-full pl-10 pr-4"
+              />
+            </div>
+            {showDropdown && (
+              <div className="absolute z-20 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] shadow-lg max-h-56 overflow-y-auto">
+                {isLoadingTitles ? (
+                  <div className="px-4 py-3 text-sm text-[var(--muted-foreground)]">Загрузка...</div>
+                ) : availableTitles.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-[var(--muted-foreground)]">
+                    {search ? "Ничего не найдено" : "Введите поисковый запрос"}
+                  </div>
+                ) : (
+                  availableTitles.slice(0, 20).map((title: Title) => (
+                    <button
+                      key={title._id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedTitleId(title._id);
+                        setSearch(title.name);
+                        setShowDropdown(false);
+                      }}
+                      className={`w-full px-4 py-2.5 text-left hover:bg-[var(--accent)] border-b border-[var(--border)] last:border-b-0 flex items-center gap-3 ${
+                        selectedTitleId === title._id ? "bg-[var(--accent)]" : ""
+                      }`}
+                    >
+                      <div className="relative w-8 h-11 flex-shrink-0 rounded overflow-hidden bg-[var(--muted)]">
+                        <Image
+                          src={getTitleImageUrl(title)}
+                          alt={title.name}
+                          fill
+                          className="object-cover"
+                          sizes="32px"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-[var(--foreground)] truncate">{title.name}</div>
+                        <div className="text-xs text-[var(--muted-foreground)] truncate">
+                          {title.author ?? "—"}
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
+          {selectedTitleId && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-sm text-[var(--muted-foreground)]">Выбран:</span>
+              <span className="text-sm font-medium text-[var(--foreground)]">
+                {availableTitles.find((t: Title) => t._id === selectedTitleId)?.name ?? "—"}
+              </span>
+              <button
+                onClick={handleAddTitle}
+                disabled={isAdding}
+                className="admin-btn admin-btn-primary text-sm py-1.5"
+              >
+                {isAdding ? "Добавление..." : "Добавить"}
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedTitleId("");
+                  setSearch("");
+                }}
+                className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              >
+                Сбросить
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <button
-            onClick={onClose}
-            className="admin-btn admin-btn-secondary"
-          >
+          <button onClick={onClose} className="admin-btn admin-btn-secondary">
             Закрыть
           </button>
         </div>
