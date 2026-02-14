@@ -13,6 +13,7 @@ export const ipApi = createApi({
   reducerPath: "ipApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+    credentials: "include",
     prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);

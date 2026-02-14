@@ -22,6 +22,7 @@ export const titlesApi = createApi({
   keepUnusedDataFor: 300, // 5 мин по умолчанию — меньше запросов к серверу при переходах
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+    credentials: "include",
     prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem("tomilo_lib_token");

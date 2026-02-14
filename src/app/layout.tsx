@@ -135,13 +135,13 @@ export default function RootLayout({
                 {children}
               </div>
               <TelegramJoinNotification />
-              {/* Обработчик сообщений от окна авторизации через Яндекс */}
+              {/* Обработчик сообщений от окна авторизации (Яндекс, VK) */}
               <script
                 dangerouslySetInnerHTML={{
                   __html: `
                     window.addEventListener('message', function(event) {
                       if (event.origin !== window.location.origin) return;
-                      if (event.data.type === 'YANDEX_LOGIN_SUCCESS') {
+                      if (event.data.type === 'YANDEX_LOGIN_SUCCESS' || event.data.type === 'VK_LOGIN_SUCCESS') {
                         // Обновляем localStorage с токеном
                         localStorage.setItem('tomilo_lib_token', event.data.token);
                         // Закрываем модальные окна логина и регистрации если они открыты

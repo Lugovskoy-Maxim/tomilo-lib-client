@@ -151,6 +151,7 @@ export const useAuth = () => {
 
       const response = await fetch(`${API_BASE_URL}/users/profile/avatar`, {
         method: "PUT",
+        credentials: "include",
         headers: {
           Authorization: `Bearer ${getToken()}`,
         },
@@ -193,6 +194,7 @@ export const useAuth = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/users/profile`, {
         method: "PUT",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,

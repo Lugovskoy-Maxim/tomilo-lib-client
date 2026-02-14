@@ -8,6 +8,7 @@ export const usersApi = createApi({
   reducerPath: "usersApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL,
+    credentials: "include",
     prepareHeaders: headers => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);

@@ -1,11 +1,12 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { AuthResponse, User } from "@/types/auth";
 import { LoginData, RegisterData } from "@/types/form";
 import { ApiResponseDto } from "@/types/api";
 import { ReadingHistoryEntry, ReadingHistoryChapter, AvatarResponse } from "@/types/store";
 import { BookmarkEntry, BookmarkCategory } from "@/types/user";
 
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+export const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
 /** Формат элемента истории с сервера (пагинированный ответ: data.items) */
 interface RawHistoryItem {
@@ -50,18 +51,7 @@ function normalizeHistoryItem(item: RawHistoryItem): ReadingHistoryEntry {
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["Auth", "ReadingHistory", "Bookmarks"],
   endpoints: builder => ({
     // Аутентификация
@@ -88,6 +78,18 @@ export const authApi = createApi({
         url: "/auth/yandex-token",
         method: "POST",
         body: { access_token },
+      }),
+      invalidatesTags: ["Auth"],
+    }),
+
+    vkAuth: builder.mutation<
+      ApiResponseDto<AuthResponse>,
+      { code: string; redirect_uri?: string }
+    >({
+      query: ({ code, redirect_uri }) => ({
+        url: "/auth/vk-token",
+        method: "POST",
+        body: { code, redirect_uri },
       }),
       invalidatesTags: ["Auth"],
     }),
@@ -354,6 +356,7 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useYandexAuthMutation,
+  useVkAuthMutation,
   useGetProfileQuery,
   useGetProfileByUsernameQuery,
   useUpdateProfileMutation,

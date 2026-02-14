@@ -177,6 +177,9 @@ export const MESSAGES = {
     VK_AUTH_ERROR: "Ошибка VK авторизации",
     TOKEN_EXCHANGE_ERROR: "Ошибка обмена кода VK",
     VK_INIT_ERROR: "Ошибка инициализации VKID",
+    /** Сообщение при ошибке загрузки (в т.ч. от VK/внешних сервисов) */
+    LOAD_ERROR_TRY_AGAIN:
+      "Ошибка загрузки. Попробуйте ещё раз. Если не получится — попробуйте позже.",
     YEAR_VALIDATION: (currentYear: number) => `Год выпуска должен быть между 1900 и ${currentYear}`,
   },
 

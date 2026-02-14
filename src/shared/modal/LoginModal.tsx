@@ -74,6 +74,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
     setTouched(prev => ({ ...prev, [field]: true }));
   };
 
+  // Подмена типичного англоязычного сообщения от внешних сервисов (VK и др.)
+  const normalizeErrorMessage = (msg: string): string => {
+    if (/error loading|please try again|try again later/i.test(msg)) {
+      return MESSAGES.ERROR_MESSAGES.LOAD_ERROR_TRY_AGAIN;
+    }
+    return msg;
+  };
+
   // Безопасное извлечение сообщения об ошибке
   const getErrorMessage = (): string | null => {
     if (!error) return null;
@@ -83,12 +91,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
       // Ошибка с данными от сервера (FetchBaseQueryError)
       if ("data" in error && error.data && typeof error.data === "object") {
         const serverError = error.data as ServerError;
-        return serverError.message || MESSAGES.ERROR_MESSAGES.LOGIN_ERROR;
+        const msg = serverError.message || MESSAGES.ERROR_MESSAGES.LOGIN_ERROR;
+        return normalizeErrorMessage(msg);
       }
 
       // Сериализованная ошибка (SerializedError)
       if ("message" in error && error.message) {
-        return error.message;
+        return normalizeErrorMessage(error.message);
       }
 
       // Ошибка с статусом (сетевая ошибка)
@@ -108,7 +117,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
     // Строковая ошибка
     if (typeof error === "string") {
-      return error;
+      return normalizeErrorMessage(error);
     }
 
     return MESSAGES.ERROR_MESSAGES.UNKNOWN_ERROR;
@@ -505,12 +514,21 @@ const LoginModal: React.FC<LoginModalProps> = ({
             Яндекс.ID
           </button>
           
-          {/* Кнопка VK - пока недоступна */}
+          {/* Кнопка VK — редирект на VK ID */}
           <button
             type="button"
-            disabled
-            className="w-26 h-12 bg-gray-400 text-[var(--primary)] font-bold text-sm rounded-lg flex items-center justify-center cursor-not-allowed border border-gray-500"
-            title="Скоро будет доступно"
+            onClick={() => {
+              const vkAppId = 54445438;
+              const redirectUri =
+                typeof window !== "undefined"
+                  ? encodeURIComponent(window.location.origin + "/auth/vk")
+                  : encodeURIComponent("https://tomilo-lib.ru/auth/vk");
+              const scope = encodeURIComponent("openid email");
+              const authUrl = `https://id.vk.com/authorize?client_id=${vkAppId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
+              window.location.href = authUrl;
+            }}
+            className="w-26 h-12 bg-[#0077FF] hover:bg-[#0066DD] text-white font-bold text-sm rounded-lg transition-colors duration-200 flex items-center justify-center border border-[#0066CC]"
+            title="Войти через VK ID"
           >
             VK.ID
           </button>
