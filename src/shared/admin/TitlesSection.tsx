@@ -29,6 +29,7 @@ import { translateTitleStatus } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
 import { AdminCard, StatCard, MiniCard } from "./ui";
 import { AdminTable } from "./ui";
+import Pagination from "@/shared/browse/pagination";
 import { ConfirmModal, AlertModal } from "./ui";
 import { formatNumber } from "@/lib/utils";
 import { baseUrl } from "@/api/config";
@@ -130,6 +131,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Modal states
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -141,18 +143,21 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
     type: "success" | "error";
   }>({ isOpen: false, title: "", message: "", type: "success" });
 
-  // API hooks
-  const { data: titlesResponse, isLoading } = useSearchTitlesQuery(
-    searchTerm
-      ? {
-          search: searchTerm,
-          page: 1,
-          limit: 50,
-        }
-      : { limit: 10000 },
-  );
+  // API hooks — используем пагинацию для отображения всех тайтлов
+  const PAGE_SIZE = 50;
+  const { data: titlesResponse, isLoading } = useSearchTitlesQuery({
+    search: searchTerm || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    page: currentPage,
+    limit: PAGE_SIZE,
+  });
   const [deleteTitle, { isLoading: isDeleting }] = useDeleteTitleMutation();
   const router = useRouter();
+
+  // Сброс страницы при изменении поиска или фильтра
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   // Filter and sort titles
   const filteredTitles = useMemo(() => {
@@ -208,16 +213,19 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
     return items;
   }, [titlesResponse, sortField, sortDirection, statusFilter]);
 
-  // Stats
+  // Stats — total из API, ongoing/completed из текущей страницы (приблизительно)
+  const apiTotal = titlesResponse?.data?.total ?? 0;
+  const apiTotalPages = titlesResponse?.data?.totalPages ?? 1;
+  const currentPageTitles = titlesResponse?.data?.data || [];
   const stats = useMemo(() => {
-    const titles = titlesResponse?.data?.data || [];
+    const titles = currentPageTitles;
     return {
-      total: titles.length,
-      ongoing: titles.filter((t: Title) => t.status === "ongoing").length,
-      completed: titles.filter((t: Title) => t.status === "completed").length,
+      total: apiTotal,
+      ongoing: statusFilter === "ongoing" ? apiTotal : titles.filter((t: Title) => t.status === "ongoing").length,
+      completed: statusFilter === "completed" ? apiTotal : titles.filter((t: Title) => t.status === "completed").length,
       totalViews: titles.reduce((sum: number, t: Title) => sum + (t.views || 0), 0),
     };
-  }, [titlesResponse]);
+  }, [titlesResponse, statusFilter, apiTotal, currentPageTitles]);
 
   // Handlers
   const handleSort = (field: SortField) => {
@@ -690,6 +698,20 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!isLoading && filteredTitles.length > 0 && apiTotalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Страница {currentPage} из {apiTotalPages} • Всего: {apiTotal} тайтлов
+          </p>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={apiTotalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
 

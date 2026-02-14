@@ -14,6 +14,10 @@ import { Header, Footer } from "@/widgets";
 import { useToast } from "@/hooks/useToast";
 import { Chapter } from "@/types/title";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+
+type ChapterSortField = "chapterNumber" | "title" | "status" | "views" | "pages" | "isPublished";
+type SortDirection = "asc" | "desc";
 
 export default function ChaptersManagementPage() {
   const params = useParams();
@@ -23,6 +27,8 @@ export default function ChaptersManagementPage() {
   const [searchChapterNumber, setSearchChapterNumber] = useState("");
   const [foundChapter, setFoundChapter] = useState<Chapter | null>(null);
   const [draggedChapter, setDraggedChapter] = useState<Chapter | null>(null);
+  const [sortField, setSortField] = useState<ChapterSortField>("chapterNumber");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
 
@@ -90,8 +96,71 @@ export default function ChaptersManagementPage() {
 
   // Сортировка глав
   const sortedChapters = useMemo(() => {
-    return [...chapters].sort((a, b) => (b.chapterNumber ?? 0) - (a.chapterNumber ?? 0));
-  }, [chapters]);
+    const arr = [...chapters];
+    arr.sort((a, b) => {
+      let aVal: number | string | boolean;
+      let bVal: number | string | boolean;
+      switch (sortField) {
+        case "chapterNumber":
+          aVal = a.chapterNumber ?? 0;
+          bVal = b.chapterNumber ?? 0;
+          return sortDirection === "asc"
+            ? (aVal as number) - (bVal as number)
+            : (bVal as number) - (aVal as number);
+        case "title":
+          aVal = (a.title ?? a.name ?? "").toLowerCase();
+          bVal = (b.title ?? b.name ?? "").toLowerCase();
+          return sortDirection === "asc"
+            ? String(aVal).localeCompare(String(bVal))
+            : String(bVal).localeCompare(String(aVal));
+        case "status":
+          aVal = String(a.status ?? "").toLowerCase();
+          bVal = String(b.status ?? "").toLowerCase();
+          return sortDirection === "asc"
+            ? String(aVal).localeCompare(String(bVal))
+            : String(bVal).localeCompare(String(aVal));
+        case "views":
+          aVal = a.views ?? 0;
+          bVal = b.views ?? 0;
+          return sortDirection === "asc"
+            ? (aVal as number) - (bVal as number)
+            : (bVal as number) - (aVal as number);
+        case "pages":
+          aVal = a.pages?.length ?? a.images?.length ?? 0;
+          bVal = b.pages?.length ?? b.images?.length ?? 0;
+          return sortDirection === "asc"
+            ? (aVal as number) - (bVal as number)
+            : (bVal as number) - (aVal as number);
+        case "isPublished":
+          aVal = a.isPublished ? 1 : 0;
+          bVal = b.isPublished ? 1 : 0;
+          return sortDirection === "asc"
+            ? (aVal as number) - (bVal as number)
+            : (bVal as number) - (aVal as number);
+        default:
+          return 0;
+      }
+    });
+    return arr;
+  }, [chapters, sortField, sortDirection]);
+
+  const handleSort = (field: ChapterSortField) => {
+    if (sortField === field) {
+      setSortDirection(d => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection("desc");
+    }
+  };
+
+  const SortIcon = ({ field }: { field: ChapterSortField }) => {
+    if (sortField !== field) return <ChevronsUpDown className="w-4 h-4 ml-1 opacity-50" />;
+    return sortDirection === "asc" ? (
+      <ChevronUp className="w-4 h-4 ml-1" />
+    ) : (
+      <ChevronDown className="w-4 h-4 ml-1" />
+    );
+  };
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
@@ -234,11 +303,66 @@ export default function ChaptersManagementPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-[var(--secondary)] border-b border-[var(--border)]">
-                      <th className="text-left p-3">Глава</th>
-                      <th className="text-left p-3">Название</th>
-                      <th className="text-left p-3">Статус</th>
-                      <th className="text-left p-3">Публик.</th>
-                      <th className="text-left p-3">Просмотры</th>
+                      <th className="text-left p-3">
+                        <button
+                          type="button"
+                          onClick={() => handleSort("chapterNumber")}
+                          className="flex items-center hover:text-[var(--primary)] transition-colors"
+                        >
+                          Глава
+                          <SortIcon field="chapterNumber" />
+                        </button>
+                      </th>
+                      <th className="text-left p-3">
+                        <button
+                          type="button"
+                          onClick={() => handleSort("title")}
+                          className="flex items-center hover:text-[var(--primary)] transition-colors"
+                        >
+                          Название
+                          <SortIcon field="title" />
+                        </button>
+                      </th>
+                      <th className="text-left p-3">
+                        <button
+                          type="button"
+                          onClick={() => handleSort("status")}
+                          className="flex items-center hover:text-[var(--primary)] transition-colors"
+                        >
+                          Статус
+                          <SortIcon field="status" />
+                        </button>
+                      </th>
+                      <th className="text-left p-3">
+                        <button
+                          type="button"
+                          onClick={() => handleSort("isPublished")}
+                          className="flex items-center hover:text-[var(--primary)] transition-colors"
+                        >
+                          Публик.
+                          <SortIcon field="isPublished" />
+                        </button>
+                      </th>
+                      <th className="text-left p-3">
+                        <button
+                          type="button"
+                          onClick={() => handleSort("pages")}
+                          className="flex items-center hover:text-[var(--primary)] transition-colors"
+                        >
+                          Страницы
+                          <SortIcon field="pages" />
+                        </button>
+                      </th>
+                      <th className="text-left p-3">
+                        <button
+                          type="button"
+                          onClick={() => handleSort("views")}
+                          className="flex items-center hover:text-[var(--primary)] transition-colors"
+                        >
+                          Просмотры
+                          <SortIcon field="views" />
+                        </button>
+                      </th>
                       <th className="text-right p-3">Действия</th>
                     </tr>
                   </thead>
@@ -261,6 +385,7 @@ export default function ChaptersManagementPage() {
                         <td className="p-3">{ch.title || "-"}</td>
                         <td className="p-3">{ch.status}</td>
                         <td className="p-3">{ch.isPublished ? "Да" : "Нет"}</td>
+                        <td className="p-3">{ch.pages?.length ?? ch.images?.length ?? 0}</td>
                         <td className="p-3">{ch.views ?? 0}</td>
                         <td className="p-3 text-right">
                           <div className="inline-flex gap-2">

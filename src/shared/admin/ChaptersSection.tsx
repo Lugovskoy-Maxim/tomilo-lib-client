@@ -74,10 +74,14 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
     message: string;
   } | null>(null);
 
-  // Search titles for selection
+  // Search titles for selection - загружаем тайтлы при открытом dropdown (с поиском или первые N без поиска)
   const { data: searchResponse } = useSearchTitlesQuery(
-    { search: titleSearch || undefined, limit: 20 },
-    { skip: !titleSearch || titleSearch.length < 1 },
+    {
+      search: titleSearch || undefined,
+      limit: titleSearch ? 50 : 100,
+      page: 1,
+    },
+    { skip: !showTitleDropdown },
   );
   const searchTitles = searchResponse?.data?.data || [];
 
@@ -272,7 +276,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
               ) : searchTitles.length === 0 ? (
                 <div className="px-4 py-3 text-sm text-[var(--muted-foreground)]">
                   {titleSearch.length < 1
-                    ? "Введите название или автора для поиска"
+                    ? "Загрузка тайтлов..."
                     : "Ничего не найдено"}
                 </div>
               ) : (
