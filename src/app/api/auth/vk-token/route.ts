@@ -7,25 +7,40 @@ const BACKEND_BASE = API_BASE.replace(/\/api\/?$/, "");
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { code, redirect_uri } = body as { code?: string; redirect_uri?: string };
+    const {
+      code,
+      redirect_uri,
+      access_token: accessToken,
+    } = body as {
+      code?: string;
+      redirect_uri?: string;
+      access_token?: string;
+    };
 
-    if (!code) {
+    const hasCode = !!code;
+    const hasToken = !!accessToken;
+    if (!hasCode && !hasToken) {
       return NextResponse.json(
-        { success: false, message: "Код авторизации не предоставлен" },
+        { success: false, message: "Код или токен не предоставлен" },
         { status: 400 },
       );
     }
 
     const backendUrl = `${BACKEND_BASE}/auth/vk-token`;
+    const backendBody = hasToken
+      ? { access_token: accessToken }
+      : {
+          code,
+          redirect_uri:
+            redirect_uri ||
+            `${process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru"}/auth/vk`,
+        };
     const backendResponse = await fetch(backendUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        code,
-        redirect_uri: redirect_uri || `${process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru"}/auth/vk`,
-      }),
+      body: JSON.stringify(backendBody),
     });
 
     const data = await backendResponse.json().catch(() => ({}));

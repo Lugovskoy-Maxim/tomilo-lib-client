@@ -1,9 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import {
   useLoginMutation,
   useForgotPasswordMutation,
+  useVkAuthWithTokenMutation,
 } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginData, FormErrors, FormTouched } from "../../types/form";
@@ -12,6 +13,9 @@ import { ApiResponseDto } from "@/types/api";
 import { AuthResponse } from "@/types/auth";
 import { VALIDATION_MESSAGES } from "@/constants/validation";
 import { MESSAGES } from "@/constants/messages";
+
+const VK_ID_SDK_URL = "https://unpkg.com/@vkid/sdk@2/dist-sdk/umd/index.js";
+const VK_APP_ID = 54445438;
 
 // Типы для обработки ошибок RTK Query
 interface ServerError {
@@ -38,11 +42,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
     password: false,
   });
 
-  // Используем RTK Query для логина
   const [loginMutation, { isLoading, error }] = useLoginMutation();
   const [forgotPasswordMutation, { isLoading: isForgotPasswordLoading }] =
     useForgotPasswordMutation();
+  const [vkAuthWithToken, { isLoading: isVkAuthLoading }] =
+    useVkAuthWithTokenMutation();
   const { login: authLogin } = useAuth();
+  const vkContainerRef = useRef<HTMLDivElement>(null);
+  const vkOneTapInitialized = useRef(false);
 
   const validate = {
     email: (email: string): string | null => {
@@ -321,8 +328,93 @@ const LoginModal: React.FC<LoginModalProps> = ({
       setForm({ email: "", password: "" });
       setTouched({ email: false, password: false });
       setShowPassword(false);
+      vkOneTapInitialized.current = false;
+      if (vkContainerRef.current) vkContainerRef.current.innerHTML = "";
     }
   }, [isOpen]);
+
+  // VK ID One Tap: загрузка SDK и рендер виджета в контейнер
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const redirectUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth/vk`
+        : "https://tomilo-lib.ru/auth/vk";
+
+    const initVkOneTap = () => {
+      if (
+        !vkContainerRef.current ||
+        vkOneTapInitialized.current ||
+        typeof window === "undefined" ||
+        !window.VKIDSDK
+      )
+        return;
+      const VKID = window.VKIDSDK;
+      try {
+        const responseMode =
+          VKID.ConfigResponseMode?.Callback ?? VKID.Config?.ResponseMode?.Callback;
+        const source =
+          VKID.ConfigSource?.LOWCODE ?? VKID.Config?.Source?.LOWCODE;
+        VKID.Config.init({
+          app: VK_APP_ID,
+          redirectUrl,
+          responseMode: responseMode ?? "callback",
+          source: source ?? "lowcode",
+          scope: "",
+        });
+        const oneTap = new VKID.OneTap();
+        oneTap
+          .render({
+            container: vkContainerRef.current,
+            showAlternativeLogin: true,
+          })
+          .on(VKID.WidgetEvents.ERROR, (err: unknown) => {
+            console.error("VK One Tap error", err);
+          })
+          .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, async (payload: unknown) => {
+            const { code, device_id } = payload as { code: string; device_id: string };
+            try {
+              const data = await VKID.Auth.exchangeCode(code, device_id);
+              const token = (data as { access_token?: string })?.access_token;
+              if (!token) throw new Error("No access_token");
+              const res = await vkAuthWithToken({ access_token: token }).unwrap();
+              authLogin(res);
+              onAuthSuccess(res);
+              onClose();
+            } catch (e) {
+              console.error("VK auth failed", e);
+            }
+          });
+        vkOneTapInitialized.current = true;
+      } catch (e) {
+        console.error("VKID init error", e);
+      }
+    };
+
+    if (typeof window !== "undefined" && "VKIDSDK" in window) {
+      setTimeout(initVkOneTap, 100);
+      return;
+    }
+
+    let cancelled = false;
+    const script = document.createElement("script");
+    script.src = VK_ID_SDK_URL;
+    script.async = true;
+    script.onload = () => {
+      if (!cancelled) setTimeout(initVkOneTap, 100);
+    };
+    script.onerror = () => {
+      if (!cancelled && vkContainerRef.current) {
+        vkContainerRef.current.innerHTML =
+          '<a href="/auth/vk" class="text-[var(--primary)] text-sm">Войти через VK (переход)</a>';
+      }
+    };
+    document.head.appendChild(script);
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, authLogin, onAuthSuccess, onClose, vkAuthWithToken]);
 
   const errorMessage = getErrorMessage();
 
@@ -497,42 +589,35 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
       {/* Кнопки авторизации */}
       <div className="px-6 py-4 space-y-3 relative">
-        <div className="flex justify-center gap-3">
+        <div className="flex flex-col items-center gap-3">
           {/* Кнопка Яндекса */}
           <button
             type="button"
             onClick={() => {
-              // Перенаправляем на прямую авторизацию через Яндекс
               const clientId = "ffd24e1c16544069bc7a1e8c66316f37";
               const redirectUri = encodeURIComponent("https://tomilo-lib.ru/auth/yandex");
               const authUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
               window.location.href = authUrl;
             }}
-            className="w-26 h-12 bg-[#ff0000] hover:bg-[#ff0000]/80 text-[var(--primary)] font-bold text-sm rounded-lg transition-colors duration-200 flex items-center justify-center border border-gray-600"
+            className="w-full max-w-[280px] h-12 bg-[#ff0000] hover:bg-[#ff0000]/80 text-[var(--primary)] font-bold text-sm rounded-lg transition-colors duration-200 flex items-center justify-center border border-gray-600"
             title="Войти через Я.ID"
           >
             Яндекс.ID
           </button>
-          
-          {/* Кнопка VK — редирект на VK ID */}
-          <button
-            type="button"
-            onClick={() => {
-              const vkAppId = 54445438;
-              const redirectUri =
-                typeof window !== "undefined"
-                  ? encodeURIComponent(window.location.origin + "/auth/vk")
-                  : encodeURIComponent("https://tomilo-lib.ru/auth/vk");
-              const scope = encodeURIComponent("openid email");
-              const authUrl = `https://id.vk.com/authorize?client_id=${vkAppId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
-              window.location.href = authUrl;
-            }}
-            className="w-26 h-12 bg-[#0077FF] hover:bg-[#0066DD] text-white font-bold text-sm rounded-lg transition-colors duration-200 flex items-center justify-center border border-[#0066CC]"
-            title="Войти через VK ID"
-          >
-            VK.ID
-          </button>
 
+          {/* VK ID One Tap — официальный виджет */}
+          <div className="w-full max-w-[280px] flex flex-col items-center gap-1">
+            <div
+              ref={vkContainerRef}
+              className="min-h-[44px] w-full flex items-center justify-center"
+              aria-label="Войти через VK ID"
+            />
+            {isVkAuthLoading && (
+              <span className="text-xs text-[var(--muted-foreground)]">
+                {MESSAGES.UI_ELEMENTS.LOADING}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

@@ -41,9 +41,9 @@ interface Window {
     };
     OneTap: new () => {
       render: (params: {
-        container: string;
+        container: string | HTMLElement;
         showAlternativeLogin: boolean;
-        styles: { borderRadius: number };
+        styles?: { borderRadius?: number };
       }) => VKIDWidget;
     };
     Auth: {

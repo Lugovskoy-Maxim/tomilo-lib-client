@@ -94,6 +94,18 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
+    vkAuthWithToken: builder.mutation<
+      ApiResponseDto<AuthResponse>,
+      { access_token: string }
+    >({
+      query: ({ access_token }) => ({
+        url: "/auth/vk-token",
+        method: "POST",
+        body: { access_token },
+      }),
+      invalidatesTags: ["Auth"],
+    }),
+
     // Профиль пользователя
     getProfile: builder.query<ApiResponseDto<User>, void>({
       query: () => "/users/profile",
@@ -357,6 +369,7 @@ export const {
   useRegisterMutation,
   useYandexAuthMutation,
   useVkAuthMutation,
+  useVkAuthWithTokenMutation,
   useGetProfileQuery,
   useGetProfileByUsernameQuery,
   useUpdateProfileMutation,
