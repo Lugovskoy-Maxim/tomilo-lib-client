@@ -150,7 +150,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Создание аккаунта">
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* Показываем ошибку API если есть */}
-        {apiError && (
+        {apiError ? (
           <div
             className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg animate-fadeIn"
             role="alert"
@@ -158,12 +158,14 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           >
             <p className="text-red-600 text-sm flex items-center gap-2">
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              {"data" in apiError
+              {typeof apiError === "object" &&
+              apiError !== null &&
+              "data" in apiError
                 ? (apiError.data as { message?: string })?.message || "Ошибка регистрации"
                 : "Ошибка регистрации"}
             </p>
           </div>
-        )}
+        ) : null}
 
         <div className="space-y-2">
           <label htmlFor="username" className="block text-sm font-medium text-[var(--foreground)]">
