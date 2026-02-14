@@ -352,15 +352,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
         return;
       const VKID = window.VKIDSDK;
       try {
-        const responseMode =
-          VKID.ConfigResponseMode?.Callback ?? VKID.Config?.ResponseMode?.Callback;
-        const source =
-          VKID.ConfigSource?.LOWCODE ?? VKID.Config?.Source?.LOWCODE;
         VKID.Config.init({
           app: VK_APP_ID,
           redirectUrl,
-          responseMode: responseMode ?? "callback",
-          source: source ?? "lowcode",
+          responseMode: VKID.Config.ResponseMode.Callback,
+          source: VKID.Config.Source.LOWCODE,
           scope: "",
         });
         const oneTap = new VKID.OneTap();
