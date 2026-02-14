@@ -46,8 +46,8 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6 w-full">
-      <nav className="w-full border-b border-[var(--border)] mb-4 sm:mb-6 overflow-x-auto -mx-1 px-1" aria-label="Разделы профиля">
-        <div className="flex flex-nowrap min-w-0 gap-0 sm:flex-wrap sm:gap-1">
+      <nav className="w-full border-b border-[var(--border)] mb-4 sm:mb-6 overflow-x-auto overflow-y-hidden -mx-1 px-1" aria-label="Разделы профиля">
+        <div className="flex flex-nowrap min-w-0 gap-0 sm:flex-wrap sm:gap-1 w-max sm:w-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

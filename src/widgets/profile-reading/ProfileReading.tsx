@@ -408,18 +408,18 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
           <button
             type="button"
             onClick={onShowAllHistory}
-            className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+            className="mt-3 text-xs min-[360px]:text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
           >
             Вся история
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
           </button>
         ) : historyHref ? (
           <Link
             href={historyHref}
-            className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+            className="mt-3 text-xs min-[360px]:text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
           >
             Вся история
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
           </Link>
         ) : null}
       </div>
@@ -429,28 +429,28 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
   return (
     <div className="space-y-4 min-h-[280px] flex flex-col">
       {showSectionHeader && (
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
+          <h2 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2 min-w-0">
             История чтения
-            <span className="text-xs font-normal text-[var(--muted-foreground)]">
+            <span className="text-xs font-normal text-[var(--muted-foreground)] shrink-0">
               {groupedHistory.length}
             </span>
           </h2>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             {hasMoreTitles && (
               <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1.5 min-[360px]:px-3 min-[360px]:py-2 rounded-lg text-xs min-[360px]:text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors"
               >
                 {isExpanded ? (
                   <>
-                    <ChevronUp className="w-4 h-4" />
+                    <ChevronUp className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
                     Свернуть
                   </>
                 ) : (
                   <>
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
                     Показать все
                   </>
                 )}
@@ -460,18 +460,18 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
               <button
                 type="button"
                 onClick={onShowAllHistory}
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1.5 min-[360px]:px-3 min-[360px]:py-2 rounded-xl text-xs min-[360px]:text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors whitespace-nowrap"
               >
                 Вся история
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
               </button>
             ) : historyHref ? (
               <Link
                 href={historyHref}
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1.5 min-[360px]:px-3 min-[360px]:py-2 rounded-xl text-xs min-[360px]:text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors whitespace-nowrap"
               >
                 Вся история
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
               </Link>
             ) : null}
           </div>
