@@ -467,6 +467,36 @@ textarea.admin-input {
   background: var(--accent);
 }
 
+/* Поиск в хедере — тот же стиль, что и кнопки (высота, скругление, фон, бордер) */
+.header-search .search-input-modern {
+  min-height: 44px;
+  height: 44px;
+  padding: 0.5rem 3rem;
+  border-radius: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+.header-search .search-input-modern:focus {
+  background: var(--card);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+  transform: none;
+}
+[data-theme="dark"] .header-search .search-input-modern {
+  background: var(--card);
+  border-color: var(--border);
+}
+[data-theme="dark"] .header-search .search-input-modern:focus {
+  background: var(--card);
+  border-color: var(--primary);
+}
+
+/* Аватар и кнопки в UserBar в хедере — та же высота, что и остальные элементы */
+.header-user-bar button[aria-label="Открыть меню пользователя"] {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 /* Mobile menu nav links */
 .header-mobile-nav-link {
   display: flex;
