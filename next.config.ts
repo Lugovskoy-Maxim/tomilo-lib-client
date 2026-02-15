@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Уменьшаем кеш роутера, чтобы при переходе по Link контент обновлялся
+  // (избегаем ситуации, когда URL меняется, а страница показывает старые данные)
+  experimental: {
+    staleTimes: {
+      static: 0, // префетчнутые/статические страницы не кешировать на клиенте
+      dynamic: 0, // динамические — по умолчанию 0 в Next 15, задаём явно
+    },
+  },
   async redirects() {
     return [
       {

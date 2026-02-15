@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { ApiResponseDto } from "@/types/api";
 import {
   NotificationsResponse,
@@ -9,23 +10,9 @@ import {
   DeleteNotificationResponse,
 } from "@/types/notifications";
 
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
-
 export const notificationsApi = createApi({
   reducerPath: "notificationsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["Notifications", "UnreadCount"],
   endpoints: builder => ({
     // Получение уведомлений пользователя с пагинацией

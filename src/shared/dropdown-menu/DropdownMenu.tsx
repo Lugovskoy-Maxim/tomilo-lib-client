@@ -13,7 +13,6 @@ import {
   ShoppingBag,
   Palette,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { UserAvatar } from "..";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
@@ -47,7 +46,6 @@ const THEME_LABELS: Record<string, string> = {
 };
 
 export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDropdownProps) {
-  const router = useRouter();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [contentReady, setContentReady] = useState(false);
@@ -120,11 +118,6 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
     }
   };
 
-  const handleNav = (path: string) => {
-    router.push(path);
-    onClose();
-  };
-
   const handleLogout = () => {
     onLogout();
     onClose();
@@ -180,38 +173,38 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
 
       {/* Список пунктов меню */}
       <div className="py-1 min-w-0 overflow-x-hidden">
-        <button
-          type="button"
+        <Link
+          href="/profile"
+          onClick={onClose}
           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2 dropdown-item-modern min-w-0 cursor-pointer"
-          onClick={() => handleNav("/profile")}
         >
           <Settings className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
           <span className="min-w-0 truncate">Настройки</span>
-        </button>
-        <button
-          type="button"
+        </Link>
+        <Link
+          href="/tomilo-shop"
+          onClick={onClose}
           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2 dropdown-item-modern min-w-0 cursor-pointer"
-          onClick={() => handleNav("/tomilo-shop")}
         >
           <ShoppingBag className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
           <span className="min-w-0 truncate">Магазин украшений</span>
-        </button>
-        <button
-          type="button"
+        </Link>
+        <Link
+          href="/profile?tab=history"
+          onClick={onClose}
           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2 dropdown-item-modern min-w-0 cursor-pointer"
-          onClick={() => handleNav("/profile?tab=history")}
         >
           <History className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
           <span className="min-w-0 truncate">История</span>
-        </button>
-        <button
-          type="button"
+        </Link>
+        <Link
+          href="/profile?tab=bookmarks"
+          onClick={onClose}
           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2 dropdown-item-modern min-w-0 cursor-pointer"
-          onClick={() => handleNav("/profile?tab=bookmarks")}
         >
           <Bookmark className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
           <span className="min-w-0 truncate">Закладки</span>
-        </button>
+        </Link>
         <button
           type="button"
           className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm rounded-lg mx-2 transition-colors cursor-pointer ${
@@ -243,14 +236,14 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
         </button>
 
         {isAdmin && (
-          <button
-            type="button"
+          <Link
+            href="/admin"
+            onClick={onClose}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--destructive)] hover:bg-red-500/10 transition-colors rounded-lg mx-2 cursor-pointer"
-            onClick={() => handleNav("/admin")}
           >
             <Shield className="w-4 h-4 shrink-0" />
             <span>Админ панель</span>
-          </button>
+          </Link>
         )}
       </div>
 
