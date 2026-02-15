@@ -10,8 +10,7 @@ import {
   useAddToReadingHistoryMutation,
   useRemoveFromReadingHistoryMutation,
 } from "@/store/api/authApi";
-import { useUpdateChapterMutation } from "@/store/api/chaptersApi";
-import { UpdateChapterDto } from "@/types/title";
+import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
 import { login, logout, setLoading, updateUser } from "@/store/slices/authSlice";
 import { RootState } from "@/store";
 import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
@@ -42,7 +41,7 @@ export const useAuth = () => {
   const [addBookmarkMutation] = useAddBookmarkMutation();
   const [updateBookmarkCategoryMutation] = useUpdateBookmarkCategoryMutation();
   const [removeBookmarkMutation] = useRemoveBookmarkMutation();
-  const [updateChapter] = useUpdateChapterMutation();
+  const [incrementChapterViews] = useIncrementChapterViewsMutation();
   const [addToReadingHistory] = useAddToReadingHistoryMutation();
   const [removeFromReadingHistory] = useRemoveFromReadingHistoryMutation();
 
@@ -330,25 +329,21 @@ export const useAuth = () => {
 
   const updateChapterViewsCount = useCallback(
     async (
-      chapterId: string,
-      currentViews: number,
+      _chapterId: string,
+      _currentViews: number,
     ): Promise<{ success: boolean; error?: string }> => {
       try {
-        await updateChapter({
-          id: chapterId,
-          data: { views: currentViews + 1 } as Partial<UpdateChapterDto>,
-        }).unwrap();
-
+        await incrementChapterViews(_chapterId).unwrap();
         return { success: true };
       } catch (error) {
-        console.error("Error updating chapter views:", error);
+        console.error("Error incrementing chapter views:", error);
         return {
           success: false,
           error: error instanceof Error ? error.message : "Неизвестная ошибка",
         };
       }
     },
-    [updateChapter],
+    [incrementChapterViews],
   );
 
   const addToReadingHistoryFunc = useCallback(
