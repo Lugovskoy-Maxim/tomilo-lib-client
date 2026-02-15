@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Star } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -52,12 +53,13 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     return "border-white/30 text-white/90 shadow-black/20";
   };
 
-  // Функция для выполнения действия с карточкой
+  const titlePath = getTitlePath(data);
+
   const performCardAction = () => {
     if (onCardClick) {
       onCardClick(data.id);
     } else {
-      router.push(getTitlePath(data));
+      router.push(titlePath);
     }
   };
 
@@ -77,21 +79,21 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     setPendingAction(null);
   };
 
-  // Основной обработчик клика
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Если контент для взрослых и возраст не подтвержден
+    if (onCardClick) {
+      e.preventDefault();
+      e.stopPropagation();
+      onCardClick(data.id);
+      return;
+    }
     if (data.isAdult && !isAgeVerified) {
-      // Сохраняем функцию, которую нужно выполнить после подтверждения
+      e.preventDefault();
+      e.stopPropagation();
       setPendingAction(() => performCardAction);
       setShowAgeModal(true);
       return;
     }
-
-    // Если возраст подтвержден или контент не для взрослых, выполняем действие сразу
-    performCardAction();
+    // Иначе переход по Link (не preventDefault)
   };
 
   const isAdultContent = data.isAdult;
@@ -102,12 +104,8 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   // Преобразуем imageSrc в строку если это объект изображения
   const imageSrcString = typeof imageSrc === "string" ? imageSrc : imageSrc.src;
 
-  return (
-    <div
-      className="relative group cursor-pointer select-none transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 will-change-transform"
-      onClick={handleClick}
-      data-card-click-handler="true"
-    >
+  const cardContent = (
+    <>
       {/* Glow effect — единый с остальными карточками */}
       <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)]/0 via-[var(--chart-1)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/20 group-hover:via-[var(--chart-1)]/20 group-hover:to-[var(--primary)]/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out -z-10" />
       
@@ -182,6 +180,23 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
         onConfirm={handleAgeConfirm}
         onCancel={handleAgeCancel}
       />
-    </div>
+    </>
+  );
+
+  const className =
+    "relative group cursor-pointer select-none transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 will-change-transform block h-full";
+
+  if (onCardClick) {
+    return (
+      <div className={className} onClick={handleClick} data-card-click-handler="true">
+        {cardContent}
+      </div>
+    );
+  }
+
+  return (
+    <Link href={titlePath} className={className} onClick={handleClick} data-card-click-handler="true">
+      {cardContent}
+    </Link>
   );
 }

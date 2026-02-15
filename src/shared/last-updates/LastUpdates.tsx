@@ -2,6 +2,7 @@
 
 import { Clock, Plus, Sparkles } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,21 +38,26 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
     setIsAgeVerified(checkAgeVerification(user || null));
   }, [user]);
 
-  const handleAgeConfirm = () => {
-    setIsAgeVerified(true);
-    setShowAgeModal(false);
-  };
-
   const handleAgeCancel = () => {
     setShowAgeModal(false);
   };
 
-  const handleClick = () => {
+  const titlePath = getTitlePath(data);
+
+  const handleClick = (e: React.MouseEvent) => {
     if (data.isAdult && !isAgeVerified) {
+      e.preventDefault();
+      e.stopPropagation();
       setShowAgeModal(true);
       return;
     }
-    router.push(getTitlePath(data));
+    // Иначе переход по Link (не preventDefault)
+  };
+
+  const handleAgeConfirm = () => {
+    setIsAgeVerified(true);
+    setShowAgeModal(false);
+    router.push(titlePath);
   };
 
   const getImageUrl = () => {
@@ -76,8 +82,9 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   };
 
   return (
-    <div
-      className="w-full group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1"
+    <Link
+      href={titlePath}
+      className="w-full group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 block"
       onClick={handleClick}
     >
       {/* Glow — единый с остальными карточками */}
@@ -176,6 +183,6 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
         onConfirm={handleAgeConfirm}
         onCancel={handleAgeCancel}
       />
-    </div>
+    </Link>
   );
 }

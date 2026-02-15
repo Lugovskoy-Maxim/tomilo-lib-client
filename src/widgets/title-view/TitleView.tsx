@@ -2,6 +2,7 @@
 
 import { Footer, Header } from "@/widgets";
 import { useState, useEffect, useMemo } from "react";
+import { useParams } from "next/navigation";
 import { translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
@@ -16,7 +17,9 @@ import { RightContent } from "@/shared/browse/title-view/RightContent";
 import { AgeVerificationModal } from "@/shared/modal/AgeVerificationModal";
 import { ReportModal } from "@/shared/report/ReportModal";
 
-export default function TitleView({ slug }: { slug: string }) {
+export default function TitleView({ slug: slugProp }: { slug: string }) {
+  const params = useParams();
+  const slug = (typeof params?.slug === "string" ? params.slug : slugProp) ?? slugProp;
   const { user } = useAuth();
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -33,7 +36,10 @@ export default function TitleView({ slug }: { slug: string }) {
     data: titleData,
     isLoading: titleLoading,
     error: titleError,
-  } = useGetTitleBySlugQuery({ slug, includeChapters: true });
+  } = useGetTitleBySlugQuery(
+    { slug, includeChapters: true },
+    { skip: !slug },
+  );
 
   const titleId = titleData?._id as string;
 
