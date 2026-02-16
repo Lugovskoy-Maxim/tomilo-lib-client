@@ -238,8 +238,8 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                   />
                   {isContentHidden && (
                     <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center">
-                      <div className="text-white text-sm font-bold bg-red-600/90 px-3 py-1.5 rounded-xl border border-white/20">
-                        18+
+                      <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
+                        <span>18+</span>
                       </div>
                     </div>
                   )}

@@ -48,9 +48,11 @@ export default function AdultContentWarning() {
         <div className="flex-1 max-w-4xl mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[50vh]">
             <div className="text-center bg-[var(--background)]/90 backdrop-blur-sm border border-red-500/50 rounded-lg p-8 max-w-md">
-              {/* Иконка 18+ */}
-              <div className="bg-red-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-red-500 text-2xl font-bold">18+</span>
+              {/* Бейдж 18+ в едином стиле карточек */}
+              <div className="mx-auto mb-4 w-fit">
+                <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
+                  <span>18+</span>
+                </div>
               </div>
 
               <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">

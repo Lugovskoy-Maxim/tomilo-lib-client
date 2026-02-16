@@ -117,7 +117,11 @@ export function GenresList({ genres = [], tags = [], isAdult, ageLimit }: Genres
           {showAgeRating && (
             <div className="">
               <span
-                className={`genre-badge age-rating-badge inline-flex items-center gap-1.5 cursor-pointer rounded-xl text-xs font-bold px-3 py-1.5 transition-all duration-300 hover:scale-110 ${ageRatingLabel==="18+" ? "bg-red-500 text-white" : "bg-gray-200 text-gray-800"} `}
+                className={`genre-badge age-rating-badge inline-flex items-center gap-1.5 cursor-pointer transition-all duration-300 hover:scale-110 ${
+                  ageRatingLabel === "18+"
+                    ? "bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border"
+                    : "rounded-xl text-xs font-bold px-3 py-1.5 bg-gray-200 text-gray-800"
+                }`}
                 onClick={() => router.push(`/titles?ageLimit=${ageLimit}`)}
               >
                 {ageRatingLabel}
