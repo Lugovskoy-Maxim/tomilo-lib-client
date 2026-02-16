@@ -1378,6 +1378,21 @@ textarea.admin-input {
   transform: scale(1);
 }
 
+@media (hover: none), (pointer: coarse) {
+  .card-hover-soft {
+    --card-tilt-x: 0deg !important;
+    --card-tilt-y: 0deg !important;
+    --card-tilt-scale: 1 !important;
+    transform: none !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .card-hover-soft::before {
+    opacity: 0 !important;
+    animation: none !important;
+  }
+}
+
 /* ============================================
    RGB VARIABLES FOR OPACITY SUPPORT
    ============================================ */
