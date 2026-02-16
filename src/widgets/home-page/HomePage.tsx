@@ -34,7 +34,16 @@ const DataCarousel = ({
   cardComponent: React.ComponentType<any>;
   [key: string]: any;
 }) => {
-  if (loading) return <CarouselSkeleton />;
+  if (loading) {
+    return (
+      <CarouselSkeleton
+        title={title}
+        cardWidth={carouselProps.cardWidth}
+        variant={carouselProps.skeletonVariant ?? "poster"}
+        showDescription={Boolean(carouselProps.description)}
+      />
+    );
+  }
   if (error) return <SectionLoadError sectionTitle={title} />;
   if (!data?.length) return null;
 
@@ -65,14 +74,14 @@ export default function HomePage() {
       <>
         <Header />
         <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full overflow-x-hidden">
-          <CarouselSkeleton />
-          <CarouselSkeleton />
+          <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52" variant="poster" />
+          <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56" variant="poster" />
           <div className="w-full overflow-x-hidden">
             <TopCombinedSkeleton />
           </div>
-          <CarouselSkeleton />
-          <CarouselSkeleton />
-          <GridSkeleton showTitle />
+          <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
+          <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
+          <GridSkeleton showTitle variant="updates" />
         </main>
         <Footer />
       </>
@@ -96,6 +105,7 @@ export default function HomePage() {
           cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
           getItemPath={(item: any) => getTitlePath(item)}
           autoScrollInterval={5000}
+          skeletonVariant="poster"
         />
 
         {/* Случайные тайтлы */}
@@ -172,6 +182,7 @@ export default function HomePage() {
           icon={<LibraryIcon className="w-6 h-6" />}
           showNavigation={false}
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
+          skeletonVariant="collection"
         />
 
 
@@ -189,11 +200,12 @@ export default function HomePage() {
           descriptionLink={{ text: "истории чтения", href: "/profile" }}
           showNavigation={false}
           cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
+          skeletonVariant="reading"
         />
 
         {/* Последние обновления */}
         {latestUpdates.loading ? (
-          <GridSkeleton />
+          <GridSkeleton variant="updates" />
         ) : latestUpdates.error ? null : Array.isArray(latestUpdates.data) && latestUpdates.data.length > 0 ? (
           <GridSection
             title="Последние обновления"

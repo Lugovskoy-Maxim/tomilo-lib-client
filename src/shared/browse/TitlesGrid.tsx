@@ -34,20 +34,6 @@ const titleToCardProps = (title: GridTitle): CardProps => ({
   isAdult: title.isAdult || false,
 });
 
-// Скелетон карточки для загрузки
-const CardSkeleton = () => (
-  <div className="relative overflow-hidden rounded-xl bg-[var(--card)] shadow-lg ring-1 ring-white/5 animate-pulse">
-    <div className="aspect-[2/3] w-full bg-[var(--muted)]/50 rounded-t-xl" />
-    <div className="p-2 sm:p-2.5 space-y-2">
-      <div className="flex justify-between items-center">
-        <div className="h-4 w-12 bg-[var(--muted)]/50 rounded-full" />
-        <div className="h-4 w-8 bg-[var(--muted)]/50 rounded-full" />
-      </div>
-      <div className="h-8 w-full bg-[var(--muted)]/50 rounded" />
-    </div>
-  </div>
-);
-
 export default function TitleGrid({
   titles,
   onCardClick,
@@ -81,10 +67,10 @@ export default function TitleGrid({
         <div
           key={`${title.id}-${index}`}
           className="animate-fade-in"
-          style={{ 
+          style={{
             animationDelay: `${Math.min(index * 50, 500)}ms`,
             opacity: 0,
-            animation: 'fadeInUp 0.5s ease-out forwards'
+            animation: "fadeInUp 0.5s ease-out forwards",
           }}
         >
           <PopularCard

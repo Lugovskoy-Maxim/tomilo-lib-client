@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MobileFilterButton, SortAndSearch, TitleGrid, FilterSidebar } from "@/shared";
 import ActiveFilterChips from "@/shared/browse/ActiveFilterChips";
 import FilterQuickBar from "@/shared/browse/FilterQuickBar";
+import { GridSkeleton } from "@/shared/skeleton/GridSkeleton";
 import { Filters } from "@/types/browse-page";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
@@ -422,13 +423,10 @@ export default function TitlesContent() {
 
         {/* Состояние загрузки */}
         {isLoading && allTitles.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] rounded-full blur-xl opacity-30 animate-pulse"></div>
-              <Loader2 className="w-12 h-12 text-[var(--primary)] animate-spin relative z-10" />
-            </div>
-            <p className="mt-4 text-[var(--muted-foreground)] animate-pulse">Загрузка тайтлов...</p>
-          </div>
+          <GridSkeleton
+            variant="catalog"
+            itemCount={limit}
+          />
         )}
 
         {/* Состояние ошибки */}
@@ -453,11 +451,22 @@ export default function TitlesContent() {
         )}
 
         {/* Сетка тайтлов */}
-        {!isLoading && !isError && (
+        {!isError && allTitles.length > 0 && (
+          <div className="content-reveal">
+            <TitleGrid
+              titles={allTitles}
+              onCardClick={handleCardClick}
+              isEmpty={allTitles.length === 0}
+              onResetFilters={resetFilters}
+            />
+          </div>
+        )}
+
+        {!isLoading && !isError && allTitles.length === 0 && (
           <TitleGrid
             titles={allTitles}
             onCardClick={handleCardClick}
-            isEmpty={allTitles.length === 0}
+            isEmpty={true}
             onResetFilters={resetFilters}
           />
         )}
