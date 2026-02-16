@@ -74,10 +74,46 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
 
   const imageUrl = getImageUrl();
 
+  const getDisplayTime = (value: string) => {
+    if (!value) return "недавно";
+
+    // API может присылать уже готовую строку вида "2 ч назад"
+    const parsedValue = Date.parse(value);
+    if (Number.isNaN(parsedValue)) {
+      return value;
+    }
+
+    return timeAgo(value);
+  };
+
+  const getDisplayChapter = () => {
+    if (data.chapter?.trim()) return data.chapter;
+    if (typeof data.chapterNumber === "number" && data.chapterNumber > 0) {
+      return `Глава ${data.chapterNumber}`;
+    }
+    return "Новая глава";
+  };
+
+  const getDisplayType = () => {
+    if (!data.type?.trim()) return "Тайтл";
+    const translated = translateTitleType(data.type);
+    return translated.trim() || "Тайтл";
+  };
+
+  const getDisplayYear = () => {
+    if (typeof data.releaseYear === "number" && data.releaseYear > 0) {
+      return data.releaseYear;
+    }
+    return new Date().getFullYear();
+  };
+
   // Функция для склонения слова "глава"
   const getChaptersText = (count: number) => {
-    if (count === 1) return "глава";
-    if (count >= 2 && count <= 4) return "главы";
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    if (mod10 === 1 && mod100 !== 11) return "глава";
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "главы";
     return "глав";
   };
 
@@ -130,19 +166,19 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
         {/* Content section — единые отступы и шрифты */}
         <div className="flex flex-col flex-1 p-3 justify-between min-w-0">
           {/* Type and year */}
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1.5">
             <span className="text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-2 py-0.5 rounded-md font-medium">
-              {translateTitleType(data.type || "")}
+              {getDisplayType()}
             </span>
             <span className="text-[var(--muted-foreground)]">•</span>
             <span className="text-xs text-[var(--muted-foreground)] font-medium">
-              {data.releaseYear || "2025"}
+              {getDisplayYear()}
             </span>
           </div>
           
           {/* Title */}
           <h3
-            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-1 leading-tight group-hover:text-[var(--chart-1)] transition-colors duration-300 ${
+            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 min-h-10 leading-5 group-hover:text-[var(--chart-1)] transition-colors duration-300 ${
               data.isAdult && !isAgeVerified ? "blur-sm" : ""
             }`}
           >
@@ -150,15 +186,15 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
           </h3>
 
           {/* Chapter info and time */}
-          <div className="flex items-center justify-between mt-1.5">
-            <div className="flex items-center gap-2">
+          <div className="flex items-end justify-between mt-2 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <div className="flex items-center gap-1.5 text-[var(--foreground)]">
                 <Sparkles className="w-3 h-3 text-[var(--chart-1)]" />
-                <span className="font-semibold text-sm">{data.chapter}</span>
+                <span className="font-semibold text-sm truncate">{getDisplayChapter()}</span>
               </div>
 
               {data.newChapters && data.newChapters > 0 && (
-                <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-2 py-0.5 rounded-md text-xs font-medium border border-[var(--chart-1)]/20">
+                <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-2 py-0.5 rounded-md text-xs font-medium border border-[var(--chart-1)]/20 whitespace-nowrap">
                   <Plus className="w-3 h-3" />
                   <span>
                     {data.newChapters} {getChaptersText(data.newChapters)}
@@ -169,7 +205,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
 
             <div className="flex items-center gap-1 text-[var(--muted-foreground)] text-xs">
               <Clock className="w-3 h-3" />
-              <span>{timeAgo(data.timeAgo)}</span>
+              <span className="whitespace-nowrap">{getDisplayTime(data.timeAgo)}</span>
             </div>
           </div>
           
