@@ -97,18 +97,10 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
   return (
     <>
       <div 
-        className="block group cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 relative" 
+        className="block group cursor-pointer relative" 
         onClick={handleClick}
       >
-        {/* Glow — единый с остальными карточками */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)]/0 via-[var(--chart-1)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/20 group-hover:via-[var(--chart-1)]/20 group-hover:to-[var(--primary)]/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out -z-10" />
-        
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] shadow-lg ring-1 ring-white/5 group-hover:shadow-xl group-hover:ring-[var(--chart-1)]/30 transition-all duration-300 relative overflow-hidden max-w-full">
-          {/* Shine — единый с остальными карточками */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden rounded-xl">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
-          </div>
-          
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft relative overflow-hidden max-w-full">
           {/* Обложка — пропорционально */}
           <div className="w-20 h-28 sm:w-22 sm:h-32 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--muted)] relative">
             {item.coverImage ? (
@@ -117,7 +109,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
                 alt={item.title}
                 width={96}
                 height={128}
-                className={`w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-110 ${
+                className={`w-full h-full object-cover card-media-hover ${
                   item.isAdult && !isAgeVerified ? "blur-sm" : ""
                 }`}
                 quality={85}
@@ -176,8 +168,6 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
               )}
             </div>
             
-            {/* Animated underline — единый цвет */}
-            <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-[var(--chart-1)] to-transparent mt-2 transition-all duration-300 ease-out" />
           </div>
         </div>
       </div>
@@ -230,7 +220,7 @@ const Column = ({ title, href, items, showRating = false, showViews = true }: Co
  */
 export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
   return (
-    <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6 overflow-x-hidden box-border">
+    <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6 box-border">
       {/* Три отдельные колонки */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 min-w-0">
         {/* Колонка 1: Топ 2026 года */}

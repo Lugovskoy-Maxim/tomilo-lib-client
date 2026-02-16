@@ -149,7 +149,7 @@ export default function NotificationCard({
 
   return (
     <div
-      className={`relative w-full bg-card rounded-xl border transition-all duration-300 group cursor-pointer hover:shadow-lg hover:-translate-y-0.5 ${
+      className={`relative w-full bg-card rounded-xl border card-hover-soft group cursor-pointer ${
         notification.isRead 
           ? "border-border/50 opacity-80" 
           : "border-primary/30 bg-gradient-to-r from-primary/5 to-transparent shadow-sm"

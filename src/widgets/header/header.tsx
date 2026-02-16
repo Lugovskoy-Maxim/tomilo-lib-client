@@ -35,6 +35,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileMenuReady, setIsMobileMenuReady] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -50,6 +51,26 @@ export default function Header() {
     setIsSearchOpen(false);
     setIsDropdownOpen(false);
   }, [pathname]);
+
+  // Мобильная панель поиска должна быть выключена на десктопе
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+
+    const handleDesktopState = (event: MediaQueryListEvent | MediaQueryList) => {
+      const desktop = event.matches;
+      setIsDesktop(desktop);
+      if (desktop) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    handleDesktopState(mediaQuery);
+    mediaQuery.addEventListener("change", handleDesktopState);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleDesktopState);
+    };
+  }, []);
 
   // Рендер содержимого мобильного меню после открытия (избегаем ошибок при первом показе)
   useEffect(() => {
@@ -151,7 +172,7 @@ export default function Header() {
       </div>
 
       {/* Мобильная панель поиска */}
-      {isSearchOpen && (
+      {isSearchOpen && !isDesktop && (
         <div className="lg:hidden absolute top-full left-0 right-0 header-glass border-b border-[var(--border)]/50 z-40 animate-slide-down">
           <div className="relative flex items-center gap-2 p-3">
             <div className="flex-1 min-w-0">

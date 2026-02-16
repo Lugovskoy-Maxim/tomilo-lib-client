@@ -8,6 +8,7 @@ import Link from "next/link";
 const AUTO_SCROLL_SPEED_PX_PER_SEC = 36;
 /** На мобильных — быстрее, т.к. экран уже. */
 const AUTO_SCROLL_SPEED_MOBILE_PX_PER_SEC = 20;
+const AUTO_SCROLL_RESUME_DELAY_MS = 3000;
 
 interface CarouselProps<T> {
   title: string;
@@ -156,7 +157,7 @@ export default function Carousel<T>({
     autoScrollResumeTimeoutRef.current = setTimeout(() => {
       autoScrollPausedRef.current = false;
       autoScrollResumeTimeoutRef.current = null;
-    }, 2500);
+    }, AUTO_SCROLL_RESUME_DELAY_MS);
   }, [autoScrollInterval]);
 
   /** Автопрокрутка: RAF с ограничением dt для плавности, пауза при касании/перетаскивании. */
@@ -467,11 +468,24 @@ export default function Carousel<T>({
         {/* Прокручиваемая карусель: с autoScroll — автопрокрутка + перетаскивание, без — обычная. */}
         <div
             ref={scrollContainerRef}
-            className={`flex gap-3 sm:gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide cursor-grab active:cursor-grabbing select-none py-2 sm:py-4 min-w-0 touch-pan-both will-change-scroll ${
+            className={`flex gap-3 sm:gap-4 overflow-x-auto overflow-y-visible scrollbar-hide cursor-grab active:cursor-grabbing select-none py-2 sm:py-4 min-w-0 touch-pan-both will-change-scroll ${
               autoScrollInterval ? "" : "snap-x snap-proximity scroll-smooth"
             }`}
             onMouseDown={handleMouseDown}
-            onMouseLeave={handleDragEnd}
+            onMouseEnter={() => {
+              if (autoScrollInterval) {
+                pauseAutoScroll();
+              }
+            }}
+            onMouseLeave={() => {
+              if (isDragging) {
+                handleDragEnd();
+                return;
+              }
+              if (autoScrollInterval) {
+                scheduleAutoScrollResume();
+              }
+            }}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
             onTouchStart={handleTouchStart}

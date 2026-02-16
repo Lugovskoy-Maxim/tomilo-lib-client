@@ -129,7 +129,7 @@ export default function UserBar() {
             <button
               type="button"
               onClick={handleLoginModalOpen}
-              className="flex items-center px-2.5 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm font-medium 
+              className="flex items-center justify-center min-h-[40px] px-2.5 sm:px-4 text-xs sm:text-sm font-medium 
                        bg-[var(--primary)] text-[var(--primary-foreground)] 
                        rounded-lg hover:bg-[var(--primary)]/90 
                        transition-colors"

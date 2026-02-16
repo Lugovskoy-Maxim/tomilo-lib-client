@@ -109,7 +109,7 @@ export default function BookmarkGridCard({
   return (
     <Link
       href={href}
-      className="group relative flex flex-col rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] hover:border-[var(--primary)]/50 hover:shadow-lg hover:shadow-[var(--primary)]/10 transition-all duration-200 block"
+      className="group relative flex flex-col rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] card-hover-soft block"
     >
       {/* Обложка */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-[var(--secondary)]">
@@ -118,7 +118,7 @@ export default function BookmarkGridCard({
             src={coverUrl}
             alt={name}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-cover card-media-hover"
             onError={() => setImageError(true)}
           />
         ) : (

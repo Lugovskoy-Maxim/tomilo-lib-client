@@ -7,6 +7,7 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import Script from "next/script";
 import { TelegramJoinNotification, ToastContainer } from "@/shared";
 import type { Metadata } from "next";
+import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";
 
 /** Дефолтные метаданные для всего сайта — гарантируют, что роботы всегда видят осмысленный title */
 export const metadata: Metadata = {
@@ -131,6 +132,7 @@ export default function RootLayout({
         <ToastProvider>
           <Providers>
             <ThemeProvider>
+              <CardTiltEffect />
               <div className="mobile-footer-spacer">
                 {children}
               </div>

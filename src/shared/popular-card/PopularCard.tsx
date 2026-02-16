@@ -106,14 +106,11 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
   const cardContent = (
     <>
-      {/* Glow effect — единый с остальными карточками */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)]/0 via-[var(--chart-1)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/20 group-hover:via-[var(--chart-1)]/20 group-hover:to-[var(--primary)]/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out -z-10" />
-      
-      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] shadow-lg ring-1 ring-white/5 group-hover:shadow-xl group-hover:ring-[var(--chart-1)]/30 transition-all duration-300 h-full flex flex-col">
+      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft h-full flex flex-col">
         {/* Image container - 2:3 aspect ratio for manga covers */}
         <div className="relative overflow-hidden flex-shrink-0 aspect-[2/3] w-full bg-[var(--muted)]">
           <img
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full rounded-t-xl object-cover object-center transition-transform duration-300 ease-out group-hover:scale-110`}
+            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full rounded-t-xl object-cover object-center card-media-hover`}
             src={imageSrcString}
             alt={data.title}
             loading="lazy"
@@ -157,10 +154,6 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
-          {/* Shine effect — единый с остальными карточками */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden rounded-t-xl">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
-          </div>
         </div>
 
         {/* Content — фиксированная высота блока, чтобы все карточки были одной высоты */}
@@ -172,8 +165,6 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
             {data.title}
           </h3>
           
-          {/* Animated underline — единый цвет */}
-          <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-[var(--chart-1)] to-transparent mt-2 transition-all duration-300 ease-out flex-shrink-0" />
         </div>
       </div>
 
@@ -186,7 +177,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   );
 
   const className =
-    "relative group cursor-pointer select-none transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 will-change-transform block h-full";
+    "relative group cursor-pointer select-none block h-full";
 
   if (onCardClick) {
     return (

@@ -108,7 +108,7 @@ export default function BookmarkCard({
 
   return (
     <div
-      className={`group relative flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border ${borderClass} hover:border-[var(--primary)]/50 hover:shadow-md hover:shadow-[var(--primary)]/5 transition-all duration-300 cursor-pointer overflow-visible`}
+      className={`group relative flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border ${borderClass} card-hover-soft cursor-pointer overflow-visible`}
       onClick={handleClick}
     >
       <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 ring-1 ring-[var(--border)]/50">
@@ -118,7 +118,7 @@ export default function BookmarkCard({
             alt={title.name}
             width={96}
             height={128}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover card-media-hover"
             quality={80}
             priority={false}
             onError={() => setImageError(true)}

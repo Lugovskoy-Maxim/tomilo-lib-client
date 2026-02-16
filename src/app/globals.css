@@ -1290,6 +1290,94 @@ textarea.admin-input {
   box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.3);
 }
 
+/* Lightweight unified hover for cards */
+.card-hover-soft {
+  position: relative;
+  isolation: isolate;
+  --card-tilt-x: 0deg;
+  --card-tilt-y: 0deg;
+  --card-tilt-scale: 1;
+  transform: perspective(900px) rotateX(var(--card-tilt-x)) rotateY(var(--card-tilt-y))
+    scale(var(--card-tilt-scale));
+  transform-style: preserve-3d;
+  transition:
+    transform 0.18s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+  will-change: transform;
+}
+
+.card-hover-soft:hover {
+  --card-tilt-scale: 1.06;
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgb(0 0 0 / 0.08);
+  z-index: 6;
+}
+
+[data-theme="dark"] .card-hover-soft:hover {
+  box-shadow: 0 10px 22px rgb(0 0 0 / 0.26);
+}
+
+.card-hover-soft::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  z-index: 3;
+  --card-border-angle: 0deg;
+  background: conic-gradient(
+    from var(--card-border-angle),
+    color-mix(in oklch, var(--primary) 85%, transparent),
+    color-mix(in oklch, var(--chart-1) 85%, transparent),
+    color-mix(in oklch, var(--chart-2) 80%, transparent),
+    color-mix(in oklch, var(--primary) 85%, transparent)
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.card-hover-soft > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card-hover-soft:hover::before {
+  opacity: 1;
+  animation: card-border-spin 2.4s linear infinite;
+}
+
+@property --card-border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes card-border-spin {
+  from {
+    --card-border-angle: 0deg;
+  }
+  to {
+    --card-border-angle: 360deg;
+  }
+}
+
+.card-media-hover {
+  transition: transform 0.25s ease;
+}
+
+.group:hover .card-media-hover {
+  transform: scale(1);
+}
+
 /* ============================================
    RGB VARIABLES FOR OPACITY SUPPORT
    ============================================ */

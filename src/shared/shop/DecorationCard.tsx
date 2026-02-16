@@ -152,7 +152,7 @@ export function DecorationCard({
   };
 
   return (
-    <div className="bg-[var(--secondary)] rounded-lg overflow-hidden border border-[var(--border)] hover:shadow-lg transition-all duration-200 group">
+    <div className="bg-[var(--secondary)] rounded-lg overflow-hidden border border-[var(--border)] card-hover-soft group">
       {/* Изображение */}
       <div className="relative aspect-square overflow-hidden">
         {isImageLoading && (
@@ -164,7 +164,7 @@ export function DecorationCard({
           src={decoration.imageUrl}
           alt={decoration.name}
           fill
-          className={`object-cover group-hover:scale-105 transition-transform duration-200 ${
+          className={`object-cover card-media-hover ${
             isImageLoading ? "opacity-0" : "opacity-100"
           }`}
           onLoad={() => setIsImageLoading(false)}

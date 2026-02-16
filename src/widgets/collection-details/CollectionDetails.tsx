@@ -204,15 +204,10 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                 onClick={() =>
                   !isContentHidden && router.push(getTitlePath({ id: title._id, slug: title.slug }))
                 }
-                className={`bg-[var(--card)] max-h-[580px] overflow-hidden rounded-2xl border border-[var(--border)] p-2 sm:p-3 shadow-lg ring-1 ring-white/5 hover:ring-primary/30 hover:shadow-xl transition-all duration-300 cursor-pointer group relative ${
+                className={`bg-[var(--card)] max-h-[580px] overflow-hidden rounded-2xl border border-[var(--border)] p-2 sm:p-3 card-hover-soft cursor-pointer group relative ${
                   isContentHidden ? "cursor-not-allowed opacity-75" : ""
                 }`}
               >
-                {/* Glow on hover */}
-                {!isContentHidden && (
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-chart-1/0 to-primary/0 group-hover:from-primary/15 group-hover:via-chart-1/15 group-hover:to-primary/15 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-300 -z-10" />
-                )}
-
                 {/* Views */}
                 <div className="absolute flex gap-1 top-2 left-2 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-xl border border-white/20 shadow-lg">
                   <Eye className="w-3.5 h-3.5" />
@@ -232,7 +227,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                     alt={title.name}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 280px"
-                    className={`object-cover group-hover:scale-105 transition-transform duration-500 ${
+                    className={`object-cover card-media-hover ${
                       isContentHidden ? "blur-md" : ""
                     }`}
                   />

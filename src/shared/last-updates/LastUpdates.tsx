@@ -120,13 +120,10 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   return (
     <Link
       href={titlePath}
-      className="w-full group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 block"
+      className="w-full group relative cursor-pointer block"
       onClick={handleClick}
     >
-      {/* Glow — единый с остальными карточками */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)]/0 via-[var(--chart-1)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/20 group-hover:via-[var(--chart-1)]/20 group-hover:to-[var(--primary)]/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out -z-10" />
-      
-      <div className="relative flex bg-[var(--card)] rounded-xl overflow-hidden shadow-lg ring-1 ring-white/5 group-hover:shadow-xl group-hover:ring-[var(--chart-1)]/30 transition-all duration-300">
+      <div className="relative flex bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft">
         {/* Image section — пропорциональные размеры */}
         <div className="relative w-20 sm:w-24 h-28 sm:h-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
@@ -135,7 +132,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               src={imageUrl}
               alt={data.title}
               fill
-              className={`object-cover transition-transform duration-300 ease-out group-hover:scale-110 ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
+              className={`object-cover card-media-hover ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
               sizes="64px"
               unoptimized
               onError={e => {
@@ -148,11 +145,6 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
           {/* Gradient overlay on image */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
-          {/* Shine — единый с остальными карточками */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
-          </div>
-
           {/* Adult badge */}
           {data.isAdult && (
             <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
@@ -209,8 +201,6 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
             </div>
           </div>
           
-          {/* Animated underline — единый цвет */}
-          <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-transparent via-[var(--chart-1)] to-transparent mt-2 transition-all duration-300 ease-out" />
         </div>
       </div>
 

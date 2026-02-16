@@ -65,7 +65,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
     return (
       <>
         <div
-          className="bg-[var(--muted)]/30 rounded-xl border border-[var(--border)] hover:shadow-xl transition-all duration-300 cursor-pointer group p-4 sm:p-6"
+          className="bg-[var(--muted)]/30 rounded-xl border border-[var(--border)] card-hover-soft cursor-pointer group p-4 sm:p-6"
           onClick={handleClick}
         >
           {/* Мобильная версия - горизонтальная */}
@@ -76,7 +76,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                 alt={data.title}
                 width={120}
                 height={160}
-                className={`w-42 h-52 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
+                className={`w-42 h-52 object-cover rounded-lg shadow-sm ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
                 quality={80}
                 priority={false}
               />
@@ -145,7 +145,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                 alt={data.title}
                 width={120}
                 height={160}
-                className={`w-42 h-54 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
+                className={`w-42 h-54 object-cover rounded-lg shadow-sm ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
                 quality={80}
                 priority={false}
               />
@@ -218,7 +218,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
   return (
     <>
       <div
-        className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:bg-[var(--accent)] hover:shadow-md transition-all duration-300 cursor-pointer group h-full"
+        className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:bg-[var(--accent)] card-hover-soft cursor-pointer group h-full"
         onClick={handleClick}
       >
         <div className="relative">
@@ -227,7 +227,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
             alt={data.title}
             width={160}
             height={128}
-            className={`w-full h-24 sm:h-32 object-cover rounded-lg shadow-sm group-hover:shadow-md transition-shadow ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
+            className={`w-full h-24 sm:h-32 object-cover rounded-lg shadow-sm ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
             quality={80}
             priority={false}
           />

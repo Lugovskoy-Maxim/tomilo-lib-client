@@ -49,8 +49,7 @@ export function AdminCard({
     <div
       className={cn(
         "bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden",
-        "transition-all duration-200",
-        !noHover && "hover:shadow-lg hover:border-[var(--primary)]/20",
+        !noHover && "card-hover-soft",
         className
       )}
     >
@@ -136,9 +135,8 @@ export function StatCard({
       onClick={onClick}
       className={cn(
         "bg-[var(--card)] rounded-[var(--admin-radius)] border p-4",
-        "transition-all duration-200",
-        "hover:shadow-md",
-        onClick && "cursor-pointer hover:scale-[1.02]",
+        "card-hover-soft",
+        onClick && "cursor-pointer",
         colorMap[color]
       )}
     >

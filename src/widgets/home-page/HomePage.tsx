@@ -73,10 +73,10 @@ export default function HomePage() {
     return (
       <>
         <Header />
-        <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full overflow-x-hidden">
+        <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full">
           <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52" variant="poster" />
           <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56" variant="poster" />
-          <div className="w-full overflow-x-hidden">
+          <div className="w-full">
             <TopCombinedSkeleton />
           </div>
           <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
@@ -91,7 +91,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full overflow-x-hidden">
+      <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full">
         {/* Популярные тайтлы */}
         <DataCarousel
           title="Популярные тайтлы"
@@ -116,7 +116,7 @@ export default function HomePage() {
         />
 
         {/* Объединенная секция топ манхв, маньхуа и новинок 2026 */}
-        <div className="w-full overflow-x-hidden">
+        <div className="w-full">
           {topManhwa.loading || top2026.loading || topManhua.loading ? (
             <TopCombinedSkeleton />
           ) : topManhwa.error || top2026.error || topManhua.error ? null : (

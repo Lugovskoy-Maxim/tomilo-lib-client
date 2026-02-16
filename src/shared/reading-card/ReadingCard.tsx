@@ -58,14 +58,11 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
   return (
     <div
-      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1"
+      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 group relative cursor-pointer"
       data-card-id={data.id}
       onClick={handleClick}
     >
-      {/* Glow — единый с остальными карточками */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)]/0 via-[var(--chart-1)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/20 group-hover:via-[var(--chart-1)]/20 group-hover:to-[var(--primary)]/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out -z-10" />
-      
-      <div className="relative flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden shadow-lg ring-1 ring-white/5 group-hover:shadow-xl group-hover:ring-[var(--chart-1)]/30 transition-all duration-300">
+      <div className="relative flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft">
         {/* Image section */}
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
@@ -73,7 +70,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
               src={imageUrlString}
               alt={data.title}
               width={128}
-              className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+              className="object-cover card-media-hover"
               quality={85}
               priority={false}
               onError={() => {
@@ -89,10 +86,6 @@ export default function ReadingCard({ data }: ReadingCardProps) {
             </div>
           </div>
           
-          {/* Shine — единый с остальными карточками */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
-          </div>
         </div>
 
         {/* Content section — единые отступы */}
@@ -139,7 +132,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
             {/* Enhanced progress bar */}
             <div className="relative w-full bg-[var(--muted)] rounded-full h-2 overflow-hidden">
               <div
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-5)] rounded-full transition-all duration-700 ease-out group-hover:shadow-[0_0_10px_rgba(var(--chart-1),0.5)]"
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-5)] rounded-full transition-[width] duration-700 ease-out"
                 style={{
                   width: `${getProgressPercentage(
                     data.readingHistory?.chapterNumber || data.currentChapter,
@@ -147,8 +140,6 @@ export default function ReadingCard({ data }: ReadingCardProps) {
                   )}%`,
                 }}
               />
-              {/* Animated shimmer on progress */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out" />
             </div>
           </div>
         </div>
