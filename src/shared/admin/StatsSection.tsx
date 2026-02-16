@@ -80,6 +80,62 @@ function normItem(item: Record<string, unknown>) {
   };
 }
 
+function unwrapApiData(value: unknown): unknown {
+  let current = value;
+  for (let i = 0; i < 3; i++) {
+    if (current && typeof current === "object" && "data" in current) {
+      current = (current as { data?: unknown }).data;
+      continue;
+    }
+    break;
+  }
+  return current;
+}
+
+function toRecordArray(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is Record<string, unknown> => item !== null && typeof item === "object");
+}
+
+function extractSingleRecord(value: unknown): Record<string, unknown> | null {
+  const unwrapped = unwrapApiData(value);
+  if (!unwrapped) return null;
+
+  if (Array.isArray(unwrapped)) {
+    const first = unwrapped.find((item) => item && typeof item === "object");
+    return (first as Record<string, unknown> | undefined) ?? null;
+  }
+
+  if (typeof unwrapped !== "object") return null;
+
+  const obj = unwrapped as Record<string, unknown>;
+  const candidates = ["dailyStats", "stats", "record", "item", "result"];
+  for (const key of candidates) {
+    const candidate = obj[key];
+    if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) {
+      return candidate as Record<string, unknown>;
+    }
+    if (Array.isArray(candidate)) {
+      const first = candidate.find((item) => item && typeof item === "object");
+      if (first) return first as Record<string, unknown>;
+    }
+  }
+
+  return obj;
+}
+
+function getPeriodName(item: Record<string, unknown>, normalized: ReturnType<typeof normItem>): string {
+  const maybeDate = item.date;
+  if (typeof maybeDate === "string" && maybeDate.trim()) return normalized.date;
+
+  const year = Number(item.year);
+  const month = Number(item.month);
+  if (Number.isFinite(year) && Number.isFinite(month)) return `${year}-${String(month).padStart(2, "0")}`;
+  if (Number.isFinite(year)) return String(year);
+
+  return normalized.date || "—";
+}
+
 /** Нормализация месячной записи с сервера (totalNewUsers → newUsers, totalTitleViews+totalChapterViews → views) */
 function normMonthly(rec: Record<string, unknown> | null | undefined) {
   if (!rec) return null;
@@ -170,40 +226,36 @@ export function StatsSection() {
     return [];
   }, [availableYears]);
 
-  // API: history is ApiResponseDto<StatsHistoryResponse>, so array at data.data.data
   const historyArray = useMemo(() => {
-    const d = historyData?.data as Record<string, unknown> | undefined;
-    const inner = d?.data as { data?: unknown } | undefined;
-    const raw = inner?.data;
-    return Array.isArray(raw) ? raw : [];
+    const raw = unwrapApiData(historyData?.data);
+    if (Array.isArray(raw)) return toRecordArray(raw);
+    if (raw && typeof raw === "object" && "data" in raw) {
+      return toRecordArray((raw as { data?: unknown }).data);
+    }
+    return [];
   }, [historyData]);
 
-  // API: recent/range are ApiResponseDto<Array>, so array at data.data
   const recentArray = useMemo(() => {
-    const d = recentData?.data as Record<string, unknown> | undefined;
-    const raw = d?.data ?? recentData?.data;
-    return Array.isArray(raw) ? raw : [];
+    return toRecordArray(unwrapApiData(recentData?.data));
   }, [recentData]);
 
   const rangeArray = useMemo(() => {
-    const d = rangeData?.data as Record<string, unknown> | undefined;
-    const raw = d?.data ?? rangeData?.data;
-    return Array.isArray(raw) ? raw : [];
+    return toRecordArray(unwrapApiData(rangeData?.data));
   }, [rangeData]);
 
-  // API может возвращать { data: T } — тогда запись в data.data или data
-  const dailyRecordRaw = (dailyData?.data as Record<string, unknown> | undefined)?.data ?? dailyData?.data;
-  const monthlyRecordRaw = (monthlyData?.data as Record<string, unknown> | undefined)?.data ?? monthlyData?.data;
-  const yearlyRecordRaw = (yearlyData?.data as Record<string, unknown> | undefined)?.data ?? yearlyData?.data;
-  const dailyRecord = dailyRecordRaw ? normItem(dailyRecordRaw as Record<string, unknown>) : null;
-  const monthlyRecord = normMonthly(monthlyRecordRaw as Record<string, unknown> | undefined);
-  const yearlyRecord = normYearly(yearlyRecordRaw as Record<string, unknown> | undefined);
+  const dailyRecordRaw = extractSingleRecord(dailyData?.data);
+  const monthlyRecordRaw = extractSingleRecord(monthlyData?.data);
+  const yearlyRecordRaw = extractSingleRecord(yearlyData?.data);
+  const dailyRecord = dailyRecordRaw ? normItem(dailyRecordRaw) : null;
+  const monthlyRecord = monthlyRecordRaw ? normMonthly(monthlyRecordRaw) : null;
+  const yearlyRecord = yearlyRecordRaw ? normYearly(yearlyRecordRaw) : null;
 
   const chartData = useMemo(() => {
     if (activeView === "history" && historyArray.length > 0) {
       return historyArray.map((item: DailyStatsHistory | MonthlyStatsHistory | YearlyStatsHistory | Record<string, unknown>) => {
-        const n = normItem(item as Record<string, unknown>);
-        const name = "date" in item && item.date ? n.date : `${(item as { year?: number }).year}-${(item as { month?: number }).month ?? ""}`;
+        const record = item as Record<string, unknown>;
+        const n = normItem(record);
+        const name = getPeriodName(record, n);
         return { name, views: n.views, newUsers: n.newUsers, newTitles: n.newTitles, newChapters: n.newChapters };
       });
     }
@@ -572,7 +624,7 @@ export function StatsSection() {
                 <tbody className="divide-y divide-[var(--border)]">
                   {activeView === "history" && historyArray.map((item, index: number) => {
                     const n = normItem(item as Record<string, unknown>);
-                    const name = "date" in item && item.date ? n.date : `${(item as { year?: number }).year}-${(item as { month?: number }).month ?? ""}`;
+                    const name = getPeriodName(item as Record<string, unknown>, n);
                     return (
                     <tr key={index} className="hover:bg-[var(--accent)]/30">
                       <td className="px-4 py-3 text-sm text-[var(--foreground)]">{name}</td>
@@ -634,6 +686,23 @@ export function StatsSection() {
                     </tr>
                     );
                   })}
+                  {(
+                    (activeView === "history" && historyArray.length === 0) ||
+                    (activeView === "daily" && !dailyRecord) ||
+                    (activeView === "range" && rangeArray.length === 0) ||
+                    (activeView === "monthly" && !monthlyRecord) ||
+                    (activeView === "yearly" && !yearlyRecord) ||
+                    (activeView === "recent" && recentArray.length === 0)
+                  ) && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-4 py-8 text-center text-sm text-[var(--muted-foreground)]"
+                      >
+                        Нет данных для выбранного периода
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
