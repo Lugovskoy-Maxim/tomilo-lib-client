@@ -1,5 +1,5 @@
 "use client";
-import { Logo, Search, ThemeToggle, ErrorBoundary } from "@/shared";
+import { Logo, Search, ErrorBoundary } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -201,16 +201,6 @@ export default function Header() {
                   </div>
 
                   <div className="p-4 space-y-6">
-              <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
-                  Настройки
-                </h3>
-                <div className="flex items-center justify-between p-3 bg-[var(--secondary)]/60 rounded-xl border border-[var(--border)]/50 hover-lift">
-                  <span className="text-sm font-medium text-[var(--foreground)]">Тема</span>
-                  <ThemeToggle />
-                </div>
-              </div>
-
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
                   Аккаунт
