@@ -43,7 +43,23 @@ import {
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 
+const getValidScheduleHour = (value: unknown): number | null => {
+  if (value === undefined || value === null) return null;
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized || normalized === "null" || normalized === "undefined" || normalized === "none") {
+      return null;
+    }
+  }
+
+  const hour = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null;
+  return hour;
+};
+
 export default function AutoParsingSection() {
+  const [viewMode, setViewMode] = useState<"hourly" | "default">("hourly");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<AutoParsingJob | null>(null);
   const [titleSearch, setTitleSearch] = useState("");
@@ -133,13 +149,18 @@ export default function AutoParsingSection() {
     map.set("none", []);
     for (let h = 0; h < 24; h++) map.set(h, []);
     jobs.forEach(job => {
-      const key =
-        job.scheduleHour !== undefined && job.scheduleHour !== null ? job.scheduleHour : "none";
+      const parsedHour = getValidScheduleHour(job.scheduleHour);
+      const key = parsedHour === null ? "none" : parsedHour;
       const list = key === "none" ? map.get("none")! : map.get(key)!;
       list.push(job);
     });
     return map;
   }, [jobs]);
+  const getHourCount = (hour: number | "none") => jobsByHour.get(hour)?.length ?? 0;
+  const totalHourlyTitles = useMemo(
+    () => Array.from({ length: 24 }, (_, h) => getHourCount(h)).reduce((acc, value) => acc + value, 0),
+    [jobsByHour],
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -205,13 +226,39 @@ export default function AutoParsingSection() {
             Управление задачами автоматического парсинга
           </p>
         </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="admin-btn admin-btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Создать задачу
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 p-1 rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--background)]">
+            <button
+              type="button"
+              onClick={() => setViewMode("hourly")}
+              className={`px-3 py-1.5 text-sm rounded-[var(--admin-radius)] transition-colors ${
+                viewMode === "hourly"
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              }`}
+            >
+              По часам
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("default")}
+              className={`px-3 py-1.5 text-sm rounded-[var(--admin-radius)] transition-colors ${
+                viewMode === "default"
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              }`}
+            >
+              Обычный
+            </button>
+          </div>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="admin-btn admin-btn-primary flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Создать задачу
+          </button>
+        </div>
       </div>
 
       {/* Schedule by hour (UTC) — drag & drop */}
@@ -220,45 +267,49 @@ export default function AutoParsingSection() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            Расписание по часам (UTC) — перетащите задачу в нужный час
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-[var(--border)]">
-                  <th className="text-left py-2 px-2 font-medium text-[var(--muted-foreground)] min-w-[140px] align-bottom">
-                    Без часа
-                  </th>
-                  {Array.from({ length: 24 }, (_, i) => i).map(h => (
-                    <th
-                      key={h}
-                      className="text-center py-2 px-2 font-medium text-[var(--muted-foreground)] min-w-[80px] align-bottom"
-                    >
-                      {h}
+        {viewMode === "hourly" && (
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Расписание по часам (UTC) — перетащите задачу в нужный час
+              </h3>
+              <span className="text-xs px-2 py-1 rounded-full bg-[var(--muted)] text-[var(--foreground)] whitespace-nowrap">
+                0-23: {totalHourlyTitles}
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--border)]">
+                    <th className="text-left py-2 px-2 font-medium text-[var(--muted-foreground)] min-w-[140px] align-bottom">
+                      <div className="flex items-center justify-between gap-2">
+                        <span>Без часа</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--muted)] text-[var(--foreground)]">
+                          {getHourCount("none")}
+                        </span>
+                      </div>
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <HourCell
-                    droppableId="hour-none"
-                    jobs={jobsByHour.get("none")!}
-                    getImageUrl={getImageUrl}
-                    onEdit={setEditingJob}
-                    onDelete={handleDeleteJob}
-                    onCheck={handleCheckChapters}
-                    deleteLoading={deleteLoading}
-                    checkLoading={checkLoading}
-                  />
-                  {Array.from({ length: 24 }, (_, i) => i).map(h => (
+                    {Array.from({ length: 24 }, (_, i) => i).map(h => (
+                      <th
+                        key={h}
+                        className="text-center py-2 px-2 font-medium text-[var(--muted-foreground)] min-w-[80px] align-bottom"
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <span>{h}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--muted)] text-[var(--foreground)] leading-none">
+                            {getHourCount(h)}
+                          </span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
                     <HourCell
-                      key={h}
-                      droppableId={`hour-${h}`}
-                      jobs={jobsByHour.get(h)!}
+                      droppableId="hour-none"
+                      jobs={jobsByHour.get("none")!}
                       getImageUrl={getImageUrl}
                       onEdit={setEditingJob}
                       onDelete={handleDeleteJob}
@@ -266,25 +317,39 @@ export default function AutoParsingSection() {
                       deleteLoading={deleteLoading}
                       checkLoading={checkLoading}
                     />
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                    {Array.from({ length: 24 }, (_, i) => i).map(h => (
+                      <HourCell
+                        key={h}
+                        droppableId={`hour-${h}`}
+                        jobs={jobsByHour.get(h)!}
+                        getImageUrl={getImageUrl}
+                        onEdit={setEditingJob}
+                        onDelete={handleDeleteJob}
+                        onCheck={handleCheckChapters}
+                        deleteLoading={deleteLoading}
+                        checkLoading={checkLoading}
+                      />
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-          <DragOverlay>
-            {activeJob ? (
-              <ScheduleJobCard
-                job={activeJob}
-                getImageUrl={getImageUrl}
-                isOverlay
-              />
-            ) : null}
-          </DragOverlay>
-        </div>
+            <DragOverlay>
+              {activeJob ? (
+                <ScheduleJobCard
+                  job={activeJob}
+                  getImageUrl={getImageUrl}
+                  isOverlay
+                />
+              ) : null}
+            </DragOverlay>
+          </div>
+        )}
 
         {/* Jobs List */}
-        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
+        {viewMode === "default" && (
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
           {jobsLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
@@ -409,7 +474,8 @@ export default function AutoParsingSection() {
             ))}
           </div>
         )}
-        </div>
+          </div>
+        )}
 
       </DndContext>
 
