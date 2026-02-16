@@ -122,14 +122,17 @@ export default function Header() {
             <Search />
           </div>
 
-          {/* Кнопка поиска на мобильных */}
-          <button
-            onClick={toggleSearch}
-            className={`${isSearchOpen ? "hidden" : "lg:hidden"} header-icon-btn`}
-            aria-label="Поиск"
-          >
-            <SearchIcon className="w-5 h-5 text-[var(--muted-foreground)]" />
-          </button>
+          {/* Кнопка поиска только на мобильных */}
+          <div className="lg:hidden">
+            <button
+              type="button"
+              onClick={toggleSearch}
+              className={`${isSearchOpen ? "hidden " : ""}header-icon-btn`}
+              aria-label="Поиск"
+            >
+              <SearchIcon className="w-5 h-5 text-[var(--muted-foreground)]" />
+            </button>
+          </div>
 
           {/* Кнопка «Ещё» и выпадающее меню */}
           <div className="relative hidden md:block">
