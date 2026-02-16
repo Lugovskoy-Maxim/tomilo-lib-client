@@ -20,7 +20,6 @@ import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { ReportModal } from "@/shared/report/ReportModal";
-import ThemeToggle from "@/shared/theme-toggle/ThemeToggle";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 import { useAutoScroll, useBookmark, useReaderSettings, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED } from "./hooks";
 
@@ -195,29 +194,29 @@ export default function ReaderControls({
         <div ref={settingsPanelRef} className="fixed inset-0 z-[70]">
           {/* Десктопная панель */}
           <div
-            className="absolute inset-y-0 right-0 w-[420px] bg-[var(--card)]/95 backdrop-blur-md border-l border-[var(--border)] shadow-2xl sm:block hidden transform transition-transform duration-300 ease-in-out rounded-l-3xl"
+            className="absolute inset-y-0 right-0 w-[360px] lg:w-[380px] bg-[var(--card)]/95 backdrop-blur-md border-l border-[var(--border)] shadow-2xl sm:block hidden transform transition-transform duration-300 ease-in-out rounded-l-3xl overflow-hidden"
             style={{ transform: "translateX(0)" }}
           >
-            <div className="p-6 border-b border-[var(--border)] bg-[var(--background)]/50">
+            <div className="p-4 border-b border-[var(--border)] bg-[var(--background)]/50">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
-                  <Settings className="w-6 h-6 text-[var(--primary)]" />
+                <h3 className="font-semibold text-base text-[var(--foreground)] flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-[var(--primary)]" />
                   Настройки
                 </h3>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
-                  className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
                   title="Закрыть"
                 >
-                  <X className="w-6 h-6 text-[var(--muted-foreground)]" />
+                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
                 </button>
               </div>
             </div>
-            <div className="p-6 space-y-8">
+            <div className="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-73px)]">
               {/* Ширина изображения */}
               {onImageWidthChange && (
-                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
-                  <label className="block text-sm font-medium mb-3">
+                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                  <label className="block text-xs font-medium mb-2">
                     Ширина картинки: {imageWidth}px
                   </label>
                   <input
@@ -229,7 +228,7 @@ export default function ReaderControls({
                     onChange={e => onImageWidthChange(Number(e.target.value))}
                     className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
                   />
-                  <div className="flex justify-between text-xs text-[var(--muted-foreground)] mt-2">
+                  <div className="flex justify-between text-[11px] text-[var(--muted-foreground)] mt-1.5">
                     <span>768px</span>
                     <span>1440px</span>
                   </div>
@@ -237,14 +236,14 @@ export default function ReaderControls({
               )}
 
               {/* Скорость автоскролла */}
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
-                <label className="block text-sm font-medium mb-3">Скорость автоскролла</label>
-                <div className="grid grid-cols-3 gap-3">
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <label className="block text-xs font-medium mb-2">Скорость автоскролла</label>
+                <div className="grid grid-cols-3 gap-2">
                   {(["slow", "medium", "fast"] as const).map(speed => (
                     <button
                       key={speed}
                       onClick={() => setAutoScrollSpeed(speed)}
-                      className={`px-4 py-3 text-sm rounded-xl transition-colors ${
+                      className={`px-2 py-2 text-xs rounded-lg transition-colors ${
                         autoScrollSpeed === speed
                           ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                           : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
@@ -257,13 +256,13 @@ export default function ReaderControls({
               </div>
 
               {/* Тема */}
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
-                <label className="block text-sm font-medium mb-3">Тема</label>
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <label className="block text-xs font-medium mb-2">Тема</label>
                 <ThemeToggleGroup />
               </div>
 
               {/* Переключатель счетчика страниц */}
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -272,22 +271,22 @@ export default function ReaderControls({
                     className="sr-only"
                   />
                   <div
-                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
                       showPageCounter ? "bg-[var(--primary)]" : ""
                     }`}
                   >
                     <div
-                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                        showPageCounter ? "transform translate-x-7" : ""
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                        showPageCounter ? "transform translate-x-5" : ""
                       }`}
                     ></div>
                   </div>
-                  <span className="ml-4 text-sm">Отображать счетчик страниц</span>
+                  <span className="ml-3 text-sm">Счетчик страниц</span>
                 </label>
               </div>
 
               {/* Переключатель скрытия нижнего меню */}
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -296,23 +295,23 @@ export default function ReaderControls({
                     className="sr-only"
                   />
                   <div
-                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
                       hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
                     }`}
                   >
                     <div
-                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                        hideBottomMenuSetting ? "transform translate-x-7" : ""
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                        hideBottomMenuSetting ? "transform translate-x-5" : ""
                       }`}
                     ></div>
                   </div>
-                  <span className="ml-4 text-sm">Скрывать нижнее меню</span>
+                  <span className="ml-3 text-sm">Автоскрытие меню</span>
                 </label>
               </div>
 
               {/* Чтение глав подряд (отключено) */}
               {READ_CHAPTERS_IN_ROW_ENABLED && (
-                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
                   <label className="flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -321,19 +320,19 @@ export default function ReaderControls({
                       className="sr-only"
                     />
                     <div
-                      className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                      className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
                         readChaptersInRow ? "bg-[var(--primary)]" : ""
                       }`}
                     >
                       <div
-                        className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                          readChaptersInRow ? "transform translate-x-7" : ""
+                        className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                          readChaptersInRow ? "transform translate-x-5" : ""
                         }`}
                       ></div>
                     </div>
-                    <span className="ml-4 text-sm">Чтение глав подряд</span>
+                    <span className="ml-3 text-sm">Главы подряд</span>
                   </label>
-                  <p className="text-xs text-[var(--muted-foreground)] mt-2 ml-0">
+                  <p className="text-[11px] text-[var(--muted-foreground)] mt-2 ml-0 leading-relaxed">
                     При прокрутке до конца или начала подгружается следующая/предыдущая глава, адрес обновляется.
                   </p>
                 </div>
@@ -341,13 +340,13 @@ export default function ReaderControls({
 
               {/* Переключатель предзагрузки всех изображений */}
               {onPreloadChange && (
-                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
-                  <div className="flex items-start gap-3 mb-3">
+                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                  <div className="flex items-start gap-2.5 mb-2">
                     <div className={`p-2 rounded-lg ${preloadAllImages ? 'bg-[var(--primary)]/10' : 'bg-[var(--muted)]'}`}>
                       {preloadAllImages ? (
-                        <Download className="w-5 h-5 text-[var(--primary)]" />
+                        <Download className="w-4 h-4 text-[var(--primary)]" />
                       ) : (
-                        <Wifi className="w-5 h-5 text-[var(--muted-foreground)]" />
+                        <Wifi className="w-4 h-4 text-[var(--muted-foreground)]" />
                       )}
                     </div>
                     <div className="flex-1">
@@ -359,19 +358,19 @@ export default function ReaderControls({
                           className="sr-only"
                         />
                         <div
-                          className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                          className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
                             preloadAllImages ? "bg-[var(--primary)]" : ""
                           }`}
                         >
                           <div
-                            className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                              preloadAllImages ? "transform translate-x-7" : ""
+                            className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                              preloadAllImages ? "transform translate-x-5" : ""
                             }`}
                           ></div>
                         </div>
-                        <span className="ml-3 text-sm font-medium">Предзагружать всю главу</span>
+                        <span className="ml-3 text-sm font-medium">Предзагружать главу</span>
                       </label>
-                      <p className="text-xs text-[var(--muted-foreground)] mt-2 leading-relaxed">
+                      <p className="text-[11px] text-[var(--muted-foreground)] mt-1.5 leading-relaxed">
                         Для нестабильного интернета. Загружает все страницы сразу, но требует больше трафика.
                       </p>
                     </div>
@@ -408,33 +407,33 @@ export default function ReaderControls({
 
           {/* Мобильная панель */}
           <div
-            className="sm:hidden fixed bottom-0 left-0 right-0 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] shadow-2xl z-[70] max-h-[70vh] overflow-y-auto rounded-t-3xl"
+            className="sm:hidden fixed inset-x-0 bottom-0 top-16 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] shadow-2xl z-[70] overflow-y-auto rounded-t-3xl"
           >
-            <div className="p-5 border-b border-[var(--border)] sticky top-0 bg-[var(--background)]/50 backdrop-blur-sm">
+            <div className="p-4 border-b border-[var(--border)] sticky top-0 bg-[var(--background)]/70 backdrop-blur-sm">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
-                  <Settings className="w-6 h-6 text-[var(--primary)]" />
+                <h3 className="font-semibold text-base text-[var(--foreground)] flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-[var(--primary)]" />
                   Настройки
                 </h3>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
-                  className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
                   title="Закрыть"
                 >
-                  <X className="w-6 h-6 text-[var(--muted-foreground)]" />
+                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
                 </button>
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
-                <label className="block text-sm font-medium mb-3">Скорость автоскролла</label>
-                <div className="grid grid-cols-3 gap-3">
+            <div className="p-4 space-y-3 pb-6">
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <label className="block text-xs font-medium mb-2">Скорость автоскролла</label>
+                <div className="grid grid-cols-3 gap-2">
                   {(["slow", "medium", "fast"] as const).map(speed => (
                     <button
                       key={speed}
                       onClick={() => setAutoScrollSpeed(speed)}
-                      className={`px-4 py-3 text-sm rounded-xl transition-colors ${
+                      className={`px-2 py-2 text-xs rounded-lg transition-colors ${
                         autoScrollSpeed === speed
                           ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                           : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
@@ -446,12 +445,12 @@ export default function ReaderControls({
                 </div>
               </div>
 
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
-                <label className="block text-sm font-medium mb-3">Тема</label>
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <label className="block text-xs font-medium mb-2">Тема</label>
                 <ThemeToggleGroup />
               </div>
 
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -460,21 +459,21 @@ export default function ReaderControls({
                     className="sr-only"
                   />
                   <div
-                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
                       showPageCounter ? "bg-[var(--primary)]" : ""
                     }`}
                   >
                     <div
-                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                        showPageCounter ? "transform translate-x-7" : ""
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                        showPageCounter ? "transform translate-x-5" : ""
                       }`}
                     ></div>
                   </div>
-                  <span className="ml-4 text-sm">Отображать счетчик страниц</span>
+                  <span className="ml-3 text-sm">Счетчик страниц</span>
                 </label>
               </div>
 
-              <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -483,22 +482,22 @@ export default function ReaderControls({
                     className="sr-only"
                   />
                   <div
-                    className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
                       hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
                     }`}
                   >
                     <div
-                      className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                        hideBottomMenuSetting ? "transform translate-x-7" : ""
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                        hideBottomMenuSetting ? "transform translate-x-5" : ""
                       }`}
                     ></div>
                   </div>
-                  <span className="ml-4 text-sm">Скрывать нижнее меню</span>
+                  <span className="ml-3 text-sm">Автоскрытие меню</span>
                 </label>
               </div>
 
               {READ_CHAPTERS_IN_ROW_ENABLED && (
-                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
+                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
                   <label className="flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -507,31 +506,31 @@ export default function ReaderControls({
                       className="sr-only"
                     />
                     <div
-                      className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                      className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
                         readChaptersInRow ? "bg-[var(--primary)]" : ""
                       }`}
                     >
                       <div
-                        className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                          readChaptersInRow ? "transform translate-x-7" : ""
+                        className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                          readChaptersInRow ? "transform translate-x-5" : ""
                         }`}
                       ></div>
                     </div>
-                    <span className="ml-4 text-sm">Чтение глав подряд</span>
+                    <span className="ml-3 text-sm">Главы подряд</span>
                   </label>
-                  <p className="text-xs text-[var(--muted-foreground)] mt-2">При прокрутке подгружается следующая/предыдущая глава.</p>
+                  <p className="text-[11px] text-[var(--muted-foreground)] mt-2">При прокрутке подгружается следующая/предыдущая глава.</p>
                 </div>
               )}
 
               {/* Переключатель предзагрузки - мобильная версия */}
               {onPreloadChange && (
-                <div className="bg-[var(--background)]/50 rounded-2xl p-4 border border-[var(--border)]">
-                  <div className="flex items-start gap-3 mb-3">
+                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                  <div className="flex items-start gap-2.5 mb-2">
                     <div className={`p-2 rounded-lg ${preloadAllImages ? 'bg-[var(--primary)]/10' : 'bg-[var(--muted)]'}`}>
                       {preloadAllImages ? (
-                        <Download className="w-5 h-5 text-[var(--primary)]" />
+                        <Download className="w-4 h-4 text-[var(--primary)]" />
                       ) : (
-                        <Wifi className="w-5 h-5 text-[var(--muted-foreground)]" />
+                        <Wifi className="w-4 h-4 text-[var(--muted-foreground)]" />
                       )}
                     </div>
                     <div className="flex-1">
@@ -543,19 +542,19 @@ export default function ReaderControls({
                           className="sr-only"
                         />
                         <div
-                          className={`relative w-14 h-7 bg-[var(--muted)] rounded-full transition-colors ${
+                          className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
                             preloadAllImages ? "bg-[var(--primary)]" : ""
                           }`}
                         >
                           <div
-                            className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${
-                              preloadAllImages ? "transform translate-x-7" : ""
+                            className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                              preloadAllImages ? "transform translate-x-5" : ""
                             }`}
                           ></div>
                         </div>
-                        <span className="ml-3 text-sm font-medium">Предзагружать всю главу</span>
+                        <span className="ml-3 text-sm font-medium">Предзагружать главу</span>
                       </label>
-                      <p className="text-xs text-[var(--muted-foreground)] mt-2 leading-relaxed">
+                      <p className="text-[11px] text-[var(--muted-foreground)] mt-1.5 leading-relaxed">
                         Для нестабильного интернета. Загружает все страницы сразу.
                       </p>
                     </div>
@@ -735,15 +734,16 @@ export default function ReaderControls({
 
         {/* Развернутое меню */}
         <div
-          className={`flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-3 p-1.5 xs:p-2 transition-all duration-500 ease-out ${
+          className={`px-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden transition-all duration-500 ease-out ${
             hideBottomMenuSetting && isMenuHidden
               ? "opacity-0 scale-90 translate-y-8 pointer-events-none"
               : "opacity-100 scale-100 translate-y-0 pointer-events-auto"
           }`}
         >
+          <div className="w-max mx-auto flex items-center gap-1.5">
           <button
             onClick={toggleAutoScroll}
-            className={`min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`shrink-0 min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isAutoScrolling ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
             }`}
             title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
@@ -753,7 +753,7 @@ export default function ReaderControls({
 
           <button
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className={`min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`shrink-0 min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isSettingsOpen ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
             }`}
             title="Настройки"
@@ -762,11 +762,11 @@ export default function ReaderControls({
           </button>
 
           {/* Блок с кнопками глав */}
-          <div className="flex items-center gap-1 xs:gap-2 bg-[var(--card)] border border-[var(--border)] rounded-full px-1 xs:px-2">
+          <div className="shrink-0 flex items-center gap-1 xs:gap-2 bg-[var(--card)] border border-[var(--border)] rounded-full px-1 xs:px-2">
             <button
               onClick={onPrev}
               disabled={!canGoPrev}
-              className="min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               title="Предыдущая глава"
             >
               <ChevronLeft className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
@@ -774,7 +774,7 @@ export default function ReaderControls({
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] flex flex-col items-center justify-center px-2 xs:px-3 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
+              className="min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] flex flex-col items-center justify-center px-2 xs:px-3 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
               title={`Глава ${currentChapter.number}`}
             >
               <span className="text-xs xs:text-sm font-medium text-[var(--foreground)]">
@@ -785,7 +785,7 @@ export default function ReaderControls({
             <button
               onClick={onNext}
               disabled={!canGoNext}
-              className="min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center rounded-full hover:bg-[var(--muted)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               title="Следующая глава"
             >
               <ChevronRight className="w-4 h-4 xs:w-5 xs:h-5 text-[var(--muted-foreground)]" />
@@ -795,7 +795,7 @@ export default function ReaderControls({
           {/* Кнопка комментариев */}
           <button
             onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-            className={`min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`shrink-0 min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
             }`}
             title="Комментарии"
@@ -812,7 +812,7 @@ export default function ReaderControls({
               onTouchStart={startPressing}
               onTouchEnd={stopPressing}
               onClick={handleSimpleClick}
-              className={`relative min-h-[40px] xs:min-h-[44px] min-w-[40px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
+              className={`relative shrink-0 min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
               title="Удерживайте 5 секунд"
             >
               {isPressing && (
@@ -832,6 +832,7 @@ export default function ReaderControls({
                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[var(--card)]" />
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>
