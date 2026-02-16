@@ -348,6 +348,20 @@ export const useAuth = () => {
 
   const addToReadingHistoryFunc = useCallback(
     async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
+      const stringifyUnknown = (value: unknown): string | null => {
+        if (typeof value === "string") return value;
+        if (typeof value === "number" || typeof value === "boolean") return String(value);
+        if (value && typeof value === "object") {
+          try {
+            const json = JSON.stringify(value);
+            if (json && json !== "{}") return json;
+          } catch {
+            // no-op: fall through to null
+          }
+        }
+        return null;
+      };
+
       const tryAdd = async (): Promise<{ success: boolean; error?: string }> => {
         const result = await addToReadingHistory({
           titleId,
@@ -369,25 +383,36 @@ export const useAuth = () => {
 
       const getErrorMessage = (err: unknown): string => {
         const e = err as {
-          message?: string;
-          data?: { errors?: string[]; message?: string };
+          message?: unknown;
+          data?: { errors?: unknown[]; message?: unknown };
+          error?: unknown;
+          status?: unknown;
         };
+        const apiMessage = stringifyUnknown(e?.data?.errors?.[0]) ?? stringifyUnknown(e?.data?.message);
+        const nativeMessage = stringifyUnknown(e?.message);
+        const fallback =
+          stringifyUnknown(e?.error) ?? stringifyUnknown(e?.status) ?? stringifyUnknown(err);
         return (
-          e?.data?.errors?.[0] ??
-          e?.data?.message ??
-          (typeof e?.message === "string" ? e.message : null) ??
-          (err instanceof Error ? err.message : null) ??
+          apiMessage ??
+          nativeMessage ??
+          (err instanceof Error ? stringifyUnknown(err.message) : null) ??
+          fallback ??
           "Неизвестная ошибка"
         );
       };
 
       const isVersionConflict = (msg: string): boolean =>
         /no matching document|version \d+|modifiedPaths/i.test(msg);
+      const isAlreadyInHistory = (msg: string): boolean =>
+        /already|already exists|duplicate|уже|дубликат/i.test(msg);
 
       try {
         return await tryAdd();
       } catch (error: unknown) {
         const message = getErrorMessage(error);
+        if (isAlreadyInHistory(message)) {
+          return { success: true };
+        }
         // Log message only (not error object) to avoid Next.js digest Symbol extensibility issue
         console.error("Error adding to reading history:", message);
 

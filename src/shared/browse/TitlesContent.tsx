@@ -15,6 +15,17 @@ import { Loader2, BookOpen, AlertCircle, ChevronDown } from "lucide-react";
 
 const CATALOG_CACHE_KEY = "titles-catalog-state";
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 минут
+const DEFAULT_FILTERS: Filters = {
+  search: "",
+  genres: [],
+  types: [],
+  status: [],
+  ageLimits: [],
+  releaseYears: [],
+  tags: [],
+  sortBy: "averageRating",
+  sortOrder: "desc",
+};
 
 interface GridTitle {
   id: string;
@@ -42,35 +53,28 @@ function buildFiltersKey(filters: Filters): string {
   ].join("|");
 }
 
+function parseFiltersFromSearchParams(params: URLSearchParams | Readonly<URLSearchParams>): Filters {
+  return {
+    search: params.get("search") || "",
+    genres: params.get("genres")?.split(",").filter(Boolean) || [],
+    types: params.get("types")?.split(",").filter(Boolean) || [],
+    status: params.get("status")?.split(",").filter(Boolean) || [],
+    ageLimits: params.get("ageLimits")?.split(",").filter(Boolean).map(Number) || [],
+    releaseYears: params.get("releaseYears")?.split(",").filter(Boolean).map(Number) || [],
+    tags: params.get("tags")?.split(",").filter(Boolean) || [],
+    sortBy: (params.get("sortBy") || "averageRating") as Filters["sortBy"],
+    sortOrder: (params.get("sortOrder") || "desc") as Filters["sortOrder"],
+  };
+}
+
 export default function TitlesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const [appliedFilters, setAppliedFilters] = useState<Filters>(() => {
-    const urlSearch = searchParams.get("search") || "";
-    const urlGenres = searchParams.get("genres")?.split(",").filter(Boolean) || [];
-    const urlTypes = searchParams.get("types")?.split(",").filter(Boolean) || [];
-    const urlStatus = searchParams.get("status")?.split(",").filter(Boolean) || [];
-    const urlAgeLimits =
-      searchParams.get("ageLimits")?.split(",").filter(Boolean).map(Number) || [];
-    const urlReleaseYears =
-      searchParams.get("releaseYears")?.split(",").filter(Boolean).map(Number) || [];
-    const urlTags = searchParams.get("tags")?.split(",").filter(Boolean) || [];
-    const urlSortBy = (searchParams.get("sortBy") || "averageRating") as Filters["sortBy"];
-    const urlSortOrder = (searchParams.get("sortOrder") || "desc") as Filters["sortOrder"];
-    return {
-      search: urlSearch,
-      genres: urlGenres,
-      types: urlTypes,
-      status: urlStatus,
-      ageLimits: urlAgeLimits,
-      releaseYears: urlReleaseYears,
-      tags: urlTags,
-      sortBy: urlSortBy,
-      sortOrder: urlSortOrder,
-    };
-  });
+  const [appliedFilters, setAppliedFilters] = useState<Filters>(() =>
+    parseFiltersFromSearchParams(searchParams)
+  );
 
   // States for load more functionality
   const [allTitles, setAllTitles] = useState<GridTitle[]>([]);
@@ -79,7 +83,10 @@ export default function TitlesContent() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [restoredFromCache, setRestoredFromCache] = useState(false);
   const [cachedTotal, setCachedTotal] = useState<{ total: number; totalPages: number } | null>(null);
+  const [isFilterTransitioning, setIsFilterTransitioning] = useState(false);
   const scrollRestoreRef = useRef<number | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Восстановление из sessionStorage при монтировании
   useEffect(() => {
@@ -88,9 +95,25 @@ export default function TitlesContent() {
       const cached = sessionStorage.getItem(CATALOG_CACHE_KEY);
       if (!cached) return;
       const parsed = JSON.parse(cached);
-      const { filtersKey, allTitles: cachedTitles, loadMorePage: cachedPage, scrollY, timestamp, total, totalPages } = parsed;
+      const {
+        filtersKey,
+        filters: cachedFilters,
+        allTitles: cachedTitles,
+        loadMorePage: cachedPage,
+        scrollY,
+        timestamp,
+        total,
+        totalPages,
+      } = parsed;
       const currentKey = buildFiltersKey(appliedFilters);
-      if (filtersKey === currentKey && cachedTitles?.length > 0 && Date.now() - timestamp < CACHE_TTL_MS) {
+      const hasUrlParams = searchParams.toString().length > 0;
+      const canRestoreByKey = filtersKey === currentKey;
+      const canRestoreWithoutUrl = !hasUrlParams && cachedFilters && typeof cachedFilters === "object";
+      if ((canRestoreByKey || canRestoreWithoutUrl) && cachedTitles?.length > 0 && Date.now() - timestamp < CACHE_TTL_MS) {
+        if (canRestoreWithoutUrl) {
+          setAppliedFilters(cachedFilters as Filters);
+          setDebouncedSearch((cachedFilters as Filters).search || "");
+        }
         setAllTitles(cachedTitles);
         setLoadMorePage(cachedPage);
         setCachedTotal(total != null && totalPages != null ? { total, totalPages } : null);
@@ -111,10 +134,6 @@ export default function TitlesContent() {
       });
     }
   }, [restoredFromCache, allTitles.length]);
-
-  // Debounce for search input (1s)
-  const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
@@ -155,7 +174,7 @@ export default function TitlesContent() {
 
   // Запрос тайтлов с параметрами (пропускаем при восстановлении из кеша)
   const shouldSkipQuery = restoredFromCache;
-  const { data: titlesData, isLoading, isError, error } = useSearchTitlesQuery(
+  const { data: titlesData, isLoading, isFetching, isError, error } = useSearchTitlesQuery(
     {
       search: debouncedSearch || undefined,
       genres: appliedFilters.genres[0] || undefined,
@@ -182,58 +201,51 @@ export default function TitlesContent() {
     : (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
   const paginatedTitles = useMemo(() => titlesData?.data?.data ?? [], [titlesData]);
 
+  const saveCatalogState = useCallback(() => {
+    if (typeof window === "undefined" || allTitles.length === 0) return;
+    try {
+      sessionStorage.setItem(
+        CATALOG_CACHE_KEY,
+        JSON.stringify({
+          filtersKey: buildFiltersKey(appliedFilters),
+          filters: appliedFilters,
+          allTitles,
+          loadMorePage,
+          total: totalTitles,
+          totalPages,
+          scrollY: window.scrollY,
+          timestamp: Date.now(),
+        })
+      );
+    } catch {
+      // ignore
+    }
+  }, [allTitles, appliedFilters, loadMorePage, totalTitles, totalPages]);
+
   // Сохранение в sessionStorage при уходе со страницы
   useEffect(() => {
     const saveOnLeave = () => {
-      if (allTitles.length > 0 && !restoredFromCache) {
-        try {
-          sessionStorage.setItem(
-            CATALOG_CACHE_KEY,
-            JSON.stringify({
-              filtersKey: buildFiltersKey(appliedFilters),
-              allTitles,
-              loadMorePage,
-              total: totalTitles,
-              totalPages,
-              scrollY: typeof window !== "undefined" ? window.scrollY : 0,
-              timestamp: Date.now(),
-            })
-          );
-        } catch {
-          // ignore
-        }
-      }
+      saveCatalogState();
     };
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") saveOnLeave();
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [allTitles, loadMorePage, appliedFilters, restoredFromCache, totalTitles, totalPages]);
+    window.addEventListener("pagehide", saveOnLeave);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", saveOnLeave);
+    };
+  }, [saveCatalogState]);
 
   // Сохранение при изменении данных (кроме восстановления)
   useEffect(() => {
-    if (restoredFromCache || allTitles.length === 0) return;
+    if (allTitles.length === 0) return;
     const timer = setTimeout(() => {
-      try {
-        sessionStorage.setItem(
-          CATALOG_CACHE_KEY,
-          JSON.stringify({
-            filtersKey: buildFiltersKey(appliedFilters),
-            allTitles,
-            loadMorePage,
-            total: totalTitles,
-            totalPages,
-            scrollY: typeof window !== "undefined" ? window.scrollY : 0,
-            timestamp: Date.now(),
-          })
-        );
-      } catch {
-        // ignore
-      }
+      saveCatalogState();
     }, 300);
     return () => clearTimeout(timer);
-  }, [allTitles, loadMorePage, appliedFilters, restoredFromCache, totalTitles, totalPages]);
+  }, [allTitles, saveCatalogState]);
 
   const adaptedTitles = useMemo(
     () =>
@@ -266,8 +278,31 @@ export default function TitlesContent() {
         });
       }
     }
-    setIsLoadingMore(false);
+    setIsFilterTransitioning(false);
   }, [adaptedTitles, loadMorePage]);
+
+  useEffect(() => {
+    if (!isLoadingMore) return;
+    if (isError) {
+      setIsLoadingMore(false);
+      return;
+    }
+    if (!isFetching && !isLoading) {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, isFetching, isLoading, isError]);
+
+  useEffect(() => {
+    if (isError) {
+      setIsFilterTransitioning(false);
+    }
+  }, [isError]);
+
+  useEffect(() => {
+    if (!isFetching && debouncedSearch === appliedFilters.search) {
+      setIsFilterTransitioning(false);
+    }
+  }, [isFetching, debouncedSearch, appliedFilters.search]);
 
   // Load more logic
   const loadMoreTitles = useCallback(() => {
@@ -281,18 +316,7 @@ export default function TitlesContent() {
 
   // Функция сброса фильтров
   const resetFilters = () => {
-    const defaultFilters: Filters = {
-      search: "",
-      genres: [],
-      types: [],
-      status: [],
-      ageLimits: [],
-      releaseYears: [],
-      tags: [],
-      sortBy: "averageRating",
-      sortOrder: "desc",
-    };
-    setAppliedFilters(defaultFilters);
+    setAppliedFilters(DEFAULT_FILTERS);
     setRestoredFromCache(false);
     setCachedTotal(null);
     setAllTitles([]);
@@ -302,7 +326,7 @@ export default function TitlesContent() {
     } catch {
       // ignore
     }
-    updateURL(defaultFilters, 1);
+    updateURL(DEFAULT_FILTERS, 1);
   };
 
   // Обновление URL параметров при изменении фильтров
@@ -325,6 +349,7 @@ export default function TitlesContent() {
   };
 
   const handleFiltersChange = (newFilters: Filters) => {
+    setIsFilterTransitioning(true);
     setAppliedFilters(newFilters);
     setAllTitles([]);
     setLoadMorePage(1);
@@ -355,142 +380,170 @@ export default function TitlesContent() {
 
   // Обработчик клика по карточке
   const handleCardClick = (title: GridTitle) => {
+    saveCatalogState();
     const path = getTitlePath(title);
     router.push(path);
   };
 
+  const isCatalogLoading =
+    isLoading || isFetching || isFilterTransitioning || debouncedSearch !== appliedFilters.search;
+  const showUpdatingOverlay = isCatalogLoading && allTitles.length > 0 && !isLoadingMore && !isError;
+  const isFilteringOrSearchingLoading = isCatalogLoading && !isLoadingMore;
+  const canShowLoadMoreAction = loadMorePage < totalPages || isLoadingMore;
+
   return (
-    <div className="flex flex-col lg:flex-row gap-6 pt-2">
+    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 pt-3 sm:pt-4">
       {/* Основной контент */}
-      <div className="lg:w-3/4">
-        {/* Заголовок и управление */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] rounded-xl shadow-lg shadow-[var(--primary)]/20">
-                <BookOpen className="w-6 h-6 text-white" />
+      <div className="lg:w-3/4 space-y-4 sm:space-y-5">
+        {/* Заголовок + поиск + быстрые фильтры */}
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur p-4 sm:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <BookOpen className="w-6 h-6 text-[var(--primary)]" />
+                <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-[var(--foreground)] to-[var(--muted-foreground)] bg-clip-text text-transparent">
+                  Каталог тайтлов
+                </h1>
               </div>
-              <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-[var(--foreground)] to-[var(--muted-foreground)] bg-clip-text text-transparent">
-                Каталог тайтлов
-              </h1>
+              <p className="text-[var(--muted-foreground)] text-sm pl-1">
+                Найдено <span className="font-semibold text-[var(--primary)]">{totalTitles}</span> тайтлов
+              </p>
             </div>
-            <p className="text-[var(--muted-foreground)] text-sm pl-1">
-              Найдено <span className="font-semibold text-[var(--primary)]">{totalTitles}</span> тайтлов
-            </p>
+
+            <div className="flex flex-wrap gap-2 items-center">
+              <MobileFilterButton onClick={() => setIsMobileFilterOpen(true)} />
+              <SortAndSearch
+                filters={appliedFilters}
+                onFiltersChange={handleFiltersChange}
+                isSearching={isLoading && debouncedSearch !== appliedFilters.search}
+              />
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center">
-            <MobileFilterButton onClick={() => setIsMobileFilterOpen(true)} />
-            <SortAndSearch 
-              filters={appliedFilters} 
-              onFiltersChange={handleFiltersChange}
-              isSearching={isLoading && debouncedSearch !== appliedFilters.search}
+          {/* Быстрые фильтры (тип, статус) */}
+          <FilterQuickBar
+            filters={appliedFilters}
+            onFiltersChange={handleFiltersChange}
+            filterOptions={{
+              types: originalFilterOptions?.data?.types || [],
+              status: originalFilterOptions?.data?.status || [],
+            }}
+            onOpenFullFilters={() => setIsMobileFilterOpen(true)}
+            activeCount={
+              appliedFilters.types.length +
+              appliedFilters.status.length +
+              appliedFilters.genres.length +
+              appliedFilters.ageLimits.length +
+              appliedFilters.releaseYears.length +
+              appliedFilters.tags.length
+            }
+          />
+
+          {/* Активные фильтры — чипы для быстрого снятия */}
+          <div className="mt-3 -mb-1">
+            <ActiveFilterChips
+              filters={appliedFilters}
+              onRemoveGenre={g => removeFilter("genre", g)}
+              onRemoveType={t => removeFilter("type", t)}
+              onRemoveStatus={s => removeFilter("status", s)}
+              onRemoveAgeLimit={a => removeFilter("ageLimit", a)}
+              onRemoveReleaseYear={y => removeFilter("releaseYear", y)}
+              onRemoveTag={t => removeFilter("tag", t)}
             />
           </div>
         </div>
 
-        {/* Быстрые фильтры (тип, статус) */}
-        <FilterQuickBar
-          filters={appliedFilters}
-          onFiltersChange={handleFiltersChange}
-          filterOptions={{
-            types: originalFilterOptions?.data?.types || [],
-            status: originalFilterOptions?.data?.status || [],
-          }}
-          onOpenFullFilters={() => setIsMobileFilterOpen(true)}
-          activeCount={
-            appliedFilters.types.length +
-            appliedFilters.status.length +
-            appliedFilters.genres.length +
-            appliedFilters.ageLimits.length +
-            appliedFilters.releaseYears.length +
-            appliedFilters.tags.length
-          }
-        />
+        {/* Контейнер списка */}
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur p-3 sm:p-4 lg:p-5 shadow-sm min-h-[320px]">
+          {/* Состояние загрузки */}
+          {isCatalogLoading && allTitles.length === 0 && (
+            <GridSkeleton
+              variant="catalog"
+              itemCount={limit}
+            />
+          )}
 
-        {/* Активные фильтры — чипы для быстрого снятия */}
-        <div className="mb-6 -mt-2">
-          <ActiveFilterChips
-            filters={appliedFilters}
-            onRemoveGenre={g => removeFilter("genre", g)}
-            onRemoveType={t => removeFilter("type", t)}
-            onRemoveStatus={s => removeFilter("status", s)}
-            onRemoveAgeLimit={a => removeFilter("ageLimit", a)}
-            onRemoveReleaseYear={y => removeFilter("releaseYear", y)}
-            onRemoveTag={t => removeFilter("tag", t)}
-          />
-        </div>
-
-        {/* Состояние загрузки */}
-        {isLoading && allTitles.length === 0 && (
-          <GridSkeleton
-            variant="catalog"
-            itemCount={limit}
-          />
-        )}
-
-        {/* Состояние ошибки */}
-        {isError && (
-          <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className="p-4 bg-red-500/10 rounded-full mb-4">
-              <AlertCircle className="w-12 h-12 text-red-500" />
+          {/* Состояние ошибки */}
+          {isError && (
+            <div className="flex flex-col items-center justify-center py-20 px-4">
+              <div className="p-4 bg-red-500/10 rounded-full mb-4">
+                <AlertCircle className="w-12 h-12 text-red-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">Ошибка загрузки</h3>
+              <p className="text-[var(--muted-foreground)] text-center max-w-md mb-6">
+                {error && typeof error === 'object' && 'data' in error
+                  ? (error.data as { message?: string })?.message || "Не удалось загрузить тайтлы. Попробуйте позже."
+                  : "Не удалось загрузить тайтлы. Попробуйте позже."}
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-all duration-300 hover:shadow-lg hover:shadow-[var(--primary)]/20"
+              >
+                Обновить страницу
+              </button>
             </div>
-            <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">Ошибка загрузки</h3>
-            <p className="text-[var(--muted-foreground)] text-center max-w-md mb-6">
-              {error && typeof error === 'object' && 'data' in error 
-                ? (error.data as { message?: string })?.message || "Не удалось загрузить тайтлы. Попробуйте позже."
-                : "Не удалось загрузить тайтлы. Попробуйте позже."}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-all duration-300 hover:shadow-lg hover:shadow-[var(--primary)]/20"
-            >
-              Обновить страницу
-            </button>
-          </div>
-        )}
+          )}
 
-        {/* Сетка тайтлов */}
-        {!isError && allTitles.length > 0 && (
-          <div className="content-reveal">
+          {/* Сетка тайтлов */}
+          {!isError && allTitles.length > 0 && (
+            <div className="content-reveal relative">
+              <TitleGrid
+                titles={allTitles}
+                onCardClick={handleCardClick}
+                isEmpty={allTitles.length === 0}
+                onResetFilters={resetFilters}
+              />
+              {showUpdatingOverlay && (
+                <div className="absolute inset-x-0 top-0 z-10 flex justify-center pointer-events-none">
+                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur px-3 py-1.5 shadow-sm">
+                    <Loader2 className="w-4 h-4 text-[var(--primary)] animate-spin" />
+                    <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">
+                      Обновляем список...
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isCatalogLoading && !isError && allTitles.length === 0 && (
             <TitleGrid
               titles={allTitles}
               onCardClick={handleCardClick}
-              isEmpty={allTitles.length === 0}
+              isEmpty={true}
               onResetFilters={resetFilters}
             />
-          </div>
-        )}
-
-        {!isLoading && !isError && allTitles.length === 0 && (
-          <TitleGrid
-            titles={allTitles}
-            onCardClick={handleCardClick}
-            isEmpty={true}
-            onResetFilters={resetFilters}
-          />
-        )}
+          )}
+        </div>
 
         {/* Load more button */}
-        {loadMorePage < totalPages && !isLoading && !isError && (
+        {canShowLoadMoreAction && !isError && (
           <div className="flex justify-center my-10">
-            {isLoadingMore ? (
-              <div className="flex items-center gap-3 px-6 py-3 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-sm">
-                <Loader2 className="w-5 h-5 text-[var(--primary)] animate-spin" />
-                <span className="text-[var(--muted-foreground)]">Загрузка...</span>
-              </div>
-            ) : (
-              <button
-                onClick={loadMoreTitles}
-                className="group relative px-8 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-[var(--primary-foreground)] rounded-xl font-medium shadow-lg shadow-[var(--primary)]/20 hover:shadow-xl hover:shadow-[var(--primary)]/30 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  Загрузить ещё
+            <button
+              onClick={loadMoreTitles}
+              disabled={isLoadingMore || isFilteringOrSearchingLoading}
+              className={`group relative px-8 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-[var(--primary-foreground)] rounded-xl font-medium shadow-lg shadow-[var(--primary)]/20 overflow-hidden transition-all duration-300 ${
+                isLoadingMore || isFilteringOrSearchingLoading
+                  ? "opacity-90 cursor-not-allowed"
+                  : "hover:shadow-xl hover:shadow-[var(--primary)]/30 hover:-translate-y-0.5 active:translate-y-0"
+              }`}
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                {isLoadingMore
+                  ? "Идет загрузка..."
+                  : isFilteringOrSearchingLoading
+                    ? "Обновляем список..."
+                    : "Загрузить ещё"}
+                {isLoadingMore || isFilteringOrSearchingLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
                   <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-300" />
-                </span>
+                )}
+              </span>
+              {!isLoadingMore && !isFilteringOrSearchingLoading && (
                 <div className="absolute inset-0 bg-gradient-to-r from-[var(--chart-1)] to-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </button>
-            )}
+              )}
+            </button>
           </div>
         )}
       </div>
