@@ -32,6 +32,8 @@ export const useSEO = ({
   noindex = false,
 }: SEOProps) => {
   useEffect(() => {
+    const SEO_MANAGED_ATTR = "data-seo-managed";
+
     // Установка title
     if (title && typeof document !== "undefined") {
       document.title = title;
@@ -42,13 +44,16 @@ export const useSEO = ({
       if (typeof document === "undefined") return;
 
       const attribute = property ? "property" : "name";
-      let element = document.querySelector(`meta[${attribute}="${name}"]`) as HTMLMetaElement;
+      let element = document.querySelector(
+        `meta[${attribute}="${name}"][${SEO_MANAGED_ATTR}="true"]`,
+      ) as HTMLMetaElement;
 
       if (element) {
         element.content = content;
       } else {
         element = document.createElement("meta");
         element.setAttribute(attribute, name);
+        element.setAttribute(SEO_MANAGED_ATTR, "true");
         element.content = content;
         document.head.appendChild(element);
       }
@@ -59,7 +64,9 @@ export const useSEO = ({
       if (typeof document === "undefined") return;
 
       const attribute = property ? "property" : "name";
-      const element = document.querySelector(`meta[${attribute}="${name}"]`) as HTMLMetaElement;
+      const element = document.querySelector(
+        `meta[${attribute}="${name}"][${SEO_MANAGED_ATTR}="true"]`,
+      ) as HTMLMetaElement;
       if (element) {
         element.remove();
       }

@@ -2,7 +2,7 @@
 import { Logo, Search, ErrorBoundary } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import {
   X,
   Menu,
@@ -31,16 +31,25 @@ const HEADER_DROPDOWN_ITEMS = [
 ];
 
 export default function Header() {
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileMenuReady, setIsMobileMenuReady] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsMobileMenuReady(false);
+    setIsSearchOpen(false);
+    setIsDropdownOpen(false);
+  }, [pathname]);
 
   // Рендер содержимого мобильного меню после открытия (избегаем ошибок при первом показе)
   useEffect(() => {
@@ -160,18 +169,16 @@ export default function Header() {
         </div>
       )}
 
-      {/* Мобильное меню: портал в portal-root, чтобы при клиентской навигации не было removeChild. */}
-      {isMobileMenuOpen &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <>
-            <div
-              data-header-portal
-              className="lg:hidden fixed inset-0 bg-black/50 z-[9998]"
-              onClick={closeMobileMenu}
-              aria-hidden
-            />
-            <div className="lg:hidden fixed inset-x-0 top-[var(--header-height)] bottom-0 bg-[var(--background)]/98 backdrop-blur-xl z-[9999] overflow-y-auto animate-fade-in-scale">
+      {/* Мобильное меню без портала — устойчивее при клиентской навигации */}
+      {isMobileMenuOpen && (
+        <>
+          <div
+            data-header-portal
+            className="lg:hidden fixed inset-0 bg-black/50 z-[9998]"
+            onClick={closeMobileMenu}
+            aria-hidden
+          />
+          <div className="lg:hidden fixed inset-x-0 top-[var(--header-height)] bottom-0 bg-[var(--background)]/98 backdrop-blur-xl z-[9999] overflow-y-auto animate-fade-in-scale">
             <div className="sticky top-0 z-10 flex items-center justify-between gap-3 p-3 border-b border-[var(--border)]/50 bg-[var(--background)]/98 backdrop-blur-sm">
               <span className="text-sm font-semibold text-[var(--foreground)]">Меню</span>
               <button
@@ -282,10 +289,9 @@ export default function Header() {
                 </>
               )}
             </ErrorBoundary>
-            </div>
-          </>,
-          document.getElementById("portal-root") ?? document.body,
-        )}
+          </div>
+        </>
+      )}
     </header>
   );
 }

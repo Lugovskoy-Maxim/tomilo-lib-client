@@ -1,8 +1,8 @@
 "use client"
 
 import { ReactNode, useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useModal } from "@/hooks/useModal";
 
 interface ModalProps {
@@ -13,8 +13,17 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+  const pathname = usePathname();
   const modalRef = useModal(isOpen, onClose);
   const [portalReady, setPortalReady] = useState(false);
+  const [lastPathname, setLastPathname] = useState(pathname);
+
+  useEffect(() => {
+    if (pathname !== lastPathname) {
+      setLastPathname(pathname);
+      if (isOpen) onClose();
+    }
+  }, [pathname, lastPathname, isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -28,9 +37,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen || typeof document === "undefined") return null;
   if (!portalReady) return null;
 
-  const portalContainer = document.getElementById("portal-root") ?? document.body;
-
-  return createPortal(
+  return (
     <div
       data-modal-portal
       className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-black/50 backdrop-blur-sm p-2 min-[360px]:p-4 overflow-y-auto"
@@ -55,8 +62,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         </div>
         <div className="p-3 min-[360px]:p-4 overflow-y-auto">{children}</div>
       </div>
-    </div>,
-    portalContainer
+    </div>
   );
 };
 

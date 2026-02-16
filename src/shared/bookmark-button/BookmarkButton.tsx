@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { normalizeBookmarks } from "@/lib/bookmarks";
@@ -29,6 +29,7 @@ export function BookmarkButton({
   initialBookmarked = false,
   className = "",
 }: BookmarkButtonProps) {
+  const pathname = usePathname();
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
   const toast = useToast();
   const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
@@ -37,7 +38,6 @@ export function BookmarkButton({
   const [categoryOpen, setCategoryOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -51,15 +51,7 @@ export function BookmarkButton({
   }, [isClient, initialBookmarked, user?.bookmarks, titleId]);
 
   useEffect(() => {
-    if (!categoryOpen) {
-      setDropdownRect(null);
-      return;
-    }
-    const el = buttonRef.current;
-    if (el) {
-      const r = el.getBoundingClientRect();
-      setDropdownRect({ top: r.bottom + 4, left: r.left, width: Math.max(r.width, 160) });
-    }
+    if (!categoryOpen) return;
     const close = (e: MouseEvent) => {
       const target = e.target as Node;
       if (dropdownRef.current?.contains(target) || buttonRef.current?.contains(target)) return;
@@ -70,21 +62,8 @@ export function BookmarkButton({
   }, [categoryOpen]);
 
   useEffect(() => {
-    if (!categoryOpen || !buttonRef.current) return;
-    const onScrollOrResize = () => {
-      const el = buttonRef.current;
-      if (el) {
-        const r = el.getBoundingClientRect();
-        setDropdownRect({ top: r.bottom + 4, left: r.left, width: Math.max(r.width, 160) });
-      }
-    };
-    window.addEventListener("scroll", onScrollOrResize, true);
-    window.addEventListener("resize", onScrollOrResize);
-    return () => {
-      window.removeEventListener("scroll", onScrollOrResize, true);
-      window.removeEventListener("resize", onScrollOrResize);
-    };
-  }, [categoryOpen]);
+    setCategoryOpen(false);
+  }, [pathname]);
 
   const handleRemoveBookmark = async () => {
     if (!isAuthenticated) return;
@@ -170,30 +149,26 @@ export function BookmarkButton({
               </>
             )}
           </button>
-          {categoryOpen && !isLoading && dropdownRect &&
-            typeof document !== "undefined" &&
-            createPortal(
-              <div
-                ref={dropdownRef}
-                className="fixed z-[100] py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
-                style={{ top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width }}
-              >
-                <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
-                  Добавить в категорию
-                </p>
-                {CATEGORIES.map(cat => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => handleAddWithCategory(cat)}
-                    className="w-full text-left px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent)] first:rounded-t-none rounded-none last:rounded-b-lg"
-                  >
-                    {CATEGORY_LABELS[cat]}
-                  </button>
-                ))}
-              </div>,
-              document.getElementById("portal-root") ?? document.body,
-            )}
+          {categoryOpen && !isLoading && (
+            <div
+              ref={dropdownRef}
+              className="absolute left-0 top-full mt-1 z-[100] py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
+            >
+              <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
+                Добавить в категорию
+              </p>
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => handleAddWithCategory(cat)}
+                  className="w-full text-left px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent)] first:rounded-t-none rounded-none last:rounded-b-lg"
+                >
+                  {CATEGORY_LABELS[cat]}
+                </button>
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>
