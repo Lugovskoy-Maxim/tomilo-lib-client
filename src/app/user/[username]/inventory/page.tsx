@@ -1,18 +1,25 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useGetProfileByUsernameQuery } from "@/store/api/authApi";
+import { useGetProfileByIdQuery, useGetProfileByUsernameQuery } from "@/store/api/authApi";
 import { Package } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import Image from "next/image";
+import { isMongoObjectId } from "@/lib/isMongoObjectId";
 
 export default function UserInventoryPage() {
   const params = useParams();
-  const username = typeof params.username === "string" ? params.username : "";
+  const userParam = typeof params.username === "string" ? params.username : "";
+  const loadById = isMongoObjectId(userParam);
 
-  const { data, isSuccess } = useGetProfileByUsernameQuery(username, {
-    skip: !username,
+  const usernameQuery = useGetProfileByUsernameQuery(userParam, {
+    skip: !userParam || loadById,
   });
+  const idQuery = useGetProfileByIdQuery(userParam, {
+    skip: !userParam || !loadById,
+  });
+  const activeQuery = loadById ? idQuery : usernameQuery;
+  const { data, isSuccess } = activeQuery;
 
   const userProfile = isSuccess && data?.success && data?.data ? data.data : null;
   const equipped = (userProfile as { equippedDecorations?: UserProfile["equippedDecorations"] })

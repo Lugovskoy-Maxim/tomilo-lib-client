@@ -2,11 +2,12 @@
 
 import { useParams } from "next/navigation";
 import { Bookmark } from "lucide-react";
-import { useGetProfileByUsernameQuery } from "@/store/api/authApi";
+import { useGetProfileByIdQuery, useGetProfileByUsernameQuery } from "@/store/api/authApi";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
+import { isMongoObjectId } from "@/lib/isMongoObjectId";
 import ProfileBookmarksGrid from "@/widgets/profile-bookmarks/ProfileBookmarksGrid";
 
 function transformUserToProfile(user: User): UserProfile {
@@ -48,16 +49,25 @@ function transformUserToProfile(user: User): UserProfile {
 
 export default function UserBookmarksPage() {
   const params = useParams();
-  const username = typeof params.username === "string" ? params.username : "";
+  const userParam = typeof params.username === "string" ? params.username : "";
+  const loadById = isMongoObjectId(userParam);
 
-  const { data, isSuccess } = useGetProfileByUsernameQuery(username, {
-    skip: !username,
+  const usernameQuery = useGetProfileByUsernameQuery(userParam, {
+    skip: !userParam || loadById,
   });
+  const idQuery = useGetProfileByIdQuery(userParam, {
+    skip: !userParam || !loadById,
+  });
+  const activeQuery = loadById ? idQuery : usernameQuery;
+  const { data, isSuccess } = activeQuery;
 
   const userProfile =
     isSuccess && data?.success && data?.data
       ? transformUserToProfile(data.data)
       : null;
+  const isBookmarksRestricted = Boolean(
+    userProfile?.privacy && userProfile.privacy.profileVisibility !== "public",
+  );
 
   if (!userProfile) return null;
 
@@ -77,11 +87,19 @@ export default function UserBookmarksPage() {
             </p>
           </div>
         </div>
-        <ProfileBookmarksGrid
-          bookmarks={userProfile.bookmarks}
-          readingHistory={userProfile.readingHistory}
-          canEdit={false}
-        />
+        {isBookmarksRestricted ? (
+          <div className="flex flex-1 items-center justify-center text-center px-2">
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Закладки этого пользователя скрыты настройками приватности.
+            </p>
+          </div>
+        ) : (
+          <ProfileBookmarksGrid
+            bookmarks={userProfile.bookmarks}
+            readingHistory={userProfile.readingHistory}
+            canEdit={false}
+          />
+        )}
       </div>
     </div>
   );

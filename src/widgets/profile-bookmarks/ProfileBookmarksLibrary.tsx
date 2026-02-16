@@ -40,6 +40,8 @@ interface ProfileBookmarksLibraryProps {
   onShowAllBookmarks?: () => void;
   /** Лимит карточек (например 6 = один ряд). Без лимита показываются все */
   maxItems?: number;
+  /** Текст пустого состояния */
+  emptyStateMessage?: string;
 }
 
 /** Элемент для карусели: id для ключа и getItemPath, entry + chaptersRead для карточки */
@@ -102,6 +104,7 @@ export default function ProfileBookmarksLibrary({
   allBookmarksHref = "/profile/bookmarks",
   onShowAllBookmarks,
   maxItems,
+  emptyStateMessage = "Пока нет закладок. Добавляйте тайтлы со страницы произведения.",
 }: ProfileBookmarksLibraryProps) {
   const normalized = useMemo(() => normalizeBookmarks(bookmarks), [bookmarks]);
   const [currentBookmarks, setCurrentBookmarks] = useState(normalized);
@@ -168,7 +171,7 @@ export default function ProfileBookmarksLibrary({
         </div>
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <p className="text-sm text-[var(--muted-foreground)]">
-            Пока нет закладок. Добавляйте тайтлы со страницы произведения.
+            {emptyStateMessage}
           </p>
           {onShowAllBookmarks ? (
             <button

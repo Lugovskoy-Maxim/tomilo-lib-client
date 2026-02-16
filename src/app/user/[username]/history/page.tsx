@@ -2,11 +2,12 @@
 
 import { useParams } from "next/navigation";
 import { Clock } from "lucide-react";
-import { useGetProfileByUsernameQuery } from "@/store/api/authApi";
+import { useGetProfileByIdQuery, useGetProfileByUsernameQuery } from "@/store/api/authApi";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
+import { isMongoObjectId } from "@/lib/isMongoObjectId";
 import { default as ReadingHistorySection } from "@/widgets/profile-reading/ProfileReading";
 
 function transformUserToProfile(user: User): UserProfile {
@@ -48,16 +49,25 @@ function transformUserToProfile(user: User): UserProfile {
 
 export default function UserHistoryPage() {
   const params = useParams();
-  const username = typeof params.username === "string" ? params.username : "";
+  const userParam = typeof params.username === "string" ? params.username : "";
+  const loadById = isMongoObjectId(userParam);
 
-  const { data, isSuccess } = useGetProfileByUsernameQuery(username, {
-    skip: !username,
+  const usernameQuery = useGetProfileByUsernameQuery(userParam, {
+    skip: !userParam || loadById,
   });
+  const idQuery = useGetProfileByIdQuery(userParam, {
+    skip: !userParam || !loadById,
+  });
+  const activeQuery = loadById ? idQuery : usernameQuery;
+  const { data, isSuccess } = activeQuery;
 
   const userProfile =
     isSuccess && data?.success && data?.data
       ? transformUserToProfile(data.data)
       : null;
+  const isHistoryRestricted = Boolean(
+    userProfile?.privacy && userProfile.privacy.readingHistoryVisibility !== "public",
+  );
 
   if (!userProfile) return null;
 
@@ -77,11 +87,19 @@ export default function UserHistoryPage() {
             </p>
           </div>
         </div>
-        <ReadingHistorySection
-          readingHistory={userProfile.readingHistory}
-          showAll={true}
-          showSectionHeader={false}
-        />
+        {isHistoryRestricted ? (
+          <div className="flex flex-1 items-center justify-center text-center px-2">
+            <p className="text-sm text-[var(--muted-foreground)]">
+              История чтения этого пользователя скрыта настройками приватности.
+            </p>
+          </div>
+        ) : (
+          <ReadingHistorySection
+            readingHistory={userProfile.readingHistory}
+            showAll={true}
+            showSectionHeader={false}
+          />
+        )}
       </div>
     </div>
   );

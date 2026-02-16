@@ -1,18 +1,10 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
-
-export default function UserProfileIndexPage() {
-  const params = useParams();
-  const router = useRouter();
-  const username = typeof params.username === "string" ? params.username : "";
-
-  useEffect(() => {
-    if (username) {
-      router.replace(`/user/${username}/about`);
-    }
-  }, [username, router]);
-
-  return null;
+export default async function UserProfileIndexPage({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}) {
+  const { username } = await params;
+  redirect(`/user/${username}/about`);
 }

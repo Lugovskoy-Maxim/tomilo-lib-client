@@ -4,8 +4,8 @@ import { UserProfile } from "@/types/user";
 import { ProfileAvatar, EditAvatarButton } from "@/shared";
 import RankStarsOverlay from "./RankStarsOverlay";
 import { Button } from "@/shared/ui/button";
-import { Pencil, Sparkles, Shield, Calendar1, Zap, Coins, BookOpen, Bookmark } from "lucide-react";
-import { getRankColor, getRankDisplay, getLevelProgress, levelToRank } from "@/lib/rank-utils";
+import { Pencil, Sparkles, Shield, Calendar1, Zap, Coins, BookOpen, Bookmark, Info } from "lucide-react";
+import { getRankColor, getRankDisplay, getLevelProgress, levelToRank, RANK_NAMES } from "@/lib/rank-utils";
 
 interface ProfileSidebarProps {
   userProfile: UserProfile;
@@ -17,11 +17,20 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate }: 
   const level = userProfile.level ?? 0;
   const experience = userProfile.experience ?? 0;
   const balance = userProfile.balance ?? 0;
-  const totalBookmarks = userProfile.bookmarks?.length || 0;
-  const totalChapters =
-    userProfile.readingHistory?.reduce((t, item) => t + (item.chapters?.length || 0), 0) || 0;
+  const totalBookmarks = userProfile.bookmarks?.length ?? 0;
+  const isReadingHistoryPrivate = userProfile.privacy?.readingHistoryVisibility !== "public";
+  const totalChapters = isReadingHistoryPrivate
+    ? null
+    : (userProfile.readingHistory?.reduce((t, item) => t + (item.chapters?.length || 0), 0) ?? 0);
   const { progressPercent: expProgress, nextLevelExp } = getLevelProgress(level, experience);
   const isAdmin = userProfile.role === "admin";
+  const joinedDate = userProfile.createdAt ? new Date(userProfile.createdAt) : null;
+  const isJoinedDateVisible =
+    joinedDate != null && !Number.isNaN(joinedDate.getTime());
+  const joinedAtLabel =
+    joinedDate && !Number.isNaN(joinedDate.getTime())
+      ? joinedDate.toLocaleDateString("ru-RU")
+      : "дата скрыта";
 
   return (
     <aside className="w-full lg:w-72 shrink-0">
@@ -72,7 +81,18 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate }: 
 
         <div className="flex items-center justify-center gap-1.5 text-xs text-[var(--muted-foreground)] mb-4">
           <Calendar1 className="w-3.5 h-3.5 shrink-0" />
-          На сайте с {new Date(userProfile.createdAt).toLocaleDateString("ru-RU")}
+          <span>
+            На сайте с{" "}
+            <span
+              className={
+                isJoinedDateVisible
+                  ? "text-[var(--foreground)]"
+                  : "text-amber-600 dark:text-amber-400 font-medium"
+              }
+            >
+              {joinedAtLabel}
+            </span>
+          </span>
         </div>
 
         {/* Уровень и ранг */}
@@ -93,10 +113,45 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate }: 
             </span>
           </div>
           <div
-            className="mt-2 text-center text-xs font-semibold"
-            style={{ color: getRankColor(levelToRank(level).rank) }}
+            className="mt-2 flex items-center justify-center gap-1.5"
           >
-            {getRankDisplay(level)}
+            <span
+              className="text-center text-xs font-semibold"
+              style={{ color: getRankColor(levelToRank(level).rank) }}
+            >
+              {getRankDisplay(level)}
+            </span>
+            <div className="relative group/rank-help">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-md p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+                aria-label="Показать шкалу уровней ранга"
+              >
+                <Info className="w-3.5 h-3.5" />
+              </button>
+              <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-72 -translate-x-1/2 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 text-left shadow-xl opacity-0 invisible transition-all duration-150 group-hover/rank-help:opacity-100 group-hover/rank-help:visible group-focus-within/rank-help:opacity-100 group-focus-within/rank-help:visible">
+                <p className="text-xs font-semibold text-[var(--foreground)] mb-2">Шкала уровней</p>
+                <ul className="space-y-1.5">
+                  {RANK_NAMES.slice(1).map((rankName, idx) => {
+                    const rank = idx + 1;
+                    const minLevel = idx * 10;
+                    const maxLevel = rank === 9 ? 90 : rank * 10 - 1;
+
+                    return (
+                      <li
+                        key={rank}
+                        className="flex items-center justify-between gap-2 text-[11px]"
+                      >
+                        <span className="text-[var(--foreground)] truncate">{rankName}</span>
+                        <span className="text-[var(--muted-foreground)] shrink-0">
+                          ур. {minLevel}-{maxLevel}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -105,7 +160,7 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate }: 
           {[
             { icon: Zap, label: "Опыт", value: experience.toLocaleString() },
             { icon: Coins, label: "Монеты", value: balance.toLocaleString() },
-            { icon: BookOpen, label: "Глав", value: totalChapters.toLocaleString() },
+            { icon: BookOpen, label: "Глав", value: totalChapters == null ? "—" : totalChapters.toLocaleString() },
             { icon: Bookmark, label: "Закладки", value: totalBookmarks.toLocaleString() },
           ].map(({ icon: Icon, label, value }) => (
             <div

@@ -116,6 +116,10 @@ export const authApi = createApi({
       query: username => `/users/username/${encodeURIComponent(username)}`,
     }),
 
+    getProfileById: builder.query<ApiResponseDto<User>, string>({
+      query: userId => `/users/${encodeURIComponent(userId)}`,
+    }),
+
     updateProfile: builder.mutation<ApiResponseDto<User>, Partial<User>>({
       query: profileData => ({
         url: "/users/profile",
@@ -372,6 +376,7 @@ export const {
   useVkAuthWithTokenMutation,
   useGetProfileQuery,
   useGetProfileByUsernameQuery,
+  useGetProfileByIdQuery,
   useUpdateProfileMutation,
   useUpdateAvatarMutation,
   useAddBookmarkMutation,

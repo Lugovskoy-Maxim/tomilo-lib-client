@@ -31,7 +31,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   const userData = typeof comment.userId === "object" ? comment.userId : null;
   const isOwner = user && userData && user._id === userData._id;
   const profileHref =
-    userData?.username ? (isOwner ? "/profile" : `/user/${encodeURIComponent(userData.username)}`) : null;
+    userData?._id ? (isOwner ? "/profile" : `/user/${encodeURIComponent(userData._id)}`) : null;
   const hasLiked = user && comment.likedBy.includes(user._id);
   const hasDisliked = user && comment.dislikedBy.includes(user._id);
 

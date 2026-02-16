@@ -110,8 +110,9 @@ export function levelToRank(level: number): RankInfo {
  */
 export function getRankDisplay(level: number): string {
   const rankInfo = levelToRank(level);
+  const displayRank = Math.max(0, rankInfo.rank - 1);
   const starsDisplay = "★".repeat(rankInfo.stars) + "☆".repeat(9 - rankInfo.stars);
-  return `${rankInfo.name} (${rankInfo.rank})  ${starsDisplay}`;
+  return `${rankInfo.name} (${displayRank})  ${starsDisplay}`;
 }
 
 /**

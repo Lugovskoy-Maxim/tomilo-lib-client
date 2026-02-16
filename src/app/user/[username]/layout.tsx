@@ -1,11 +1,12 @@
 "use client";
 
 import { useParams, notFound } from "next/navigation";
-import { useGetProfileByUsernameQuery } from "@/store/api/authApi";
+import { useGetProfileByIdQuery, useGetProfileByUsernameQuery } from "@/store/api/authApi";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
+import { isMongoObjectId } from "@/lib/isMongoObjectId";
 import { Footer, Header } from "@/widgets";
 import { LoadingState } from "@/shared";
 import PublicProfileCover from "@/shared/profile/PublicProfileCover";
@@ -56,28 +57,43 @@ export default function UserProfileLayout({
   children: React.ReactNode;
 }) {
   const params = useParams();
-  const username = typeof params.username === "string" ? params.username : "";
+  const userParam = typeof params.username === "string" ? params.username : "";
+  const loadById = isMongoObjectId(userParam);
 
-  const { data, isLoading, isError, isSuccess } = useGetProfileByUsernameQuery(username, {
-    skip: !username,
+  const usernameQuery = useGetProfileByUsernameQuery(userParam, {
+    skip: !userParam || loadById,
   });
+  const idQuery = useGetProfileByIdQuery(userParam, {
+    skip: !userParam || !loadById,
+  });
+
+  const activeQuery = loadById ? idQuery : usernameQuery;
+  const { data, isLoading, isError, isSuccess } = activeQuery;
 
   const userProfile =
     isSuccess && data?.success && data?.data
       ? transformUserToProfile(data.data)
       : null;
+  const privacy = userProfile?.privacy;
+  const isProfileRestricted = Boolean(privacy && privacy.profileVisibility !== "public");
+  const isReadingHistoryRestricted = Boolean(
+    privacy && privacy.readingHistoryVisibility !== "public",
+  );
+  const hasPrivacyNotice = isProfileRestricted || isReadingHistoryRestricted;
 
   useSEO(seoConfigs.profile(userProfile?.username));
 
-  if (!username) {
+  if (!userParam) {
     notFound();
   }
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-[var(--background)]">
+      <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
         <Header />
-        <LoadingState />
+        <div className="flex flex-1 flex-col min-h-0">
+          <LoadingState />
+        </div>
         <Footer />
       </main>
     );
@@ -88,15 +104,25 @@ export default function UserProfileLayout({
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
       <Header />
       <PublicProfileCover userProfile={userProfile} />
-      <div className="w-full mx-auto px-3 py-4 sm:px-4 sm:py-6 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8 items-start">
-          <ProfileSidebar userProfile={userProfile} />
-          <div className="min-w-0">
-            <ProfileNav basePath={`/user/${username}`} showSettings={false} />
-            {children}
+      <div className="flex flex-1 flex-col min-h-0">
+        <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 sm:gap-6 lg:gap-8 items-start">
+            <ProfileSidebar userProfile={userProfile} />
+            <div className="min-w-0">
+              <ProfileNav basePath={`/user/${userParam}`} showSettings={false} />
+              {hasPrivacyNotice && (
+                <div className="mb-4 sm:mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[var(--foreground)]">
+                  <p className="font-medium">Часть данных пользователя скрыта настройками приватности.</p>
+                  <p className="text-[var(--muted-foreground)] mt-1">
+                    Некоторые разделы могут быть недоступны.
+                  </p>
+                </div>
+              )}
+              {children}
+            </div>
           </div>
         </div>
       </div>
