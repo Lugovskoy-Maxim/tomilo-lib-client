@@ -1,6 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  useDraggable,
+  useDroppable,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Loader2,
   Plus,
@@ -12,6 +24,7 @@ import {
   AlertCircle,
   CheckCircle,
   X,
+  GripVertical,
 } from "lucide-react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -36,6 +49,7 @@ export default function AutoParsingSection() {
   const [titleSearch, setTitleSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<{ title: string; message: string } | null>(null);
+  const [activeJob, setActiveJob] = useState<AutoParsingJob | null>(null);
 
   // API hooks
   const { data: jobsResponse, isLoading: jobsLoading } = useGetAutoParsingJobsQuery();
@@ -111,6 +125,48 @@ export default function AutoParsingSection() {
     return `${process.env.NEXT_PUBLIC_URL}${coverImage}`;
   };
 
+  const getJobDisplaySources = (job: AutoParsingJob): string[] =>
+    job.sources?.length ? job.sources : job.url?.trim() ? [job.url.trim()] : [];
+
+  const jobsByHour = useMemo(() => {
+    const map = new Map<number | "none", AutoParsingJob[]>();
+    map.set("none", []);
+    for (let h = 0; h < 24; h++) map.set(h, []);
+    jobs.forEach(job => {
+      const key =
+        job.scheduleHour !== undefined && job.scheduleHour !== null ? job.scheduleHour : "none";
+      const list = key === "none" ? map.get("none")! : map.get(key)!;
+      list.push(job);
+    });
+    return map;
+  }, [jobs]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const job = jobs.find(j => j._id === event.active.id);
+    if (job) setActiveJob(job);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveJob(null);
+    const { active, over } = event;
+    if (!over?.id || active.id === over.id) return;
+    const jobId = String(active.id);
+    const overId = String(over.id);
+    if (!overId.startsWith("hour-")) return;
+    const hourRaw = overId.replace("hour-", "");
+    const newHour: number | null = hourRaw === "none" ? null : Number(hourRaw);
+    if (newHour !== null && (Number.isNaN(newHour) || newHour < 0 || newHour > 23)) return;
+    try {
+      await updateJob({ id: jobId, data: { scheduleHour: newHour } }).unwrap();
+    } catch (e) {
+      console.error("Failed to update schedule hour:", e);
+    }
+  };
+
   return (
     <div className="space-y-6 p-2">
       {/* Result Modal */}
@@ -158,9 +214,78 @@ export default function AutoParsingSection() {
         </button>
       </div>
 
-      {/* Jobs List */}
-      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
-        {jobsLoading ? (
+      {/* Schedule by hour (UTC) — drag & drop */}
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
+          <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Расписание по часам (UTC) — перетащите задачу в нужный час
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-[var(--border)]">
+                  <th className="text-left py-2 px-2 font-medium text-[var(--muted-foreground)] min-w-[140px] align-bottom">
+                    Без часа
+                  </th>
+                  {Array.from({ length: 24 }, (_, i) => i).map(h => (
+                    <th
+                      key={h}
+                      className="text-center py-2 px-2 font-medium text-[var(--muted-foreground)] min-w-[80px] align-bottom"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <HourCell
+                    droppableId="hour-none"
+                    jobs={jobsByHour.get("none")!}
+                    getImageUrl={getImageUrl}
+                    onEdit={setEditingJob}
+                    onDelete={handleDeleteJob}
+                    onCheck={handleCheckChapters}
+                    deleteLoading={deleteLoading}
+                    checkLoading={checkLoading}
+                  />
+                  {Array.from({ length: 24 }, (_, i) => i).map(h => (
+                    <HourCell
+                      key={h}
+                      droppableId={`hour-${h}`}
+                      jobs={jobsByHour.get(h)!}
+                      getImageUrl={getImageUrl}
+                      onEdit={setEditingJob}
+                      onDelete={handleDeleteJob}
+                      onCheck={handleCheckChapters}
+                      deleteLoading={deleteLoading}
+                      checkLoading={checkLoading}
+                    />
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <DragOverlay>
+            {activeJob ? (
+              <ScheduleJobCard
+                job={activeJob}
+                getImageUrl={getImageUrl}
+                isOverlay
+              />
+            ) : null}
+          </DragOverlay>
+        </div>
+
+        {/* Jobs List */}
+        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
+          {jobsLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
           </div>
@@ -219,7 +344,7 @@ export default function AutoParsingSection() {
                         Источники:
                       </span>
                       <div className="flex flex-col gap-1 w-full">
-                        {(job.sources && job.sources.length > 0 ? job.sources : [])
+                        {getJobDisplaySources(job)
                           .slice(0, 2)
                           .map((source, idx) => (
                             <div key={idx} className="flex items-start gap-1 w-full break-all">
@@ -234,12 +359,12 @@ export default function AutoParsingSection() {
                               </button>
                             </div>
                           ))}
-                        {job.sources && job.sources.length > 2 && (
+                        {getJobDisplaySources(job).length > 2 && (
                           <span className="text-xs text-[var(--muted-foreground)]">
-                            +{job.sources.length - 2} ещё
+                            +{getJobDisplaySources(job).length - 2} ещё
                           </span>
                         )}
-                        {(!job.sources || job.sources.length === 0) && (
+                        {getJobDisplaySources(job).length === 0 && (
                           <span className="text-xs text-[var(--muted-foreground)]">
                             Не указаны
                           </span>
@@ -284,7 +409,9 @@ export default function AutoParsingSection() {
             ))}
           </div>
         )}
-      </div>
+        </div>
+
+      </DndContext>
 
       {/* Create/Edit Modal */}
       {(isCreateModalOpen || editingJob) && (
@@ -319,6 +446,11 @@ interface JobModalProps {
   onSelectTitle: (title: Title, setter: (value: string) => void) => void;
 }
 
+const SCHEDULE_HOUR_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Не задан" },
+  ...Array.from({ length: 24 }, (_, i) => ({ value: String(i), label: `${i}:00 UTC` })),
+];
+
 function JobModal({
   job,
   onClose,
@@ -331,10 +463,15 @@ function JobModal({
   onSelectTitle,
 }: JobModalProps) {
   const [titleId, setTitleId] = useState(job?.titleId?._id || "");
-  const [sources, setSources] = useState<string[]>(
-    job?.sources && job.sources.length > 0 ? job.sources : [""],
-  );
+  const [sources, setSources] = useState<string[]>(() => {
+    if (job?.sources && job.sources.length > 0) return job.sources;
+    if (job?.url?.trim()) return [job.url!.trim()];
+    return [""];
+  });
   const [frequency, setFrequency] = useState(job?.frequency || "daily");
+  const [scheduleHour, setScheduleHour] = useState<string>(
+    job?.scheduleHour !== undefined && job.scheduleHour !== null ? String(job.scheduleHour) : "",
+  );
   const [enabled, setEnabled] = useState(job?.enabled ?? true);
 
   const handleAddSource = () => {
@@ -360,6 +497,7 @@ function JobModal({
         titleId: titleId || undefined,
         sources: validSources.length > 0 ? validSources : undefined,
         frequency: frequency || undefined,
+        scheduleHour: scheduleHour === "" ? null : Number(scheduleHour),
         enabled,
       };
       onUpdate(data);
@@ -368,6 +506,7 @@ function JobModal({
         titleId,
         sources: validSources,
         frequency: frequency || undefined,
+        scheduleHour: scheduleHour === "" ? undefined : Number(scheduleHour),
         enabled,
       };
       onCreate(data);
@@ -469,6 +608,26 @@ function JobModal({
             </select>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+              Час запуска (UTC)
+            </label>
+            <select
+              value={scheduleHour}
+              onChange={e => setScheduleHour(e.target.value)}
+              className="admin-input w-full"
+            >
+              {SCHEDULE_HOUR_OPTIONS.map(opt => (
+                <option key={opt.value || "none"} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-[var(--muted-foreground)] mt-1">
+              Опционально. Задачи с часом запускаются в этот час по UTC.
+            </p>
+          </div>
+
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -501,6 +660,188 @@ function JobModal({
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+/* Schedule table: droppable columns (first = "Без часа", then 0–23) */
+interface HourCellProps {
+  droppableId: string;
+  jobs: AutoParsingJob[];
+  getImageUrl: (coverImage?: string) => string;
+  onEdit: (job: AutoParsingJob) => void;
+  onDelete: (id: string) => void;
+  onCheck: (id: string) => void;
+  deleteLoading: boolean;
+  checkLoading: boolean;
+}
+
+function HourCell({
+  droppableId,
+  jobs,
+  getImageUrl,
+  onEdit,
+  onDelete,
+  onCheck,
+  deleteLoading,
+  checkLoading,
+}: HourCellProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: droppableId });
+  return (
+    <td
+      ref={setNodeRef}
+      className={`py-2 px-2 align-top border-b border-[var(--border)] min-h-[52px] min-w-[80px] ${
+        droppableId === "hour-none" ? "min-w-[140px]" : ""
+      } ${isOver ? "bg-[var(--primary)]/10" : ""}`}
+    >
+      <div className="flex flex-col gap-2">
+        {jobs.map(job => (
+          <DraggableScheduleJobCard
+            key={job._id}
+            job={job}
+            getImageUrl={getImageUrl}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onCheck={onCheck}
+            deleteLoading={deleteLoading}
+            checkLoading={checkLoading}
+          />
+        ))}
+      </div>
+    </td>
+  );
+}
+
+interface ScheduleJobCardProps {
+  job: AutoParsingJob;
+  getImageUrl: (coverImage?: string) => string;
+  isOverlay?: boolean;
+  onEdit?: (job: AutoParsingJob) => void;
+  onDelete?: (id: string) => void;
+  onCheck?: (id: string) => void;
+  deleteLoading?: boolean;
+  checkLoading?: boolean;
+}
+
+function ScheduleJobCard({
+  job,
+  getImageUrl,
+  isOverlay,
+  onEdit,
+  onDelete,
+  onCheck,
+  deleteLoading,
+  checkLoading,
+}: ScheduleJobCardProps) {
+  return (
+    <div
+      className={`
+        flex items-center gap-2 rounded-[var(--admin-radius)] border border-[var(--border)]
+        bg-[var(--card)] p-2 min-w-[200px] max-w-[280px]
+        ${isOverlay ? "shadow-lg cursor-grabbing" : "cursor-grab"}
+      `}
+    >
+      {!isOverlay && (
+        <div className="flex-shrink-0 text-[var(--muted-foreground)]">
+          <GripVertical className="w-4 h-4" />
+        </div>
+      )}
+      <div className="w-10 h-14 bg-[var(--accent)] rounded overflow-hidden flex-shrink-0">
+        {job.titleId?.coverImage ? (
+          <OptimizedImage
+            src={getImageUrl(job.titleId.coverImage)}
+            alt={job.titleId?.name || ""}
+            className="w-full h-full object-cover"
+            width={40}
+            height={56}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-[var(--muted)]" />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1">
+          <div
+            className={`w-2 h-2 rounded-full flex-shrink-0 ${
+              job.enabled ? "bg-[var(--chart-2)]" : "bg-[var(--destructive)]"
+            }`}
+          />
+          <span className="font-medium text-[var(--foreground)] text-sm truncate block">
+            {job.titleId?.name || "—"}
+          </span>
+        </div>
+        <span className="text-xs text-[var(--muted-foreground)] capitalize">{job.frequency}</span>
+      </div>
+      {!isOverlay && onEdit && onDelete && onCheck && (
+        <div className="flex items-center gap-0.5 flex-shrink-0">
+          <button
+            type="button"
+            onClick={e => (e.stopPropagation(), onCheck(job._id))}
+            disabled={checkLoading}
+            className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
+            title="Проверить новые главы"
+          >
+            <RefreshCw className={`w-4 h-4 ${checkLoading ? "animate-spin" : ""}`} />
+          </button>
+          <button
+            type="button"
+            onClick={e => (e.stopPropagation(), onEdit(job))}
+            className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            title="Редактировать"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={e => (e.stopPropagation(), onDelete(job._id))}
+            disabled={deleteLoading}
+            className="p-1.5 text-red-500 hover:text-red-600 disabled:opacity-50"
+            title="Удалить"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+      {isOverlay && (
+        <div className="flex-shrink-0 text-[var(--muted-foreground)]">
+          <GripVertical className="w-4 h-4" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DraggableScheduleJobCard({
+  job,
+  getImageUrl,
+  onEdit,
+  onDelete,
+  onCheck,
+  deleteLoading,
+  checkLoading,
+}: Omit<ScheduleJobCardProps, "isOverlay"> & {
+  onEdit: (job: AutoParsingJob) => void;
+  onDelete: (id: string) => void;
+  onCheck: (id: string) => void;
+  deleteLoading: boolean;
+  checkLoading: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: job._id,
+    data: { job },
+  });
+  const style = transform ? { transform: CSS.Translate.toString(transform) } : undefined;
+  return (
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={isDragging ? "opacity-50" : ""}>
+      <ScheduleJobCard
+        job={job}
+        getImageUrl={getImageUrl}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onCheck={onCheck}
+        deleteLoading={deleteLoading}
+        checkLoading={checkLoading}
+      />
     </div>
   );
 }

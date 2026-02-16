@@ -11,6 +11,8 @@ export interface AutoParsingJob {
   url?: string;
   sources?: string[];
   frequency: string;
+  /** Час запуска в UTC (0–23). Задаётся для распределения парсинга по часам. */
+  scheduleHour?: number;
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -20,6 +22,8 @@ export interface CreateAutoParsingJobDto {
   titleId: string;
   sources?: string[];
   frequency?: string;
+  /** Час запуска в UTC (0–23), опционально. */
+  scheduleHour?: number;
   enabled?: boolean;
 }
 
@@ -27,6 +31,8 @@ export interface UpdateAutoParsingJobDto {
   titleId?: string;
   sources?: string[];
   frequency?: string;
+  /** Час запуска в UTC (0–23). null — сбросить (вернуть в расписание без часа). */
+  scheduleHour?: number | null;
   enabled?: boolean;
 }
 

@@ -63,8 +63,8 @@ export default function Header() {
         isScrolled ? "header-scrolled" : ""
       }`}
     >
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3 relative z-10">
-        <div className="flex items-center gap-3 shrink-0">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-3 relative z-10">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Кнопка меню только на мобильных */}
           <div className="lg:hidden">
             <button
@@ -86,7 +86,7 @@ export default function Header() {
           <Navigation />
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           {/* Поиск для десктопа — в одном стиле с кнопками хедера */}
           <div className="header-search hidden lg:block flex-1 min-w-0 max-w-sm">
             <Search />

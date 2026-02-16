@@ -119,7 +119,7 @@ export default function UserBar() {
 
   return (
     <>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <ThemeToggle />
 
         {isAuthenticated && <NotificationButton />}
@@ -129,12 +129,12 @@ export default function UserBar() {
             <button
               type="button"
               onClick={handleLoginModalOpen}
-              className="flex items-center px-4 py-2 text-sm font-medium 
+              className="flex items-center px-2.5 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm font-medium 
                        bg-[var(--primary)] text-[var(--primary-foreground)] 
                        rounded-lg hover:bg-[var(--primary)]/90 
                        transition-colors"
             >
-              <LogInIcon className="w-4 h-4 mr-2" />
+              <LogInIcon className="w-3.5 h-3.5 mr-1.5 sm:w-4 sm:h-4 sm:mr-2" />
               Войти
             </button>
           </div>
