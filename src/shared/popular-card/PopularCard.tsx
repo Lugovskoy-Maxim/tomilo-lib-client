@@ -117,6 +117,8 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
             src={imageSrcString}
             alt={data.title}
             loading="lazy"
+            decoding="async"
+            fetchPriority="low"
             onDragStart={(e: React.DragEvent) => e.preventDefault()}
             draggable={false}
           />

@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { useImageState } from "@/lib/image-optimizer";
 
 interface OptimizedImageProps {
   src: string;
@@ -37,24 +36,67 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   fallbackSrc,
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
-  const { isLoading, isLoaded, error, loadImage } = useImageState();
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [shouldLoad, setShouldLoad] = useState(priority);
+  const [isLoading, setIsLoading] = useState(priority);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
 
-  // Отслеживаем изменения src и priority для перезагрузки изображения при необходимости
+  // Сбрасываем состояние при смене src
   useEffect(() => {
-    if (src) {
-      setHasError(false);
-      // Если priority=true, загружаем немедленно
-      // Иначе начинаем загрузку сразу (без ожидания видимости)
-      loadImage(src);
+    setHasError(false);
+    setError(null);
+    setIsLoaded(false);
+    setShouldLoad(priority);
+    setIsLoading(priority);
+  }, [src, priority]);
+
+  // Ленивая загрузка: начинаем запрос только около viewport
+  useEffect(() => {
+    if (priority || shouldLoad) return;
+    const element = imgRef.current;
+    if (!element) return;
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      setShouldLoad(true);
+      setIsLoading(true);
+      return;
     }
-  }, [src, priority, loadImage]);
+
+    observerRef.current?.disconnect();
+    observerRef.current = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          setShouldLoad(true);
+          setIsLoading(true);
+          observerRef.current?.disconnect();
+          observerRef.current = null;
+        });
+      },
+      {
+        rootMargin: "250px 0px",
+        threshold: 0.01,
+      },
+    );
+
+    observerRef.current.observe(element);
+
+    return () => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+    };
+  }, [priority, shouldLoad]);
 
   const handleLoad = () => {
+    setIsLoading(false);
+    setIsLoaded(true);
     if (onLoad) onLoad();
   };
 
   const handleError = () => {
+    setIsLoading(false);
+    setError("Не удалось загрузить изображение");
     setHasError(true);
     if (onError) onError();
   };
@@ -171,30 +213,34 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // Определяем стиль отображения в зависимости от состояния загрузки
   const imageStyle: React.CSSProperties = fill
     ? {
-        display: isLoading ? "none" : "block",
+        display: "block",
         position: "absolute",
         inset: 0,
         width: "100%",
         height: "100%",
         objectFit: "cover",
+        opacity: isLoaded ? 1 : 0,
+        transition: "opacity 200ms ease-out",
         ...style,
       }
     : {
-        display: isLoading ? "none" : "block",
+        display: "block",
         width: width ? `${width}px` : "100%",
         height: height ? `${height}px` : "auto",
+        opacity: isLoaded ? 1 : 0,
+        transition: "opacity 200ms ease-out",
         ...style,
       };
 
   return (
     <>
       {/* Placeholder во время загрузки */}
-      {isLoading && !isLoaded && getPlaceholder()}
+      {!isLoaded && getPlaceholder()}
 
       {/* Основное изображение */}
       <img
         ref={imgRef}
-        src={actualSrc}
+        src={shouldLoad ? actualSrc : undefined}
         alt={alt}
         className={imageClasses}
         width={fill ? undefined : width}
@@ -202,6 +248,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         onLoad={handleLoad}
         onError={handleError}
         loading={priority ? "eager" : "lazy"}
+        decoding="async"
+        fetchPriority={priority ? "high" : "low"}
         style={imageStyle}
         onDragStart={onDragStart}
         draggable={draggable}
