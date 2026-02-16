@@ -44,7 +44,15 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
 
   const getImageUrl = () => {
     if (!collectionImage) return IMAGE_HOLDER;
-    return `${process.env.NEXT_PUBLIC_URL}${collectionImage}`;
+    if (collectionImage.startsWith("http")) return collectionImage;
+
+    const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "");
+    const baseUrl =
+      apiBase?.replace(/\/$/, "") ||
+      process.env.NEXT_PUBLIC_URL?.replace(/\/$/, "") ||
+      "http://localhost:3001";
+    const cleanPath = collectionImage.startsWith("/") ? collectionImage : `/${collectionImage}`;
+    return `${baseUrl}${cleanPath}`;
   };
 
   const imageUrl = getImageUrl();
@@ -59,51 +67,53 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
   return (
     <div draggable="false" className={cardClasses} onClick={handleClick}>
       <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] card-hover-soft">
-        <div className="absolute inset-0 overflow-hidden">
-          <OptimizedImage
-            src={imageUrlString}
-            alt={collectionName || "Коллекция"}
-            fill
-            className="object-cover w-full h-full card-media-hover"
-            quality={85}
-            priority={false}
-            onError={() => {
-              console.warn(`Failed to load image for collection ${collectionName}`);
-            }}
-          />
-        </div>
+        <div className="relative w-full h-full">
+          <div className="absolute inset-0 overflow-hidden">
+            <OptimizedImage
+              src={imageUrlString}
+              alt={collectionName || "Коллекция"}
+              fill
+              className="object-cover w-full h-full card-media-hover"
+              quality={85}
+              priority={false}
+              fallbackSrc={IMAGE_HOLDER.src}
+              onError={() => {
+                console.warn(`Failed to load image for collection ${collectionName}`);
+              }}
+            />
+          </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
 
-        {/* Badge: кол-во тайтлов */}
-        <div className="absolute top-3 right-3">
-          <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1.5 rounded-md border border-white/20 shadow-lg">
-            <Library className="w-3.5 h-3.5" />
-            <span>{titlesCount}</span>
+          {/* Badge: кол-во тайтлов */}
+          <div className="absolute top-3 right-3">
+            <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1.5 rounded-md border border-white/20 shadow-lg">
+              <Library className="w-3.5 h-3.5" />
+              <span>{titlesCount}</span>
+            </div>
+          </div>
+
+          {/* Контент внизу — единые отступы */}
+          <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+            <h3 className="text-sm font-semibold drop-shadow-lg leading-tight line-clamp-2 group-hover:text-[var(--chart-1)] transition-colors duration-300">
+              {collectionName || "Без названия"}
+            </h3>
+            {isGrid && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/80">
+                <span className="flex items-center gap-1">
+                  <Eye className="w-3 h-3" />
+                  {views} просмотров
+                </span>
+                {createdAt && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {new Date(createdAt).toLocaleDateString("ru-RU")}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Контент внизу — единые отступы */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-          <h3 className="text-sm font-semibold drop-shadow-lg leading-tight line-clamp-2 group-hover:text-[var(--chart-1)] transition-colors duration-300">
-            {collectionName || "Без названия"}
-          </h3>
-          {isGrid && (
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/80">
-              <span className="flex items-center gap-1">
-                <Eye className="w-3 h-3" />
-                {views} просмотров
-              </span>
-              {createdAt && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {new Date(createdAt).toLocaleDateString("ru-RU")}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
       </div>
     </div>
   );

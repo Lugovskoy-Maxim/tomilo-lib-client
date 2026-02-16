@@ -56,12 +56,25 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   useEffect(() => {
     if (priority || shouldLoad) return;
     const element = imgRef.current;
-    if (!element) return;
+    if (!element) {
+      // Fallback: если ref ещё не готов, не блокируем загрузку.
+      setShouldLoad(true);
+      setIsLoading(true);
+      return;
+    }
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
       setShouldLoad(true);
       setIsLoading(true);
       return;
     }
+
+    // Fail-safe: если observer по какой-то причине не сработал, не держим изображение в вечной загрузке.
+    const forceLoadTimeout = window.setTimeout(() => {
+      setShouldLoad(true);
+      setIsLoading(true);
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+    }, 1200);
 
     observerRef.current?.disconnect();
     observerRef.current = new IntersectionObserver(
@@ -83,6 +96,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     observerRef.current.observe(element);
 
     return () => {
+      window.clearTimeout(forceLoadTimeout);
       observerRef.current?.disconnect();
       observerRef.current = null;
     };

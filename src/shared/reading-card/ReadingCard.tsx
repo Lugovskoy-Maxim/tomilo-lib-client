@@ -50,7 +50,9 @@ export default function ReadingCard({ data }: ReadingCardProps) {
     }
 
     // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${data.cover}`;
+    const baseUrl = process.env.NEXT_PUBLIC_URL?.replace(/\/$/, "") || "http://localhost:3001";
+    const cleanPath = data.cover.startsWith("/") ? data.cover : `/${data.cover}`;
+    return `${baseUrl}${cleanPath}`;
   };
 
   const imageUrl = getImageUrl();
@@ -73,6 +75,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
               className="object-cover card-media-hover"
               quality={85}
               priority={false}
+              fallbackSrc={IMAGE_HOLDER.src}
               onError={() => {
                 console.warn(`Failed to load image for ${data.title}`);
               }}

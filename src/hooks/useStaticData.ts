@@ -7,6 +7,8 @@ interface ApiCollection {
   _id?: string;
   name: string;
   image?: string;
+  cover?: string;
+  coverImage?: string;
   link?: string;
   views?: number;
   [key: string]: string | number | boolean | undefined;
@@ -87,7 +89,11 @@ export const useStaticData = (): StaticData => {
           const id = String((collection.id || collection._id) ?? "");
           return {
             id,
-            cover: (collection.image as string) ?? "",
+            cover:
+              (collection.cover as string) ??
+              (collection.coverImage as string) ??
+              (collection.image as string) ??
+              "",
             name: collection.name ?? "",
             description: undefined,
             titles: [],
