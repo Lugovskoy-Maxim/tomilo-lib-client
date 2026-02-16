@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -47,6 +47,7 @@ interface ReaderControlsProps {
   preloadAllImages?: boolean;
   onPreloadChange?: (value: boolean) => void;
   preloadProgress?: number;
+  onJumpToPage?: (page: number) => void;
 }
 
 export default function ReaderControls({
@@ -73,12 +74,14 @@ export default function ReaderControls({
   preloadAllImages = false,
   onPreloadChange,
   preloadProgress = 0,
+  onJumpToPage,
 }: ReaderControlsProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isJumpPopoverOpen, setIsJumpPopoverOpen] = useState(false);
 
   // Custom hooks
   const {
@@ -100,6 +103,8 @@ export default function ReaderControls({
     setShowPageCounter,
     readChaptersInRow,
     setReadChaptersInRow,
+    readingMode,
+    setReadingMode,
   } = useReaderSettings();
 
   const {
@@ -119,6 +124,8 @@ export default function ReaderControls({
   }, [isMenuOpen, onMenuOpen]);
 
   const settingsPanelRef = useRef<HTMLDivElement>(null);
+  const desktopJumpPopoverRef = useRef<HTMLDivElement>(null);
+  const mobileJumpPopoverRef = useRef<HTMLDivElement>(null);
 
   // Закрытие панели настроек при клике вне её
   const handleSettingsClickOutside = useCallback(
@@ -179,6 +186,44 @@ export default function ReaderControls({
       chapter.number.toString().includes(chapterSearch) ||
       chapter.title.toLowerCase().includes(chapterSearch.toLowerCase()),
   );
+
+  const chapterProgressPercent = Math.max(
+    0,
+    Math.min(100, Math.round((currentPage / Math.max(chapterImageLength, 1)) * 100)),
+  );
+
+  const jumpPageItems = useMemo(() => {
+    const total = Math.max(chapterImageLength, 1);
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }, [chapterImageLength]);
+
+  const handleJumpToPage = useCallback((targetPage: number) => {
+    if (!onJumpToPage) return;
+    const target = Math.min(Math.max(Math.floor(targetPage), 1), chapterImageLength);
+    onJumpToPage(target);
+    setIsJumpPopoverOpen(false);
+  }, [chapterImageLength, onJumpToPage]);
+
+  const handleCounterClick = useCallback(() => {
+    if (!onJumpToPage) return;
+    setIsJumpPopoverOpen(prev => !prev);
+  }, [onJumpToPage]);
+
+  useEffect(() => {
+    if (!isJumpPopoverOpen) return;
+    const handleClickOutside = (event: PointerEvent) => {
+      const isInDesktopPopover =
+        desktopJumpPopoverRef.current?.contains(event.target as Node) ?? false;
+      const isInMobilePopover =
+        mobileJumpPopoverRef.current?.contains(event.target as Node) ?? false;
+
+      if (!isInDesktopPopover && !isInMobilePopover) {
+        setIsJumpPopoverOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", handleClickOutside);
+    return () => document.removeEventListener("pointerdown", handleClickOutside);
+  }, [isJumpPopoverOpen]);
 
   // Остановка автопрокрутки при открытии меню или скролле
   useEffect(() => {
@@ -252,6 +297,32 @@ export default function ReaderControls({
                       {speed === "slow" ? "Медленно" : speed === "medium" ? "Средне" : "Быстро"}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <label className="block text-xs font-medium mb-2">Режим чтения</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setReadingMode("feed")}
+                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
+                      readingMode === "feed"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Лента
+                  </button>
+                  <button
+                    onClick={() => setReadingMode("paged")}
+                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
+                      readingMode === "paged"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Постранично
+                  </button>
                 </div>
               </div>
 
@@ -446,6 +517,32 @@ export default function ReaderControls({
               </div>
 
               <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <label className="block text-xs font-medium mb-2">Режим чтения</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setReadingMode("feed")}
+                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
+                      readingMode === "feed"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Лента
+                  </button>
+                  <button
+                    onClick={() => setReadingMode("paged")}
+                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
+                      readingMode === "paged"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    }`}
+                  >
+                    Постранично
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
                 <label className="block text-xs font-medium mb-2">Тема</label>
                 <ThemeToggleGroup />
               </div>
@@ -586,9 +683,40 @@ export default function ReaderControls({
       <div className="hidden sm:flex fixed right-4 top-1/2 -translate-y-1/2 z-40 flex-col gap-3">
         {/* Счётчик страниц */}
         <div className="w-full flex justify-center">
-          <p className="text-[var(--muted-foreground)] text-sm border border-[var(--border)] bg-[var(--card)]/95 rounded-2xl shadow-lg px-3 py-1.5 font-medium backdrop-blur-sm">
-            {currentPage} / {chapterImageLength}
-          </p>
+          <div className="relative" ref={desktopJumpPopoverRef}>
+            <button
+              type="button"
+              onClick={handleCounterClick}
+              className="text-[var(--muted-foreground)] text-sm border border-[var(--border)] bg-[var(--card)]/95 rounded-2xl shadow-lg px-3 py-1.5 font-medium backdrop-blur-sm hover:bg-[var(--accent)] transition-colors"
+              title={onJumpToPage ? "Нажмите для перехода к странице" : "Счётчик страниц"}
+            >
+              {currentPage} / {chapterImageLength} ({chapterProgressPercent}%)
+            </button>
+            {isJumpPopoverOpen && onJumpToPage && (
+              <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 z-[80] w-[240px] p-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl">
+                <div className="text-[11px] text-[var(--muted-foreground)] mb-2 px-1">
+                  Выберите страницу
+                </div>
+                <div className="max-h-48 overflow-y-auto pr-1">
+                  <div className="grid grid-cols-5 gap-1">
+                    {jumpPageItems.map(item => (
+                      <button
+                        key={`page-desktop-${item}`}
+                        onClick={() => handleJumpToPage(item)}
+                        className={`h-8 text-xs font-medium rounded-md border transition-colors ${
+                          item === currentPage
+                            ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
+                            : "bg-[var(--secondary)] border-[var(--border)] hover:bg-[var(--accent)]"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Основные кнопки управления */}
@@ -695,9 +823,40 @@ export default function ReaderControls({
       >
         {showPageCounter && (
           <div className={`flex transition-all duration-300 ease-in-out ${isMenuHidden ? 'justify-end' : 'justify-center'}`}>
-            <p className={`text-[var(--primary)] text-xs xs:text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-lg xs:rounded-xl px-2 xs:px-3 py-1 xs:py-1.5 shadow-lg backdrop-blur-sm transition-all duration-300 ${isMenuHidden ? 'scale-90' : 'scale-100'}`}>
-              {currentPage} / {chapterImageLength}
-            </p>
+            <div className="relative" ref={mobileJumpPopoverRef}>
+              <button
+                type="button"
+                onClick={handleCounterClick}
+                className={`text-[var(--primary)] text-xs xs:text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-lg xs:rounded-xl px-2 xs:px-3 py-1 xs:py-1.5 shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-[var(--accent)] ${isMenuHidden ? 'scale-90' : 'scale-100'}`}
+                title={onJumpToPage ? "Нажмите для перехода к странице" : "Счётчик страниц"}
+              >
+                {currentPage} / {chapterImageLength} ({chapterProgressPercent}%)
+              </button>
+              {isJumpPopoverOpen && onJumpToPage && (
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-[80] w-[220px] p-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl">
+                  <div className="text-[11px] text-[var(--muted-foreground)] mb-2 px-1">
+                    Выберите страницу
+                  </div>
+                  <div className="max-h-44 overflow-y-auto pr-1">
+                    <div className="grid grid-cols-5 gap-1">
+                      {jumpPageItems.map(item => (
+                        <button
+                          key={`page-mobile-${item}`}
+                          onClick={() => handleJumpToPage(item)}
+                          className={`h-8 text-xs font-medium rounded-md border transition-colors ${
+                            item === currentPage
+                              ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
+                              : "bg-[var(--secondary)] border-[var(--border)] hover:bg-[var(--accent)]"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

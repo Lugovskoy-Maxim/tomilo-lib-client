@@ -55,7 +55,7 @@ export default function ReadChapterPage({
   const router = useRouter();
 
   const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
-  const { readChaptersInRow } = useReaderSettings();
+  const { readChaptersInRow, readingMode } = useReaderSettings();
   const [fetchChapterById] = useLazyGetChapterByIdQuery();
 
   const [incrementChapterViews] = useIncrementChapterViewsMutation();
@@ -91,6 +91,8 @@ export default function ReadChapterPage({
   const [forceStopAutoScroll, setForceStopAutoScroll] = useState(false);
   const [preloadAllImages, setPreloadAllImages] = useState(false);
   const [preloadProgress, setPreloadProgress] = useState(0);
+  const isPagedMode = readingMode === "paged";
+  const isChaptersInRowMode = readChaptersInRow && !isPagedMode;
 
   // Чтение глав подряд: загруженные главы (текущая + подгруженные сверху/снизу)
   const [loadedChapters, setLoadedChapters] = useState<ReaderChapter[]>(() => [chapter]);
@@ -503,6 +505,10 @@ export default function ReadChapterPage({
 
   // Отслеживание текущей страницы с помощью улучшенного алгоритма
   useEffect(() => {
+    if (isPagedMode) {
+      return;
+    }
+
     const updateCurrentPage = () => {
       // Не обновляем страницу сразу после восстановления позиции
       if (!isPositionRestored) {
@@ -553,11 +559,19 @@ export default function ReadChapterPage({
       window.removeEventListener("scroll", debouncedScrollHandler);
       window.removeEventListener("resize", updateCurrentPage);
     };
-  }, [chapter.images, debouncedSavePosition, isPositionRestored, savedReadingPage]);
+  }, [chapter.images, debouncedSavePosition, isPositionRestored, savedReadingPage, isPagedMode]);
+
+  // В постраничном режиме сохраняем текущую страницу при каждом переходе
+  useEffect(() => {
+    if (!isPagedMode || !isPositionRestored) return;
+    if (currentPage > 1) {
+      debouncedSavePosition(currentPage);
+    }
+  }, [isPagedMode, isPositionRestored, currentPage, debouncedSavePosition]);
 
   // Подгрузка предыдущей/следующей главы при чтении подряд
   const loadPrevChapter = useCallback(async () => {
-    if (!readChaptersInRow || firstLoadedIndex <= 0 || loadingPrev) return;
+    if (!isChaptersInRowMode || firstLoadedIndex <= 0 || loadingPrev) return;
     const prevId = chapters[firstLoadedIndex - 1]?._id;
     if (!prevId || loadingChapterIdsRef.current.has(prevId)) return;
     loadingChapterIdsRef.current.add(prevId);
@@ -576,10 +590,10 @@ export default function ReadChapterPage({
       setLoadingPrev(false);
       loadingChapterIdsRef.current.delete(prevId);
     }
-  }, [readChaptersInRow, firstLoadedIndex, loadingPrev, chapters, fetchChapterById]);
+  }, [isChaptersInRowMode, firstLoadedIndex, loadingPrev, chapters, fetchChapterById]);
 
   const loadNextChapter = useCallback(async () => {
-    if (!readChaptersInRow || lastLoadedIndex >= chapters.length - 1 || loadingNext) return;
+    if (!isChaptersInRowMode || lastLoadedIndex >= chapters.length - 1 || loadingNext) return;
     const nextId = chapters[lastLoadedIndex + 1]?._id;
     if (!nextId || loadingChapterIdsRef.current.has(nextId)) return;
     loadingChapterIdsRef.current.add(nextId);
@@ -593,10 +607,10 @@ export default function ReadChapterPage({
       setLoadingNext(false);
       loadingChapterIdsRef.current.delete(nextId);
     }
-  }, [readChaptersInRow, lastLoadedIndex, chapters.length, loadingNext, chapters, fetchChapterById]);
+  }, [isChaptersInRowMode, lastLoadedIndex, chapters.length, loadingNext, chapters, fetchChapterById]);
 
   useEffect(() => {
-    if (!readChaptersInRow) return;
+    if (!isChaptersInRowMode) return;
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       const winH = window.innerHeight;
@@ -606,11 +620,11 @@ export default function ReadChapterPage({
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [readChaptersInRow, loadPrevChapter, loadNextChapter]);
+  }, [isChaptersInRowMode, loadPrevChapter, loadNextChapter]);
 
   // Обновление URL при смене видимой главы (чтение подряд)
   useEffect(() => {
-    if (!readChaptersInRow || loadedChapters.length === 0) return;
+    if (!isChaptersInRowMode || loadedChapters.length === 0) return;
     const observer = new IntersectionObserver(
       entries => {
         const visible = entries.filter(e => e.isIntersecting);
@@ -627,14 +641,25 @@ export default function ReadChapterPage({
     );
     chapterSectionRefs.current.forEach(el => observer.observe(el));
     return () => observer.disconnect();
-  }, [readChaptersInRow, loadedChapters.length, visibleChapterId, slug, titleId]);
+  }, [isChaptersInRowMode, loadedChapters.length, visibleChapterId, slug, titleId]);
 
   const loading = !chapter;
 
   // В режиме «главы подряд» текущая для хедера/контролов — видимая глава
-  const effectiveChapter = readChaptersInRow
+  const effectiveChapter = isChaptersInRowMode
     ? (loadedChapters.find(c => c._id === visibleChapterId) ?? chapter)
     : chapter;
+  const pagedImageIndex = Math.min(
+    Math.max(currentPage - 1, 0),
+    Math.max(chapter.images.length - 1, 0),
+  );
+
+  useEffect(() => {
+    if (!isPagedMode) return;
+    if (currentPage > chapter.images.length && chapter.images.length > 0) {
+      setCurrentPage(chapter.images.length);
+    }
+  }, [isPagedMode, currentPage, chapter.images.length]);
 
   if (loading) {
     return (
@@ -730,6 +755,20 @@ export default function ReadChapterPage({
           localStorage.setItem("reader-preload-all-images", value.toString());
         }}
         preloadProgress={preloadProgress}
+        onJumpToPage={(page) => {
+          if (isPagedMode) {
+            setCurrentPage(page);
+            return;
+          }
+          const pageElement = document.querySelector(`[data-page="${page}"]`);
+          if (pageElement) {
+            pageElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+          setCurrentPage(page);
+        }}
       />
 
       {/* Хедер */}
@@ -770,7 +809,7 @@ export default function ReadChapterPage({
         onClick={handleMobileTap}
       >
         <div className="container mx-auto">
-          {readChaptersInRow ? (
+          {isChaptersInRowMode ? (
             <>
               {loadingPrev && (
                 <div className="py-8 text-center text-[var(--muted-foreground)]">
@@ -865,93 +904,178 @@ export default function ReadChapterPage({
             </div>
 
             {/* Изображения главы */}
-            {chapter.images.map((src, imageIndex) => {
-              const errorKey = `${chapter._id}-${imageIndex}`;
-              const isError = imageLoadErrors.has(errorKey);
-              const imageUrl = getImageUrl(src);
-
-              return (
-                <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center">
-                  <div
-                    className="relative w-full flex justify-center px-0 sm:px-4"
-                    data-page={imageIndex + 1}
-                    style={{
-                      maxWidth: isMobile ? "100%" : `${imageWidth}px`,
-                    }}
-                  >
-                    {!isError ? (
-                      <Image
-                        key={`${chapter._id}-${imageIndex}-${imageWidth}`}
-                        loader={imageLoader}
-                        src={src}
-                        alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
-                        width={isMobile ? 800 : imageWidth}
-                        height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                        className="w-full h-auto shadow-lg sm:shadow-2xl"
-                        quality={
-                          // Если есть приоритеты, используем разное качество
-                          imageLoadPriority.size > 0
-                            ? (() => {
-                                const priority = imageLoadPriority.get(imageIndex + 1);
-                                switch (priority) {
-                                  case "high":
-                                    return 85; // Высокое качество
-                                  case "medium":
-                                    return 70; // Среднее качество
-                                  case "low":
-                                    return 60; // Низкое качество
-                                  default:
-                                    return 85; // Fallback качество
-                                }
-                              })()
-                            : 85 // Fallback качество
-                        }
-                        loading={
-                          // Если есть приоритеты, используем их, иначе fallback к старой логике
-                          imageLoadPriority.size > 0
-                            ? imageLoadPriority.get(imageIndex + 1) === "high"
-                              ? "eager"
-                              : "lazy"
-                            : imageIndex < (isMobile ? 6 : 3)
-                              ? "eager"
-                              : "lazy"
-                        }
-                        onError={() => handleImageError(chapter._id, imageIndex)}
-                        priority={
-                          // Если есть приоритеты, используем их, иначе fallback к старой логике
-                          imageLoadPriority.size > 0
-                            ? imageLoadPriority.get(imageIndex + 1) === "high"
-                            : imageIndex < (isMobile ? 3 : 1)
-                        }
-                      />
-                    ) : (
-                      <div className="w-full min-h-[200px] sm:h-64 bg-[var(--card)] flex items-center justify-center px-4">
-                        <div className="text-center">
-                          <div className="text-[var(--destructive)] mb-3 text-sm sm:text-base">
-                            Ошибка загрузки изображения
-                          </div>
-                          <button
-                            onClick={() => {
-                              setImageLoadErrors(prev => {
-                                const newSet = new Set(prev);
-                                newSet.delete(errorKey);
-                                return newSet;
-                              });
-                            }}
-                            className="px-4 py-3 sm:py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded-lg sm:rounded transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
-                          >
-                            Повторить загрузку
-                          </button>
-                          <div className="mt-3 text-xs sm:text-sm text-[var(--muted-foreground)] break-all max-w-[280px] sm:max-w-md">
-                            URL: {imageUrl}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+            {isPagedMode ? (
+              <>
+                <div className="py-3 sm:py-2 text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--muted)]/60 text-sm text-[var(--muted-foreground)]">
+                    Страница <span className="font-semibold text-[var(--foreground)]">{currentPage}</span> / {chapter.images.length}
                   </div>
                 </div>
-              );
-            })}
+                {chapter.images[pagedImageIndex] && (() => {
+                  const imageIndex = pagedImageIndex;
+                  const src = chapter.images[imageIndex];
+                  const errorKey = `${chapter._id}-${imageIndex}`;
+                  const isError = imageLoadErrors.has(errorKey);
+                  const imageUrl = getImageUrl(src);
+
+                  return (
+                    <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center">
+                      <div
+                        className="relative w-full flex justify-center px-0 sm:px-4"
+                        data-page={imageIndex + 1}
+                        style={{
+                          maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                        }}
+                      >
+                        {!isError ? (
+                          <Image
+                            key={`${chapter._id}-${imageIndex}-${imageWidth}`}
+                            loader={imageLoader}
+                            src={src}
+                            alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
+                            width={isMobile ? 800 : imageWidth}
+                            height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                            className="w-full h-auto shadow-lg sm:shadow-2xl"
+                            quality={85}
+                            loading="eager"
+                            onError={() => handleImageError(chapter._id, imageIndex)}
+                            priority
+                          />
+                        ) : (
+                          <div className="w-full min-h-[200px] sm:h-64 bg-[var(--card)] flex items-center justify-center px-4">
+                            <div className="text-center">
+                              <div className="text-[var(--destructive)] mb-3 text-sm sm:text-base">
+                                Ошибка загрузки изображения
+                              </div>
+                              <button
+                                onClick={() => {
+                                  setImageLoadErrors(prev => {
+                                    const newSet = new Set(prev);
+                                    newSet.delete(errorKey);
+                                    return newSet;
+                                  });
+                                }}
+                                className="px-4 py-3 sm:py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded-lg sm:rounded transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
+                              >
+                                Повторить загрузку
+                              </button>
+                              <div className="mt-3 text-xs sm:text-sm text-[var(--muted-foreground)] break-all max-w-[280px] sm:max-w-md">
+                                URL: {imageUrl}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div className="py-5 sm:py-6 px-4 sm:px-0">
+                  <div className="flex items-center justify-center gap-3 max-w-xl mx-auto">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage <= 1}
+                      className="group flex cursor-pointer items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-sm font-medium min-h-[48px] touch-manipulation active:scale-95"
+                    >
+                      <ArrowBigLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+                      <span>Предыдущая страница</span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(chapter.images.length, prev + 1))}
+                      disabled={currentPage >= chapter.images.length}
+                      className="group flex cursor-pointer items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-sm font-medium min-h-[48px] touch-manipulation active:scale-95"
+                    >
+                      <span>Следующая страница</span>
+                      <ArrowBigRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              chapter.images.map((src, imageIndex) => {
+                const errorKey = `${chapter._id}-${imageIndex}`;
+                const isError = imageLoadErrors.has(errorKey);
+                const imageUrl = getImageUrl(src);
+
+                return (
+                  <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center">
+                    <div
+                      className="relative w-full flex justify-center px-0 sm:px-4"
+                      data-page={imageIndex + 1}
+                      style={{
+                        maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                      }}
+                    >
+                      {!isError ? (
+                        <Image
+                          key={`${chapter._id}-${imageIndex}-${imageWidth}`}
+                          loader={imageLoader}
+                          src={src}
+                          alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
+                          width={isMobile ? 800 : imageWidth}
+                          height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                          className="w-full h-auto shadow-lg sm:shadow-2xl"
+                          quality={
+                            imageLoadPriority.size > 0
+                              ? (() => {
+                                  const priority = imageLoadPriority.get(imageIndex + 1);
+                                  switch (priority) {
+                                    case "high":
+                                      return 85;
+                                    case "medium":
+                                      return 70;
+                                    case "low":
+                                      return 60;
+                                    default:
+                                      return 85;
+                                  }
+                                })()
+                              : 85
+                          }
+                          loading={
+                            imageLoadPriority.size > 0
+                              ? imageLoadPriority.get(imageIndex + 1) === "high"
+                                ? "eager"
+                                : "lazy"
+                              : imageIndex < (isMobile ? 6 : 3)
+                                ? "eager"
+                                : "lazy"
+                          }
+                          onError={() => handleImageError(chapter._id, imageIndex)}
+                          priority={
+                            imageLoadPriority.size > 0
+                              ? imageLoadPriority.get(imageIndex + 1) === "high"
+                              : imageIndex < (isMobile ? 3 : 1)
+                          }
+                        />
+                      ) : (
+                        <div className="w-full min-h-[200px] sm:h-64 bg-[var(--card)] flex items-center justify-center px-4">
+                          <div className="text-center">
+                            <div className="text-[var(--destructive)] mb-3 text-sm sm:text-base">
+                              Ошибка загрузки изображения
+                            </div>
+                            <button
+                              onClick={() => {
+                                setImageLoadErrors(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(errorKey);
+                                  return newSet;
+                                });
+                              }}
+                              className="px-4 py-3 sm:py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded-lg sm:rounded transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
+                            >
+                              Повторить загрузку
+                            </button>
+                            <div className="mt-3 text-xs sm:text-sm text-[var(--muted-foreground)] break-all max-w-[280px] sm:max-w-md">
+                              URL: {imageUrl}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
 
             {/* Рекламный блок */}
             <AdBlockReading />
