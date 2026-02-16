@@ -348,7 +348,7 @@ export const useAuth = () => {
 
   const addToReadingHistoryFunc = useCallback(
     async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
-      try {
+      const tryAdd = async (): Promise<{ success: boolean; error?: string }> => {
         const result = await addToReadingHistory({
           titleId,
           chapterId,
@@ -364,15 +364,48 @@ export const useAuth = () => {
         }
 
         refetchProfile();
-
         return { success: true };
+      };
+
+      const getErrorMessage = (err: unknown): string => {
+        const e = err as {
+          message?: string;
+          data?: { errors?: string[]; message?: string };
+        };
+        return (
+          e?.data?.errors?.[0] ??
+          e?.data?.message ??
+          (typeof e?.message === "string" ? e.message : null) ??
+          (err instanceof Error ? err.message : null) ??
+          "Неизвестная ошибка"
+        );
+      };
+
+      const isVersionConflict = (msg: string): boolean =>
+        /no matching document|version \d+|modifiedPaths/i.test(msg);
+
+      try {
+        return await tryAdd();
       } catch (error: unknown) {
-        const message =
-          (error as { data?: { errors?: string[]; message?: string } })?.data?.errors?.[0] ||
-          (error as { data?: { message?: string } })?.data?.message ||
-          (error instanceof Error ? error.message : "Неизвестная ошибка");
+        const message = getErrorMessage(error);
         // Log message only (not error object) to avoid Next.js digest Symbol extensibility issue
         console.error("Error adding to reading history:", message);
+
+        // Retry once on backend version conflict (stale document version)
+        if (isVersionConflict(message)) {
+          try {
+            await refetchProfile();
+            return await tryAdd();
+          } catch (retryError: unknown) {
+            const retryMessage = getErrorMessage(retryError);
+            console.error("Error adding to reading history (retry):", retryMessage);
+            return {
+              success: false,
+              error: "Данные устарели. Обновите страницу и попробуйте снова.",
+            };
+          }
+        }
+
         return { success: false, error: message };
       }
     },
