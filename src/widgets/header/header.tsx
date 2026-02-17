@@ -159,7 +159,7 @@ export default function Header() {
   return (
     <>
       <header
-        className={`relative w-full header-glass h-[var(--header-height)] transition-all duration-300 ${
+        className={`relative z-layer-dropdown w-full header-glass h-[var(--header-height)] transition-all duration-300 ${
           isScrolled ? "header-scrolled" : ""
         }`}
       >
