@@ -60,6 +60,10 @@ export function CollectionsSection({}: CollectionsSectionProps) {
   } | null>(null);
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
 
+  useEffect(() => {
+    setPage(1);
+  }, [search, sortBy, sortOrder]);
+
   const {
     data: collectionsResponse,
     isLoading,
@@ -606,7 +610,6 @@ function CollectionModal({
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
 
   // Update form data when initialData changes
   React.useEffect(() => {
@@ -650,7 +653,6 @@ function CollectionModal({
 
     if (selectedFile) {
       // Handle file upload
-      setIsUploading(true);
       try {
         const formDataToSend = new FormData();
         formDataToSend.append("cover", selectedFile);
@@ -661,8 +663,6 @@ function CollectionModal({
         await onSubmit(formDataToSend);
       } catch {
         // Handle error silently in production
-      } finally {
-        setIsUploading(false);
       }
     } else {
       onSubmit(formData);
@@ -674,7 +674,6 @@ function CollectionModal({
   };
 
   const imageCover = (): string => {
-    if (selectedFile) return URL.createObjectURL(selectedFile);
     if (previewUrl && previewUrl.startsWith("data:")) return previewUrl;
     const cover = formData?.cover;
     if (cover) {

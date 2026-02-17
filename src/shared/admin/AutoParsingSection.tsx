@@ -82,14 +82,24 @@ export default function AutoParsingSection() {
 
   const searchResults: Title[] = searchResultsResponse?.data?.data || [];
 
-  const jobs = jobsResponse || [];
+  const jobs = useMemo(() => jobsResponse || [], [jobsResponse]);
 
   const handleCreateJob = async (data: CreateAutoParsingJobDto) => {
     try {
       await createJob(data).unwrap();
       setIsCreateModalOpen(false);
+      setModalContent({
+        title: "Успешно",
+        message: "Задача автопарсинга создана",
+      });
+      setIsModalOpen(true);
     } catch (error) {
       console.error("Failed to create job:", error);
+      setModalContent({
+        title: "Ошибка создания",
+        message: "Не удалось создать задачу автопарсинга",
+      });
+      setIsModalOpen(true);
     }
   };
 
@@ -97,17 +107,37 @@ export default function AutoParsingSection() {
     try {
       await updateJob({ id, data }).unwrap();
       setEditingJob(null);
+      setModalContent({
+        title: "Успешно",
+        message: "Задача автопарсинга обновлена",
+      });
+      setIsModalOpen(true);
     } catch (error) {
       console.error("Failed to update job:", error);
+      setModalContent({
+        title: "Ошибка обновления",
+        message: "Не удалось обновить задачу автопарсинга",
+      });
+      setIsModalOpen(true);
     }
   };
 
   const handleDeleteJob = async (id: string) => {
-    if (confirm("Are you sure you want to delete this job?")) {
+    if (confirm("Удалить задачу автопарсинга? Это действие нельзя отменить.")) {
       try {
         await deleteJob(id).unwrap();
+        setModalContent({
+          title: "Успешно",
+          message: "Задача автопарсинга удалена",
+        });
+        setIsModalOpen(true);
       } catch (error) {
         console.error("Failed to delete job:", error);
+        setModalContent({
+          title: "Ошибка удаления",
+          message: "Не удалось удалить задачу автопарсинга",
+        });
+        setIsModalOpen(true);
       }
     }
   };
@@ -158,7 +188,11 @@ export default function AutoParsingSection() {
   }, [jobs]);
   const getHourCount = (hour: number | "none") => jobsByHour.get(hour)?.length ?? 0;
   const totalHourlyTitles = useMemo(
-    () => Array.from({ length: 24 }, (_, h) => getHourCount(h)).reduce((acc, value) => acc + value, 0),
+    () =>
+      Array.from({ length: 24 }, (_, h) => jobsByHour.get(h)?.length ?? 0).reduce(
+        (acc, value) => acc + value,
+        0,
+      ),
     [jobsByHour],
   );
 

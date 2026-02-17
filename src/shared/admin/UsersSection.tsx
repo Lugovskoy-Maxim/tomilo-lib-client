@@ -1,26 +1,41 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Search, List, Grid3X3, Trash2, Eye } from "lucide-react";
 import { useGetUsersQuery, useDeleteUserMutation } from "@/store/api/usersApi";
 import { UserProfile } from "@/types/user";
 import { useToast } from "@/hooks/useToast";
-import { useRouter } from "next/navigation";
 import { Pagination } from "@/shared/ui/pagination";
 import { UserCard } from "./UserCard";
+import Image from "next/image";
 
 type ViewMode = "list" | "cards";
 
 export function UsersSection() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === "undefined") return "list";
+    return (localStorage.getItem("admin:users:viewMode") as ViewMode) || "list";
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(20); // Show 20 users per page for better UX
-  const router = useRouter();
 
   const { data: usersData, isLoading } = useGetUsersQuery({
-    search: searchTerm,
+    search: debouncedSearchTerm,
     page: currentPage,
     limit,
   });
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+      setCurrentPage(1);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    localStorage.setItem("admin:users:viewMode", viewMode);
+  }, [viewMode]);
+
   const [deleteUser] = useDeleteUserMutation();
   const toast = useToast();
 
@@ -60,10 +75,7 @@ export function UsersSection() {
     setCurrentPage(page);
   };
 
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    setCurrentPage(1); // Reset to first page when searching
-  };
+  const handleSearchChange = (value: string) => setSearchTerm(value);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -154,9 +166,12 @@ export function UsersSection() {
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--secondary)] rounded-full flex items-center justify-center">
                           {user.avatar ? (
-                            <img
+                            <Image
                               src={normalizeUrl(user.avatar || "")}
                               alt={user.username}
+                              width={40}
+                              height={40}
+                              unoptimized
                               className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                             />
                           ) : (

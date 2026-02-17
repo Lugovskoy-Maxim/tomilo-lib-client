@@ -1,9 +1,9 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
-import { BookOpen, Clock, LibraryIcon, SquareArrowOutUpRight, Trophy } from "lucide-react";
+import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight, Trophy } from "lucide-react";
 
-import { CarouselCard, CollectionCard, ReadingCard, SectionLoadError } from "@/shared";
+import { CarouselCard, CollectionCard, ReadingCard, SectionLoadError, TrendingCard, UnderratedCard } from "@/shared";
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSection";
@@ -60,8 +60,16 @@ const DataCarousel = ({
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
-  const { popularTitles, randomTitles, readingProgress, topManhua, topManhwa, top2026 } =
-    useHomeData();
+  const {
+    popularTitles,
+    randomTitles,
+    trendingTitles,
+    underratedTitles,
+    readingProgress,
+    topManhua,
+    topManhwa,
+    top2026,
+  } = useHomeData();
   const { collections, latestUpdates } = useStaticData();
   const { isAuthenticated } = useAuth();
 
@@ -75,6 +83,8 @@ export default function HomePage() {
         <Header />
         <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full">
           <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52" variant="poster" />
+          <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56" variant="poster" />
+          <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56" variant="poster" />
           <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56" variant="poster" />
           <div className="w-full">
             <TopCombinedSkeleton />
@@ -105,6 +115,36 @@ export default function HomePage() {
           cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
           getItemPath={(item: any) => getTitlePath(item)}
           autoScrollInterval={5000}
+          skeletonVariant="poster"
+        />
+
+        {/* В тренде на этой неделе */}
+        <DataCarousel
+          title="В тренде на этой неделе"
+          data={trendingTitles.data}
+          loading={trendingTitles.loading}
+          error={trendingTitles.error}
+          cardComponent={TrendingCard}
+          type="browse"
+          icon={<Flame className="w-6 h-6" />}
+          navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
+          cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
+          getItemPath={(item: any) => getTitlePath(item)}
+          skeletonVariant="poster"
+        />
+
+        {/* Недооцененные: высокий рейтинг, мало просмотров */}
+        <DataCarousel
+          title="Недооцененные: высокий рейтинг, мало просмотров"
+          data={underratedTitles.data}
+          loading={underratedTitles.loading}
+          error={underratedTitles.error}
+          cardComponent={UnderratedCard}
+          type="browse"
+          icon={<Gem className="w-6 h-6" />}
+          navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
+          cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
+          getItemPath={(item: any) => getTitlePath(item)}
           skeletonVariant="poster"
         />
 

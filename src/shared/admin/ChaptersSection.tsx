@@ -62,6 +62,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
   const [showTitleDropdown, setShowTitleDropdown] = useState(false);
   const [sortField, setSortField] = useState<ChapterSortField>("chapterNumber");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [onlyWithoutPages, setOnlyWithoutPages] = useState(false);
   const titleDropdownRef = useRef<HTMLDivElement>(null);
 
   const handlePageChange = (page: number) => {
@@ -98,10 +99,18 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
     { skip: !titleId },
   );
 
-  const chapters = chaptersResponse?.chapters || [];
+  const chapters = useMemo(() => chaptersResponse?.chapters || [], [chaptersResponse]);
+
+  const chaptersWithoutPagesCount = useMemo(
+    () => chapters.filter(ch => (ch.pages?.length ?? ch.images?.length ?? 0) === 0).length,
+    [chapters],
+  );
 
   const sortedChapters = useMemo(() => {
-    const arr = [...chapters];
+    const filtered = onlyWithoutPages
+      ? chapters.filter(ch => (ch.pages?.length ?? ch.images?.length ?? 0) === 0)
+      : chapters;
+    const arr = [...filtered];
     arr.sort((a, b) => {
       let aVal: number | string | boolean;
       let bVal: number | string | boolean;
@@ -147,7 +156,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
       }
     });
     return arr;
-  }, [chapters, sortField, sortDirection]);
+  }, [chapters, onlyWithoutPages, sortField, sortDirection]);
 
   const handleSort = (field: ChapterSortField) => {
     if (sortField === field) {
@@ -314,9 +323,17 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
       {titleId && (
         <>
           {/* Header with create button */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-semibold text-[var(--foreground)]">Главы тайтла</h2>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setOnlyWithoutPages(prev => !prev)}
+                className={`admin-btn ${onlyWithoutPages ? "admin-btn-primary" : "admin-btn-secondary"}`}
+                title="Показать только главы без страниц"
+              >
+                Без страниц: {chaptersWithoutPagesCount}
+              </button>
               <Link
                 href={`/admin/titles/edit/${titleId}`}
                 className="admin-btn admin-btn-secondary flex items-center gap-2"
@@ -341,9 +358,11 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
                 <p className="text-[var(--muted-foreground)]">Загрузка глав...</p>
               </div>
-            ) : chapters.length === 0 ? (
+            ) : sortedChapters.length === 0 ? (
               <div className="p-8 text-center">
-                <p className="text-[var(--muted-foreground)]">Нет глав</p>
+                <p className="text-[var(--muted-foreground)]">
+                  {onlyWithoutPages ? "Нет глав без страниц" : "Нет глав"}
+                </p>
                 <Link
                   href={`/admin/titles/edit/${titleId}/chapters/new`}
                   className="admin-btn admin-btn-primary inline-block mt-4 font-medium"

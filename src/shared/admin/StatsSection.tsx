@@ -1,17 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
-  LineChart,
-  Line,
   AreaChart,
   Area,
 } from "recharts";
@@ -24,8 +20,6 @@ import {
   Download,
   RefreshCw,
   BarChart3,
-  ChevronLeft,
-  ChevronRight,
   Play,
 } from "lucide-react";
 import {
@@ -39,6 +33,7 @@ import {
   useRecordStatsMutation,
 } from "@/store/api/statsApi";
 import { StatCard } from "./ui";
+import { AlertModal } from "./ui";
 import { formatNumber } from "@/lib/utils";
 import {
   DailyStatsHistory,
@@ -170,9 +165,21 @@ function normYearly(rec: Record<string, unknown> | null | undefined) {
 }
 
 export function StatsSection() {
-  const [activeView, setActiveView] = useState<StatsView>("history");
-  const [historyType, setHistoryType] = useState<"daily" | "monthly" | "yearly">("daily");
-  const [historyDays, setHistoryDays] = useState(30);
+  const [activeView, setActiveView] = useState<StatsView>(() => {
+    if (typeof window === "undefined") return "history";
+    const saved = localStorage.getItem("admin:stats:activeView");
+    return (saved as StatsView) || "history";
+  });
+  const [historyType, setHistoryType] = useState<"daily" | "monthly" | "yearly">(() => {
+    if (typeof window === "undefined") return "daily";
+    const saved = localStorage.getItem("admin:stats:historyType");
+    return (saved as "daily" | "monthly" | "yearly") || "daily";
+  });
+  const [historyDays, setHistoryDays] = useState(() => {
+    if (typeof window === "undefined") return 30;
+    const saved = Number(localStorage.getItem("admin:stats:historyDays"));
+    return Number.isFinite(saved) && saved > 0 ? saved : 30;
+  });
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
@@ -184,6 +191,24 @@ export function StatsSection() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [recentDays, setRecentDays] = useState(30);
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error";
+  }>({ isOpen: false, title: "", message: "", type: "success" });
+
+  useEffect(() => {
+    localStorage.setItem("admin:stats:activeView", activeView);
+  }, [activeView]);
+
+  useEffect(() => {
+    localStorage.setItem("admin:stats:historyType", historyType);
+  }, [historyType]);
+
+  useEffect(() => {
+    localStorage.setItem("admin:stats:historyDays", String(historyDays));
+  }, [historyDays]);
 
   // Queries
   const { data: historyData, isLoading: isHistoryLoading } = useGetStatsHistoryQuery(
@@ -198,7 +223,13 @@ export function StatsSection() {
 
   const { data: rangeData, isLoading: isRangeLoading } = useGetStatsRangeQuery(
     { start: dateRange.start, end: dateRange.end },
-    { skip: activeView !== "range" || !dateRange.start || !dateRange.end }
+    {
+      skip:
+        activeView !== "range" ||
+        !dateRange.start ||
+        !dateRange.end ||
+        dateRange.start > dateRange.end,
+    }
   );
 
   const { data: monthlyData, isLoading: isMonthlyLoading } = useGetMonthlyStatsQuery(
@@ -277,9 +308,19 @@ export function StatsSection() {
   const handleRecordStats = async () => {
     try {
       await recordStats().unwrap();
-      alert("Статистика успешно записана!");
-    } catch (error) {
-      alert("Ошибка при записи статистики");
+      setAlertModal({
+        isOpen: true,
+        title: "Успешно",
+        message: "Статистика успешно записана",
+        type: "success",
+      });
+    } catch {
+      setAlertModal({
+        isOpen: true,
+        title: "Ошибка",
+        message: "Не удалось записать статистику",
+        type: "error",
+      });
     }
   };
 
@@ -320,9 +361,29 @@ export function StatsSection() {
 
   const isLoading = isHistoryLoading || isDailyLoading || isRangeLoading || 
                     isMonthlyLoading || isYearlyLoading || isRecentLoading;
+  const hasExportableData =
+    (activeView === "history" && historyArray.length > 0) ||
+    (activeView === "daily" && Boolean(dailyRecord)) ||
+    (activeView === "range" && rangeArray.length > 0) ||
+    (activeView === "monthly" && Boolean(monthlyRecord)) ||
+    (activeView === "yearly" && Boolean(yearlyRecord)) ||
+    (activeView === "recent" && recentArray.length > 0);
+  const isInvalidRange =
+    activeView === "range" &&
+    Boolean(dateRange.start) &&
+    Boolean(dateRange.end) &&
+    dateRange.start > dateRange.end;
 
   return (
     <div className="space-y-6">
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal(prev => ({ ...prev, isOpen: false }))}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -340,6 +401,7 @@ export function StatsSection() {
           </button>
           <button
             onClick={exportData}
+            disabled={!hasExportableData}
             className="admin-btn admin-btn-primary flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
@@ -398,7 +460,9 @@ export function StatsSection() {
                 <input
                   type="number"
                   value={historyDays}
-                  onChange={(e) => setHistoryDays(Number(e.target.value))}
+                  onChange={(e) =>
+                    setHistoryDays(Math.min(365, Math.max(1, Number(e.target.value) || 1)))
+                  }
                   min={1}
                   max={365}
                   className="admin-input w-20"
@@ -542,13 +606,20 @@ export function StatsSection() {
             <input
               type="number"
               value={recentDays}
-              onChange={(e) => setRecentDays(Number(e.target.value))}
+                  onChange={(e) =>
+                    setRecentDays(Math.min(365, Math.max(1, Number(e.target.value) || 1)))
+                  }
               min={1}
               max={365}
               className="admin-input w-20"
             />
           </div>
         )}
+            {isInvalidRange && (
+              <div className="text-sm text-[var(--destructive)]">
+                Дата начала не может быть позже даты окончания
+              </div>
+            )}
       </div>
 
       {/* Content */}

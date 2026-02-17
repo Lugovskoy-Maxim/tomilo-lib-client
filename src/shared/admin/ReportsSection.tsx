@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useGetReportsQuery,
   useUpdateReportStatusMutation,
@@ -8,7 +8,7 @@ import {
 } from "@/store/api/reportsApi";
 import { Report, ReportType } from "@/types/report";
 import Button from "@/shared/ui/button";
-import { AlertTriangle, CheckCircle, XCircle, Trash2, ExternalLink } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { ReportEntityInfo } from "./ReportEntityInfo";
 
@@ -37,9 +37,22 @@ export function ReportsSection() {
     isResolved: isResolvedFilter || undefined,
   });
 
-  const [updateReportStatus] = useUpdateReportStatusMutation();
-  const [deleteReport] = useDeleteReportMutation();
+  const [updateReportStatus, { isLoading: isStatusUpdating }] = useUpdateReportStatusMutation();
+  const [deleteReport, { isLoading: isDeleting }] = useDeleteReportMutation();
   const toast = useToast();
+
+  useEffect(() => {
+    setPage(1);
+  }, [reportTypeFilter, isResolvedFilter]);
+
+  const getErrorMessage = (err: unknown) => {
+    if (typeof err === "string") return err;
+    if (err && typeof err === "object") {
+      const maybe = err as { data?: { message?: string }; message?: string };
+      return maybe.data?.message || maybe.message || "Неизвестная ошибка";
+    }
+    return "Неизвестная ошибка";
+  };
 
   const handleStatusChange = async (id: string, isResolved: boolean) => {
     try {
@@ -47,17 +60,18 @@ export function ReportsSection() {
       toast.success(`Жалоба ${isResolved ? "закрыта" : "открыта"} успешно`);
       refetch();
     } catch (error) {
-      toast.error(`Не удалось обновить статус жалобы, ${error}`);
+      toast.error(`Не удалось обновить статус жалобы: ${getErrorMessage(error)}`);
     }
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Удалить жалобу? Это действие нельзя отменить.")) return;
     try {
       await deleteReport(id).unwrap();
       toast.success("Жалоба удалена успешно");
       refetch();
     } catch (error) {
-      toast.error(`Не удалось удалить жалобу, ${error}`);
+      toast.error(`Не удалось удалить жалобу: ${getErrorMessage(error)}`);
     }
   };
 
@@ -100,8 +114,8 @@ export function ReportsSection() {
           className="admin-input w-full"
         >
           <option value="">Все статусы</option>
-          <option value="true">Решенные</option>
           <option value="false">Нерешенные</option>
+          <option value="true">Решенные</option>
         </select>
 
         <Button onClick={refetch} variant="outline" size="sm" className="whitespace-nowrap">
@@ -198,6 +212,7 @@ export function ReportsSection() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => handleStatusChange(report._id, !report.isResolved)}
+                        disabled={isStatusUpdating}
                         className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
                         title={report.isResolved ? "Открыть" : "Закрыть"}
                       >
@@ -209,6 +224,7 @@ export function ReportsSection() {
                       </button>
                       <button
                         onClick={() => handleDelete(report._id)}
+                        disabled={isDeleting}
                         className="p-2 text-[var(--destructive)] hover:bg-[var(--destructive)]/10 rounded-[var(--admin-radius)] transition-colors"
                         title="Удалить"
                       >

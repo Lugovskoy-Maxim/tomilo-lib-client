@@ -10,6 +10,8 @@ export { default as NotificationButton } from "./notification-button/Notificatio
 
 // Cards
 export { default as CarouselCard } from "./popular-card/PopularCard";
+export { default as TrendingCard } from "./trending-card/TrendingCard";
+export { default as UnderratedCard } from "./underrated-card/UnderratedCard";
 export { default as ReadingCard } from "./reading-card/ReadingCard";
 export { default as CollectionCard } from "./collection-card/CollectionCard";
 export { default as LastUpdates } from "./last-updates/LastUpdates";

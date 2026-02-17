@@ -158,7 +158,8 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   // Сброс страницы при изменении поиска или фильтра
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+    setSelectedIds([]);
+  }, [searchTerm, statusFilter, sortField, sortDirection, viewMode]);
 
   // Filter and sort titles
   const filteredTitles = useMemo(() => {

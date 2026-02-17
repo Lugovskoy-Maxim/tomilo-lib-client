@@ -44,6 +44,41 @@ export const useHomeData = (): {
     loading: boolean;
     error: unknown;
   };
+  trendingTitles: {
+    data: {
+      id: string;
+      slug?: string;
+      title: string;
+      image: string;
+      description: string;
+      views: number;
+      weekViews?: number;
+      type: string;
+      year: number;
+      rating: number;
+      genres: string[];
+      isAdult: boolean;
+    }[];
+    loading: boolean;
+    error: unknown;
+  };
+  underratedTitles: {
+    data: {
+      id: string;
+      slug?: string;
+      title: string;
+      image: string;
+      description: string;
+      views: number;
+      type: string;
+      year: number;
+      rating: number;
+      genres: string[];
+      isAdult: boolean;
+    }[];
+    loading: boolean;
+    error: unknown;
+  };
   readingProgress: {
     data: {
       id: string;
@@ -141,6 +176,34 @@ export const useHomeData = (): {
     error: randomTitlesError,
   } = useGetRandomTitlesQuery({ limit: 10 }, popularCacheOptions);
 
+  const {
+    data: trendingTitlesData,
+    isLoading: trendingTitlesLoading,
+    error: trendingTitlesError,
+  } = useSearchTitlesQuery(
+    {
+      search: "",
+      sortBy: "weekViews",
+      sortOrder: "desc",
+      limit: 20,
+    },
+    popularCacheOptions,
+  );
+
+  const {
+    data: underratedCandidatesData,
+    isLoading: underratedTitlesLoading,
+    error: underratedTitlesError,
+  } = useSearchTitlesQuery(
+    {
+      search: "",
+      sortBy: "averageRating",
+      sortOrder: "desc",
+      limit: 80,
+    },
+    popularCacheOptions,
+  );
+
   // Параллельная загрузка топ тайтлов для оптимизации производительности
   const topQueries = [
     useSearchTitlesQuery(
@@ -220,6 +283,60 @@ export const useHomeData = (): {
       genres: [], // Жанры не возвращаются для случайных тайтлов
       isAdult: item.isAdult ?? false,
     })) || [];
+
+  // Преобразование трендовых тайтлов (рост за неделю)
+  const trendingTitles =
+    trendingTitlesData?.data?.data?.map(item => ({
+      id: item._id,
+      slug: (item as any).slug,
+      title: item.name,
+      image: item.coverImage || "",
+      description: item.description,
+      views: item.views || 0,
+      weekViews: (item as any).weekViews ?? 0,
+      type: item.type || "Неуказан",
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.averageRating || item.rating || 0,
+      genres: normalizeGenres(item.genres || []),
+      isAdult: item.isAdult ?? false,
+    })) || [];
+
+  // Преобразование кандидатов для блока "Недооцененные"
+  const underratedCandidates =
+    underratedCandidatesData?.data?.data?.map(item => ({
+      id: item._id,
+      slug: (item as any).slug,
+      title: item.name,
+      image: item.coverImage || "",
+      description: item.description,
+      views: item.views || 0,
+      type: item.type || "Неуказан",
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.averageRating || item.rating || 0,
+      genres: normalizeGenres(item.genres || []),
+      isAdult: item.isAdult ?? false,
+    })) || [];
+
+  // Недооценённые: высокий рейтинг + нижний сегмент по просмотрам
+  const viewsDistribution = underratedCandidates
+    .map(item => item.views)
+    .sort((a, b) => a - b);
+  const lowViewsThreshold =
+    viewsDistribution.length > 0
+      ? viewsDistribution[Math.floor(viewsDistribution.length * 0.35)]
+      : 0;
+
+  const underratedFiltered = underratedCandidates
+    .filter(item => item.rating >= 7.5 && item.views <= lowViewsThreshold)
+    .slice(0, 20);
+
+  const underratedTitles =
+    underratedFiltered.length > 0
+      ? underratedFiltered
+      : underratedCandidates
+          .filter(item => item.rating >= 7)
+          .sort((a, b) => a.views - b.views)
+          .slice(0, 20);
 
   // Преобразование топ тайтлов Маньхуа
   const topManhua =
@@ -337,6 +454,16 @@ export const useHomeData = (): {
       data: randomTitles,
       loading: randomTitlesLoading,
       error: randomTitlesError,
+    },
+    trendingTitles: {
+      data: trendingTitles,
+      loading: trendingTitlesLoading,
+      error: trendingTitlesError,
+    },
+    underratedTitles: {
+      data: underratedTitles,
+      loading: underratedTitlesLoading,
+      error: underratedTitlesError,
     },
     readingProgress: {
       data: readingProgress,
