@@ -136,7 +136,7 @@ export default function Footer() {
               >
                 Сайт разработан: @TomiloDev
               </Link>
-              <span className="footer-version">Версия 13022026</span>
+              <span className="footer-version">Версия 17022026</span>
             </div>
           </div>
         </div>
