@@ -143,8 +143,6 @@ export default function RootLayout({
                 {children}
               </div>
               <TelegramJoinNotification />
-              {/* Стабильный контейнер для порталов (модалки, меню) — избегаем removeChild при клиентской навигации */}
-              <div id="portal-root" />
               {/* Обработчик сообщений от окна авторизации (Яндекс, VK) */}
               <script
                 dangerouslySetInnerHTML={{

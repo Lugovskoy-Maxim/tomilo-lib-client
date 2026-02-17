@@ -17,7 +17,6 @@ const ANIMATION_OUT_MS = 200;
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   const pathname = usePathname();
   const modalRef = useModal(isOpen, onClose);
-  const [portalReady, setPortalReady] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
   const [isClosing, setIsClosing] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -31,21 +30,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   useEffect(() => {
     if (!isOpen) {
-      setPortalReady(false);
       setIsVisible(false);
       setIsClosing(false);
       return;
     }
-    const t = requestAnimationFrame(() => setPortalReady(true));
-    return () => cancelAnimationFrame(t);
+    const id = requestAnimationFrame(() => setIsVisible(true));
+    return () => cancelAnimationFrame(id);
   }, [isOpen]);
-
-  useEffect(() => {
-    if (portalReady && isOpen) {
-      const id = requestAnimationFrame(() => setIsVisible(true));
-      return () => cancelAnimationFrame(id);
-    }
-  }, [portalReady, isOpen]);
 
   const handleClose = useCallback(() => {
     if (isClosing) return;
@@ -61,8 +52,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     return () => clearTimeout(t);
   }, [isVisible, onClose, isClosing]);
 
-  if (!isOpen || typeof document === "undefined") return null;
-  if (!portalReady) return null;
+  if (!isOpen) return null;
 
   const backdropClass = [
     "fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-2 min-[360px]:p-4 overflow-y-auto",
