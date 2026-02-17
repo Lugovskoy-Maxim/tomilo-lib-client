@@ -14,6 +14,9 @@ export interface Report {
   _id: string;
   reportType: ReportType;
   content: string;
+  response?: string | null;
+  reply?: string | null;
+  adminResponse?: string | null;
   entityId: string;
   entityType: "title" | "chapter";
   url: string | null;
@@ -39,6 +42,7 @@ export interface CreateReportDto {
 
 export interface UpdateReportStatusDto {
   isResolved: boolean;
+  response?: string;
 }
 
 export interface ReportsResponse {

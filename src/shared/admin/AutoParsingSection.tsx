@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -25,6 +25,7 @@ import {
   CheckCircle,
   X,
   GripVertical,
+  Search,
 } from "lucide-react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -59,10 +60,15 @@ const getValidScheduleHour = (value: unknown): number | null => {
 };
 
 export default function AutoParsingSection() {
-  const [viewMode, setViewMode] = useState<"hourly" | "default">("hourly");
+  const [viewMode, setViewMode] = useState<"hourly" | "default">(() => {
+    if (typeof window === "undefined") return "hourly";
+    return (localStorage.getItem("admin:autoParsing:viewMode") as "hourly" | "default") || "hourly";
+  });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<AutoParsingJob | null>(null);
   const [titleSearch, setTitleSearch] = useState("");
+  const [jobSearch, setJobSearch] = useState("");
+  const [onlyEnabled, setOnlyEnabled] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<{ title: string; message: string } | null>(null);
   const [activeJob, setActiveJob] = useState<AutoParsingJob | null>(null);
@@ -83,6 +89,35 @@ export default function AutoParsingSection() {
   const searchResults: Title[] = searchResultsResponse?.data?.data || [];
 
   const jobs = useMemo(() => jobsResponse || [], [jobsResponse]);
+  const enabledJobsCount = useMemo(() => jobs.filter(job => job.enabled).length, [jobs]);
+  const disabledJobsCount = jobs.length - enabledJobsCount;
+  const scheduledJobsCount = useMemo(
+    () => jobs.filter(job => getValidScheduleHour(job.scheduleHour) !== null).length,
+    [jobs],
+  );
+
+  const filteredDefaultJobs = useMemo(() => {
+    const query = jobSearch.trim().toLowerCase();
+    return jobs.filter(job => {
+      if (onlyEnabled && !job.enabled) return false;
+      if (!query) return true;
+      const haystack = [
+        job.titleId?.name,
+        job.titleId?.author,
+        job.titleId?._id,
+        job._id,
+        ...(job.sources || []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [jobSearch, jobs, onlyEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem("admin:autoParsing:viewMode", viewMode);
+  }, [viewMode]);
 
   const handleCreateJob = async (data: CreateAutoParsingJobDto) => {
     try {
@@ -295,6 +330,13 @@ export default function AutoParsingSection() {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <KpiCard label="Всего задач" value={jobs.length} />
+        <KpiCard label="Активные" value={enabledJobsCount} />
+        <KpiCard label="Отключенные" value={disabledJobsCount} />
+        <KpiCard label="С фикс. часом" value={scheduledJobsCount} />
+      </div>
+
       {/* Schedule by hour (UTC) — drag & drop */}
       <DndContext
         sensors={sensors}
@@ -384,18 +426,39 @@ export default function AutoParsingSection() {
         {/* Jobs List */}
         {viewMode === "default" && (
           <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
+          <div className="mb-4 flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+              <input
+                type="text"
+                value={jobSearch}
+                onChange={e => setJobSearch(e.target.value)}
+                placeholder="Поиск по тайтлу, id или источнику..."
+                className="admin-input w-full pl-9"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setOnlyEnabled(prev => !prev)}
+              className={`admin-btn ${onlyEnabled ? "admin-btn-primary" : "admin-btn-secondary"}`}
+            >
+              Только активные
+            </button>
+          </div>
           {jobsLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
           </div>
-        ) : jobs.length === 0 ? (
+        ) : filteredDefaultJobs.length === 0 ? (
           <div className="text-center py-8">
             <Clock className="w-12 h-12 text-[var(--muted-foreground)] mx-auto mb-4" />
-            <p className="text-[var(--muted-foreground)]">Нет задач автоматического парсинга</p>
+            <p className="text-[var(--muted-foreground)]">
+              {jobs.length === 0 ? "Нет задач автоматического парсинга" : "Ничего не найдено по фильтрам"}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {jobs.map((job: AutoParsingJob) => (
+            {filteredDefaultJobs.map((job: AutoParsingJob) => (
               <div
                 key={job._id}
                 className="border border-[var(--border)] flex flex-col rounded-[var(--admin-radius)] p-2 hover:border-[var(--primary)] transition-colors overflow-hidden"
@@ -530,6 +593,15 @@ export default function AutoParsingSection() {
           onSelectTitle={selectTitle}
         />
       )}
+    </div>
+  );
+}
+
+function KpiCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2.5">
+      <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">{value}</p>
     </div>
   );
 }

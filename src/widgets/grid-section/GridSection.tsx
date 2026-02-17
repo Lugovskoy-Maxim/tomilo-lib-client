@@ -76,11 +76,11 @@ export default function GridSection<T>({
           <div className="flex items-center gap-2 mb-2">
             {icon && <div className="w-6 h-6 text-[var(--muted-foreground)]">{icon}</div>}
             {title && (
-              <h2 className="text-2xl font-bold text-[var(--muted-foreground)]">{title}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[var(--muted-foreground)]">{title}</h2>
             )}
           </div>
 
-          <div className="flex justify-between items-center w-full">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 w-full">
             <p className="text-[var(--muted-foreground)] text-sm max-w-2xl">
               {renderDescription()}
             </p>
@@ -88,7 +88,7 @@ export default function GridSection<T>({
             {href && (
               <Link
                 href={href}
-                className="text-[var(--chart-1)] hover:underline flex items-center gap-1 whitespace-nowrap ml-4"
+                className="text-[var(--chart-1)] hover:underline flex items-center gap-1 whitespace-nowrap sm:ml-4 self-start sm:self-auto"
               >
                 {navigationIcon || <ExternalLink className="w-6 h-6" />}
               </Link>
@@ -101,7 +101,7 @@ export default function GridSection<T>({
       <div
         className={`${
           layout === "auto-fit"
-            ? "grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 max-w-5xl mx-auto"
+            ? "grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(260px,1fr))] lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3 sm:gap-4 mx-auto"
             : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
         }`}
       >

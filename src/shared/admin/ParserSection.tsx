@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 import {
   Loader2,
@@ -11,6 +11,7 @@ import {
   BookOpen,
   Settings,
   Globe,
+  Info,
 } from "lucide-react";
 import { useGetSupportedSitesQuery } from "@/store/api/mangaParserApi";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
@@ -73,6 +74,28 @@ export function ParserSection() {
   // Результаты парсинга
   const [chaptersInfo, setChaptersInfo] = useState<ChaptersInfoData | null>(null);
   const [isParsing, setIsParsing] = useState(false);
+  const modeHints = useMemo(
+    () => ({
+      chapters_info: "Показывает найденные главы без импорта в базу.",
+      title_import: "Создаёт тайтл и при необходимости импортирует указанные главы.",
+      chapter_import: "Импортирует главы в уже существующий тайтл по ID.",
+    }),
+    [],
+  );
+
+  const canStartParsing = useMemo(() => {
+    if (!isConnected || !url.trim() || isParsing) return false;
+    if (parsingMode === "chapter_import" && !titleId.trim()) return false;
+    return true;
+  }, [isConnected, isParsing, parsingMode, titleId, url]);
+
+  const startDisabledReason = useMemo(() => {
+    if (isParsing) return "Дождитесь завершения текущей задачи";
+    if (!isConnected) return "Нет соединения с сервером парсинга";
+    if (!url.trim()) return "Укажите URL источника";
+    if (parsingMode === "chapter_import" && !titleId.trim()) return "Укажите ID тайтла";
+    return "";
+  }, [isConnected, isParsing, parsingMode, titleId, url]);
 
   // Хук для обновления списка глав
   const { refetch: refetchChapters } = useGetChaptersByTitleQuery({ titleId }, { skip: !titleId });
@@ -189,6 +212,18 @@ export function ParserSection() {
     setTitleId(title._id);
   };
 
+  const handleResetForm = () => {
+    setUrl("");
+    setChapterNumbers("");
+    setCustomTitle("");
+    setCustomDescription("");
+    setCustomGenres("");
+    setCustomType("");
+    setTitleId("");
+    setCurrentProgress(null);
+    setChaptersInfo(null);
+  };
+
   return (
     <div className="space-y-6 p-2">
       {/* Supported Sites */}
@@ -210,6 +245,16 @@ export function ParserSection() {
           </div>
         </div>
       )}
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <InfoCard label="Статус соединения" value={isConnected ? "Подключено" : "Отключено"} />
+        <InfoCard label="Текущий режим" value={parsingMode.replace("_", " ")} />
+        <InfoCard label="Найдено глав" value={chaptersInfo?.totalChapters || 0} />
+        <InfoCard
+          label="Прогресс"
+          value={currentProgress?.progress ? `${currentProgress.progress.percentage}%` : "—"}
+        />
+      </div>
 
       {/* Result Modal */}
       {isModalOpen && modalContent && (
@@ -251,6 +296,9 @@ export function ParserSection() {
               </span>
             </div>
           </div>
+          <button type="button" onClick={handleResetForm} className="admin-btn admin-btn-secondary">
+            Сбросить форму
+          </button>
         </div>
 
         {/* Mode Selection */}
@@ -291,6 +339,10 @@ export function ParserSection() {
                 <div className="text-sm font-medium text-[var(--foreground)]">{mode.label}</div>
               </button>
             ))}
+          </div>
+          <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--background)]/60 px-3 py-2 text-sm text-[var(--muted-foreground)]">
+            <Info className="inline-block w-4 h-4 mr-1.5 -mt-0.5" />
+            {modeHints[parsingMode]}
           </div>
         </div>
 
@@ -512,7 +564,7 @@ export function ParserSection() {
         <div className="flex justify-end">
           <button
             onClick={handleStartParsing}
-            disabled={!isConnected || !url.trim() || isParsing}
+            disabled={!canStartParsing}
             className="admin-btn admin-btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isParsing ? (
@@ -528,7 +580,19 @@ export function ParserSection() {
             )}
           </button>
         </div>
+        {!canStartParsing && (
+          <p className="mt-2 text-right text-xs text-[var(--muted-foreground)]">{startDisabledReason}</p>
+        )}
       </div>
+    </div>
+  );
+}
+
+function InfoCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
+      <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
+      <p className="mt-1 text-base font-semibold text-[var(--foreground)]">{value}</p>
     </div>
   );
 }

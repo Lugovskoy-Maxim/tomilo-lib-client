@@ -4,6 +4,28 @@ import { UserProfile } from "@/types/user";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
+type HomepageSortBy = "level" | "lastActiveAt" | "lastActivityAt" | "createdAt";
+type HomepageSortOrder = "asc" | "desc";
+type HomepageVerification = "any" | "email" | "oauth";
+type HomepageFormat = "basic" | "extended";
+
+export interface HomepageActiveUser {
+  _id: string;
+  username: string;
+  avatar?: string;
+  role?: string;
+  level?: number;
+  emailVerified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  lastActiveAt?: string;
+  lastActivityAt?: string;
+  lastActiveDays?: number;
+  activityScore?: number;
+  reputationScore?: number;
+  bio?: string;
+}
+
 export const usersApi = createApi({
   reducerPath: "usersApi",
   baseQuery: fetchBaseQuery({
@@ -39,6 +61,32 @@ export const usersApi = createApi({
       }),
       providesTags: (result, error, id) => [{ type: "Users", id }],
     }),
+    getHomepageActiveUsers: builder.query<
+      ApiResponse<HomepageActiveUser[]> | ApiResponse<{ users: HomepageActiveUser[] }>,
+      {
+        limit?: number;
+        days?: number;
+        sortBy?: HomepageSortBy;
+        sortOrder?: HomepageSortOrder;
+        verification?: HomepageVerification;
+        requireAvatar?: boolean;
+        format?: HomepageFormat;
+      }
+    >({
+      query: ({
+        limit = 12,
+        days = 7,
+        sortBy = "level",
+        sortOrder = "desc",
+        verification = "any",
+        requireAvatar = true,
+        format = "extended",
+      }) => ({
+        url: "/users/homepage/active",
+        params: { limit, days, sortBy, sortOrder, verification, requireAvatar, format },
+      }),
+      providesTags: ["Users"],
+    }),
     deleteUser: builder.mutation<ApiResponse<void>, string>({
       query: userId => ({
         url: `/users/admin/${userId}`,
@@ -49,4 +97,9 @@ export const usersApi = createApi({
   }),
 });
 
-export const { useGetUsersQuery, useDeleteUserMutation, useGetUserByIdQuery } = usersApi;
+export const {
+  useGetUsersQuery,
+  useDeleteUserMutation,
+  useGetUserByIdQuery,
+  useGetHomepageActiveUsersQuery,
+} = usersApi;

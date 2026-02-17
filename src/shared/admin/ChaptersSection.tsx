@@ -18,6 +18,7 @@ import { useGetChaptersByTitleQuery, useDeleteChapterMutation } from "@/store/ap
 import Pagination from "@/shared/browse/pagination";
 import { getChapterPath } from "@/lib/title-paths";
 import { Chapter, Title } from "@/types/title";
+import { formatNumber } from "@/lib/utils";
 
 type ChapterSortField = "chapterNumber" | "title" | "status" | "views" | "pages" | "isPublished";
 type SortDirection = "asc" | "desc";
@@ -103,6 +104,14 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
 
   const chaptersWithoutPagesCount = useMemo(
     () => chapters.filter(ch => (ch.pages?.length ?? ch.images?.length ?? 0) === 0).length,
+    [chapters],
+  );
+  const publishedChaptersCount = useMemo(
+    () => chapters.filter(ch => ch.isPublished).length,
+    [chapters],
+  );
+  const totalViews = useMemo(
+    () => chapters.reduce((sum, ch) => sum + (ch.views || 0), 0),
     [chapters],
   );
 
@@ -322,6 +331,13 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
 
       {titleId && (
         <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <MetricCard label="Всего глав" value={chaptersResponse?.total || chapters.length} />
+            <MetricCard label="Опубликовано" value={publishedChaptersCount} />
+            <MetricCard label="Без страниц" value={chaptersWithoutPagesCount} />
+            <MetricCard label="Просмотры" value={formatNumber(totalViews)} />
+          </div>
+
           {/* Header with create button */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-semibold text-[var(--foreground)]">Главы тайтла</h2>
@@ -518,6 +534,15 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
+      <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">{value}</p>
     </div>
   );
 }

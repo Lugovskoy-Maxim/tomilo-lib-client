@@ -125,7 +125,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
     >
       <div className="relative flex bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft">
         {/* Image section — пропорциональные размеры */}
-        <div className="relative w-20 sm:w-24 h-28 sm:h-32 flex-shrink-0 overflow-hidden">
+        <div className="relative w-16 sm:w-20 md:w-24 h-24 sm:h-28 md:h-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
             <Image
               loader={() => `${imageUrl}`}
@@ -133,7 +133,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               alt={data.title}
               fill
               className={`object-cover card-media-hover ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
-              sizes="64px"
+              sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
               unoptimized
               onError={e => {
                 const target = e.target as HTMLImageElement;
@@ -156,21 +156,21 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
         </div>
 
         {/* Content section — единые отступы и шрифты */}
-        <div className="flex flex-col flex-1 p-3 justify-between min-w-0">
+        <div className="flex flex-col flex-1 p-2.5 sm:p-3 justify-between min-w-0">
           {/* Type and year */}
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-2 py-0.5 rounded-md font-medium">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 flex-wrap">
+            <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-1.5 sm:px-2 py-0.5 rounded-md font-medium">
               {getDisplayType()}
             </span>
-            <span className="text-[var(--muted-foreground)]">•</span>
-            <span className="text-xs text-[var(--muted-foreground)] font-medium">
+            <span className="text-[var(--muted-foreground)] text-xs">•</span>
+            <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] font-medium">
               {getDisplayYear()}
             </span>
           </div>
           
           {/* Title */}
           <h3
-            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 min-h-10 leading-5 group-hover:text-[var(--chart-1)] transition-colors duration-300 ${
+            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 min-h-9 sm:min-h-10 leading-5 group-hover:text-[var(--chart-1)] transition-colors duration-300 ${
               data.isAdult && !isAgeVerified ? "blur-sm" : ""
             }`}
           >
@@ -178,15 +178,15 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
           </h3>
 
           {/* Chapter info and time */}
-          <div className="flex items-end justify-between mt-2 gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="flex items-center gap-1.5 text-[var(--foreground)]">
-                <Sparkles className="w-3 h-3 text-[var(--chart-1)]" />
-                <span className="font-semibold text-sm truncate">{getDisplayChapter()}</span>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mt-2 gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <div className="flex items-center gap-1 text-[var(--foreground)] min-w-0">
+                <Sparkles className="w-3 h-3 text-[var(--chart-1)] flex-shrink-0" />
+                <span className="font-semibold text-xs sm:text-sm truncate">{getDisplayChapter()}</span>
               </div>
 
               {data.newChapters && data.newChapters > 0 && (
-                <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-2 py-0.5 rounded-md text-xs font-medium border border-[var(--chart-1)]/20 whitespace-nowrap">
+                <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-1.5 sm:px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-medium border border-[var(--chart-1)]/20 whitespace-nowrap">
                   <Plus className="w-3 h-3" />
                   <span>
                     {data.newChapters} {getChaptersText(data.newChapters)}
@@ -195,8 +195,8 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               )}
             </div>
 
-            <div className="flex items-center gap-1 text-[var(--muted-foreground)] text-xs">
-              <Clock className="w-3 h-3" />
+            <div className="flex items-center gap-1 text-[var(--muted-foreground)] text-[11px] sm:text-xs self-start sm:self-auto">
+              <Clock className="w-3 h-3 flex-shrink-0" />
               <span className="whitespace-nowrap">{getDisplayTime(data.timeAgo)}</span>
             </div>
           </div>

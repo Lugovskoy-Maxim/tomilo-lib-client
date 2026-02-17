@@ -1,18 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import Button from "@/shared/ui/button";
+import {
+  MessageSquare,
+  Search,
+  ThumbsDown,
+  ThumbsUp,
+  Trash2,
+  User,
+  CalendarClock,
+  ArrowUpDown,
+  LayoutList,
+  Grid3X3,
+  ExternalLink,
+} from "lucide-react";
 import Input from "@/shared/ui/input";
-import { Trash2, Search, ExternalLink } from "lucide-react";
+import Button from "@/shared/ui/button";
+import { useToast } from "@/hooks/useToast";
 import { useGetCommentsQuery, useDeleteCommentMutation } from "@/store/api/commentsApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { Comment, CommentEntityType } from "@/types/comment";
-import { Title } from "@/types/title";
 
-// Компонент для отображения ссылки на тайтл/главу
-function CommentTitleLink({ comment }: { comment: Comment }) {
+type CommentsViewMode = "cards" | "list";
+type SortMode = "newest" | "oldest" | "popular" | "controversial";
+
+function CommentEntityLink({ comment }: { comment: Comment }) {
   const { data: titleData } = useGetTitleByIdQuery(
     { id: comment.entityId },
     { skip: !comment.titleInfo && comment.entityType !== CommentEntityType.TITLE },
@@ -24,39 +37,31 @@ function CommentTitleLink({ comment }: { comment: Comment }) {
 
   if (comment.entityType === CommentEntityType.TITLE && (titleName || titleSlug || titleId)) {
     return (
-      <div className="flex items-center gap-2 text-sm">
-        <span className="text-[var(--muted-foreground)]">Тайтл:</span>
-        <Link
-          href={`/titles/${titleSlug || titleId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[var(--primary)] hover:underline flex items-center gap-1"
-        >
-          {titleName || "Перейти"}
-          <ExternalLink className="w-3 h-3" />
-        </Link>
-      </div>
+      <Link
+        href={`/titles/${titleSlug || titleId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline"
+      >
+        {titleName || "Открыть тайтл"}
+        <ExternalLink className="w-3 h-3" />
+      </Link>
     );
   }
 
   if (comment.entityType === CommentEntityType.CHAPTER) {
-    return (
-      <div className="flex items-center gap-2 text-sm">
-        <span className="text-[var(--muted-foreground)]">Глава:</span>
-        {titleName || titleSlug ? (
-          <Link
-            href={`/titles/${titleSlug || titleId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[var(--primary)] hover:underline flex items-center gap-1"
-          >
-            {titleName || "Перейти к тайтлу"}
-            <ExternalLink className="w-3 h-3" />
-          </Link>
-        ) : (
-          <span className="text-[var(--muted-foreground)]">ID: {titleId}</span>
-        )}
-      </div>
+    return titleName || titleSlug ? (
+      <Link
+        href={`/titles/${titleSlug || titleId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline"
+      >
+        {titleName || "Открыть тайтл"}
+        <ExternalLink className="w-3 h-3" />
+      </Link>
+    ) : (
+      <span className="text-[var(--muted-foreground)]">ID: {titleId}</span>
     );
   }
 
@@ -64,39 +69,77 @@ function CommentTitleLink({ comment }: { comment: Comment }) {
 }
 
 export function CommentsSection() {
+  const toast = useToast();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entityType, setEntityType] = useState<CommentEntityType | "all">("all");
+  const [viewMode, setViewMode] = useState<CommentsViewMode>("cards");
+  const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [limit, setLimit] = useState(20);
 
-  // Получаем все комментарии
   const { data, isLoading, isError, refetch } = useGetCommentsQuery({
     entityType: CommentEntityType.TITLE,
-    entityId: "all", // Заглушка, так как мы хотим получить все комментарии
+    entityId: "all",
     page: currentPage,
-    limit: 20,
+    limit,
     includeReplies: true,
   });
 
-  const [deleteComment] = useDeleteCommentMutation();
+  const [deleteComment, { isLoading: isDeleting }] = useDeleteCommentMutation();
+  const comments = useMemo(() => data?.data?.comments || [], [data]);
 
-  // Обработчик удаления комментария
+  const processedComments = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    const filtered = comments.filter(comment => {
+      const byType = entityType === "all" || comment.entityType === entityType;
+      if (!byType) return false;
+      if (!normalizedSearch) return true;
+
+      const author = typeof comment.userId === "string" ? "" : comment.userId.username;
+      const haystack = [comment.content, author, comment.entityId].join(" ").toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortMode === "newest") {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      if (sortMode === "oldest") {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      if (sortMode === "popular") {
+        return (b.likes || 0) - (a.likes || 0);
+      }
+      return (b.dislikes || 0) + (b.likes || 0) - ((a.dislikes || 0) + (a.likes || 0));
+    });
+
+    return sorted;
+  }, [comments, entityType, searchTerm, sortMode]);
+
+  const stats = useMemo(
+    () => ({
+      total: processedComments.length,
+      titleComments: processedComments.filter(c => c.entityType === CommentEntityType.TITLE).length,
+      chapterComments: processedComments.filter(c => c.entityType === CommentEntityType.CHAPTER).length,
+      hidden: processedComments.filter(c => !c.isVisible).length,
+    }),
+    [processedComments],
+  );
+
   const handleDeleteComment = async (id: string) => {
+    const confirmed = confirm("Удалить комментарий? Это действие нельзя отменить.");
+    if (!confirmed) return;
+
     try {
       await deleteComment(id).unwrap();
+      toast.success("Комментарий удален");
       refetch();
-    } catch (error) {
-      console.error("Ошибка при удалении комментария:", error);
+    } catch {
+      toast.error("Не удалось удалить комментарий");
     }
   };
-
-  // Фильтрация комментариев по поисковому запросу
-  const filteredComments =
-    data?.data?.comments.filter(
-      (comment: Comment) =>
-        comment.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (typeof comment.userId !== "string" &&
-          comment.userId.username.toLowerCase().includes(searchTerm.toLowerCase())),
-    ) || [];
 
   if (isLoading) {
     return <div className="text-center py-8">Загрузка комментариев...</div>;
@@ -107,14 +150,20 @@ export function CommentsSection() {
   }
 
   return (
-    <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4 sm:p-6">
-      {/* Фильтры */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+    <div className="space-y-4 rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatBox label="После фильтров" value={stats.total} />
+        <StatBox label="По тайтлам" value={stats.titleComments} />
+        <StatBox label="По главам" value={stats.chapterComments} />
+        <StatBox label="Скрытые" value={stats.hidden} />
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--muted-foreground)] w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] w-4 h-4" />
           <Input
             type="text"
-            placeholder="Поиск комментариев..."
+            placeholder="Поиск по тексту, автору или ID..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             icon={Search}
@@ -130,72 +179,184 @@ export function CommentsSection() {
           <option value={CommentEntityType.TITLE}>Тайтлы</option>
           <option value={CommentEntityType.CHAPTER}>Главы</option>
         </select>
+
+        <select
+          value={sortMode}
+          onChange={e => setSortMode(e.target.value as SortMode)}
+          className="admin-input"
+        >
+          <option value="newest">Сначала новые</option>
+          <option value="oldest">Сначала старые</option>
+          <option value="popular">По лайкам</option>
+          <option value="controversial">По активности</option>
+        </select>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={limit}
+            onChange={e => {
+              setLimit(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="admin-input"
+            title="Комментариев на страницу"
+          >
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <div className="flex items-center rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--secondary)] p-1">
+            <button
+              onClick={() => setViewMode("cards")}
+              className={`p-1.5 rounded ${viewMode === "cards" ? "bg-[var(--card)] text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`}
+              title="Карточки"
+            >
+              <Grid3X3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`p-1.5 rounded ${viewMode === "list" ? "bg-[var(--card)] text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`}
+              title="Список"
+            >
+              <LayoutList className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Список комментариев */}
-      <div className="space-y-4">
-        {filteredComments.length > 0 ? (
-          filteredComments.map((comment: Comment) => (
-            <div
+      {processedComments.length === 0 ? (
+        <div className="text-center py-10 text-[var(--muted-foreground)]">Комментарии не найдены</div>
+      ) : viewMode === "cards" ? (
+        <div className="grid gap-3">
+          {processedComments.map(comment => (
+            <article
               key={comment._id}
-              className="border border-[var(--border)] rounded-[var(--admin-radius)] p-4 bg-[var(--background)]"
+              className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-4"
             >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-medium text-[var(--foreground)]">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium text-[var(--foreground)] flex items-center gap-1.5">
+                    <User className="w-4 h-4 text-[var(--muted-foreground)]" />
                     {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
-                  </h3>
-                  <p className="text-sm text-[var(--muted-foreground)]">
-                    {new Date(comment.createdAt).toLocaleDateString()}
                   </p>
+                  <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">{comment._id}</p>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
+                  disabled={isDeleting}
                   onClick={() => handleDeleteComment(comment._id)}
                   className="text-red-500 hover:text-red-700"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
-              <p className="text-[var(--foreground)] mb-2">{comment.content}</p>
 
-              {/* Ссылка на тайтл/главу */}
-              <CommentTitleLink comment={comment} />
+              <p className="mt-3 text-sm text-[var(--foreground)] whitespace-pre-wrap">{comment.content}</p>
 
-              <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)] mt-2">
-                <span>Тип: {comment.entityType}</span>
-                <span>Лайки: {comment.likes}</span>
-                <span>Дизлайки: {comment.dislikes}</span>
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[var(--muted-foreground)]">
+                <span className="inline-flex items-center gap-1">
+                  <CalendarClock className="w-3.5 h-3.5" />
+                  {new Date(comment.createdAt).toLocaleString("ru-RU")}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <ThumbsUp className="w-3.5 h-3.5" /> {comment.likes}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <ThumbsDown className="w-3.5 h-3.5" /> {comment.dislikes}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  {comment.entityType}
+                </span>
               </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-center py-8 text-[var(--muted-foreground)]">
-            Комментарии не найдены
-          </div>
-        )}
-      </div>
 
-      {/* Пагинация */}
+              <div className="mt-2 text-xs text-[var(--muted-foreground)]">
+                <CommentEntityLink comment={comment} />
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+          <table className="w-full text-sm">
+            <thead className="bg-[var(--secondary)]/60">
+              <tr>
+                <th className="px-3 py-2 text-left">Пользователь</th>
+                <th className="px-3 py-2 text-left">Комментарий</th>
+                <th className="px-3 py-2 text-left">
+                  <span className="inline-flex items-center gap-1">
+                    <ArrowUpDown className="w-3.5 h-3.5" />
+                    Тип
+                  </span>
+                </th>
+                <th className="px-3 py-2 text-left">Дата</th>
+                <th className="px-3 py-2 text-right">Действия</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border)]">
+              {processedComments.map(comment => (
+                <tr key={comment._id} className="hover:bg-[var(--accent)]/30">
+                  <td className="px-3 py-2">
+                    {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
+                  </td>
+                  <td className="px-3 py-2 max-w-[420px] truncate">{comment.content}</td>
+                  <td className="px-3 py-2">{comment.entityType}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {new Date(comment.createdAt).toLocaleDateString("ru-RU")}
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={isDeleting}
+                      onClick={() => handleDeleteComment(comment._id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {data?.data && data.data.totalPages > 1 && (
-        <div className="flex justify-center mt-6">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Страница {data.data.page} из {data.data.totalPages} • Всего: {data.data.total}
+          </p>
           <div className="flex gap-2">
-            {Array.from({ length: data.data.totalPages }, (_, i) => i + 1).map(page => (
-              <Button
-                key={page}
-                variant={currentPage === page ? "primary" : "outline"}
-                onClick={() => setCurrentPage(page)}
-                className={
-                  currentPage === page ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : ""
-                }
-              >
-                {page}
-              </Button>
-            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              Назад
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(data.data.totalPages, prev + 1))}
+              disabled={currentPage >= data.data.totalPages}
+            >
+              Вперед
+            </Button>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function StatBox({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/60 px-3 py-2">
+      <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">{value}</p>
     </div>
   );
 }
