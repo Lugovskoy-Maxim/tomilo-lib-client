@@ -8,6 +8,7 @@
     "build-no-lint": "next build --no-lint",
     "start": "next start",
     "lint": "eslint",
+    "bot:chapters": "node scripts/telegram-chapters-bot.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "format:diff": "prettier --check . --diff"

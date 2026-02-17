@@ -123,6 +123,64 @@ npm start
 npm run lint
 ```
 
+## 🤖 Telegram бот новых глав
+
+Готовый шаблон находится в `scripts/telegram-chapters-bot.mjs`.
+
+### 1) Подключите бота к существующему каналу
+
+1. Создайте бота в `@BotFather` и получите токен.
+2. Добавьте бота администратором в канал.
+3. Выдайте право на публикацию сообщений.
+4. Используйте `@channel_username` или `-100...` как `TELEGRAM_CHANNEL_ID`.
+
+### 2) Настройте переменные окружения
+
+Скопируйте значения из `.env.example` в `.env`:
+
+```env
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHANNEL_ID=@your_channel
+CHAPTER_SOURCE_URL=https://example.com/chapters.json
+CHAPTER_SOURCE_TYPE=json
+CHAPTER_JSON_ITEMS_PATH=data.items
+CHAPTER_JSON_ID_KEY=id
+CHAPTER_JSON_TITLE_KEY=title
+CHAPTER_JSON_URL_KEY=url
+CHAPTER_JSON_DATE_KEY=publishedAt
+```
+
+Для RSS:
+
+```env
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHANNEL_ID=@your_channel
+CHAPTER_SOURCE_URL=https://example.com/rss.xml
+CHAPTER_SOURCE_TYPE=rss
+```
+
+### 3) Запустите бота
+
+Однократная проверка:
+
+```bash
+npm run bot:chapters
+```
+
+Постоянный polling:
+
+```env
+CHAPTER_POLL_INTERVAL_SECONDS=300
+```
+
+После этого:
+
+```bash
+npm run bot:chapters
+```
+
+Бот хранит уже отправленные главы в `.cache/telegram-chapters-sent.json` и не отправляет дубликаты.
+
 ## 📖 Использование
 
 ### Для пользователей
