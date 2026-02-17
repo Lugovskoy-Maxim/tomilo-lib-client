@@ -55,7 +55,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   const backdropClass = [
-    "fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-2 min-[360px]:p-4 overflow-y-auto",
+    "fixed inset-0 z-layer-modal flex items-start sm:items-center justify-center p-2 min-[360px]:p-4 overflow-y-auto",
     "bg-black/55 backdrop-blur-md modal-backdrop",
     isClosing && "modal-closing",
   ]

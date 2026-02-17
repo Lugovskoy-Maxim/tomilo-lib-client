@@ -170,7 +170,7 @@ export default function ProfileStats({ userProfile }: ProfileStatsProps) {
       {/* Rank Modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-[var(--background)]/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-[var(--background)]/80 backdrop-blur-sm flex items-center justify-center z-layer-modal p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setIsModalOpen(false);

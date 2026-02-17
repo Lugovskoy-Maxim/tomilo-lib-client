@@ -137,7 +137,7 @@ export default function Header() {
   return (
     <>
       <header
-        className={`relative w-full header-glass h-[var(--header-height)] z-50 transition-all duration-300 ${
+        className={`relative w-full header-glass h-[var(--header-height)] transition-all duration-300 ${
           isScrolled ? "header-scrolled" : ""
         }`}
       >
@@ -255,12 +255,12 @@ export default function Header() {
         <>
           <div
             data-header-portal
-            className={`lg:hidden fixed inset-0 z-[9998] mobile-menu-backdrop ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
+            className={`lg:hidden fixed inset-0 z-layer-sheet-backdrop mobile-menu-backdrop ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
             onClick={closeMobileMenu}
             aria-hidden
           />
           <div
-            className={`lg:hidden fixed left-0 top-0 bottom-0 z-[9999] bg-[var(--background)] mobile-menu-panel ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
+            className={`lg:hidden fixed left-0 top-0 bottom-0 z-layer-sheet bg-[var(--background)] mobile-menu-panel ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-label="Меню"

@@ -151,7 +151,7 @@ export function BookmarkButton({
           {categoryOpen && !isLoading && (
             <div
               ref={dropdownRef}
-              className="absolute left-0 top-full mt-1 z-[100] py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
+              className="absolute left-0 top-full mt-1 z-layer-dropdown py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
             >
               <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
                 Добавить в категорию

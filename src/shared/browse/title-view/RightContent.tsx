@@ -680,7 +680,7 @@ export function RightContent({
                 {isRatingOpen && (
                   <>
                     {/* Мобильная версия - модальное окно по центру экрана */}
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 sm:hidden p-4">
+                    <div className="fixed inset-0 z-layer-modal flex items-center justify-center bg-black/50 sm:hidden p-4">
                       <div className="bg-[var(--background)] rounded-xl p-4 shadow-xl border border-[var(--border)]/50 w-72 max-w-full animate-in fade-in zoom-in duration-200">
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-sm font-semibold text-[var(--foreground)]">Выберите оценку</span>

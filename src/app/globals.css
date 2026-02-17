@@ -36,6 +36,12 @@
   --sidebar-ring: oklch(0.708 0 0);
   --header-height: 65px;
   --footer-height: 220px;
+  /* Z-index scale (single source of truth for overlays) */
+  --z-dropdown: 50;
+  --z-sheet-backdrop: 300;
+  --z-sheet: 310;
+  --z-modal: 1000;
+  --z-toast: 1100;
   /* Высота фиксированной нижней панели на мобильных (чтобы контент не перекрывался) */
   --mobile-footer-bar-height: calc(5.5rem + env(safe-area-inset-bottom, 0px));
   /* Карточки главной страницы — единая система */
@@ -94,6 +100,27 @@ body {
   color: var(--muted-foreground);
   font-family: var(--font-exo_2), Arial, Helvetica, sans-serif;
   font-size: 14px;
+}
+
+/* Layer helpers (keep component classes simple) */
+.z-layer-dropdown {
+  z-index: var(--z-dropdown);
+}
+
+.z-layer-sheet-backdrop {
+  z-index: var(--z-sheet-backdrop);
+}
+
+.z-layer-sheet {
+  z-index: var(--z-sheet);
+}
+
+.z-layer-modal {
+  z-index: var(--z-modal);
+}
+
+.z-layer-toast {
+  z-index: var(--z-toast);
 }
 
 /* Фон на главной — абстракции (линии, дуги, круги) */
@@ -1358,7 +1385,7 @@ textarea.admin-input {
 .footer-more-overlay {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: var(--z-sheet-backdrop);
   background: rgba(0, 0, 0, 0);
   backdrop-filter: none;
   pointer-events: none;
@@ -1376,7 +1403,7 @@ textarea.admin-input {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 61;
+  z-index: var(--z-sheet);
   max-height: 70vh;
   border-radius: 1.25rem 1.25rem 0 0;
   background: var(--card);
