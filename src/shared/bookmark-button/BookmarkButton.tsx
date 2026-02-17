@@ -102,7 +102,10 @@ export function BookmarkButton({
   const displayFill = displayIsBookmarked ? "currentColor" : "none";
 
   return (
-    <div ref={dropdownRef} className="relative inline-flex">
+    <div
+      ref={dropdownRef}
+      className={`relative inline-flex ${categoryOpen ? "z-layer-sheet" : ""}`}
+    >
       {displayIsBookmarked ? (
         <button
           onClick={handleRemoveBookmark}
@@ -151,7 +154,7 @@ export function BookmarkButton({
           {categoryOpen && !isLoading && (
             <div
               ref={dropdownRef}
-              className="absolute left-0 top-full mt-1 z-layer-dropdown py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
+              className="absolute left-0 top-full mt-1 z-layer-sheet py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
             >
               <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
                 Добавить в категорию

@@ -109,7 +109,9 @@ export default function BookmarkGridCard({
   return (
     <Link
       href={href}
-      className="group relative flex flex-col rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] card-hover-soft block"
+      className={`group relative flex flex-col rounded-xl overflow-visible bg-[var(--card)] border border-[var(--border)] card-hover-soft block ${
+        categoryOpen ? "z-layer-dropdown" : ""
+      }`}
     >
       {/* Обложка */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-[var(--secondary)]">

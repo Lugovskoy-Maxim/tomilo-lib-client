@@ -1,12 +1,9 @@
 "use client";
-import { NotificationButton, UserDropdown, ThemeToggle, LoginModal, RegisterModal } from "@/shared";
+import { NotificationButton, UserDropdown, ThemeToggle } from "@/shared";
 import { UserAvatar } from "@/shared";
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-
-import { ApiResponseDto } from "@/types/api";
-import { AuthResponse } from "@/types/auth";
 
 interface UserDropdownUser {
   id?: string;
@@ -25,14 +22,16 @@ interface UserDropdownUser {
   };
 }
 
-export default function UserBar() {
+interface UserBarProps {
+  onOpenLogin: () => void;
+}
+
+export default function UserBar({ onOpenLogin }: UserBarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { user, isAuthenticated, login, logout, isLoading } = useAuth();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
 
   useEffect(() => {
     setIsMounted(true);
@@ -51,35 +50,6 @@ export default function UserBar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const handleLoginModalOpen = () => {
-    setLoginModalOpen(true);
-  };
-
-  const handleLoginModalClose = () => {
-    setLoginModalOpen(false);
-  };
-
-  const handleRegisterModalClose = () => {
-    setRegisterModalOpen(false);
-  };
-
-  const handleSwitchToRegister = () => {
-    setLoginModalOpen(false);
-    setRegisterModalOpen(true);
-  };
-
-  const handleSwitchToLogin = () => {
-    setRegisterModalOpen(false);
-    setLoginModalOpen(true);
-  };
-
-  // Обработка успешной авторизации
-  const handleAuthSuccess = (authResponse: ApiResponseDto<AuthResponse>) => {
-    login(authResponse);
-    setLoginModalOpen(false);
-    setRegisterModalOpen(false);
-  };
 
   const handleLogout = () => {
     logout();
@@ -128,7 +98,7 @@ export default function UserBar() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handleLoginModalOpen}
+              onClick={onOpenLogin}
               className="flex items-center justify-center min-h-[40px] px-2.5 sm:px-4 text-xs sm:text-sm font-medium 
                        bg-[var(--primary)] text-[var(--primary-foreground)] 
                        rounded-lg hover:bg-[var(--primary)]/90 
@@ -164,19 +134,6 @@ export default function UserBar() {
         )}
       </div>
 
-      <LoginModal
-        isOpen={loginModalOpen}
-        onClose={handleLoginModalClose}
-        onSwitchToRegister={handleSwitchToRegister}
-        onAuthSuccess={handleAuthSuccess}
-      />
-
-      <RegisterModal
-        isOpen={registerModalOpen}
-        onClose={handleRegisterModalClose}
-        onSwitchToLogin={handleSwitchToLogin}
-        onAuthSuccess={handleAuthSuccess}
-      />
     </>
   );
 }

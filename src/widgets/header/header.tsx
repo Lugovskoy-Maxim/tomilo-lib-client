@@ -1,8 +1,11 @@
 "use client";
-import { Logo, Search, ErrorBoundary } from "@/shared";
+import { Logo, Search, ErrorBoundary, LoginModal, RegisterModal } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { ApiResponseDto } from "@/types/api";
+import { AuthResponse } from "@/types/auth";
 import {
   X,
   Menu,
@@ -42,7 +45,10 @@ export default function Header() {
   const [isDesktop, setIsDesktop] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const mobileMenuCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { login } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -89,6 +95,22 @@ export default function Header() {
 
   const toggleSearch = () => setIsSearchOpen((v) => !v);
   const toggleDropdown = () => setIsDropdownOpen((v) => !v);
+  const handleLoginModalOpen = () => setLoginModalOpen(true);
+  const handleLoginModalClose = () => setLoginModalOpen(false);
+  const handleRegisterModalClose = () => setRegisterModalOpen(false);
+  const handleSwitchToRegister = () => {
+    setLoginModalOpen(false);
+    setRegisterModalOpen(true);
+  };
+  const handleSwitchToLogin = () => {
+    setRegisterModalOpen(false);
+    setLoginModalOpen(true);
+  };
+  const handleAuthSuccess = (authResponse: ApiResponseDto<AuthResponse>) => {
+    login(authResponse);
+    setLoginModalOpen(false);
+    setRegisterModalOpen(false);
+  };
 
   const closeMobileMenu = () => {
     if (!isMobileMenuOpen) return;
@@ -225,7 +247,7 @@ export default function Header() {
           </div>
 
           <div className="flex items-center header-user-bar">
-            <UserBar />
+            <UserBar onOpenLogin={handleLoginModalOpen} />
           </div>
         </div>
         </div>
@@ -440,6 +462,20 @@ export default function Header() {
           </div>
         </>
       )}
+
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={handleLoginModalClose}
+        onSwitchToRegister={handleSwitchToRegister}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      <RegisterModal
+        isOpen={registerModalOpen}
+        onClose={handleRegisterModalClose}
+        onSwitchToLogin={handleSwitchToLogin}
+        onAuthSuccess={handleAuthSuccess}
+      />
     </>
   );
 }

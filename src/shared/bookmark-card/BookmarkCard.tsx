@@ -108,7 +108,9 @@ export default function BookmarkCard({
 
   return (
     <div
-      className={`group relative flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border ${borderClass} card-hover-soft cursor-pointer overflow-visible`}
+      className={`group relative flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border ${borderClass} card-hover-soft cursor-pointer overflow-visible ${
+        categoryOpen ? "z-layer-dropdown" : ""
+      }`}
       onClick={handleClick}
     >
       <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 ring-1 ring-[var(--border)]/50">
