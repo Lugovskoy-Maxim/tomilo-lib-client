@@ -89,12 +89,13 @@ export default function Header() {
   const closeDropdown = () => setIsDropdownOpen(false);
 
   return (
-    <header
-      className={`relative w-full header-glass h-[var(--header-height)] z-50 transition-all duration-300 ${
-        isScrolled ? "header-scrolled" : ""
-      }`}
-    >
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-3 relative z-10">
+    <>
+      <header
+        className={`relative w-full header-glass h-[var(--header-height)] z-50 transition-all duration-300 ${
+          isScrolled ? "header-scrolled" : ""
+        }`}
+      >
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-3 relative z-10">
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Кнопка меню только на мобильных */}
           {!isAdminRoute && (
@@ -175,7 +176,7 @@ export default function Header() {
             <UserBar />
           </div>
         </div>
-      </div>
+        </div>
 
       {/* Мобильная панель поиска */}
       {isSearchOpen && !isDesktop && (
@@ -196,7 +197,8 @@ export default function Header() {
         </div>
       )}
 
-      {/* Мобильное меню без портала — устойчивее при клиентской навигации */}
+      </header>
+      {/* Мобильное меню без портала — вынесено из header, чтобы fixed не обрезался хедером в мобильных браузерах */}
       {isMobileMenuOpen && (
         <>
           <div
@@ -235,83 +237,87 @@ export default function Header() {
                   </div>
 
                   <div className="p-4 space-y-6">
-              <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
-                  Аккаунт
-                </h3>
-                <div className="space-y-1">
-                  <Link href="/" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                    <Home className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    Главная
-                  </Link>
-                  <Link href="/updates" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                    <LayoutList className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    Обновления
-                  </Link>
-                  <Link href="/profile" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                    <User className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    Профиль
-                  </Link>
-                  <Link href="/bookmarks" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                    <Bookmark className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    Закладки
-                  </Link>
-                  <Link href="/notifications" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                    <Bell className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    Уведомления
-                  </Link>
-                </div>
-              </div>
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
+                        Аккаунт
+                      </h3>
+                      <div className="space-y-1">
+                        <Link href="/" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                          <Home className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          Главная
+                        </Link>
+                        <Link href="/updates" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                          <LayoutList className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          Обновления
+                        </Link>
+                        <Link href="/profile" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                          <User className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          Профиль
+                        </Link>
+                        <Link href="/bookmarks" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                          <Bookmark className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          Закладки
+                        </Link>
+                        <Link
+                          href="/notifications"
+                          onClick={closeMobileMenu}
+                          className="header-mobile-nav-link"
+                        >
+                          <Bell className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          Уведомления
+                        </Link>
+                      </div>
+                    </div>
 
-              <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
-                  Информация
-                </h3>
-                <div className="space-y-1">
-                  <Link href="/about" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                    <Info className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    О нас
-                  </Link>
-                  <Link href="/contact" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                    <Mail className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    Контакты
-                  </Link>
-                  <Link href="/copyright" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                    <Shield className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    Авторские права
-                  </Link>
-                  <Link href="/terms-of-use" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                    <FileText className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    Условия использования
-                  </Link>
-                </div>
-              </div>
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
+                        Информация
+                      </h3>
+                      <div className="space-y-1">
+                        <Link href="/about" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                          <Info className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          О нас
+                        </Link>
+                        <Link href="/contact" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                          <Mail className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          Контакты
+                        </Link>
+                        <Link href="/copyright" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                          <Shield className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          Авторские права
+                        </Link>
+                        <Link href="/terms-of-use" onClick={closeMobileMenu} className="header-mobile-nav-link">
+                          <FileText className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          Условия использования
+                        </Link>
+                      </div>
+                    </div>
 
-              <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
-                  Связаться
-                </h3>
-                <div className="flex flex-col gap-2">
-                  <Link
-                    href="mailto:support@tomilo-lib.ru"
-                    onClick={closeMobileMenu}
-                    className="header-mobile-nav-link"
-                  >
-                    <Mail className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    support@tomilo-lib.ru
-                  </Link>
-                  <Link
-                    href="https://t.me/tomilolib"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={closeMobileMenu}
-                    className="header-mobile-nav-link"
-                  >
-                    <Send className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                    Telegram
-                  </Link>
-                </div>
-              </div>
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
+                        Связаться
+                      </h3>
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          href="mailto:support@tomilo-lib.ru"
+                          onClick={closeMobileMenu}
+                          className="header-mobile-nav-link"
+                        >
+                          <Mail className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          support@tomilo-lib.ru
+                        </Link>
+                        <Link
+                          href="https://t.me/tomilolib"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={closeMobileMenu}
+                          className="header-mobile-nav-link"
+                        >
+                          <Send className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                          Telegram
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
@@ -319,6 +325,6 @@ export default function Header() {
           </div>
         </>
       )}
-    </header>
+    </>
   );
 }

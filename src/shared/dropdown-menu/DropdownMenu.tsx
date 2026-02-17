@@ -125,7 +125,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
 
   return (
     <div
-      className="absolute top-full right-0 mt-3 w-80 min-w-0 overflow-x-hidden dropdown-modern animate-fade-in-scale z-50"
+      className="absolute top-full right-0 mt-3 w-80 max-w-[calc(100vw-1rem)] min-w-0 overflow-x-hidden dropdown-modern animate-fade-in-scale z-50"
       onClick={e => e.stopPropagation()}
     >
       {/* Карточка профиля — ссылка на профиль */}
@@ -172,11 +172,11 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       </div>
 
       {/* Список пунктов меню */}
-      <div className="py-1 min-w-0 overflow-x-hidden">
+      <div className="py-1 px-2 min-w-0 overflow-x-hidden">
         <Link
           href="/profile"
           onClick={onClose}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2 dropdown-item-modern min-w-0 cursor-pointer"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg dropdown-item-modern min-w-0 cursor-pointer"
         >
           <Settings className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
           <span className="min-w-0 truncate">Настройки</span>
@@ -184,7 +184,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
         <Link
           href="/tomilo-shop"
           onClick={onClose}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2 dropdown-item-modern min-w-0 cursor-pointer"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg dropdown-item-modern min-w-0 cursor-pointer"
         >
           <ShoppingBag className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
           <span className="min-w-0 truncate">Магазин украшений</span>
@@ -192,7 +192,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
         <Link
           href="/profile?tab=history"
           onClick={onClose}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2 dropdown-item-modern min-w-0 cursor-pointer"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg dropdown-item-modern min-w-0 cursor-pointer"
         >
           <History className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
           <span className="min-w-0 truncate">История</span>
@@ -200,26 +200,26 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
         <Link
           href="/profile?tab=bookmarks"
           onClick={onClose}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2 dropdown-item-modern min-w-0 cursor-pointer"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg dropdown-item-modern min-w-0 cursor-pointer"
         >
           <Bookmark className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
           <span className="min-w-0 truncate">Закладки</span>
         </Link>
         <button
           type="button"
-          className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm rounded-lg mx-2 transition-colors cursor-pointer ${
+          className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm rounded-lg min-w-0 overflow-hidden transition-colors cursor-pointer ${
             isAdult
               ? "bg-green-500/10 text-green-600 border border-green-500/30"
               : "text-[var(--foreground)] hover:bg-[var(--accent)] border border-transparent dropdown-item-modern"
           }`}
           onClick={handleToggleAdult}
         >
-          <span className="flex items-center gap-3">
+          <span className="flex items-center gap-3 min-w-0 flex-1">
             <Eye className="w-4 h-4 shrink-0" />
-            <span>18+ контент</span>
+            <span className="truncate">18+ контент</span>
           </span>
           <span
-            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+            className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
               isAdult ? "bg-green-500/20 text-green-600" : "bg-[var(--border)]/50 text-[var(--muted-foreground)]"
             }`}
           >
@@ -228,7 +228,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
         </button>
         <button
           type="button"
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg mx-2 dropdown-item-modern min-w-0 cursor-pointer"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors rounded-lg dropdown-item-modern min-w-0 cursor-pointer"
           onClick={handleThemeClick}
         >
           <Palette className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
@@ -239,7 +239,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
           <Link
             href="/admin"
             onClick={onClose}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--destructive)] hover:bg-red-500/10 transition-colors rounded-lg mx-2 cursor-pointer"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--destructive)] hover:bg-red-500/10 transition-colors rounded-lg cursor-pointer"
           >
             <Shield className="w-4 h-4 shrink-0" />
             <span>Админ панель</span>

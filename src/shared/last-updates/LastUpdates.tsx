@@ -123,9 +123,9 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
       className="w-full group relative cursor-pointer block"
       onClick={handleClick}
     >
-      <div className="relative flex bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft">
+      <div className="relative flex items-stretch bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft">
         {/* Image section — пропорциональные размеры */}
-        <div className="relative w-16 sm:w-20 md:w-24 h-24 sm:h-28 md:h-32 flex-shrink-0 overflow-hidden">
+        <div className="relative w-[4.5rem] sm:w-[5.5rem] md:w-[6.5rem] self-stretch min-h-24 sm:min-h-28 md:min-h-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
             <Image
               loader={() => `${imageUrl}`}
