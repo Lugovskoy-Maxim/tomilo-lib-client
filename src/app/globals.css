@@ -96,6 +96,68 @@ body {
   font-size: 14px;
 }
 
+/* Фон на главной — абстракции (линии, дуги, круги) */
+.lines-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  color: var(--foreground);
+}
+
+.lines-background svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+}
+
+[data-theme="dark"] .lines-background svg {
+  opacity: 0.35;
+}
+
+/* Появление линий при загрузке */
+.lines-background__line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: lines-abstract-draw 1.8s ease-out forwards;
+}
+
+.lines-background__line:nth-child(1) { animation-delay: 0s; }
+.lines-background__line:nth-child(2) { animation-delay: 0.15s; }
+.lines-background__line:nth-child(3) { animation-delay: 0.3s; }
+.lines-background__line:nth-child(4) { animation-delay: 0.2s; }
+.lines-background__line:nth-child(5) { animation-delay: 0.1s; }
+.lines-background__line:nth-child(6) { animation-delay: 0.35s; }
+
+@keyframes lines-abstract-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Мягкое «дыхание» кругов */
+.lines-background__circle {
+  transform-origin: center;
+  animation: lines-abstract-pulse 8s ease-in-out infinite;
+}
+
+.lines-background__circles .lines-background__circle:nth-child(1) { animation-delay: 0s; }
+.lines-background__circles .lines-background__circle:nth-child(2) { animation-delay: 2.5s; }
+.lines-background__circles .lines-background__circle:nth-child(3) { animation-delay: 5s; }
+
+@keyframes lines-abstract-pulse {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.05);
+  }
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
@@ -1108,6 +1170,10 @@ textarea.admin-input {
   color: var(--primary);
   transform: translateX(4px);
 }
+.footer-link:focus-visible {
+  outline: none;
+  color: var(--primary);
+}
 
 /* Gradient divider */
 .gradient-divider {
@@ -1130,6 +1196,45 @@ textarea.admin-input {
 .footer-contact-link:hover {
   color: var(--primary);
   transform: translateX(2px);
+}
+.footer-contact-link:focus-visible {
+  color: var(--primary);
+  outline: none;
+}
+
+/* Footer credit link (разработчик) */
+.footer-credit-link {
+  transition: color 0.2s ease;
+}
+.footer-credit-link:hover {
+  color: var(--chart-1);
+}
+
+/* Desktop footer: заголовки секций */
+.footer-section-title {
+  letter-spacing: 0.08em;
+}
+
+/* Desktop footer: кнопка «Наверх» */
+.footer-back-to-top {
+  animation: footer-back-to-top-in 0.25s ease-out;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.footer-back-to-top:hover {
+  transform: translateY(-2px);
+}
+.footer-back-to-top:active {
+  transform: translateY(0);
+}
+@keyframes footer-back-to-top-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Footer version badge */
@@ -1821,23 +1926,35 @@ textarea.admin-input {
     scale(var(--card-tilt-scale));
   transform-style: preserve-3d;
   transition:
-    transform 0.18s ease,
+    transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     border-color 0.2s ease,
-    box-shadow 0.2s ease,
+    box-shadow 0.25s ease,
     background-color 0.2s ease,
     color 0.2s ease;
   will-change: transform;
 }
 
 .card-hover-soft:hover {
-  --card-tilt-scale: 1.06;
+  --card-tilt-scale: 1.04;
   border-color: transparent;
-  box-shadow: 0 8px 18px rgb(0 0 0 / 0.08);
+  box-shadow: 0 12px 24px rgb(0 0 0 / 0.1), 0 4px 8px rgb(0 0 0 / 0.06);
   z-index: 6;
 }
 
 [data-theme="dark"] .card-hover-soft:hover {
-  box-shadow: 0 10px 22px rgb(0 0 0 / 0.26);
+  box-shadow: 0 14px 28px rgb(0 0 0 / 0.35), 0 6px 12px rgb(0 0 0 / 0.2);
+}
+
+/* Focus ring for card links/clickable wrappers (accessibility) */
+.card-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--chart-1);
+}
+.card-focus-ring:focus-visible .card-hover-soft {
+  box-shadow: 0 12px 24px rgb(0 0 0 / 0.1), 0 0 0 1px var(--chart-1);
+}
+[data-theme="dark"] .card-focus-ring:focus-visible .card-hover-soft {
+  box-shadow: 0 14px 28px rgb(0 0 0 / 0.35), 0 0 0 1px var(--chart-1);
 }
 
 .card-hover-soft::before {
@@ -1891,11 +2008,11 @@ textarea.admin-input {
 }
 
 .card-media-hover {
-  transition: transform 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .group:hover .card-media-hover {
-  transform: scale(1);
+  transform: scale(1.05);
 }
 
 @media (hover: none), (pointer: coarse) {

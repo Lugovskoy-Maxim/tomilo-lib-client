@@ -120,10 +120,10 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   return (
     <Link
       href={titlePath}
-      className="w-full group relative cursor-pointer block"
+      className="w-full group relative cursor-pointer block rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform"
       onClick={handleClick}
     >
-      <div className="relative flex items-stretch bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft">
+      <div className="relative flex items-stretch bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm">
         {/* Image section — пропорциональные размеры */}
         <div className="relative w-[4.5rem] sm:w-[5.5rem] md:w-[6.5rem] self-stretch min-h-24 sm:min-h-28 md:min-h-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">

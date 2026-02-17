@@ -403,17 +403,18 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     : null;
 
   return (
-    <main className="relative min-h-screen bg-[var(--background)]">
-      {/* Hero background: обложка + градиент для читаемости */}
+    <main className="relative min-h-screen">
+      {/* Фон: заблюренная обложка + лёгкий градиент для читаемости */}
       {coverImageUrl && (
-        <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden>
+        <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden>
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.12] [@media(prefers-color-scheme:dark)]:opacity-20 blur-2xl scale-105"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 blur-3xl opacity-70 [@media(prefers-color-scheme:dark)]:opacity-80"
             style={{ backgroundImage: `url(${coverImageUrl})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/60 via-[var(--background)]/85 to-[var(--background)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/50 via-[var(--background)]/75 to-[var(--background)]/95" />
         </div>
       )}
+      <div className="relative z-10">
 
       {/* Микроразметка BreadcrumbList в формате JSON-LD */}
       <script
@@ -652,6 +653,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
           creatorId={reportModalData.creatorId}
         />
       )}
+      </div>
     </main>
   );
 }

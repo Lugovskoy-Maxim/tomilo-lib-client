@@ -157,7 +157,7 @@ export default function Header() {
             </div>
           )}
           <div className="flex items-center hover-lift rounded-xl -m-2 p-2">
-            <Logo />
+            <Logo variant="header" />
           </div>
         </div>
 

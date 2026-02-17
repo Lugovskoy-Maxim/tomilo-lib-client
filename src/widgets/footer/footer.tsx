@@ -13,6 +13,8 @@ import {
   FileText,
   X,
   Rss,
+  ArrowUp,
+  ExternalLink,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
@@ -25,6 +27,8 @@ const FOOTER_NAV = [
   { href: "/copyright", label: "Авторское право" },
   { href: "/updates", label: "Лента новых глав" },
 ];
+const TELEGRAM_HREF = "https://t.me/tomilolib";
+const TELEGRAM_DEV_HREF = "https://t.me/TomiloDev";
 
 const MOBILE_MENU_ITEMS = [
   { href: "/about", label: "О нас", icon: Info },
@@ -47,18 +51,34 @@ function isActivePath(pathname: string | null, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
+const SCROLL_THRESHOLD_TOP = 400;
+
 export default function Footer() {
   const pathname = usePathname();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
 
   const openMore = () => setIsMoreOpen(true);
   const closeMore = () => setIsMoreOpen(false);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const checkScreen = () => setIsLargeScreen(window.matchMedia("(min-width: 1024px)").matches);
+    checkScreen();
+    window.addEventListener("resize", checkScreen);
+    return () => window.removeEventListener("resize", checkScreen);
+  }, []);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      setShowBackToTop(currentScrollY > SCROLL_THRESHOLD_TOP && isLargeScreen);
       const scrollingDown = currentScrollY > lastScrollY;
       const atBottom =
         window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 10;
@@ -67,9 +87,10 @@ export default function Footer() {
       else if (!scrollingDown && !isVisible) setIsVisible(true);
       lastScrollY = currentScrollY;
     };
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isVisible]);
+  }, [isVisible, isLargeScreen]);
 
   useEffect(() => {
     if (isMoreOpen) document.body.style.overflow = "hidden";
@@ -91,30 +112,30 @@ export default function Footer() {
   return (
     <footer className="relative w-full">
       {/* Десктопный футер */}
-      <div className="w-full footer-glass mt-auto hidden lg:block">
-        <div className="w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 md:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 mb-8">
+      <div className="footer-desktop w-full footer-glass mt-auto hidden lg:block" role="contentinfo" aria-label="Подвал сайта">
+        <div className="footer-desktop-inner w-full max-w-7xl mx-auto px-4 py-10 sm:px-6 md:px-8 lg:px-10 xl:py-12">
+          <div className="footer-desktop-grid grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-12 mb-10">
             {/* Колонка 1: Логотип и описание */}
-            <div className="flex flex-col items-center text-center md:items-start md:text-left">
+            <div className="md:col-span-5 flex flex-col items-center text-center md:items-start md:text-left">
               <div className="footer-brand hover-lift p-4 rounded-2xl -m-4">
-                <Logo />
-                <p className="text-[var(--muted-foreground)] text-sm leading-relaxed mt-3 max-w-xs">
+                <Logo variant="footer" />
+                <p className="text-[var(--muted-foreground)] text-sm leading-relaxed mt-3 max-w-[280px]">
                   TOMILO-LIB — платформа для чтения манги, манхвы и маньхуа.
                 </p>
               </div>
             </div>
 
             {/* Колонка 2: Навигация */}
-            <div className="flex flex-col items-center md:items-start">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]/80 mb-3">
+            <div className="md:col-span-3 flex flex-col items-center md:items-start">
+              <h3 className="footer-section-title text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                 Навигация
-              </span>
-              <nav className="flex flex-col gap-2">
+              </h3>
+              <nav className="flex flex-col gap-2.5" aria-label="Основные разделы">
                 {FOOTER_NAV.map(({ href, label }) => (
                   <Link
                     key={href}
                     href={href}
-                    className="footer-link text-[var(--muted-foreground)] text-sm whitespace-nowrap py-1"
+                    className="footer-link text-[var(--muted-foreground)] text-sm whitespace-nowrap py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                   >
                     {label}
                   </Link>
@@ -123,57 +144,74 @@ export default function Footer() {
             </div>
 
             {/* Колонка 3: Контакты */}
-            <div className="flex flex-col items-center md:items-start text-center md:text-left">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]/80 mb-3">
+            <div className="md:col-span-4 flex flex-col items-center md:items-start text-center md:text-left">
+              <h3 className="footer-section-title text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                 Контакты
-              </span>
-              <p className="text-[var(--muted-foreground)] text-sm mb-3 max-w-[260px]">
+              </h3>
+              <p className="text-[var(--muted-foreground)] text-sm mb-4 max-w-[260px]">
                 По вопросам нарушения авторских прав и сотрудничества:
               </p>
-              <div className="flex flex-col gap-2 items-center md:items-start">
+              <div className="flex flex-col gap-3 items-center md:items-start">
                 <Link
                   href="mailto:support@tomilo-lib.ru"
-                  className="footer-contact-link inline-flex items-center gap-2 text-sm"
+                  className="footer-contact-link inline-flex items-center gap-2 text-sm rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                  aria-label="Написать на support@tomilo-lib.ru"
                 >
-                  <Mail className="w-4 h-4 flex-shrink-0 text-[var(--chart-1)]" />
+                  <Mail className="w-4 h-4 flex-shrink-0 text-[var(--chart-1)]" aria-hidden />
                   support@tomilo-lib.ru
                 </Link>
                 <Link
-                  href="https://t.me/tomilolib"
+                  href={TELEGRAM_HREF}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="footer-contact-link inline-flex items-center gap-2 text-sm"
+                  className="footer-contact-link footer-contact-link-external inline-flex items-center gap-2 text-sm rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                  aria-label="Мы в Telegram (открывается в новой вкладке)"
                 >
-                  <Send className="w-4 h-4 flex-shrink-0 text-[var(--chart-1)]" />
+                  <Send className="w-4 h-4 flex-shrink-0 text-[var(--chart-1)]" aria-hidden />
                   Мы в Telegram
+                  <ExternalLink className="w-3.5 h-3.5 opacity-70" aria-hidden />
                 </Link>
               </div>
             </div>
           </div>
 
-          <div className="gradient-divider my-6" />
+          <div className="gradient-divider my-8" />
 
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between sm:items-center text-[var(--muted-foreground)] text-sm">
+          <div className="footer-desktop-bottom flex flex-col items-center gap-5 sm:flex-row sm:justify-between sm:items-center text-[var(--muted-foreground)] text-sm">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 sm:justify-start">
-              <span className="inline-flex items-center gap-1.5">
-                <Copyright className="w-4 h-4" />
+              <span className="inline-flex items-center gap-1.5" aria-label={`Авторские права 2025–${currentYear} Tomilo-lib.ru`}>
+                <Copyright className="w-4 h-4 flex-shrink-0" aria-hidden />
                 2025–{currentYear} «Tomilo-lib.ru»
               </span>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[var(--muted-foreground)]">
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[var(--muted-foreground)]">
               <Link
-                href="https://t.me/TomiloDev"
+                href={TELEGRAM_DEV_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--muted-foreground)] hover:text-[var(--chart-1)] transition-colors"
+                className="footer-credit-link inline-flex items-center gap-1.5 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                aria-label="Разработчик сайта TomiloDev в Telegram (открывается в новой вкладке)"
               >
                 Сайт разработан: @TomiloDev
+                <ExternalLink className="w-3 h-3 opacity-70" aria-hidden />
               </Link>
               <span className="footer-version">Версия 17022026</span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Кнопка «Наверх» — только на десктопе при прокрутке */}
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="footer-back-to-top fixed bottom-6 right-6 z-40 hidden lg:flex items-center justify-center w-11 h-11 rounded-full shadow-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2"
+          aria-label="Вернуться наверх"
+        >
+          <ArrowUp className="w-5 h-5" aria-hidden />
+        </button>
+      )}
 
       {/* Мобильная нижняя панель */}
       <div

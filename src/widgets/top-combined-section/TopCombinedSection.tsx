@@ -96,11 +96,19 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
 
   return (
     <>
-      <div 
-        className="block group cursor-pointer relative" 
+      <div
+        className="block group cursor-pointer relative rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform"
         onClick={handleClick}
+        onKeyDown={e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick(e as unknown as React.MouseEvent);
+          }
+        }}
+        tabIndex={0}
+        role="button"
       >
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft relative overflow-hidden max-w-full">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft relative overflow-hidden max-w-full shadow-sm">
           {/* Обложка — пропорционально */}
           <div className="w-20 h-28 sm:w-22 sm:h-32 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--muted)] relative">
             {item.coverImage ? (

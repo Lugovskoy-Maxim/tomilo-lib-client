@@ -106,11 +106,11 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
   const cardContent = (
     <>
-      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft h-full flex flex-col">
+      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft h-full flex flex-col shadow-sm">
         {/* Image container - 2:3 aspect ratio for manga covers */}
-        <div className="relative overflow-hidden flex-shrink-0 aspect-[2/3] w-full bg-[var(--muted)]">
+        <div className="relative overflow-hidden flex-shrink-0 aspect-[2/3] w-full bg-[var(--muted)] rounded-t-xl">
           <img
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full rounded-t-xl object-cover object-center card-media-hover`}
+            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center card-media-hover`}
             src={imageSrcString}
             alt={data.title}
             loading="lazy"
@@ -177,11 +177,23 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   );
 
   const className =
-    "relative group cursor-pointer select-none block h-full";
+    "relative group cursor-pointer select-none block h-full rounded-xl card-focus-ring focus:outline-none";
 
   if (onCardClick) {
     return (
-      <div className={className} onClick={handleClick} data-card-click-handler="true">
+      <div
+        className={className}
+        onClick={handleClick}
+        onKeyDown={e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick(e as unknown as React.MouseEvent);
+          }
+        }}
+        tabIndex={0}
+        role="link"
+        data-card-click-handler="true"
+      >
         {cardContent}
       </div>
     );

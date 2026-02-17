@@ -10,7 +10,16 @@ import { normalizeGenres } from "@/lib/genre-normalizer";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
-export const useHomeData = (): {
+export type HomeVisibleSections = Partial<{
+  popular: boolean;
+  trending: boolean;
+  underrated: boolean;
+  reading: boolean;
+  topCombined: boolean;
+  random: boolean;
+}>;
+
+export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
   popularTitles: {
     data: {
       id: string;
@@ -162,19 +171,26 @@ export const useHomeData = (): {
     refetchOnMountOrArgChange: 600,
   };
 
-  // Популярные тайтлы
+  const skipPopular = !visibleSections.popular;
+  const skipTrending = !visibleSections.trending;
+  const skipUnderrated = !visibleSections.underrated;
+  const skipTopCombined = !visibleSections.topCombined;
+  const skipRandom = !visibleSections.random;
+  const skipReading = !visibleSections.reading || !getToken();
+
+  // Популярные тайтлы — запрос только когда секция в viewport
   const {
     data: popularTitlesData,
     isLoading: popularTitlesLoading,
     error: popularTitlesError,
-  } = useGetPopularTitlesQuery({ limit: 35 }, popularCacheOptions);
+  } = useGetPopularTitlesQuery({ limit: 35 }, { ...popularCacheOptions, skip: skipPopular });
 
   // Случайные тайтлы
   const {
     data: randomTitlesData,
     isLoading: randomTitlesLoading,
     error: randomTitlesError,
-  } = useGetRandomTitlesQuery({ limit: 10 }, popularCacheOptions);
+  } = useGetRandomTitlesQuery({ limit: 10 }, { ...popularCacheOptions, skip: skipRandom });
 
   const {
     data: trendingTitlesData,
@@ -187,7 +203,7 @@ export const useHomeData = (): {
       sortOrder: "desc",
       limit: 20,
     },
-    popularCacheOptions,
+    { ...popularCacheOptions, skip: skipTrending },
   );
 
   const {
@@ -201,10 +217,10 @@ export const useHomeData = (): {
       sortOrder: "desc",
       limit: 80,
     },
-    popularCacheOptions,
+    { ...popularCacheOptions, skip: skipUnderrated },
   );
 
-  // Параллельная загрузка топ тайтлов для оптимизации производительности
+  // Топ тайтлы — загрузка только когда секция в viewport
   const topQueries = [
     useSearchTitlesQuery(
       {
@@ -214,7 +230,7 @@ export const useHomeData = (): {
         sortOrder: "desc",
         limit: 5,
       },
-      popularCacheOptions,
+      { ...popularCacheOptions, skip: skipTopCombined },
     ),
     useSearchTitlesQuery(
       {
@@ -224,7 +240,7 @@ export const useHomeData = (): {
         sortOrder: "desc",
         limit: 5,
       },
-      popularCacheOptions,
+      { ...popularCacheOptions, skip: skipTopCombined },
     ),
     useSearchTitlesQuery(
       {
@@ -234,7 +250,7 @@ export const useHomeData = (): {
         sortOrder: "desc",
         limit: 5,
       },
-      popularCacheOptions,
+      { ...popularCacheOptions, skip: skipTopCombined },
     ),
   ];
 
@@ -242,7 +258,7 @@ export const useHomeData = (): {
   const [topManhuaLoading, topManhwaLoading, top2026Loading] = topQueries.map(query => query.isLoading);
   const [topManhuaError, topManhwaError, top2026Error] = topQueries.map(query => query.error);
 
-  // История чтения (лёгкий формат с пагинацией для блока «Продолжить чтение»)
+  // История чтения — только когда секция в viewport и пользователь авторизован
   const {
     data: readingHistory,
     isLoading: readingHistoryLoading,
@@ -250,7 +266,7 @@ export const useHomeData = (): {
   } = useGetReadingHistoryQuery(
     { limit: 100 },
     {
-      skip: !getToken(),
+      skip: skipReading,
     },
   );
 

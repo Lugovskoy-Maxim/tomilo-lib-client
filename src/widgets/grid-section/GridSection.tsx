@@ -101,8 +101,8 @@ export default function GridSection<T>({
       <div
         className={`${
           layout === "auto-fit"
-            ? "grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(260px,1fr))] lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3 sm:gap-4 mx-auto"
-            : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            ? "grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(260px,1fr))] lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 sm:gap-5 mx-auto"
+            : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"
         }`}
       >
         {safeData.length > 0 ? (

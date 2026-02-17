@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Library, Eye, Calendar } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
@@ -14,7 +14,6 @@ interface CollectionCardProps {
 }
 
 export default function CollectionCard({ data, variant = "compact" }: CollectionCardProps) {
-  const router = useRouter();
   const isGrid = variant === "grid";
 
   // Защита от undefined
@@ -38,10 +37,6 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
   const views = data.views ?? 0;
   const createdAt = data.createdAt;
 
-  const handleClick = () => {
-    if (collectionLink) router.push(collectionLink);
-  };
-
   const getImageUrl = () => {
     if (!collectionImage) return IMAGE_HOLDER;
     if (collectionImage.startsWith("http")) return collectionImage;
@@ -59,14 +54,14 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
   const imageUrlString = typeof imageUrl === "string" ? imageUrl : imageUrl.src;
 
   const cardClasses = `
-    group relative select-none rounded-xl overflow-hidden cursor-pointer
-    transition-colors duration-200
+    group relative select-none rounded-xl overflow-hidden cursor-pointer block
+    card-focus-ring focus:outline-none active:scale-[0.99] transition-transform duration-200
     ${isGrid ? "w-full" : "flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36"}
   `.trim().replace(/\s+/g, " ");
 
   return (
-    <div draggable="false" className={cardClasses} onClick={handleClick}>
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] card-hover-soft">
+    <Link href={collectionLink} draggable="false" className={cardClasses}>
+      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] card-hover-soft shadow-sm">
         <div className="relative w-full h-full">
           <div className="absolute inset-0 overflow-hidden">
             <OptimizedImage
@@ -115,6 +110,6 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

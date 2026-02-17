@@ -55,7 +55,12 @@ interface StaticData {
   };
 }
 
-export const useStaticData = (): StaticData => {
+export type StaticDataVisibleSections = Partial<{
+  collections: boolean;
+  latestUpdates: boolean;
+}>;
+
+export const useStaticData = (visibleSections: StaticDataVisibleSections = {}): StaticData => {
   const [collections, setCollections] = useState({
     data: [] as Collection[],
     loading: true,
@@ -68,7 +73,11 @@ export const useStaticData = (): StaticData => {
     error: null as string | null,
   });
 
+  const loadCollections = visibleSections.collections ?? false;
+  const loadLatestUpdates = visibleSections.latestUpdates ?? false;
+
   useEffect(() => {
+    if (!loadCollections) return;
     // Загрузка коллекций с API
     const fetchCollections = async () => {
       try {
@@ -118,7 +127,11 @@ export const useStaticData = (): StaticData => {
       }
     };
 
-    // Загрузка последних обновлений
+    fetchCollections();
+  }, [loadCollections]);
+
+  useEffect(() => {
+    if (!loadLatestUpdates) return;
     const fetchLatestUpdates = async () => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -129,7 +142,6 @@ export const useStaticData = (): StaticData => {
         const result = await response.json();
         const raw = result.data?.data ?? result.data?.items ?? result.data;
         const list = Array.isArray(raw) ? raw : [];
-        // Преобразуем данные: при наличии chapters[] формируем корректную строку диапазонов (например "24, 34-55")
         const transformedData = list.map((item: ApiLatestUpdate) => {
           const chapter =
             item.chapters?.length !== undefined && item.chapters.length > 0
@@ -155,10 +167,8 @@ export const useStaticData = (): StaticData => {
         });
       }
     };
-
-    fetchCollections();
     fetchLatestUpdates();
-  }, []);
+  }, [loadLatestUpdates]);
 
   return { collections, latestUpdates };
 };

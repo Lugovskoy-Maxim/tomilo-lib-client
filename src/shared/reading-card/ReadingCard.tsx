@@ -60,11 +60,19 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
   return (
     <div
-      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 group relative cursor-pointer"
+      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 group relative cursor-pointer rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform"
       data-card-id={data.id}
       onClick={handleClick}
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      tabIndex={0}
+      role="button"
     >
-      <div className="relative flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft">
+      <div className="relative flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm">
         {/* Image section */}
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
@@ -133,9 +141,9 @@ export default function ReadingCard({ data }: ReadingCardProps) {
             </div>
 
             {/* Enhanced progress bar */}
-            <div className="relative w-full bg-[var(--muted)] rounded-full h-2 overflow-hidden">
+            <div className="relative w-full bg-[var(--muted)] rounded-full h-2.5 overflow-hidden ring-1 ring-[var(--border)]/30">
               <div
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-5)] rounded-full transition-[width] duration-700 ease-out"
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-5)] rounded-full transition-[width] duration-700 ease-out min-w-[4px]"
                 style={{
                   width: `${getProgressPercentage(
                     data.readingHistory?.chapterNumber || data.currentChapter,

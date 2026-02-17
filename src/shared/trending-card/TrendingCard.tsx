@@ -97,9 +97,9 @@ export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
 
   const cardContent = (
     <>
-      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft p-2 sm:p-2.5">
+      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft p-2.5 sm:p-3 shadow-sm">
         <div className="flex gap-3 min-w-0">
-          <div className="relative w-20 sm:w-24 aspect-[2/3] overflow-hidden rounded-lg bg-[var(--muted)] shrink-0">
+          <div className="relative w-20 sm:w-24 aspect-[2/3] overflow-hidden rounded-lg bg-[var(--muted)] shrink-0 ring-1 ring-[var(--border)]/50">
             <img
               className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center card-media-hover`}
               src={imageSrc}
@@ -156,11 +156,24 @@ export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
     </>
   );
 
-  const className = "relative group cursor-pointer select-none block h-full";
+  const className =
+    "relative group cursor-pointer select-none block h-full rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform";
 
   if (onCardClick) {
     return (
-      <div className={className} onClick={handleClick} data-card-click-handler="true">
+      <div
+        className={className}
+        onClick={handleClick}
+        onKeyDown={e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick(e as unknown as React.MouseEvent);
+          }
+        }}
+        tabIndex={0}
+        role="link"
+        data-card-click-handler="true"
+      >
         {cardContent}
       </div>
     );
