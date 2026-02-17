@@ -13,6 +13,7 @@ export { ReportsSection } from "./ReportsSection";
 export { ShopManagementSection } from "./ShopManagementSection";
 export { TitlesSection } from "./TitlesSection";
 export { UsersSection } from "./UsersSection";
+export { WorkQueueSection } from "./WorkQueueSection";
 
 // Default exports (export default function)
 export { default as AutoParsingSection } from "./AutoParsingSection";

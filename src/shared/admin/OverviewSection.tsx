@@ -14,13 +14,17 @@ import {
   Layers,
   ArrowUpRight,
   ArrowDownRight,
+  ClipboardList,
 } from "lucide-react";
 import { useGetStatsQuery } from "@/store/api/statsApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { useSearchTitlesQuery } from "@/store/api/titlesApi";
+import { useSearchChaptersQuery } from "@/store/api/chaptersApi";
 import { useState, useMemo } from "react";
 import type { StatsResponse } from "@/types/stats";
-import { AdminCard, StatCard } from "./ui";
+import { StatCard } from "./ui";
 import { formatNumber } from "@/lib/utils";
+import Link from "next/link";
 
 // Calculate trend percentage
 function calculateTrend(current: number, previous: number): { value: number; isPositive: boolean } {
@@ -32,7 +36,7 @@ function calculateTrend(current: number, previous: number): { value: number; isP
   };
 }
 
-type AdminTab = "overview" | "parser" | "titles" | "chapters";
+type AdminTab = "overview" | "parser" | "titles" | "chapters" | "work-queue";
 
 interface OverviewSectionProps {
   onTabChange: (tab: AdminTab) => void;
@@ -82,17 +86,32 @@ function PopularChapterItem({
 
 export function OverviewSection({ onTabChange }: OverviewSectionProps) {
   const { data: statsData, isLoading, error } = useGetStatsQuery();
+  const { data: titlesHealthData } = useSearchTitlesQuery({
+    page: 1,
+    limit: 200,
+    sortBy: "updatedAt",
+    sortOrder: "desc",
+  });
+  const { data: chaptersHealthData } = useSearchChaptersQuery({
+    page: 1,
+    limit: 200,
+    sortOrder: "desc",
+  });
   const [activePeriod, setActivePeriod] = useState<"daily" | "weekly" | "monthly">("weekly");
 
   const stats = statsData?.data;
 
-  const periodData = stats?.[activePeriod] || {
-    views: 0,
-    newUsers: 0,
-    newTitles: 0,
-    newChapters: 0,
-    chaptersRead: 0,
-  };
+  const periodData = useMemo(
+    () =>
+      stats?.[activePeriod] || {
+        views: 0,
+        newUsers: 0,
+        newTitles: 0,
+        newChapters: 0,
+        chaptersRead: 0,
+      },
+    [stats, activePeriod],
+  );
 
   // Calculate trends by comparing with previous period
   const trends = useMemo(() => {
@@ -148,6 +167,12 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
   const popularTitles = Array.isArray(stats.popularTitles) ? stats.popularTitles : [];
   const popularChapters = Array.isArray(stats.popularChapters) ? stats.popularChapters : [];
   const ongoingShare = stats.totalTitles ? Math.round(((stats.ongoingTitles ?? 0) / stats.totalTitles) * 100) : 0;
+  const titlesWithoutChaptersCount = (titlesHealthData?.data?.data || []).filter(
+    title => (title.totalChapters || 0) === 0,
+  ).length;
+  const chaptersWithoutPagesCount = (chaptersHealthData?.chapters || []).filter(
+    chapter => (chapter.pages?.length ?? chapter.images?.length ?? 0) === 0,
+  ).length;
 
   return (
     <div className="space-y-8">
@@ -298,6 +323,49 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
                   <span className="text-xs font-medium text-center">{action.label}</span>
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Рабочая очередь */}
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-[var(--chart-3)]/15 text-[var(--chart-3)]">
+                    <ClipboardList className="w-5 h-5" />
+                  </span>
+                  Рабочая очередь
+                </h3>
+                <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                  Контент, который требует внимания редактора
+                </p>
+              </div>
+              <button
+                onClick={() => onTabChange("work-queue")}
+                className="text-xs font-medium text-[var(--primary)] hover:underline"
+              >
+                Открыть
+              </button>
+            </div>
+            <div className="mt-4 space-y-2">
+              <Link
+                href="/admin/work-queue"
+                className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--secondary)]/20 px-3 py-2.5 hover:bg-[var(--accent)] transition-colors"
+              >
+                <span className="text-sm text-[var(--foreground)]">Тайтлы без глав</span>
+                <span className="text-sm font-semibold text-[var(--primary)]">
+                  {titlesWithoutChaptersCount}
+                </span>
+              </Link>
+              <Link
+                href="/admin/work-queue"
+                className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--secondary)]/20 px-3 py-2.5 hover:bg-[var(--accent)] transition-colors"
+              >
+                <span className="text-sm text-[var(--foreground)]">Главы без страниц</span>
+                <span className="text-sm font-semibold text-[var(--destructive)]">
+                  {chaptersWithoutPagesCount}
+                </span>
+              </Link>
             </div>
           </div>
 

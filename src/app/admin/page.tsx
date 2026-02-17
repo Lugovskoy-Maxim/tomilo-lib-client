@@ -1,6 +1,6 @@
 "use client";
 
-import { AdminTabs, type AdminTab } from "@/shared/admin/AdminTabs";
+import { ADMIN_TABS, AdminTabs, type AdminTab } from "@/shared/admin/AdminTabs";
 import AutoParsingSection from "@/shared/admin/AutoParsingSection";
 import { ChaptersSection } from "@/shared/admin/ChaptersSection";
 import { CollectionsSection } from "@/shared/admin/CollectionsSection";
@@ -13,16 +13,49 @@ import { CommentsSection } from "@/shared/admin/CommentsSection";
 import { ReportsSection } from "@/shared/admin/ReportsSection";
 import { IpManagementSection } from "@/shared/admin/IpManagementSection";
 import { ShopManagementSection } from "@/shared/admin/ShopManagementSection";
+import { WorkQueueSection } from "@/shared/admin/WorkQueueSection";
 import { Header } from "@/widgets";
 import { AuthGuard } from "@/guard/AuthGuard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Settings, Home } from "lucide-react";
 import Link from "next/link";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [selectedTitleId, setSelectedTitleId] = useState<string | null>(null);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const isValidAdminTab = (tab: string | null): tab is AdminTab => {
+    return Boolean(tab && ADMIN_TABS.includes(tab as AdminTab));
+  };
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get("tab");
+    if (isValidAdminTab(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+      return;
+    }
+
+    const lastTab = localStorage.getItem("admin:lastTab");
+    if (isValidAdminTab(lastTab)) {
+      setActiveTab(lastTab);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    localStorage.setItem("admin:lastTab", activeTab);
+
+    const currentTabInUrl = searchParams.get("tab");
+    if (currentTabInUrl === activeTab) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", activeTab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [activeTab, pathname, router, searchParams]);
 
   const getSectionTitle = () => {
     const titles: Record<AdminTab, string> = {
@@ -38,6 +71,7 @@ export default function AdminPage() {
       reports: "Жалобы",
       "ip-management": "IP-управление",
       shop: "Магазин",
+      "work-queue": "Рабочая очередь",
     };
     return titles[activeTab] || "Админ-панель";
   };
@@ -76,6 +110,8 @@ export default function AdminPage() {
         return <IpManagementSection />;
       case "shop":
         return <ShopManagementSection />;
+      case "work-queue":
+        return <WorkQueueSection />;
       default:
         return <OverviewSection onTabChange={setActiveTab} />;
     }

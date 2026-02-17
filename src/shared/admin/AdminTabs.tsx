@@ -18,9 +18,11 @@ import {
   Settings,
   ExternalLink,
   ShoppingBag,
+  Search,
+  ClipboardList,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useGetReportsQuery } from "@/store/api/reportsApi";
 
 export type AdminTab =
@@ -35,7 +37,24 @@ export type AdminTab =
   | "users"
   | "reports"
   | "ip-management"
-  | "shop";
+  | "shop"
+  | "work-queue";
+
+export const ADMIN_TABS: AdminTab[] = [
+  "overview",
+  "statistics",
+  "parser",
+  "auto-parsing",
+  "titles",
+  "chapters",
+  "collections",
+  "comments",
+  "users",
+  "reports",
+  "ip-management",
+  "shop",
+  "work-queue",
+];
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -71,12 +90,14 @@ const tabGroups = [
     tabs: [
       { id: "ip-management" as AdminTab, label: "IP-управление", icon: Shield },
       { id: "shop" as AdminTab, label: "Магазин", icon: ShoppingBag },
+      { id: "work-queue" as AdminTab, label: "Рабочая очередь", icon: ClipboardList },
     ],
   },
 ];
 
 export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: unprocessedReports } = useGetReportsQuery({
     isResolved: "false",
@@ -93,9 +114,34 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
     );
   };
 
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredGroups = useMemo(() => {
+    if (!normalizedQuery) return tabGroups;
+
+    return tabGroups
+      .map(group => ({
+        ...group,
+        tabs: group.tabs.filter(tab => tab.label.toLowerCase().includes(normalizedQuery)),
+      }))
+      .filter(group => group.tabs.length > 0);
+  }, [normalizedQuery]);
+
   const sidebarContent = (
     <nav className="flex flex-col gap-4 p-3 overflow-y-auto">
-      {tabGroups.map(group => (
+      <div className="px-1">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-foreground)]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Поиск раздела..."
+            className="w-full rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] py-2 pl-9 pr-3 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)]"
+          />
+        </div>
+      </div>
+
+      {filteredGroups.map(group => (
         <div key={group.label}>
           <div className="flex items-center gap-2 px-3 mb-1.5">
             <group.icon className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -133,6 +179,12 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
           </div>
         </div>
       ))}
+      {filteredGroups.length === 0 && (
+        <div className="rounded-[var(--admin-radius)] border border-dashed border-[var(--border)] px-3 py-6 text-center">
+          <p className="text-sm font-medium text-[var(--foreground)]">Ничего не найдено</p>
+          <p className="mt-1 text-xs text-[var(--muted-foreground)]">Попробуйте другой запрос</p>
+        </div>
+      )}
     </nav>
   );
 

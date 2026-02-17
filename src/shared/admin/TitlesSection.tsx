@@ -132,6 +132,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   
   // Modal states
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -275,11 +276,42 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
     }
   }, [selectedIds.length, filteredTitles]);
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    if (confirm(`Удалить ${selectedIds.length} тайтлов?`)) {
-      // Implement bulk delete
-      console.log("Bulk delete:", selectedIds);
+
+    const confirmed = confirm(
+      `Удалить ${selectedIds.length} тайтлов? Это действие нельзя отменить.`,
+    );
+    if (!confirmed) return;
+
+    setIsBulkDeleting(true);
+    try {
+      const results = await Promise.allSettled(selectedIds.map(id => deleteTitle(id).unwrap()));
+      const failedCount = results.filter(result => result.status === "rejected").length;
+      const successCount = results.length - failedCount;
+
+      if (failedCount === 0) {
+        setAlertModal({
+          isOpen: true,
+          title: "Успешно",
+          message: `Удалено ${successCount} тайтлов`,
+          type: "success",
+        });
+        setSelectedIds([]);
+        return;
+      }
+
+      setAlertModal({
+        isOpen: true,
+        title: "Удаление завершено с ошибками",
+        message: `Удалено ${successCount}, ошибок: ${failedCount}`,
+        type: "error",
+      });
+      setSelectedIds(prev =>
+        prev.filter((_, index) => results[index]?.status === "rejected"),
+      );
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -462,7 +494,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
 
               {/* Add button */}
               <button
-                onClick={() => router.push("/admin/titles/create")}
+                onClick={() => router.push("/admin/titles/new")}
                 className="admin-btn admin-btn-primary flex items-center gap-2 text-sm font-medium"
               >
                 <Plus className="w-4 h-4" />
@@ -519,10 +551,11 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
               <div className="flex-1" />
               <button
                 onClick={handleBulkDelete}
+                disabled={isBulkDeleting}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[var(--destructive)] hover:bg-[var(--destructive)]/10 rounded-[var(--admin-radius)] transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                Удалить
+                {isBulkDeleting ? "Удаление..." : "Удалить"}
               </button>
             </div>
           )}
