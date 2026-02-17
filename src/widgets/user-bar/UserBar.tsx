@@ -109,7 +109,10 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
             </button>
           </div>
         ) : (
-          <div className="relative flex items-center justify-center" ref={dropdownRef}>
+          <div
+            className={`relative flex items-center justify-center ${dropdownOpen ? "z-layer-modal" : ""}`}
+            ref={dropdownRef}
+          >
             <button
               type="button"
               className="flex items-center justify-center min-h-[40px] min-w-[40px] p-1 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer overflow-hidden"

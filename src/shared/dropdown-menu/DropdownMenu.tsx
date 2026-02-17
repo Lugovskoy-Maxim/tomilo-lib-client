@@ -150,7 +150,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
       ref={panelRef}
       role="menu"
       aria-label="Меню пользователя"
-      className="absolute top-full right-0 mt-3 w-80 max-w-[calc(100vw-1rem)] min-w-0 overflow-x-hidden dropdown-modern animate-fade-in-scale z-50"
+      className="absolute top-full right-0 mt-3 w-80 max-w-[calc(100vw-1rem)] min-w-0 overflow-x-hidden dropdown-modern animate-fade-in-scale z-layer-modal"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Карточка профиля */}

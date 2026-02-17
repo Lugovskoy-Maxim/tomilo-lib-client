@@ -163,7 +163,7 @@ export default function Header() {
           isScrolled ? "header-scrolled" : ""
         }`}
       >
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-3 relative z-10">
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-3 relative">
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Кнопка меню только на мобильных */}
           {!isAdminRoute && (
