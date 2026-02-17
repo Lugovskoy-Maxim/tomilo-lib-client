@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import {
   useLoginMutation,
   useForgotPasswordMutation,
@@ -90,6 +90,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
 }) => {
   const [form, setForm] = useState<LoginData>({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
   const [touched, setTouched] = useState<FormTouched<LoginData>>({
     email: false,
     password: false,
@@ -377,222 +379,223 @@ const LoginModal: React.FC<LoginModalProps> = ({
       setForm({ email: "", password: "" });
       setTouched({ email: false, password: false });
       setShowPassword(false);
+      setForgotPasswordSuccess(false);
+      setForgotPasswordError(null);
     }
   }, [isOpen]);
 
   const errorMessage = getErrorMessage();
 
+  const inputBase =
+    "w-full pl-10 pr-4 py-3 rounded-xl border bg-[var(--secondary)] placeholder:text-[var(--muted-foreground)]/70 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:border-[var(--chart-1)]";
+  const inputError = "border-red-500 focus:ring-red-500/20";
+  const inputNormal = "border-[var(--border)] hover:border-[var(--muted-foreground)]/50";
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={MESSAGES.UI_ELEMENTS.LOGIN_TITLE}>
-      <form onSubmit={handleSubmit} className="p-6 space-y-4">
-        {/* Показываем ошибку от сервера */}
-        {errorMessage && (
-          <div
-            className="p-3 bg-red-50 border border-red-200 rounded-lg animate-fadeIn"
-            role="alert"
-            aria-live="assertive"
-          >
-            <p className="text-red-700 text-sm text-center flex items-center justify-center gap-2">
-              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              {errorMessage}
-            </p>
-          </div>
-        )}
+      <div className="flex flex-col gap-5">
+        <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
+          {MESSAGES.UI_ELEMENTS.LOGIN_SUBTITLE}
+        </p>
 
-        <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-medium text-[var(--foreground)]">
-            Email
-          </label>
-          <div className="relative">
-            <Mail
-              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                errors.email ? "text-red-500" : "text-[var(--muted-foreground)]"
-              }`}
-            />
-
-            <input
-              id="email"
-              type="email"
-              placeholder={MESSAGES.UI_ELEMENTS.EMAIL_PLACEHOLDER}
-              value={form.email}
-              onChange={handleChange("email")}
-              onBlur={handleBlur("email")}
-              className={`w-full pl-10 pr-4 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                errors.email
-                  ? "border-red-500 focus:ring-red-500/20"
-                  : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
-              }`}
-              required
-              name="email"
-              disabled={isLoading}
-              autoComplete="email"
-              aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? "email-error" : undefined}
-            />
-          </div>
-          {errors.email && (
-            <p id="email-error" className="text-xs text-red-500 flex items-center gap-1">
-              <span className="w-1 h-1 bg-red-500 rounded-full"></span>
-              {errors.email}
-            </p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {(errorMessage || forgotPasswordSuccess || forgotPasswordError) && (
+            <div className="flex flex-col gap-2">
+              {errorMessage && (
+                <div
+                  className="flex items-center gap-2.5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm animate-fadeIn"
+                  role="alert"
+                  aria-live="assertive"
+                >
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+              {forgotPasswordSuccess && (
+                <div
+                  className="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm"
+                  role="status"
+                >
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                  <span>{MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD_SENT}</span>
+                </div>
+              )}
+              {forgotPasswordError && (
+                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{forgotPasswordError}</span>
+                </div>
+              )}
+            </div>
           )}
-        </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-[var(--foreground)]"
-            >
-              Пароль
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-[var(--foreground)]">
+              Email
             </label>
-
-            <button
-              type="button"
-              className={`text-xs cursor-pointer hover:underline ${
-                isForgotPasswordLoading
-                  ? "text-[var(--muted-foreground)] cursor-not-allowed"
-                  : "text-[var(--primary)]"
-              }`}
-              disabled={isForgotPasswordLoading}
-              onClick={async () => {
-                if (!form.email) {
-                  // Можно показать уведомление о необходимости ввести email
-                  return;
-                }
-
-                try {
-                  await forgotPasswordMutation({ email: form.email }).unwrap();
-                  console.log("Письмо для сброса пароля отправлено");
-                  // Здесь можно показать уведомление пользователю
-                } catch (error: unknown) {
-                  console.error(
-                    "Ошибка отправки письма для сброса пароля:",
-                    (error as { data?: { message?: string } })?.data?.message,
-                  );
-                }
-              }}
-            >
-              {isForgotPasswordLoading ? "Отправка..." : MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD}
-            </button>
+            <div className="relative">
+              <Mail
+                className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                  errors.email ? "text-red-500" : "text-[var(--muted-foreground)]"
+                }`}
+              />
+              <input
+                id="email"
+                type="email"
+                placeholder={MESSAGES.UI_ELEMENTS.EMAIL_PLACEHOLDER}
+                value={form.email}
+                onChange={handleChange("email")}
+                onBlur={handleBlur("email")}
+                className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
+                required
+                name="email"
+                disabled={isLoading}
+                autoComplete="email"
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
+              />
+            </div>
+            {errors.email && (
+              <p id="email-error" className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
+                <span className="w-1 h-1 bg-red-500 rounded-full" />
+                {errors.email}
+              </p>
+            )}
           </div>
-          <div className="relative">
-            <Lock
-              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                errors.password ? "text-red-500" : "text-[var(--muted-foreground)]"
-              }`}
-            />
 
-            <input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder={MESSAGES.UI_ELEMENTS.PASSWORD_PLACEHOLDER}
-              value={form.password}
-              onChange={handleChange("password")}
-              onBlur={handleBlur("password")}
-              className={`w-full pl-10 pr-10 py-2 bg-[var(--secondary)] border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                errors.password
-                  ? "border-red-500 focus:ring-red-500/20"
-                  : "border-[var(--border)] hover:border-[var(--border-hover)] focus:ring-[var(--primary)] focus:border-[var(--primary)]"
-              }`}
-              required
-              name="password"
-              disabled={isLoading}
-              autoComplete="current-password"
-              aria-invalid={!!errors.password}
-              aria-describedby={errors.password ? "password-error" : undefined}
-            />
-
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-              disabled={isLoading}
-              aria-label={
-                showPassword
-                  ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD
-                  : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD
-              }
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center">
+              <label htmlFor="password" className="block text-sm font-medium text-[var(--foreground)]">
+                Пароль
+              </label>
+              <button
+                type="button"
+                className={`text-xs min-h-[2rem] inline-flex items-center cursor-pointer transition-colors rounded-lg px-2 -mx-2 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 ${
+                  isForgotPasswordLoading
+                    ? "text-[var(--muted-foreground)] cursor-not-allowed"
+                    : "text-[var(--chart-1)] hover:underline hover:bg-[var(--secondary)]"
+                }`}
+                disabled={isForgotPasswordLoading}
+                onClick={async () => {
+                  if (!form.email) return;
+                  setForgotPasswordSuccess(false);
+                  setForgotPasswordError(null);
+                  try {
+                    await forgotPasswordMutation({ email: form.email }).unwrap();
+                    setForgotPasswordSuccess(true);
+                    setForgotPasswordError(null);
+                  } catch (err: unknown) {
+                    const msg = (err as { data?: { message?: string } })?.data?.message;
+                    setForgotPasswordError(msg || "Не удалось отправить письмо");
+                    setForgotPasswordSuccess(false);
+                  }
+                }}
+              >
+                {isForgotPasswordLoading ? MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD_SENDING : MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD}
+              </button>
+            </div>
+            <div className="relative">
+              <Lock
+                className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                  errors.password ? "text-red-500" : "text-[var(--muted-foreground)]"
+                }`}
+              />
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder={MESSAGES.UI_ELEMENTS.PASSWORD_PLACEHOLDER}
+                value={form.password}
+                onChange={handleChange("password")}
+                onBlur={handleBlur("password")}
+                className={`${inputBase} pr-11 ${errors.password ? inputError : inputNormal}`}
+                required
+                name="password"
+                disabled={isLoading}
+                autoComplete="current-password"
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? "password-error" : undefined}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/20"
+                disabled={isLoading}
+                aria-label={showPassword ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            {errors.password && (
+              <p id="password-error" className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
+                <span className="w-1 h-1 bg-red-500 rounded-full" />
+                {errors.password}
+              </p>
+            )}
           </div>
-          {errors.password && (
-            <p id="password-error" className="text-xs text-red-500 flex items-center gap-1">
-              <span className="w-1 h-1 bg-red-500 rounded-full"></span>
-              {errors.password}
-            </p>
-          )}
+
+          <button
+            type="submit"
+            disabled={!isFormValid() || isLoading}
+            className="w-full py-3.5 rounded-xl font-semibold text-white bg-[var(--chart-1)] hover:opacity-95 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-[var(--chart-1)]/25 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                {MESSAGES.UI_ELEMENTS.LOADING}
+              </span>
+            ) : (
+              MESSAGES.UI_ELEMENTS.LOGIN
+            )}
+          </button>
+        </form>
+
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-[var(--border)]" />
+          <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+            {MESSAGES.UI_ELEMENTS.OR}
+          </span>
+          <div className="flex-1 h-px bg-[var(--border)]" />
         </div>
 
-        <button
-          type="submit"
-          disabled={!isFormValid() || isLoading}
-          className="w-full py-3 bg-[var(--chart-1)]/90 text-white rounded-lg font-medium hover:bg-[var(--chart-1)] transition-all duration-300 disabled:opacity-50 disabled:bg-[var(--muted)] disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
-        >
-          {isLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              {MESSAGES.UI_ELEMENTS.LOADING}
-            </span>
-          ) : (
-            MESSAGES.UI_ELEMENTS.LOGIN
-          )}
-        </button>
-      </form>
-
-      {/* Разделитель */}
-      <div className="px-6 py-2 flex items-center">
-        <div className="flex-grow border-t border-[var(--border)]"></div>
-
-        <span className="flex-shrink mx-4 text-xs text-[var(--muted-foreground)]">
-          {MESSAGES.UI_ELEMENTS.OR}
-        </span>
-        <div className="flex-grow border-t border-[var(--border)]"></div>
-      </div>
-
-      {/* Кнопки авторизации — такой же размер, как кнопка «Войти» */}
-      <div className="px-6 py-4 space-y-3 relative">
         <div className="flex flex-col gap-3">
-          {/* Кнопка Яндекса */}
           <button
             type="button"
             onClick={() => {
               const clientId = "ffd24e1c16544069bc7a1e8c66316f37";
               const redirectUri = encodeURIComponent("https://tomilo-lib.ru/auth/yandex");
-              const authUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
-              window.location.href = authUrl;
+              window.location.href = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
             }}
-            className="w-full py-3 bg-[#ff0000] hover:bg-[#ff0000]/90 text-[var(--primary)] font-medium rounded-lg transition-colors duration-200 flex items-center justify-center border border-gray-600"
+            className="w-full py-3.5 rounded-xl font-medium border border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--muted)] hover:border-[var(--muted-foreground)]/30 transition-colors flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2 focus:ring-offset-[var(--background)] min-h-[3rem]"
             title="Войти через Я.ID"
           >
-            Яндекс.ID
+            <span className="text-[#FC3F1D] font-bold text-lg">Я</span>
+            <span>Яндекс.ID</span>
           </button>
-
-          {/* Кнопка VK ID */}
           <button
             type="button"
             onClick={() => void redirectToVkAuth()}
-            className="w-full py-3 bg-[#0077FF] hover:bg-[#0066DD] text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center border border-[#0066CC]"
+            className="w-full py-3.5 rounded-xl font-medium bg-[#0077FF] hover:bg-[#0066DD] text-white transition-colors flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-[#0077FF]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)] min-h-[3rem]"
             title="Войти через VK ID"
           >
-            VK ID
+            <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.408 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.864-.525-2.05-1.727-1.033-1-1.49-1.135-1.744-1.135-.356 0-.458.102-.458.593v1.575c0 .424-.135.678-1.253.678-1.846 0-3.896-1.118-5.335-3.202C4.624 10.857 4.03 8.57 4.03 8.096c0-.254.102-.491.593-.491h1.744c.44 0 .61.203.78.678.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.721c-.068-1.186-.695-1.287-.695-1.71 0-.203.17-.407.44-.407h2.744c.373 0 .508.203.508.643v3.473c0 .372.17.508.271.508.22 0 .407-.136.813-.542 1.254-1.406 2.151-3.574 2.151-3.574.119-.254.322-.491.763-.491h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.779 1.203 1.253.745.847 1.32 1.558 1.473 2.049.17.49-.085.744-.576.744z" />
+            </svg>
+            <span>VK ID</span>
           </button>
         </div>
-      </div>
 
-      <div className="p-6 border-t border-[var(--border)] text-center">
-        <p className="text-sm text-[var(--muted-foreground)]">
-          {MESSAGES.UI_ELEMENTS.ALREADY_HAVE_ACCOUNT}{" "}
-          <button
-            type="button"
-            onClick={onSwitchToRegister}
-            className="cursor-pointer text-[var(--primary)] hover:underline font-medium disabled:opacity-50 transition-colors"
-            // disabled={isLoading}
-          >
-            {MESSAGES.UI_ELEMENTS.REGISTER}
-          </button>
-        </p>
+        <div className="pt-4 border-t border-[var(--border)] text-center">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            {MESSAGES.UI_ELEMENTS.NO_ACCOUNT}{" "}
+            <button
+              type="button"
+              onClick={onSwitchToRegister}
+              className="text-[var(--chart-1)] font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2 focus:ring-offset-[var(--background)] rounded px-1 -mx-1"
+            >
+              {MESSAGES.UI_ELEMENTS.REGISTER}
+            </button>
+          </p>
+        </div>
       </div>
     </Modal>
   );

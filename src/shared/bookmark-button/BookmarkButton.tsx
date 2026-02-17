@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { normalizeBookmarks } from "@/lib/bookmarks";
-import { Bookmark, ChevronDown } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import type { BookmarkCategory } from "@/types/user";
 
 const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
@@ -145,7 +145,6 @@ export function BookmarkButton({
               <>
                 <Bookmark className="w-4 h-4" fill="none" />
                 <p className="hidden lg:block">В закладки</p>
-                <ChevronDown className={`w-4 h-4 lg:ml-0.5 transition-transform ${categoryOpen ? "rotate-180" : ""}`} />
               </>
             )}
           </button>

@@ -67,7 +67,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, "")
       : `Читать ${titleName} онлайн на Tomilo-lib.ru. ${titleData.genres?.join(", ")}`;
 
-    const ogImageUrl = getOgImageUrl(baseUrl, titleData.coverImage);
+    // Базовый URL для картинок: если обложки отдаются с API — crawler должен получать абсолютный URL с того же хоста
+    const imageBaseUrl =
+      process.env.NEXT_PUBLIC_IMAGE_URL ||
+      (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/?$/, "") ||
+      baseUrl;
+    const coverImage =
+      titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
+    const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
     // Формируем расширенные метаданные (всегда одно изображение для превью в мессенджерах)
     const metadata: Metadata = {
       title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
@@ -114,7 +121,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             url: ogImageUrl,
             width: 1200,
             height: 630,
-            alt: titleData.coverImage ? `${titleName} - обложка` : "Tomilo-lib — читать онлайн",
+            alt: coverImage ? `${titleName} - обложка` : "Tomilo-lib — читать онлайн",
           },
         ],
       },

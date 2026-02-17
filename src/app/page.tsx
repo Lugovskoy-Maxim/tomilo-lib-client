@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { HomePage } from "@/widgets";
+import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 
 // Функция для генерации SEO метаданных
 export async function generateMetadata(): Promise<Metadata> {
@@ -7,6 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = "Tomilo-lib.ru — Манга, манхва и маньхуа читать онлайн бесплатно";
   const description =
     "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, удобный ридер, закладки и история чтения. Регулярные обновления, каталог по жанрам и коллекции.";
+  const ogImageUrl = getDefaultOgImageUrl(baseUrl);
 
   return {
     title,
@@ -37,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: "ru_RU",
       images: [
         {
-          url: `${baseUrl}/logo/tomilo_color.svg`,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: "Tomilo-lib — манга, манхва, маньхуа онлайн",
@@ -48,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary_large_image",
       title,
       description,
-      images: [`${baseUrl}/logo/tomilo_color.svg`],
+      images: [ogImageUrl],
       creator: "@tomilo_lib",
       site: "@tomilo_lib",
     },

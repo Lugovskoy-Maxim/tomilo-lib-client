@@ -2,6 +2,7 @@ import { Share, Edit, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Title, Chapter } from "@/types/title";
+import type { ReadingHistoryEntry } from "@/types/store";
 import { ReadButton } from "@/shared/browse/ReadButton";
 import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +13,7 @@ import { ReportModal } from "@/shared/report/ReportModal";
 interface MobileCoverProps {
   titleData: Title;
   chapters: Chapter[];
+  readingHistory?: ReadingHistoryEntry | null;
   onShare: () => void;
   isAdmin: boolean;
   onAgeVerificationRequired: () => void;
@@ -21,6 +23,7 @@ interface MobileCoverProps {
 export default function MobileCover({
   titleData,
   chapters,
+  readingHistory,
   onShare,
   isAdmin,
   onAgeVerificationRequired,
@@ -34,72 +37,71 @@ export default function MobileCover({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   return (
-    <div className="lg:hidden mt-2 mb-6 overflow-hidden">
-      <div className="flex relative w-full max-w-[300px] sm:max-w-[320px] justify-center items-center mx-auto rounded-xl overflow-hidden shadow-2xl">
-        {titleData?.coverImage ? (
-          <Image
-            src={`${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`}
-            alt={titleData?.name}
-            width={300}
-            height={450}
-            unoptimized={true}
-            className={`object-cover w-full h-auto rounded-xl ${shouldBlurImage ? "blur-sm" : ""}`}
-            priority
-            sizes="(max-width: 640px) 90vw, (max-width: 768px) 50vw, 300px"
-            style={{ aspectRatio: "2/3" }}
-          />
-        ) : (
-          <div
-            className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-auto"
-            style={{ aspectRatio: "2/3" }}
-          />
-        )}
+    <div className="lg:hidden mt-2 mb-6">
+      {/* Обложка */}
+      <div className="relative w-full max-w-[260px] sm:max-w-[280px] mx-auto overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-lg ring-1 ring-[var(--border)]/50">
+        <div className="aspect-[2/3] w-full">
+          {titleData?.coverImage ? (
+            <Image
+              src={`${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`}
+              alt={titleData?.name}
+              width={300}
+              height={450}
+              unoptimized={true}
+              className={`object-cover w-full h-full ${shouldBlurImage ? "blur-sm" : ""}`}
+              priority
+              sizes="(max-width: 640px) 90vw, 280px"
+            />
+          ) : (
+            <div className="w-full h-full bg-[var(--secondary)] border-2 border-dashed border-[var(--border)]" />
+          )}
+        </div>
       </div>
 
-      {/* Admin ID display */}
       {isAdmin && (
-        <div className="text-center mt-2">
-          <p className="text-sm text-[var(--muted-foreground)]">ID: {titleData._id}</p>
-        </div>
+        <p className="text-center mt-2 text-xs text-[var(--muted-foreground)]">ID: {titleData._id}</p>
       )}
 
-      {/* Мобильные кнопки действий */}
-      <div className="flex justify-center gap-2 mt-4 rounded-xl">
+      {/* Кнопки действий */}
+      <div className="flex flex-wrap justify-center gap-2 mt-4 min-w-0">
         <ReadButton
           titleData={titleData}
           chapters={chapters}
-          className="flex-1 text-sm"
+          readingHistory={readingHistory ?? undefined}
+          className="flex-1 min-w-[120px] rounded-xl py-3 font-semibold shadow-md"
           onAgeVerificationRequired={onAgeVerificationRequired}
         />
-        <BookmarkButton titleId={titleData._id as string} initialBookmarked={false} />
+        <div className="shrink-0">
+          <BookmarkButton
+            titleId={titleData._id as string}
+            initialBookmarked={false}
+            className="!p-0 w-12 h-12 min-w-[48px] rounded-xl flex items-center justify-center"
+          />
+        </div>
         <button
           onClick={() => setIsReportModalOpen(true)}
-          className="p-4 bg-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/80 transition-colors"
+          className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]/80 text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
           aria-label="Сообщить о проблеме"
         >
-          <AlertTriangle className="w-4 h-4 text-[var(--foreground)]" />
+          <AlertTriangle className="w-5 h-5" />
         </button>
         <button
           onClick={onShare}
-          className="p-4 bg-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/80 transition-colors"
+          className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]/80 text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
           aria-label="Поделиться"
         >
-          <Share className="w-4 h-4 text-[var(--foreground)]" />
+          <Share className="w-5 h-5" />
         </button>
         {isAdmin && (
           <Link
             href={`/admin/titles/edit/${titleData._id}`}
-            className="p-3 bg-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/80 transition-colors"
+            className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]/80 hover:bg-[var(--secondary)] transition-colors"
             aria-label="Редактировать"
           >
             <Edit className="w-5 h-5 text-[var(--foreground)]" />
           </Link>
         )}
       </div>
-      {/* Название тайтла в мобильной версии */}
-      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-3 p-2 text-center break-words">
-        {titleData?.name}
-      </h1>
 
       {/* Report Modal */}
       <ReportModal

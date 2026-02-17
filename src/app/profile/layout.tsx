@@ -10,6 +10,7 @@ import { Footer, Header } from "@/widgets";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { UserProfile } from "@/types/user";
 import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";
+import { ProfileNav } from "@/shared/profile-tabs/ProfileNav";
 import ProfileCover from "@/shared/profile/ProfileCover";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
 import ProfileEditForm from "@/shared/profile/ProfileEditForm";
@@ -70,15 +71,21 @@ export default function ProfileLayout({
   ) : (
     <ProfileProvider value={profileContextValue}>
       <ProfileCover userProfile={userProfile} />
-      <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden">
+      <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-7xl min-w-0 overflow-x-hidden">
         <ProfileHeader />
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 sm:gap-6 lg:gap-8 items-start">
-          <ProfileSidebar
-            userProfile={userProfile}
-            onEdit={() => setIsEditing(true)}
-            onAvatarUpdate={handleAvatarUpdate}
-          />
-          <div className="min-w-0">
+        <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 xl:gap-8 items-stretch xl:items-start">
+          {/* На больших экранах: одна левая колонка — карточка профиля и навигация */}
+          <aside className="xl:w-72 xl:shrink-0 xl:flex xl:flex-col xl:gap-6 xl:sticky xl:top-4">
+            <ProfileSidebar
+              userProfile={userProfile}
+              onEdit={() => setIsEditing(true)}
+              onAvatarUpdate={handleAvatarUpdate}
+            />
+            <div className="hidden xl:block">
+              <ProfileNav />
+            </div>
+          </aside>
+          <div className="flex-1 min-w-0 w-full">
             <ProfileTabs userProfile={userProfile} />
           </div>
         </div>

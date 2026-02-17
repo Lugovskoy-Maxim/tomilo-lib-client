@@ -2,7 +2,7 @@
 
 import { Footer, Header } from "@/widgets";
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
@@ -16,13 +16,15 @@ import { LeftSidebar } from "@/shared/browse/title-view/LeftSidebar";
 import { RightContent } from "@/shared/browse/title-view/RightContent";
 import { AgeVerificationModal } from "@/shared/modal/AgeVerificationModal";
 import { ReportModal } from "@/shared/report/ReportModal";
+import { ArrowUpToLine } from "lucide-react";
 
 export default function TitleView({ slug: slugProp }: { slug: string }) {
   const params = useParams();
   const slug = (typeof params?.slug === "string" ? params.slug : slugProp) ?? slugProp;
-  const { user } = useAuth();
+  const { user, useGetReadingHistoryByTitle } = useAuth();
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [reportModalData, setReportModalData] = useState<{
     entityType: "title" | "chapter";
     entityId: string;
@@ -42,6 +44,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
   );
 
   const titleId = titleData?._id as string;
+  const { data: readingHistoryByTitle } = useGetReadingHistoryByTitle(titleId);
 
   // RTK Query hooks - загружаем все главы сразу
   const [searchQuery, setSearchQuery] = useState("");
@@ -190,8 +193,50 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     });
   }, [chaptersData, chaptersDataPage2, chaptersDataPage3, chaptersDataPage4, chaptersDataPage5]);
 
-  // Состояние для активной вкладки
-  const [activeTab, setActiveTab] = useState<"main" | "chapters" | "comments">("chapters");
+  // Главы для ReadButton: без дубликатов, asc (для корректного определения первой/следующей главы)
+  const chaptersForReadButton = useMemo(() => {
+    const all = [
+      ...(allChaptersData?.chapters || []),
+      ...(allChaptersDataPage2?.chapters || []),
+      ...(allChaptersDataPage3?.chapters || []),
+      ...(allChaptersDataPage4?.chapters || []),
+      ...(allChaptersDataPage5?.chapters || []),
+    ];
+    const seen = new Set<string>();
+    return all
+      .filter(ch => {
+        const id = (ch._id ?? "") as string;
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      })
+      .sort((a, b) => (a.chapterNumber ?? 0) - (b.chapterNumber ?? 0));
+  }, [allChaptersData, allChaptersDataPage2, allChaptersDataPage3, allChaptersDataPage4, allChaptersDataPage5]);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = `/titles/${slug}`;
+
+  const TITLE_TABS = ["main", "chapters", "comments"] as const;
+  type TitleTab = (typeof TITLE_TABS)[number];
+  const isValidTab = (t: string | null): t is TitleTab => Boolean(t && TITLE_TABS.includes(t as TitleTab));
+
+  const tabFromUrl = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<TitleTab>(isValidTab(tabFromUrl) ? tabFromUrl : "chapters");
+
+  // Синхронизация вкладки с URL (как в админ-панели)
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (isValidTab(t)) setActiveTab(t);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t === activeTab) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", activeTab);
+    router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
+  }, [activeTab, pathname, router, searchParams]);
 
   // Состояние для раскрытого описания
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -205,6 +250,13 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
       incrementViews(titleId);
     }
   }, [titleId, incrementViews]);
+
+  // Кнопка «Наверх» — показывать при прокрутке вниз
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Обработчик поиска глав
   const handleSearchChange = (query: string) => {
@@ -235,8 +287,8 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
       <main className="relative min-h-screen">
         <div className="fixed inset-0 -z-5 bg-[var(--background)]" />
         <Header />
-        <div className="container mx-auto px-4 lg:py-8 pb-20">
-          <div className="max-w-7xl mx-auto title-page-container p-6 lg:p-8">
+        <div className="container mx-auto px-4 sm:px-5 lg:py-8 pb-20">
+          <div className="max-w-6xl mx-auto p-5 sm:p-6 lg:p-8">
             {/* Skeleton для обложки и информации */}
             <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
               {/* Skeleton для обложки */}
@@ -351,20 +403,17 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     : null;
 
   return (
-    <main className="relative min-h-screen">
-      {/* Заблюренный фон обложки на весь экран - только в темной теме */}
+    <main className="relative min-h-screen bg-[var(--background)]">
+      {/* Hero background: обложка + градиент для читаемости */}
       {coverImageUrl && (
-        <div
-          className="fixed inset-0 -z-10 data-[theme=dark]:opacity-40 data-[theme=dark]:blur-xl data-[theme=dark]:bg-cover data-[theme=dark]:bg-center pointer-events-none"
-          style={{
-            backgroundImage: `url(${coverImageUrl})`,
-          }}
-          data-theme="dark"
-        />
+        <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden>
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.12] [@media(prefers-color-scheme:dark)]:opacity-20 blur-2xl scale-105"
+            style={{ backgroundImage: `url(${coverImageUrl})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/60 via-[var(--background)]/85 to-[var(--background)]" />
+        </div>
       )}
-
-      {/* Градиент для лучшей читаемости контента */}
-      <div className="fixed inset-0 -z-5 bg-gradient-to-b from-[var(--background)]/70 via-[var(--background)]/40 to-[var(--background)] pointer-events-none" />
 
       {/* Микроразметка BreadcrumbList в формате JSON-LD */}
       <script
@@ -495,8 +544,8 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
         }}
       />
       <Header />
-      <div className="container mx-auto px-4 pb-20">
-        <div className="max-w-7xl mx-auto pt-8">
+      <div className="container mx-auto px-4 sm:px-5 pb-24 md:pb-20">
+        <div className="max-w-6xl mx-auto pt-6 sm:pt-8">
           <Breadcrumbs
             items={[
               { name: "Главная", href: "/" },
@@ -505,37 +554,25 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
             ]}
           />
         </div>
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-6xl mx-auto mt-4 sm:mt-6">
           <MobileCover
             titleData={titleData}
-            chapters={[
-              ...(allChaptersData?.chapters || []),
-              ...(allChaptersDataPage2?.chapters || []),
-              ...(allChaptersDataPage3?.chapters || []),
-              ...(allChaptersDataPage4?.chapters || []),
-              ...(allChaptersDataPage5?.chapters || []),
-              ...processedChaptersData,
-            ]}
+            chapters={chaptersForReadButton}
+            readingHistory={readingHistoryByTitle?.data}
             onShare={handleShare}
             isAdmin={displayIsAdmin}
             onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
             onTabChange={setActiveTab}
           />
 
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
-            {/* Десктопная версия - sticky обложка слева */}
-            <div className="hidden lg:block lg:w-1/4 pt-8">
-              <div className="sticky top-24">
+          <div className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-10">
+            {/* Десктоп: обложка и действия слева (прокручиваются вместе со страницей) */}
+            <div className="hidden lg:block lg:w-[280px] xl:w-[300px] shrink-0">
+              <div className="space-y-6">
                 <LeftSidebar
                   titleData={titleData}
-                  chapters={[
-                    ...(allChaptersData?.chapters || []),
-                    ...(allChaptersDataPage2?.chapters || []),
-                    ...(allChaptersDataPage3?.chapters || []),
-                    ...(allChaptersDataPage4?.chapters || []),
-                    ...(allChaptersDataPage5?.chapters || []),
-                    ...processedChaptersData,
-                  ]}
+                  chapters={chaptersForReadButton}
+                  readingHistory={readingHistoryByTitle?.data}
                   onShare={handleShare}
                   isAdmin={displayIsAdmin}
                   onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
@@ -547,8 +584,9 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
               </div>
             </div>
 
-            <div className="w-full lg:w-3/4">
-              <RightContent
+            <div className="w-full min-w-0 lg:flex-1">
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-sm shadow-sm p-5 sm:p-6 lg:p-8">
+                <RightContent
                 titleData={titleData}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
@@ -568,11 +606,23 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
                 basePath="/titles"
                 slug={titleData.slug}
               />
+              </div>
             </div>
           </div>
         </div>
       </div>
       <Footer />
+
+      {/* Кнопка «Наверх» */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-24 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--chart-1)] text-white shadow-lg shadow-[var(--chart-1)]/30 hover:bg-[var(--chart-1)]/90 hover:shadow-xl transition-all duration-200 md:bottom-8 md:right-8"
+          aria-label="Прокрутить наверх"
+        >
+          <ArrowUpToLine className="h-5 w-5" />
+        </button>
+      )}
 
       {/* Модальное окно для подтверждения возраста */}
       {isAgeModalOpen && (

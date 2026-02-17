@@ -119,6 +119,7 @@ export function ReadButton({
 
   // Определяем текст кнопки
   let buttonText = "С первой главы";
+  let buttonTextShort = "Читать";
   let showIcon = true;
 
   // Если есть продолжение чтения для этого тайтла
@@ -137,8 +138,10 @@ export function ReadButton({
   ) {
     if (nextChapter) {
       buttonText = `Продолжить с главы ${nextChapter.chapterNumber}`;
+      buttonTextShort = "Продолжить";
     } else {
       buttonText = "Продолжить чтение";
+      buttonTextShort = "Продолжить";
     }
     showIcon = false;
   }
@@ -158,18 +161,20 @@ export function ReadButton({
 
   // Для предотвращения гидрационной ошибки, показываем одинаковый контент на сервере и клиенте
   const displayButtonText = isClient ? buttonText : "С первой главы";
+  const displayButtonTextShort = isClient ? buttonTextShort : "Читать";
   const displayShowIcon = isClient ? showIcon : true;
 
   return (
     <>
       <Button
         variant="primary"
-        className={`w-full cursor-pointer rounded-xl hover:bg-[var(--chart-1)]/80 justify-center bg-[var(--chart-1)] text-[var(--foreground)] ${className}`}
+        className={`w-full cursor-pointer rounded-xl hover:bg-[var(--chart-1)]/80 justify-center bg-[var(--chart-1)] text-[var(--foreground)] whitespace-nowrap ${className}`}
         onClick={handleClick}
         disabled={isDisabled}
       >
-        {displayShowIcon && <Play className="mr-2 h-5 w-5" />}
-        {displayButtonText}
+        {displayShowIcon && <Play className="mr-2 h-5 w-5 shrink-0" />}
+        <span className="sm:hidden">{displayButtonTextShort}</span>
+        <span className="hidden sm:inline">{displayButtonText}</span>
       </Button>
     </>
   );

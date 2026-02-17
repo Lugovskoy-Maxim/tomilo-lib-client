@@ -33,8 +33,8 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate }: 
       : "дата скрыта";
 
   return (
-    <aside className="w-full lg:w-72 shrink-0">
-      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm sticky top-2 sm:top-4">
+    <aside className="w-full xl:w-auto xl:shrink-0">
+      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm sticky top-2 sm:top-4 xl:static">
         {/* Аватар по центру + смена аватара (только свой профиль) */}
         <div className="flex justify-center mb-4">
           <div className="relative">

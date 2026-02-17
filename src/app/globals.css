@@ -120,6 +120,12 @@ body {
 .admin-content-scroll {
   scroll-behavior: smooth;
 }
+
+/* Профиль — плавная прокрутка контента */
+.profile-content-scroll {
+  scroll-behavior: smooth;
+}
+
 /* Единые стили инпутов и селектов в админке */
 .admin-input {
   height: var(--admin-input-h);
@@ -1722,6 +1728,63 @@ textarea.admin-input {
 
 .animate-fade-in-scale {
   animation: fade-in-scale 0.2s ease-out forwards;
+}
+
+/* Modal overlay and content animations */
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-content-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modal-content-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+}
+
+.modal-backdrop {
+  animation: modal-backdrop-in 0.2s ease-out forwards;
+}
+
+.modal-backdrop.modal-closing {
+  animation: modal-backdrop-out 0.15s ease-in forwards;
+}
+
+.modal-content {
+  animation: modal-content-in 0.25s ease-out forwards;
+}
+
+.modal-content.modal-closing {
+  animation: modal-content-out 0.2s ease-in forwards;
 }
 
 /* Hover lift effect */

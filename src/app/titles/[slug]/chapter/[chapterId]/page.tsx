@@ -66,7 +66,13 @@ export async function generateMetadata({
       chapterTitle ? ` "${chapterTitle}"` : ""
     } онлайн. Манга, манхва, маньхуа, комиксы.`;
 
-    const ogImageUrl = getOgImageUrl(baseUrl, titleData.coverImage);
+    const imageBaseUrl =
+      process.env.NEXT_PUBLIC_IMAGE_URL ||
+      (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/?$/, "") ||
+      baseUrl;
+    const coverImage =
+      titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
+    const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
     const chapterUrl = `${baseUrl}/titles/${slug}/chapter/${chapterId}`;
 
     // Формируем метаданные (всегда передаём одно изображение для превью в мессенджерах)
@@ -100,7 +106,7 @@ export async function generateMetadata({
             url: ogImageUrl,
             width: 1200,
             height: 630,
-            alt: titleData.coverImage
+            alt: coverImage
               ? `${titleName} — глава ${chapterNumber}`
               : "Tomilo-lib — читать мангу, манхву, маньхуа",
           },

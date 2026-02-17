@@ -6,8 +6,14 @@ import { ToastProvider } from "@/contexts/ToastContext";
 
 import Script from "next/script";
 import { TelegramJoinNotification, ToastContainer } from "@/shared";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";
+
+/** Viewport без ограничения зума — жесты (пинч) работают; авто-зум при фокусе на инпутах убираем через font-size в CSS */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 /** Дефолтные метаданные для всего сайта — гарантируют, что роботы всегда видят осмысленный title */
 export const metadata: Metadata = {
