@@ -113,8 +113,24 @@ export function ReportsSection() {
   };
 
   const handleStatusChange = async (id: string, isResolved: boolean) => {
+    const report = reports.find(item => item._id === id);
+    let response: string | undefined;
+
+    if (isResolved && report?.reportType === ReportType.COMPLAINT) {
+      const initialResponse = report.response || report.reply || report.adminResponse || "";
+      const replyInput = prompt("Введите ответ на жалобу (будет отправлен инициатору):", initialResponse);
+      if (replyInput === null) return;
+
+      const trimmedReply = replyInput.trim();
+      if (!trimmedReply) {
+        toast.error("Ответ на жалобу не может быть пустым");
+        return;
+      }
+      response = trimmedReply;
+    }
+
     try {
-      await updateReportStatus({ id, data: { isResolved } }).unwrap();
+      await updateReportStatus({ id, data: { isResolved, response } }).unwrap();
       toast.success(`Жалоба ${isResolved ? "закрыта" : "открыта"} успешно`);
       refetch();
     } catch (e) {
@@ -281,6 +297,14 @@ export function ReportsSection() {
               </div>
 
               <p className="mt-3 text-sm text-[var(--foreground)] whitespace-pre-wrap">{report.content}</p>
+              {(report.response || report.reply || report.adminResponse) && (
+                <div className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--secondary)]/40 p-2.5">
+                  <p className="text-xs font-medium text-[var(--muted-foreground)]">Ответ администратора</p>
+                  <p className="mt-1 text-sm text-[var(--foreground)] whitespace-pre-wrap">
+                    {report.response || report.reply || report.adminResponse}
+                  </p>
+                </div>
+              )}
 
               <div className="mt-3 text-xs text-[var(--muted-foreground)]">
                 <div>Пользователь: {report.userId?.username || "Аноним"}</div>
@@ -344,6 +368,11 @@ export function ReportsSection() {
                   </td>
                   <td className="py-2.5 px-3">
                     <span className="text-[var(--foreground)] text-sm block">{report.content}</span>
+                    {(report.response || report.reply || report.adminResponse) && (
+                      <span className="text-xs text-[var(--muted-foreground)] mt-1 block">
+                        Ответ: {report.response || report.reply || report.adminResponse}
+                      </span>
+                    )}
                   </td>
                   <td className="py-2.5 px-3">
                     <span className="font-medium text-sm">{report.userId?.username || "Аноним"}</span>

@@ -121,6 +121,9 @@ export default function NotificationCard({
         return "bg-green-500";
       case "system":
         return "bg-orange-500";
+      case "report_response":
+      case "complaint_response":
+        return "bg-amber-500";
       default:
         return "bg-gray-500";
     }
@@ -136,6 +139,9 @@ export default function NotificationCard({
         return "Пользователь";
       case "system":
         return "Система";
+      case "report_response":
+      case "complaint_response":
+        return "Ответ на жалобу";
       default:
         return "Другое";
     }
@@ -210,6 +216,11 @@ export default function NotificationCard({
               >
                 {notification.message}
               </p>
+              {(notification.metadata?.reportResponse || notification.metadata?.response) && (
+                <p className="mt-2 text-sm text-[var(--foreground)]/80 line-clamp-3 whitespace-pre-wrap">
+                  Ответ: {notification.metadata.reportResponse || notification.metadata.response}
+                </p>
+              )}
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
                 <Clock className="w-3 h-3" />
                 <span>{new Date(notification.createdAt).toLocaleString("ru-RU", {

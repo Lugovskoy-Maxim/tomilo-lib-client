@@ -23,7 +23,13 @@ import { Notification } from "@/types/notifications";
 import LoginModal from "@/shared/modal/LoginModal";
 import RegisterModal from "@/shared/modal/RegisterModal";
 
-type NotificationFilter = "all" | "new_chapter" | "update" | "user" | "system";
+type NotificationFilter =
+  | "all"
+  | "new_chapter"
+  | "update"
+  | "user"
+  | "system"
+  | "report_response";
 
 const filterConfig = [
   { key: "all" as const, label: "Все", color: "bg-gray-500" },
@@ -31,6 +37,7 @@ const filterConfig = [
   { key: "update" as const, label: "Обновления", color: "bg-purple-500" },
   { key: "user" as const, label: "Пользователи", color: "bg-green-500" },
   { key: "system" as const, label: "Система", color: "bg-orange-500" },
+  { key: "report_response" as const, label: "Ответы на жалобы", color: "bg-amber-500" },
 ];
 
 export default function NotificationsPage() {
@@ -77,9 +84,18 @@ export default function NotificationsPage() {
 
   const filteredNotifications = useMemo(() => {
     return notifications.filter((notification: Notification) => {
-      if (activeFilter !== "all" && notification.type !== activeFilter) {
-        return false;
+      const isReportReplyType =
+        notification.type === "report_response" || notification.type === "complaint_response";
+
+      if (activeFilter !== "all") {
+        if (activeFilter === "report_response" && !isReportReplyType) {
+          return false;
+        }
+        if (activeFilter !== "report_response" && notification.type !== activeFilter) {
+          return false;
+        }
       }
+
       if (!showRead && notification.isRead) {
         return false;
       }
@@ -144,8 +160,13 @@ export default function NotificationsPage() {
       update: 0,
       user: 0,
       system: 0,
+      report_response: 0,
     };
     notifications.forEach(n => {
+      if (n.type === "complaint_response") {
+        counts.report_response++;
+        return;
+      }
       if (n.type in counts) {
         counts[n.type as keyof typeof counts]++;
       }

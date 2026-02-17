@@ -41,12 +41,24 @@ export interface NotificationChapter {
 export interface NotificationMetadata {
   chapterNumber?: number;
   titleName?: string;
+  reportId?: string;
+  reportType?: string;
+  reportResponse?: string;
+  response?: string;
 }
+
+export type NotificationType =
+  | "new_chapter"
+  | "update"
+  | "user"
+  | "system"
+  | "report_response"
+  | "complaint_response";
 
 export interface Notification {
   _id: string;
   userId: string;
-  type: "new_chapter" | "update" | "user" | "system";
+  type: NotificationType;
   title: string;
   message: string;
   isRead: boolean;
