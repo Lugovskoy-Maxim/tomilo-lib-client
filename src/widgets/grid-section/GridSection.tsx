@@ -18,6 +18,7 @@ interface GridSectionProps<T> {
     text: string;
     href: string;
   };
+  layout?: "fixed" | "auto-fit";
 }
 
 /**
@@ -34,6 +35,7 @@ export default function GridSection<T>({
   idField = "id" as keyof T,
   navigationIcon,
   descriptionLink,
+  layout = "fixed",
 }: GridSectionProps<T>) {
   const safeData = Array.isArray(data) ? data : [];
 
@@ -95,8 +97,14 @@ export default function GridSection<T>({
         </div>
       </div>
 
-      {/* Grid с карточками — единые отступы между карточками */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Grid с карточками — может быть фиксированным или auto-fit для редких данных */}
+      <div
+        className={`${
+          layout === "auto-fit"
+            ? "grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 max-w-5xl mx-auto"
+            : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        }`}
+      >
         {safeData.length > 0 ? (
           safeData.map(item => (
             <div
@@ -109,7 +117,7 @@ export default function GridSection<T>({
             </div>
           ))
         ) : (
-          <div className="col-span-3 flex justify-center items-center h-32 text-[var(--muted-foreground)]">
+          <div className="col-span-full flex justify-center items-center h-32 text-[var(--muted-foreground)]">
             Нет обновлений
           </div>
         )}

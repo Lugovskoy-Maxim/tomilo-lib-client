@@ -165,6 +165,7 @@ export default function HomePage() {
             icon={<Clock className="w-6 h-6" />}
             data={latestUpdates.data}
             cardComponent={LatestUpdateCard}
+            layout="auto-fit"
           />
         ) : null}
 
