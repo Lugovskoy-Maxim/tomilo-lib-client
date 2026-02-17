@@ -83,9 +83,8 @@ export default function HomePage() {
         <Header />
         <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full">
           <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52" variant="poster" />
-          <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56" variant="poster" />
-          <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56" variant="poster" />
-          <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56" variant="poster" />
+          <GridSkeleton showTitle variant="updates" />
+          <GridSkeleton showTitle variant="updates" />
           <div className="w-full">
             <TopCombinedSkeleton />
           </div>
@@ -119,41 +118,71 @@ export default function HomePage() {
         />
 
         {/* В тренде на этой неделе */}
+        {trendingTitles.loading ? (
+          <GridSkeleton showTitle variant="updates" />
+        ) : trendingTitles.error ? (
+          <SectionLoadError sectionTitle="В тренде на этой неделе" />
+        ) : (
+          <GridSection
+            title="В тренде на этой неделе"
+            description="Тайтлы, которые набрали больше всего внимания за последние 7 дней."
+            type="browse"
+            icon={<Flame className="w-6 h-6" />}
+            data={trendingTitles.data.slice(0, 6)}
+            cardComponent={TrendingCard}
+          />
+        )}
+
+        {/* Рекламный блок */}
+        <AdBlock />
+
+        {/* Продолжить чтение */}
         <DataCarousel
-          title="В тренде на этой неделе"
-          data={trendingTitles.data}
-          loading={trendingTitles.loading}
-          error={trendingTitles.error}
-          cardComponent={TrendingCard}
+          title="Продолжить чтение"
+          data={readingProgress.data}
+          loading={readingProgress.loading}
+          error={readingProgress.error}
+          cardComponent={ReadingCard}
+          description="Это главы, которые вы ещё не прочитали. Данный список генерируется на основании вашей истории чтения."
           type="browse"
-          icon={<Flame className="w-6 h-6" />}
+          icon={<BookOpen className="w-6 h-6" />}
           navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-          cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
-          getItemPath={(item: any) => getTitlePath(item)}
-          skeletonVariant="poster"
+          descriptionLink={{ text: "истории чтения", href: "/profile" }}
+          showNavigation={false}
+          cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
+          skeletonVariant="reading"
         />
+
+        {/* Последние обновления */}
+        {latestUpdates.loading ? (
+          <GridSkeleton variant="updates" />
+        ) : latestUpdates.error ? null : Array.isArray(latestUpdates.data) && latestUpdates.data.length > 0 ? (
+          <GridSection
+            title="Последние обновления"
+            description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."
+            type="browse"
+            href="/updates"
+            icon={<Clock className="w-6 h-6" />}
+            data={latestUpdates.data}
+            cardComponent={LatestUpdateCard}
+          />
+        ) : null}
 
         {/* Недооцененные: высокий рейтинг, мало просмотров */}
-        <DataCarousel
-          title="Недооцененные: высокий рейтинг, мало просмотров"
-          data={underratedTitles.data}
-          loading={underratedTitles.loading}
-          error={underratedTitles.error}
-          cardComponent={UnderratedCard}
-          type="browse"
-          icon={<Gem className="w-6 h-6" />}
-          navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-          cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
-          getItemPath={(item: any) => getTitlePath(item)}
-          skeletonVariant="poster"
-        />
-
-        {/* Случайные тайтлы */}
-        <RandomTitlesComponent
-          data={randomTitles.data}
-          loading={randomTitles.loading}
-          error={randomTitles.error}
-        />
+        {underratedTitles.loading ? (
+          <GridSkeleton showTitle variant="updates" />
+        ) : underratedTitles.error ? (
+          <SectionLoadError sectionTitle="Недооцененные: высокий рейтинг, мало просмотров" />
+        ) : (
+          <GridSection
+            title="Недооцененные: высокий рейтинг, мало просмотров"
+            description="Качественные тайтлы, которые получили высокий рейтинг, но пока не набрали много просмотров."
+            type="browse"
+            icon={<Gem className="w-6 h-6" />}
+            data={underratedTitles.data.slice(0, 6)}
+            cardComponent={UnderratedCard}
+          />
+        )}
 
         {/* Объединенная секция топ манхв, маньхуа и новинок 2026 */}
         <div className="w-full">
@@ -202,11 +231,15 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Рекламный блок */}
-        <AdBlock />
-
         {/* Рекомендации (только для авторизованных) */}
         {isAuthenticated && <Recommendations limit={10} />}
+
+        {/* Случайные тайтлы */}
+        <RandomTitlesComponent
+          data={randomTitles.data}
+          loading={randomTitles.loading}
+          error={randomTitles.error}
+        />
 
         {/* Коллекции */}
         <DataCarousel
@@ -226,37 +259,6 @@ export default function HomePage() {
         />
 
 
-        {/* Продолжить чтение */}
-        <DataCarousel
-          title="Продолжить чтение"
-          data={readingProgress.data}
-          loading={readingProgress.loading}
-          error={readingProgress.error}
-          cardComponent={ReadingCard}
-          description="Это главы, которые вы ещё не прочитали. Данный список генерируется на основании вашей истории чтения."
-          type="browse"
-          icon={<BookOpen className="w-6 h-6" />}
-          navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-          descriptionLink={{ text: "истории чтения", href: "/profile" }}
-          showNavigation={false}
-          cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
-          skeletonVariant="reading"
-        />
-
-        {/* Последние обновления */}
-        {latestUpdates.loading ? (
-          <GridSkeleton variant="updates" />
-        ) : latestUpdates.error ? null : Array.isArray(latestUpdates.data) && latestUpdates.data.length > 0 ? (
-          <GridSection
-            title="Последние обновления"
-            description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."
-            type="browse"
-            href="/updates"
-            icon={<Clock className="w-6 h-6" />}
-            data={latestUpdates.data}
-            cardComponent={LatestUpdateCard}
-          />
-        ) : null}
       </main>
       <Footer />
     </>

@@ -97,58 +97,54 @@ export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
 
   const cardContent = (
     <>
-      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft h-full flex flex-col">
-        <div className="relative overflow-hidden flex-shrink-0 aspect-[2/3] w-full bg-[var(--muted)]">
-          <img
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full rounded-t-xl object-cover object-center card-media-hover`}
-            src={imageSrc}
-            alt={data.title}
-            loading="lazy"
-            decoding="async"
-            fetchPriority="low"
-            draggable={false}
-          />
-
-          <div className="absolute top-2 left-2 z-10">
-            <div className="bg-orange-500/80 backdrop-blur-md text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg border border-orange-300/35 flex items-center gap-1">
-              <Flame className="w-3 h-3" />
-              <span>+{formatViews(trendValue)}</span>
-            </div>
-          </div>
-
-          <div className="absolute top-2 right-2 z-10">
-            <div className="bg-black/55 backdrop-blur-md px-2 py-1 rounded-md flex items-center gap-1 text-xs font-semibold text-amber-300 shadow-lg border border-amber-400/40">
-              <Star className="w-3 h-3 fill-current" />
-              <span>{formatRating(data.rating)}</span>
-            </div>
-          </div>
-
-          {isAdultContent && (
-            <div className="absolute bottom-2 right-2 z-10">
-              <div className="bg-red-500/35 backdrop-blur-sm text-red-100 border border-red-400/45 px-2 py-0.5 rounded-md text-[10px] font-bold">
-                18+
+      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft p-2 sm:p-2.5">
+        <div className="flex gap-3 min-w-0">
+          <div className="relative w-20 sm:w-24 aspect-[2/3] overflow-hidden rounded-lg bg-[var(--muted)] shrink-0">
+            <img
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center card-media-hover`}
+              src={imageSrc}
+              alt={data.title}
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+              draggable={false}
+            />
+            {isAdultContent && (
+              <div className="absolute top-1.5 right-1.5 z-10">
+                <div className="bg-red-500/40 backdrop-blur-sm text-red-100 border border-red-400/45 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                  18+
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="absolute bottom-0 left-0 right-0 z-10 p-2 bg-gradient-to-t from-black/80 to-transparent">
-            <div className="flex justify-between items-center gap-2 min-w-0">
-              <span className="bg-black/50 backdrop-blur-md text-amber-50 px-2 py-0.5 rounded-md text-xs font-medium border border-amber-400/25 truncate min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col">
+            <div className="flex items-center justify-between gap-2 text-[11px] mb-2">
+              <span className="inline-flex items-center rounded-md border border-orange-500/35 bg-orange-500/10 px-2 py-0.5 text-orange-300 truncate">
                 {translateTitleType(data.type)}
               </span>
-              <span className="text-xs font-medium text-slate-100 bg-black/45 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/15">
+              <span className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--muted)] px-2 py-0.5 text-[var(--muted-foreground)] shrink-0">
                 {data.year}
               </span>
             </div>
-          </div>
-        </div>
 
-        <div className="p-3 bg-[var(--card)] rounded-b-xl flex flex-col min-h-[5.5rem]">
-          <h3
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-orange-500 transition-colors duration-300 min-h-[2.5rem] flex-1`}
-          >
-            {data.title}
-          </h3>
+            <h3
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-orange-500 transition-colors duration-300 min-h-[2.5rem]`}
+            >
+              {data.title}
+            </h3>
+
+            <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-1 rounded-md border border-orange-500/35 bg-orange-500/10 px-2 py-1 text-xs font-medium text-orange-300 min-w-0">
+                <Flame className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">+{formatViews(trendValue)}</span>
+              </div>
+              <div className="inline-flex items-center gap-1 rounded-md border border-amber-400/40 bg-black/35 px-2 py-1 text-xs font-semibold text-amber-300 shrink-0">
+                <Star className="w-3.5 h-3.5 fill-current" />
+                <span>{formatRating(data.rating)}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

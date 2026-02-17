@@ -32,6 +32,7 @@ const HEADER_DROPDOWN_ITEMS = [
 
 export default function Header() {
   const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith("/admin");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileMenuReady, setIsMobileMenuReady] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -96,16 +97,18 @@ export default function Header() {
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-3 relative z-10">
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Кнопка меню только на мобильных */}
-          <div className="lg:hidden">
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="header-icon-btn"
-              aria-label="Открыть меню"
-            >
-              <Menu className="w-5 h-5 text-[var(--muted-foreground)]" />
-            </button>
-          </div>
+          {!isAdminRoute && (
+            <div className="lg:hidden">
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="header-icon-btn"
+                aria-label="Открыть меню"
+              >
+                <Menu className="w-5 h-5 text-[var(--muted-foreground)]" />
+              </button>
+            </div>
+          )}
           <div className="flex items-center hover-lift rounded-xl -m-2 p-2">
             <Logo />
           </div>
