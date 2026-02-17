@@ -11,8 +11,11 @@ import {
   Send,
   Info,
   FileText,
+  X,
+  Rss,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Logo } from "@/shared";
 
 const FOOTER_NAV = [
@@ -28,14 +31,29 @@ const MOBILE_MENU_ITEMS = [
   { href: "/contact", label: "Контакты", icon: Mail },
   { href: "/copyright", label: "Авторские права", icon: Copyright },
   { href: "/terms-of-use", label: "Условия использования", icon: FileText },
+  { href: "/updates", label: "Лента новых глав", icon: Rss },
 ];
 
+const MOBILE_NAV_ITEMS = [
+  { href: "/titles", label: "Каталог", icon: Library },
+  { href: "/notifications", label: "Уведомления", icon: Bell },
+  { href: "/", label: "Главная", icon: Home },
+  { href: "/bookmarks", label: "Закладки", icon: Bookmark },
+] as const;
+
+function isActivePath(pathname: string | null, href: string): boolean {
+  if (!pathname) return false;
+  if (href === "/") return pathname === "/" || pathname === "";
+  return pathname === href || pathname.startsWith(href + "/");
+}
+
 export default function Footer() {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const pathname = usePathname();
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
 
-  const toggleDropdown = () => setIsDropdownOpen((v) => !v);
-  const closeDropdown = () => setIsDropdownOpen(false);
+  const openMore = () => setIsMoreOpen(true);
+  const closeMore = () => setIsMoreOpen(false);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -52,6 +70,21 @@ export default function Footer() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isVisible]);
+
+  useEffect(() => {
+    if (isMoreOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMoreOpen]);
+
+  useEffect(() => {
+    if (!isMoreOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMore();
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isMoreOpen]);
 
   const currentYear = new Date().getFullYear();
 
@@ -150,69 +183,79 @@ export default function Footer() {
           ${isVisible ? "translate-y-0" : "translate-y-full"}
         `}
       >
-        <div className="flex items-center justify-center gap-2 px-3 py-3">
-          <div className="flex items-center justify-center gap-1 sm:gap-2 rounded-2xl bg-[var(--card)]/95 border border-[var(--border)] shadow-footer-mobile backdrop-blur-xl px-2 py-2">
-            <Link
-              href="/titles"
-              className="footer-mobile-btn"
-              aria-label="Каталог"
-            >
-              <Library className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/notifications"
-              className="footer-mobile-btn"
-              aria-label="Уведомления"
-            >
-              <Bell className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/"
-              className="footer-mobile-btn footer-mobile-btn-home"
-              aria-label="Главная"
-            >
-              <Home className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/bookmarks"
-              className="footer-mobile-btn"
-              aria-label="Закладки"
-            >
-              <Bookmark className="w-5 h-5" />
-            </Link>
-            <div className="relative">
+        <div className="footer-mobile-bar-inner">
+          <nav className="footer-mobile-nav" aria-label="Навигация">
+            {MOBILE_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+              const active = isActivePath(pathname, href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`footer-mobile-item ${active ? "footer-mobile-item-active" : ""}`}
+                  aria-label={label}
+                  aria-current={active ? "page" : undefined}
+                >
+                  <span className="footer-mobile-icon-wrap">
+                    <Icon className="footer-mobile-icon" aria-hidden />
+                  </span>
+                  <span className="footer-mobile-label">{label}</span>
+                </Link>
+              );
+            })}
+            <div className="footer-mobile-item-wrap">
               <button
                 type="button"
-                onClick={toggleDropdown}
-                className="footer-mobile-btn aria-expanded:bg-[var(--accent)]"
+                onClick={openMore}
+                className={`footer-mobile-item ${isMoreOpen ? "footer-mobile-item-active" : ""}`}
                 aria-label="Ещё"
-                aria-expanded={isDropdownOpen}
+                aria-expanded={isMoreOpen}
               >
-                <MoreVertical className="w-5 h-5" />
+                <span className="footer-mobile-icon-wrap">
+                  <MoreVertical className="footer-mobile-icon" aria-hidden />
+                </span>
+                <span className="footer-mobile-label">Ещё</span>
               </button>
-
-              {isDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={closeDropdown} aria-hidden />
-                  <div className="absolute right-0 bottom-full mb-2 w-56 dropdown-modern animate-fade-in-scale z-50">
-                    <div className="py-2">
-                      {MOBILE_MENU_ITEMS.map(({ href, label, icon: Icon }) => (
-                        <Link
-                          key={href}
-                          href={href}
-                          onClick={closeDropdown}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-[var(--foreground)] dropdown-item-modern rounded-lg mx-2"
-                        >
-                          <Icon className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0" />
-                          {label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
-          </div>
+          </nav>
+        </div>
+      </div>
+
+      {/* Bottom sheet «Ещё» */}
+      <div
+        className={`footer-more-overlay ${isMoreOpen ? "footer-more-overlay-open" : ""}`}
+        onClick={closeMore}
+        aria-hidden
+      />
+      <div
+        className={`footer-more-sheet ${isMoreOpen ? "footer-more-sheet-open" : ""}`}
+        role="dialog"
+        aria-label="Дополнительное меню"
+        aria-modal="true"
+      >
+        <div className="footer-more-sheet-handle" aria-hidden />
+        <div className="footer-more-sheet-header">
+          <span className="footer-more-sheet-title">Меню</span>
+          <button
+            type="button"
+            onClick={closeMore}
+            className="footer-more-sheet-close"
+            aria-label="Закрыть"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="footer-more-sheet-body">
+          {MOBILE_MENU_ITEMS.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={closeMore}
+              className="footer-more-sheet-item"
+            >
+              <Icon className="footer-more-sheet-item-icon" aria-hidden />
+              <span>{label}</span>
+            </Link>
+          ))}
         </div>
       </div>
     </footer>

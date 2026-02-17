@@ -1,7 +1,7 @@
 "use client";
 import { Logo, Search, ErrorBoundary } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import {
   X,
@@ -19,6 +19,8 @@ import {
   LayoutList,
   ShoppingBag,
   Send,
+  ChevronRight,
+  BookOpen,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -34,11 +36,13 @@ export default function Header() {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuClosing, setIsMobileMenuClosing] = useState(false);
   const [isMobileMenuReady, setIsMobileMenuReady] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const mobileMenuCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -85,8 +89,50 @@ export default function Header() {
 
   const toggleSearch = () => setIsSearchOpen((v) => !v);
   const toggleDropdown = () => setIsDropdownOpen((v) => !v);
-  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
+  const closeMobileMenu = () => {
+    if (!isMobileMenuOpen) return;
+    if (mobileMenuCloseTimeoutRef.current) clearTimeout(mobileMenuCloseTimeoutRef.current);
+    setIsMobileMenuClosing(true);
+    mobileMenuCloseTimeoutRef.current = setTimeout(() => {
+      setIsMobileMenuOpen(false);
+      setIsMobileMenuClosing(false);
+      mobileMenuCloseTimeoutRef.current = null;
+    }, 220);
+  };
+
   const closeDropdown = () => setIsDropdownOpen(false);
+
+  // Закрытие dropdown по Escape
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeDropdown();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDropdownOpen]);
+
+  // Закрытие мобильного меню по Escape и блокировка скролла body
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMobileMenu();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (mobileMenuCloseTimeoutRef.current) clearTimeout(mobileMenuCloseTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <>
@@ -153,16 +199,22 @@ export default function Header() {
             {isDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={closeDropdown} aria-hidden />
-                <div className="absolute right-0 top-full mt-2 w-56 dropdown-modern animate-fade-in-scale z-50">
-                  <div className="py-2">
+                <div
+                  role="menu"
+                  aria-label="Дополнительные ссылки"
+                  className="absolute right-0 top-full mt-2 w-56 dropdown-modern animate-fade-in-scale z-50"
+                >
+                  <div className="dropdown-section-title">Информация</div>
+                  <div className="py-2 px-2">
                     {HEADER_DROPDOWN_ITEMS.map(({ href, label, icon: Icon }) => (
                       <Link
                         key={href}
                         href={href}
                         onClick={closeDropdown}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] dropdown-item-modern rounded-lg mx-2"
+                        role="menuitem"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] dropdown-item-modern rounded-lg w-full"
                       >
-                        <Icon className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
+                        <Icon className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" aria-hidden />
                         {label}
                       </Link>
                     ))}
@@ -198,130 +250,193 @@ export default function Header() {
       )}
 
       </header>
-      {/* Мобильное меню без портала — вынесено из header, чтобы fixed не обрезался хедером в мобильных браузерах */}
+      {/* Мобильное меню — выезжающая панель слева */}
       {isMobileMenuOpen && (
         <>
           <div
             data-header-portal
-            className="lg:hidden fixed inset-0 bg-black/50 z-[9998]"
+            className={`lg:hidden fixed inset-0 z-[9998] mobile-menu-backdrop ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
             onClick={closeMobileMenu}
             aria-hidden
           />
-          <div className="lg:hidden fixed inset-x-0 top-[var(--header-height)] bottom-0 bg-[var(--background)]/98 backdrop-blur-xl z-[9999] overflow-y-auto animate-fade-in-scale">
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 p-3 border-b border-[var(--border)]/50 bg-[var(--background)]/98 backdrop-blur-sm">
-              <span className="text-sm font-semibold text-[var(--foreground)]">Меню</span>
+          <div
+            className={`lg:hidden fixed left-0 top-0 bottom-0 z-[9999] bg-[var(--background)] mobile-menu-panel ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Меню"
+          >
+            <div className="mobile-menu-header">
+              <span className="mobile-menu-title">Меню</span>
               <button
                 type="button"
                 onClick={closeMobileMenu}
-                className="header-icon-btn ml-auto"
+                className="mobile-menu-close"
                 aria-label="Закрыть меню"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <ErrorBoundary
-              fallback={
-                <div className="p-4 text-center text-sm text-[var(--muted-foreground)]">
-                  Не удалось загрузить меню. Закройте и попробуйте снова.
-                </div>
-              }
-            >
-              {!isMobileMenuReady ? (
-                <div className="p-4 text-center text-sm text-[var(--muted-foreground)]" aria-hidden>
-                  Загрузка…
-                </div>
-              ) : (
-                <>
-                  <div className="p-4 border-b border-[var(--border)]/50">
-                    <Navigation onItemClick={closeMobileMenu} />
+            <div className="mobile-menu-body">
+              <ErrorBoundary
+                fallback={
+                  <div className="p-4 text-center text-sm text-[var(--muted-foreground)]">
+                    Не удалось загрузить меню. Закройте и попробуйте снова.
                   </div>
-
-                  <div className="p-4 space-y-6">
-                    <div className="space-y-3">
-                      <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
-                        Аккаунт
-                      </h3>
-                      <div className="space-y-1">
-                        <Link href="/" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                          <Home className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          Главная
-                        </Link>
-                        <Link href="/updates" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                          <LayoutList className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          Обновления
-                        </Link>
-                        <Link href="/profile" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                          <User className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          Профиль
-                        </Link>
-                        <Link href="/bookmarks" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                          <Bookmark className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          Закладки
-                        </Link>
-                        <Link
-                          href="/notifications"
-                          onClick={closeMobileMenu}
-                          className="header-mobile-nav-link"
-                        >
-                          <Bell className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          Уведомления
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
-                        Информация
-                      </h3>
-                      <div className="space-y-1">
-                        <Link href="/about" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                          <Info className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          О нас
-                        </Link>
-                        <Link href="/contact" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                          <Mail className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          Контакты
-                        </Link>
-                        <Link href="/copyright" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                          <Shield className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          Авторские права
-                        </Link>
-                        <Link href="/terms-of-use" onClick={closeMobileMenu} className="header-mobile-nav-link">
-                          <FileText className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          Условия использования
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
-                        Связаться
-                      </h3>
-                      <div className="flex flex-col gap-2">
-                        <Link
-                          href="mailto:support@tomilo-lib.ru"
-                          onClick={closeMobileMenu}
-                          className="header-mobile-nav-link"
-                        >
-                          <Mail className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          support@tomilo-lib.ru
-                        </Link>
-                        <Link
-                          href="https://t.me/tomilolib"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={closeMobileMenu}
-                          className="header-mobile-nav-link"
-                        >
-                          <Send className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" />
-                          Telegram
-                        </Link>
-                      </div>
-                    </div>
+                }
+              >
+                {!isMobileMenuReady ? (
+                  <div className="p-4 text-center text-sm text-[var(--muted-foreground)]" aria-hidden>
+                    Загрузка…
                   </div>
-                </>
-              )}
-            </ErrorBoundary>
+                ) : (
+                  <>
+                    {/* Главные разделы */}
+                    <section className="mobile-menu-section">
+                      <h2 className="mobile-menu-section-title">Разделы</h2>
+                      <ul className="mobile-menu-list">
+                        <li>
+                          <Link
+                            href="/"
+                            onClick={closeMobileMenu}
+                            className="mobile-menu-item"
+                            data-active={pathname === "/" ? "true" : undefined}
+                          >
+                            <span className="mobile-menu-item-icon" aria-hidden>
+                              <Home className="w-4 h-4" />
+                            </span>
+                            <span className="mobile-menu-item-label">Главная</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href="/titles"
+                            onClick={closeMobileMenu}
+                            className="mobile-menu-item"
+                            data-active={pathname === "/titles" || pathname?.startsWith("/titles/") ? "true" : undefined}
+                          >
+                            <span className="mobile-menu-item-icon" aria-hidden>
+                              <BookOpen className="w-4 h-4" />
+                            </span>
+                            <span className="mobile-menu-item-label">Каталог</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href="/tomilo-shop"
+                            onClick={closeMobileMenu}
+                            className="mobile-menu-item"
+                            data-active={pathname === "/tomilo-shop" || pathname?.startsWith("/tomilo-shop/") ? "true" : undefined}
+                          >
+                            <span className="mobile-menu-item-icon" aria-hidden>
+                              <ShoppingBag className="w-4 h-4" />
+                            </span>
+                            <span className="mobile-menu-item-label">Магазин</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href="/updates"
+                            onClick={closeMobileMenu}
+                            className="mobile-menu-item"
+                            data-active={pathname === "/updates" ? "true" : undefined}
+                          >
+                            <span className="mobile-menu-item-icon" aria-hidden>
+                              <LayoutList className="w-4 h-4" />
+                            </span>
+                            <span className="mobile-menu-item-label">Обновления</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                      </ul>
+                    </section>
+
+                    <section className="mobile-menu-section">
+                      <h2 className="mobile-menu-section-title">Аккаунт</h2>
+                      <ul className="mobile-menu-list">
+                        <li>
+                          <Link href="/profile" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/profile" || pathname?.startsWith("/profile?") ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon" aria-hidden><User className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">Профиль</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="/bookmarks" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/bookmarks" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon" aria-hidden><Bookmark className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">Закладки</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="/notifications" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/notifications" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon" aria-hidden><Bell className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">Уведомления</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                      </ul>
+                    </section>
+
+                    <section className="mobile-menu-section">
+                      <h2 className="mobile-menu-section-title">Информация</h2>
+                      <ul className="mobile-menu-list">
+                        <li>
+                          <Link href="/about" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/about" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon" aria-hidden><Info className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">О нас</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="/contact" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/contact" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon" aria-hidden><Mail className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">Контакты</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="/copyright" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/copyright" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon" aria-hidden><Shield className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">Авторские права</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="/terms-of-use" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/terms-of-use" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon" aria-hidden><FileText className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">Условия использования</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                      </ul>
+                    </section>
+
+                    <section className="mobile-menu-section">
+                      <h2 className="mobile-menu-section-title">Связаться</h2>
+                      <ul className="mobile-menu-list">
+                        <li>
+                          <Link href="mailto:support@tomilo-lib.ru" onClick={closeMobileMenu} className="mobile-menu-item">
+                            <span className="mobile-menu-item-icon" aria-hidden><Mail className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">support@tomilo-lib.ru</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="https://t.me/tomilolib" target="_blank" rel="noopener noreferrer" onClick={closeMobileMenu} className="mobile-menu-item">
+                            <span className="mobile-menu-item-icon" aria-hidden><Send className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">Telegram</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                      </ul>
+                    </section>
+                  </>
+                )}
+              </ErrorBoundary>
+            </div>
           </div>
         </>
       )}

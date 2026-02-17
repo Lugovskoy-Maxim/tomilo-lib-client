@@ -3,14 +3,19 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   Bell, 
   CheckCheck, 
-  Filter, 
   Trash2, 
-  Loader2, 
   Inbox, 
   ChevronLeft,
   ChevronRight,
   CheckSquare,
-  Square
+  Square,
+  BookOpen,
+  RefreshCw,
+  User,
+  Settings,
+  MessageSquareReply,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Header, Footer } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
@@ -32,12 +37,12 @@ type NotificationFilter =
   | "report_response";
 
 const filterConfig = [
-  { key: "all" as const, label: "Все", color: "bg-gray-500" },
-  { key: "new_chapter" as const, label: "Новые главы", color: "bg-blue-500" },
-  { key: "update" as const, label: "Обновления", color: "bg-purple-500" },
-  { key: "user" as const, label: "Пользователи", color: "bg-green-500" },
-  { key: "system" as const, label: "Система", color: "bg-orange-500" },
-  { key: "report_response" as const, label: "Ответы на жалобы", color: "bg-amber-500" },
+  { key: "all" as const, label: "Все", icon: Bell },
+  { key: "new_chapter" as const, label: "Новые главы", icon: BookOpen },
+  { key: "update" as const, label: "Обновления", icon: RefreshCw },
+  { key: "user" as const, label: "Пользователи", icon: User },
+  { key: "system" as const, label: "Система", icon: Settings },
+  { key: "report_response" as const, label: "Ответы на жалобы", icon: MessageSquareReply },
 ];
 
 export default function NotificationsPage() {
@@ -240,31 +245,30 @@ export default function NotificationsPage() {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center px-4">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Bell className="w-10 h-10 text-primary" />
+        <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+          <div className="text-center px-4 max-w-md">
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[var(--primary)]/15 to-[var(--primary)]/5 border border-[var(--primary)]/20 flex items-center justify-center mx-auto mb-6">
+              <Bell className="w-12 h-12 text-[var(--primary)]" />
             </div>
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-3">Уведомления</h1>
-            <p className="text-[var(--muted-foreground)] mb-6 max-w-sm">
-              Войдите в аккаунт, чтобы видеть уведомления о новых главах и обновлениях
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">Уведомления</h1>
+            <p className="text-[var(--muted-foreground)] mb-8 leading-relaxed">
+              Войдите в аккаунт, чтобы видеть уведомления о новых главах, обновлениях и ответах на жалобы
             </p>
-            <div className="flex justify-center gap-3">
-              <Button 
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button
                 onClick={() => setLoginModalOpen(true)}
-                className="rounded-xl cursor-pointer text-[var(--chart-1)] border hover:border-[var(--chart-1)] hover:text-[var(--primary)] hover:bg-[var(--chart-1)] transition-all"
+                className="rounded-xl cursor-pointer"
               >
                 Войти
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => setRegisterModalOpen(true)}
-                className="rounded-xl cursor-pointer text-[var(--chart-1)] border hover:border-[var(--chart-1)] hover:text-[var(--primary)] hover:bg-[var(--chart-1)] transition-all"
+                className="rounded-xl cursor-pointer"
               >
                 Регистрация
               </Button>
             </div>
-
           </div>
         </main>
         <Footer />
@@ -300,14 +304,14 @@ export default function NotificationsPage() {
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                <Bell className="w-6 h-6 text-primary" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 border border-[var(--primary)]/20 flex items-center justify-center">
+                <Bell className="w-7 h-7 text-[var(--primary)]" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[var(--foreground)]">Уведомления</h1>
-                <p className="text-sm text-[var(--muted-foreground)]">
+                <h1 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">Уведомления</h1>
+                <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
                   {unreadCount > 0 ? (
-                    <span className="text-primary font-medium">{unreadCount} непрочитанных</span>
+                    <span className="text-[var(--primary)] font-medium">{unreadCount} непрочитанных</span>
                   ) : (
                     "Все уведомления прочитаны"
                   )}
@@ -342,33 +346,32 @@ export default function NotificationsPage() {
           </div>
 
           {/* Filters Section */}
-          <div className="bg-card rounded-2xl border shadow-sm p-4 mb-6">
+          <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4 mb-6 shadow-sm">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               {/* Filter Tabs */}
               <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
-                {filterConfig.map(({ key, label, color }) => {
+                {filterConfig.map(({ key, label, icon: Icon }) => {
                   const count = typeCounts[key as keyof typeof typeCounts];
                   const isActive = activeFilter === key;
-                  
                   return (
                     <button
                       key={key}
                       onClick={() => setActiveFilter(key)}
                       className={`
-                        flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+                        flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
                         transition-all duration-200 whitespace-nowrap
                         ${isActive 
-                          ? "bg-primary text-primary-foreground shadow-md shadow-primary/20" 
-                          : "bg-muted/50 text-[var(--muted-foreground)] hover:bg-muted hover:text-[var(--foreground)]"
+                          ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md" 
+                          : "bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
                         }
                       `}
                     >
-                      <span className={`w-2 h-2 rounded-full ${color}`} />
+                      <Icon className="w-4 h-4 flex-shrink-0" />
                       {label}
                       {count > 0 && (
                         <span className={`
-                          ml-1 px-1.5 py-0.5 text-xs rounded-full
-                          ${isActive ? "bg-primary-foreground/20" : "bg-background"}
+                          px-1.5 py-0.5 text-xs rounded-full font-medium
+                          ${isActive ? "bg-[var(--primary-foreground)]/20" : "bg-[var(--background)]"}
                         `}>
                           {count}
                         </span>
@@ -379,34 +382,37 @@ export default function NotificationsPage() {
               </div>
 
               {/* Toggle Show Read */}
-              <div className="flex items-center gap-3 px-4 py-2 bg-muted/30 rounded-xl">
-                <label 
-                  htmlFor="show-read" 
-                  className="text-sm text-[var(--muted-foreground)] cursor-pointer select-none"
-                >
-                  Показывать прочитанные
-                </label>
-                <div className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-input">
+              <label className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[var(--muted)]/40 cursor-pointer select-none hover:bg-[var(--muted)]/60 transition-colors">
+                <span className="text-sm text-[var(--muted-foreground)]">
+                  {showRead ? "Показывать прочитанные" : "Скрыть прочитанные"}
+                </span>
+                <div className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border border-[var(--border)] bg-[var(--input)] transition-colors focus-within:ring-2 focus-within:ring-[var(--ring)] focus-within:ring-offset-2">
                   <input
-                    id="show-read"
                     type="checkbox"
                     checked={showRead}
                     onChange={e => setShowRead(e.target.checked)}
                     className="sr-only"
                   />
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${showRead ? "translate-x-5" : "translate-x-0.5"}`} />
+                  <span
+                    className={`
+                      pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[var(--background)] shadow ring-0 transition
+                      ${showRead ? "translate-x-5" : "translate-x-0.5"}
+                    `}
+                  />
                 </div>
-              </div>
+                {showRead ? <Eye className="w-4 h-4 text-[var(--muted-foreground)]" /> : <EyeOff className="w-4 h-4 text-[var(--muted-foreground)]" />}
+              </label>
             </div>
           </div>
 
           {/* Bulk Actions Bar */}
           {selectionMode && selectedIds.size > 0 && (
-            <div className="flex items-center justify-between p-4 mb-6 bg-primary/5 border border-primary/20 rounded-2xl animate-in fade-in slide-in-from-top-2">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 mb-6 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex items-center gap-4">
                 <button
+                  type="button"
                   onClick={handleSelectAll}
-                  className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                  className="flex items-center gap-2 text-sm font-medium text-[var(--primary)] hover:underline"
                 >
                   {filteredNotifications.every(n => selectedIds.has(n._id)) ? (
                     <><Square className="w-4 h-4" /> Снять выделение</>
@@ -419,24 +425,23 @@ export default function NotificationsPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedIds(new Set())}
-                className="rounded-xl"
-              >
-                Отмена
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteSelected}
-                className="gap-2 rounded-xl"
-              >
-                <Trash2 className="w-4 h-4" />
-                Удалить
-              </Button>
-
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedIds(new Set())}
+                  className="rounded-xl"
+                >
+                  Отмена
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteSelected}
+                  className="gap-2 rounded-xl"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Удалить
+                </Button>
               </div>
             </div>
           )}
@@ -453,10 +458,10 @@ export default function NotificationsPage() {
               {/* Today */}
               {groupedNotifications.today.length > 0 && (
                 <section className="space-y-3">
-                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-primary" />
+                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2 py-1">
+                    <span className="w-2 h-2 rounded-full bg-[var(--primary)]" />
                     Сегодня
-                    <span className="text-xs font-normal text-[var(--muted-foreground)]/60">
+                    <span className="text-xs font-normal text-[var(--muted-foreground)]/70">
                       {groupedNotifications.today.length}
                     </span>
                   </h2>
@@ -477,8 +482,8 @@ export default function NotificationsPage() {
               {/* Yesterday */}
               {groupedNotifications.yesterday.length > 0 && (
                 <section className="space-y-3">
-                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground" />
+                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2 py-1">
+                    <span className="w-2 h-2 rounded-full bg-[var(--muted-foreground)]" />
                     Вчера
                     <span className="text-xs font-normal text-[var(--muted-foreground)]/60">
                       {groupedNotifications.yesterday.length}
@@ -501,8 +506,8 @@ export default function NotificationsPage() {
               {/* This Week */}
               {groupedNotifications.thisWeek.length > 0 && (
                 <section className="space-y-3">
-                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2 py-1">
+                    <span className="w-2 h-2 rounded-full bg-[var(--muted-foreground)]/50" />
                     На этой неделе
                     <span className="text-xs font-normal text-[var(--muted-foreground)]/60">
                       {groupedNotifications.thisWeek.length}
@@ -525,8 +530,8 @@ export default function NotificationsPage() {
               {/* Earlier */}
               {groupedNotifications.earlier.length > 0 && (
                 <section className="space-y-3">
-                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2 py-1">
+                    <span className="w-2 h-2 rounded-full bg-[var(--muted-foreground)]/30" />
                     Ранее
                     <span className="text-xs font-normal text-[var(--muted-foreground)]/60">
                       {groupedNotifications.earlier.length}
@@ -600,36 +605,38 @@ export default function NotificationsPage() {
               )}
             </div>
           ) : (
-            <div className="text-center py-16 animate-in fade-in">
-              <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                <Inbox className="w-12 h-12 text-[var(--muted-foreground)]/50" />
+            <div className="text-center py-20 px-4 animate-in fade-in duration-300">
+              <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-[var(--muted)] to-[var(--muted)]/50 border border-[var(--border)] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <Inbox className="w-14 h-14 text-[var(--muted-foreground)]" />
               </div>
               <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">
                 {activeFilter === "all" ? "Нет уведомлений" : "Ничего не найдено"}
               </h3>
-              <p className="text-[var(--muted-foreground)] max-w-sm mx-auto mb-6">
+              <p className="text-[var(--muted-foreground)] max-w-sm mx-auto mb-8 leading-relaxed">
                 {activeFilter === "all"
-                  ? "У вас пока нет уведомлений. Они появятся, когда выйдут новые главы или произойдут другие события."
-                  : `Нет уведомлений типа "${filterConfig.find(f => f.key === activeFilter)?.label}". Попробуйте выбрать другой фильтр.`}
+                  ? "Здесь появятся уведомления о новых главах, обновлениях тайтлов и ответах на жалобы."
+                  : `Нет уведомлений в категории «${filterConfig.find(f => f.key === activeFilter)?.label}». Попробуйте другой фильтр.`}
               </p>
-              {!showRead && notifications.some(n => n.isRead) && (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowRead(true)}
-                  className="rounded-xl"
-                >
-                  Показать прочитанные
-                </Button>
-              )}
-              {activeFilter !== "all" && (
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveFilter("all")}
-                  className="ml-2 rounded-xl"
-                >
-                  Показать все
-                </Button>
-              )}
+              <div className="flex flex-wrap justify-center gap-3">
+                {!showRead && notifications.some(n => n.isRead) && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowRead(true)}
+                    className="rounded-xl"
+                  >
+                    Показать прочитанные
+                  </Button>
+                )}
+                {activeFilter !== "all" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setActiveFilter("all")}
+                    className="rounded-xl"
+                  >
+                    Показать все
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
