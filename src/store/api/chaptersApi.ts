@@ -4,6 +4,12 @@ import { Chapter, ChaptersResponse, CreateChapterDto, UpdateChapterDto } from "@
 
 const CHAPTERS_TAG = "Chapters";
 
+function sortFilesByNaturalOrder(files: File[]): File[] {
+  return [...files].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
+  );
+}
+
 function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormData {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
@@ -154,7 +160,7 @@ export const chaptersApi = createApi({
     >({
       query: ({ data, pages }) => {
         const formData = toFormData<CreateChapterDto>(data);
-        pages.forEach(file => formData.append("pages", file));
+        sortFilesByNaturalOrder(pages).forEach(file => formData.append("pages", file));
         return {
           url: "/chapters/upload",
           method: "POST",
@@ -167,7 +173,7 @@ export const chaptersApi = createApi({
     addPagesToChapter: builder.mutation<Chapter, { id: string; pages: File[] }>({
       query: ({ id, pages }) => {
         const formData = new FormData();
-        pages.forEach(file => formData.append("pages", file));
+        sortFilesByNaturalOrder(pages).forEach(file => formData.append("pages", file));
         return {
           url: `/chapters/${id}/pages`,
           method: "POST",
