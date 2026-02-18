@@ -118,7 +118,7 @@ export default function NotificationCard({
   const titleIdFromChapter =
     typeof chapterTitleIdRaw === "string"
       ? chapterTitleIdRaw
-      : (chapterTitleIdRaw as { _id?: string })?._id ?? "";
+      : (chapterTitleIdRaw as unknown as { _id?: string })?._id ?? "";
 
   const titleIdToFetch = titleIdForFetch || titleIdFromChapter || "";
 
