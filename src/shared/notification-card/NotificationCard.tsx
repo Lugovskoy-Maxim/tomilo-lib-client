@@ -142,6 +142,14 @@ export default function NotificationCard({
 
   const handleClick = async () => {
     if (actionsOpen) return;
+
+    const notifChapterId =
+      typeof notification.chapterId === "object" && notification.chapterId?._id
+        ? notification.chapterId._id
+        : typeof notification.chapterId === "string" && notification.chapterId?.trim()
+          ? notification.chapterId.trim()
+          : null;
+
     const chapterNavTitleId =
       chapterData &&
       (typeof chapterData.titleId === "string"
@@ -157,13 +165,17 @@ export default function NotificationCard({
             : entityType === "chapter"
               ? chapterNavTitleId ?? titleIdFromChapter
               : null;
-    if (navTitleId) {
+
+    const slug =
+      (typeof notification.titleId === "object" && notification.titleId?.slug) ||
+      fetchedTitle?.slug;
+
+    if (notification.type === "new_chapter" && notifChapterId && navTitleId) {
+      router.push(getChapterPath({ id: navTitleId, slug }, notifChapterId));
+    } else if (navTitleId) {
       if (entityType === "chapter" && chapterData) {
-        router.push(getChapterPath({ id: navTitleId }, chapterData._id));
+        router.push(getChapterPath({ id: navTitleId, slug }, chapterData._id));
       } else {
-        const slug =
-          (typeof notification.titleId === "object" && notification.titleId?.slug) ||
-          fetchedTitle?.slug;
         router.push(getTitlePath({ id: navTitleId, slug }));
       }
     }
