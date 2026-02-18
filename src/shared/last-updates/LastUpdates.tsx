@@ -102,19 +102,24 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
 
   const getDisplayYear = () => {
     if (typeof data.releaseYear === "number" && data.releaseYear > 0) {
-      return data.releaseYear;
+      return `${data.releaseYear} г.`;
     }
-    return new Date().getFullYear();
+    return null;
   };
 
-  // Функция для склонения слова "глава"
+  // Склонение: "глава" | "главы" | "глав"
   const getChaptersText = (count: number) => {
     const mod10 = count % 10;
     const mod100 = count % 100;
-
     if (mod10 === 1 && mod100 !== 11) return "глава";
     if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "главы";
     return "глав";
+  };
+
+  // Текст бейджа «добавлено N глав»
+  const getNewChaptersLabel = (count: number) => {
+    if (count === 1) return "+1 новая глава";
+    return `+${count} новых ${getChaptersText(count)}`;
   };
 
   return (
@@ -155,52 +160,59 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
           )}
         </div>
 
-        {/* Content section — единые отступы и шрифты */}
-        <div className="flex flex-col flex-1 p-2.5 sm:p-3 justify-between min-w-0">
-          {/* Type and year */}
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 flex-wrap">
-            <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-1.5 sm:px-2 py-0.5 rounded-md font-medium">
-              {getDisplayType()}
-            </span>
-            <span className="text-[var(--muted-foreground)] text-xs">•</span>
-            <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] font-medium">
-              {getDisplayYear()}
-            </span>
+        {/* Контент карточки: мета → заголовок → главы → бейдж */}
+        <div className="flex flex-col flex-1 min-w-0 p-2.5 sm:p-3 gap-2 sm:gap-2.5">
+          {/* Верхняя строка: тип, год — время справа */}
+          <div className="flex items-center justify-between gap-2 min-h-0 flex-shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
+              <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-1.5 sm:px-2 py-0.5 rounded-md font-medium shrink-0">
+                {getDisplayType()}
+              </span>
+              {getDisplayYear() && (
+                <>
+                  <span className="text-[var(--muted-foreground)] text-xs shrink-0" aria-hidden>•</span>
+                  <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] font-medium shrink-0">
+                    {getDisplayYear()}
+                  </span>
+                </>
+              )}
+            </div>
+            <div
+              className="flex items-center gap-1 text-[var(--muted-foreground)] text-[11px] sm:text-xs shrink-0 whitespace-nowrap"
+              title={`Обновлено: ${getDisplayTime(data.timeAgo)}`}
+            >
+              <Clock className="w-3 h-3 flex-shrink-0" aria-hidden />
+              <span>{getDisplayTime(data.timeAgo)}</span>
+            </div>
           </div>
-          
-          {/* Title */}
+
+          {/* Заголовок тайтла */}
           <h3
-            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 min-h-9 sm:min-h-10 leading-5 group-hover:text-[var(--chart-1)] transition-colors duration-300 ${
+            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-5 group-hover:text-[var(--chart-1)] transition-colors duration-300 min-h-0 flex-1 ${
               data.isAdult && !isAgeVerified ? "blur-sm" : ""
             }`}
           >
             {data.title}
           </h3>
 
-          {/* Chapter info and time */}
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mt-2 gap-1.5 sm:gap-2">
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-              <div className="flex items-center gap-1 text-[var(--foreground)] min-w-0">
-                <Sparkles className="w-3 h-3 text-[var(--chart-1)] flex-shrink-0" />
-                <span className="font-semibold text-xs sm:text-sm truncate">{getDisplayChapter()}</span>
-              </div>
-
-              {data.newChapters && data.newChapters > 0 && (
-                <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-1.5 sm:px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-medium border border-[var(--chart-1)]/20 whitespace-nowrap">
-                  <Plus className="w-3 h-3" />
-                  <span>
-                    {data.newChapters} {getChaptersText(data.newChapters)}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1 text-[var(--muted-foreground)] text-[11px] sm:text-xs self-start sm:self-auto">
-              <Clock className="w-3 h-3 flex-shrink-0" />
-              <span className="whitespace-nowrap">{getDisplayTime(data.timeAgo)}</span>
-            </div>
+          {/* Номера глав */}
+          <div className="flex items-center gap-1.5 min-w-0 flex-shrink-0">
+            <Sparkles className="w-3 h-3 text-[var(--chart-1)] flex-shrink-0" aria-hidden />
+            <span
+              className="font-semibold text-xs sm:text-sm truncate min-w-0"
+              title={getDisplayChapter()}
+            >
+              {getDisplayChapter()}
+            </span>
           </div>
-          
+
+          {/* Бейдж «добавлено N глав» — только если есть */}
+          {data.newChapters && data.newChapters > 0 && (
+            <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-1.5 sm:px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-medium border border-[var(--chart-1)]/20 w-fit">
+              <Plus className="w-3 h-3" aria-hidden />
+              <span>{getNewChaptersLabel(data.newChapters)}</span>
+            </div>
+          )}
         </div>
       </div>
 
