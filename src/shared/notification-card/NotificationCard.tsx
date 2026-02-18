@@ -154,7 +154,7 @@ export default function NotificationCard({
       chapterData &&
       (typeof chapterData.titleId === "string"
         ? chapterData.titleId
-        : (chapterData.titleId as { _id?: string })?._id);
+        : (chapterData.titleId as unknown as { _id?: string })?._id);
     const navTitleId =
       typeof notification.titleId === "object" && notification.titleId?._id
         ? notification.titleId._id
@@ -249,7 +249,7 @@ export default function NotificationCard({
     const chapterTitleId =
       typeof chapterData?.titleId === "string"
         ? chapterData.titleId
-        : (chapterData?.titleId as { _id?: string })?._id;
+        : (chapterData?.titleId as unknown as { _id?: string })?._id;
     if (chapterTitleId) return `/uploads/titles/${chapterTitleId}/cover.jpg`;
     if (effectiveTitleId) return `/uploads/titles/${effectiveTitleId}/cover.jpg`;
     return undefined;
