@@ -18,8 +18,11 @@ import {
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
 import { useMarkAsReadMutation, useMarkAsUnreadMutation, useDeleteNotificationMutation } from "@/store/api/notificationsApi";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { useGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { Notification } from "@/types/notifications";
-import { getTitlePath } from "@/lib/title-paths";
+import { getTitlePath, getChapterPath } from "@/lib/title-paths";
+import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 
 interface NotificationCardProps {
   notification: Notification;
@@ -34,38 +37,44 @@ const typeConfig: Record<
 > = {
   new_chapter: {
     label: "Новая глава",
-    bg: "bg-blue-500/15",
-    text: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-500/25 dark:bg-blue-500/30",
+    text: "text-blue-700 dark:text-blue-300",
     icon: BookOpen,
   },
   update: {
     label: "Обновление",
-    bg: "bg-purple-500/15",
-    text: "text-purple-600 dark:text-purple-400",
+    bg: "bg-purple-500/25 dark:bg-purple-500/30",
+    text: "text-purple-700 dark:text-purple-300",
     icon: RefreshCw,
   },
   user: {
     label: "Пользователь",
-    bg: "bg-emerald-500/15",
-    text: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-500/25 dark:bg-emerald-500/30",
+    text: "text-emerald-700 dark:text-emerald-300",
     icon: User,
   },
   system: {
     label: "Система",
-    bg: "bg-amber-500/15",
-    text: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-500/25 dark:bg-amber-500/30",
+    text: "text-amber-700 dark:text-amber-300",
     icon: Settings,
   },
   report_response: {
     label: "Ответ на жалобу",
-    bg: "bg-rose-500/15",
-    text: "text-rose-600 dark:text-rose-400",
+    bg: "bg-rose-500/25 dark:bg-rose-500/30",
+    text: "text-rose-700 dark:text-rose-300",
     icon: MessageSquareReply,
   },
   complaint_response: {
     label: "Ответ на жалобу",
-    bg: "bg-rose-500/15",
-    text: "text-rose-600 dark:text-rose-400",
+    bg: "bg-rose-500/25 dark:bg-rose-500/30",
+    text: "text-rose-700 dark:text-rose-300",
+    icon: MessageSquareReply,
+  },
+  report_resolved: {
+    label: "Ответ на жалобу",
+    bg: "bg-rose-500/25 dark:bg-rose-500/30",
+    text: "text-rose-700 dark:text-rose-300",
     icon: MessageSquareReply,
   },
 };
@@ -73,7 +82,7 @@ const typeConfig: Record<
 const defaultTypeConfig = {
   label: "Другое",
   bg: "bg-[var(--muted)]",
-  text: "text-[var(--muted-foreground)]",
+  text: "text-[var(--foreground)]",
   icon: MessageSquareReply,
 };
 
@@ -94,17 +103,59 @@ export default function NotificationCard({
   const typeInfo = typeConfig[notification.type] ?? defaultTypeConfig;
   const TypeIcon = typeInfo.icon;
 
+  const metadata = notification.metadata;
+  const entityType = metadata?.entityType;
+  const entityId = metadata?.entityId;
+
+  const titleIdForFetch = entityType === "title" ? entityId : undefined;
+  const chapterId = entityType === "chapter" ? entityId : undefined;
+
+  const { data: fetchedChapter } = useGetChapterByIdQuery(chapterId || "", {
+    skip: !chapterId,
+  });
+
+  const titleIdFromChapter = entityType === "chapter" ? fetchedChapter?.titleId : undefined;
+  const titleIdToFetch = titleIdForFetch || titleIdFromChapter || "";
+
+  const { data: fetchedTitle } = useGetTitleByIdQuery(
+    { id: titleIdToFetch },
+    { skip: !titleIdToFetch }
+  );
+
+  const chapterData = fetchedChapter;
+
+  const entityName =
+    notification.metadata?.titleName ||
+    (typeof notification.titleId === "object" && notification.titleId?.name);
+  const chapterDisplayName = chapterData
+    ? getChapterDisplayName({
+        name: chapterData.name || "",
+        chapterNumber: chapterData.chapterNumber,
+        title: chapterData.title || chapterData.name,
+      })
+    : null;
+
   const handleClick = async () => {
     if (actionsOpen) return;
-    if (typeof notification.titleId === "object" && notification.titleId._id) {
-      const titleData = {
-        id: notification.titleId._id,
-        slug: notification.titleId.slug,
-      };
-      router.push(getTitlePath(titleData));
-    } else if (typeof notification.titleId === "string" && notification.titleId.trim()) {
-      const titleId = notification.titleId.trim();
-      if (titleId) router.push(getTitlePath({ id: titleId }));
+    const navTitleId =
+      typeof notification.titleId === "object" && notification.titleId?._id
+        ? notification.titleId._id
+        : typeof notification.titleId === "string" && notification.titleId?.trim()
+          ? notification.titleId.trim()
+          : entityType === "title" && entityId
+            ? entityId
+            : entityType === "chapter" && chapterData
+              ? chapterData.titleId
+              : null;
+    if (navTitleId) {
+      if (entityType === "chapter" && chapterData) {
+        router.push(getChapterPath({ id: chapterData.titleId }, chapterData._id));
+      } else {
+        const slug =
+          (typeof notification.titleId === "object" && notification.titleId?.slug) ||
+          fetchedTitle?.slug;
+        router.push(getTitlePath({ id: navTitleId, slug }));
+      }
     }
 
     if (!notification.isRead) {
@@ -165,19 +216,46 @@ export default function NotificationCard({
       if (notification.titleId.coverImage) return notification.titleId.coverImage;
       return `/uploads/titles/${notification.titleId._id}/cover.jpg`;
     }
+    if (fetchedTitle?.coverImage) return fetchedTitle.coverImage;
+    if (fetchedTitle?._id) return `/uploads/titles/${fetchedTitle._id}/cover.jpg`;
+    if (chapterData?.titleInfo?.coverImage) return chapterData.titleInfo.coverImage;
+    if (chapterData?.titleId) return `/uploads/titles/${chapterData.titleId}/cover.jpg`;
     return undefined;
   };
 
-  // Для ответов на жалобы: подставляем реальное название тайтла вместо placeholder "title"
-  const entityName =
-    notification.metadata?.titleName ||
-    (typeof notification.titleId === "object" && notification.titleId?.name);
-  const displayMessage =
-    (notification.type === "report_response" || notification.type === "complaint_response") &&
-    entityName &&
-    notification.message
-      ? notification.message.replace(/\bна title\b/gi, `на «${entityName}»`).replace(/\btitle\b/g, `«${entityName}»`)
-      : notification.message;
+  const resolvedEntityName =
+    entityName ||
+    fetchedTitle?.name ||
+    (chapterData?.titleInfo as { name?: string })?.name;
+
+  const safeName = typeof resolvedEntityName === "string" ? resolvedEntityName.replace(/\$/g, "$$") : "";
+
+  const isReportType =
+    notification.type === "report_response" ||
+    notification.type === "complaint_response" ||
+    notification.type === "report_resolved";
+
+  const rawMessage = notification.message ?? "";
+  let displayMessage =
+    isReportType && safeName && rawMessage
+      ? rawMessage
+          .replace(/\bна title\b/gi, `на «${safeName}»`)
+          .replace(/\btitle\b/g, `«${safeName}»`)
+      : rawMessage;
+
+  const resolutionText =
+    metadata?.resolutionMessage || metadata?.reportResponse || metadata?.response;
+
+  if (isReportType && resolutionText && displayMessage.includes("Ответ модератора:")) {
+    displayMessage = displayMessage
+      .replace(/\s*Ответ модератора:.*$/is, "")
+      .trim();
+  }
+
+  const showResolutionBlock = Boolean(resolutionText);
+
+  const showEntitySubline =
+    isReportType && (resolvedEntityName || chapterDisplayName);
 
   if (isDeleting) return null;
 
@@ -230,41 +308,55 @@ export default function NotificationCard({
           <div className="relative w-16 h-[5.5rem] rounded-xl overflow-hidden bg-[var(--muted)] shadow-sm ring-1 ring-[var(--border)]">
             <OptimizedImage
               src={getImageUrl(coverImageUrl)}
-              alt={typeof notification.titleId === "object" ? notification.titleId?.name || "Обложка" : "Обложка"}
+              alt={
+                typeof notification.titleId === "object"
+                  ? notification.titleId?.name || "Обложка"
+                  : resolvedEntityName || "Обложка"
+              }
               className="w-full h-full object-cover"
               onError={() => setImageError(true)}
               fallbackSrc={IMAGE_HOLDER.src}
             />
-            <div
-              className={`absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-center gap-1 py-1 px-1.5 rounded-md ${typeInfo.bg} ${typeInfo.text}`}
-              title={typeInfo.label}
-            >
-              <TypeIcon className="w-3 h-3 flex-shrink-0" />
-              <span className="text-[10px] font-medium truncate max-w-[80%]">{typeInfo.label}</span>
-            </div>
           </div>
         </div>
 
         <div className="flex-1 py-3 pr-3 min-w-0 flex flex-col justify-center">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <h3
-                className={`font-semibold text-sm leading-tight mb-1 ${
-                  notification.isRead ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"
-                }`}
-              >
-                {notification.title}
-              </h3>
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <span
+                  className={`inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium shrink-0 border border-current/20 ${typeInfo.bg} ${typeInfo.text}`}
+                  title={typeInfo.label}
+                >
+                  <TypeIcon className="w-3.5 h-3.5 flex-shrink-0 opacity-90" />
+                  <span className="whitespace-nowrap">{typeInfo.label}</span>
+                </span>
+                <h3
+                  className={`font-semibold text-sm leading-tight min-w-0 ${
+                    notification.isRead ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"
+                  }`}
+                >
+                  {notification.title}
+                </h3>
+              </div>
+              {showEntitySubline && (resolvedEntityName || chapterDisplayName) && (
+                <p className="text-xs text-[var(--muted-foreground)] mb-1">
+                  {resolvedEntityName}
+                  {chapterDisplayName && (
+                    <span className="block mt-0.5">— {chapterDisplayName}</span>
+                  )}
+                </p>
+              )}
               <p
                 className={`text-sm line-clamp-2 leading-relaxed ${
                   notification.isRead ? "text-[var(--muted-foreground)]/90" : "text-[var(--foreground)]/90"
                 }`}
               >
-                {notification.message}
+                {displayMessage}
               </p>
-              {(notification.metadata?.reportResponse || notification.metadata?.response) && (
+              {showResolutionBlock && resolutionText && (
                 <p className="mt-2 text-xs text-[var(--muted-foreground)] line-clamp-2 pl-2 border-l-2 border-[var(--border)]">
-                  {notification.metadata.reportResponse || notification.metadata.response}
+                  {resolutionText}
                 </p>
               )}
               <div className="flex items-center gap-2 mt-2 text-xs text-[var(--muted-foreground)]">

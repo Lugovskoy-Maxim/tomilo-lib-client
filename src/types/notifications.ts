@@ -45,6 +45,10 @@ export interface NotificationMetadata {
   reportType?: string;
   reportResponse?: string;
   response?: string;
+  /** Ответ модератора (бэкенд может присылать resolutionMessage) */
+  resolutionMessage?: string;
+  entityType?: "title" | "chapter";
+  entityId?: string;
 }
 
 export type NotificationType =
@@ -53,7 +57,8 @@ export type NotificationType =
   | "user"
   | "system"
   | "report_response"
-  | "complaint_response";
+  | "complaint_response"
+  | "report_resolved";
 
 export interface Notification {
   _id: string;

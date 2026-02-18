@@ -90,7 +90,9 @@ export default function NotificationsPage() {
   const filteredNotifications = useMemo(() => {
     return notifications.filter((notification: Notification) => {
       const isReportReplyType =
-        notification.type === "report_response" || notification.type === "complaint_response";
+        notification.type === "report_response" ||
+        notification.type === "complaint_response" ||
+        notification.type === "report_resolved";
 
       if (activeFilter !== "all") {
         if (activeFilter === "report_response" && !isReportReplyType) {
@@ -168,7 +170,7 @@ export default function NotificationsPage() {
       report_response: 0,
     };
     notifications.forEach(n => {
-      if (n.type === "complaint_response") {
+      if (n.type === "complaint_response" || n.type === "report_resolved") {
         counts.report_response++;
         return;
       }

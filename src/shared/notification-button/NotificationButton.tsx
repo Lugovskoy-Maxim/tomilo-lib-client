@@ -21,13 +21,13 @@ export function NotificationButton() {
 
       {notificationCount > 0 && (
         <span
-          className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-[var(--destructive)] animate-ping opacity-75"
+          className="absolute -top-0.5 -right-0.5 w-5 h-5 min-w-5 rounded-full bg-[var(--destructive)] animate-ping opacity-75"
           aria-hidden
         />
       )}
       {notificationCount > 0 && (
         <span
-          className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[20px] h-5 px-1.5
+          className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-5 h-5 px-1.5
             bg-[var(--destructive)] text-white text-xs font-medium rounded-full
             animate-in zoom-in-50 duration-300
             ring-2 ring-[var(--background)]"
