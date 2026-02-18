@@ -114,7 +114,12 @@ export default function NotificationCard({
     skip: !chapterId,
   });
 
-  const titleIdFromChapter = entityType === "chapter" ? fetchedChapter?.titleId : undefined;
+  const chapterTitleIdRaw = entityType === "chapter" ? fetchedChapter?.titleId : undefined;
+  const titleIdFromChapter =
+    typeof chapterTitleIdRaw === "string"
+      ? chapterTitleIdRaw
+      : (chapterTitleIdRaw as { _id?: string })?._id ?? "";
+
   const titleIdToFetch = titleIdForFetch || titleIdFromChapter || "";
 
   const { data: fetchedTitle } = useGetTitleByIdQuery(
@@ -137,6 +142,11 @@ export default function NotificationCard({
 
   const handleClick = async () => {
     if (actionsOpen) return;
+    const chapterNavTitleId =
+      chapterData &&
+      (typeof chapterData.titleId === "string"
+        ? chapterData.titleId
+        : (chapterData.titleId as { _id?: string })?._id);
     const navTitleId =
       typeof notification.titleId === "object" && notification.titleId?._id
         ? notification.titleId._id
@@ -144,12 +154,12 @@ export default function NotificationCard({
           ? notification.titleId.trim()
           : entityType === "title" && entityId
             ? entityId
-            : entityType === "chapter" && chapterData
-              ? chapterData.titleId
+            : entityType === "chapter"
+              ? chapterNavTitleId ?? titleIdFromChapter
               : null;
     if (navTitleId) {
       if (entityType === "chapter" && chapterData) {
-        router.push(getChapterPath({ id: chapterData.titleId }, chapterData._id));
+        router.push(getChapterPath({ id: navTitleId }, chapterData._id));
       } else {
         const slug =
           (typeof notification.titleId === "object" && notification.titleId?.slug) ||
@@ -211,6 +221,11 @@ export default function NotificationCard({
     return `${baseUrl}${cleanPath}`;
   };
 
+  const effectiveTitleId =
+    typeof notification.titleId === "object" && notification.titleId?._id
+      ? notification.titleId._id
+      : fetchedTitle?._id ?? titleIdFromChapter ?? (entityType === "title" ? entityId : undefined);
+
   const getCoverImage = () => {
     if (typeof notification.titleId === "object" && notification.titleId?._id) {
       if (notification.titleId.coverImage) return notification.titleId.coverImage;
@@ -219,7 +234,12 @@ export default function NotificationCard({
     if (fetchedTitle?.coverImage) return fetchedTitle.coverImage;
     if (fetchedTitle?._id) return `/uploads/titles/${fetchedTitle._id}/cover.jpg`;
     if (chapterData?.titleInfo?.coverImage) return chapterData.titleInfo.coverImage;
-    if (chapterData?.titleId) return `/uploads/titles/${chapterData.titleId}/cover.jpg`;
+    const chapterTitleId =
+      typeof chapterData?.titleId === "string"
+        ? chapterData.titleId
+        : (chapterData?.titleId as { _id?: string })?._id;
+    if (chapterTitleId) return `/uploads/titles/${chapterTitleId}/cover.jpg`;
+    if (effectiveTitleId) return `/uploads/titles/${effectiveTitleId}/cover.jpg`;
     return undefined;
   };
 
@@ -236,12 +256,21 @@ export default function NotificationCard({
     notification.type === "report_resolved";
 
   const rawMessage = notification.message ?? "";
-  let displayMessage =
-    isReportType && safeName && rawMessage
-      ? rawMessage
-          .replace(/\bна title\b/gi, `на «${safeName}»`)
-          .replace(/\btitle\b/g, `«${safeName}»`)
-      : rawMessage;
+  const safeChapterName =
+    typeof chapterDisplayName === "string" ? chapterDisplayName.replace(/\$/g, "$$") : "";
+  let displayMessage = rawMessage;
+  if (isReportType && rawMessage) {
+    if (safeName) {
+      displayMessage = displayMessage
+        .replace(/\bна title\b/gi, `на «${safeName}»`)
+        .replace(/\btitle\b/g, `«${safeName}»`);
+    }
+    if (safeChapterName) {
+      displayMessage = displayMessage
+        .replace(/\bна chapter\b/gi, `на «${safeChapterName}»`)
+        .replace(/\bchapter\b/g, `«${safeChapterName}»`);
+    }
+  }
 
   const resolutionText =
     metadata?.resolutionMessage || metadata?.reportResponse || metadata?.response;
