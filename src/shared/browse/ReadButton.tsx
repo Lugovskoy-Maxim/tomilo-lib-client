@@ -28,9 +28,100 @@ export function ReadButton({
   const [isClient, setIsClient] = useState(false);
   const userHistoryArray = Array.isArray(user?.readingHistory) ? user.readingHistory : [];
 
+  type LastReadChapterLike = {
+    chapterId: string;
+    chapterNumber?: number;
+    readAt: string;
+  };
+
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const getUserHistoryItemByTitle = (): ReadingHistoryEntry | null => {
+    return (
+      userHistoryArray.find((item: ReadingHistoryEntry) => {
+        const titleId = typeof item.titleId === "string" ? item.titleId : item.titleId?._id;
+        return titleId === titleData?._id;
+      }) || null
+    );
+  };
+
+  const toHistoryChapter = (chapter: unknown): LastReadChapterLike | null => {
+    if (!chapter || typeof chapter !== "object") return null;
+
+    const raw = chapter as {
+      chapterId?: string | { _id?: string | null } | null;
+      chapterNumber?: number | string | null;
+      readAt?: string | null;
+    };
+
+    if (!raw.chapterId || !raw.readAt) return null;
+
+    const chapterId =
+      typeof raw.chapterId === "object"
+        ? (raw.chapterId as { _id?: string | null })._id || ""
+        : String(raw.chapterId);
+
+    if (!chapterId) return null;
+
+    const parsedNumber =
+      raw.chapterNumber === null || raw.chapterNumber === undefined
+        ? undefined
+        : Number(raw.chapterNumber);
+
+    return {
+      chapterId,
+      chapterNumber: Number.isFinite(parsedNumber) ? parsedNumber : undefined,
+      readAt: raw.readAt,
+    };
+  };
+
+  const getLastReadChapter = (historyItem: ReadingHistoryEntry | null): LastReadChapterLike | null => {
+    if (!historyItem) return null;
+
+    if (Array.isArray(historyItem.chapters) && historyItem.chapters.length > 0) {
+      const normalizedChapters = historyItem.chapters
+        .map(ch => toHistoryChapter(ch))
+        .filter((ch): ch is LastReadChapterLike => Boolean(ch));
+
+      if (normalizedChapters.length > 0) {
+        return normalizedChapters.reduce((latest, current) => {
+          const latestTime = new Date(latest.readAt).getTime();
+          const currentTime = new Date(current.readAt).getTime();
+          return currentTime > latestTime ? current : latest;
+        });
+      }
+    }
+
+    const rawHistory = historyItem as unknown as {
+      lastChapter?: unknown;
+    };
+
+    if (rawHistory.lastChapter) {
+      return toHistoryChapter(rawHistory.lastChapter);
+    }
+
+    return null;
+  };
+
+  const getBestLastReadChapter = (): LastReadChapterLike | null => {
+    const fromTitleQuery = getLastReadChapter(readingHistory ?? null);
+    const fromUserHistory = getLastReadChapter(getUserHistoryItemByTitle());
+
+    if (fromTitleQuery && fromUserHistory) {
+      const fromTitleTime = new Date(fromTitleQuery.readAt).getTime();
+      const fromUserTime = new Date(fromUserHistory.readAt).getTime();
+
+      if (Number.isFinite(fromTitleTime) && Number.isFinite(fromUserTime)) {
+        return fromTitleTime >= fromUserTime ? fromTitleQuery : fromUserHistory;
+      }
+
+      return fromTitleQuery.chapterNumber !== undefined ? fromTitleQuery : fromUserHistory;
+    }
+
+    return fromTitleQuery || fromUserHistory;
+  };
 
   // Находим следующую главу для чтения
   const getNextChapter = () => {
@@ -45,59 +136,51 @@ export function ReadButton({
       return aNum - bNum;
     });
 
-    // Если есть продолжение чтения и оно относится к текущему тайтлу
-    const readingHistoryItem =
-      readingHistory ||
-      userHistoryArray.find((item: ReadingHistoryEntry) => {
-        const titleId = typeof item.titleId === "string" ? item.titleId : item.titleId?._id;
-        return titleId === titleData?._id;
-      });
+    const lastReadChapter = getBestLastReadChapter();
 
-    if (
-      readingHistoryItem &&
-      readingHistoryItem.chapters &&
-      Array.isArray(readingHistoryItem.chapters) &&
-      readingHistoryItem.chapters.length > 0
-    ) {
-      // Находим последнюю прочитанную главу по времени чтения
-      const lastReadChapter = readingHistoryItem.chapters.reduce((latest, current) => {
-        const latestTime = new Date(latest.readAt).getTime();
-        const currentTime = new Date(current.readAt).getTime();
-        return currentTime > latestTime ? current : latest;
-      });
-
-      // Используем chapterNumber из истории чтения
+    if (lastReadChapter) {
       const lastReadNumber = lastReadChapter.chapterNumber;
 
-      if (lastReadNumber !== undefined) {
-        // Ищем следующую главу по номеру
-        const nextChapter = sortedChapters.find(ch => ch.chapterNumber > lastReadNumber);
+      if (lastReadNumber !== undefined && Number.isFinite(lastReadNumber)) {
+        const nextChapter = sortedChapters.find(ch => (ch.chapterNumber ?? 0) > lastReadNumber);
 
         if (nextChapter) {
           return nextChapter;
         }
 
-        // Если следующих глав нет, возвращаем последнюю прочитанную
-        const currentChapter = sortedChapters.find(ch => ch.chapterNumber === lastReadNumber);
+        const currentChapter = sortedChapters.find(ch => (ch.chapterNumber ?? 0) === lastReadNumber);
         if (currentChapter) {
           return currentChapter;
         }
-      } else {
-        // Fallback если chapterNumber не доступен в истории
-        const currentChapter = chapters.find(ch => ch._id === lastReadChapter.chapterId);
 
-        if (currentChapter) {
-          const nextChapters = chapters
-            .filter(ch => ch.chapterNumber > currentChapter.chapterNumber)
-            .sort((a, b) => a.chapterNumber - b.chapterNumber);
-
-          if (nextChapters.length > 0) {
-            return nextChapters[0];
-          }
-
-          return currentChapter;
-        }
+        // Если в текущем списке глав нет нужного номера (частичная загрузка),
+        // открываем последнюю прочитанную из истории по chapterId.
+        return {
+          _id: lastReadChapter.chapterId,
+          chapterNumber: lastReadNumber,
+        } as Chapter;
       }
+
+      // Fallback если chapterNumber не доступен в истории
+      const currentChapter = chapters.find(ch => ch._id === lastReadChapter.chapterId);
+
+      if (currentChapter) {
+        const nextChapters = chapters
+          .filter(ch => (ch.chapterNumber ?? 0) > (currentChapter.chapterNumber ?? 0))
+          .sort((a, b) => (a.chapterNumber ?? 0) - (b.chapterNumber ?? 0));
+
+        if (nextChapters.length > 0) {
+          return nextChapters[0];
+        }
+
+        return currentChapter;
+      }
+
+      // Если в текущем списке глав нет lastReadChapter, всё равно продолжаем по истории.
+      return {
+        _id: lastReadChapter.chapterId,
+        chapterNumber: lastReadNumber ?? 0,
+      } as Chapter;
     }
 
     // Если нет продолжения чтения или не удалось определить следующую главу, возвращаем первую главу
@@ -123,19 +206,9 @@ export function ReadButton({
   let showIcon = true;
 
   // Если есть продолжение чтения для этого тайтла
-  const readingHistoryItem =
-    readingHistory ||
-    userHistoryArray.find((item: ReadingHistoryEntry) => {
-      const titleId = typeof item.titleId === "string" ? item.titleId : item.titleId?._id;
-      return titleId === titleData?._id;
-    });
+  const hasReadingProgress = Boolean(getBestLastReadChapter());
 
-  if (
-    readingHistoryItem &&
-    readingHistoryItem.chapters &&
-    Array.isArray(readingHistoryItem.chapters) &&
-    readingHistoryItem.chapters.length > 0
-  ) {
+  if (hasReadingProgress) {
     if (nextChapter) {
       buttonText = `Продолжить с главы ${nextChapter.chapterNumber}`;
       buttonTextShort = "Продолжить";
