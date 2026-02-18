@@ -45,12 +45,14 @@ export default function AdminPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Синхронизация только URL → state (навигация назад/вперёд). Без activeTab в deps,
+  // иначе при клике по вкладке старый searchParams успевает вернуть предыдущую вкладку — вкладки прыгают.
   useEffect(() => {
     const tabFromUrl = searchParams.get("tab");
-    if (isValidAdminTab(tabFromUrl) && tabFromUrl !== activeTab) {
+    if (isValidAdminTab(tabFromUrl)) {
       setActiveTab(tabFromUrl);
     }
-  }, [activeTab, searchParams]);
+  }, [searchParams]);
 
   useEffect(() => {
     localStorage.setItem("admin:lastTab", activeTab);

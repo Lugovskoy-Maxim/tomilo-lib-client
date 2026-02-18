@@ -168,6 +168,17 @@ export default function NotificationCard({
     return undefined;
   };
 
+  // Для ответов на жалобы: подставляем реальное название тайтла вместо placeholder "title"
+  const entityName =
+    notification.metadata?.titleName ||
+    (typeof notification.titleId === "object" && notification.titleId?.name);
+  const displayMessage =
+    (notification.type === "report_response" || notification.type === "complaint_response") &&
+    entityName &&
+    notification.message
+      ? notification.message.replace(/\bна title\b/gi, `на «${entityName}»`).replace(/\btitle\b/g, `«${entityName}»`)
+      : notification.message;
+
   if (isDeleting) return null;
 
   const coverImageUrl = getCoverImage();

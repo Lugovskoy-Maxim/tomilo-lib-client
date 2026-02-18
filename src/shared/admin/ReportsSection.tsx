@@ -6,7 +6,7 @@ import {
   useUpdateReportStatusMutation,
   useDeleteReportMutation,
 } from "@/store/api/reportsApi";
-import { ReportType } from "@/types/report";
+import { Report, ReportType } from "@/types/report";
 import Button from "@/shared/ui/button";
 import {
   AlertTriangle,
@@ -17,9 +17,11 @@ import {
   Grid3X3,
   LayoutList,
   Clock3,
+  MessageSquareReply,
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { ReportEntityInfo } from "./ReportEntityInfo";
+import { AdminModal } from "./ui/AdminModal";
 
 type ReportsViewMode = "list" | "cards";
 type ReportsSortMode = "newest" | "oldest" | "open-first";
@@ -36,6 +38,17 @@ const reportTypeColors = {
   [ReportType.COMPLAINT]: "bg-[var(--chart-5)]",
 };
 
+function getReportResponse(report: Report | null): string {
+  if (!report) return "";
+  return (
+    report.resolutionMessage ??
+    report.response ??
+    report.reply ??
+    report.adminResponse ??
+    ""
+  );
+}
+
 export function ReportsSection() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -44,6 +57,10 @@ export function ReportsSection() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<ReportsViewMode>("cards");
   const [sortMode, setSortMode] = useState<ReportsSortMode>("open-first");
+  const [responseModalReport, setResponseModalReport] = useState<Report | null>(null);
+  const [responseModalResolveTo, setResponseModalResolveTo] = useState<boolean | null>(null);
+  const [responseModalText, setResponseModalText] = useState("");
+  const [isResponseSubmitting, setIsResponseSubmitting] = useState(false);
 
   const { data, error, isLoading, refetch } = useGetReportsQuery({
     page,
@@ -112,29 +129,58 @@ export function ReportsSection() {
     return "Неизвестная ошибка";
   };
 
+  const openResponseModal = (report: Report, resolveTo: boolean) => {
+    setResponseModalReport(report);
+    setResponseModalResolveTo(resolveTo);
+    setResponseModalText(getReportResponse(report));
+  };
+
+  const closeResponseModal = () => {
+    setResponseModalReport(null);
+    setResponseModalResolveTo(null);
+    setResponseModalText("");
+  };
+
+  const handleResponseModalSubmit = async () => {
+    if (!responseModalReport) return;
+    const trimmed = responseModalText.trim();
+    if (!trimmed) {
+      toast.error("Текст ответа не может быть пустым");
+      return;
+    }
+    const isResolved = responseModalResolveTo ?? responseModalReport.isResolved;
+    setIsResponseSubmitting(true);
+    try {
+      await updateReportStatus({
+        id: responseModalReport._id,
+        data: { isResolved, resolutionMessage: trimmed },
+      }).unwrap();
+      toast.success(
+        isResolved !== responseModalReport.isResolved
+          ? `Жалоба ${isResolved ? "закрыта" : "открыта"} успешно`
+          : "Ответ сохранён"
+      );
+      refetch();
+      closeResponseModal();
+    } catch (e) {
+      toast.error(`Не удалось сохранить ответ: ${getErrorMessage(e)}`);
+    } finally {
+      setIsResponseSubmitting(false);
+    }
+  };
+
   const handleStatusChange = async (id: string, isResolved: boolean) => {
     const report = reports.find(item => item._id === id);
-    let response: string | undefined;
-
-    if (isResolved && report?.reportType === ReportType.COMPLAINT) {
-      const initialResponse = report.response || report.reply || report.adminResponse || "";
-      const replyInput = prompt("Введите ответ на жалобу (будет отправлен инициатору):", initialResponse);
-      if (replyInput === null) return;
-
-      const trimmedReply = replyInput.trim();
-      if (!trimmedReply) {
-        toast.error("Ответ на жалобу не может быть пустым");
-        return;
-      }
-      response = trimmedReply;
+    if (isResolved && report) {
+      openResponseModal(report, true);
+      return;
     }
-
     try {
-      await updateReportStatus({ id, data: { isResolved, response } }).unwrap();
-      toast.success(`Жалоба ${isResolved ? "закрыта" : "открыта"} успешно`);
+      await updateReportStatus({ id, data: { isResolved } }).unwrap();
+      toast.success(`Отчёт ${isResolved ? "закрыт" : "открыт"} успешно`);
       refetch();
     } catch (e) {
-      toast.error(`Не удалось обновить статус жалобы: ${getErrorMessage(e)}`);
+      toast.error(`Не удалось обновить статус: ${getErrorMessage(e)}`);
     }
   };
 
@@ -324,6 +370,14 @@ export function ReportsSection() {
 
               <div className="mt-3 flex justify-end gap-2">
                 <button
+                  onClick={() => openResponseModal(report, report.isResolved)}
+                  disabled={isStatusUpdating}
+                  className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
+                  title={getReportResponse(report) ? "Изменить ответ" : "Ответить"}
+                >
+                  <MessageSquareReply className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => handleStatusChange(report._id, !report.isResolved)}
                   disabled={isStatusUpdating}
                   className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
@@ -398,6 +452,14 @@ export function ReportsSection() {
                   <td className="py-2.5 px-3">
                     <div className="flex items-center justify-end gap-1">
                       <button
+                        onClick={() => openResponseModal(report, report.isResolved)}
+                        disabled={isStatusUpdating}
+                        className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
+                        title={getReportResponse(report) ? "Изменить ответ" : "Ответить"}
+                      >
+                        <MessageSquareReply className="w-3.5 h-3.5" />
+                      </button>
+                      <button
                         onClick={() => handleStatusChange(report._id, !report.isResolved)}
                         disabled={isStatusUpdating}
                         className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
@@ -447,6 +509,57 @@ export function ReportsSection() {
           </div>
         </div>
       )}
+
+      <AdminModal
+        isOpen={!!responseModalReport}
+        onClose={closeResponseModal}
+        title={
+          responseModalResolveTo === true
+            ? "Ответ на отчёт и закрытие"
+            : getReportResponse(responseModalReport)
+              ? "Изменить ответ на отчёт"
+              : "Ответ на отчёт"
+        }
+        size="lg"
+        closeOnOverlayClick={!isResponseSubmitting}
+        closeOnEsc={!isResponseSubmitting}
+        footer={
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={closeResponseModal}
+              disabled={isResponseSubmitting}
+              className="admin-btn admin-btn-secondary"
+            >
+              Отмена
+            </button>
+            <button
+              type="button"
+              onClick={handleResponseModalSubmit}
+              disabled={isResponseSubmitting || !responseModalText.trim()}
+              className="admin-btn admin-btn-primary disabled:opacity-50"
+            >
+              {isResponseSubmitting ? "Сохранение..." : responseModalResolveTo === true ? "Ответить и закрыть" : "Сохранить ответ"}
+            </button>
+          </div>
+        }
+      >
+        <p className="text-sm text-[var(--muted-foreground)] mb-2">
+          Текст сохранится в отчёте. Для жалоб он будет отправлен инициатору. Ответ можно изменить позже.
+        </p>
+        <textarea
+          value={responseModalText}
+          onChange={e => setResponseModalText(e.target.value)}
+          placeholder="Введите ответ (например: «Исправлено», «Проверено» или развёрнутый комментарий)..."
+          rows={5}
+          maxLength={2000}
+          className="admin-input w-full resize-y min-h-[120px]"
+          disabled={isResponseSubmitting}
+        />
+        <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
+          {responseModalText.length} / 2000
+        </p>
+      </AdminModal>
     </div>
   );
 }

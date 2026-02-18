@@ -14,9 +14,11 @@ export interface Report {
   _id: string;
   reportType: ReportType;
   content: string;
+  /** Ответ администратора (сервер возвращает resolutionMessage) */
   response?: string | null;
   reply?: string | null;
   adminResponse?: string | null;
+  resolutionMessage?: string | null;
   entityId: string;
   entityType: "title" | "chapter";
   url: string | null;
@@ -42,7 +44,8 @@ export interface CreateReportDto {
 
 export interface UpdateReportStatusDto {
   isResolved: boolean;
-  response?: string;
+  /** Текст ответа на жалобу (макс. 2000 символов). Сервер ожидает resolutionMessage. */
+  resolutionMessage?: string;
 }
 
 export interface ReportsResponse {
