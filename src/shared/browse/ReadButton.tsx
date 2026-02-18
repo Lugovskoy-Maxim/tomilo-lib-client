@@ -123,6 +123,87 @@ export function ReadButton({
     return fromTitleQuery || fromUserHistory;
   };
 
+  const getRussianPlural = (count: number, one: string, few: string, many: string): string => {
+    const abs = Math.abs(count) % 100;
+    const last = abs % 10;
+    if (abs > 10 && abs < 20) return many;
+    if (last > 1 && last < 5) return few;
+    if (last === 1) return one;
+    return many;
+  };
+
+  const formatRelativeReadAt = (
+    readAt: string,
+  ): { desktop: string; mobile: string; mobileCompact: string } | null => {
+    const readDate = new Date(readAt);
+    if (Number.isNaN(readDate.getTime())) return null;
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfReadDay = new Date(readDate.getFullYear(), readDate.getMonth(), readDate.getDate());
+    const dayDiff = Math.floor(
+      (startOfToday.getTime() - startOfReadDay.getTime()) / (24 * 60 * 60 * 1000),
+    );
+
+    const time = readDate.toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    if (dayDiff <= 0) {
+      return {
+        desktop: `Последнее чтение: сегодня в ${time}`,
+        mobile: `Читали: сегодня ${time}`,
+        mobileCompact: `сегодня ${time}`,
+      };
+    }
+
+    if (dayDiff === 1) {
+      return {
+        desktop: `Последнее чтение: вчера в ${time}`,
+        mobile: `Читали: вчера ${time}`,
+        mobileCompact: `вчера ${time}`,
+      };
+    }
+
+    if (dayDiff < 7) {
+      const daysWord = getRussianPlural(dayDiff, "день", "дня", "дней");
+      return {
+        desktop: `Последнее чтение: ${dayDiff} ${daysWord} назад`,
+        mobile: `Читали: ${dayDiff} ${daysWord} назад`,
+        mobileCompact: `${dayDiff} дн. назад`,
+      };
+    }
+
+    const weeks = Math.floor(dayDiff / 7);
+    if (dayDiff < 30) {
+      const weeksWord = getRussianPlural(weeks, "неделю", "недели", "недель");
+      return {
+        desktop: `Последнее чтение: ${weeks} ${weeksWord} назад`,
+        mobile: `Читали: ${weeks} ${weeksWord} назад`,
+        mobileCompact: `${weeks} нед. назад`,
+      };
+    }
+
+    const months = Math.floor(dayDiff / 30);
+    if (dayDiff < 365) {
+      const monthsWord = getRussianPlural(months, "месяц", "месяца", "месяцев");
+      return {
+        desktop: `Последнее чтение: ${months} ${monthsWord} назад`,
+        mobile: `Читали: ${months} ${monthsWord} назад`,
+        mobileCompact: `${months} мес. назад`,
+      };
+    }
+
+    const years = Math.floor(dayDiff / 365);
+    const yearsWord = getRussianPlural(years, "год", "года", "лет");
+    return {
+      desktop: `Последнее чтение: ${years} ${yearsWord} назад`,
+      mobile: `Читали: ${years} ${yearsWord} назад`,
+      mobileCompact: `${years} г. назад`,
+    };
+  };
+
   // Находим следующую главу для чтения
   const getNextChapter = () => {
     // Проверяем, что titleData и chapters существуют
@@ -204,19 +285,32 @@ export function ReadButton({
   let buttonText = "С первой главы";
   let buttonTextShort = "Читать";
   let showIcon = true;
+  const bestLastReadChapter = getBestLastReadChapter();
+  let lastReadCaption = "";
+  let lastReadCaptionShort = "";
+  let lastReadCaptionCompact = "";
 
   // Если есть продолжение чтения для этого тайтла
-  const hasReadingProgress = Boolean(getBestLastReadChapter());
+  const hasReadingProgress = Boolean(bestLastReadChapter);
 
   if (hasReadingProgress) {
     if (nextChapter) {
       buttonText = `Продолжить с главы ${nextChapter.chapterNumber}`;
-      buttonTextShort = "Продолжить";
+      buttonTextShort = `С главы ${nextChapter.chapterNumber}`;
     } else {
       buttonText = "Продолжить чтение";
       buttonTextShort = "Продолжить";
     }
     showIcon = false;
+
+    if (bestLastReadChapter?.readAt) {
+      const relative = formatRelativeReadAt(bestLastReadChapter.readAt);
+      if (relative) {
+        lastReadCaption = relative.desktop;
+        lastReadCaptionShort = relative.mobile;
+        lastReadCaptionCompact = relative.mobileCompact;
+      }
+    }
   }
 
   // Если нет глав, кнопка неактивна
@@ -241,13 +335,27 @@ export function ReadButton({
     <>
       <Button
         variant="primary"
-        className={`w-full cursor-pointer rounded-xl hover:bg-[var(--chart-1)]/80 justify-center bg-[var(--chart-1)] text-[var(--foreground)] whitespace-nowrap ${className}`}
+        className={`w-full cursor-pointer rounded-xl hover:bg-[var(--chart-1)]/80 justify-center bg-[var(--chart-1)] text-[var(--foreground)] ${className}`}
         onClick={handleClick}
         disabled={isDisabled}
       >
         {displayShowIcon && <Play className="mr-2 h-5 w-5 shrink-0" />}
-        <span className="sm:hidden">{displayButtonTextShort}</span>
-        <span className="hidden sm:inline">{displayButtonText}</span>
+        <span className="sm:hidden flex max-w-full flex-col items-center leading-tight">
+          <span className="text-sm font-medium">{displayButtonTextShort}</span>
+          {isClient && hasReadingProgress && lastReadCaptionCompact && (
+            <span className="mt-0.5 max-w-full truncate text-[10px] font-normal text-[var(--foreground)]/80">
+              {lastReadCaptionCompact}
+            </span>
+          )}
+        </span>
+        <span className="hidden sm:flex flex-col items-center leading-tight">
+          <span>{displayButtonText}</span>
+          {isClient && hasReadingProgress && lastReadCaption && (
+            <span className="mt-0.5 text-[10px] font-normal text-[var(--foreground)]/80">
+              {lastReadCaption}
+            </span>
+          )}
+        </span>
       </Button>
     </>
   );

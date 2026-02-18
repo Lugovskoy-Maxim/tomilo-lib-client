@@ -100,6 +100,8 @@ export function BookmarkButton({
   const displayIsBookmarked = isClient ? isBookmarked : initialBookmarked;
   const displayTitle = displayIsBookmarked ? "Удалить из закладок" : "Добавить в закладки";
   const displayFill = displayIsBookmarked ? "currentColor" : "none";
+  const baseButtonClass =
+    "flex items-center justify-center gap-2 cursor-pointer rounded-xl border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--chart-1)]/40";
 
   return (
     <div
@@ -110,7 +112,7 @@ export function BookmarkButton({
         <button
           onClick={handleRemoveBookmark}
           disabled={isLoading}
-          className={`flex justify-center items-center gap-2 cursor-pointer lg:p-1 p-4 bg-[var(--primary)] border-[var(--primary)] text-[var(--chart-1)] rounded-xl hover:opacity-90 transition-opacity ${className} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+          className={`${baseButtonClass} border-[var(--chart-1)]/40 bg-[var(--chart-1)]/10 text-[var(--chart-1)] hover:bg-[var(--chart-1)]/15 ${className} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
           title={displayTitle}
         >
           {isLoading ? (
@@ -136,7 +138,7 @@ export function BookmarkButton({
               setCategoryOpen(prev => !prev);
             }}
             disabled={isLoading}
-            className={`flex justify-center items-center gap-2 cursor-pointer lg:p-1 p-4 bg-[var(--secondary)] border-[var(--border)] text-[var(--muted-foreground)] rounded-xl hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-[var(--primary-foreground)] transition-colors ${className} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`${baseButtonClass} border-[var(--border)] bg-[var(--card)]/80 text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--chart-1)]/30 ${className} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             title={displayTitle}
           >
             {isLoading ? (

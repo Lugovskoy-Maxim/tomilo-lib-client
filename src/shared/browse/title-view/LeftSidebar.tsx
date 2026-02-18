@@ -78,7 +78,11 @@ export function LeftSidebar({
           className="w-full rounded-xl py-3.5 font-semibold shadow-md hover:shadow-lg transition-shadow"
           onAgeVerificationRequired={onAgeVerificationRequired}
         />
-        <BookmarkButton titleId={titleData._id as string} initialBookmarked={false} className="w-full rounded-xl" />
+        <BookmarkButton
+          titleId={titleData._id as string}
+          initialBookmarked={false}
+          className="w-full py-3 px-4 text-sm font-medium"
+        />
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => {
