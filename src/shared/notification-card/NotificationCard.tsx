@@ -289,7 +289,7 @@ export default function NotificationCard({
 
   if (isReportType && resolutionText && displayMessage.includes("Ответ модератора:")) {
     displayMessage = displayMessage
-      .replace(/\s*Ответ модератора:.*$/is, "")
+      .replace(/\s*Ответ модератора:[\s\S]*$/i, "")
       .trim();
   }
 
