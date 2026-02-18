@@ -23,28 +23,34 @@ import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function AdminPageClient() {
-  const [activeTab, setActiveTab] = useState<AdminTab>("overview");
+  const isValidAdminTab = (tab: string | null): tab is AdminTab => {
+    return Boolean(tab && ADMIN_TABS.includes(tab as AdminTab));
+  };
+
+  const getInitialAdminTab = (): AdminTab => {
+    if (typeof window === "undefined") return "overview";
+
+    const tabFromUrl = new URLSearchParams(window.location.search).get("tab");
+    if (isValidAdminTab(tabFromUrl)) return tabFromUrl;
+
+    const lastTab = localStorage.getItem("admin:lastTab");
+    if (isValidAdminTab(lastTab)) return lastTab;
+
+    return "overview";
+  };
+
+  const [activeTab, setActiveTab] = useState<AdminTab>(getInitialAdminTab);
   const [selectedTitleId, setSelectedTitleId] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const isValidAdminTab = (tab: string | null): tab is AdminTab => {
-    return Boolean(tab && ADMIN_TABS.includes(tab as AdminTab));
-  };
-
   useEffect(() => {
     const tabFromUrl = searchParams.get("tab");
-    if (isValidAdminTab(tabFromUrl)) {
+    if (isValidAdminTab(tabFromUrl) && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
-      return;
     }
-
-    const lastTab = localStorage.getItem("admin:lastTab");
-    if (isValidAdminTab(lastTab)) {
-      setActiveTab(lastTab);
-    }
-  }, [searchParams]);
+  }, [activeTab, searchParams]);
 
   useEffect(() => {
     localStorage.setItem("admin:lastTab", activeTab);
