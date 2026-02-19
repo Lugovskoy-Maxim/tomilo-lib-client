@@ -85,6 +85,28 @@ export const shopApi = createApi({
       invalidatesTags: [{ type: SHOP_TAG, id: "LIST" }],
     }),
 
+    /** Создание украшения с загрузкой файла изображения (multipart/form-data).
+     * Тот же URL, что и createDecoration — бэкенд по Content-Type может принимать и JSON, и FormData. */
+    createDecorationWithImage: builder.mutation<
+      Decoration,
+      { name: string; description: string; price: number; type: CreateDecorationDto["type"]; image: File }
+    >({
+      query: ({ name, description, price, type, image }) => {
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("description", description);
+        formData.append("price", String(price));
+        formData.append("type", type);
+        formData.append("image", image);
+        return {
+          url: "/shop/admin/decorations",
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: [{ type: SHOP_TAG, id: "LIST" }],
+    }),
+
     updateDecoration: builder.mutation<
       Decoration,
       { id: string; dto: UpdateDecorationDto }
@@ -94,6 +116,38 @@ export const shopApi = createApi({
         method: "PATCH",
         body: dto,
       }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: SHOP_TAG, id },
+        { type: SHOP_TAG, id: "LIST" },
+      ],
+    }),
+
+    /** Обновление украшения с загрузкой нового файла изображения (multipart/form-data).
+     * Тот же URL, что и updateDecoration — бэкенд по Content-Type может принимать и JSON, и FormData. */
+    updateDecorationWithImage: builder.mutation<
+      Decoration,
+      {
+        id: string;
+        name?: string;
+        description?: string;
+        price?: number;
+        type?: UpdateDecorationDto["type"];
+        image: File;
+      }
+    >({
+      query: ({ id, name, description, price, type, image }) => {
+        const formData = new FormData();
+        if (name !== undefined) formData.append("name", name);
+        if (description !== undefined) formData.append("description", description);
+        if (price !== undefined) formData.append("price", String(price));
+        if (type !== undefined) formData.append("type", type);
+        formData.append("image", image);
+        return {
+          url: `/shop/admin/decorations/${id}`,
+          method: "PATCH",
+          body: formData,
+        };
+      },
       invalidatesTags: (_result, _error, { id }) => [
         { type: SHOP_TAG, id },
         { type: SHOP_TAG, id: "LIST" },
@@ -147,7 +201,9 @@ export const {
   useGetDecorationsByTypeQuery,
   useGetUserProfileDecorationsQuery,
   useCreateDecorationMutation,
+  useCreateDecorationWithImageMutation,
   useUpdateDecorationMutation,
+  useUpdateDecorationWithImageMutation,
   useDeleteDecorationMutation,
   useEquipDecorationMutation,
   useUnequipDecorationMutation,

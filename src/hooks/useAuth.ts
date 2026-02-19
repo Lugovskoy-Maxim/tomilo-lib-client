@@ -461,9 +461,17 @@ export const useAuth = () => {
     }
   };
 
-  const loginUser = (authResponse: ApiResponseDto<AuthResponse>) => {
-    const token = authResponse.data?.access_token;
-    const user = authResponse.data?.user;
+  const loginUser = (authResponse: ApiResponseDto<AuthResponse> | AuthResponse) => {
+    // Поддержка обоих форматов: { data: { access_token, user } } и { access_token, user }
+    const data =
+      authResponse &&
+      "data" in authResponse &&
+      authResponse.data != null &&
+      typeof authResponse.data === "object"
+        ? authResponse.data
+        : (authResponse as AuthResponse);
+    const token = data?.access_token;
+    const user = data?.user;
 
     if (typeof window !== "undefined" && token && user) {
       localStorage.setItem(AUTH_TOKEN_KEY, token);
@@ -474,9 +482,7 @@ export const useAuth = () => {
         checkAndSetAgeVerification(user.birthDate);
       }
 
-      if (authResponse.data) {
-        dispatch(login(authResponse.data));
-      }
+      dispatch(login({ access_token: token, user }));
     }
   };
 

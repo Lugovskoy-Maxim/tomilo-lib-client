@@ -132,10 +132,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
     setTouched(prev => ({ ...prev, [field]: true }));
   };
 
-  // Подмена типичного англоязычного сообщения от внешних сервисов (VK и др.)
+  // Подмена типичного англоязычного сообщения от внешних сервисов (VK и др.) и бэкенда
   const normalizeErrorMessage = (msg: string): string => {
     if (/error loading|please try again|try again later/i.test(msg)) {
       return MESSAGES.ERROR_MESSAGES.LOAD_ERROR_TRY_AGAIN;
+    }
+    if (/an error occurred|error occurred|something went wrong/i.test(msg)) {
+      return MESSAGES.ERROR_MESSAGES.LOGIN_ERROR;
     }
     return msg;
   };

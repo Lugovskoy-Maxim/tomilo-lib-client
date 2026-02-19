@@ -7,7 +7,9 @@ import type { DecorationType } from "@/api/shop";
 import {
   useGetDecorationsQuery,
   useCreateDecorationMutation,
+  useCreateDecorationWithImageMutation,
   useUpdateDecorationMutation,
+  useUpdateDecorationWithImageMutation,
   useDeleteDecorationMutation,
 } from "@/store/api/shopApi";
 import { AdminCard } from "./ui";
@@ -31,19 +33,29 @@ const emptyForm = {
   type: "avatar" as DecorationType,
 };
 
+const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp,image/gif";
+
 export function ShopManagementSection() {
   const toast = useToast();
   const [typeFilter, setTypeFilter] = useState<DecorationType | "all">("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDecoration, setEditingDecoration] = useState<Decoration | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Decoration | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const { data: decorations = [], isLoading, error, refetch } = useGetDecorationsQuery();
-  const [createDecoration, { isLoading: isCreating }] = useCreateDecorationMutation();
-  const [updateDecoration, { isLoading: isUpdating }] = useUpdateDecorationMutation();
+  const [createDecoration, { isLoading: isCreatingJson }] = useCreateDecorationMutation();
+  const [createDecorationWithImage, { isLoading: isCreatingWithImage }] =
+    useCreateDecorationWithImageMutation();
+  const [updateDecoration, { isLoading: isUpdatingJson }] = useUpdateDecorationMutation();
+  const [updateDecorationWithImage, { isLoading: isUpdatingWithImage }] =
+    useUpdateDecorationWithImageMutation();
   const [deleteDecoration] = useDeleteDecorationMutation();
+
+  const isCreating = isCreatingJson || isCreatingWithImage;
+  const isUpdating = isUpdatingJson || isUpdatingWithImage;
 
   const filtered = useMemo(() => {
     if (typeFilter === "all") return decorations;
@@ -53,6 +65,7 @@ export function ShopManagementSection() {
   const openCreate = () => {
     setEditingDecoration(null);
     setForm(emptyForm);
+    setImageFile(null);
     setIsFormOpen(true);
   };
 
@@ -65,6 +78,7 @@ export function ShopManagementSection() {
       imageUrl: d.imageUrl,
       type: d.type,
     });
+    setImageFile(null);
     setIsFormOpen(true);
   };
 
@@ -72,6 +86,7 @@ export function ShopManagementSection() {
     setIsFormOpen(false);
     setEditingDecoration(null);
     setForm(emptyForm);
+    setImageFile(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,26 +95,41 @@ export function ShopManagementSection() {
 
     try {
       if (editingDecoration) {
-        await updateDecoration({
-          id: editingDecoration.id,
-          dto: {
+        if (imageFile) {
+          await updateDecorationWithImage({
+            id: editingDecoration.id,
             name: form.name.trim(),
             description: form.description.trim(),
             price: form.price,
-            imageUrl: form.imageUrl.trim() || undefined,
             type: form.type,
-          },
-        }).unwrap();
+            image: imageFile,
+          }).unwrap();
+        } else {
+          await updateDecoration({
+            id: editingDecoration.id,
+            dto: {
+              name: form.name.trim(),
+              description: form.description.trim(),
+              price: form.price,
+              imageUrl: form.imageUrl.trim() || undefined,
+              type: form.type,
+            },
+          }).unwrap();
+        }
         toast.success("Украшение обновлено");
         closeForm();
         refetch();
       } else {
-        await createDecoration({
+        if (!imageFile) {
+          toast.error("Выберите файл изображения");
+          return;
+        }
+        await createDecorationWithImage({
           name: form.name.trim(),
           description: form.description.trim(),
           price: form.price,
-          imageUrl: form.imageUrl.trim(),
           type: form.type,
+          image: imageFile,
         }).unwrap();
         toast.success("Украшение добавлено");
         closeForm();
@@ -411,25 +441,32 @@ export function ShopManagementSection() {
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
-              URL изображения
+              {editingDecoration ? "Изображение (оставьте пустым, чтобы не менять)" : "Файл изображения *"}
             </label>
             <input
-              type="url"
-              value={form.imageUrl}
-              onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
-              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-              placeholder="https://..."
+              type="file"
+              accept={ACCEPTED_IMAGE_TYPES}
+              onChange={e => setImageFile(e.target.files?.[0] ?? null)}
+              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[var(--primary)] file:text-[var(--primary-foreground)]"
             />
-            {form.imageUrl && (
+            {(imageFile || form.imageUrl) && (
               <div className="mt-2 w-24 h-24 rounded-lg overflow-hidden bg-[var(--muted)]">
-                <img
-                  src={form.imageUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={e => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
+                {imageFile ? (
+                  <img
+                    src={URL.createObjectURL(imageFile)}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={form.imageUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={e => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>
