@@ -48,6 +48,8 @@ export interface StoredUser {
   notificationPreferences?: import("@/types/user").NotificationPreferences;
   readingSettings?: import("@/types/user").ReadingSettings;
   locale?: import("@/types/user").UserLocale;
+  /** Подключённые способы входа: "yandex", "vk" и т.д. */
+  linkedProviders?: string[];
 }
 
 export interface AuthResponse {

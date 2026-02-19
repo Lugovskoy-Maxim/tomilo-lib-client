@@ -5,6 +5,7 @@ import { Package, ImageIcon, User, Layers } from "lucide-react";
 import Link from "next/link";
 import {
   useGetUserProfileDecorationsQuery,
+  useGetDecorationsQuery,
   useEquipDecorationMutation,
   useUnequipDecorationMutation,
 } from "@/store/api/shopApi";
@@ -24,25 +25,37 @@ const TYPE_CONFIG: Record<
 
 export default function ProfileInventory() {
   const toast = useToast();
-  const { data: userDecorations = [], isLoading } = useGetUserProfileDecorationsQuery();
-  const { refetch: refetchProfile } = useGetProfileQuery();
+  const { data: userDecorations = [], isLoading, isError, refetch } = useGetUserProfileDecorationsQuery();
+  const { data: catalogDecorations = [] } = useGetDecorationsQuery();
+  const { data: profileData, refetch: refetchProfile } = useGetProfileQuery();
   const [equipDecoration] = useEquipDecorationMutation();
   const [unequipDecoration] = useUnequipDecorationMutation();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"avatar" | "background" | "card" | "all">("all");
 
+  const profile = profileData?.success ? profileData.data : null;
+  const equippedFromProfile = (profile as { equippedDecorations?: { avatar?: string; background?: string; card?: string } } | null)
+    ?.equippedDecorations;
+
   const equippedByType = useMemo(() => {
-    const equipped: Record<string, string> = { avatar: "", background: "", card: "" };
+    const equipped: Record<string, string> = {
+      avatar: equippedFromProfile?.avatar ?? "",
+      background: equippedFromProfile?.background ?? "",
+      card: equippedFromProfile?.card ?? "",
+    };
     userDecorations.forEach((d: Decoration) => {
       if (d.isEquipped) equipped[d.type] = d.id;
     });
     return equipped;
-  }, [userDecorations]);
+  }, [userDecorations, equippedFromProfile]);
+
+  const displayList = userDecorations.length > 0 ? userDecorations : catalogDecorations;
+  const isShowingCatalogFallback = userDecorations.length === 0 && catalogDecorations.length > 0;
 
   const filteredDecorations = useMemo(() => {
-    if (typeFilter === "all") return userDecorations;
-    return userDecorations.filter((d: Decoration) => d.type === typeFilter);
-  }, [userDecorations, typeFilter]);
+    if (typeFilter === "all") return displayList;
+    return displayList.filter((d: Decoration) => d.type === typeFilter);
+  }, [displayList, typeFilter]);
 
   const handleEquip = async (type: "avatar" | "background" | "card", decorationId: string) => {
     setActionLoading(decorationId);
@@ -96,12 +109,22 @@ export default function ProfileInventory() {
             </div>
           </div>
           <Link
-            href="/shop"
+            href="/tomilo-shop"
             className="text-sm font-medium text-[var(--primary)] hover:underline shrink-0"
           >
             Магазин →
           </Link>
         </div>
+
+        {isShowingCatalogFallback && (
+          <p className="mb-4 text-sm text-[var(--muted-foreground)] rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 px-4 py-3">
+            В инвентаре пока пусто. Ниже — каталог магазина: купите декорации в{" "}
+            <Link href="/tomilo-shop" className="text-[var(--primary)] font-medium hover:underline">
+              магазине
+            </Link>
+            , чтобы они появились здесь.
+          </p>
+        )}
 
         <div className="flex flex-wrap gap-2 mb-6">
           {(["all", "avatar", "background", "card"] as const).map((t) => {
@@ -126,14 +149,29 @@ export default function ProfileInventory() {
         {filteredDecorations.length === 0 ? (
           <div className="text-center py-14 text-[var(--muted-foreground)] rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p className="font-medium">Пока ничего нет</p>
-            <p className="text-sm mt-1">Купите декорации в магазине</p>
-            <Link
-              href="/shop"
-              className="inline-block mt-4 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              В магазин
-            </Link>
+            <p className="font-medium">
+              {isError ? "Не удалось загрузить инвентарь" : "Пока ничего нет"}
+            </p>
+            <p className="text-sm mt-1">
+              {isError ? "Проверьте подключение и попробуйте снова" : "Купите декорации в магазине"}
+            </p>
+            {isError && (
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="mt-4 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                Повторить
+              </button>
+            )}
+            {!isError && (
+              <Link
+                href="/tomilo-shop"
+                className="inline-block mt-4 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                В магазин
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -141,11 +179,11 @@ export default function ProfileInventory() {
               <DecorationCard
                 key={decoration.id}
                 decoration={decoration}
-                isOwned={true}
+                isOwned={!isShowingCatalogFallback}
                 isEquipped={decoration.isEquipped ?? equippedByType[decoration.type] === decoration.id}
-                onEquip={() => handleEquip(decoration.type, decoration.id)}
+                onEquip={!isShowingCatalogFallback ? () => handleEquip(decoration.type, decoration.id) : undefined}
                 onUnequip={
-                  equippedByType[decoration.type] === decoration.id
+                  !isShowingCatalogFallback && equippedByType[decoration.type] === decoration.id
                     ? () => handleUnequip(decoration.type)
                     : undefined
                 }

@@ -30,6 +30,10 @@ export interface Decoration {
   rarity?: DecorationRarity;
   isAvailable?: boolean;
   isEquipped?: boolean;
+  /** Количество оставшихся (если ограничено). Не задано — без лимита. */
+  stock?: number;
+  /** Распродано — покупка недоступна. */
+  isSoldOut?: boolean;
 }
 
 export interface ApiResponse<T> {
@@ -44,6 +48,8 @@ export interface ApiResponse<T> {
 
 /** Нормализует элемент из ответа API (поддержка snake_case и _id) */
 function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
+  const stock = (item.stock ?? item.quantity_remaining) as number | undefined;
+  const isSoldOut = (item.isSoldOut ?? item.is_sold_out ?? item.sold_out) as boolean | undefined;
   return {
     id: (item.id ?? item._id) as string,
     name: (item.name as string) ?? "",
@@ -54,6 +60,8 @@ function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
     rarity: item.rarity as Decoration["rarity"],
     isAvailable: item.isAvailable as boolean | undefined,
     isEquipped: item.isEquipped as boolean | undefined,
+    stock: stock != null ? Number(stock) : undefined,
+    isSoldOut: isSoldOut ?? (stock != null && Number(stock) <= 0),
   };
 }
 
@@ -81,10 +89,10 @@ export const getDecorationsByType = async (
 
 // Get user's owned decorations (requires auth)
 export const getUserDecorations = async (): Promise<ApiResponse<Decoration[]>> => {
-  const token = localStorage.getItem("token");
+  const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
   const response = await fetch(`${baseUrlAPI}/shop/profile/decorations`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
   return response.json();
@@ -95,11 +103,11 @@ export const purchaseDecoration = async (
   type: "avatar" | "background" | "card",
   decorationId: string,
 ): Promise<ApiResponse<{ message: string; balance?: number }>> => {
-  const token = localStorage.getItem("token");
+  const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
   const response = await fetch(`${baseUrlAPI}/shop/purchase/${type}/${decorationId}`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
   return response.json();
@@ -110,11 +118,11 @@ export const equipDecoration = async (
   type: "avatar" | "background" | "card",
   decorationId: string,
 ): Promise<ApiResponse<{ message: string; decorationId: string }>> => {
-  const token = localStorage.getItem("token");
+  const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
   const response = await fetch(`${baseUrlAPI}/shop/equip/${type}/${decorationId}`, {
     method: "PUT",
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
   return response.json();
@@ -124,11 +132,11 @@ export const equipDecoration = async (
 export const unequipDecoration = async (
   type: "avatar" | "background" | "card",
 ): Promise<ApiResponse<{ message: string }>> => {
-  const token = localStorage.getItem("token");
+  const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
   const response = await fetch(`${baseUrlAPI}/shop/equip/${type}`, {
     method: "DELETE",
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
   return response.json();

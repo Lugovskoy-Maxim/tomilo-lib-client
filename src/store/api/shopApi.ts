@@ -28,7 +28,14 @@ function normalizeDecoration(
 
 /** Нормализует ответ API к массиву Decoration — поддерживает разные форматы бэкенда */
 function parseDecorationsResponse(response: unknown): Decoration[] {
-  if (!response || typeof response !== "object") return [];
+  if (response == null) return [];
+  // Ответ — массив на верхнем уровне
+  if (Array.isArray(response)) {
+    return (response as Record<string, unknown>[])
+      .filter((x): x is Record<string, unknown> => x != null && typeof x === "object")
+      .map(x => normalizeDecoration(x));
+  }
+  if (typeof response !== "object") return [];
 
   const r = response as Record<string, unknown>;
   const data = r.data;
@@ -56,23 +63,22 @@ function parseDecorationsResponse(response: unknown): Decoration[] {
   }
 
   // { data: Decoration[] } или { success: true, data: Decoration[] }
-  if (Array.isArray(data) && data.length > 0 && data[0] && typeof data[0] === "object") {
-    return (data as Record<string, unknown>[]).map(x => normalizeDecoration(x));
-  }
   if (Array.isArray(data)) {
     return (data as Record<string, unknown>[]).map(x => normalizeDecoration(x));
   }
 
-  // { decorations: Decoration[] }
-  const decorations = r.decorations;
-  if (Array.isArray(decorations)) {
-    return (decorations as Record<string, unknown>[]).map(x => normalizeDecoration(x));
+  // { decorations: [] } | { items: [] } | { result: [] } | { payload: [] }
+  const anyList = (r.decorations ?? r.items ?? r.result ?? r.payload ?? data) as unknown;
+  if (Array.isArray(anyList)) {
+    return (anyList as Record<string, unknown>[])
+      .filter((x): x is Record<string, unknown> => x != null && typeof x === "object")
+      .map(x => normalizeDecoration(x));
   }
 
   // Вложенная структура { data: { data: [...] } } или { data: { decorations: [...] } }
   if (data && typeof data === "object") {
     const inner = data as Record<string, unknown>;
-    const arr = (inner.data ?? inner.decorations) as unknown;
+    const arr = (inner.data ?? inner.decorations ?? inner.items) as unknown;
     if (Array.isArray(arr)) {
       return (arr as Record<string, unknown>[]).map(x => normalizeDecoration(x));
     }

@@ -1,5 +1,5 @@
 import { UserProfile } from "@/types/user";
-import { Calendar, Clock, Mail, UserCheck } from "lucide-react";
+import { Calendar, Clock, Mail, UserCheck, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useState } from "react";
 interface ProfileAdditionalInfoProps {
@@ -158,6 +158,36 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
             {userProfile.emailVerified === true ? "Да" : "Нет"}
           </span>
         </div>
+
+        <p className="text-xs font-medium text-[var(--muted-foreground)] mt-4 mb-2 px-0.5">Соцсети и авторизации</p>
+        {(
+          [
+            { id: "yandex", label: "Яндекс.ID", color: "text-[#FC3F1D]" },
+            { id: "vk", label: "VK ID", color: "text-[#0077FF]" },
+          ] as const
+        ).map(({ id, label, color }) => {
+          const linked =
+            Array.isArray(userProfile.linkedProviders) &&
+            userProfile.linkedProviders.some(p => p?.toLowerCase() === id);
+          return (
+            <div
+              key={id}
+              className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0"
+            >
+              <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                <Share2 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${color}`} />
+                <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">{label}</span>
+              </div>
+              <span
+                className={`text-xs sm:text-sm font-medium text-right truncate ${
+                  linked ? "text-[var(--chart-2)]" : "text-[var(--muted-foreground)]"
+                }`}
+              >
+                {linked ? "Подключено" : "Не подключено"}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {userProfile.emailVerified !== true && (

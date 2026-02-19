@@ -31,6 +31,7 @@ function transformUserToProfile(user: User): UserProfile | null {
     // Privacy and display settings
     privacy: user.privacy,
     displaySettings: user.displaySettings,
+    linkedProviders: user.linkedProviders,
   };
 }
 

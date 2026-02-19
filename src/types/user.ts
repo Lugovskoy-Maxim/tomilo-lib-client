@@ -89,6 +89,8 @@ export interface UserProfile {
   locale?: UserLocale;
   // Equipped decorations (banner, avatar frame, etc.)
   equippedDecorations?: EquippedDecorations;
+  /** Подключённые способы входа: "yandex", "vk" и т.д. */
+  linkedProviders?: string[];
 }
 
 // Дополнительные интерфейсы для расширенной функциональности
