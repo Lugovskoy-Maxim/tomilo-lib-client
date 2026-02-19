@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import type { Decoration, DecorationRarity } from "@/api/shop";
+import { getDecorationImageUrl } from "@/api/shop";
 import type { DecorationType } from "@/api/shop";
 import {
   useGetDecorationsQuery,
@@ -43,6 +44,9 @@ const emptyForm = {
 };
 
 const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp,image/gif";
+
+/** 20MB — GIF может быть большим */
+const MAX_DECORATION_FILE_SIZE = 20 * 1024 * 1024;
 
 export function ShopManagementSection() {
   const toast = useToast();
@@ -98,6 +102,23 @@ export function ShopManagementSection() {
     setEditingDecoration(null);
     setForm(emptyForm);
     setImageFile(null);
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    if (!file) {
+      setImageFile(null);
+      return;
+    }
+    if (file.size > MAX_DECORATION_FILE_SIZE) {
+      toast.error(
+        `Файл слишком большой (${(file.size / 1024 / 1024).toFixed(1)} МБ). Максимум — 20 МБ.`,
+      );
+      setImageFile(null);
+      e.target.value = "";
+      return;
+    }
+    setImageFile(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -309,7 +330,7 @@ export function ShopManagementSection() {
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-[var(--muted)] flex items-center justify-center">
                         {d.imageUrl ? (
                           <img
-                            src={d.imageUrl}
+                            src={getDecorationImageUrl(d.imageUrl)}
                             alt=""
                             className="w-full h-full object-cover"
                           />
@@ -489,12 +510,14 @@ export function ShopManagementSection() {
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
-              {editingDecoration ? "Изображение (оставьте пустым, чтобы не менять)" : "Файл изображения *"}
+              {editingDecoration
+                ? "Изображение (оставьте пустым, чтобы не менять)"
+                : "Файл изображения * (макс. 20 МБ)"}
             </label>
             <input
               type="file"
               accept={ACCEPTED_IMAGE_TYPES}
-              onChange={e => setImageFile(e.target.files?.[0] ?? null)}
+              onChange={handleImageFileChange}
               className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[var(--primary)] file:text-[var(--primary-foreground)]"
             />
             {(imageFile || form.imageUrl) && (
@@ -507,7 +530,7 @@ export function ShopManagementSection() {
                   />
                 ) : (
                   <img
-                    src={form.imageUrl}
+                    src={getDecorationImageUrl(form.imageUrl)}
                     alt=""
                     className="w-full h-full object-cover"
                     onError={e => {

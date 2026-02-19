@@ -1,5 +1,23 @@
 import { baseUrlAPI } from "./config";
 
+/** Базовый URL сервера (без /api) — с него отдаются /uploads/... */
+const uploadsOrigin = (() => {
+  const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  return api.replace(/\/api\/?$/, "") || "http://localhost:3001";
+})();
+
+/** Полный URL изображения декорации (imageUrl с бэкенда — относительный путь /uploads/...) */
+export function getDecorationImageUrl(imageUrl: string | undefined): string {
+  if (!imageUrl?.trim()) return "";
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+  let path = imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`;
+  // Не дублировать uploads: если база уже .../uploads, убрать ведущий /uploads из path
+  if (uploadsOrigin.endsWith("/uploads") && (path.startsWith("/uploads/") || path === "/uploads")) {
+    path = path.slice("/uploads".length) || "/";
+  }
+  return `${uploadsOrigin}${path}`;
+}
+
 export type DecorationRarity = "common" | "rare" | "epic" | "legendary";
 
 export interface Decoration {
@@ -24,10 +42,29 @@ export interface ApiResponse<T> {
   method?: string;
 }
 
+/** Нормализует элемент из ответа API (поддержка snake_case и _id) */
+function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
+  return {
+    id: (item.id ?? item._id) as string,
+    name: (item.name as string) ?? "",
+    description: (item.description as string) ?? "",
+    price: (item.price as number) ?? 0,
+    imageUrl: (item.imageUrl ?? item.image_url) as string ?? "",
+    type: (item.type as Decoration["type"]) ?? "avatar",
+    rarity: item.rarity as Decoration["rarity"],
+    isAvailable: item.isAvailable as boolean | undefined,
+    isEquipped: item.isEquipped as boolean | undefined,
+  };
+}
+
 // Get all available decorations
 export const getAllDecorations = async (): Promise<ApiResponse<Decoration[]>> => {
   const response = await fetch(`${baseUrlAPI}/shop/decorations`);
-  return response.json();
+  const json = await response.json();
+  if (json.success && Array.isArray(json.data)) {
+    json.data = (json.data as Record<string, unknown>[]).map(normalizeDecorationFromApi);
+  }
+  return json;
 };
 
 // Get decorations by type
@@ -35,7 +72,11 @@ export const getDecorationsByType = async (
   type: "avatar" | "background" | "card",
 ): Promise<ApiResponse<Decoration[]>> => {
   const response = await fetch(`${baseUrlAPI}/shop/decorations/${type}`);
-  return response.json();
+  const json = await response.json();
+  if (json.success && Array.isArray(json.data)) {
+    json.data = (json.data as Record<string, unknown>[]).map(normalizeDecorationFromApi);
+  }
+  return json;
 };
 
 // Get user's owned decorations (requires auth)

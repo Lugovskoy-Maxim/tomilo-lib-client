@@ -5,28 +5,77 @@ import type { CreateDecorationDto, UpdateDecorationDto } from "@/api/shop";
 
 const SHOP_TAG = "Shop" as const;
 
+type DecorationType = "avatar" | "background" | "card";
+
+/** Нормализует элемент: _id → id, добавляет type если передан массив по типу */
+function normalizeDecoration(
+  item: Record<string, unknown>,
+  type?: DecorationType,
+): Decoration {
+  const id = (item.id ?? item._id) as string;
+  return {
+    id,
+    name: (item.name as string) ?? "",
+    description: (item.description as string) ?? "",
+    price: (item.price as number) ?? 0,
+    imageUrl: (item.imageUrl ?? item.image_url) as string ?? "",
+    type: (type ?? item.type) as DecorationType,
+    rarity: item.rarity as Decoration["rarity"],
+    isAvailable: item.isAvailable as boolean | undefined,
+    isEquipped: item.isEquipped as boolean | undefined,
+  };
+}
+
 /** Нормализует ответ API к массиву Decoration — поддерживает разные форматы бэкенда */
 function parseDecorationsResponse(response: unknown): Decoration[] {
   if (!response || typeof response !== "object") return [];
 
   const r = response as Record<string, unknown>;
+  const data = r.data;
+
+  // { data: { avatars: [], backgrounds: [], cards: [] } } — бэкенд по типам
+  if (data && typeof data === "object") {
+    const inner = data as Record<string, unknown>;
+    const avatars = (inner.avatars as unknown[]) ?? [];
+    const backgrounds = (inner.backgrounds as unknown[]) ?? [];
+    const cards = (inner.cards as unknown[]) ?? [];
+    if (avatars.length > 0 || backgrounds.length > 0 || cards.length > 0) {
+      const withType = (
+        arr: unknown[],
+        type: DecorationType,
+      ): Decoration[] =>
+        arr
+          .filter((x): x is Record<string, unknown> => x != null && typeof x === "object")
+          .map(x => normalizeDecoration(x, type));
+      return [
+        ...withType(avatars, "avatar"),
+        ...withType(backgrounds, "background"),
+        ...withType(cards, "card"),
+      ];
+    }
+  }
 
   // { data: Decoration[] } или { success: true, data: Decoration[] }
-  const data = r.data;
   if (Array.isArray(data) && data.length > 0 && data[0] && typeof data[0] === "object") {
-    return data as Decoration[];
+    return (data as Record<string, unknown>[]).map(x => normalizeDecoration(x));
   }
-  if (Array.isArray(data)) return data as Decoration[];
+  if (Array.isArray(data)) {
+    return (data as Record<string, unknown>[]).map(x => normalizeDecoration(x));
+  }
 
   // { decorations: Decoration[] }
   const decorations = r.decorations;
-  if (Array.isArray(decorations)) return decorations as Decoration[];
+  if (Array.isArray(decorations)) {
+    return (decorations as Record<string, unknown>[]).map(x => normalizeDecoration(x));
+  }
 
   // Вложенная структура { data: { data: [...] } } или { data: { decorations: [...] } }
   if (data && typeof data === "object") {
     const inner = data as Record<string, unknown>;
     const arr = (inner.data ?? inner.decorations) as unknown;
-    if (Array.isArray(arr)) return arr as Decoration[];
+    if (Array.isArray(arr)) {
+      return (arr as Record<string, unknown>[]).map(x => normalizeDecoration(x));
+    }
   }
 
   return [];
@@ -86,7 +135,7 @@ export const shopApi = createApi({
     }),
 
     /** Создание украшения через загрузку файла. POST /shop/admin/decorations/upload (multipart/form-data).
-     * Поля: image (файл изображения), type, name?, price?, rarity?, description?, isAvailable? */
+     * Поля: file (файл изображения), type, name?, price?, rarity?, description?, isAvailable? */
     createDecorationWithImage: builder.mutation<
       Decoration,
       {
@@ -101,7 +150,7 @@ export const shopApi = createApi({
     >({
       query: ({ file, type, name, description, price, rarity, isAvailable }) => {
         const formData = new FormData();
-        formData.append("image", file);
+        formData.append("file", file);
         formData.append("type", type);
         if (name !== undefined && name !== "") formData.append("name", name);
         if (description !== undefined && description !== "") formData.append("description", description);
@@ -148,7 +197,7 @@ export const shopApi = createApi({
     >({
       query: ({ id, file, name, description, price, type, rarity, isAvailable }) => {
         const formData = new FormData();
-        formData.append("image", file);
+        formData.append("file", file);
         if (name !== undefined) formData.append("name", name);
         if (description !== undefined) formData.append("description", description);
         if (price !== undefined) formData.append("price", String(price));
