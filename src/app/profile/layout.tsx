@@ -80,6 +80,7 @@ export default function ProfileLayout({
               userProfile={userProfile}
               onEdit={() => setIsEditing(true)}
               onAvatarUpdate={handleAvatarUpdate}
+              isOwnProfile
             />
             <div className="hidden xl:block">
               <ProfileNav />

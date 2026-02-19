@@ -2,6 +2,7 @@
 
 import { useParams, notFound } from "next/navigation";
 import { useGetProfileByIdQuery, useGetProfileByUsernameQuery } from "@/store/api/authApi";
+import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
@@ -70,10 +71,14 @@ export default function UserProfileLayout({
   const activeQuery = loadById ? idQuery : usernameQuery;
   const { data, isLoading, isError, isSuccess } = activeQuery;
 
+  const { user: currentUser } = useAuth();
   const userProfile =
     isSuccess && data?.success && data?.data
       ? transformUserToProfile(data.data)
       : null;
+  const isOwnProfile = Boolean(
+    currentUser && userProfile && (currentUser.username === userProfile.username || currentUser._id === userProfile._id),
+  );
   const privacy = userProfile?.privacy;
   const isProfileRestricted = Boolean(privacy && privacy.profileVisibility !== "public");
   const isReadingHistoryRestricted = Boolean(
@@ -110,7 +115,7 @@ export default function UserProfileLayout({
       <div className="flex flex-1 flex-col min-h-0">
         <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 sm:gap-6 lg:gap-8 items-start">
-            <ProfileSidebar userProfile={userProfile} />
+            <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} />
             <div className="min-w-0">
               <ProfileNav basePath={`/user/${userParam}`} showSettings={false} />
               {hasPrivacyNotice && (

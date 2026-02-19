@@ -188,6 +188,7 @@ export default function ProfileInventory() {
                     : undefined
                 }
                 isLoading={actionLoading === decoration.id || actionLoading === `unequip-${decoration.type}`}
+                hidePurchase
               />
             ))}
           </div>

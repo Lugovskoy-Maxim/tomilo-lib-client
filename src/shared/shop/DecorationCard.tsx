@@ -19,6 +19,8 @@ export interface DecorationCardProps {
   onEquip?: (id: string) => void;
   onUnequip?: () => void;
   isLoading?: boolean;
+  /** В инвентаре: не показывать цену и кнопку «Купить». */
+  hidePurchase?: boolean;
 }
 
 const RARITY_STYLES: Record<
@@ -59,6 +61,7 @@ export function DecorationCard({
   onEquip,
   onUnequip,
   isLoading = false,
+  hidePurchase = false,
 }: DecorationCardProps) {
   const { isAuthenticated } = useAuth();
   const { success, error: showError } = useToast();
@@ -114,6 +117,7 @@ export function DecorationCard({
   };
 
   const renderAction = () => {
+    if (hidePurchase && !isOwned) return null;
     if (!isAuthenticated) {
       return (
         <p className="text-xs text-[var(--muted-foreground)] py-2">
@@ -250,13 +254,13 @@ export function DecorationCard({
             </p>
           )}
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap">
-            {!isOwned && (
+            {!hidePurchase && !isOwned && (
               <span className="inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-md bg-[var(--secondary)] border border-[var(--border)] text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
                 <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500" />
                 {decoration.price}
               </span>
             )}
-            {!isAuthenticated ? (
+            {hidePurchase && !isOwned ? null : !isAuthenticated ? (
               <span className="text-[10px] sm:text-[11px] text-[var(--muted-foreground)]">Войдите для покупки</span>
             ) : !isOwned && soldOut ? (
               <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px] sm:text-xs font-medium">
@@ -384,12 +388,12 @@ export function DecorationCard({
           </p>
         )}
       </div>
-      {!isOwned && isAuthenticated && soldOut ? (
+      {!hidePurchase && !isOwned && isAuthenticated && soldOut ? (
         <div className="flex items-center justify-center gap-2 py-2 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
           <PackageX className="w-4 h-4 shrink-0" />
           Распродано
         </div>
-      ) : !isOwned && isAuthenticated ? (
+      ) : !hidePurchase && !isOwned && isAuthenticated ? (
         <div className="flex items-center gap-2 mt-0.5">
           <span className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
             <Coins className="w-3.5 h-3.5 text-amber-500" />
@@ -411,7 +415,7 @@ export function DecorationCard({
             )}
           </button>
         </div>
-      ) : !isOwned && !isAuthenticated ? (
+      ) : !hidePurchase && !isOwned && !isAuthenticated ? (
         <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">Войдите для покупки</p>
       ) : (
         renderAction()

@@ -11,17 +11,21 @@ interface ProfileSidebarProps {
   userProfile: UserProfile;
   onEdit?: () => void;
   onAvatarUpdate?: (newAvatarUrl: string) => void;
+  /** Свой профиль: показывать число глав даже при приватной истории; чужой — скрывать (—). */
+  isOwnProfile?: boolean;
 }
 
-export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate }: ProfileSidebarProps) {
+export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, isOwnProfile = false }: ProfileSidebarProps) {
   const level = userProfile.level ?? 0;
   const experience = userProfile.experience ?? 0;
   const balance = userProfile.balance ?? 0;
   const totalBookmarks = userProfile.bookmarks?.length ?? 0;
   const isReadingHistoryPrivate = userProfile.privacy?.readingHistoryVisibility !== "public";
-  const totalChapters = isReadingHistoryPrivate
-    ? null
-    : (userProfile.readingHistory?.reduce((t, item) => t + (item.chapters?.length || 0), 0) ?? 0);
+  const chaptersSum = userProfile.readingHistory?.reduce(
+    (t, item) => t + (item.chaptersCount ?? item.chapters?.length ?? 0),
+    0,
+  ) ?? 0;
+  const totalChapters = isOwnProfile ? chaptersSum : (isReadingHistoryPrivate ? null : chaptersSum);
   const { progressPercent: expProgress, nextLevelExp } = getLevelProgress(level, experience);
   const isAdmin = userProfile.role === "admin";
   const joinedDate = userProfile.createdAt ? new Date(userProfile.createdAt) : null;
