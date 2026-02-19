@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { ApiResponseDto } from "@/types/api";
 import {
   Collection,
@@ -27,19 +28,7 @@ const COLLECTIONS_TAG = "Collections";
 
 export const collectionsApi = createApi({
   reducerPath: "collectionsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem("tomilo_lib_token");
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: [COLLECTIONS_TAG],
   endpoints: builder => ({
     // Получить все коллекции с пагинацией, поиском и сортировкой

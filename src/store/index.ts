@@ -52,20 +52,21 @@ export const store = configureStore({
     [shopApi.reducerPath]: shopApi.reducer,
   },
   middleware: getDefaultMiddleware =>
-    getDefaultMiddleware()
-      .concat(authApi.middleware)
-      .concat(titlesApi.middleware)
-      .concat(chaptersApi.middleware)
-      .concat(notificationsApi.middleware)
-      .concat(mangaParserApi.middleware)
-      .concat(statsApi.middleware)
-      .concat(usersApi.middleware)
-      .concat(collectionsApi.middleware)
-      .concat(commentsApi.middleware)
-      .concat(reportsApi.middleware)
-      .concat(autoParsingApi.middleware)
-      .concat(ipApi.middleware)
-      .concat(shopApi.middleware),
+    getDefaultMiddleware().concat(
+      authApi.middleware,
+      titlesApi.middleware,
+      chaptersApi.middleware,
+      notificationsApi.middleware,
+      mangaParserApi.middleware,
+      statsApi.middleware,
+      usersApi.middleware,
+      collectionsApi.middleware,
+      commentsApi.middleware,
+      reportsApi.middleware,
+      autoParsingApi.middleware,
+      ipApi.middleware,
+      shopApi.middleware,
+    ),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

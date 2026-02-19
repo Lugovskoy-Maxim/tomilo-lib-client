@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { ApiResponseDto } from "@/types/api";
 import { Chapter, ChaptersResponse, CreateChapterDto, UpdateChapterDto } from "@/types/title";
 
@@ -25,21 +26,39 @@ function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormDa
   return formData;
 }
 
+function normalizeChaptersResponse(
+  response: ApiResponseDto<ChaptersResponse> | ChaptersResponse,
+): ChaptersResponse {
+  if ("data" in response && response.data) {
+    return response.data;
+  }
+  const resp = response as unknown as Record<string, unknown>;
+  const chapters: Chapter[] = (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
+  const total: number =
+    ((resp.pagination as Record<string, unknown>)?.total as number) ??
+    (resp.total as number) ??
+    chapters.length ??
+    0;
+  const page: number =
+    ((resp.pagination as Record<string, unknown>)?.page as number) ??
+    (resp.page as number) ??
+    1;
+  const limit: number =
+    ((resp.pagination as Record<string, unknown>)?.limit as number) ??
+    (resp.limit as number) ??
+    50;
+  const totalPages: number =
+    ((resp.pagination as Record<string, unknown>)?.pages as number) ??
+    (resp.totalPages as number) ??
+    Math.max(1, Math.ceil(total / (limit || 1)));
+  const hasMore: boolean =
+    ((resp.pagination as Record<string, unknown>)?.hasMore as boolean) ?? page < totalPages;
+  return { chapters, total, page, limit, totalPages, hasMore };
+}
+
 export const chaptersApi = createApi({
   reducerPath: "chaptersApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem("tomilo_lib_token");
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: [CHAPTERS_TAG],
   endpoints: builder => ({
     getChapterById: builder.query<Chapter, string>({
@@ -69,36 +88,7 @@ export const chaptersApi = createApi({
       providesTags: (result, error, { titleId }) => [
         { type: CHAPTERS_TAG, id: `title-${titleId}` },
       ],
-      transformResponse: (
-        response: ApiResponseDto<ChaptersResponse> | ChaptersResponse,
-      ): ChaptersResponse => {
-        // Normalize various possible server shapes
-        if ("data" in response && response.data) {
-          return response.data;
-        }
-        const resp = response as unknown as Record<string, unknown>;
-        const chapters: Chapter[] = (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
-        const total: number =
-          ((resp.pagination as Record<string, unknown>)?.total as number) ??
-          (resp.total as number) ??
-          chapters.length ??
-          0;
-        const page: number =
-          ((resp.pagination as Record<string, unknown>)?.page as number) ??
-          (resp.page as number) ??
-          1;
-        const limit: number =
-          ((resp.pagination as Record<string, unknown>)?.limit as number) ??
-          (resp.limit as number) ??
-          50;
-        const totalPages: number =
-          ((resp.pagination as Record<string, unknown>)?.pages as number) ??
-          (resp.totalPages as number) ??
-          Math.max(1, Math.ceil(total / (limit || 1)));
-        const hasMore: boolean =
-          ((resp.pagination as Record<string, unknown>)?.hasMore as boolean) ?? page < totalPages;
-        return { chapters, total, page, limit, totalPages, hasMore };
-      },
+      transformResponse: normalizeChaptersResponse,
     }),
 
     searchChapters: builder.query<
@@ -112,36 +102,7 @@ export const chaptersApi = createApi({
       }
     >({
       query: params => ({ url: "/chapters", params }),
-      transformResponse: (
-        response: ApiResponseDto<ChaptersResponse> | ChaptersResponse,
-      ): ChaptersResponse => {
-        // Normalize various possible server shapes
-        if ("data" in response && response.data) {
-          return response.data;
-        }
-        const resp = response as unknown as Record<string, unknown>;
-        const chapters: Chapter[] = (resp.chapters as Chapter[]) ?? (resp.data as Chapter[]) ?? [];
-        const total: number =
-          ((resp.pagination as Record<string, unknown>)?.total as number) ??
-          (resp.total as number) ??
-          chapters.length ??
-          0;
-        const page: number =
-          ((resp.pagination as Record<string, unknown>)?.page as number) ??
-          (resp.page as number) ??
-          1;
-        const limit: number =
-          ((resp.pagination as Record<string, unknown>)?.limit as number) ??
-          (resp.limit as number) ??
-          50;
-        const totalPages: number =
-          ((resp.pagination as Record<string, unknown>)?.pages as number) ??
-          (resp.totalPages as number) ??
-          Math.max(1, Math.ceil(total / (limit || 1)));
-        const hasMore: boolean =
-          ((resp.pagination as Record<string, unknown>)?.hasMore as boolean) ?? page < totalPages;
-        return { chapters, total, page, limit, totalPages, hasMore };
-      },
+      transformResponse: normalizeChaptersResponse,
       providesTags: [CHAPTERS_TAG],
     }),
 

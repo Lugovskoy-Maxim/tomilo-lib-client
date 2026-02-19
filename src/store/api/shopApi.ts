@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import type { Decoration } from "@/api/shop";
 import type { ApiResponse } from "@/api/shop";
 import type { CreateDecorationDto, UpdateDecorationDto } from "@/api/shop";
@@ -89,19 +90,7 @@ function parseDecorationsResponse(response: unknown): Decoration[] {
 
 export const shopApi = createApi({
   reducerPath: "shopApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem("tomilo_lib_token");
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: [SHOP_TAG],
   endpoints: builder => ({
     getDecorations: builder.query<Decoration[], void>({

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { Title, CreateTitleDto, UpdateTitleDto } from "@/types/title";
 import { ApiResponseDto } from "@/types/api";
 import { formatChapterRanges } from "@/lib/format-chapter-ranges";
@@ -20,19 +21,7 @@ const TITLES_TAG = "Titles";
 export const titlesApi = createApi({
   reducerPath: "titlesApi",
   keepUnusedDataFor: 300, // 5 мин по умолчанию — меньше запросов к серверу при переходах
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem("tomilo_lib_token");
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: [TITLES_TAG],
   endpoints: builder => ({
     // Получить все тайтлы (простой список)

@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { ApiResponseDto } from "@/types/api";
 import {
   Comment,
@@ -8,24 +9,9 @@ import {
   CommentEntityType,
 } from "@/types/comment";
 
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
-
 export const commentsApi = createApi({
   reducerPath: "commentsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
-    credentials: "include",
-    prepareHeaders: headers => {
-      headers.set("Content-Type", "application/json");
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["Comments"],
   endpoints: builder => ({
     // Получить комментарии
