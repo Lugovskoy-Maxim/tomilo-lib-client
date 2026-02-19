@@ -477,7 +477,12 @@ const LoginModal: React.FC<LoginModalProps> = ({
                 }`}
                 disabled={isForgotPasswordLoading}
                 onClick={async () => {
-                  if (!form.email) return;
+                  if (!form.email) {
+                    setTouched(prev => ({ ...prev, email: true }));
+                    setForgotPasswordError(VALIDATION_MESSAGES.EMAIL_REQUIRED);
+                    setForgotPasswordSuccess(false);
+                    return;
+                  }
                   setForgotPasswordSuccess(false);
                   setForgotPasswordError(null);
                   try {
@@ -565,16 +570,16 @@ const LoginModal: React.FC<LoginModalProps> = ({
               const redirectUri = encodeURIComponent("https://tomilo-lib.ru/auth/yandex");
               window.location.href = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
             }}
-            className="w-full py-3.5 rounded-xl font-medium border border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--muted)] hover:border-[var(--muted-foreground)]/30 transition-colors flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2 focus:ring-offset-[var(--background)] min-h-[3rem]"
+            className="w-full h-12 rounded-xl font-medium border border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--muted)] hover:border-[var(--muted-foreground)]/30 transition-colors flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
             title="Войти через Я.ID"
           >
-            <span className="text-[#FC3F1D] font-bold text-lg">Я</span>
+            <span className="text-[#FC3F1D] font-bold text-base">Я</span>
             <span>Яндекс.ID</span>
           </button>
           <button
             type="button"
             onClick={() => void redirectToVkAuth()}
-            className="w-full py-3.5 rounded-xl font-medium bg-[#0077FF] hover:bg-[#0066DD] text-white transition-colors flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-[#0077FF]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)] min-h-[3rem]"
+            className="w-full h-12 rounded-xl font-medium bg-[#0077FF] hover:bg-[#0066DD] text-white transition-colors flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-[#0077FF]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
             title="Войти через VK ID"
           >
             <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
