@@ -229,7 +229,7 @@ export function ShopSection({ type }: ShopSectionProps) {
 
       <div
         className={`grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 ${
-          type === "avatar" ? "justify-items-center" : ""
+          type === "avatar" || type === "card" ? "justify-items-center" : ""
         }`}
       >
         {decorations.map(decoration => (
@@ -242,6 +242,7 @@ export function ShopSection({ type }: ShopSectionProps) {
             onEquip={handleEquip}
             onUnequip={handleUnequip}
             isLoading={actionLoading === decoration.id}
+            sectionType={type}
           />
         ))}
       </div>

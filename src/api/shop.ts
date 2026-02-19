@@ -95,7 +95,11 @@ export const getUserDecorations = async (): Promise<ApiResponse<Decoration[]>> =
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
-  return response.json();
+  const json = await response.json();
+  if (json.success && Array.isArray(json.data)) {
+    json.data = (json.data as Record<string, unknown>[]).map(normalizeDecorationFromApi);
+  }
+  return json;
 };
 
 // Purchase decoration (requires auth)

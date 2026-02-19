@@ -21,6 +21,8 @@ export interface DecorationCardProps {
   isLoading?: boolean;
   /** В инвентаре: не показывать цену и кнопку «Купить». */
   hidePurchase?: boolean;
+  /** Тип секции (вкладка магазина). Если задан, вид карточки берётся по нему, а не по decoration.type. */
+  sectionType?: "avatar" | "background" | "card";
 }
 
 const RARITY_STYLES: Record<
@@ -62,8 +64,10 @@ export function DecorationCard({
   onUnequip,
   isLoading = false,
   hidePurchase = false,
+  sectionType,
 }: DecorationCardProps) {
   const { isAuthenticated } = useAuth();
+  const displayType = sectionType ?? decoration.type;
   const { success, error: showError } = useToast();
   const [isImageLoading, setIsImageLoading] = useState(true);
   const imageSrc = useMemo(
@@ -190,17 +194,17 @@ export function DecorationCard({
     );
   };
 
-  const isAvatar = decoration.type === "avatar";
+  const isAvatar = displayType === "avatar";
 
   /* Компактная карточка только для аватаров: круг + бейдж как есть, остальное — новая вёрстка */
   if (isAvatar) {
     return (
       <article
-        className={`group/card relative w-full max-w-[200px] aspect-square rounded-xl border bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col min-w-0 ${rarityStyle.border}`}
+        className={`group/card relative w-full max-w-[200px] aspect-square rounded-xl border bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col min-w-0 ${rarityStyle.border} ${isOwned ? "opacity-90" : ""}`}
       >
         {/* Картинка сверху */}
         <div className="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-3">
-          <div className="relative w-full max-w-[68%] sm:max-w-[72%] aspect-square">
+          <div className={`relative w-full max-w-[68%] sm:max-w-[72%] aspect-square ${isOwned ? "grayscale" : ""}`}>
             <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
             <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-[var(--background)] shadow-lg glow-avatar">
               {isImageLoading && hasImage && (
@@ -240,12 +244,17 @@ export function DecorationCard({
                 Распродано
               </span>
             )}
+            {isOwned && (
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-0.5 inline-flex items-center gap-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] text-[9px] font-semibold px-1.5 py-0.5 whitespace-nowrap border border-[var(--border)]">
+                Приобретена
+              </span>
+            )}
           </div>
         </div>
 
         {/* Название и действие снизу */}
         <div className="flex-shrink-0 p-2 sm:p-2.5 pt-0 flex flex-col gap-1 sm:gap-1.5">
-          <h3 className="font-semibold text-[var(--foreground)] text-xs sm:text-sm leading-tight truncate text-center" title={decoration.name}>
+          <h3 className={`font-semibold text-xs sm:text-sm leading-tight truncate text-center ${isOwned ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"}`} title={decoration.name}>
             {decoration.name}
           </h3>
           {showStock && (
@@ -324,7 +333,7 @@ export function DecorationCard({
 
   const renderImageBlock = (aspectClass: string) => (
     <div
-      className={`relative overflow-hidden border-b border-[var(--border)] ${rarityStyle.border} bg-[var(--muted)] ${aspectClass}`}
+      className={`relative overflow-hidden border-b border-[var(--border)] ${rarityStyle.border} bg-[var(--muted)] ${aspectClass} ${isOwned ? "opacity-90" : ""}`}
     >
       {isImageLoading && hasImage && (
         <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
@@ -339,7 +348,7 @@ export function DecorationCard({
           unoptimized
           className={`object-cover transition-transform duration-300 group-hover/card:scale-105 ${
             isImageLoading ? "opacity-0" : "opacity-100"
-          }`}
+          } ${isOwned ? "grayscale" : ""}`}
           onLoad={() => setIsImageLoading(false)}
           onError={() => setIsImageLoading(false)}
         />
@@ -367,14 +376,19 @@ export function DecorationCard({
             Распродано
           </span>
         )}
+        {isOwned && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] text-[10px] font-semibold">
+            Приобретена
+          </span>
+        )}
       </div>
     </div>
   );
 
   const renderContentBlock = () => (
-    <div className="p-2.5 sm:p-3 flex flex-col gap-2">
+    <div className={`p-2.5 sm:p-3 flex flex-col gap-2 ${isOwned ? "opacity-90" : ""}`}>
       <div className="min-w-0">
-        <h3 className="font-semibold text-[var(--foreground)] text-xs sm:text-sm leading-tight line-clamp-1" title={decoration.name}>
+        <h3 className={`font-semibold text-xs sm:text-sm leading-tight line-clamp-1 ${isOwned ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"}`} title={decoration.name}>
           {decoration.name}
         </h3>
         {decoration.description && (
@@ -424,9 +438,9 @@ export function DecorationCard({
   );
 
   /* Карточка для фонов: широкий формат 16:9 */
-  if (decoration.type === "background") {
+  if (displayType === "background") {
     return (
-      <article className="group/card relative w-full rounded-2xl border-2 border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/20 transition-all duration-300 card-hover-soft">
+      <article className={`group/card relative w-full rounded-2xl border-2 border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/20 transition-all duration-300 card-hover-soft ${isOwned ? "opacity-95" : ""}`}>
         {renderImageBlock("relative aspect-video")}
         {renderContentBlock()}
       </article>
@@ -435,7 +449,7 @@ export function DecorationCard({
 
   /* Карточка для декора «карточка»: вертикальный формат 9:16 */
   return (
-    <article className="group/card relative w-full rounded-2xl border-2 border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/20 transition-all duration-300 card-hover-soft">
+    <article className={`group/card relative w-full max-w-[280px] rounded-2xl border-2 border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/20 transition-all duration-300 card-hover-soft ${isOwned ? "opacity-95" : ""}`}>
       {renderImageBlock("relative aspect-[9/16]")}
       {renderContentBlock()}
     </article>

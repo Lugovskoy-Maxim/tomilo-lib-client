@@ -14,6 +14,7 @@ export const notificationsApi = createApi({
   reducerPath: "notificationsApi",
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Notifications", "UnreadCount"],
+  keepUnusedDataFor: 300, // 5 минут — меньше лишних запросов при навигации
   endpoints: builder => ({
     // Получение уведомлений пользователя с пагинацией
     getNotifications: builder.query<ApiResponseDto<NotificationsResponse>, { page?: number; limit?: number } | void>({
@@ -30,9 +31,10 @@ export const notificationsApi = createApi({
     getUnreadCount: builder.query<ApiResponseDto<UnreadCountResponse>, void>({
       query: () => ({
         url: "/notifications/unread-count",
-        timeout: 10000, // 10 секунд таймаут
+        timeout: 10000,
       }),
       providesTags: ["UnreadCount"],
+      keepUnusedDataFor: 300,
     }),
 
     // Отметить уведомление как прочитанное

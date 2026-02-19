@@ -2,11 +2,25 @@
 
 import { Bell } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
 
+const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 минут — не спамить сервер
+
 export function NotificationButton() {
+  const [isTabVisible, setIsTabVisible] = useState(
+    () => (typeof document !== "undefined" ? document.visibilityState === "visible" : true)
+  );
+
+  useEffect(() => {
+    const handler = () => setIsTabVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, []);
+
   const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
-    pollingInterval: 120000,
+    pollingInterval: isTabVisible ? POLL_INTERVAL_MS : 0,
+    refetchOnMountOrArgChange: 90,
   });
 
   const notificationCount = unreadCountResponse?.data?.count || 0;
