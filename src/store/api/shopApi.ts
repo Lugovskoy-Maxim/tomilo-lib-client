@@ -85,21 +85,31 @@ export const shopApi = createApi({
       invalidatesTags: [{ type: SHOP_TAG, id: "LIST" }],
     }),
 
-    /** Создание украшения с загрузкой файла изображения (multipart/form-data).
-     * Тот же URL, что и createDecoration — бэкенд по Content-Type может принимать и JSON, и FormData. */
+    /** Создание украшения через загрузку файла. POST /shop/admin/decorations/upload (multipart/form-data).
+     * Поля: image (файл изображения), type, name?, price?, rarity?, description?, isAvailable? */
     createDecorationWithImage: builder.mutation<
       Decoration,
-      { name: string; description: string; price: number; type: CreateDecorationDto["type"]; image: File }
+      {
+        file: File;
+        type: CreateDecorationDto["type"];
+        name?: string;
+        description?: string;
+        price?: number;
+        rarity?: "common" | "rare" | "epic" | "legendary";
+        isAvailable?: boolean;
+      }
     >({
-      query: ({ name, description, price, type, image }) => {
+      query: ({ file, type, name, description, price, rarity, isAvailable }) => {
         const formData = new FormData();
-        formData.append("name", name);
-        formData.append("description", description);
-        formData.append("price", String(price));
+        formData.append("image", file);
         formData.append("type", type);
-        formData.append("image", image);
+        if (name !== undefined && name !== "") formData.append("name", name);
+        if (description !== undefined && description !== "") formData.append("description", description);
+        if (price !== undefined) formData.append("price", String(price));
+        if (rarity !== undefined) formData.append("rarity", rarity);
+        if (isAvailable !== undefined) formData.append("isAvailable", String(isAvailable));
         return {
-          url: "/shop/admin/decorations",
+          url: "/shop/admin/decorations/upload",
           method: "POST",
           body: formData,
         };
@@ -122,26 +132,29 @@ export const shopApi = createApi({
       ],
     }),
 
-    /** Обновление украшения с загрузкой нового файла изображения (multipart/form-data).
-     * Тот же URL, что и updateDecoration — бэкенд по Content-Type может принимать и JSON, и FormData. */
+    /** Обновление украшения с загрузкой нового файла (если бэкенд поддерживает PATCH с multipart). */
     updateDecorationWithImage: builder.mutation<
       Decoration,
       {
         id: string;
+        file: File;
         name?: string;
         description?: string;
         price?: number;
         type?: UpdateDecorationDto["type"];
-        image: File;
+        rarity?: "common" | "rare" | "epic" | "legendary";
+        isAvailable?: boolean;
       }
     >({
-      query: ({ id, name, description, price, type, image }) => {
+      query: ({ id, file, name, description, price, type, rarity, isAvailable }) => {
         const formData = new FormData();
+        formData.append("image", file);
         if (name !== undefined) formData.append("name", name);
         if (description !== undefined) formData.append("description", description);
         if (price !== undefined) formData.append("price", String(price));
         if (type !== undefined) formData.append("type", type);
-        formData.append("image", image);
+        if (rarity !== undefined) formData.append("rarity", rarity);
+        if (isAvailable !== undefined) formData.append("isAvailable", String(isAvailable));
         return {
           url: `/shop/admin/decorations/${id}`,
           method: "PATCH",

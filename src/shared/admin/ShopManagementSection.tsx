@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
-import type { Decoration } from "@/api/shop";
+import type { Decoration, DecorationRarity } from "@/api/shop";
 import type { DecorationType } from "@/api/shop";
 import {
   useGetDecorationsQuery,
@@ -25,12 +25,21 @@ const DECORATION_TYPES: { value: DecorationType; label: string }[] = [
   { value: "card", label: "Карточка" },
 ];
 
+const RARITY_OPTIONS: { value: DecorationRarity; label: string }[] = [
+  { value: "common", label: "Обычная" },
+  { value: "rare", label: "Редкая" },
+  { value: "epic", label: "Эпическая" },
+  { value: "legendary", label: "Легендарная" },
+];
+
 const emptyForm = {
   name: "",
   description: "",
   price: 0,
   imageUrl: "",
   type: "avatar" as DecorationType,
+  rarity: "common" as DecorationRarity,
+  isAvailable: true,
 };
 
 const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp,image/gif";
@@ -77,6 +86,8 @@ export function ShopManagementSection() {
       price: d.price,
       imageUrl: d.imageUrl,
       type: d.type,
+      rarity: d.rarity ?? "common",
+      isAvailable: d.isAvailable ?? true,
     });
     setImageFile(null);
     setIsFormOpen(true);
@@ -98,11 +109,13 @@ export function ShopManagementSection() {
         if (imageFile) {
           await updateDecorationWithImage({
             id: editingDecoration.id,
+            file: imageFile,
             name: form.name.trim(),
             description: form.description.trim(),
             price: form.price,
             type: form.type,
-            image: imageFile,
+            rarity: form.rarity,
+            isAvailable: form.isAvailable,
           }).unwrap();
         } else {
           await updateDecoration({
@@ -113,6 +126,8 @@ export function ShopManagementSection() {
               price: form.price,
               imageUrl: form.imageUrl.trim() || undefined,
               type: form.type,
+              rarity: form.rarity,
+              isAvailable: form.isAvailable,
             },
           }).unwrap();
         }
@@ -125,11 +140,13 @@ export function ShopManagementSection() {
           return;
         }
         await createDecorationWithImage({
-          name: form.name.trim(),
-          description: form.description.trim(),
-          price: form.price,
+          file: imageFile,
           type: form.type,
-          image: imageFile,
+          name: form.name.trim() || undefined,
+          description: form.description.trim() || undefined,
+          price: form.price,
+          rarity: form.rarity,
+          isAvailable: form.isAvailable,
         }).unwrap();
         toast.success("Украшение добавлено");
         closeForm();
@@ -437,6 +454,37 @@ export function ShopManagementSection() {
                   </option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Редкость
+              </label>
+              <select
+                value={form.rarity}
+                onChange={e =>
+                  setForm(f => ({ ...f, rarity: e.target.value as DecorationRarity }))
+                }
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              >
+                {RARITY_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-end pb-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.isAvailable}
+                  onChange={e => setForm(f => ({ ...f, isAvailable: e.target.checked }))}
+                  className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+                <span className="text-sm font-medium text-[var(--foreground)]">
+                  Доступно в магазине
+                </span>
+              </label>
             </div>
           </div>
           <div>

@@ -1,5 +1,7 @@
 import { baseUrlAPI } from "./config";
 
+export type DecorationRarity = "common" | "rare" | "epic" | "legendary";
+
 export interface Decoration {
   id: string;
   name: string;
@@ -7,6 +9,8 @@ export interface Decoration {
   price: number;
   imageUrl: string;
   type: "avatar" | "background" | "card";
+  rarity?: DecorationRarity;
+  isAvailable?: boolean;
   isEquipped?: boolean;
 }
 
@@ -99,6 +103,8 @@ export interface CreateDecorationDto {
   price: number;
   imageUrl: string;
   type: DecorationType;
+  rarity?: DecorationRarity;
+  isAvailable?: boolean;
 }
 
 export interface UpdateDecorationDto {
@@ -107,6 +113,8 @@ export interface UpdateDecorationDto {
   price?: number;
   imageUrl?: string;
   type?: DecorationType;
+  rarity?: DecorationRarity;
+  isAvailable?: boolean;
 }
 
 export const createDecoration = async (
