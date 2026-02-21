@@ -148,13 +148,20 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         toast.success("VK ID успешно привязан");
       } catch (err: unknown) {
         const status = (err as { status?: number })?.status;
-        const data = (err as { data?: { data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount } } })?.data;
+        const data = (err as { data?: { data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount }; message?: string; errors?: string[] } })?.data;
         if (status === 409 && data?.data?.conflict && data?.data?.existingAccount) {
           setConflict({ provider: "vk", existingAccount: data.data.existingAccount });
           setPendingVk({ code, redirect_uri });
         } else {
-          const msg = (err as { data?: { message?: string } })?.data?.message ?? "Не удалось привязать VK ID";
-          toast.error(msg);
+          const msg = data?.message ?? "Не удалось привязать VK ID";
+          const isServerError = status && status >= 500;
+          const detail = data?.errors?.[0];
+          const fullMsg = isServerError
+            ? "Ошибка сервера при привязке VK. Попробуйте позже или повторите вход через VK."
+            : detail && detail !== msg
+              ? `${msg}: ${detail}`
+              : msg;
+          toast.error(fullMsg);
         }
       }
     },
