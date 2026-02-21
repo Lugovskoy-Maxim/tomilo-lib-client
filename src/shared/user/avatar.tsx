@@ -57,8 +57,8 @@ export default function UserAvatar({
 
   if (frameUrl) {
     return (
-      <div className="relative rounded-full overflow-visible" style={{ width: size, height: size }}>
-        <div className="absolute inset-0 rounded-full overflow-hidden">{content}</div>
+      <div className="relative overflow-visible" style={{ width: size, height: size, borderRadius: "50%" }}>
+        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "50%" }}>{content}</div>
         <img
           src={frameUrl}
           alt=""
@@ -69,5 +69,17 @@ export default function UserAvatar({
     );
   }
 
-  return content;
+  return (
+    <div
+      className="relative shrink-0 overflow-hidden"
+      style={{ width: size, height: size, borderRadius: "50%" }}
+    >
+      <div
+        className="absolute inset-0 overflow-hidden [&_img]:!object-cover"
+        style={{ borderRadius: "50%" }}
+      >
+        {content}
+      </div>
+    </div>
+  );
 }

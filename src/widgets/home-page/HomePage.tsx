@@ -151,7 +151,7 @@ export default function HomePage() {
           />
         </LazySection>
 
-        {/* Недавно добавленные */}
+        {/* Недавно добавленные — закомментировано
         <LazySection
           sectionId="recent"
           onVisible={handleSectionVisible}
@@ -177,6 +177,7 @@ export default function HomePage() {
             skeletonVariant="poster"
           />
         </LazySection>
+        */}
 
         {/* В тренде на этой неделе */}
         <LazySection

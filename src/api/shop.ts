@@ -24,10 +24,10 @@ function getDecorationUrlFromValue(raw: string | object | null | undefined): str
   return null;
 }
 
-/** URL надетой рамки из equippedDecorations.frame (или устаревшее avatar). */
+/** URL надетой рамки из equippedDecorations.frame. Только рамка — без подстановки avatar. */
 export function getEquippedFrameUrl(equipped: EquippedDecorations | null | undefined): string | null {
   if (!equipped) return null;
-  return getDecorationUrlFromValue(equipped.frame ?? equipped.avatar);
+  return getDecorationUrlFromValue(equipped.frame);
 }
 
 /** URL надетой декорации «аватар» (картинка персонажа) из equippedDecorations.avatar. */
@@ -89,7 +89,7 @@ function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
     type: (item.type as Decoration["type"]) ?? "avatar",
     rarity: item.rarity as Decoration["rarity"],
     isAvailable: item.isAvailable as boolean | undefined,
-    isEquipped: item.isEquipped as boolean | undefined,
+    isEquipped: (item.isEquipped ?? item.is_equipped) as boolean | undefined,
     stock: stock != null ? Number(stock) : undefined,
     isSoldOut: isSoldOut ?? (stock != null && Number(stock) <= 0),
   };

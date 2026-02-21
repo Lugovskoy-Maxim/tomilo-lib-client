@@ -205,9 +205,12 @@ export function DecorationCard({
       >
         {/* Картинка сверху */}
         <div className="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-3">
-          <div className={`relative w-full max-w-[68%] sm:max-w-[72%] aspect-square ${isOwned && !isEquipped ? "grayscale" : ""}`}>
+          <div className={`relative w-full max-w-[68%] sm:max-w-[72%] aspect-square transition-[filter] duration-300 ${isOwned && !isEquipped ? "grayscale group-hover/card:grayscale-0" : ""}`}>
             <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
-            <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-[var(--background)] shadow-lg glow-avatar">
+            <div
+              className="relative w-full h-full overflow-hidden border-2 border-[var(--background)] shadow-lg glow-avatar"
+              style={{ borderRadius: "50%" }}
+            >
               {isImageLoading && hasImage && (
                 <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
                   <span className="w-5 h-5 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
@@ -219,7 +222,8 @@ export function DecorationCard({
                   alt={decoration.name}
                   fill
                   unoptimized
-                  className={`object-cover ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+                  className={`object-cover rounded-full ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+                  style={{ borderRadius: "50%" }}
                   onLoad={() => setIsImageLoading(false)}
                   onError={() => setIsImageLoading(false)}
                 />
@@ -349,7 +353,7 @@ export function DecorationCard({
           unoptimized
           className={`object-cover transition-transform duration-300 group-hover/card:scale-105 ${
             isImageLoading ? "opacity-0" : "opacity-100"
-          } ${isOwned && !isEquipped ? "grayscale" : ""}`}
+          } ${isOwned && !isEquipped ? "grayscale group-hover/card:grayscale-0 transition-[filter] duration-300" : ""}`}
           onLoad={() => setIsImageLoading(false)}
           onError={() => setIsImageLoading(false)}
         />

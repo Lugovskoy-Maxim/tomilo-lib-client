@@ -14,15 +14,19 @@ import { DecorationCard } from "@/shared/shop/DecorationCard";
 import type { Decoration } from "@/api/shop";
 import type { UserProfile } from "@/types/user";
 import { useToast } from "@/hooks/useToast";
+import { useAuth } from "@/hooks/useAuth";
 
-/** Достаёт id декорации из значения API (может быть строка или объект с _id при populate). */
+/** Достаёт id декорации из значения API (строка, объект с id/_id при populate, или ObjectId). */
 function getEquippedDecorationId(value: unknown): string {
   if (value == null) return "";
-  if (typeof value === "string") return value;
+  if (typeof value === "string") return value.trim();
   if (typeof value === "object" && value !== null) {
     const o = value as Record<string, unknown>;
-    const id = (o.id ?? o._id) as string | undefined;
-    return id ?? "";
+    const id = o.id ?? o._id;
+    if (id == null) return "";
+    if (typeof id === "string") return id.trim();
+    if (typeof id === "object" && id !== null && "toString" in id) return String((id as { toString(): string }).toString());
+    return String(id);
   }
   return "";
 }
@@ -39,7 +43,8 @@ const TYPE_CONFIG: Record<
 
 export default function ProfileInventory() {
   const toast = useToast();
-  const { data: userDecorations = [], isLoading: isLoadingUserDecorations, isError, refetch } = useGetUserProfileDecorationsQuery();
+  const { user } = useAuth();
+  const { data: userDecorations = [], isLoading: isLoadingUserDecorations, isError, refetch: refetchDecorations } = useGetUserProfileDecorationsQuery();
   const { data: profileData, refetch: refetchProfile } = useGetProfileQuery();
   const ownedFromProfile = (profileData?.success && profileData.data
     ? (profileData.data as UserProfile).ownedDecorations
@@ -49,23 +54,44 @@ export default function ProfileInventory() {
   const isLoading = isLoadingUserDecorations || (needCatalogFallback && isLoadingCatalog);
   const profile = profileData?.success ? profileData.data : null;
   const profileWithDecorations = profile as (typeof profile) & UserProfile | null;
-  const equippedRaw = profileWithDecorations?.equippedDecorations;
+  /** Надетые декорации: из ответа профиля (camelCase/snake_case) или из Auth (уже нормализовано). */
+  const equippedRaw = (profileWithDecorations?.equippedDecorations ??
+    (profileWithDecorations as Record<string, unknown>)?.equipped_decorations ??
+    user?.equippedDecorations) as UserProfile["equippedDecorations"] | undefined;
   const [equipDecoration] = useEquipDecorationMutation();
   const [unequipDecoration] = useUnequipDecorationMutation();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"avatar" | "frame" | "background" | "card" | "all">("all");
 
-  /** Id надетых декораций: API может вернуть строку или объект (populate). */
-  const equippedByType = useMemo(() => {
-    const equipped: Record<string, string> = {
-      avatar: getEquippedDecorationId(equippedRaw?.avatar),
-      frame: getEquippedDecorationId(equippedRaw?.frame),
-      background: getEquippedDecorationId(equippedRaw?.background),
-      card: getEquippedDecorationId(equippedRaw?.card),
-    };
+  /** Множество id надетых декораций (как в магазине). Источники: профиль (equippedRaw) и userDecorations.isEquipped. */
+  const equippedIds = useMemo(() => {
+    const ids = new Set<string>();
+    const types = ["avatar", "frame", "background", "card"] as const;
+    const raw = equippedRaw as Record<string, unknown> | undefined;
+    for (const type of types) {
+      const val = raw?.[type] ?? raw?.[`${type}_id`];
+      const id = getEquippedDecorationId(val);
+      if (id) ids.add(String(id));
+    }
     userDecorations.forEach((d: Decoration) => {
-      if (d.isEquipped) equipped[d.type] = d.id;
+      if (d.isEquipped && d.id) ids.add(String(d.id));
     });
+    return ids;
+  }, [userDecorations, equippedRaw]);
+
+  /** По типу — id надетой декорации (для кнопки «Снять»). */
+  const equippedByType = useMemo(() => {
+    const types = ["avatar", "frame", "background", "card"] as const;
+    const equipped: Record<string, string> = {};
+    for (const type of types) {
+      const fromProfile = getEquippedDecorationId(equippedRaw?.[type] ?? (equippedRaw as Record<string, unknown>)?.[`${type}_id`]);
+      if (fromProfile) {
+        equipped[type] = String(fromProfile);
+      } else {
+        const fromList = userDecorations.find((d: Decoration) => (d.type ?? "").toLowerCase() === type && d.isEquipped);
+        if (fromList) equipped[type] = String(fromList.id);
+      }
+    }
     return equipped;
   }, [userDecorations, equippedRaw]);
 
@@ -95,7 +121,7 @@ export default function ProfileInventory() {
     try {
       await equipDecoration({ type, decorationId }).unwrap();
       toast.success("Предмет надет");
-      refetchProfile();
+      await Promise.all([refetchProfile(), refetchDecorations()]);
     } catch {
       toast.error("Не удалось надеть предмет");
     } finally {
@@ -108,7 +134,7 @@ export default function ProfileInventory() {
     try {
       await unequipDecoration({ type }).unwrap();
       toast.success("Предмет снят");
-      refetchProfile();
+      await Promise.all([refetchProfile(), refetchDecorations()]);
     } catch {
       toast.error("Не удалось снять предмет");
     } finally {
@@ -181,7 +207,7 @@ export default function ProfileInventory() {
             {isError && (
               <button
                 type="button"
-                onClick={() => refetch()}
+                onClick={() => refetchDecorations()}
                 className="mt-4 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity"
               >
                 Повторить
@@ -203,10 +229,10 @@ export default function ProfileInventory() {
                 key={decoration.id}
                 decoration={decoration}
                 isOwned
-                isEquipped={decoration.isEquipped ?? equippedByType[decoration.type] === decoration.id}
+                isEquipped={Boolean(decoration.isEquipped ?? (decoration.id != null && equippedIds.has(String(decoration.id))))}
                 onEquip={() => handleEquip(decoration.type, decoration.id)}
                 onUnequip={
-                  equippedByType[decoration.type] === decoration.id
+                  decoration.type && equippedIds.has(String(decoration.id))
                     ? () => handleUnequip(decoration.type)
                     : undefined
                 }

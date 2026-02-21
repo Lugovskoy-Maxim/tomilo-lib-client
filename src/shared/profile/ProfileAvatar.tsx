@@ -60,7 +60,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
     <OptimizedImage
       src={mainImageUrl}
       alt={userProfile.username || "User avatar"}
-      className="w-full h-full object-cover"
+      className="w-full h-full object-cover rounded-full"
       height={pixelSize}
       width={pixelSize}
       priority={true}
@@ -71,7 +71,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
 
   const hasImage = Boolean(mainImageUrl);
   const hasDecoration = Boolean(frameUrl || avatarDecorationUrl);
-  const wrapperClass = `relative ${sizeClass} rounded-full overflow-hidden shadow-2xl glow-avatar transition-transform duration-300 group-hover:scale-105 ${
+  const wrapperClass = `relative ${sizeClass} aspect-square shrink-0 rounded-full overflow-hidden shadow-2xl glow-avatar transition-transform duration-300 group-hover:scale-105 ${
     hasDecoration ? "" : "border-4 border-[var(--background)]"
   } ${
     hasImage ? "" : "bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] flex items-center justify-center text-white font-bold"
@@ -81,7 +81,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
     <div className="relative group overflow-visible">
       <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover:opacity-100 blur-sm transition-all duration-500" />
       <div className="absolute -inset-2 rounded-full bg-[var(--primary)]/20 blur-xl transition-all duration-500" />
-      <div className={wrapperClass}>
+      <div className={wrapperClass} style={{ borderRadius: "50%" }}>
         {avatarInner}
       </div>
       {frameUrl && (

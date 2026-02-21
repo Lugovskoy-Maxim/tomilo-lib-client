@@ -25,7 +25,7 @@ function normalizeDecoration(
     type: (type ?? item.type) as DecorationType,
     rarity: item.rarity as Decoration["rarity"],
     isAvailable: item.isAvailable as boolean | undefined,
-    isEquipped: item.isEquipped as boolean | undefined,
+    isEquipped: (item.isEquipped ?? item.is_equipped) as boolean | undefined,
     stock: stock != null ? Number(stock) : undefined,
     isSoldOut: isSoldOut ?? (stock != null && Number(stock) <= 0),
   };
