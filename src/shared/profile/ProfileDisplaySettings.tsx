@@ -2,6 +2,7 @@ import { UserProfile, UserDisplaySettings } from "@/types/user";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import ProfileThemeSettings from "./ProfileThemeSettings";
+import ProfileFontSettings from "./ProfileFontSettings";
 import { Monitor, Sparkles } from "lucide-react";
 
 interface ProfileDisplaySettingsProps {
@@ -38,6 +39,7 @@ export default function ProfileDisplaySettings({ userProfile }: ProfileDisplaySe
   return (
     <div className="space-y-4 sm:space-y-5">
       <ProfileThemeSettings displaySettings={displaySettings} isLoading={isLoading} />
+      <ProfileFontSettings />
 
       <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
         <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
@@ -71,7 +73,7 @@ export default function ProfileDisplaySettings({ userProfile }: ProfileDisplaySe
             onClick={handleAdultToggle}
             disabled={isLoading}
             className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
-              displaySettings.isAdult ? "bg-[var(--primary)]" : "bg-[var(--muted)]"
+              displaySettings.isAdult ? "bg-[var(--chart-1)]" : "bg-[var(--muted)]"
             } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           >
             <span

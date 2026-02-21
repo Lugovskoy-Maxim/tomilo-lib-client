@@ -96,6 +96,12 @@ export const useStaticData = (visibleSections: StaticDataVisibleSections = {}): 
         // Преобразуем данные в формат Collection для CollectionCard
         const formattedCollections: Collection[] = collectionsData.map((collection: ApiCollection) => {
           const id = String((collection.id || collection._id) ?? "");
+          const raw = (collection as Record<string, unknown>).titles;
+          const titles = Array.isArray(raw) ? (raw as string[]) : [];
+          const titlesCount =
+            Number((collection as Record<string, unknown>).titlesCount) ||
+            Number((collection as Record<string, unknown>).titles_count) ||
+            titles.length;
           return {
             id,
             cover:
@@ -105,11 +111,12 @@ export const useStaticData = (visibleSections: StaticDataVisibleSections = {}): 
               "",
             name: collection.name ?? "",
             description: undefined,
-            titles: [],
+            titles,
+            titlesCount,
             comments: [],
             views: Number(collection.views) || 0,
-            createdAt: "",
-            updatedAt: "",
+            createdAt: (collection.createdAt as string) ?? "",
+            updatedAt: (collection.updatedAt as string) ?? "",
           };
         });
 

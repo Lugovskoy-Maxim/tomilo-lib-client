@@ -102,6 +102,17 @@ body {
   font-size: 14px;
 }
 
+/* Шрифт из настроек (localStorage) */
+html.font-comfortaa body {
+  font-family: var(--font-comfortaa), var(--font-exo_2), Arial, Helvetica, sans-serif;
+}
+html.font-nunito body {
+  font-family: var(--font-nunito), var(--font-exo_2), Arial, Helvetica, sans-serif;
+}
+html.font-rubik body {
+  font-family: var(--font-rubik), var(--font-exo_2), Arial, Helvetica, sans-serif;
+}
+
 /* Layer helpers (keep component classes simple) */
 .z-layer-dropdown {
   z-index: var(--z-dropdown);

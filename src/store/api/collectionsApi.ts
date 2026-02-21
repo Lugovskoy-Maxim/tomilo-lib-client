@@ -80,12 +80,18 @@ export const collectionsApi = createApi({
           } else {
             collections = (rawCollections as unknown[]).map((collection): Collection => {
               const coll = collection as Record<string, unknown>;
+              const titlesArr = (coll.titles as string[]) || [];
+              const titlesCount =
+                (coll.titlesCount as number) ??
+                (coll.titles_count as number) ??
+                titlesArr.length;
               return {
                 id: (coll.id as string) || (coll._id as string) || "",
                 cover: (coll.cover as string) || (coll.image as string) || "",
                 name: (coll.name as string) || "",
                 description: (coll.description as string) || undefined,
-                titles: (coll.titles as string[]) || [],
+                titles: titlesArr,
+                titlesCount,
                 comments: (coll.comments as string[]) || [],
                 views: (coll.views as number) || 0,
                 createdAt: (coll.createdAt as string) || "",
@@ -93,6 +99,12 @@ export const collectionsApi = createApi({
               };
             });
           }
+
+          // Нормализуем titlesCount для коллекций, пришедших как Collection[]
+          collections = collections.map((c): Collection => {
+            const count = c.titlesCount ?? c.titles?.length ?? 0;
+            return { ...c, titlesCount: count };
+          });
 
           collections = collections.filter((collection: Collection) => {
             const id = collection.id;

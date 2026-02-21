@@ -48,7 +48,7 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
         <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-          <Lock className="w-5 h-5 text-[var(--primary)]" />
+          <Lock className="w-5 h-5 text-[var(--chart-1)]" />
         </div>
         <div>
           <h2 className="text-sm font-bold text-[var(--foreground)]">
@@ -77,7 +77,7 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
                 disabled={isLoading}
                 className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl border transition-all ${
                   currentPrivacy.profileVisibility === option.value
-                    ? "bg-[var(--primary)] border-[var(--primary)] text-[var(--primary-foreground)] shadow-md"
+                    ? "bg-[var(--chart-1)] border-[var(--chart-1)] text-white shadow-md"
                     : "bg-transparent border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
                 } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
@@ -106,7 +106,7 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
                 disabled={isLoading}
                 className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl border transition-all ${
                   currentPrivacy.readingHistoryVisibility === option.value
-                    ? "bg-[var(--primary)] border-[var(--primary)] text-[var(--primary-foreground)] shadow-md"
+                    ? "bg-[var(--chart-1)] border-[var(--chart-1)] text-white shadow-md"
                     : "bg-transparent border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
                 } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               >

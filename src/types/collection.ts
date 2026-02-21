@@ -6,6 +6,8 @@ export interface Collection {
   name: string;
   description?: string;
   titles: string[];
+  /** Количество тайтлов (может приходить с API списка без поля titles) */
+  titlesCount?: number;
   comments: string[];
   views: number;
   createdAt: string;

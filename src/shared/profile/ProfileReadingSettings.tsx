@@ -104,7 +104,7 @@ export default function ProfileReadingSettings({
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
         <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-          <Eye className="w-5 h-5 text-[var(--primary)]" />
+          <Eye className="w-5 h-5 text-[var(--chart-1)]" />
         </div>
         <div>
           <h2 className="text-sm font-bold text-[var(--foreground)]">
@@ -130,7 +130,7 @@ export default function ProfileReadingSettings({
               onClick={() => setMode("single")}
               className={`flex-1 py-2.5 px-3 text-sm font-medium rounded-xl border transition-colors ${
                 readingMode === "single"
-                  ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)]"
+                  ? "border-[var(--chart-1)] bg-[var(--chart-1)]/15 text-[var(--chart-1)]"
                   : "border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)]"
               }`}
             >
@@ -141,7 +141,7 @@ export default function ProfileReadingSettings({
               onClick={() => setMode("continuous")}
               className={`flex-1 py-2.5 px-3 text-sm font-medium rounded-xl border transition-colors ${
                 readingMode === "continuous"
-                  ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)]"
+                  ? "border-[var(--chart-1)] bg-[var(--chart-1)]/15 text-[var(--chart-1)]"
                   : "border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)]"
               }`}
             >
@@ -163,7 +163,7 @@ export default function ProfileReadingSettings({
                 type="checkbox"
                 checked={readChaptersInRow}
                 onChange={e => setReadChaptersInRow(e.target.checked)}
-                className="w-5 h-5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                className="w-5 h-5 rounded border-[var(--border)] text-[var(--chart-1)] focus:ring-[var(--chart-1)]"
               />
               <span className="text-sm text-[var(--foreground)]">Включить чтение глав подряд</span>
             </label>
@@ -191,7 +191,7 @@ export default function ProfileReadingSettings({
                 onClick={() => setOri(value)}
                 className={`py-2.5 px-3 text-sm font-medium rounded-xl border transition-colors ${
                   orientation === value
-                    ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)]"
+                    ? "border-[var(--chart-1)] bg-[var(--chart-1)]/15 text-[var(--chart-1)]"
                     : "border-[var(--border)] bg-[var(--background)]/60 hover:bg-[var(--accent)] text-[var(--foreground)]"
                 }`}
               >
@@ -211,7 +211,7 @@ export default function ProfileReadingSettings({
                 Ширина страниц в читалке (768–1440 px)
               </p>
             </div>
-            <span className="text-sm font-bold text-[var(--primary)] tabular-nums">
+            <span className="text-sm font-bold text-[var(--chart-1)] tabular-nums">
               {imageWidth} px
             </span>
           </div>
@@ -222,7 +222,7 @@ export default function ProfileReadingSettings({
             step={64}
             value={imageWidth}
             onChange={e => setImageWidth(Number(e.target.value))}
-            className="w-full h-2.5 rounded-full appearance-none cursor-pointer bg-[var(--muted)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md"
+            className="w-full h-2.5 rounded-full appearance-none cursor-pointer bg-[var(--muted)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--chart-1)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md"
           />
           <div className="flex justify-between text-xs text-[var(--muted-foreground)]">
             <span>768</span>
@@ -235,7 +235,7 @@ export default function ProfileReadingSettings({
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[var(--chart-1)] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
             {saving ? "Сохранение…" : "Сохранить"}
           </button>

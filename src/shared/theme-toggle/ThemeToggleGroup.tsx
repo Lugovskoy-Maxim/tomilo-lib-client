@@ -105,7 +105,7 @@ export default function ThemeToggleGroup({ className = "" }: ThemeToggleGroupPro
             disabled={isLoadingTheme}
             className={`px-3 py-2.5 text-sm font-medium rounded-xl transition-all ${
               theme === value
-                ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md"
+                ? "bg-[var(--chart-1)] text-white shadow-md"
                 : "bg-[var(--background)]/60 border border-[var(--border)] hover:bg-[var(--accent)] text-[var(--foreground)]"
             } ${isLoadingTheme ? "opacity-50 cursor-not-allowed" : ""}`}
           >

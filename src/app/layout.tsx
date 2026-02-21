@@ -1,8 +1,9 @@
-import { Exo_2, Geist_Mono } from "next/font/google";
+import { Comfortaa, Exo_2, Geist_Mono, Nunito, Rubik } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Providers } from "./providers";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { FontProvider } from "@/contexts/FontContext";
 
 import Script from "next/script";
 import { TelegramJoinNotification, ToastContainer } from "@/shared";
@@ -42,6 +43,24 @@ const exo_2 = Exo_2({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const comfortaa = Comfortaa({
+  variable: "--font-comfortaa",
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin", "cyrillic"],
+});
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  weight: ["400", "600", "700"],
+  subsets: ["latin", "cyrillic"],
+});
+
+const rubik = Rubik({
+  variable: "--font-rubik",
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin", "cyrillic"],
 });
 
 export default function RootLayout({
@@ -139,12 +158,13 @@ export default function RootLayout({
         </noscript>
       </head>
       <body
-        className={`${exo_2.variable} ${geistMono.variable} antialiased w-full justify-center items-center`}
+        className={`${exo_2.variable} ${geistMono.variable} ${comfortaa.variable} ${nunito.variable} ${rubik.variable} antialiased w-full justify-center items-center`}
       >
         <ToastProvider>
           <Providers>
             <ThemeProvider>
-              <CardTiltEffect />
+              <FontProvider>
+                <CardTiltEffect />
               <div className="mobile-footer-spacer">
                 {children}
               </div>
@@ -174,6 +194,7 @@ export default function RootLayout({
                   `,
                 }}
               />
+            </FontProvider>
             </ThemeProvider>
           </Providers>
           <ToastContainer />

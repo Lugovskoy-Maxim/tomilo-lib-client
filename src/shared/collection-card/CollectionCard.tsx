@@ -33,7 +33,7 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
   const collectionLink = `/collections/${collectionId}`;
   const collectionImage = data.cover;
   const collectionName = data.name;
-  const titlesCount = data.titles?.length || 0;
+  const titlesCount = data.titlesCount ?? data.titles?.length ?? 0;
   const views = data.views ?? 0;
   const createdAt = data.createdAt;
 
@@ -59,9 +59,12 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
     ${isGrid ? "w-full" : "flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36"}
   `.trim().replace(/\s+/g, " ");
 
+  const titlesLabel =
+    titlesCount === 1 ? "тайтл" : titlesCount >= 2 && titlesCount <= 4 ? "тайтла" : "тайтлов";
+
   return (
     <Link href={collectionLink} draggable="false" className={cardClasses}>
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] card-hover-soft shadow-sm">
+      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] shadow-md card-hover-soft ring-1 ring-[var(--border)]/50">
         <div className="relative w-full h-full">
           <div className="absolute inset-0 overflow-hidden">
             <OptimizedImage
@@ -78,30 +81,31 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
             />
           </div>
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
+          {/* Градиент для читаемости текста */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent group-hover:from-black/95 transition-opacity duration-300" />
 
-          {/* Badge: кол-во тайтлов */}
-          <div className="absolute top-3 right-3">
-            <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1.5 rounded-md border border-white/20 shadow-lg">
-              <Library className="w-3.5 h-3.5" />
+          {/* Бейдж: количество тайтлов — только здесь, без дублирования */}
+          <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10">
+            <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-white/25 shadow-lg min-w-[2.5rem] justify-center" title={`${titlesCount} ${titlesLabel}`}>
+              <Library className="w-3.5 h-3.5 shrink-0" aria-hidden />
               <span>{titlesCount}</span>
             </div>
           </div>
 
-          {/* Контент внизу — единые отступы */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-            <h3 className="text-sm font-semibold drop-shadow-lg leading-tight line-clamp-2 group-hover:text-[var(--chart-1)] transition-colors duration-300">
+          {/* Контент внизу */}
+          <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
+            <h3 className="text-sm sm:text-base font-semibold drop-shadow-md leading-tight line-clamp-2 group-hover:text-[var(--chart-1)] transition-colors duration-300">
               {collectionName || "Без названия"}
             </h3>
             {isGrid && (
-              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/80">
-                <span className="flex items-center gap-1">
-                  <Eye className="w-3 h-3" />
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/90">
+                <span className="flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5 shrink-0" />
                   {views} просмотров
                 </span>
                 {createdAt && (
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 shrink-0" />
                     {new Date(createdAt).toLocaleDateString("ru-RU")}
                   </span>
                 )}
