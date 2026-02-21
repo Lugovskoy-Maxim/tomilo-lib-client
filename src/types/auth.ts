@@ -15,6 +15,23 @@ export interface RegisterData {
   captchaToken?: string;
 }
 
+/** Тело запроса отправки кода на email (шаг 1 регистрации). Пользователь не создаётся. */
+export interface SendRegistrationCodeData {
+  email: string;
+  username: string;
+  password: string;
+  captchaToken?: string;
+}
+
+/** Тело запроса регистрации с кодом из письма (шаг 2). Сервер ожидает code и те же email/username/password. */
+export interface RegisterWithCodeData {
+  email: string;
+  username: string;
+  password: string;
+  /** 6-значный код из письма */
+  code: string;
+}
+
 // Privacy settings type
 export interface UserPrivacy {
   profileVisibility: "public" | "friends" | "private";

@@ -1,14 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
-import { useRegisterMutation } from "@/store/api/authApi";
+import { useSendRegistrationCodeMutation, useRegisterMutation } from "@/store/api/authApi";
 import { RegisterData, FormErrors, FormTouched } from "../../types/form";
 import { Modal } from "..";
 import termsOfUse from "@/constants/terms-of-use";
 import { AuthResponse } from "@/types/auth";
 import { ApiResponseDto } from "@/types/api";
 import { MESSAGES } from "@/constants/messages";
+import { useToast } from "@/hooks/useToast";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
@@ -25,6 +26,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   onSwitchToLogin,
   onAuthSuccess,
 }) => {
+  const toast = useToast();
   const [form, setForm] = useState<RegisterData>({
     email: "",
     password: "",
@@ -41,9 +43,26 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     username: false,
     confirmPassword: false,
   });
+  /** Шаг 2: ввод кода. После успешной отправки кода переходим сюда. */
+  const [step, setStep] = useState<"form" | "code">("form");
+  const [code, setCode] = useState("");
+  const [codeTouched, setCodeTouched] = useState(false);
+  /** Секунды до повторной отправки кода (429 или локальный лимит). */
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Используем хук мутации из RTK Query
-  const [register, { isLoading, error: apiError }] = useRegisterMutation();
+  const [sendCode, { isLoading: sendCodeLoading, error: sendCodeError }] =
+    useSendRegistrationCodeMutation();
+  const [register, { isLoading: registerLoading, error: registerError }] = useRegisterMutation();
+
+  const isLoading = sendCodeLoading || registerLoading;
+  const apiError = step === "form" ? sendCodeError : registerError;
+
+  // Таймер обратного отсчёта для повторной отправки кода
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown(prev => (prev > 0 ? prev - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
 
   const validate = {
     email: (email: string): string | null => {
@@ -90,6 +109,12 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     return baseValid;
   };
 
+  const codeError =
+    codeTouched && (code.length !== 6 || !/^\d{6}$/.test(code))
+      ? "Введите 6-значный код из письма"
+      : null;
+  const isCodeStepValid = code.length === 6 && /^\d{6}$/.test(code);
+
   const handleChange = (field: keyof RegisterData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
     setTouched(prev => ({ ...prev, [field]: true }));
@@ -99,49 +124,103 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     setTouched(prev => ({ ...prev, [field]: true }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const requestCode = useCallback(async () => {
     setTouched({
       email: true,
       password: true,
       username: true,
       confirmPassword: true,
     });
-    if (!isFormValid()) return;
+
+    // Валидация по текущим значениям (не по touched — setState асинхронный, иначе после клика ничего не происходит)
+    const emailErr = !form.email
+      ? "Email обязателен"
+      : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+        ? "Неверный формат email"
+        : null;
+    const passwordErr = !form.password
+      ? "Пароль обязателен"
+      : form.password.length < 6
+        ? "Минимум 6 символов"
+        : null;
+    const usernameErr = !form.username
+      ? "Имя обязательно"
+      : form.username.length < 3
+        ? "Минимум 3 символа"
+        : null;
+    const confirmErr =
+      form.confirmPassword !== form.password ? "Пароли не совпадают" : null;
+    const valid =
+      !emailErr &&
+      !passwordErr &&
+      !usernameErr &&
+      !confirmErr &&
+      !!form.email &&
+      !!form.password &&
+      !!form.username &&
+      !!form.confirmPassword &&
+      (!TURNSTILE_SITE_KEY || !!captchaToken);
+    if (!valid) return;
 
     try {
-      // Вызываем мутацию и разворачиваем результат
+      await sendCode({
+        email: form.email,
+        password: form.password,
+        username: form.username,
+        ...(captchaToken && { captchaToken }),
+      }).unwrap();
+      setStep("code");
+      setCode("");
+      setCodeTouched(false);
+      setResendCooldown(60);
+      toast.success(MESSAGES.UI_ELEMENTS.REGISTER_CODE_SENT);
+    } catch (err: unknown) {
+      const status =
+        err && typeof err === "object" && "status" in err ? (err as { status: number }).status : 0;
+      const data = err && typeof err === "object" && "data" in err ? (err as { data: unknown }).data : null;
+      const message = data && typeof data === "object" && data !== null && "message" in data
+        ? String((data as { message: string }).message)
+        : "";
+      if (status === 429) {
+        const match = message.match(/(\d+)\s*сек/);
+        if (match) setResendCooldown(parseInt(match[1], 10));
+        toast.warning(message || MESSAGES.UI_ELEMENTS.REGISTER_RESEND_AFTER(60));
+      } else {
+        toast.error(message || "Ошибка отправки кода. Попробуйте позже.");
+      }
+    }
+  }, [form.email, form.password, form.username, form.confirmPassword, captchaToken, sendCode, toast]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (step === "form") {
+      await requestCode();
+      return;
+    }
+    setCodeTouched(true);
+    if (!isCodeStepValid) return;
+
+    try {
       const response = await register({
         email: form.email,
         password: form.password,
         username: form.username,
-        confirmPassword: form.confirmPassword,
-        ...(captchaToken && { captchaToken }),
+        code,
       }).unwrap();
-
-      // Отправляем приветственное письмо после успешной регистрации
-      try {
-        await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/auth/send-verification-email`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email: form.email }),
-          },
-        );
-      } catch (emailError) {
-        console.error("Ошибка отправки приветственного письма:", emailError);
-        // Не прерываем основной процесс регистрации из-за ошибки отправки письма
-      }
-
-      // Передаем данные в родительский компонент
       onAuthSuccess(response);
-    } catch (error) {
-      // Ошибка уже будет в apiError, но можно обработать и здесь
-      console.error("Ошибка регистрации:", error);
+    } catch (err: unknown) {
+      const data = err && typeof err === "object" && "data" in err ? (err as { data: unknown }).data : null;
+      const message = data && typeof data === "object" && data !== null && "message" in data
+        ? String((data as { message: string }).message)
+        : "";
+      toast.error(message || "Ошибка регистрации. Проверьте код и попробуйте снова.");
+      console.error("Ошибка регистрации:", err);
     }
+  };
+
+  const handleResendCode = () => {
+    if (resendCooldown > 0) return;
+    requestCode();
   };
 
   useEffect(() => {
@@ -156,12 +235,17 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
       setShowPassword(false);
       setShowConfirmPassword(false);
       setCaptchaToken(null);
+      setStep("form");
+      setCode("");
+      setCodeTouched(false);
+      setResendCooldown(0);
     }
   }, [isOpen]);
 
   const apiErrorMessage =
     apiError && typeof apiError === "object" && apiError !== null && "data" in apiError
-      ? (apiError.data as { message?: string })?.message || "Ошибка регистрации"
+      ? (apiError.data as { message?: string })?.message ||
+        (step === "form" ? "Ошибка отправки кода" : "Ошибка регистрации")
       : null;
 
   const inputBase =
@@ -174,7 +258,9 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title={MESSAGES.UI_ELEMENTS.REGISTER_TITLE}>
       <div className="flex flex-col gap-5">
         <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
-          {MESSAGES.UI_ELEMENTS.REGISTER_SUBTITLE}
+          {step === "form"
+            ? MESSAGES.UI_ELEMENTS.REGISTER_SUBTITLE
+            : MESSAGES.UI_ELEMENTS.REGISTER_CODE_SENT}
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -189,6 +275,55 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
             </div>
           )}
 
+          {step === "code" && (
+            <>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="register-code"
+                  className="block text-sm font-medium text-[var(--foreground)]"
+                >
+                  {MESSAGES.UI_ELEMENTS.REGISTER_CODE_LABEL}
+                </label>
+                <input
+                  id="register-code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder={MESSAGES.UI_ELEMENTS.REGISTER_CODE_PLACEHOLDER}
+                  value={code}
+                  onChange={e => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    setCode(v);
+                    setCodeTouched(true);
+                  }}
+                  onBlur={() => setCodeTouched(true)}
+                  className={`${inputBase} ${codeError ? inputError : inputNormal}`}
+                  maxLength={6}
+                  disabled={registerLoading}
+                  aria-invalid={!!codeError}
+                />
+                {codeError && (
+                  <p className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full" />
+                    {codeError}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={resendCooldown > 0 || sendCodeLoading}
+                className="text-sm text-[var(--chart-1)] hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+              >
+                {resendCooldown > 0
+                  ? MESSAGES.UI_ELEMENTS.REGISTER_RESEND_AFTER(resendCooldown)
+                  : MESSAGES.UI_ELEMENTS.REGISTER_RESEND_CODE}
+              </button>
+            </>
+          )}
+
+          {step === "form" && (
+            <>
           <div className="space-y-1.5">
             <label htmlFor="username" className="block text-sm font-medium text-[var(--foreground)]">
               Имя
@@ -381,10 +516,16 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               </button>
             </label>
           </div>
+            </>
+          )}
 
           <button
             type="submit"
-            disabled={!isFormValid() || isLoading}
+            disabled={
+              step === "form"
+                ? !isFormValid() || isLoading
+                : !isCodeStepValid || isLoading
+            }
             className="w-full py-3.5 rounded-xl font-semibold text-white bg-[var(--chart-1)] hover:opacity-95 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-[var(--chart-1)]/25 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
           >
             {isLoading ? (
@@ -392,6 +533,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 {MESSAGES.UI_ELEMENTS.LOADING}
               </span>
+            ) : step === "form" ? (
+              MESSAGES.UI_ELEMENTS.REGISTER_SEND_CODE
             ) : (
               MESSAGES.UI_ELEMENTS.SUBMIT_REGISTER
             )}

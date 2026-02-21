@@ -1,5 +1,11 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { AuthResponse, LoginData, RegisterData, User } from "@/types/auth";
+import {
+  AuthResponse,
+  LoginData,
+  RegisterWithCodeData,
+  SendRegistrationCodeData,
+  User,
+} from "@/types/auth";
 
 // Ключи для localStorage (сохраняем ваши существующие)
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
@@ -29,7 +35,14 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Auth"],
     }),
-    register: builder.mutation<AuthResponse, RegisterData>({
+    sendRegistrationCode: builder.mutation<{ message?: string }, SendRegistrationCodeData>({
+      query: body => ({
+        url: "/auth/send-registration-code",
+        method: "POST",
+        body,
+      }),
+    }),
+    register: builder.mutation<AuthResponse, RegisterWithCodeData>({
       query: userData => ({
         url: "/auth/register",
         method: "POST",
@@ -64,6 +77,7 @@ export const authApi = createApi({
 
 export const {
   useLoginMutation,
+  useSendRegistrationCodeMutation,
   useRegisterMutation,
   useGetMeQuery,
   useChangePasswordMutation,

@@ -1,7 +1,12 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { AuthResponse, User, LinkResolve } from "@/types/auth";
-import { LoginData, RegisterData } from "@/types/form";
+import {
+  LoginData,
+  RegisterData,
+  SendRegistrationCodeData,
+  RegisterWithCodeData,
+} from "@/types/form";
 import { ApiResponseDto } from "@/types/api";
 import { ReadingHistoryEntry, ReadingHistoryChapter, AvatarResponse } from "@/types/store";
 import { BookmarkEntry, BookmarkCategory } from "@/types/user";
@@ -64,7 +69,20 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
-    register: builder.mutation<ApiResponseDto<AuthResponse>, RegisterData>({
+    /** Шаг 1: запрос кода на email. Пользователь не создаётся. При 429 — лимит раз в минуту. */
+    sendRegistrationCode: builder.mutation<
+      ApiResponseDto<{ message?: string }>,
+      SendRegistrationCodeData
+    >({
+      query: body => ({
+        url: "/auth/send-registration-code",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    /** Шаг 2: регистрация с 6-значным кодом из письма. Создаёт пользователя с emailVerified: true. */
+    register: builder.mutation<ApiResponseDto<AuthResponse>, RegisterWithCodeData>({
       query: userData => ({
         url: "/auth/register",
         method: "POST",
@@ -400,6 +418,7 @@ export const authApi = createApi({
 
 export const {
   useLoginMutation,
+  useSendRegistrationCodeMutation,
   useRegisterMutation,
   useYandexAuthMutation,
   useVkAuthMutation,

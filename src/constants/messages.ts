@@ -225,6 +225,13 @@ export const MESSAGES = {
     TERMS_LABEL: "Я согласен с",
     TERMS_LINK: "условиями использования",
     SUBMIT_REGISTER: "Зарегистрироваться",
+    REGISTER_SEND_CODE: "Отправить код",
+    REGISTER_CODE_SENT: "Код отправлен на вашу почту. Введите его ниже.",
+    REGISTER_CODE_PLACEHOLDER: "Код из письма (6 цифр)",
+    REGISTER_CODE_LABEL: "Код подтверждения",
+    REGISTER_RESEND_CODE: "Отправить код повторно",
+    REGISTER_RESEND_AFTER: (seconds: number) =>
+      `Письмо можно отправить повторно через ${seconds} сек`,
     // Aria-labels
     ARIA_LABELS: {
       CATALOG: "Каталог",

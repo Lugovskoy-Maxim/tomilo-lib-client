@@ -64,9 +64,9 @@ export const Toast: React.FC<ToastProps> = ({ toast }) => {
       exit={{ opacity: 0, x: 80, scale: 0.96, transition: { duration: 0.2 } }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       className={`
-        relative flex items-start gap-4 p-4 rounded-2xl border bg-[var(--card)] text-[var(--card-foreground)]
+        relative flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl border bg-[var(--card)] text-[var(--card-foreground)]
         shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.4)]
-        overflow-hidden min-w-[320px] max-w-[420px]
+        overflow-hidden w-[calc(100vw-2rem)] min-w-0 max-w-[420px] sm:min-w-[320px]
         ${config.border}
       `}
     >
