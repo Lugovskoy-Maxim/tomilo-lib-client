@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
@@ -55,7 +57,38 @@ export async function GET(request: Request) {
                     window.close();
                     return;
                 }
-                showError('Привязка VK', 'Это окно открыто не из профиля. Закройте его и нажмите «Привязать VK» на странице профиля.');
+                var apiBase = ${JSON.stringify(API_BASE)};
+                var token = typeof localStorage !== 'undefined' ? localStorage.getItem('tomilo_lib_token') : null;
+                if (!token || !apiBase) {
+                    showError('Привязка VK', 'Сессия не найдена. Войдите в аккаунт и снова нажмите «Привязать VK» в профиле.');
+                    return;
+                }
+                document.getElementById('status').textContent = 'Привязка VK ID…';
+                fetch(apiBase + '/auth/link/vk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
+                    credentials: 'include'
+                })
+                .then(function(res) { return res.json().then(function(data) { return { status: res.status, data: data }; }); })
+                .then(function(result) {
+                    var d = result.data;
+                    if (result.status >= 200 && result.status < 300 && d && d.success) {
+                        document.getElementById('status').innerHTML = '<p>VK ID успешно привязан.</p><p class="retry"><a href="' + window.location.origin + '">Вернуться на сайт</a></p>';
+                        setTimeout(function() { window.location.href = window.location.origin; }, 1500);
+                    } else {
+                        var msg = (d && d.message) ? String(d.message).replace(/</g, '') : 'Не удалось привязать VK ID.';
+                        if (d && d.errors && d.errors[0]) {
+                            var err = d.errors[0];
+                            msg = (typeof err === 'object' && err.message) ? err.message : String(err);
+                        }
+                        if (result.status === 409) msg = 'Этот VK уже привязан к другому аккаунту.';
+                        showError('Ошибка привязки VK', msg);
+                    }
+                })
+                .catch(function() {
+                    showError('Ошибка соединения', 'Не удалось связаться с сервером. Проверьте интернет и попробуйте снова.');
+                });
                 return;
             }
 

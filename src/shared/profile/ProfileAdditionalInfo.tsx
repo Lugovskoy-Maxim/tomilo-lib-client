@@ -226,12 +226,12 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     }
   };
 
-  const openVkLinkPopup = async () => {
+  const redirectToVkLink = async () => {
     try {
       const url = await getVkAuthUrl(true);
-      window.open(url, "vk_link", "width=500,height=600,scrollbars=yes");
+      window.location.href = url;
     } catch {
-      toast.error("Не удалось открыть окно авторизации VK");
+      toast.error("Не удалось перейти к авторизации VK");
     }
   };
 
@@ -247,15 +247,10 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     }
   };
 
-  // Получить code/токен после OAuth в popup (postMessage от /auth/vk и /auth/yandex)
+  // Получить токен после OAuth Яндекса в popup (postMessage от /auth/yandex). VK привязка — полный редирект, как при логине.
   useEffect(() => {
     if (!isOwnProfile) return;
     const handler = (e: MessageEvent) => {
-      if (e.data?.type === "VK_LINK_CODE" && e.data?.code) {
-        const redirectUri = e.data.redirect_uri || (typeof window !== "undefined" ? `${window.location.origin}/auth/vk` : "");
-        setPendingVk({ code: e.data.code, redirect_uri: redirectUri });
-        if (!isLinkingVk) doLinkVk(e.data.code, redirectUri);
-      }
       if (e.data?.type === "YANDEX_LINK_TOKEN" && e.data?.access_token) {
         setPendingYandex({ access_token: e.data.access_token });
         doLinkYandex(e.data.access_token);
@@ -263,7 +258,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [isOwnProfile, isLinkingVk, doLinkVk, doLinkYandex]);
+  }, [isOwnProfile, doLinkYandex]);
 
   return (
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-6 shadow-sm overflow-hidden">
@@ -366,7 +361,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
                 ) : isOwnProfile ? (
                   <button
                     type="button"
-                    onClick={id === "vk" ? openVkLinkPopup : openYandexLinkPopup}
+                    onClick={id === "vk" ? redirectToVkLink : openYandexLinkPopup}
                     disabled={isLinking}
                     className="text-xs sm:text-sm font-medium text-[var(--chart-1)] hover:underline truncate disabled:opacity-50"
                   >
