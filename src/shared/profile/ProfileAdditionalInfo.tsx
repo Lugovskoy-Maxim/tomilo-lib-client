@@ -8,7 +8,7 @@ import type { AuthResponse, LinkConflictExistingAccount } from "@/types/auth";
 import type { ApiResponseDto } from "@/types/api";
 import type { SocialProvider } from "@/shared/modal/LinkConflictModal";
 import LinkConflictModal from "@/shared/modal/LinkConflictModal";
-import { getVkAuthUrl, VK_LINK_PENDING_KEY, VK_LINK_RETURN_KEY } from "@/lib/vk-auth-url";
+import { getVkAuthUrl } from "@/lib/vk-auth-url";
 
 const YANDEX_LINK_MODE_KEY = "yandex_link_mode";
 
@@ -254,13 +254,6 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
 
   const redirectToVkLink = async () => {
     try {
-      if (typeof window !== "undefined") {
-        try {
-          sessionStorage.setItem(VK_LINK_RETURN_KEY, window.location.pathname);
-        } catch {
-          /* ignore */
-        }
-      }
       const url = await getVkAuthUrl(true);
       window.location.href = url;
     } catch {
@@ -292,25 +285,6 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
   }, [isOwnProfile, doLinkYandex]);
-
-  // После возврата с VK callback: в sessionStorage лежит vk_link_pending — отправляем запрос привязки, при 409 показываем модалку в профиле.
-  // Небольшая задержка, чтобы страница успела отрисоваться до запроса/модалки (избегаем «пустой экран + скролл заблокирован»).
-  useEffect(() => {
-    if (!isOwnProfile || typeof window === "undefined") return;
-    const raw = sessionStorage.getItem(VK_LINK_PENDING_KEY);
-    if (!raw) return;
-    sessionStorage.removeItem(VK_LINK_PENDING_KEY);
-    sessionStorage.removeItem(VK_LINK_RETURN_KEY);
-    let payload: PendingVkPayload;
-    try {
-      payload = JSON.parse(raw) as PendingVkPayload;
-    } catch {
-      return;
-    }
-    if (!payload?.code || !payload?.redirect_uri) return;
-    const t = setTimeout(() => void doLinkVk(payload), 200);
-    return () => clearTimeout(t);
-  }, [isOwnProfile, doLinkVk]);
 
   return (
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-6 shadow-sm overflow-hidden">

@@ -1,9 +1,5 @@
 /** Префикс state при привязке: callback определяет режим по URL. */
 export const VK_STATE_LINK_PREFIX = "link_";
-/** Ключ sessionStorage: после callback сюда кладётся JSON { code, redirect_uri, code_verifier?, device_id?, state? } для обработки на странице профиля. */
-export const VK_LINK_PENDING_KEY = "vk_link_pending";
-/** Ключ sessionStorage: перед редиректом на VK сохраняем сюда путь возврата (например /user/username). */
-export const VK_LINK_RETURN_KEY = "vk_link_return";
 
 const VK_APP_ID = 54445438;
 const VK_AUTH_BASE = "https://id.vk.ru";
