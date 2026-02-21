@@ -88,7 +88,9 @@ export default function ProfileInventory() {
     ? (profileData.data as UserProfile).ownedDecorations
     : []) ?? [];
   const needCatalogFallback = userDecorations.length === 0 && ownedFromProfile.length > 0;
-  const { data: catalogDecorations = [], isLoading: isLoadingCatalog } = useGetDecorationsQuery(undefined, { skip: !needCatalogFallback });
+  /** Каталог нужен и для fallback-списка, и для подстановки редкости в userDecorations (в профиле API может не отдавать rarity). */
+  const needCatalog = needCatalogFallback || userDecorations.length > 0;
+  const { data: catalogDecorations = [], isLoading: isLoadingCatalog } = useGetDecorationsQuery(undefined, { skip: !needCatalog });
   const isLoading = isLoadingUserDecorations || (needCatalogFallback && isLoadingCatalog);
   const profile = profileData?.success ? profileData.data : null;
   const profileWithDecorations = profile as (typeof profile) & UserProfile | null;
@@ -132,11 +134,16 @@ export default function ProfileInventory() {
     return { effectiveOwned: owned, effectiveEquipped: equipped };
   }, [userDecorations, profileWithDecorations, equippedRaw, resolutionList]);
 
-  /** Список приобретённых: из GET /shop/profile/decorations или fallback из profile.ownedDecorations + каталог. */
+  /** Список приобретённых. Редкость всегда берём из каталога (как в магазине) — API профиля может не отдавать rarity. */
   const displayList = useMemo((): Decoration[] => {
-    if (userDecorations.length > 0) return userDecorations;
-    if (ownedFromProfile.length === 0 || catalogDecorations.length === 0) return [];
     const catalogById = new Map(catalogDecorations.map(d => [d.id, d]));
+    if (userDecorations.length > 0) {
+      return userDecorations.map((d: Decoration) => {
+        const fromCatalog = catalogById.get(d.id);
+        return fromCatalog ? { ...fromCatalog, ...d } : d;
+      });
+    }
+    if (ownedFromProfile.length === 0 || catalogDecorations.length === 0) return [];
     return ownedFromProfile
       .map(entry => {
         const dec = catalogById.get(entry.decorationId);

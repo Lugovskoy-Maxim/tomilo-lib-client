@@ -7,6 +7,7 @@ import {
   Decoration,
   DecorationRarity,
   getDecorationImageUrl,
+  normalizeRarity,
 } from "@/api/shop";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
@@ -75,7 +76,7 @@ export function DecorationCard({
     [decoration.imageUrl],
   );
   const hasImage = Boolean(imageSrc);
-  const rarity: DecorationRarity = decoration.rarity ?? "common";
+  const rarity: DecorationRarity = normalizeRarity(decoration.rarity);
   const rarityStyle = RARITY_STYLES[rarity];
   const soldOut = decoration.isSoldOut ?? (decoration.stock !== undefined && decoration.stock <= 0);
   const showStock = decoration.stock !== undefined;

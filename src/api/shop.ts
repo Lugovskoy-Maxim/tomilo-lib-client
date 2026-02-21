@@ -50,6 +50,30 @@ export function getDecorationImageUrl(imageUrl: string | undefined): string {
 
 export type DecorationRarity = "common" | "rare" | "epic" | "legendary";
 
+const RARITY_VALUES: DecorationRarity[] = ["common", "rare", "epic", "legendary"];
+
+/** Нормализует редкость из API (разный регистр, числа 1–4 или строки). */
+export function normalizeRarity(value: unknown): DecorationRarity {
+  if (value == null) return "common";
+  if (typeof value === "number") {
+    const map: DecorationRarity[] = ["common", "rare", "epic", "legendary"];
+    const i = Math.floor(Number(value));
+    return map[i >= 1 && i <= 4 ? i - 1 : 0] ?? "common";
+  }
+  if (typeof value === "string") {
+    const lower = value.trim().toLowerCase();
+    if (RARITY_VALUES.includes(lower as DecorationRarity)) return lower as DecorationRarity;
+    const byLabel: Record<string, DecorationRarity> = {
+      обычная: "common",
+      редкая: "rare",
+      эпическая: "epic",
+      легендарная: "legendary",
+    };
+    if (byLabel[lower]) return byLabel[lower];
+  }
+  return "common";
+}
+
 export interface Decoration {
   id: string;
   name: string;
@@ -87,7 +111,7 @@ function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
     price: (item.price as number) ?? 0,
     imageUrl: (item.imageUrl ?? item.image_url) as string ?? "",
     type: (item.type as Decoration["type"]) ?? "avatar",
-    rarity: item.rarity as Decoration["rarity"],
+    rarity: normalizeRarity(item.rarity ?? item.rarity_level),
     isAvailable: item.isAvailable as boolean | undefined,
     isEquipped: (item.isEquipped ?? item.is_equipped) as boolean | undefined,
     stock: stock != null ? Number(stock) : undefined,

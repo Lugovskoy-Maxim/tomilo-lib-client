@@ -8,10 +8,10 @@ import {
   useDislikeCommentMutation,
   useDeleteCommentMutation,
 } from "@/store/api/commentsApi";
-import { ThumbsUp, ThumbsDown, Reply, Edit, Trash2, MoreVertical } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Reply, Edit, Trash2, MoreVertical, BadgeCheck } from "lucide-react";
 import Link from "next/link";
 import { UserAvatar } from "@/shared";
-import { getEquippedFrameUrl } from "@/api/shop";
+import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl } from "@/api/shop";
 import type { EquippedDecorations } from "@/types/user";
 
 interface CommentItemProps {
@@ -31,6 +31,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   const [deleteComment] = useDeleteCommentMutation();
 
   const userData = typeof comment.userId === "object" ? comment.userId : null;
+  const isAdmin = userData?.role === "admin";
   const isOwner = user && userData && user._id === userData._id;
   const profileHref =
     userData?._id ? (isOwner ? "/profile" : `/user/${encodeURIComponent(userData._id)}`) : null;
@@ -101,24 +102,26 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
     >
       <div className="p-3">
         <div className="flex gap-2.5">
-          {/* Avatar (с рамкой, если бэкенд вернул equippedDecorations у автора) */}
-          <div className="flex-shrink-0 h-8 w-8 overflow-hidden rounded-full">
+          {/* Avatar (декоративный аватар и рамка из equippedDecorations, если бэкенд вернул у автора) */}
+          <div className="flex-shrink-0 h-11 w-11 overflow-hidden rounded-full">
             {(() => {
               const avatarUrl = userData?.avatar
                 ? userData.avatar.startsWith("http")
                   ? userData.avatar
                   : `${process.env.NEXT_PUBLIC_URL || ""}${userData.avatar}`
                 : undefined;
-              const frameUrl = userData?.equippedDecorations
-                ? getEquippedFrameUrl(userData.equippedDecorations as EquippedDecorations)
-                : undefined;
+              const equipped = (userData as { equippedDecorations?: EquippedDecorations; equipped_decorations?: EquippedDecorations })
+                ?.equippedDecorations ?? (userData as { equipped_decorations?: EquippedDecorations })?.equipped_decorations;
+              const frameUrl = equipped ? getEquippedFrameUrl(equipped) : undefined;
+              const avatarDecorationUrl = equipped ? getEquippedAvatarDecorationUrl(equipped) : undefined;
               const avatarContent = (
                 <UserAvatar
                   avatarUrl={avatarUrl}
                   username={userData?.username}
-                  size={32}
+                  size={44}
                   className="rounded-full w-full h-full"
                   frameUrl={frameUrl ?? undefined}
+                  avatarDecorationUrl={avatarDecorationUrl ?? undefined}
                 />
               );
               return profileHref ? (
@@ -137,18 +140,23 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-              {profileHref ? (
-                <Link
-                  href={profileHref}
-                  className="font-medium text-[var(--foreground)] text-sm hover:text-[var(--primary)] transition-colors focus:outline-none focus:underline"
-                >
-                  {userData?.username || "Аноним"}
-                </Link>
-              ) : (
-                <span className="font-medium text-[var(--foreground)] text-sm">
-                  {userData?.username || "Аноним"}
+              <span className="inline-flex items-center gap-1 flex-wrap">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)]/60">
+                  {profileHref ? (
+                    <Link
+                      href={profileHref}
+                      className="hover:text-[var(--primary)] transition-colors focus:outline-none focus:underline"
+                    >
+                      {userData?.username || "Аноним"}
+                    </Link>
+                  ) : (
+                    <span>{userData?.username || "Аноним"}</span>
+                  )}
+                  {isAdmin && (
+                    <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" aria-label="Админ" />
+                  )}
                 </span>
-              )}
+              </span>
               <span className="text-[var(--muted-foreground)] text-[10px]">·</span>
               <span className="text-[10px] text-[var(--muted-foreground)]">
                 {formatDate(comment.createdAt)}

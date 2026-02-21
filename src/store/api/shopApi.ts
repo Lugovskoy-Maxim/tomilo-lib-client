@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import type { Decoration } from "@/api/shop";
+import { normalizeRarity } from "@/api/shop";
 import type { ApiResponse } from "@/api/shop";
 import type { CreateDecorationDto, UpdateDecorationDto } from "@/api/shop";
 
@@ -23,7 +24,7 @@ function normalizeDecoration(
     price: (item.price as number) ?? 0,
     imageUrl: (item.imageUrl ?? item.image_url) as string ?? "",
     type: (type ?? item.type) as DecorationType,
-    rarity: item.rarity as Decoration["rarity"],
+    rarity: normalizeRarity(item.rarity ?? item.rarity_level),
     isAvailable: item.isAvailable as boolean | undefined,
     isEquipped: (item.isEquipped ?? item.is_equipped) as boolean | undefined,
     stock: stock != null ? Number(stock) : undefined,
