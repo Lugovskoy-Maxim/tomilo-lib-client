@@ -49,6 +49,13 @@ async function sha256Base64Url(str: string): Promise<string> {
 /** Редирект на VK ID authorize с PKCE (по документации API). */
 async function redirectToVkAuth(): Promise<void> {
   const redirectUri = typeof window !== "undefined" ? `${window.location.origin}/auth/vk` : "https://tomilo-lib.ru/auth/vk";
+  try {
+    // Очищаем режим привязки, чтобы callback не принял вход за привязку (ошибка «откройте привязку со страницы профиля»)
+    sessionStorage.removeItem("vk_link_mode");
+    sessionStorage.removeItem("yandex_link_mode");
+  } catch {
+    // sessionStorage недоступен
+  }
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await sha256Base64Url(codeVerifier);
   const state = generateState();
@@ -569,6 +576,12 @@ const LoginModal: React.FC<LoginModalProps> = ({
           <button
             type="button"
             onClick={() => {
+              try {
+                sessionStorage.removeItem("vk_link_mode");
+                sessionStorage.removeItem("yandex_link_mode");
+              } catch {
+                // sessionStorage недоступен
+              }
               const clientId = "ffd24e1c16544069bc7a1e8c66316f37";
               const redirectUri = encodeURIComponent("https://tomilo-lib.ru/auth/yandex");
               window.location.href = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;

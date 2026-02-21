@@ -55,10 +55,10 @@ export async function GET(request: Request) {
                     if (window.opener) {
                         window.opener.postMessage({ type: 'VK_LINK_CODE', code: code, redirect_uri: redirectUri }, '*');
                         window.close();
-                    } else {
-                        showError('Ошибка', 'Откройте привязку VK со страницы профиля.');
+                        return;
                     }
-                    return;
+                    // Режим привязки был включён (например, с прошлого визита), но окно открыто без opener (вход из модалки).
+                    // Очистили vk_link_mode, продолжаем как обычный вход ниже.
                 }
             } catch (e) {}
 

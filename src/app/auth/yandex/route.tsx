@@ -21,12 +21,11 @@ export async function GET() {
                     if (window.opener) {
                         window.opener.postMessage({ type: 'YANDEX_LINK_TOKEN', access_token: accessToken }, '*');
                         window.close();
-                    } else {
-                        document.body.innerHTML = '<h1>Ошибка</h1><p>Откройте привязку Яндекса со страницы профиля.</p>';
+                        return;
                     }
-                } else {
-                    doLogin();
+                    // Режим привязки был включён (например, с прошлого визита), но окно без opener — вход из модалки. Выполняем вход.
                 }
+                doLogin();
             } catch (e) {
                 doLogin();
             }
