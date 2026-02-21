@@ -148,20 +148,30 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         toast.success("VK ID успешно привязан");
       } catch (err: unknown) {
         const status = (err as { status?: number })?.status;
-        const data = (err as { data?: { data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount }; message?: string; errors?: string[] } })?.data;
+        const data = (err as {
+          data?: {
+            data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount };
+            message?: string;
+            errors?: Array<string | { message?: string }>;
+          };
+        })?.data;
         if (status === 409 && data?.data?.conflict && data?.data?.existingAccount) {
           setConflict({ provider: "vk", existingAccount: data.data.existingAccount });
           setPendingVk({ code, redirect_uri });
         } else {
-          const msg = data?.message ?? "Не удалось привязать VK ID";
+          const firstError = data?.errors?.[0];
+          const detailMsg = typeof firstError === "object" ? firstError?.message : firstError;
+          const msg = detailMsg ?? data?.message ?? "Не удалось привязать VK ID";
           const isServerError = status && status >= 500;
-          const detail = data?.errors?.[0];
+          const isCodeExpired =
+            status === 401 && (detailMsg?.toLowerCase().includes("invalid") || detailMsg?.toLowerCase().includes("expired"));
           const fullMsg = isServerError
             ? "Ошибка сервера при привязке VK. Попробуйте позже или повторите вход через VK."
-            : detail && detail !== msg
-              ? `${msg}: ${detail}`
+            : isCodeExpired
+              ? "Код авторизации недействителен или истёк. Закройте окно VK и нажмите «Привязать VK» снова."
               : msg;
           toast.error(fullMsg);
+          if (isCodeExpired) setPendingVk(null);
         }
       }
     },
@@ -244,7 +254,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       if (e.data?.type === "VK_LINK_CODE" && e.data?.code) {
         const redirectUri = e.data.redirect_uri || (typeof window !== "undefined" ? `${window.location.origin}/auth/vk` : "");
         setPendingVk({ code: e.data.code, redirect_uri: redirectUri });
-        doLinkVk(e.data.code, redirectUri);
+        if (!isLinkingVk) doLinkVk(e.data.code, redirectUri);
       }
       if (e.data?.type === "YANDEX_LINK_TOKEN" && e.data?.access_token) {
         setPendingYandex({ access_token: e.data.access_token });
@@ -253,7 +263,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [isOwnProfile, doLinkVk, doLinkYandex]);
+  }, [isOwnProfile, isLinkingVk, doLinkVk, doLinkYandex]);
 
   return (
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-6 shadow-sm overflow-hidden">
