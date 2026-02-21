@@ -48,19 +48,16 @@ export async function GET(request: Request) {
             }
 
             var redirectUri = window.location.origin + '/auth/vk';
-            try {
-                var linkMode = sessionStorage.getItem('vk_link_mode');
-                if (linkMode === '1') {
-                    sessionStorage.removeItem('vk_link_mode');
-                    if (window.opener) {
-                        window.opener.postMessage({ type: 'VK_LINK_CODE', code: code, redirect_uri: redirectUri }, '*');
-                        window.close();
-                        return;
-                    }
-                    // Режим привязки был включён (например, с прошлого визита), но окно открыто без opener (вход из модалки).
-                    // Очистили vk_link_mode, продолжаем как обычный вход ниже.
+            var isLinkMode = stateFromUrl && stateFromUrl.indexOf('link_') === 0;
+            if (isLinkMode) {
+                if (window.opener) {
+                    window.opener.postMessage({ type: 'VK_LINK_CODE', code: code, redirect_uri: redirectUri }, '*');
+                    window.close();
+                    return;
                 }
-            } catch (e) {}
+                showError('Привязка VK', 'Это окно открыто не из профиля. Закройте его и нажмите «Привязать VK» на странице профиля.');
+                return;
+            }
 
             var codeVerifier = null;
             var savedState = null;

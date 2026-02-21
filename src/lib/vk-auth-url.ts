@@ -1,5 +1,5 @@
-/** Ключ в sessionStorage: при значении "1" callback /auth/vk передаёт code в opener для привязки (link), а не логина. */
-export const VK_LINK_MODE_KEY = "vk_link_mode";
+/** Префикс state при привязке: callback в popup определяет режим по URL (у popup свой sessionStorage). */
+export const VK_STATE_LINK_PREFIX = "link_";
 
 const VK_APP_ID = 54445438;
 const VK_AUTH_BASE = "https://id.vk.ru";
@@ -29,18 +29,18 @@ async function sha256Base64Url(str: string): Promise<string> {
 
 /**
  * Возвращает URL для авторизации VK ID (PKCE).
- * Если linkMode === true, в sessionStorage пишется vk_link_mode=1 — callback отдаст code в opener для привязки.
+ * При linkMode в state передаётся префикс link_ — callback в popup определяет привязку по нему (sessionStorage в popup пустой).
  */
 export async function getVkAuthUrl(linkMode = false): Promise<string> {
   const redirectUri =
     typeof window !== "undefined" ? `${window.location.origin}/auth/vk` : "https://tomilo-lib.ru/auth/vk";
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await sha256Base64Url(codeVerifier);
-  const state = generateState();
+  const stateRaw = generateState();
+  const state = linkMode ? `${VK_STATE_LINK_PREFIX}${stateRaw}` : stateRaw;
   try {
     sessionStorage.setItem("vk_code_verifier", codeVerifier);
-    sessionStorage.setItem("vk_state", state);
-    if (linkMode) sessionStorage.setItem(VK_LINK_MODE_KEY, "1");
+    sessionStorage.setItem("vk_state", stateRaw);
   } catch {
     // ignore
   }
