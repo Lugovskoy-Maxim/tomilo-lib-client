@@ -59,15 +59,22 @@ export async function GET(request: Request) {
                 }
                 var apiBase = ${JSON.stringify(API_BASE)};
                 var token = typeof localStorage !== 'undefined' ? localStorage.getItem('tomilo_lib_token') : null;
+                var codeVerifier = null;
+                try { codeVerifier = sessionStorage.getItem('vk_code_verifier'); } catch (e) {}
                 if (!token || !apiBase) {
                     showError('Привязка VK', 'Сессия не найдена. Войдите в аккаунт и снова нажмите «Привязать VK» в профиле.');
                     return;
                 }
+                if (!codeVerifier) {
+                    showError('Привязка VK', 'Сессия истекла. Вернитесь в профиль и снова нажмите «Привязать VK».');
+                    return;
+                }
+                try { sessionStorage.removeItem('vk_code_verifier'); sessionStorage.removeItem('vk_state'); } catch (e) {}
                 document.getElementById('status').textContent = 'Привязка VK ID…';
                 fetch(apiBase + '/auth/link/vk', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
+                    body: JSON.stringify({ code: code, redirect_uri: redirectUri, code_verifier: codeVerifier }),
                     credentials: 'include'
                 })
                 .then(function(res) { return res.json().then(function(data) { return { status: res.status, data: data }; }); })
