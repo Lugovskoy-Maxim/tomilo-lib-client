@@ -7,7 +7,26 @@ import {
   CreateCommentDto,
   UpdateCommentDto,
   CommentEntityType,
+  CommentReactionsCountResponse,
+  SetCommentReactionDto,
 } from "@/types/comment";
+
+/** Рекурсивно подменяет комментарий по _id в списке и во вложенных replies (мутирует массив для Immer). */
+function patchCommentInList(
+  comments: Comment[],
+  commentId: string,
+  updated: Comment
+): void {
+  for (let i = 0; i < comments.length; i++) {
+    if (comments[i]._id === commentId) {
+      comments[i] = updated;
+      return;
+    }
+    if (comments[i].replies?.length) {
+      patchCommentInList(comments[i].replies!, commentId, updated);
+    }
+  }
+}
 
 export const commentsApi = createApi({
   reducerPath: "commentsApi",
@@ -98,6 +117,81 @@ export const commentsApi = createApi({
       }),
       invalidatesTags: (result, error, id) => [{ type: "Comments", id }],
     }),
+
+    // ——— Реакции (как в Telegram) ———
+
+    // Список разрешённых эмодзи для пикера реакций
+    getReactionEmojis: builder.query<ApiResponseDto<string[]>, void>({
+      query: () => "/comments/reactions/emojis",
+    }),
+
+    // Количество реакций по комментарию
+    getCommentReactionsCount: builder.query<
+      ApiResponseDto<CommentReactionsCountResponse>,
+      string
+    >({
+      query: id => `/comments/${id}/reactions/count`,
+      providesTags: (result, error, id) => [{ type: "Comments", id }],
+    }),
+
+    // Поставить или снять реакцию (повторный запрос с тем же emoji снимает)
+    setCommentReaction: builder.mutation<
+      ApiResponseDto<Comment>,
+      { id: string; body: SetCommentReactionDto }
+    >({
+      query: ({ id, body }) => ({
+        url: `/comments/${id}/reactions`,
+        method: "POST",
+        body,
+      }),
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          const updated = data.data as Comment;
+          dispatch(
+            commentsApi.util.updateQueryData("getComment", id, draft => {
+              draft.data = updated;
+            })
+          );
+          dispatch(
+            commentsApi.util.updateQueryData(
+              "getComments",
+              {
+                entityType: updated.entityType,
+                entityId: updated.entityId,
+                page: 1,
+                limit: 20,
+                includeReplies: true,
+              },
+              draft => {
+                patchCommentInList(draft.data.comments, id, updated);
+              }
+            )
+          );
+          dispatch(
+            commentsApi.util.updateQueryData(
+              "getComments",
+              {
+                entityType: updated.entityType,
+                entityId: updated.entityId,
+                page: 1,
+                limit: 20,
+                includeReplies: false,
+              },
+              draft => {
+                patchCommentInList(draft.data.comments, id, updated);
+              }
+            )
+          );
+        } catch {
+          // при ошибке инвалидация обновит данные при следующем запросе
+        }
+      },
+      invalidatesTags: (result, error, arg) => [
+        { type: "Comments", id: arg.id },
+        "Comments",
+      ],
+    }),
   }),
 });
 
@@ -109,4 +203,7 @@ export const {
   useDeleteCommentMutation,
   useLikeCommentMutation,
   useDislikeCommentMutation,
+  useGetReactionEmojisQuery,
+  useGetCommentReactionsCountQuery,
+  useSetCommentReactionMutation,
 } = commentsApi;

@@ -64,9 +64,16 @@ export interface Title {
   publisher?: string;
   serialization?: string;
   relatedTitles?: string[];
-  // Поля для рейтингов
+  // Поля для рейтингов (сервер: один пользователь — одна оценка, обновляется при повторном запросе)
   totalRatings?: number; // Общее количество оценок
-  ratings?: number[]; // Массив всех оценок [10, 9, 8, 10, ...]
+  /** Массив оценок: новый формат { userId, rating }; в ответах может встречаться старый number[] — нормализовать в UI */
+  ratings?: TitleRatingEntry[] | number[];
+}
+
+/** Одна запись рейтинга тайтла (привязка к пользователю) */
+export interface TitleRatingEntry {
+  userId: string;
+  rating: number;
 }
 
 // Тип для статистики рейтингов

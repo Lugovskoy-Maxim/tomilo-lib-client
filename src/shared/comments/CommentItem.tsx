@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
-import { Comment } from "@/types/comment";
+import React, { useState, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { Comment, ALLOWED_REACTION_EMOJIS, type CommentReactionCount } from "@/types/comment";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import {
   useLikeCommentMutation,
   useDislikeCommentMutation,
   useDeleteCommentMutation,
+  useSetCommentReactionMutation,
 } from "@/store/api/commentsApi";
-import { ThumbsUp, ThumbsDown, Reply, Edit, Trash2, MoreVertical, BadgeCheck } from "lucide-react";
+import { Reply, Edit, Trash2, MoreVertical, BadgeCheck, SmilePlus } from "lucide-react";
 import Link from "next/link";
 import { UserAvatar } from "@/shared";
 import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl } from "@/api/shop";
@@ -21,14 +24,25 @@ interface CommentItemProps {
   level?: number;
 }
 
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (typeof err === "string") return err;
+  if (err && typeof err === "object") {
+    const o = err as { data?: { message?: string }; message?: string };
+    return o.data?.message || o.message || fallback;
+  }
+  return fallback;
+}
+
 export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItemProps) {
   const { user } = useAuth();
+  const toast = useToast();
   const [showReplies, setShowReplies] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
 
   const [likeComment] = useLikeCommentMutation();
   const [dislikeComment] = useDislikeCommentMutation();
   const [deleteComment] = useDeleteCommentMutation();
+  const [setReaction] = useSetCommentReactionMutation();
 
   const userData = typeof comment.userId === "object" ? comment.userId : null;
   const isAdmin = userData?.role === "admin";
@@ -38,12 +52,37 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   const hasLiked = user && comment.likedBy.includes(user._id);
   const hasDisliked = user && comment.dislikedBy.includes(user._id);
 
+  // Реакции: из comment.reactions или из старых likes/dislikes
+  const displayReactions = useMemo((): CommentReactionCount[] => {
+    if (comment.reactions && comment.reactions.length > 0) {
+      return comment.reactions;
+    }
+    const fallback: CommentReactionCount[] = [];
+    if (comment.likes > 0) fallback.push({ emoji: "👍", count: comment.likes });
+    if (comment.dislikes > 0) fallback.push({ emoji: "👎", count: comment.dislikes });
+    return fallback;
+  }, [comment.reactions, comment.likes, comment.dislikes]);
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [pickerAnchorRect, setPickerAnchorRect] = useState<DOMRect | null>(null);
+
+  const openEmojiPicker = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setPickerAnchorRect(rect);
+    setShowEmojiPicker(true);
+  }, []);
+
+  const closeEmojiPicker = useCallback(() => {
+    setShowEmojiPicker(false);
+    setPickerAnchorRect(null);
+  }, []);
+
   const handleLike = async () => {
     if (!user) return;
     try {
       await likeComment(comment._id).unwrap();
     } catch (error) {
-      console.error("Failed to like comment:", error);
+      toast.error(getErrorMessage(error, "Не удалось поставить лайк"));
     }
   };
 
@@ -52,7 +91,17 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
     try {
       await dislikeComment(comment._id).unwrap();
     } catch (error) {
-      console.error("Failed to dislike comment:", error);
+      toast.error(getErrorMessage(error, "Не удалось поставить дизлайк"));
+    }
+  };
+
+  const handleReaction = async (emoji: string) => {
+    if (!user) return;
+    closeEmojiPicker();
+    try {
+      await setReaction({ id: comment._id, body: { emoji } }).unwrap();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Не удалось поставить реакцию"));
     }
   };
 
@@ -61,7 +110,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
     try {
       await deleteComment(comment._id).unwrap();
     } catch (error) {
-      console.error("Failed to delete comment:", error);
+      toast.error(getErrorMessage(error, "Не удалось удалить комментарий"));
     }
   };
 
@@ -205,8 +254,69 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               {comment.content}
             </p>
 
-            {/* Actions */}
+            {/* Actions: реакции (как в Telegram) + лайк/дизлайк для совместимости + ответ */}
             <div className="flex items-center gap-0.5 flex-wrap">
+              {/* Реакции: пузырьки с эмодзи и счётчиком */}
+              {displayReactions.map(({ emoji, count }) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => handleReaction(emoji)}
+                  disabled={!user}
+                  className="inline-flex items-center gap-0.5 px-2 py-1 rounded-full text-xs border border-[var(--border)]/60 bg-[var(--secondary)]/50 text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>{emoji}</span>
+                  <span>{count}</span>
+                </button>
+              ))}
+              {/* Кнопка «добавить реакцию» — открывает пикер (портал, чтобы не обрезался) */}
+              {user && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) =>
+                      showEmojiPicker ? closeEmojiPicker() : openEmojiPicker(e)
+                    }
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80 transition-colors"
+                    aria-label="Добавить реакцию"
+                  >
+                    <SmilePlus className="w-3.5 h-3.5" />
+                  </button>
+                  {showEmojiPicker &&
+                    pickerAnchorRect &&
+                    typeof document !== "undefined" &&
+                    createPortal(
+                      <>
+                        <div
+                          className="fixed inset-0 z-[100]"
+                          aria-hidden
+                          onClick={closeEmojiPicker}
+                        />
+                        <div
+                          className="fixed z-[101] p-1.5 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg flex flex-wrap gap-0.5 max-w-[200px]"
+                          style={{
+                            left: pickerAnchorRect.left,
+                            bottom: window.innerHeight - pickerAnchorRect.top + 4,
+                            transform: "translateY(-100%)",
+                          }}
+                        >
+                          {ALLOWED_REACTION_EMOJIS.map((e) => (
+                            <button
+                              key={e}
+                              type="button"
+                              onClick={() => handleReaction(e)}
+                              className="p-1.5 rounded-md hover:bg-[var(--secondary)] text-lg leading-none transition-colors"
+                            >
+                              {e}
+                            </button>
+                          ))}
+                        </div>
+                      </>,
+                      document.body
+                    )}
+                </>
+              )}
+              {/* Лайк / дизлайк (оставлены для быстрого доступа, на сервере ставят 👍 и 👎) */}
               <button
                 onClick={handleLike}
                 disabled={!user}
@@ -216,7 +326,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                     : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80"
                 } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
               >
-                <ThumbsUp className="w-3.5 h-3.5" />
+                <span>👍</span>
                 <span>{comment.likes}</span>
               </button>
               <button
@@ -228,7 +338,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                     : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80"
                 } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
               >
-                <ThumbsDown className="w-3.5 h-3.5" />
+                <span>👎</span>
                 <span>{comment.dislikes}</span>
               </button>
               {user && onReply && level < 2 && (

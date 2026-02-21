@@ -3,7 +3,7 @@ export enum CommentEntityType {
   CHAPTER = "chapter",
 }
 
-/** Минимальные данные автора комментария; при populate может быть equippedDecorations (URL или ID рамки/аватара). */
+/** Минимальные данные автора комментария; при populate('userId') приходят username, avatar, role, equippedDecorations. */
 export interface CommentUser {
   _id: string;
   username: string;
@@ -16,6 +16,17 @@ export interface CommentUser {
   equipped_decorations?: { frame?: string | null; avatar?: string | null };
 }
 
+/** Одна реакция в ответе API: эмодзи и количество поставивших */
+export interface CommentReactionCount {
+  emoji: string;
+  count: number;
+}
+
+/** Разрешённые эмодзи для реакций (как в Telegram) */
+export const ALLOWED_REACTION_EMOJIS = ["👍", "👎", "❤️", "🔥", "😂", "😮", "😢", "🎉", "👏"] as const;
+
+export type AllowedReactionEmoji = (typeof ALLOWED_REACTION_EMOJIS)[number];
+
 export interface Comment {
   _id: string;
   userId: CommentUser | string;
@@ -23,9 +34,23 @@ export interface Comment {
   entityId: string;
   content: string;
   parentId: string | null;
+  /** Реакции: эмодзи и количество. Старые лайки/дизлайки отображаются как 👍 и 👎 */
+  reactions?: CommentReactionCount[];
+  /**
+   * @deprecated Используйте reactions (эмодзи 👍). Оставлено для совместимости.
+   */
   likes: number;
+  /**
+   * @deprecated Используйте reactions (эмодзи 👎). Оставлено для совместимости.
+   */
   dislikes: number;
+  /**
+   * @deprecated Используйте reactions. Оставлено для совместимости.
+   */
   likedBy: string[];
+  /**
+   * @deprecated Используйте reactions. Оставлено для совместимости.
+   */
   dislikedBy: string[];
   isVisible: boolean;
   isEdited: boolean;
@@ -57,4 +82,14 @@ export interface CreateCommentDto {
 
 export interface UpdateCommentDto {
   content: string;
+}
+
+/** Тело запроса POST /comments/:id/reactions */
+export interface SetCommentReactionDto {
+  emoji: string;
+}
+
+/** Ответ GET /comments/:id/reactions/count */
+export interface CommentReactionsCountResponse {
+  reactions: CommentReactionCount[];
 }

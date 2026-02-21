@@ -1,4 +1,4 @@
-import { Title, Chapter } from "@/types/title";
+import { Title, Chapter, TitleRatingEntry } from "@/types/title";
 import { User } from "@/types/auth";
 import { CommentEntityType } from "@/types/comment";
 import { CommentsSection } from "@/shared/comments/CommentsSection";
@@ -81,15 +81,27 @@ export function RightContent({
   const [pendingRating, setPendingRating] = useState<number | null>(null);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
 
-  // Загрузка сохраненной оценки из localStorage при монтировании
+  // Текущая оценка: приоритет — с сервера (ratings по userId), иначе localStorage
   useEffect(() => {
-    if (titleData?._id && typeof window !== "undefined") {
-      const savedRating = localStorage.getItem(`title-rating-${titleData._id}`);
-      if (savedRating) {
-        setPendingRating(parseInt(savedRating, 10));
+    if (!titleData?._id) return;
+    const ratings = titleData.ratings;
+    if (user?._id && Array.isArray(ratings)) {
+      const entry = ratings.find(
+        (r): r is TitleRatingEntry => typeof r === "object" && r !== null && "userId" in r && r.userId === user._id,
+      );
+      if (entry) {
+        setPendingRating(entry.rating);
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`title-rating-${titleData._id}`, String(entry.rating));
+        }
+        return;
       }
     }
-  }, [titleData?._id]);
+    if (typeof window !== "undefined") {
+      const savedRating = localStorage.getItem(`title-rating-${titleData._id}`);
+      if (savedRating) setPendingRating(parseInt(savedRating, 10));
+    }
+  }, [titleData?._id, titleData?.ratings, user?._id]);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [hoveredChapterId, setHoveredChapterId] = useState<string | null>(null);
   const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
@@ -167,7 +179,6 @@ export function RightContent({
       setRemovingChapterId(chapterId);
       try {
         await removeFromReadingHistory(titleId, chapterId);
-        console.log(`Removed chapter ${chapterId} from reading history`);
       } catch (error) {
         console.error("Failed to remove from reading history:", error);
       } finally {
@@ -197,7 +208,6 @@ export function RightContent({
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.setItem("age-verified", "true");
     }
-    console.log("Возраст подтвержден");
   };
 
   const handleAgeVerificationCancel = () => {
@@ -268,8 +278,13 @@ export function RightContent({
   //   window.scrollTo({ top: 0, behavior: "smooth" });
   // };
 
-  // Функция для обработки массива оценок и подсчета частоты каждой оценки
+  // Нормализация: сервер отдаёт ratings как { userId, rating }[] или legacy number[] — приводим к number[] для статистики
+  const ratingValues: number[] = (titleData?.ratings ?? []).map(r =>
+    typeof r === "number" ? r : (r as TitleRatingEntry).rating,
+  );
+
   const getRatingStats = (ratings: number[]) => {
+    if (!ratings.length) return [];
     const stats = ratings.reduce(
       (acc, rating) => {
         acc[rating] = (acc[rating] || 0) + 1;
@@ -277,21 +292,18 @@ export function RightContent({
       },
       {} as Record<number, number>,
     );
-
-    // Сортируем по убыванию оценки
     return Object.entries(stats)
       .map(([rating, count]) => ({
-        rating: parseInt(rating),
+        rating: parseInt(rating, 10),
         count,
         percentage: ((count / ratings.length) * 100).toFixed(1),
       }))
       .sort((a, b) => b.rating - a.rating);
   };
 
-  const ratingStats = titleData?.ratings ? getRatingStats(titleData.ratings) : [];
-  const totalRatings = titleData?.totalRatings || titleData?.ratings?.length || 0;
+  const ratingStats = getRatingStats(ratingValues);
+  const totalRatings = titleData?.totalRatings ?? ratingValues.length;
 
-  console.log(activeTab);
   const renderTabContent = (): React.ReactElement | null => {
     switch (activeTab) {
       case "main":
