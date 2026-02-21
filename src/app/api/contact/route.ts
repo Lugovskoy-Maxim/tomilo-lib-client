@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const SUBJECT_LABELS: Record<string, string> = {
   technical: "Техническая проблема",
@@ -8,10 +9,49 @@ const SUBJECT_LABELS: Record<string, string> = {
   other: "Другое",
 };
 
+/** Лимит: 5 отправок формы с одного IP за 15 минут (защита от спама/DDoS) */
+const CONTACT_RATE_LIMIT = { max: 5, windowSec: 15 * 60 };
+
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const { allowed, retryAfterSec } = checkRateLimit(`contact:${ip}`, CONTACT_RATE_LIMIT);
+  if (!allowed) {
+    return NextResponse.json(
+      { success: false, message: "Слишком много попыток. Попробуйте позже." },
+      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+    );
+  }
+
   try {
     const body = await request.json();
-    const { name, email, subject, message } = body;
+    const { name, email, subject, message, captchaToken } = body;
+
+    const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+    const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    if (turnstileSecret && turnstileSiteKey) {
+      if (!captchaToken?.trim()) {
+        return NextResponse.json(
+          { success: false, message: "Подтвердите, что вы не робот (капча)" },
+          { status: 400 },
+        );
+      }
+      const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secret: turnstileSecret,
+          response: captchaToken,
+          remoteip: ip,
+        }),
+      });
+      const verifyData = (await verifyRes.json()) as { success?: boolean; "error-codes"?: string[] };
+      if (!verifyData?.success) {
+        return NextResponse.json(
+          { success: false, message: "Проверка капчи не пройдена. Попробуйте ещё раз." },
+          { status: 400 },
+        );
+      }
+    }
 
     if (!name?.trim() || !email?.trim() || !subject || !message?.trim()) {
       return NextResponse.json(

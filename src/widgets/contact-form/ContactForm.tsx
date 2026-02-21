@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { Mail, Send, CheckCircle } from "lucide-react";
+import { Turnstile } from "@marsidev/react-turnstile";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 interface ContactFormProps {
   className?: string;
@@ -15,6 +18,7 @@ export default function ContactForm({ className = "", compact = false }: Contact
     subject: "",
     message: "",
   });
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -38,7 +42,10 @@ export default function ContactForm({ className = "", compact = false }: Contact
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          ...(captchaToken && { captchaToken }),
+        }),
       });
       const data = await res.json().catch(() => ({}));
 
@@ -51,6 +58,7 @@ export default function ContactForm({ className = "", compact = false }: Contact
       setIsSubmitting(false);
       setIsSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
+      setCaptchaToken(null);
 
       setTimeout(() => setIsSubmitted(false), 4000);
     } catch {
@@ -172,9 +180,24 @@ export default function ContactForm({ className = "", compact = false }: Contact
           />
         </div>
 
+        {TURNSTILE_SITE_KEY && (
+          <div className="flex flex-col items-center gap-1.5">
+            <Turnstile
+              siteKey={TURNSTILE_SITE_KEY}
+              onSuccess={setCaptchaToken}
+              onExpire={() => setCaptchaToken(null)}
+              options={{
+                theme: "auto",
+                language: "ru",
+                size: "normal",
+              }}
+            />
+          </div>
+        )}
+
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || (!!TURNSTILE_SITE_KEY && !captchaToken)}
           className="w-full bg-[var(--primary)] text-[var(--primary-foreground)] py-2 px-4 rounded-md hover:bg-[var(--primary)]/90 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
         >
           {isSubmitting ? (

@@ -37,6 +37,17 @@ export const baseQueryWithReauth: BaseQueryFn = async (
 
   let result = await baseQuery(args, api, extraOptions);
 
+  // При 429 (Too Many Requests) — одна повторная попытка с задержкой (защита от DDoS)
+  if (result.error?.status === 429) {
+    const retryAfter =
+      typeof result.meta?.response?.headers?.get === "function"
+        ? result.meta.response.headers.get("Retry-After")
+        : null;
+    const delayMs = retryAfter ? Math.min(Number(retryAfter) * 1000, 30_000) : 2000;
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+    result = await baseQuery(args, api, extraOptions);
+  }
+
   if (result.error?.status === 401) {
     if (!refreshPromise) {
       refreshPromise = (async () => {

@@ -12,7 +12,20 @@ import {
 import { useGetProfileQuery } from "@/store/api/authApi";
 import { DecorationCard } from "@/shared/shop/DecorationCard";
 import type { Decoration } from "@/api/shop";
+import type { UserProfile } from "@/types/user";
 import { useToast } from "@/hooks/useToast";
+
+/** Достаёт id декорации из значения API (может быть строка или объект с _id при populate). */
+function getEquippedDecorationId(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "object" && value !== null) {
+    const o = value as Record<string, unknown>;
+    const id = (o.id ?? o._id) as string | undefined;
+    return id ?? "";
+  }
+  return "";
+}
 
 const TYPE_CONFIG: Record<
   "avatar" | "background" | "card",
@@ -25,33 +38,51 @@ const TYPE_CONFIG: Record<
 
 export default function ProfileInventory() {
   const toast = useToast();
-  const { data: userDecorations = [], isLoading, isError, refetch } = useGetUserProfileDecorationsQuery();
-  const { data: catalogDecorations = [] } = useGetDecorationsQuery();
+  const { data: userDecorations = [], isLoading: isLoadingUserDecorations, isError, refetch } = useGetUserProfileDecorationsQuery();
   const { data: profileData, refetch: refetchProfile } = useGetProfileQuery();
+  const ownedFromProfile = (profileData?.success && profileData.data
+    ? (profileData.data as UserProfile).ownedDecorations
+    : []) ?? [];
+  const needCatalogFallback = userDecorations.length === 0 && ownedFromProfile.length > 0;
+  const { data: catalogDecorations = [], isLoading: isLoadingCatalog } = useGetDecorationsQuery(undefined, { skip: !needCatalogFallback });
+  const isLoading = isLoadingUserDecorations || (needCatalogFallback && isLoadingCatalog);
+  const profile = profileData?.success ? profileData.data : null;
+  const profileWithDecorations = profile as (typeof profile) & UserProfile | null;
+  const equippedRaw = profileWithDecorations?.equippedDecorations;
   const [equipDecoration] = useEquipDecorationMutation();
   const [unequipDecoration] = useUnequipDecorationMutation();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"avatar" | "background" | "card" | "all">("all");
 
-  const profile = profileData?.success ? profileData.data : null;
-  const equippedFromProfile = (profile as { equippedDecorations?: { avatar?: string; background?: string; card?: string } } | null)
-    ?.equippedDecorations;
-
+  /** Id надетых декораций: API может вернуть строку или объект (populate). */
   const equippedByType = useMemo(() => {
     const equipped: Record<string, string> = {
-      avatar: equippedFromProfile?.avatar ?? "",
-      background: equippedFromProfile?.background ?? "",
-      card: equippedFromProfile?.card ?? "",
+      avatar: getEquippedDecorationId(equippedRaw?.avatar),
+      background: getEquippedDecorationId(equippedRaw?.background),
+      card: getEquippedDecorationId(equippedRaw?.card),
     };
     userDecorations.forEach((d: Decoration) => {
       if (d.isEquipped) equipped[d.type] = d.id;
     });
     return equipped;
-  }, [userDecorations, equippedFromProfile]);
+  }, [userDecorations, equippedRaw]);
 
-  const displayList = userDecorations.length > 0 ? userDecorations : catalogDecorations;
-  const isShowingCatalogFallback = userDecorations.length === 0 && catalogDecorations.length > 0;
+  /** Список приобретённых: из GET /shop/profile/decorations или fallback из profile.ownedDecorations + каталог. */
+  const displayList = useMemo((): Decoration[] => {
+    if (userDecorations.length > 0) return userDecorations;
+    if (ownedFromProfile.length === 0 || catalogDecorations.length === 0) return [];
+    const catalogById = new Map(catalogDecorations.map(d => [d.id, d]));
+    return ownedFromProfile
+      .map(entry => {
+        const dec = catalogById.get(entry.decorationId);
+        if (!dec) return null;
+        const type = entry.decorationType as Decoration["type"];
+        return { ...dec, type };
+      })
+      .filter((d): d is Decoration => d != null);
+  }, [userDecorations, ownedFromProfile, catalogDecorations]);
 
+  /** В инвентаре показываем только приобретённые декорации. */
   const filteredDecorations = useMemo(() => {
     if (typeFilter === "all") return displayList;
     return displayList.filter((d: Decoration) => d.type === typeFilter);
@@ -116,16 +147,6 @@ export default function ProfileInventory() {
           </Link>
         </div>
 
-        {isShowingCatalogFallback && (
-          <p className="mb-4 text-sm text-[var(--muted-foreground)] rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 px-4 py-3">
-            В инвентаре пока пусто. Ниже — каталог магазина: купите декорации в{" "}
-            <Link href="/tomilo-shop" className="text-[var(--primary)] font-medium hover:underline">
-              магазине
-            </Link>
-            , чтобы они появились здесь.
-          </p>
-        )}
-
         <div className="flex flex-wrap gap-2 mb-6">
           {(["all", "avatar", "background", "card"] as const).map((t) => {
             const config = t === "all" ? null : TYPE_CONFIG[t];
@@ -150,10 +171,10 @@ export default function ProfileInventory() {
           <div className="text-center py-14 text-[var(--muted-foreground)] rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p className="font-medium">
-              {isError ? "Не удалось загрузить инвентарь" : "Пока ничего нет"}
+              {isError ? "Не удалось загрузить инвентарь" : displayList.length === 0 ? "Пока ничего нет" : "В этой категории пока ничего нет"}
             </p>
             <p className="text-sm mt-1">
-              {isError ? "Проверьте подключение и попробуйте снова" : "Купите декорации в магазине"}
+              {isError ? "Проверьте подключение и попробуйте снова" : displayList.length === 0 ? "Купите декорации в магазине" : "Выберите другую категорию или купите декорации в магазине"}
             </p>
             {isError && (
               <button
@@ -179,11 +200,11 @@ export default function ProfileInventory() {
               <DecorationCard
                 key={decoration.id}
                 decoration={decoration}
-                isOwned={!isShowingCatalogFallback}
+                isOwned
                 isEquipped={decoration.isEquipped ?? equippedByType[decoration.type] === decoration.id}
-                onEquip={!isShowingCatalogFallback ? () => handleEquip(decoration.type, decoration.id) : undefined}
+                onEquip={() => handleEquip(decoration.type, decoration.id)}
                 onUnequip={
-                  !isShowingCatalogFallback && equippedByType[decoration.type] === decoration.id
+                  equippedByType[decoration.type] === decoration.id
                     ? () => handleUnequip(decoration.type)
                     : undefined
                 }

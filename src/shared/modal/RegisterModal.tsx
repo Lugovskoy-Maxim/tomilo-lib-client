@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { useRegisterMutation } from "@/store/api/authApi";
 import { RegisterData, FormErrors, FormTouched } from "../../types/form";
 import { Modal } from "..";
@@ -8,6 +9,8 @@ import termsOfUse from "@/constants/terms-of-use";
 import { AuthResponse } from "@/types/auth";
 import { ApiResponseDto } from "@/types/api";
 import { MESSAGES } from "@/constants/messages";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -31,6 +34,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [touched, setTouched] = useState<FormTouched<RegisterData>>({
     email: false,
     password: false,
@@ -73,12 +77,18 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
       : null,
   };
 
-  const isFormValid = (): boolean =>
-    !Object.values(errors).some(error => error) &&
-    !!form.email &&
-    !!form.password &&
-    !!form.username &&
-    !!form.confirmPassword;
+  const isFormValid = (): boolean => {
+    const baseValid =
+      !Object.values(errors).some(error => error) &&
+      !!form.email &&
+      !!form.password &&
+      !!form.username &&
+      !!form.confirmPassword;
+    if (TURNSTILE_SITE_KEY) {
+      return baseValid && !!captchaToken;
+    }
+    return baseValid;
+  };
 
   const handleChange = (field: keyof RegisterData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -106,6 +116,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         password: form.password,
         username: form.username,
         confirmPassword: form.confirmPassword,
+        ...(captchaToken && { captchaToken }),
       }).unwrap();
 
       // Отправляем приветственное письмо после успешной регистрации
@@ -144,6 +155,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
       });
       setShowPassword(false);
       setShowConfirmPassword(false);
+      setCaptchaToken(null);
     }
   }, [isOpen]);
 
@@ -330,6 +342,26 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               </p>
             )}
           </div>
+
+          {TURNSTILE_SITE_KEY && (
+            <div className="flex flex-col items-center gap-1.5">
+              <Turnstile
+                siteKey={TURNSTILE_SITE_KEY}
+                onSuccess={setCaptchaToken}
+                onExpire={() => setCaptchaToken(null)}
+                options={{
+                  theme: "auto",
+                  language: "ru",
+                  size: "normal",
+                }}
+              />
+              {!captchaToken && touched.confirmPassword && (
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  Подтвердите, что вы не робот
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex items-start gap-3">
             <input

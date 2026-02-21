@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
+/** Лимит: 60 запросов поиска с одного IP в минуту (защита от DDoS) */
+const SEARCH_RATE_LIMIT = { max: 60, windowSec: 60 };
+
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const { allowed, retryAfterSec } = checkRateLimit(`search:${ip}`, SEARCH_RATE_LIMIT);
+  if (!allowed) {
+    return NextResponse.json(
+      { message: "Too Many Requests" },
+      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get("q") || "").trim();
   if (!q) {

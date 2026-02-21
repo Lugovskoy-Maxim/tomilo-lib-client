@@ -14,8 +14,25 @@ export async function GET() {
         const accessToken = params.get('access_token');
         
         if (accessToken) {
+            try {
+                var linkMode = sessionStorage.getItem('yandex_link_mode');
+                if (linkMode === '1') {
+                    sessionStorage.removeItem('yandex_link_mode');
+                    if (window.opener) {
+                        window.opener.postMessage({ type: 'YANDEX_LINK_TOKEN', access_token: accessToken }, '*');
+                        window.close();
+                    } else {
+                        document.body.innerHTML = '<h1>Ошибка</h1><p>Откройте привязку Яндекса со страницы профиля.</p>';
+                    }
+                } else {
+                    doLogin();
+                }
+            } catch (e) {
+                doLogin();
+            }
+            function doLogin() {
             // Отправляем токен на сервер
-            fetch('https://tomilo-lib.ru/api/auth/yandex-token', {
+            fetch((window.location.origin || 'https://tomilo-lib.ru') + '/api/auth/yandex-token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -45,6 +62,7 @@ export async function GET() {
                 console.error('Ошибка:', error);
                 document.body.innerHTML = '<h1>Ошибка авторизации</h1><p>Произошла ошибка при обработке авторизации.</p>';
             });
+            }
         } else {
             document.body.innerHTML = '<h1>Ошибка авторизации</h1><p>Токен доступа не найден.</p>';
         }

@@ -15,8 +15,14 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-/** Дефолтные метаданные для всего сайта — гарантируют, что роботы всегда видят осмысленный title */
+const siteUrl =
+  typeof process !== "undefined"
+    ? process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru"
+    : "https://tomilo-lib.ru";
+
+/** База для разрешения относительных URL в og:image / twitter:image. Без неё соцсети могут не показывать обложку. */
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Tomilo-lib.ru — Манга, манхва и маньхуа читать онлайн бесплатно",
     template: "%s",

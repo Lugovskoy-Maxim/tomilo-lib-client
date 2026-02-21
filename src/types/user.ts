@@ -41,6 +41,14 @@ export interface EquippedDecorations {
   _id?: string;
 }
 
+/** Элемент списка купленных декораций в профиле (API users/profile) */
+export interface OwnedDecorationEntry {
+  decorationType: "avatar" | "background" | "card";
+  decorationId: string;
+  purchasedAt?: string;
+  _id?: string;
+}
+
 /** Категории закладок */
 export type BookmarkCategory = "reading" | "planned" | "completed" | "favorites" | "dropped";
 
@@ -89,6 +97,8 @@ export interface UserProfile {
   locale?: UserLocale;
   // Equipped decorations (banner, avatar frame, etc.)
   equippedDecorations?: EquippedDecorations;
+  /** Купленные декорации (из API users/profile). Используется для инвентаря, если GET /shop/profile/decorations пуст. */
+  ownedDecorations?: OwnedDecorationEntry[];
   /** Подключённые способы входа: "yandex", "vk" и т.д. */
   linkedProviders?: string[];
 }

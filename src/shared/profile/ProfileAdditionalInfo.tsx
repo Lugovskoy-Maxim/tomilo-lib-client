@@ -1,13 +1,43 @@
 import { UserProfile } from "@/types/user";
 import { Calendar, Clock, Mail, UserCheck, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useLinkVkMutation, useLinkYandexMutation } from "@/store/api/authApi";
+import type { LinkConflictExistingAccount } from "@/types/auth";
+import type { SocialProvider } from "@/shared/modal/LinkConflictModal";
+import LinkConflictModal from "@/shared/modal/LinkConflictModal";
+import { getVkAuthUrl } from "@/lib/vk-auth-url";
+
+const YANDEX_LINK_MODE_KEY = "yandex_link_mode";
+const YANDEX_CLIENT_ID = "ffd24e1c16544069bc7a1e8c66316f37";
+
 interface ProfileAdditionalInfoProps {
   userProfile: UserProfile;
 }
 
 export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditionalInfoProps) {
   const toast = useToast();
+  const { user: currentUser, login: authLogin, refetchProfile } = useAuth();
+  const [linkVk, { isLoading: isLinkingVk }] = useLinkVkMutation();
+  const [linkYandex, { isLoading: isLinkingYandex }] = useLinkYandexMutation();
+
+  const isOwnProfile =
+    !!currentUser &&
+    (currentUser.id === userProfile._id ||
+      currentUser._id === userProfile._id ||
+      currentUser.username === userProfile.username);
+
+  // Конфликт привязки (409): другой пользователь уже привязал эту соцсеть
+  const [conflict, setConflict] = useState<{
+    provider: SocialProvider;
+    existingAccount: LinkConflictExistingAccount;
+  } | null>(null);
+  const [pendingVk, setPendingVk] = useState<{ code: string; redirect_uri: string } | null>(null);
+  const [pendingYandex, setPendingYandex] = useState<{ access_token: string } | null>(null);
+
+  const isLinking = isLinkingVk || isLinkingYandex;
+
   // Состояние для таймера
   const [isCooldown, setIsCooldown] = useState(false);
   const [cooldownTime, setCooldownTime] = useState(60);
@@ -104,6 +134,119 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     }, 1000);
   };
 
+  const doLinkVk = useCallback(
+    async (code: string, redirect_uri: string, resolve?: "use_existing" | "link_here" | "merge") => {
+      try {
+        const result = await linkVk({ code, redirect_uri, resolve }).unwrap();
+        setConflict(null);
+        setPendingVk(null);
+        if (resolve === "use_existing" && result?.data && "access_token" in result.data) {
+          authLogin(result as { success: boolean; data: { access_token: string; user: unknown } });
+        }
+        refetchProfile();
+        toast.success("VK ID успешно привязан");
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status;
+        const data = (err as { data?: { data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount } } })?.data;
+        if (status === 409 && data?.data?.conflict && data?.data?.existingAccount) {
+          setConflict({ provider: "vk", existingAccount: data.data.existingAccount });
+          setPendingVk({ code, redirect_uri });
+        } else {
+          const msg = (err as { data?: { message?: string } })?.data?.message ?? "Не удалось привязать VK ID";
+          toast.error(msg);
+        }
+      }
+    },
+    [linkVk, authLogin, refetchProfile, toast],
+  );
+
+  const doLinkYandex = useCallback(
+    async (access_token: string, resolve?: "use_existing" | "link_here" | "merge") => {
+      try {
+        const result = await linkYandex({ access_token, resolve }).unwrap();
+        setConflict(null);
+        setPendingYandex(null);
+        if (resolve === "use_existing" && result?.data && "access_token" in result.data) {
+          authLogin(result as { success: boolean; data: { access_token: string; user: unknown } });
+        }
+        refetchProfile();
+        toast.success("Яндекс.ID успешно привязан");
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status;
+        const data = (err as { data?: { data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount } } })?.data;
+        if (status === 409 && data?.data?.conflict && data?.data?.existingAccount) {
+          setConflict({ provider: "yandex", existingAccount: data.data.existingAccount });
+          setPendingYandex({ access_token });
+        } else {
+          const msg = (err as { data?: { message?: string } })?.data?.message ?? "Не удалось привязать Яндекс.ID";
+          toast.error(msg);
+        }
+      }
+    },
+    [linkYandex, authLogin, refetchProfile, toast],
+  );
+
+  const handleConflictUseExisting = () => {
+    if (conflict?.provider === "vk" && pendingVk) {
+      doLinkVk(pendingVk.code, pendingVk.redirect_uri, "use_existing");
+    } else if (conflict?.provider === "yandex" && pendingYandex) {
+      doLinkYandex(pendingYandex.access_token, "use_existing");
+    }
+  };
+  const handleConflictLinkHere = () => {
+    if (conflict?.provider === "vk" && pendingVk) {
+      doLinkVk(pendingVk.code, pendingVk.redirect_uri, "link_here");
+    } else if (conflict?.provider === "yandex" && pendingYandex) {
+      doLinkYandex(pendingYandex.access_token, "link_here");
+    }
+  };
+  const handleConflictMerge = () => {
+    if (conflict?.provider === "vk" && pendingVk) {
+      doLinkVk(pendingVk.code, pendingVk.redirect_uri, "merge");
+    } else if (conflict?.provider === "yandex" && pendingYandex) {
+      doLinkYandex(pendingYandex.access_token, "merge");
+    }
+  };
+
+  const openVkLinkPopup = async () => {
+    try {
+      const url = await getVkAuthUrl(true);
+      window.open(url, "vk_link", "width=500,height=600,scrollbars=yes");
+    } catch {
+      toast.error("Не удалось открыть окно авторизации VK");
+    }
+  };
+
+  const openYandexLinkPopup = () => {
+    try {
+      sessionStorage.setItem(YANDEX_LINK_MODE_KEY, "1");
+      const redirectUri =
+        typeof window !== "undefined" ? `${window.location.origin}/auth/yandex` : "https://tomilo-lib.ru/auth/yandex";
+      const url = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${YANDEX_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      window.open(url, "yandex_link", "width=500,height=600,scrollbars=yes");
+    } catch {
+      toast.error("Не удалось открыть окно авторизации Яндекса");
+    }
+  };
+
+  // Получить code/токен после OAuth в popup (postMessage от /auth/vk и /auth/yandex)
+  useEffect(() => {
+    if (!isOwnProfile) return;
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === "VK_LINK_CODE" && e.data?.code) {
+        const redirectUri = e.data.redirect_uri || (typeof window !== "undefined" ? `${window.location.origin}/auth/vk` : "");
+        setPendingVk({ code: e.data.code, redirect_uri });
+        doLinkVk(e.data.code, redirectUri);
+      }
+      if (e.data?.type === "YANDEX_LINK_TOKEN" && e.data?.access_token) {
+        setPendingYandex({ access_token: e.data.access_token });
+        doLinkYandex(e.data.access_token);
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [isOwnProfile, doLinkVk, doLinkYandex]);
+
   return (
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-6 shadow-sm overflow-hidden">
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5 pb-3 sm:pb-4 border-b border-[var(--border)]/60">
@@ -162,8 +305,8 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         <p className="text-xs font-medium text-[var(--muted-foreground)] mt-4 mb-2 px-0.5">Соцсети и авторизации</p>
         {(
           [
-            { id: "yandex", label: "Яндекс.ID", color: "text-[#FC3F1D]" },
-            { id: "vk", label: "VK ID", color: "text-[#0077FF]" },
+            { id: "yandex" as const, label: "Яндекс.ID", color: "text-[#FC3F1D]" },
+            { id: "vk" as const, label: "VK ID", color: "text-[#0077FF]" },
           ] as const
         ).map(({ id, label, color }) => {
           const linked =
@@ -178,17 +321,45 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
                 <Share2 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${color}`} />
                 <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">{label}</span>
               </div>
-              <span
-                className={`text-xs sm:text-sm font-medium text-right truncate ${
-                  linked ? "text-[var(--chart-2)]" : "text-[var(--muted-foreground)]"
-                }`}
-              >
-                {linked ? "Подключено" : "Не подключено"}
-              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                {linked ? (
+                  <span className="text-xs sm:text-sm font-medium text-[var(--chart-2)] truncate">
+                    Подключено
+                  </span>
+                ) : isOwnProfile ? (
+                  <button
+                    type="button"
+                    onClick={id === "vk" ? openVkLinkPopup : openYandexLinkPopup}
+                    disabled={isLinking}
+                    className="text-xs sm:text-sm font-medium text-[var(--chart-1)] hover:underline truncate disabled:opacity-50"
+                  >
+                    Подключить
+                  </button>
+                ) : (
+                  <span className="text-xs sm:text-sm font-medium text-[var(--muted-foreground)] truncate">
+                    Не подключено
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}
       </div>
+
+      <LinkConflictModal
+        isOpen={!!conflict}
+        onClose={() => {
+          setConflict(null);
+          setPendingVk(null);
+          setPendingYandex(null);
+        }}
+        provider={conflict?.provider ?? "vk"}
+        existingAccount={conflict?.existingAccount ?? { id: "", username: "" }}
+        onUseExisting={handleConflictUseExisting}
+        onLinkHere={handleConflictLinkHere}
+        onMerge={handleConflictMerge}
+        isLoading={isLinking}
+      />
 
       {userProfile.emailVerified !== true && (
         <div className="mt-5 flex justify-center">

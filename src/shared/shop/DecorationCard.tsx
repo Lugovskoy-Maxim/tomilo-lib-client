@@ -204,7 +204,7 @@ export function DecorationCard({
       >
         {/* Картинка сверху */}
         <div className="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-3">
-          <div className={`relative w-full max-w-[68%] sm:max-w-[72%] aspect-square ${isOwned ? "grayscale" : ""}`}>
+          <div className={`relative w-full max-w-[68%] sm:max-w-[72%] aspect-square ${isOwned && !isEquipped ? "grayscale" : ""}`}>
             <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
             <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-[var(--background)] shadow-lg glow-avatar">
               {isImageLoading && hasImage && (
@@ -245,8 +245,8 @@ export function DecorationCard({
               </span>
             )}
             {isOwned && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-0.5 inline-flex items-center gap-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] text-[9px] font-semibold px-1.5 py-0.5 whitespace-nowrap border border-[var(--border)]">
-                Приобретена
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-0.5 inline-flex items-center gap-0.5 rounded bg-emerald-500/95 text-white text-[9px] font-semibold px-1.5 py-0.5 whitespace-nowrap shadow-sm">
+                Уже куплено
               </span>
             )}
           </div>
@@ -348,7 +348,7 @@ export function DecorationCard({
           unoptimized
           className={`object-cover transition-transform duration-300 group-hover/card:scale-105 ${
             isImageLoading ? "opacity-0" : "opacity-100"
-          } ${isOwned ? "grayscale" : ""}`}
+          } ${isOwned && !isEquipped ? "grayscale" : ""}`}
           onLoad={() => setIsImageLoading(false)}
           onError={() => setIsImageLoading(false)}
         />
@@ -377,8 +377,8 @@ export function DecorationCard({
           </span>
         )}
         {isOwned && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] text-[10px] font-semibold">
-            Приобретена
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/95 text-white text-[10px] font-semibold shadow-sm">
+            Уже куплено
           </span>
         )}
       </div>

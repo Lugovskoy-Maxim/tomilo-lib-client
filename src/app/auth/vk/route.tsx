@@ -48,6 +48,20 @@ export async function GET(request: Request) {
             }
 
             var redirectUri = window.location.origin + '/auth/vk';
+            try {
+                var linkMode = sessionStorage.getItem('vk_link_mode');
+                if (linkMode === '1') {
+                    sessionStorage.removeItem('vk_link_mode');
+                    if (window.opener) {
+                        window.opener.postMessage({ type: 'VK_LINK_CODE', code: code, redirect_uri: redirectUri }, '*');
+                        window.close();
+                    } else {
+                        showError('Ошибка', 'Откройте привязку VK со страницы профиля.');
+                    }
+                    return;
+                }
+            } catch (e) {}
+
             var codeVerifier = null;
             var savedState = null;
             try {

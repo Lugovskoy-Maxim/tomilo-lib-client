@@ -1,10 +1,16 @@
+/** SVG в og:image не показывается в Telegram, VK, Facebook и др. — используем дефолт. */
+function isSvgPath(path: string): boolean {
+  const p = path.trim().toLowerCase();
+  return p.endsWith(".svg") || p.includes(".svg?");
+}
+
 /**
  * Абсолютный URL для og:image / twitter:image.
  * Обложка тайтла или дефолтное изображение для превью в мессенджерах.
  *
  * Соцсети (Facebook, Telegram, VK и др.) не поддерживают SVG в og:image —
- * для превью нужен PNG или JPEG. Для обложек используется imageBaseUrl,
- * если картинки отдаются с другого хоста (например API).
+ * для превью нужен PNG или JPEG. SVG-обложки заменяются на дефолт.
+ * Для обложек используется imageBaseUrl, если картинки отдаются с другого хоста (например API).
  */
 export function getOgImageUrl(
   baseUrl: string,
@@ -12,6 +18,9 @@ export function getOgImageUrl(
   imageBaseUrl?: string | null,
 ): string {
   if (coverImage && coverImage.trim()) {
+    if (isSvgPath(coverImage)) {
+      return getDefaultOgImageUrl(baseUrl);
+    }
     if (coverImage.startsWith("http://") || coverImage.startsWith("https://")) {
       return coverImage;
     }

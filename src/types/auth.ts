@@ -11,6 +11,8 @@ export interface RegisterData {
   password: string;
   username: string;
   confirmPassword: string;
+  /** Токен капчи (Cloudflare Turnstile), передаётся при включённой капче */
+  captchaToken?: string;
 }
 
 // Privacy settings type
@@ -65,3 +67,17 @@ export interface AuthState {
 
 // RTK Query
 export type User = StoredUser;
+
+/** Ответ 409 при привязке соцсети: ВК/Яндекс уже привязаны к другому пользователю */
+export interface LinkConflictExistingAccount {
+  id: string;
+  username: string;
+}
+
+export interface LinkConflictData {
+  conflict: true;
+  existingAccount: LinkConflictExistingAccount;
+}
+
+/** Варианты разрешения конфликта при привязке соцсети */
+export type LinkResolve = "use_existing" | "link_here" | "merge";

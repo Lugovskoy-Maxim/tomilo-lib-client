@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
-import { AuthResponse, User } from "@/types/auth";
+import { AuthResponse, User, LinkResolve } from "@/types/auth";
 import { LoginData, RegisterData } from "@/types/form";
 import { ApiResponseDto } from "@/types/api";
 import { ReadingHistoryEntry, ReadingHistoryChapter, AvatarResponse } from "@/types/store";
@@ -102,6 +102,36 @@ export const authApi = createApi({
         url: "/auth/vk-token",
         method: "POST",
         body: { access_token },
+      }),
+      invalidatesTags: ["Auth"],
+    }),
+
+    /** Привязка VK к текущему аккаунту (JWT обязателен). При 409 — data.conflict и data.existingAccount. */
+    linkVk: builder.mutation<
+      ApiResponseDto<{ linked?: boolean } & AuthResponse>,
+      { code: string; redirect_uri?: string; resolve?: LinkResolve }
+    >({
+      query: ({ code, redirect_uri, resolve }) => ({
+        url: "/auth/link/vk",
+        method: "POST",
+        body: { code, ...(redirect_uri && { redirect_uri }), ...(resolve && { resolve }) },
+      }),
+      invalidatesTags: ["Auth"],
+    }),
+
+    /** Привязка Яндекса к текущему аккаунту (JWT обязателен). При 409 — data.conflict и data.existingAccount. */
+    linkYandex: builder.mutation<
+      ApiResponseDto<{ linked?: boolean } & AuthResponse>,
+      { access_token?: string; code?: string; resolve?: LinkResolve }
+    >({
+      query: ({ access_token, code, resolve }) => ({
+        url: "/auth/link/yandex",
+        method: "POST",
+        body: {
+          ...(access_token && { access_token }),
+          ...(code && { code }),
+          ...(resolve && { resolve }),
+        },
       }),
       invalidatesTags: ["Auth"],
     }),
@@ -374,6 +404,8 @@ export const {
   useYandexAuthMutation,
   useVkAuthMutation,
   useVkAuthWithTokenMutation,
+  useLinkVkMutation,
+  useLinkYandexMutation,
   useGetProfileQuery,
   useGetProfileByUsernameQuery,
   useGetProfileByIdQuery,
