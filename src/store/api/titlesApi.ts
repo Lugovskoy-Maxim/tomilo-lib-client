@@ -469,6 +469,31 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
+    // Недавно добавленные в каталог тайтлы (GET /titles/titles/recent)
+    getRecentTitles: builder.query<
+      ApiResponseDto<PopularTitle[]>,
+      { limit?: number; page?: number } | void
+    >({
+      query: (params = {}) => ({
+        url: "/titles/titles/recent",
+        params: { limit: params?.limit ?? 18, page: params?.page ?? 1 },
+      }),
+      providesTags: [TITLES_TAG],
+      transformResponse: (
+        response: ApiResponseDto<
+          PopularTitle[] | { data?: PopularTitle[]; titles?: PopularTitle[] }
+        >,
+      ) => {
+        const raw = response?.data;
+        const list = Array.isArray(raw)
+          ? raw
+          : (raw as { data?: PopularTitle[] })?.data ??
+            (raw as { titles?: PopularTitle[] })?.titles ??
+            [];
+        return { ...response, data: list };
+      },
+    }),
+
     // Получить последние обновления.
     // Для корректного отображения диапазонов (например "Главы 24, 34-55" вместо "24-55") бэкенд может
     // возвращать опциональное поле chapters: number[] — массив номеров обновлённых глав.
@@ -592,6 +617,7 @@ export const {
   useGetTopTitlesMonthQuery,
   useGetCollectionsQuery,
   useGetRandomTitlesQuery,
+  useGetRecentTitlesQuery,
   useGetLatestUpdatesQuery,
   useGetRecommendedTitlesQuery,
   useDeleteTitleMutation,

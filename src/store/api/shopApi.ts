@@ -14,6 +14,8 @@ function normalizeDecoration(
   type?: DecorationType,
 ): Decoration {
   const id = (item.id ?? item._id) as string;
+  const stock = (item.stock ?? item.quantity_remaining) as number | undefined;
+  const isSoldOut = (item.isSoldOut ?? item.is_sold_out ?? item.sold_out) as boolean | undefined;
   return {
     id,
     name: (item.name as string) ?? "",
@@ -24,6 +26,8 @@ function normalizeDecoration(
     rarity: item.rarity as Decoration["rarity"],
     isAvailable: item.isAvailable as boolean | undefined,
     isEquipped: item.isEquipped as boolean | undefined,
+    stock: stock != null ? Number(stock) : undefined,
+    isSoldOut: isSoldOut ?? (stock != null && Number(stock) <= 0),
   };
 }
 
@@ -132,7 +136,7 @@ export const shopApi = createApi({
     }),
 
     /** Создание украшения через загрузку файла. POST /shop/admin/decorations/upload (multipart/form-data).
-     * Поля: file (файл изображения), type, name?, price?, rarity?, description?, isAvailable? */
+     * Поля: file (файл изображения), type, name?, price?, rarity?, description?, isAvailable?, stock? */
     createDecorationWithImage: builder.mutation<
       Decoration,
       {
@@ -143,9 +147,10 @@ export const shopApi = createApi({
         price?: number;
         rarity?: "common" | "rare" | "epic" | "legendary";
         isAvailable?: boolean;
+        stock?: number;
       }
     >({
-      query: ({ file, type, name, description, price, rarity, isAvailable }) => {
+      query: ({ file, type, name, description, price, rarity, isAvailable, stock }) => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("type", type);
@@ -154,6 +159,7 @@ export const shopApi = createApi({
         if (price !== undefined) formData.append("price", String(price));
         if (rarity !== undefined) formData.append("rarity", rarity);
         if (isAvailable !== undefined) formData.append("isAvailable", String(isAvailable));
+        if (stock !== undefined) formData.append("stock", String(stock));
         return {
           url: "/shop/admin/decorations/upload",
           method: "POST",
@@ -190,9 +196,10 @@ export const shopApi = createApi({
         type?: UpdateDecorationDto["type"];
         rarity?: "common" | "rare" | "epic" | "legendary";
         isAvailable?: boolean;
+        stock?: number;
       }
     >({
-      query: ({ id, file, name, description, price, type, rarity, isAvailable }) => {
+      query: ({ id, file, name, description, price, type, rarity, isAvailable, stock }) => {
         const formData = new FormData();
         formData.append("file", file);
         if (name !== undefined) formData.append("name", name);
@@ -201,6 +208,7 @@ export const shopApi = createApi({
         if (type !== undefined) formData.append("type", type);
         if (rarity !== undefined) formData.append("rarity", rarity);
         if (isAvailable !== undefined) formData.append("isAvailable", String(isAvailable));
+        if (stock !== undefined) formData.append("stock", String(stock));
         return {
           url: `/shop/admin/decorations/${id}`,
           method: "PATCH",

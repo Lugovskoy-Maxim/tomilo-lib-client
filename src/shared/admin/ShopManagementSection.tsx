@@ -42,6 +42,8 @@ const emptyForm = {
   type: "avatar" as DecorationType,
   rarity: "common" as DecorationRarity,
   isAvailable: true,
+  /** Пустая строка = без лимита. Число = макс. количество в магазине. */
+  stock: "" as number | "",
 };
 
 const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp,image/gif";
@@ -93,6 +95,7 @@ export function ShopManagementSection() {
       type: d.type,
       rarity: d.rarity ?? "common",
       isAvailable: d.isAvailable ?? true,
+      stock: d.stock !== undefined && d.stock !== null ? d.stock : "",
     });
     setImageFile(null);
     setIsFormOpen(true);
@@ -126,6 +129,9 @@ export function ShopManagementSection() {
     e.preventDefault();
     if (!form.name.trim() || form.price < 0) return;
 
+    const stockValue = form.stock === "" ? undefined : (typeof form.stock === "number" ? form.stock : parseInt(String(form.stock), 10));
+    const stockParam = stockValue !== undefined && !Number.isNaN(stockValue) && stockValue >= 0 ? stockValue : undefined;
+
     try {
       if (editingDecoration) {
         if (imageFile) {
@@ -138,6 +144,7 @@ export function ShopManagementSection() {
             type: form.type,
             rarity: form.rarity,
             isAvailable: form.isAvailable,
+            stock: stockParam,
           }).unwrap();
         } else {
           await updateDecoration({
@@ -150,6 +157,7 @@ export function ShopManagementSection() {
               type: form.type,
               rarity: form.rarity,
               isAvailable: form.isAvailable,
+              stock: stockParam,
             },
           }).unwrap();
         }
@@ -169,6 +177,7 @@ export function ShopManagementSection() {
           price: form.price,
           rarity: form.rarity,
           isAvailable: form.isAvailable,
+          stock: stockParam,
         }).unwrap();
         toast.success("Украшение добавлено");
         closeForm();
@@ -316,6 +325,9 @@ export function ShopManagementSection() {
                   <th className="text-right py-3 px-2 font-medium text-[var(--muted-foreground)]">
                     Цена
                   </th>
+                  <th className="text-center py-3 px-2 font-medium text-[var(--muted-foreground)]">
+                    Остаток / Статус
+                  </th>
                   <th className="text-right py-3 px-2 font-medium text-[var(--muted-foreground)]">
                     Действия
                   </th>
@@ -355,6 +367,19 @@ export function ShopManagementSection() {
                     </td>
                     <td className="py-2 px-2 text-right font-medium">
                       {d.price} монет
+                    </td>
+                    <td className="py-2 px-2 text-center">
+                      {d.stock !== undefined ? (
+                        d.isSoldOut || d.stock <= 0 ? (
+                          <span className="inline-flex items-center gap-1 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 text-xs font-medium px-2 py-0.5">
+                            Продано
+                          </span>
+                        ) : (
+                          <span className="text-[var(--foreground)]">Осталось: {d.stock}</span>
+                        )
+                      ) : (
+                        <span className="text-[var(--muted-foreground)]">—</span>
+                      )}
                     </td>
                     <td className="py-2 px-2 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -507,6 +532,25 @@ export function ShopManagementSection() {
                   Доступно в магазине
                 </span>
               </label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Лимит количества
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.stock === "" ? "" : form.stock}
+                onChange={e => {
+                  const v = e.target.value;
+                  setForm(f => ({ ...f, stock: v === "" ? "" : parseInt(v, 10) || 0 }));
+                }}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                placeholder="Без лимита"
+              />
+              <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                Оставьте пустым для неограниченного количества. Иначе — макс. число товара в магазине.
+              </p>
             </div>
           </div>
           <div>

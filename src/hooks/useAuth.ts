@@ -71,7 +71,7 @@ export const useAuth = () => {
   useEffect(() => {
     const currentToken = getToken();
     if (profileResponse && profileResponse.success && profileResponse.data && currentToken) {
-      const user: StoredUser = profileResponse.data;
+      const user = profileResponse.data as StoredUser & { equipped_decorations?: StoredUser["equippedDecorations"] };
       const authResponse: AuthResponse = {
         access_token: currentToken,
         user: {
@@ -91,7 +91,7 @@ export const useAuth = () => {
           birthDate: user.birthDate,
           displaySettings: user.displaySettings,
           privacy: user.privacy,
-          equippedDecorations: user.equippedDecorations,
+          equippedDecorations: user.equippedDecorations ?? user.equipped_decorations,
         },
       };
       dispatch(login(authResponse));

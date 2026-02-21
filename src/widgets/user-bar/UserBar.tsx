@@ -1,7 +1,7 @@
 "use client";
 import { NotificationButton, UserDropdown, ThemeToggle } from "@/shared";
 import { UserAvatar } from "@/shared";
-import { useResolvedEquippedFrameUrl } from "@/hooks/useEquippedFrameUrl";
+import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,7 +34,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { user, isAuthenticated, logout, isLoading } = useAuth();
-  const frameUrl = useResolvedEquippedFrameUrl();
+  const { frameUrl, avatarDecorationUrl } = useResolvedEquippedDecorations();
 
   useEffect(() => {
     setIsMounted(true);
@@ -129,6 +129,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
                 size={36}
                 className="rounded-full"
                 frameUrl={frameUrl ?? undefined}
+                avatarDecorationUrl={avatarDecorationUrl ?? undefined}
               />
             </button>
 
@@ -138,6 +139,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
               onLogout={handleLogout}
               user={getUserForDropdown()}
               frameUrl={frameUrl ?? undefined}
+              avatarDecorationUrl={avatarDecorationUrl ?? undefined}
             />
           </div>
         )}

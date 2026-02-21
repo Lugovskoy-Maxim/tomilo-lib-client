@@ -10,6 +10,8 @@ interface UserAvatarProps {
   className?: string;
   /** URL надетой рамки — отображается поверх аватара */
   frameUrl?: string | null;
+  /** URL декорации «аватар» (персонаж) — показывается как основное изображение вместо avatarUrl */
+  avatarDecorationUrl?: string | null;
 }
 
 export default function UserAvatar({
@@ -18,16 +20,18 @@ export default function UserAvatar({
   size = 40,
   className = "",
   frameUrl,
+  avatarDecorationUrl,
 }: UserAvatarProps) {
   const [imageError, setImageError] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const effectiveAvatarUrl = avatarDecorationUrl ?? avatarUrl;
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const content =
-    !avatarUrl || imageError || !isMounted ? (
+    !effectiveAvatarUrl || imageError || !isMounted ? (
       <div
         className={`rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-semibold ${className}`}
         style={{ width: size, height: size }}
@@ -37,9 +41,9 @@ export default function UserAvatar({
     ) : (
       <OptimizedImage
         src={
-          avatarUrl.startsWith("/uploads/")
-            ? `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${avatarUrl}`
-            : avatarUrl
+          effectiveAvatarUrl.startsWith("/uploads/") || effectiveAvatarUrl.startsWith("/")
+            ? `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${effectiveAvatarUrl}`
+            : effectiveAvatarUrl
         }
         alt={`Аватар ${username || "пользователя"}`}
         width={size}
@@ -53,12 +57,12 @@ export default function UserAvatar({
 
   if (frameUrl) {
     return (
-      <div className="relative rounded-full" style={{ width: size, height: size }}>
+      <div className="relative rounded-full overflow-visible" style={{ width: size, height: size }}>
         <div className="absolute inset-0 rounded-full overflow-hidden">{content}</div>
         <img
           src={frameUrl}
           alt=""
-          className="absolute inset-0 w-full h-full rounded-full pointer-events-none object-contain z-10"
+          className="absolute left-1/2 top-1/2 w-[calc(100%+3rem)] h-[calc(100%+3rem)] -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none object-contain z-10 scale-125"
           aria-hidden
         />
       </div>

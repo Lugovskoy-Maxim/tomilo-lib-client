@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
-import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight, Trophy } from "lucide-react";
+import { BookOpen, Clock, Flame, Gem, LibraryIcon, PlusCircle, SquareArrowOutUpRight, Trophy } from "lucide-react";
 
 import {
   CarouselCard,
@@ -81,6 +81,7 @@ export default function HomePage() {
 
   const {
     popularTitles,
+    recentTitles,
     randomTitles,
     trendingTitles,
     underratedTitles,
@@ -146,6 +147,33 @@ export default function HomePage() {
             cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
             getItemPath={(item: any) => getTitlePath(item)}
             autoScrollInterval={5000}
+            skeletonVariant="poster"
+          />
+        </LazySection>
+
+        {/* Недавно добавленные */}
+        <LazySection
+          sectionId="recent"
+          onVisible={handleSectionVisible}
+          isVisible={!!visibleSections.recent}
+          skeleton={
+            <CarouselSkeleton
+              cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
+              variant="poster"
+            />
+          }
+        >
+          <DataCarousel
+            title="Недавно добавленные"
+            data={recentTitles.data}
+            loading={recentTitles.loading}
+            error={recentTitles.error}
+            cardComponent={CarouselCard}
+            type="browse"
+            icon={<PlusCircle className="w-6 h-6" />}
+            navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
+            cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
+            getItemPath={(item: any) => getTitlePath(item)}
             skeletonVariant="poster"
           />
         </LazySection>

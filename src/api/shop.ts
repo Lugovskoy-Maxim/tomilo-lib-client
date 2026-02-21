@@ -9,21 +9,31 @@ const uploadsOrigin = (() => {
   return api.replace(/\/api\/?$/, "") || "http://localhost:3001";
 })();
 
-/** URL надетой рамки аватара из equippedDecorations (frame или устаревшее avatar). Поддерживает строку (URL/путь/ID) и объект при populate (imageUrl или _id). */
-export function getEquippedFrameUrl(equipped: EquippedDecorations | null | undefined): string | null {
-  if (!equipped) return null;
-  const raw = equipped.frame ?? equipped.avatar;
+/** Извлекает URL картинки из значения декорации (строка пути/URL или объект при populate с imageUrl). */
+function getDecorationUrlFromValue(raw: string | object | null | undefined): string | null {
   if (raw == null) return null;
   if (typeof raw === "string") {
-    if (!raw) return null;
+    if (!raw.trim()) return null;
     return raw.startsWith("http") ? raw : getDecorationImageUrl(raw) || `${API_BASE}${raw}`;
   }
-  if (typeof raw === "object" && raw !== null) {
+  if (typeof raw === "object") {
     const o = raw as Record<string, unknown>;
     const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
     if (imageUrl) return getDecorationImageUrl(imageUrl) || imageUrl;
   }
   return null;
+}
+
+/** URL надетой рамки из equippedDecorations.frame (или устаревшее avatar). */
+export function getEquippedFrameUrl(equipped: EquippedDecorations | null | undefined): string | null {
+  if (!equipped) return null;
+  return getDecorationUrlFromValue(equipped.frame ?? equipped.avatar);
+}
+
+/** URL надетой декорации «аватар» (картинка персонажа) из equippedDecorations.avatar. */
+export function getEquippedAvatarDecorationUrl(equipped: EquippedDecorations | null | undefined): string | null {
+  if (!equipped) return null;
+  return getDecorationUrlFromValue(equipped.avatar);
 }
 
 /** Полный URL изображения декорации (imageUrl с бэкенда — относительный путь /uploads/...) */
@@ -178,6 +188,8 @@ export interface CreateDecorationDto {
   type: DecorationType;
   rarity?: DecorationRarity;
   isAvailable?: boolean;
+  /** Лимит количества в магазине. Не задано — без лимита. */
+  stock?: number;
 }
 
 export interface UpdateDecorationDto {
@@ -188,6 +200,8 @@ export interface UpdateDecorationDto {
   type?: DecorationType;
   rarity?: DecorationRarity;
   isAvailable?: boolean;
+  /** Лимит количества в магазине. Не задано — без лимита. */
+  stock?: number;
 }
 
 export const createDecoration = async (

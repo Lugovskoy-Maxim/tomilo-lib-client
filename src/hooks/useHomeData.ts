@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   useGetPopularTitlesQuery,
+  useGetRecentTitlesQuery,
   useSearchTitlesQuery,
   useGetRandomTitlesQuery,
 } from "@/store/api/titlesApi";
@@ -12,6 +13,7 @@ const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
 export type HomeVisibleSections = Partial<{
   popular: boolean;
+  recent: boolean;
   trending: boolean;
   underrated: boolean;
   reading: boolean;
@@ -44,6 +46,22 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
       title: string;
       image: string;
       description: string;
+      type: string;
+      year: number;
+      rating: number;
+      genres: never[];
+      isAdult: boolean;
+    }[];
+    loading: boolean;
+    error: unknown;
+  };
+  recentTitles: {
+    data: {
+      id: string;
+      slug?: string;
+      title: string;
+      image: string | undefined;
+      description: string | undefined;
       type: string;
       year: number;
       rating: number;
@@ -172,6 +190,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
   };
 
   const skipPopular = !visibleSections.popular;
+  const skipRecent = !visibleSections.recent;
   const skipTrending = !visibleSections.trending;
   const skipUnderrated = !visibleSections.underrated;
   const skipTopCombined = !visibleSections.topCombined;
@@ -184,6 +203,13 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
     isLoading: popularTitlesLoading,
     error: popularTitlesError,
   } = useGetPopularTitlesQuery({ limit: 35 }, { ...popularCacheOptions, skip: skipPopular });
+
+  // Недавно добавленные в каталог
+  const {
+    data: recentTitlesData,
+    isLoading: recentTitlesLoading,
+    error: recentTitlesError,
+  } = useGetRecentTitlesQuery({ limit: 18 }, { ...popularCacheOptions, skip: skipRecent });
 
   // Случайные тайтлы
   const {
@@ -299,6 +325,21 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
       genres: [], // Жанры не возвращаются для случайных тайтлов
       isAdult: item.isAdult ?? false,
     })) || [];
+
+  // Недавно добавленные (поддержка полей name/coverImage с бэкенда)
+  const recentTitles =
+    recentTitlesData?.data?.map((item: any) => ({
+      id: item.id ?? item._id,
+      slug: item.slug,
+      title: item.title ?? item.name ?? "",
+      image: item.cover ?? item.coverImage,
+      description: item.description,
+      type: item.type || "Неуказан",
+      year: item.releaseYear ?? new Date().getFullYear(),
+      rating: item.rating ?? 0,
+      genres: [],
+      isAdult: item.isAdult ?? false,
+    })) ?? [];
 
   // Преобразование трендовых тайтлов (рост за неделю)
   const trendingTitles =
@@ -465,6 +506,11 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
       data: popularTitles,
       loading: popularTitlesLoading,
       error: popularTitlesError,
+    },
+    recentTitles: {
+      data: recentTitles,
+      loading: recentTitlesLoading,
+      error: recentTitlesError,
     },
     randomTitles: {
       data: randomTitles,
