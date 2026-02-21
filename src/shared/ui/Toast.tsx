@@ -66,24 +66,24 @@ export const Toast: React.FC<ToastProps> = ({ toast }) => {
       className={`
         relative flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl border bg-[var(--card)] text-[var(--card-foreground)]
         shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.4)]
-        overflow-hidden w-[calc(100vw-2rem)] min-w-0 max-w-[420px] sm:min-w-[320px]
+        overflow-hidden w-full min-w-0 max-w-[420px] sm:min-w-[320px]
         ${config.border}
       `}
     >
       <div
-        className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${config.iconBg}`}
+        className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center ${config.iconBg}`}
       >
-        <Icon className="w-5 h-5" aria-hidden />
+        <Icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden />
       </div>
       <div className="flex-1 min-w-0 pt-0.5">
-        <p className="text-sm font-medium text-[var(--foreground)] leading-snug">
+        <p className="text-[13px] sm:text-sm font-medium text-[var(--foreground)] leading-snug">
           {toast.message}
         </p>
       </div>
       <button
         type="button"
         onClick={() => removeToast(toast.id)}
-        className="flex-shrink-0 p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+        className="flex-shrink-0 p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)] touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
         aria-label="Закрыть"
       >
         <X className="w-4 h-4" />
@@ -106,11 +106,11 @@ const ToastContainer: React.FC = () => {
 
   return (
     <div
-      className="fixed top-4 right-4 z-layer-toast flex flex-col gap-3 pointer-events-none"
+      className="fixed top-[max(1rem,env(safe-area-inset-top))] left-4 right-4 sm:left-auto sm:right-4 sm:top-4 z-layer-toast flex flex-col gap-3 pointer-events-none"
       aria-live="polite"
       aria-label="Уведомления"
     >
-      <div className="flex flex-col gap-3 pointer-events-auto">
+      <div className="flex flex-col gap-3 pointer-events-auto w-full sm:w-auto max-w-full">
         <AnimatePresence mode="popLayout">
           {toasts.map(toast => (
             <Toast key={toast.id} toast={toast} />
