@@ -7,6 +7,7 @@ import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
+import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
 import { isMongoObjectId } from "@/lib/isMongoObjectId";
 import { Footer, Header } from "@/widgets";
 import { LoadingState } from "@/shared";
@@ -16,7 +17,11 @@ import ProfileNav from "@/shared/profile/ProfileNav";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
 function transformUserToProfile(user: User): UserProfile {
-  const u = user as User & { equippedDecorations?: UserProfile["equippedDecorations"] };
+  const u = user as User & {
+    equippedDecorations?: UserProfile["equippedDecorations"];
+    oauthProviders?: Array<{ provider?: string }>;
+    ownedDecorations?: UserProfile["ownedDecorations"];
+  };
   return {
     _id: u._id || u.id,
     username: u.username,
@@ -49,6 +54,8 @@ function transformUserToProfile(user: User): UserProfile {
     privacy: u.privacy,
     displaySettings: u.displaySettings,
     equippedDecorations: u.equippedDecorations,
+    linkedProviders: getLinkedProvidersFromUser(u),
+    ownedDecorations: u.ownedDecorations,
   };
 }
 

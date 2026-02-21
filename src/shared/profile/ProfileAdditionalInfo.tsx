@@ -303,7 +303,26 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           </span>
         </div>
 
-        <p className="text-xs font-medium text-[var(--muted-foreground)] mt-4 mb-2 px-0.5">Соцсети и авторизации</p>
+        <div className="mt-4 mb-2 px-0.5">
+          <p className="text-xs font-medium text-[var(--muted-foreground)]">Соцсети и авторизации</p>
+          {Array.isArray(userProfile.linkedProviders) && userProfile.linkedProviders.length > 0 && (
+            <p className="text-xs text-[var(--chart-2)] mt-0.5">
+              Подключено:{" "}
+              {(
+                [
+                  { id: "yandex" as const, label: "Яндекс.ID" },
+                  { id: "vk" as const, label: "VK ID" },
+                ] as const
+              )
+                .filter(
+                  ({ id }) =>
+                    userProfile.linkedProviders?.some(p => p?.toLowerCase() === id)
+                )
+                .map(({ label }) => label)
+                .join(", ")}
+            </p>
+          )}
+        </div>
         {(
           [
             { id: "yandex" as const, label: "Яндекс.ID", color: "text-[#FC3F1D]" },

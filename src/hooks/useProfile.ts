@@ -4,6 +4,7 @@ import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { pageTitle } from "@/lib/page-title";
 import { normalizeBookmarks } from "@/lib/bookmarks";
+import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
 import { useGetProfileQuery, useGetReadingHistoryQuery } from "@/store/api/authApi";
 import { ReadingHistoryEntry } from "@/types/store";
 
@@ -31,7 +32,7 @@ function transformUserToProfile(user: User): UserProfile | null {
     // Privacy and display settings
     privacy: user.privacy,
     displaySettings: user.displaySettings,
-    linkedProviders: user.linkedProviders,
+    linkedProviders: getLinkedProvidersFromUser(user),
     // Надетые декорации (аватар, рамка, фон) — API может вернуть equippedDecorations или equipped_decorations
     equippedDecorations: (user as User & { equippedDecorations?: UserProfile["equippedDecorations"] }).equippedDecorations ??
       (user as unknown as Record<string, unknown>).equipped_decorations as UserProfile["equippedDecorations"],
