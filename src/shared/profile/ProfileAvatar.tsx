@@ -1,5 +1,6 @@
 import { UserProfile } from "@/types/user";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
+import { getDecorationImageUrl } from "@/api/shop";
 
 const API_CONFIG = {
   basePublicUrl: process.env.NEXT_PUBLIC_URL || "http://localhost:3001",
@@ -16,6 +17,15 @@ const sizeClasses = {
   md: "w-32 h-32 sm:w-36 sm:h-36 text-3xl sm:text-4xl",
 };
 
+/** URL надетой рамки аватара из профиля (frame или устаревшее avatar) */
+function getEquippedFrameUrl(profile: UserProfile): string | null {
+  const eq = profile.equippedDecorations;
+  if (!eq) return null;
+  const raw = eq.frame ?? eq.avatar;
+  if (!raw || typeof raw !== "string") return null;
+  return raw.startsWith("http") ? raw : getDecorationImageUrl(raw) || `${API_CONFIG.basePublicUrl}${raw}`;
+}
+
 export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarProps) {
   const displayName =
     userProfile.username && userProfile.username.length > 0
@@ -24,36 +34,47 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
 
   const sizeClass = sizeClasses[size];
   const pixelSize = size === "sm" ? 96 : 144;
+  const frameUrl = getEquippedFrameUrl(userProfile);
 
-  if (userProfile.avatar) {
-    const avatarUrl = userProfile.avatar.startsWith("http")
-      ? userProfile.avatar
-      : `${API_CONFIG.basePublicUrl}${userProfile.avatar}`;
+  const avatarInner = userProfile.avatar ? (
+    (() => {
+      const avatarUrl = userProfile.avatar.startsWith("http")
+        ? userProfile.avatar
+        : `${API_CONFIG.basePublicUrl}${userProfile.avatar}`;
+      return (
+        <OptimizedImage
+          src={avatarUrl}
+          alt={userProfile.username || "User avatar"}
+          className="w-full h-full object-cover"
+          height={pixelSize}
+          width={pixelSize}
+          priority={true}
+        />
+      );
+    })()
+  ) : (
+    <span className="drop-shadow-lg">{displayName}</span>
+  );
 
-    return (
-      <div className="relative group">
-        <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover:opacity-100 blur-sm transition-all duration-500" />
-        <div className="absolute -inset-2 rounded-full bg-[var(--primary)]/20 blur-xl transition-all duration-500" />
-        <div className={`relative ${sizeClass} rounded-full overflow-hidden border-4 border-[var(--background)] shadow-2xl glow-avatar transition-transform duration-300 group-hover:scale-105`}>
-          <OptimizedImage
-            src={avatarUrl}
-            alt={userProfile.username || "User avatar"}
-            className="w-full h-full object-cover"
-            height={pixelSize}
-            width={pixelSize}
-            priority={true}
-          />
-        </div>
-      </div>
-    );
-  }
+  const hasImage = Boolean(userProfile.avatar);
+  const wrapperClass = `relative ${sizeClass} rounded-full overflow-hidden border-4 border-[var(--background)] shadow-2xl glow-avatar transition-transform duration-300 group-hover:scale-105 ${
+    hasImage ? "" : "bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] flex items-center justify-center text-white font-bold"
+  }`;
 
   return (
     <div className="relative group">
       <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover:opacity-100 blur-sm transition-all duration-500" />
       <div className="absolute -inset-2 rounded-full bg-[var(--primary)]/20 blur-xl transition-all duration-500" />
-      <div className={`relative ${sizeClass} rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] flex items-center justify-center text-white font-bold border-4 border-[var(--background)] shadow-2xl glow-avatar transition-transform duration-300 group-hover:scale-105`}>
-        <span className="drop-shadow-lg">{displayName}</span>
+      <div className={wrapperClass}>
+        {avatarInner}
+        {frameUrl && (
+          <img
+            src={frameUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full rounded-full pointer-events-none object-contain"
+            aria-hidden
+          />
+        )}
       </div>
     </div>
   );

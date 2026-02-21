@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Decoration } from "@/api/shop";
 import {
   getDecorationsByType,
@@ -11,10 +11,23 @@ import {
 } from "@/api/shop";
 import { DecorationCard } from "./DecorationCard";
 import { useAuth } from "@/hooks/useAuth";
+import { useGetProfileQuery } from "@/store/api/authApi";
+import type { UserProfile } from "@/types/user";
 import { RefreshCw, PackageOpen } from "lucide-react";
 
+function getEquippedId(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "object" && value !== null) {
+    const o = value as Record<string, unknown>;
+    const id = o.id ?? o._id;
+    return typeof id === "string" ? id : "";
+  }
+  return "";
+}
+
 interface ShopSectionProps {
-  type: "avatar" | "background" | "card";
+  type: "avatar" | "frame" | "background" | "card";
 }
 
 interface UserDecorations {
@@ -100,6 +113,29 @@ export function ShopSection({ type }: ShopSectionProps) {
     }
   }, [isAuthenticated, loadUserDecorations]);
 
+  const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
+  const profile = profileData?.success ? profileData.data : null;
+  const profileWithDecorations = profile as (typeof profile) & UserProfile | null;
+
+  /** Купленные и надетые: из API магазина или fallback из профиля (если API пуст). */
+  const { effectiveOwned, effectiveEquipped } = useMemo(() => {
+    let owned = userDecorations.owned;
+    let equipped = userDecorations.equipped;
+    if (owned.length === 0 && profileWithDecorations?.ownedDecorations?.length) {
+      owned = profileWithDecorations.ownedDecorations.map(e => e.decorationId);
+    }
+    if (equipped.length === 0 && profileWithDecorations?.equippedDecorations) {
+      const eq = profileWithDecorations.equippedDecorations;
+      equipped = [
+        getEquippedId(eq.avatar),
+        getEquippedId(eq.frame),
+        getEquippedId(eq.background),
+        getEquippedId(eq.card),
+      ].filter(Boolean);
+    }
+    return { effectiveOwned: owned, effectiveEquipped: equipped };
+  }, [userDecorations.owned, userDecorations.equipped, profileWithDecorations]);
+
   const handlePurchase = async (decorationId: string) => {
     setActionLoading(decorationId);
     try {
@@ -157,11 +193,13 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   const typeTitles: Record<typeof type, string> = {
     avatar: "Аватары",
+    frame: "Рамки для аватара",
     background: "Фоны",
     card: "Карточки",
   };
   const typeDescriptions: Record<typeof type, string> = {
     avatar: "Украсьте профиль стильными аватарами",
+    frame: "Рамки вокруг аватара в профиле",
     background: "Выберите фон для своего профиля",
     card: "Собирайте карточки для своей колоды",
   };
@@ -229,15 +267,15 @@ export function ShopSection({ type }: ShopSectionProps) {
 
       <div
         className={`grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 ${
-          type === "avatar" || type === "card" ? "justify-items-center" : ""
+          type === "avatar" || type === "frame" || type === "card" ? "justify-items-center" : ""
         }`}
       >
         {decorations.map(decoration => (
           <DecorationCard
             key={decoration.id}
             decoration={decoration}
-            isOwned={userDecorations.owned.includes(decoration.id)}
-            isEquipped={userDecorations.equipped.includes(decoration.id)}
+            isOwned={effectiveOwned.includes(decoration.id)}
+            isEquipped={effectiveEquipped.includes(decoration.id)}
             onPurchase={handlePurchase}
             onEquip={handleEquip}
             onUnequip={handleUnequip}

@@ -36,6 +36,8 @@ export type UserLocale = "ru" | "en";
 
 export interface EquippedDecorations {
   avatar?: string | null;
+  /** URL изображения надетой рамки аватара */
+  frame?: string | null;
   background?: string | null;
   card?: string | null;
   _id?: string;
@@ -43,7 +45,7 @@ export interface EquippedDecorations {
 
 /** Элемент списка купленных декораций в профиле (API users/profile) */
 export interface OwnedDecorationEntry {
-  decorationType: "avatar" | "background" | "card";
+  decorationType: "avatar" | "frame" | "background" | "card";
   decorationId: string;
   purchasedAt?: string;
   _id?: string;

@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Header, Footer } from "@/widgets";
-import { ShopTabs } from "@/shared/shop/ShopTabs";
+import { ShopTabs, type ShopTabId } from "@/shared/shop/ShopTabs";
 import { ShopSection } from "@/shared/shop/ShopSection";
 import { useSEO } from "@/hooks/useSEO";
 import { Sparkles, Coins, ShoppingBag, User } from "lucide-react";
 
 export default function TomiloShopPage() {
-  const [activeTab, setActiveTab] = useState<"avatar" | "background" | "card">("avatar");
+  const [activeTab, setActiveTab] = useState<ShopTabId>("avatar");
 
   useSEO({
     title: "Магазин украшений - Tomilo-lib.ru",

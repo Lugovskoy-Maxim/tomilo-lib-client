@@ -22,7 +22,7 @@ export interface DecorationCardProps {
   /** В инвентаре: не показывать цену и кнопку «Купить». */
   hidePurchase?: boolean;
   /** Тип секции (вкладка магазина). Если задан, вид карточки берётся по нему, а не по decoration.type. */
-  sectionType?: "avatar" | "background" | "card";
+  sectionType?: "avatar" | "frame" | "background" | "card";
 }
 
 const RARITY_STYLES: Record<
@@ -195,9 +195,10 @@ export function DecorationCard({
   };
 
   const isAvatar = displayType === "avatar";
+  const isFrame = displayType === "frame";
 
-  /* Компактная карточка только для аватаров: круг + бейдж как есть, остальное — новая вёрстка */
-  if (isAvatar) {
+  /* Компактная карточка для аватаров и рамок: круг + бейдж */
+  if (isAvatar || isFrame) {
     return (
       <article
         className={`group/card relative w-full max-w-[200px] aspect-square rounded-xl border bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col min-w-0 ${rarityStyle.border} ${isOwned ? "opacity-90" : ""}`}

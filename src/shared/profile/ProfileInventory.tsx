@@ -28,10 +28,11 @@ function getEquippedDecorationId(value: unknown): string {
 }
 
 const TYPE_CONFIG: Record<
-  "avatar" | "background" | "card",
+  "avatar" | "frame" | "background" | "card",
   { label: string; icon: React.ElementType }
 > = {
   avatar: { label: "Аватар", icon: User },
+  frame: { label: "Рамка", icon: Layers },
   background: { label: "Фон профиля", icon: ImageIcon },
   card: { label: "Карточка", icon: Layers },
 };
@@ -52,12 +53,13 @@ export default function ProfileInventory() {
   const [equipDecoration] = useEquipDecorationMutation();
   const [unequipDecoration] = useUnequipDecorationMutation();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<"avatar" | "background" | "card" | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<"avatar" | "frame" | "background" | "card" | "all">("all");
 
   /** Id надетых декораций: API может вернуть строку или объект (populate). */
   const equippedByType = useMemo(() => {
     const equipped: Record<string, string> = {
       avatar: getEquippedDecorationId(equippedRaw?.avatar),
+      frame: getEquippedDecorationId(equippedRaw?.frame),
       background: getEquippedDecorationId(equippedRaw?.background),
       card: getEquippedDecorationId(equippedRaw?.card),
     };
@@ -88,7 +90,7 @@ export default function ProfileInventory() {
     return displayList.filter((d: Decoration) => d.type === typeFilter);
   }, [displayList, typeFilter]);
 
-  const handleEquip = async (type: "avatar" | "background" | "card", decorationId: string) => {
+  const handleEquip = async (type: "avatar" | "frame" | "background" | "card", decorationId: string) => {
     setActionLoading(decorationId);
     try {
       await equipDecoration({ type, decorationId }).unwrap();
@@ -101,7 +103,7 @@ export default function ProfileInventory() {
     }
   };
 
-  const handleUnequip = async (type: "avatar" | "background" | "card") => {
+  const handleUnequip = async (type: "avatar" | "frame" | "background" | "card") => {
     setActionLoading(`unequip-${type}`);
     try {
       await unequipDecoration({ type }).unwrap();
@@ -148,7 +150,7 @@ export default function ProfileInventory() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {(["all", "avatar", "background", "card"] as const).map((t) => {
+          {(["all", "avatar", "frame", "background", "card"] as const).map((t) => {
             const config = t === "all" ? null : TYPE_CONFIG[t];
             return (
               <button

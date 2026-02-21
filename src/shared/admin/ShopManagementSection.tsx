@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/useToast";
 
 const DECORATION_TYPES: { value: DecorationType; label: string }[] = [
   { value: "avatar", label: "Аватар" },
+  { value: "frame", label: "Рамка аватара" },
   { value: "background", label: "Фон" },
   { value: "card", label: "Карточка" },
 ];

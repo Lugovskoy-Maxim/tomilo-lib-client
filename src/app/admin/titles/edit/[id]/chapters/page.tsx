@@ -272,7 +272,7 @@ export default function ChaptersManagementPage() {
             </div>
           </div>
 
-          {error && (
+          {!!error && (
             <div className="p-4 text-red-600 bg-red-50 border border-red-200 rounded">
               Ошибка загрузки глав. Попробуйте обновить страницу.
             </div>

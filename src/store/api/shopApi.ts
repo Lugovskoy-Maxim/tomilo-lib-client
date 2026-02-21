@@ -6,7 +6,7 @@ import type { CreateDecorationDto, UpdateDecorationDto } from "@/api/shop";
 
 const SHOP_TAG = "Shop" as const;
 
-type DecorationType = "avatar" | "background" | "card";
+type DecorationType = "avatar" | "frame" | "background" | "card";
 
 /** Нормализует элемент: _id → id, добавляет type если передан массив по типу */
 function normalizeDecoration(
@@ -41,13 +41,14 @@ function parseDecorationsResponse(response: unknown): Decoration[] {
   const r = response as Record<string, unknown>;
   const data = r.data;
 
-  // { data: { avatars: [], backgrounds: [], cards: [] } } — бэкенд по типам
+  // { data: { avatars: [], frames: [], backgrounds: [], cards: [] } } — бэкенд по типам
   if (data && typeof data === "object") {
     const inner = data as Record<string, unknown>;
     const avatars = (inner.avatars as unknown[]) ?? [];
+    const frames = (inner.frames as unknown[]) ?? [];
     const backgrounds = (inner.backgrounds as unknown[]) ?? [];
     const cards = (inner.cards as unknown[]) ?? [];
-    if (avatars.length > 0 || backgrounds.length > 0 || cards.length > 0) {
+    if (avatars.length > 0 || frames.length > 0 || backgrounds.length > 0 || cards.length > 0) {
       const withType = (
         arr: unknown[],
         type: DecorationType,
@@ -57,6 +58,7 @@ function parseDecorationsResponse(response: unknown): Decoration[] {
           .map(x => normalizeDecoration(x, type));
       return [
         ...withType(avatars, "avatar"),
+        ...withType(frames, "frame"),
         ...withType(backgrounds, "background"),
         ...withType(cards, "card"),
       ];
@@ -107,7 +109,7 @@ export const shopApi = createApi({
 
     getDecorationsByType: builder.query<
       Decoration[],
-      { type: "avatar" | "background" | "card" }
+      { type: "avatar" | "frame" | "background" | "card" }
     >({
       query: ({ type }) => `/shop/decorations/${type}`,
       transformResponse: parseDecorationsResponse,
@@ -231,7 +233,7 @@ export const shopApi = createApi({
 
     equipDecoration: builder.mutation<
       { message: string; decorationId?: string },
-      { type: "avatar" | "background" | "card"; decorationId: string }
+      { type: "avatar" | "frame" | "background" | "card"; decorationId: string }
     >({
       query: ({ type, decorationId }) => ({
         url: `/shop/equip/${type}/${decorationId}`,
@@ -242,7 +244,7 @@ export const shopApi = createApi({
 
     unequipDecoration: builder.mutation<
       { message: string },
-      { type: "avatar" | "background" | "card" }
+      { type: "avatar" | "frame" | "background" | "card" }
     >({
       query: ({ type }) => ({
         url: `/shop/equip/${type}`,

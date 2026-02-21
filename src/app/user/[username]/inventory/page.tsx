@@ -6,6 +6,7 @@ import { Package } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import Image from "next/image";
 import { isMongoObjectId } from "@/lib/isMongoObjectId";
+import { getDecorationImageUrl } from "@/api/shop";
 
 export default function UserInventoryPage() {
   const params = useParams();
@@ -27,8 +28,9 @@ export default function UserInventoryPage() {
 
   if (!userProfile) return null;
 
+  const frameUrl = equipped?.frame ?? equipped?.avatar;
   const hasAny =
-    equipped?.avatar || equipped?.background || equipped?.card;
+    frameUrl || equipped?.background || equipped?.card;
 
   return (
     <div className="w-full animate-fade-in-up">
@@ -69,11 +71,11 @@ export default function UserInventoryPage() {
                 </div>
               </div>
             )}
-            {equipped?.avatar && (
+            {frameUrl && (
               <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--secondary)]">
                 <div className="aspect-square relative">
                   <Image
-                    src={equipped.avatar}
+                    src={frameUrl.startsWith("http") ? frameUrl : getDecorationImageUrl(frameUrl) || frameUrl}
                     alt="Рамка аватара"
                     fill
                     className="object-cover"

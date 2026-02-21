@@ -26,7 +26,7 @@ export interface Decoration {
   description: string;
   price: number;
   imageUrl: string;
-  type: "avatar" | "background" | "card";
+  type: "avatar" | "frame" | "background" | "card";
   rarity?: DecorationRarity;
   isAvailable?: boolean;
   isEquipped?: boolean;
@@ -77,7 +77,7 @@ export const getAllDecorations = async (): Promise<ApiResponse<Decoration[]>> =>
 
 // Get decorations by type
 export const getDecorationsByType = async (
-  type: "avatar" | "background" | "card",
+  type: "avatar" | "frame" | "background" | "card",
 ): Promise<ApiResponse<Decoration[]>> => {
   const response = await fetch(`${baseUrlAPI}/shop/decorations/${type}`);
   const json = await response.json();
@@ -104,7 +104,7 @@ export const getUserDecorations = async (): Promise<ApiResponse<Decoration[]>> =
 
 // Purchase decoration (requires auth)
 export const purchaseDecoration = async (
-  type: "avatar" | "background" | "card",
+  type: "avatar" | "frame" | "background" | "card",
   decorationId: string,
 ): Promise<ApiResponse<{ message: string; balance?: number }>> => {
   const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
@@ -119,7 +119,7 @@ export const purchaseDecoration = async (
 
 // Equip decoration (requires auth)
 export const equipDecoration = async (
-  type: "avatar" | "background" | "card",
+  type: "avatar" | "frame" | "background" | "card",
   decorationId: string,
 ): Promise<ApiResponse<{ message: string; decorationId: string }>> => {
   const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
@@ -134,7 +134,7 @@ export const equipDecoration = async (
 
 // Unequip decoration (requires auth)
 export const unequipDecoration = async (
-  type: "avatar" | "background" | "card",
+  type: "avatar" | "frame" | "background" | "card",
 ): Promise<ApiResponse<{ message: string }>> => {
   const token = typeof window !== "undefined" ? localStorage.getItem("tomilo_lib_token") : null;
   const response = await fetch(`${baseUrlAPI}/shop/equip/${type}`, {
@@ -148,7 +148,7 @@ export const unequipDecoration = async (
 
 // --- Admin API (requires admin role) ---
 
-export type DecorationType = "avatar" | "background" | "card";
+export type DecorationType = "avatar" | "frame" | "background" | "card";
 
 export interface CreateDecorationDto {
   name: string;

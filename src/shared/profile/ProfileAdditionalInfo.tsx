@@ -4,7 +4,8 @@ import { useToast } from "@/hooks/useToast";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkVkMutation, useLinkYandexMutation } from "@/store/api/authApi";
-import type { LinkConflictExistingAccount } from "@/types/auth";
+import type { AuthResponse, LinkConflictExistingAccount } from "@/types/auth";
+import type { ApiResponseDto } from "@/types/api";
 import type { SocialProvider } from "@/shared/modal/LinkConflictModal";
 import LinkConflictModal from "@/shared/modal/LinkConflictModal";
 import { getVkAuthUrl } from "@/lib/vk-auth-url";
@@ -141,7 +142,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         setConflict(null);
         setPendingVk(null);
         if (resolve === "use_existing" && result?.data && "access_token" in result.data) {
-          authLogin(result as { success: boolean; data: { access_token: string; user: unknown } });
+          authLogin(result as ApiResponseDto<AuthResponse>);
         }
         refetchProfile();
         toast.success("VK ID успешно привязан");
@@ -167,7 +168,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         setConflict(null);
         setPendingYandex(null);
         if (resolve === "use_existing" && result?.data && "access_token" in result.data) {
-          authLogin(result as { success: boolean; data: { access_token: string; user: unknown } });
+          authLogin(result as ApiResponseDto<AuthResponse>);
         }
         refetchProfile();
         toast.success("Яндекс.ID успешно привязан");
@@ -235,7 +236,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     const handler = (e: MessageEvent) => {
       if (e.data?.type === "VK_LINK_CODE" && e.data?.code) {
         const redirectUri = e.data.redirect_uri || (typeof window !== "undefined" ? `${window.location.origin}/auth/vk` : "");
-        setPendingVk({ code: e.data.code, redirect_uri });
+        setPendingVk({ code: e.data.code, redirect_uri: redirectUri });
         doLinkVk(e.data.code, redirectUri);
       }
       if (e.data?.type === "YANDEX_LINK_TOKEN" && e.data?.access_token) {

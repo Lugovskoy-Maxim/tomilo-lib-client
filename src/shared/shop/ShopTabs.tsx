@@ -1,17 +1,20 @@
 "use client";
 
-import { User, Image, Layers } from "lucide-react";
+import { User, Image, Layers, Frame } from "lucide-react";
+
+export type ShopTabId = "avatar" | "frame" | "background" | "card";
 
 interface ShopTabsProps {
-  activeTab: "avatar" | "background" | "card";
-  onTabChange: (tab: "avatar" | "background" | "card") => void;
+  activeTab: ShopTabId;
+  onTabChange: (tab: ShopTabId) => void;
 }
 
-const TABS = [
-  { id: "avatar" as const, label: "Аватары", icon: User },
-  { id: "background" as const, label: "Фоны", icon: Image },
-  { id: "card" as const, label: "Карточки", icon: Layers },
-] as const;
+const TABS: { id: ShopTabId; label: string; icon: typeof User }[] = [
+  { id: "avatar", label: "Аватары", icon: User },
+  { id: "frame", label: "Рамки", icon: Frame },
+  { id: "background", label: "Фоны", icon: Image },
+  { id: "card", label: "Карточки", icon: Layers },
+];
 
 export function ShopTabs({ activeTab, onTabChange }: ShopTabsProps) {
   const activeIndex = TABS.findIndex(t => t.id === activeTab);
@@ -22,8 +25,8 @@ export function ShopTabs({ activeTab, onTabChange }: ShopTabsProps) {
       <div
         className="absolute top-1 bottom-1 rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-sm transition-all duration-300 ease-out"
         style={{
-          left: `calc(${activeIndex * 100}% / 3 + 4px)`,
-          width: `calc(100% / 3 - 8px)`,
+          left: `calc(${activeIndex * 100}% / 4 + 4px)`,
+          width: `calc(100% / 4 - 8px)`,
         }}
         aria-hidden
       />
