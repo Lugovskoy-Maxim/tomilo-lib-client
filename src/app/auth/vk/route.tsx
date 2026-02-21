@@ -71,10 +71,13 @@ export async function GET(request: Request) {
                 }
                 try { sessionStorage.removeItem('vk_code_verifier'); sessionStorage.removeItem('vk_state'); } catch (e) {}
                 document.getElementById('status').textContent = 'Привязка VK ID…';
+                var linkBody = { code: code, redirect_uri: redirectUri, code_verifier: codeVerifier };
+                if (deviceId) linkBody.device_id = deviceId;
+                if (stateFromUrl) linkBody.state = stateFromUrl;
                 fetch(apiBase + '/auth/link/vk', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ code: code, redirect_uri: redirectUri, code_verifier: codeVerifier }),
+                    body: JSON.stringify(linkBody),
                     credentials: 'include'
                 })
                 .then(function(res) { return res.json().then(function(data) { return { status: res.status, data: data }; }); })

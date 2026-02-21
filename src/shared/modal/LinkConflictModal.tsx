@@ -4,10 +4,11 @@ import Modal from "@/shared/modal/modal";
 import type { LinkConflictExistingAccount } from "@/types/auth";
 import { LogIn, Link2, Merge, X } from "lucide-react";
 
-export type SocialProvider = "vk" | "yandex";
+export type SocialProvider = "vk" | "vk_id" | "yandex";
 
 const PROVIDER_LABELS: Record<SocialProvider, string> = {
   vk: "VK ID",
+  vk_id: "VK ID",
   yandex: "Яндекс.ID",
 };
 

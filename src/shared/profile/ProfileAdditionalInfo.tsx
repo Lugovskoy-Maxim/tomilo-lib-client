@@ -150,13 +150,18 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         const status = (err as { status?: number })?.status;
         const data = (err as {
           data?: {
-            data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount };
+            data?: {
+              conflict?: boolean;
+              existingAccount?: LinkConflictExistingAccount;
+              provider?: "vk" | "vk_id" | "yandex";
+            };
             message?: string;
             errors?: Array<string | { message?: string }>;
           };
         })?.data;
         if (status === 409 && data?.data?.conflict && data?.data?.existingAccount) {
-          setConflict({ provider: "vk", existingAccount: data.data.existingAccount });
+          const provider = data.data.provider === "vk_id" ? "vk_id" : data.data.provider === "yandex" ? "yandex" : "vk";
+          setConflict({ provider, existingAccount: data.data.existingAccount });
           setPendingVk({ code, redirect_uri });
         } else {
           const firstError = data?.errors?.[0];
@@ -204,22 +209,23 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     [linkYandex, authLogin, refetchProfile, toast],
   );
 
+  const isVkConflict = conflict?.provider === "vk" || conflict?.provider === "vk_id";
   const handleConflictUseExisting = () => {
-    if (conflict?.provider === "vk" && pendingVk) {
+    if (isVkConflict && pendingVk) {
       doLinkVk(pendingVk.code, pendingVk.redirect_uri, "use_existing");
     } else if (conflict?.provider === "yandex" && pendingYandex) {
       doLinkYandex(pendingYandex.access_token, "use_existing");
     }
   };
   const handleConflictLinkHere = () => {
-    if (conflict?.provider === "vk" && pendingVk) {
+    if (isVkConflict && pendingVk) {
       doLinkVk(pendingVk.code, pendingVk.redirect_uri, "link_here");
     } else if (conflict?.provider === "yandex" && pendingYandex) {
       doLinkYandex(pendingYandex.access_token, "link_here");
     }
   };
   const handleConflictMerge = () => {
-    if (conflict?.provider === "vk" && pendingVk) {
+    if (isVkConflict && pendingVk) {
       doLinkVk(pendingVk.code, pendingVk.redirect_uri, "merge");
     } else if (conflict?.provider === "yandex" && pendingYandex) {
       doLinkYandex(pendingYandex.access_token, "merge");
@@ -320,18 +326,10 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           {Array.isArray(userProfile.linkedProviders) && userProfile.linkedProviders.length > 0 && (
             <p className="text-xs text-[var(--chart-2)] mt-0.5">
               Подключено:{" "}
-              {(
-                [
-                  { id: "yandex" as const, label: "Яндекс.ID" },
-                  { id: "vk" as const, label: "VK ID" },
-                ] as const
-              )
-                .filter(
-                  ({ id }) =>
-                    userProfile.linkedProviders?.some(p => p?.toLowerCase() === id)
-                )
-                .map(({ label }) => label)
-                .join(", ")}
+              {[
+                ...(userProfile.linkedProviders?.some(p => p?.toLowerCase() === "yandex") ? ["Яндекс.ID"] : []),
+                ...(userProfile.linkedProviders?.some(p => p?.toLowerCase() === "vk" || p?.toLowerCase() === "vk_id") ? ["VK ID"] : []),
+              ].join(", ")}
             </p>
           )}
         </div>
@@ -343,7 +341,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         ).map(({ id, label, color }) => {
           const linked =
             Array.isArray(userProfile.linkedProviders) &&
-            userProfile.linkedProviders.some(p => p?.toLowerCase() === id);
+            userProfile.linkedProviders.some(p => p?.toLowerCase() === id || (id === "vk" && p?.toLowerCase() === "vk_id"));
           return (
             <div
               key={id}

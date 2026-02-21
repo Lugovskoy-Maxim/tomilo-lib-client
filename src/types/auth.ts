@@ -96,6 +96,8 @@ export interface LinkConflictExistingAccount {
 export interface LinkConflictData {
   conflict: true;
   existingAccount: LinkConflictExistingAccount;
+  /** Провайдер, по которому конфликт: "vk" | "vk_id" | "yandex" */
+  provider?: "vk" | "vk_id" | "yandex";
 }
 
 /** Варианты разрешения конфликта при привязке соцсети */
