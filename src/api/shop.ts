@@ -1,10 +1,30 @@
 import { baseUrlAPI } from "./config";
+import type { EquippedDecorations } from "@/types/user";
+
+const API_BASE = process.env.NEXT_PUBLIC_URL || "http://localhost:3001";
 
 /** Базовый URL сервера (без /api) — с него отдаются /uploads/... */
 const uploadsOrigin = (() => {
   const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
   return api.replace(/\/api\/?$/, "") || "http://localhost:3001";
 })();
+
+/** URL надетой рамки аватара из equippedDecorations (frame или устаревшее avatar). Поддерживает строку (URL/путь/ID) и объект при populate (imageUrl или _id). */
+export function getEquippedFrameUrl(equipped: EquippedDecorations | null | undefined): string | null {
+  if (!equipped) return null;
+  const raw = equipped.frame ?? equipped.avatar;
+  if (raw == null) return null;
+  if (typeof raw === "string") {
+    if (!raw) return null;
+    return raw.startsWith("http") ? raw : getDecorationImageUrl(raw) || `${API_BASE}${raw}`;
+  }
+  if (typeof raw === "object" && raw !== null) {
+    const o = raw as Record<string, unknown>;
+    const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
+    if (imageUrl) return getDecorationImageUrl(imageUrl) || imageUrl;
+  }
+  return null;
+}
 
 /** Полный URL изображения декорации (imageUrl с бэкенда — относительный путь /uploads/...) */
 export function getDecorationImageUrl(imageUrl: string | undefined): string {

@@ -9,8 +9,10 @@ import {
   useDeleteCommentMutation,
 } from "@/store/api/commentsApi";
 import { ThumbsUp, ThumbsDown, Reply, Edit, Trash2, MoreVertical } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import { UserAvatar } from "@/shared";
+import { getEquippedFrameUrl } from "@/api/shop";
+import type { EquippedDecorations } from "@/types/user";
 
 interface CommentItemProps {
   comment: Comment;
@@ -99,22 +101,25 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
     >
       <div className="p-3">
         <div className="flex gap-2.5">
-          {/* Avatar */}
+          {/* Avatar (с рамкой, если бэкенд вернул equippedDecorations у автора) */}
           <div className="flex-shrink-0 h-8 w-8 overflow-hidden rounded-full">
             {(() => {
-              const avatarContent = userData?.avatar ? (
-                <Image
-                  loader={() => `${process.env.NEXT_PUBLIC_URL}${userData.avatar}`}
-                  src={`${process.env.NEXT_PUBLIC_URL}${userData.avatar}`}
-                  alt={userData.username}
-                  width={32}
-                  height={32}
-                  className="rounded-full object-cover w-full h-full"
+              const avatarUrl = userData?.avatar
+                ? userData.avatar.startsWith("http")
+                  ? userData.avatar
+                  : `${process.env.NEXT_PUBLIC_URL || ""}${userData.avatar}`
+                : undefined;
+              const frameUrl = userData?.equippedDecorations
+                ? getEquippedFrameUrl(userData.equippedDecorations as EquippedDecorations)
+                : undefined;
+              const avatarContent = (
+                <UserAvatar
+                  avatarUrl={avatarUrl}
+                  username={userData?.username}
+                  size={32}
+                  className="rounded-full w-full h-full"
+                  frameUrl={frameUrl ?? undefined}
                 />
-              ) : (
-                <div className="w-full h-full rounded-full bg-[var(--primary)]/80 flex items-center justify-center text-white text-xs font-semibold">
-                  {userData?.username?.[0]?.toUpperCase() || "?"}
-                </div>
               );
               return profileHref ? (
                 <Link

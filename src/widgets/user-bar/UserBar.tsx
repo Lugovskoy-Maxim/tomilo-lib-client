@@ -1,6 +1,7 @@
 "use client";
 import { NotificationButton, UserDropdown, ThemeToggle } from "@/shared";
 import { UserAvatar } from "@/shared";
+import { useResolvedEquippedFrameUrl } from "@/hooks/useEquippedFrameUrl";
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +12,7 @@ interface UserDropdownUser {
   email?: string;
   username?: string;
   avatar?: string;
+  equippedDecorations?: import("@/types/user").EquippedDecorations;
   level?: number;
   experience?: number;
   balance?: number;
@@ -32,6 +34,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { user, isAuthenticated, logout, isLoading } = useAuth();
+  const frameUrl = useResolvedEquippedFrameUrl();
 
   useEffect(() => {
     setIsMounted(true);
@@ -66,6 +69,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
       email: user.email,
       username: user.username,
       avatar: user.avatar,
+      equippedDecorations: user.equippedDecorations,
       level: user.level,
       experience: user.experience,
       balance: user.balance,
@@ -124,6 +128,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
                 username={user?.username}
                 size={36}
                 className="rounded-full"
+                frameUrl={frameUrl ?? undefined}
               />
             </button>
 
@@ -132,6 +137,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
               onClose={() => setDropdownOpen(false)}
               onLogout={handleLogout}
               user={getUserForDropdown()}
+              frameUrl={frameUrl ?? undefined}
             />
           </div>
         )}

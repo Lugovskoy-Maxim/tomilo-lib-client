@@ -56,7 +56,7 @@ function ShopSectionSkeleton() {
 }
 
 export function ShopSection({ type }: ShopSectionProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, refetchProfile } = useAuth();
   const [decorations, setDecorations] = useState<Decoration[]>([]);
   const [userDecorations, setUserDecorations] = useState<UserDecorations>({
     owned: [],
@@ -165,6 +165,7 @@ export function ShopSection({ type }: ShopSectionProps) {
           ...prev,
           equipped: [...prev.equipped.filter(id => id !== decorationId), decorationId],
         }));
+        await refetchProfile();
       } else {
         throw new Error(response.message || "Ошибка при экипировке");
       }
@@ -181,6 +182,7 @@ export function ShopSection({ type }: ShopSectionProps) {
       const response = await unequipDecoration(type);
       if (response.success) {
         setUserDecorations(prev => ({ ...prev, equipped: [] }));
+        await refetchProfile();
       } else {
         throw new Error(response.message || "Ошибка при снятии");
       }

@@ -36,7 +36,7 @@ export default function RankStarsOverlay({ userProfile, size = 144 }: RankStarsO
   // Calculate star positioning for arc above the avatar
   const starSize = 18;
   const radius = size / 2 + 18; // Wider arc (+10px)
-  const centerX = size / 2 + (isMobile ? -12 : -5); // Mobile: -12px, Desktop: -5px (less shift)
+  const centerX = size / 2 - 2; // Чуть влево для визуального центра
   const centerY = size / 2 + 25; // Lower position (+15px total, moved down by 5px more)
   
   // Arc from left-top to right-top (180 to 360 degrees)

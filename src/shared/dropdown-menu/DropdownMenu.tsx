@@ -16,6 +16,7 @@ import {
 import { useTheme } from "next-themes";
 import { UserAvatar } from "..";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
+import type { EquippedDecorations } from "@/types/user";
 
 interface UserDropdownProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ interface UserDropdownProps {
     email?: string;
     username?: string;
     avatar?: string;
+    equippedDecorations?: EquippedDecorations;
     level?: number;
     experience?: number;
     balance?: number;
@@ -37,6 +39,8 @@ interface UserDropdownProps {
       theme?: "light" | "dark" | "system";
     };
   };
+  /** URL надетой рамки аватара (уже разрешённый через useResolvedEquippedFrameUrl) */
+  frameUrl?: string | null;
 }
 
 const THEME_LABELS: Record<string, string> = {
@@ -48,7 +52,7 @@ const THEME_LABELS: Record<string, string> = {
 const itemClass =
   "w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none";
 
-export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDropdownProps) {
+export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl }: UserDropdownProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [contentReady, setContentReady] = useState(false);
@@ -167,6 +171,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user }: UserDr
             username={displayName}
             size={44}
             className="rounded-full w-full h-full"
+            frameUrl={frameUrl ?? undefined}
           />
         </div>
         <div className="flex-1 min-w-0">

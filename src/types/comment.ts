@@ -3,10 +3,13 @@ export enum CommentEntityType {
   CHAPTER = "chapter",
 }
 
+/** Минимальные данные автора комментария; при populate может быть equippedDecorations (URL или ID рамки/аватара). */
 export interface CommentUser {
   _id: string;
   username: string;
   avatar?: string;
+  /** Надетые декорации (бэкенд может вернуть URL картинки рамки/аватара для отображения в комментариях) */
+  equippedDecorations?: { frame?: string | null; avatar?: string | null };
 }
 
 export interface Comment {

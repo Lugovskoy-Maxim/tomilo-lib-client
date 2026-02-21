@@ -32,6 +32,9 @@ function transformUserToProfile(user: User): UserProfile | null {
     privacy: user.privacy,
     displaySettings: user.displaySettings,
     linkedProviders: user.linkedProviders,
+    // Надетые декорации (аватар, рамка, фон) — для отображения поверх аватара/баннера
+    equippedDecorations: (user as User & { equippedDecorations?: UserProfile["equippedDecorations"] }).equippedDecorations,
+    ownedDecorations: (user as User & { ownedDecorations?: UserProfile["ownedDecorations"] }).ownedDecorations,
   };
 }
 

@@ -91,6 +91,7 @@ export const useAuth = () => {
           birthDate: user.birthDate,
           displaySettings: user.displaySettings,
           privacy: user.privacy,
+          equippedDecorations: user.equippedDecorations,
         },
       };
       dispatch(login(authResponse));

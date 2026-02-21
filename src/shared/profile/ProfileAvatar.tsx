@@ -1,6 +1,10 @@
+"use client";
+
 import { UserProfile } from "@/types/user";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
-import { getDecorationImageUrl } from "@/api/shop";
+import { getEquippedFrameUrl } from "@/api/shop";
+import { useAuth } from "@/hooks/useAuth";
+import { useResolvedEquippedFrameUrl } from "@/hooks/useEquippedFrameUrl";
 
 const API_CONFIG = {
   basePublicUrl: process.env.NEXT_PUBLIC_URL || "http://localhost:3001",
@@ -17,16 +21,11 @@ const sizeClasses = {
   md: "w-32 h-32 sm:w-36 sm:h-36 text-3xl sm:text-4xl",
 };
 
-/** URL надетой рамки аватара из профиля (frame или устаревшее avatar) */
-function getEquippedFrameUrl(profile: UserProfile): string | null {
-  const eq = profile.equippedDecorations;
-  if (!eq) return null;
-  const raw = eq.frame ?? eq.avatar;
-  if (!raw || typeof raw !== "string") return null;
-  return raw.startsWith("http") ? raw : getDecorationImageUrl(raw) || `${API_CONFIG.basePublicUrl}${raw}`;
-}
-
 export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarProps) {
+  const { user } = useAuth();
+  const resolvedFrameUrl = useResolvedEquippedFrameUrl();
+  const isCurrentUser = user && (userProfile._id === user._id || userProfile._id === user.id);
+
   const displayName =
     userProfile.username && userProfile.username.length > 0
       ? userProfile.username.charAt(0).toUpperCase()
@@ -34,7 +33,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
 
   const sizeClass = sizeClasses[size];
   const pixelSize = size === "sm" ? 96 : 144;
-  const frameUrl = getEquippedFrameUrl(userProfile);
+  const frameUrl = isCurrentUser ? resolvedFrameUrl : getEquippedFrameUrl(userProfile.equippedDecorations);
 
   const avatarInner = userProfile.avatar ? (
     (() => {
@@ -71,7 +70,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
           <img
             src={frameUrl}
             alt=""
-            className="absolute inset-0 w-full h-full rounded-full pointer-events-none object-contain"
+            className="absolute inset-0 w-full h-full rounded-full pointer-events-none object-contain z-10"
             aria-hidden
           />
         )}

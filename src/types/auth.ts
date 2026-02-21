@@ -52,6 +52,8 @@ export interface StoredUser {
   locale?: import("@/types/user").UserLocale;
   /** Подключённые способы входа: "yandex", "vk" и т.д. */
   linkedProviders?: string[];
+  /** Надетые декорации (рамка аватара, фон и т.д.) — отображаются поверх пользовательских */
+  equippedDecorations?: import("@/types/user").EquippedDecorations;
 }
 
 export interface AuthResponse {
