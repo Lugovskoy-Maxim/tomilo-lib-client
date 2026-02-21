@@ -29,7 +29,6 @@ import ProfileReadingSettings from "@/shared/profile/ProfileReadingSettings";
 import ProfilePrivacySettings from "@/shared/profile/ProfilePrivacySettings";
 import ProfileSecuritySettings from "@/shared/profile/ProfileSecuritySettings";
 import ProfileDisplaySettings from "@/shared/profile/ProfileDisplaySettings";
-import ProfileLocaleSettings from "@/shared/profile/ProfileLocaleSettings";
 import ProfileInventory from "@/shared/profile/ProfileInventory";
 
 export type { ProfileTab } from "./profileTabConfig";
@@ -217,7 +216,6 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in-up">
               <ProfileNotificationsSettings userProfile={userProfile} />
               <ProfileDisplaySettings userProfile={userProfile} />
-              <ProfileLocaleSettings userProfile={userProfile} />
               <ProfileReadingSettings userProfile={userProfile} />
               <ProfilePrivacySettings userProfile={userProfile} />
               <div className="lg:col-span-2">
