@@ -116,16 +116,20 @@ export function ShopSection({ type }: ShopSectionProps) {
   const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
   const profile = profileData?.success ? profileData.data : null;
   const profileWithDecorations = profile as (typeof profile) & UserProfile | null;
+  /** API может вернуть equippedDecorations или equipped_decorations */
+  const equippedRaw =
+    profileWithDecorations?.equippedDecorations ??
+    (profileWithDecorations as Record<string, unknown>)?.equipped_decorations;
 
-  /** Купленные и надетые: из API магазина или fallback из профиля (если API пуст). */
+  /** Купленные и надетые: из API магазина или fallback из профиля (если API пуст). Как в инвентаре профиля. */
   const { effectiveOwned, effectiveEquipped } = useMemo(() => {
     let owned = userDecorations.owned;
     let equipped = userDecorations.equipped;
     if (owned.length === 0 && profileWithDecorations?.ownedDecorations?.length) {
       owned = profileWithDecorations.ownedDecorations.map(e => e.decorationId);
     }
-    if (equipped.length === 0 && profileWithDecorations?.equippedDecorations) {
-      const eq = profileWithDecorations.equippedDecorations;
+    if (equipped.length === 0 && equippedRaw && typeof equippedRaw === "object") {
+      const eq = equippedRaw as Record<string, unknown>;
       equipped = [
         getEquippedId(eq.avatar),
         getEquippedId(eq.frame),
@@ -134,7 +138,7 @@ export function ShopSection({ type }: ShopSectionProps) {
       ].filter(Boolean);
     }
     return { effectiveOwned: owned, effectiveEquipped: equipped };
-  }, [userDecorations.owned, userDecorations.equipped, profileWithDecorations]);
+  }, [userDecorations.owned, userDecorations.equipped, profileWithDecorations, equippedRaw]);
 
   const handlePurchase = async (decorationId: string) => {
     setActionLoading(decorationId);

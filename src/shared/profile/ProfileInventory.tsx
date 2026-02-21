@@ -11,24 +11,62 @@ import {
 } from "@/store/api/shopApi";
 import { useGetProfileQuery } from "@/store/api/authApi";
 import { DecorationCard } from "@/shared/shop/DecorationCard";
-import type { Decoration } from "@/api/shop";
+import { getDecorationImageUrl, type Decoration } from "@/api/shop";
 import type { UserProfile } from "@/types/user";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/hooks/useAuth";
 
-/** Достаёт id декорации из значения API (строка, объект с id/_id при populate, или ObjectId). */
-function getEquippedDecorationId(value: unknown): string {
+/** Как в магазине: достаёт id из значения API (строка, объект с id/_id). URL не возвращаются. */
+function getEquippedId(value: unknown): string {
   if (value == null) return "";
-  if (typeof value === "string") return value.trim();
+  if (typeof value === "string") {
+    const s = value.trim();
+    if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/")) return "";
+    return s;
+  }
   if (typeof value === "object" && value !== null) {
     const o = value as Record<string, unknown>;
     const id = o.id ?? o._id;
-    if (id == null) return "";
-    if (typeof id === "string") return id.trim();
-    if (typeof id === "object" && id !== null && "toString" in id) return String((id as { toString(): string }).toString());
-    return String(id);
+    return typeof id === "string" ? id.trim() : "";
   }
   return "";
+}
+
+function toPathKey(url: string): string {
+  const s = url.trim().replace(/\/+$/, "");
+  try {
+    if (s.startsWith("http://") || s.startsWith("https://")) {
+      const u = new URL(s);
+      return u.pathname || s;
+    }
+  } catch {
+    // ignore
+  }
+  return s.startsWith("/") ? s : `/${s}`;
+}
+
+/** Если профиль вернул URL/путь — находим id декорации по списку (как в useEquippedFrameUrl). */
+function resolveEquippedToId(value: unknown, list: Decoration[]): string {
+  const id = getEquippedId(value);
+  if (id) return id;
+  if (value == null || list.length === 0) return "";
+  let urlToMatch: string | null = null;
+  if (typeof value === "string" && value.trim()) {
+    urlToMatch = value.startsWith("http") ? value : getDecorationImageUrl(value.trim());
+  } else if (typeof value === "object" && value !== null) {
+    const o = value as Record<string, unknown>;
+    const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
+    if (imageUrl) urlToMatch = getDecorationImageUrl(imageUrl);
+  }
+  if (!urlToMatch) return "";
+  const pathKey = toPathKey(urlToMatch);
+  const found = list.find((d) => {
+    const decUrl = getDecorationImageUrl(d.imageUrl);
+    if (!decUrl) return false;
+    const decPath = toPathKey(decUrl);
+    return decPath === pathKey || decPath.endsWith(pathKey) || pathKey.endsWith(decPath);
+  });
+  return found ? String(found.id) : "";
 }
 
 const TYPE_CONFIG: Record<
@@ -63,37 +101,36 @@ export default function ProfileInventory() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"avatar" | "frame" | "background" | "card" | "all">("all");
 
-  /** Множество id надетых декораций (как в магазине). Источники: профиль (equippedRaw) и userDecorations.isEquipped. */
-  const equippedIds = useMemo(() => {
-    const ids = new Set<string>();
-    const types = ["avatar", "frame", "background", "card"] as const;
-    const raw = equippedRaw as Record<string, unknown> | undefined;
-    for (const type of types) {
-      const val = raw?.[type] ?? raw?.[`${type}_id`];
-      const id = getEquippedDecorationId(val);
-      if (id) ids.add(String(id));
-    }
-    userDecorations.forEach((d: Decoration) => {
-      if (d.isEquipped && d.id) ids.add(String(d.id));
-    });
-    return ids;
-  }, [userDecorations, equippedRaw]);
+  /** Список для сопоставления URL→id (профиль может вернуть URL вместо id). */
+  const resolutionList = useMemo(
+    () => (userDecorations.length > 0 ? userDecorations : catalogDecorations),
+    [userDecorations, catalogDecorations],
+  );
 
-  /** По типу — id надетой декорации (для кнопки «Снять»). */
-  const equippedByType = useMemo(() => {
-    const types = ["avatar", "frame", "background", "card"] as const;
-    const equipped: Record<string, string> = {};
-    for (const type of types) {
-      const fromProfile = getEquippedDecorationId(equippedRaw?.[type] ?? (equippedRaw as Record<string, unknown>)?.[`${type}_id`]);
-      if (fromProfile) {
-        equipped[type] = String(fromProfile);
-      } else {
-        const fromList = userDecorations.find((d: Decoration) => (d.type ?? "").toLowerCase() === type && d.isEquipped);
-        if (fromList) equipped[type] = String(fromList.id);
-      }
+  /**
+   * Та же логика, что и в магазине (ShopSection):
+   * effectiveOwned — id купленных, effectiveEquipped — id надетых.
+   * Сначала из API магазина (userDecorations), при пустоте — fallback из профиля.
+   */
+  const { effectiveOwned, effectiveEquipped } = useMemo(() => {
+    let owned: string[] = userDecorations.map((d: Decoration) => String(d.id));
+    let equipped: string[] = userDecorations.filter((d: Decoration) => d.isEquipped).map((d: Decoration) => String(d.id));
+
+    if (owned.length === 0 && (profileWithDecorations?.ownedDecorations?.length ?? 0) > 0) {
+      owned = (profileWithDecorations!.ownedDecorations ?? []).map((e) => e.decorationId);
     }
-    return equipped;
-  }, [userDecorations, equippedRaw]);
+    if (equipped.length === 0 && equippedRaw) {
+      const raw = equippedRaw as Record<string, unknown>;
+      const types = ["avatar", "frame", "background", "card"] as const;
+      equipped = types
+        .map((type) => {
+          const val = raw[type] ?? raw[`${type}_id`];
+          return resolveEquippedToId(val, resolutionList) || getEquippedId(val);
+        })
+        .filter(Boolean);
+    }
+    return { effectiveOwned: owned, effectiveEquipped: equipped };
+  }, [userDecorations, profileWithDecorations, equippedRaw, resolutionList]);
 
   /** Список приобретённых: из GET /shop/profile/decorations или fallback из profile.ownedDecorations + каталог. */
   const displayList = useMemo((): Decoration[] => {
@@ -228,13 +265,11 @@ export default function ProfileInventory() {
               <DecorationCard
                 key={decoration.id}
                 decoration={decoration}
-                isOwned
-                isEquipped={Boolean(decoration.isEquipped ?? (decoration.id != null && equippedIds.has(String(decoration.id))))}
+                isOwned={effectiveOwned.includes(decoration.id)}
+                isEquipped={effectiveEquipped.includes(decoration.id)}
                 onEquip={() => handleEquip(decoration.type, decoration.id)}
                 onUnequip={
-                  decoration.type && equippedIds.has(String(decoration.id))
-                    ? () => handleUnequip(decoration.type)
-                    : undefined
+                  effectiveEquipped.includes(decoration.id) ? () => handleUnequip(decoration.type) : undefined
                 }
                 isLoading={actionLoading === decoration.id || actionLoading === `unequip-${decoration.type}`}
                 hidePurchase
