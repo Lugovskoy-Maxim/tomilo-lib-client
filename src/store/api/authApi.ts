@@ -124,15 +124,29 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
-    /** Привязка VK к текущему аккаунту (JWT обязателен). При 409 — data.conflict и data.existingAccount. */
+    /** Привязка VK к текущему аккаунту (JWT обязателен). При 409 — data.conflict и data.existingAccount. VK ID: передавать code_verifier, device_id, state. */
     linkVk: builder.mutation<
       ApiResponseDto<{ linked?: boolean } & AuthResponse>,
-      { code: string; redirect_uri?: string; resolve?: LinkResolve }
+      {
+        code: string;
+        redirect_uri?: string;
+        code_verifier?: string;
+        device_id?: string;
+        state?: string;
+        resolve?: LinkResolve;
+      }
     >({
-      query: ({ code, redirect_uri, resolve }) => ({
+      query: ({ code, redirect_uri, code_verifier, device_id, state, resolve }) => ({
         url: "/auth/link/vk",
         method: "POST",
-        body: { code, ...(redirect_uri && { redirect_uri }), ...(resolve && { resolve }) },
+        body: {
+          code,
+          ...(redirect_uri && { redirect_uri }),
+          ...(code_verifier && { code_verifier }),
+          ...(device_id && { device_id }),
+          ...(state && { state }),
+          ...(resolve && { resolve }),
+        },
       }),
       invalidatesTags: ["Auth"],
     }),

@@ -57,88 +57,23 @@ export async function GET(request: Request) {
                     window.close();
                     return;
                 }
-                var apiBase = ${JSON.stringify(API_BASE)};
-                var token = typeof localStorage !== 'undefined' ? localStorage.getItem('tomilo_lib_token') : null;
                 var codeVerifier = null;
                 try { codeVerifier = sessionStorage.getItem('vk_code_verifier'); } catch (e) {}
-                if (!token || !apiBase) {
-                    showError('Привязка VK', 'Сессия не найдена. Войдите в аккаунт и снова нажмите «Привязать VK» в профиле.');
-                    return;
-                }
                 if (!codeVerifier) {
                     showError('Привязка VK', 'Сессия истекла. Вернитесь в профиль и снова нажмите «Привязать VK».');
                     return;
                 }
-                document.getElementById('status').textContent = 'Привязка VK ID…';
-                var linkBody = { code: code, redirect_uri: redirectUri, code_verifier: codeVerifier };
-                if (deviceId) linkBody.device_id = deviceId;
-                if (stateFromUrl) linkBody.state = stateFromUrl;
-                function doLink(resolve) {
-                    var body = resolve ? Object.assign({}, linkBody, { resolve: resolve }) : linkBody;
-                    return fetch(apiBase + '/auth/link/vk', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                        body: JSON.stringify(body),
-                        credentials: 'include'
-                    }).then(function(res) { return res.json().then(function(data) { return { status: res.status, data: data }; }); });
+                var pending = { code: code, redirect_uri: redirectUri, code_verifier: codeVerifier };
+                if (deviceId) pending.device_id = deviceId;
+                if (stateFromUrl) pending.state = stateFromUrl;
+                try {
+                    sessionStorage.setItem('vk_link_pending', JSON.stringify(pending));
+                    var returnPath = sessionStorage.getItem('vk_link_return') || '/';
+                    if (returnPath.indexOf('/') === 0) window.location.href = window.location.origin + returnPath;
+                    else window.location.href = window.location.origin;
+                } catch (e) {
+                    showError('Привязка VK', 'Не удалось сохранить данные. Попробуйте снова.');
                 }
-                function showConflict(username) {
-                    var name = (username && String(username).replace(/</g, '')) || 'другой пользователь';
-                    var el = document.getElementById('status');
-                    el.innerHTML = '<h1>VK ID уже привязан</h1><p class="status">VK ID уже привязан к пользователю <strong>' + name + '</strong>. Что сделать?</p>' +
-                        '<div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:1rem;">' +
-                        '<button type="button" id="btn-use-existing" style="padding:0.75rem 1rem;text-align:left;border:1px solid #ccc;border-radius:0.75rem;background:#f5f5f5;cursor:pointer;font-size:0.875rem;">Войти в тот аккаунт</button>' +
-                        '<button type="button" id="btn-link-here" style="padding:0.75rem 1rem;text-align:left;border:1px solid #ccc;border-radius:0.75rem;background:#f5f5f5;cursor:pointer;font-size:0.875rem;">Привязать к текущему аккаунту</button>' +
-                        '<button type="button" id="btn-merge" style="padding:0.75rem 1rem;text-align:left;border:1px solid #ccc;border-radius:0.75rem;background:#f5f5f5;cursor:pointer;font-size:0.875rem;">Объединить аккаунты</button>' +
-                        '</div>' +
-                        '<p class="retry" style="margin-top:1rem;"><a href="' + window.location.origin + '">Вернуться на главную</a></p>';
-                    var loading = false;
-                    function run(resolve) {
-                        if (loading) return;
-                        loading = true;
-                        el.querySelector('#btn-use-existing').disabled = true;
-                        el.querySelector('#btn-link-here').disabled = true;
-                        el.querySelector('#btn-merge').disabled = true;
-                        doLink(resolve).then(function(result) {
-                            var d = result.data;
-                            if (result.status >= 200 && result.status < 300 && d && d.success) {
-                                if (resolve === 'use_existing' && d.data && d.data.access_token) {
-                                    try { localStorage.setItem('tomilo_lib_token', d.data.access_token); } catch (e) {}
-                                }
-                                el.innerHTML = '<p>Готово.</p><p class="retry"><a href="' + window.location.origin + '">Вернуться на сайт</a></p>';
-                                setTimeout(function() { window.location.href = window.location.origin; }, 1500);
-                            } else {
-                                var msg = (d && d.message) ? String(d.message).replace(/</g, '') : 'Не удалось. Попробуйте снова.';
-                                if (d && d.errors && d.errors[0]) { var err = d.errors[0]; msg = (typeof err === 'object' && err.message) ? err.message : String(err); }
-                                el.innerHTML = '<h1>Ошибка</h1><p>' + msg + '</p><p class="retry"><a href="' + window.location.origin + '">Вернуться на главную</a></p>';
-                            }
-                        }).catch(function() {
-                            loading = false;
-                            showError('Ошибка соединения', 'Не удалось связаться с сервером. Попробуйте снова.');
-                        });
-                    }
-                    el.querySelector('#btn-use-existing').onclick = function() { run('use_existing'); };
-                    el.querySelector('#btn-link-here').onclick = function() { run('link_here'); };
-                    el.querySelector('#btn-merge').onclick = function() { run('merge'); };
-                }
-                doLink(null)
-                .then(function(result) {
-                    var d = result.data;
-                    if (result.status >= 200 && result.status < 300 && d && d.success) {
-                        try { sessionStorage.removeItem('vk_code_verifier'); sessionStorage.removeItem('vk_state'); } catch (e) {}
-                        document.getElementById('status').innerHTML = '<p>VK ID успешно привязан.</p><p class="retry"><a href="' + window.location.origin + '">Вернуться на сайт</a></p>';
-                        setTimeout(function() { window.location.href = window.location.origin; }, 1500);
-                    } else if (result.status === 409 && d && d.data && d.data.conflict && d.data.existingAccount) {
-                        showConflict(d.data.existingAccount.username);
-                    } else {
-                        var msg = (d && d.message) ? String(d.message).replace(/</g, '') : 'Не удалось привязать VK ID.';
-                        if (d && d.errors && d.errors[0]) { var err = d.errors[0]; msg = (typeof err === 'object' && err.message) ? err.message : String(err); }
-                        showError('Ошибка привязки VK', msg);
-                    }
-                })
-                .catch(function() {
-                    showError('Ошибка соединения', 'Не удалось связаться с сервером. Проверьте интернет и попробуйте снова.');
-                });
                 return;
             }
 
