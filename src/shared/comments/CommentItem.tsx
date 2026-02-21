@@ -6,8 +6,6 @@ import { Comment, ALLOWED_REACTION_EMOJIS, type CommentReactionCount } from "@/t
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import {
-  useLikeCommentMutation,
-  useDislikeCommentMutation,
   useDeleteCommentMutation,
   useSetCommentReactionMutation,
 } from "@/store/api/commentsApi";
@@ -39,8 +37,6 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   const [showReplies, setShowReplies] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
 
-  const [likeComment] = useLikeCommentMutation();
-  const [dislikeComment] = useDislikeCommentMutation();
   const [deleteComment] = useDeleteCommentMutation();
   const [setReaction] = useSetCommentReactionMutation();
 
@@ -49,8 +45,6 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   const isOwner = user && userData && user._id === userData._id;
   const profileHref =
     userData?._id ? (isOwner ? "/profile" : `/user/${encodeURIComponent(userData._id)}`) : null;
-  const hasLiked = user && comment.likedBy.includes(user._id);
-  const hasDisliked = user && comment.dislikedBy.includes(user._id);
 
   // Реакции: из comment.reactions или из старых likes/dislikes
   const displayReactions = useMemo((): CommentReactionCount[] => {
@@ -76,24 +70,6 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
     setShowEmojiPicker(false);
     setPickerAnchorRect(null);
   }, []);
-
-  const handleLike = async () => {
-    if (!user) return;
-    try {
-      await likeComment(comment._id).unwrap();
-    } catch (error) {
-      toast.error(getErrorMessage(error, "Не удалось поставить лайк"));
-    }
-  };
-
-  const handleDislike = async () => {
-    if (!user) return;
-    try {
-      await dislikeComment(comment._id).unwrap();
-    } catch (error) {
-      toast.error(getErrorMessage(error, "Не удалось поставить дизлайк"));
-    }
-  };
 
   const handleReaction = async (emoji: string) => {
     if (!user) return;
@@ -254,9 +230,9 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               {comment.content}
             </p>
 
-            {/* Actions: реакции (как в Telegram) + лайк/дизлайк для совместимости + ответ */}
+            {/* Actions: только реакции (пузырьки + пикер) и ответ */}
             <div className="flex items-center gap-0.5 flex-wrap">
-              {/* Реакции: пузырьки с эмодзи и счётчиком */}
+              {/* Реакции: пузырьки с эмодзи и счётчиком (в т.ч. 👍 и 👎) */}
               {displayReactions.map(({ emoji, count }) => (
                 <button
                   key={emoji}
@@ -316,31 +292,6 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                     )}
                 </>
               )}
-              {/* Лайк / дизлайк (оставлены для быстрого доступа, на сервере ставят 👍 и 👎) */}
-              <button
-                onClick={handleLike}
-                disabled={!user}
-                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors ${
-                  hasLiked
-                    ? "text-[var(--primary)]"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80"
-                } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <span>👍</span>
-                <span>{comment.likes}</span>
-              </button>
-              <button
-                onClick={handleDislike}
-                disabled={!user}
-                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors ${
-                  hasDisliked
-                    ? "text-red-500"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80"
-                } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <span>👎</span>
-                <span>{comment.dislikes}</span>
-              </button>
               {user && onReply && level < 2 && (
                 <button
                   onClick={() => onReply(comment._id)}
