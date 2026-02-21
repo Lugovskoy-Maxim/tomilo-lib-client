@@ -34,7 +34,7 @@ function transformUserToProfile(user: User): UserProfile | null {
     linkedProviders: user.linkedProviders,
     // Надетые декорации (аватар, рамка, фон) — API может вернуть equippedDecorations или equipped_decorations
     equippedDecorations: (user as User & { equippedDecorations?: UserProfile["equippedDecorations"] }).equippedDecorations ??
-      (user as Record<string, unknown>).equipped_decorations as UserProfile["equippedDecorations"],
+      (user as unknown as Record<string, unknown>).equipped_decorations as UserProfile["equippedDecorations"],
     ownedDecorations: (user as User & { ownedDecorations?: UserProfile["ownedDecorations"] }).ownedDecorations,
   };
 }

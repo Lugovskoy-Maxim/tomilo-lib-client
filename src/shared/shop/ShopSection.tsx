@@ -119,7 +119,7 @@ export function ShopSection({ type }: ShopSectionProps) {
   /** API может вернуть equippedDecorations или equipped_decorations */
   const equippedRaw =
     profileWithDecorations?.equippedDecorations ??
-    (profileWithDecorations as Record<string, unknown>)?.equipped_decorations;
+    (profileWithDecorations as unknown as Record<string, unknown>)?.equipped_decorations;
 
   /** Купленные и надетые: из API магазина или fallback из профиля (если API пуст). Как в инвентаре профиля. */
   const { effectiveOwned, effectiveEquipped } = useMemo(() => {

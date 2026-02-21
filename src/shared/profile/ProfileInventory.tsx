@@ -96,7 +96,7 @@ export default function ProfileInventory() {
   const profileWithDecorations = profile as (typeof profile) & UserProfile | null;
   /** Надетые декорации: из ответа профиля (camelCase/snake_case) или из Auth (уже нормализовано). */
   const equippedRaw = (profileWithDecorations?.equippedDecorations ??
-    (profileWithDecorations as Record<string, unknown>)?.equipped_decorations ??
+    (profileWithDecorations as unknown as Record<string, unknown>)?.equipped_decorations ??
     user?.equippedDecorations) as UserProfile["equippedDecorations"] | undefined;
   const [equipDecoration] = useEquipDecorationMutation();
   const [unequipDecoration] = useUnequipDecorationMutation();
