@@ -69,8 +69,9 @@ export async function GET(request: Request) {
                 try {
                     sessionStorage.setItem('vk_link_pending', JSON.stringify(pending));
                     var returnPath = sessionStorage.getItem('vk_link_return') || '/';
-                    if (returnPath.indexOf('/') === 0) window.location.href = window.location.origin + returnPath;
-                    else window.location.href = window.location.origin;
+                    if (returnPath.indexOf('/') !== 0) returnPath = '/';
+                    if (returnPath.indexOf('/user/') === 0) returnPath = returnPath.split('?')[0] + '?tab=overview';
+                    window.location.href = window.location.origin + returnPath;
                 } catch (e) {
                     showError('Привязка VK', 'Не удалось сохранить данные. Попробуйте снова.');
                 }

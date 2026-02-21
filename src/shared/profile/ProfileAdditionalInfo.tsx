@@ -177,7 +177,11 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         })?.data;
         if (status === 409 && data?.data?.conflict && data?.data?.existingAccount) {
           const provider = data.data.provider === "vk_id" ? "vk_id" : data.data.provider === "yandex" ? "yandex" : "vk";
-          setConflict({ provider, existingAccount: data.data.existingAccount });
+          const acc = data.data.existingAccount;
+          setConflict({
+            provider,
+            existingAccount: { id: acc?.id ?? "", username: acc?.username ?? "другой пользователь" },
+          });
           setPendingVk(payload);
         } else {
           const firstError = data?.errors?.[0];
@@ -290,6 +294,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
   }, [isOwnProfile, doLinkYandex]);
 
   // После возврата с VK callback: в sessionStorage лежит vk_link_pending — отправляем запрос привязки, при 409 показываем модалку в профиле.
+  // Небольшая задержка, чтобы страница успела отрисоваться до запроса/модалки (избегаем «пустой экран + скролл заблокирован»).
   useEffect(() => {
     if (!isOwnProfile || typeof window === "undefined") return;
     const raw = sessionStorage.getItem(VK_LINK_PENDING_KEY);
@@ -303,7 +308,8 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       return;
     }
     if (!payload?.code || !payload?.redirect_uri) return;
-    void doLinkVk(payload);
+    const t = setTimeout(() => void doLinkVk(payload), 200);
+    return () => clearTimeout(t);
   }, [isOwnProfile, doLinkVk]);
 
   return (
