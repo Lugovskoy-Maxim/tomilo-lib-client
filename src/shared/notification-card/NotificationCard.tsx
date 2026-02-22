@@ -14,6 +14,7 @@ import {
   Settings,
   MessageSquareReply,
   MoreHorizontal,
+  Heart,
 } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
@@ -76,6 +77,18 @@ const typeConfig: Record<
     bg: "bg-rose-500/25 dark:bg-rose-500/30",
     text: "text-rose-700 dark:text-rose-300",
     icon: MessageSquareReply,
+  },
+  comment_reply: {
+    label: "Ответ на комментарий",
+    bg: "bg-sky-500/25 dark:bg-sky-500/30",
+    text: "text-sky-700 dark:text-sky-300",
+    icon: MessageSquareReply,
+  },
+  comment_reactions: {
+    label: "Реакции на комментарий",
+    bg: "bg-pink-500/25 dark:bg-pink-500/30",
+    text: "text-pink-700 dark:text-pink-300",
+    icon: Heart,
   },
 };
 
@@ -170,7 +183,26 @@ export default function NotificationCard({
       (typeof notification.titleId === "object" && notification.titleId?.slug) ||
       fetchedTitle?.slug;
 
-    if (notification.type === "new_chapter" && notifChapterId && navTitleId) {
+    const isCommentNotification =
+      notification.type === "comment_reply" || notification.type === "comment_reactions";
+    const commentId = metadata?.commentId;
+    const commentHash = commentId ? `#comment-${commentId}` : "";
+
+    if (isCommentNotification && (navTitleId || metadata?.titleId)) {
+      const targetTitleId = navTitleId || metadata?.titleId;
+      const targetChapterId =
+        entityType === "chapter"
+          ? (metadata?.chapterId || entityId || notifChapterId)
+          : null;
+      if (targetChapterId && entityType === "chapter") {
+        router.push(
+          getChapterPath({ id: targetTitleId!, slug: slug ?? undefined }, targetChapterId) + commentHash
+        );
+      } else if (targetTitleId) {
+        const titlePath = getTitlePath({ id: targetTitleId, slug: slug ?? undefined });
+        router.push(`${titlePath}?tab=comments${commentHash}`);
+      }
+    } else if (notification.type === "new_chapter" && notifChapterId && navTitleId) {
       router.push(getChapterPath({ id: navTitleId, slug }, notifChapterId));
     } else if (navTitleId) {
       if (entityType === "chapter" && chapterData) {

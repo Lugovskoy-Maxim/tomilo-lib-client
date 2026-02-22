@@ -121,7 +121,8 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
 
   return (
     <article
-      className={`rounded-lg overflow-hidden ${
+      id={`comment-${comment._id}`}
+      className={`rounded-lg overflow-hidden scroll-mt-4 ${
         level > 0 ? "ml-5 mt-2 pl-3 border-l border-[var(--primary)]/20" : ""
       }`}
     >

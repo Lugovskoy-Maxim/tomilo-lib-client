@@ -49,6 +49,12 @@ export interface NotificationMetadata {
   resolutionMessage?: string;
   entityType?: "title" | "chapter";
   entityId?: string;
+  /** ID комментария (для comment_reply и comment_reactions) */
+  commentId?: string;
+  /** ID тайтла в уведомлениях о комментариях (может дублировать entityId при entityType === "title") */
+  titleId?: string;
+  /** ID главы в уведомлениях о комментариях (может дублировать entityId при entityType === "chapter") */
+  chapterId?: string;
 }
 
 export type NotificationType =
@@ -58,7 +64,9 @@ export type NotificationType =
   | "system"
   | "report_response"
   | "complaint_response"
-  | "report_resolved";
+  | "report_resolved"
+  | "comment_reply"
+  | "comment_reactions";
 
 export interface Notification {
   _id: string;
