@@ -3,19 +3,25 @@ import { TitleView } from "@/widgets";
 import { Metadata } from "next";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
-import { getOgImageUrl } from "@/lib/seo-og-image";
+import { getOgImageUrl, getDefaultOgImagePath } from "@/lib/seo-og-image";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+// Кодируем slug для URL (апостроф, кавычки и др.) — бэкенд должен декодировать
+function encodeSlugForApi(slug: string): string {
+  return encodeURIComponent(slug);
+}
+
 // Функция для получения данных тайтла по slug на сервере
 async function getTitleDataBySlug(slug: string) {
   try {
+    const encodedSlug = encodeSlugForApi(slug);
     const response = await fetch(
       `${
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
-      }/titles/slug/${slug}?populateChapters=false`,
+      }/titles/slug/${encodedSlug}?populateChapters=false`,
       {
         next: { revalidate: 60 }, // Короткое кеширование для быстрого обновления SEO при изменении slug
         headers: {
@@ -75,6 +81,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const coverImage =
       titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
     const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
+    // Для дефолтной картинки используем относительный путь — Next подставит metadataBase из layout
+    const ogImageForMeta =
+      !coverImage?.trim() || ogImageUrl.endsWith(getDefaultOgImagePath())
+        ? getDefaultOgImagePath()
+        : ogImageUrl;
     // Формируем расширенные метаданные (всегда одно изображение для превью в мессенджерах)
     const metadata: Metadata = {
       title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
@@ -118,7 +129,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         locale: "ru_RU",
         images: [
           {
-            url: ogImageUrl,
+            url: ogImageForMeta,
             width: 1200,
             height: 630,
             alt: coverImage ? `${titleName} - обложка` : "Tomilo-lib — читать онлайн",
@@ -129,7 +140,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         card: "summary_large_image",
         title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
         description: shortDescription,
-        images: [ogImageUrl],
+        images: [ogImageForMeta],
         creator: "@tomilo_lib",
         site: "@tomilo_lib",
       },

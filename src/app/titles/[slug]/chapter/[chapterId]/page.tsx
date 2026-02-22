@@ -2,13 +2,19 @@ import React, { Suspense } from "react";
 import ServerChapterPage from "./ServerPage";
 import { Metadata } from "next";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
-import { getOgImageUrl } from "@/lib/seo-og-image";
+import { getOgImageUrl, getDefaultOgImagePath } from "@/lib/seo-og-image";
+
+// Кодируем slug для URL (апостроф, кавычки и др.) — бэкенд должен декодировать
+function encodeSlugForApi(slug: string): string {
+  return encodeURIComponent(slug);
+}
 
 // Функция для получения данных тайтла по slug на сервере
 async function getTitleDataBySlug(slug: string) {
   try {
+    const encodedSlug = encodeSlugForApi(slug);
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/titles/slug/${slug}`,
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/titles/slug/${encodedSlug}`,
     );
     if (!response.ok) {
       throw new Error(`Failed to fetch title by slug: ${response.status}`);
@@ -73,6 +79,9 @@ export async function generateMetadata({
     const coverImage =
       titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
     const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
+    const defaultPath = getDefaultOgImagePath();
+    const ogImageForMeta =
+      !coverImage?.trim() || ogImageUrl.endsWith(defaultPath) ? defaultPath : ogImageUrl;
     const chapterUrl = `${baseUrl}/titles/${slug}/chapter/${chapterId}`;
 
     // Формируем метаданные (всегда передаём одно изображение для превью в мессенджерах)
@@ -103,7 +112,7 @@ export async function generateMetadata({
         locale: "ru_RU",
         images: [
           {
-            url: ogImageUrl,
+            url: ogImageForMeta,
             width: 1200,
             height: 630,
             alt: coverImage
@@ -116,7 +125,7 @@ export async function generateMetadata({
         card: "summary_large_image",
         title: formattedTitle,
         description: shortDescription,
-        images: [ogImageUrl],
+        images: [ogImageForMeta],
         creator: "@tomilo_lib",
         site: "@tomilo_lib",
       },

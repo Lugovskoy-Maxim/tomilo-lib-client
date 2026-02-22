@@ -40,6 +40,11 @@ const DEFAULT_OG_IMAGE_PATH =
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_OG_DEFAULT_IMAGE) ||
   "/logo/og-default.png";
 
+/** Относительный путь дефолтной картинки — в metadata подставляется metadataBase из layout. */
+export function getDefaultOgImagePath(): string {
+  return DEFAULT_OG_IMAGE_PATH.startsWith("http") ? "/logo/og-default.png" : DEFAULT_OG_IMAGE_PATH;
+}
+
 export function getDefaultOgImageUrl(baseUrl: string): string {
   const path = DEFAULT_OG_IMAGE_PATH.startsWith("http")
     ? DEFAULT_OG_IMAGE_PATH

@@ -187,10 +187,10 @@ export const titlesApi = createApi({
       },
     }),
 
-    // Получить тайтл по slug
+    // Получить тайтл по slug (slug кодируем для URL — апостроф и др. символы)
     getTitleBySlug: builder.query<Title, { slug: string; includeChapters?: boolean }>({
       query: ({ slug, includeChapters = false }) => ({
-        url: `/titles/slug/${slug}`,
+        url: `/titles/slug/${encodeURIComponent(slug)}`,
         params: { populateChapters: includeChapters.toString() },
       }),
       providesTags: (result, error, { slug }) => [{ type: TITLES_TAG, id: `slug-${slug}` }],
