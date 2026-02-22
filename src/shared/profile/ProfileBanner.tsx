@@ -75,11 +75,11 @@ export default function ProfileBanner({
         </div>
 
         <div className="absolute left-4 sm:left-6 bottom-0 z-30 translate-y-1/2">
-          <div className="relative ring-4 ring-[var(--background)] rounded-2xl shadow-lg overflow-hidden bg-[var(--background)]">
-            <div className="rounded-xl overflow-hidden">
-              <ProfileAvatar userProfile={userProfile} />
+          <div className="relative ring-4 ring-[var(--background)] rounded-2xl shadow-lg overflow-hidden bg-[var(--background)] p-10 sm:p-12">
+            <div className="relative w-36 h-36 rounded-xl overflow-hidden">
+              <ProfileAvatar userProfile={userProfile} size="lg" />
               <div className="absolute inset-0 pointer-events-none rounded-xl overflow-hidden">
-                <RankStarsOverlay userProfile={userProfile} size={150} />
+                <RankStarsOverlay userProfile={userProfile} size={144} />
               </div>
             </div>
             <div className="absolute bottom-0 right-0 transform translate-x-1/4 translate-y-1/4 z-20">

@@ -40,8 +40,8 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
     <aside className="w-full xl:w-auto xl:shrink-0">
       <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-3 min-[360px]:p-4 sm:p-5 shadow-sm sticky top-2 sm:top-4 xl:static">
         {/* Аватар по центру + смена аватара (только свой профиль) */}
-        <div className="flex justify-center mb-4">
-          <div className="relative">
+        <div className="flex justify-center mb-4 p-10 sm:p-12">
+          <div className="relative w-24 h-24">
             <ProfileAvatar userProfile={userProfile} size="sm" />
             <div className="absolute inset-0 pointer-events-none">
               <RankStarsOverlay userProfile={userProfile} size={96} />
