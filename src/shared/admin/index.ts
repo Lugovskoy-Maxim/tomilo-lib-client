@@ -1,5 +1,6 @@
 // Named exports (export function)
 export { AdminTabs } from "./AdminTabs";
+export { AnnouncementsSection } from "./AnnouncementsSection";
 export { ChaptersSection } from "./ChaptersSection";
 export { CollectionsSection } from "./CollectionsSection";
 export { CommentsSection } from "./CommentsSection";

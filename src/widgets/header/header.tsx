@@ -14,6 +14,7 @@ import {
   User,
   FileText,
   Shield,
+  Lock,
   MoreVertical,
   Info,
   Mail,
@@ -33,6 +34,7 @@ const HEADER_DROPDOWN_ITEMS = [
   { href: "/tomilo-shop", label: "Магазин", icon: ShoppingBag },
   { href: "/copyright", label: "Авторские права", icon: Shield },
   { href: "/terms-of-use", label: "Условия использования", icon: FileText },
+  { href: "/privacy-policy", label: "Политика конфиденциальности", icon: Lock },
 ];
 
 export default function Header() {
@@ -430,6 +432,13 @@ export default function Header() {
                           <Link href="/terms-of-use" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/terms-of-use" ? "true" : undefined}>
                             <span className="mobile-menu-item-icon" aria-hidden><FileText className="w-4 h-4" /></span>
                             <span className="mobile-menu-item-label">Условия использования</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="/privacy-policy" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/privacy-policy" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon" aria-hidden><Lock className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label">Политика конфиденциальности</span>
                             <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
                           </Link>
                         </li>

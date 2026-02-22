@@ -20,6 +20,8 @@ const allow = [
   "/copyright/",
   "/terms-of-use",
   "/terms-of-use/",
+  "/privacy-policy",
+  "/privacy-policy/",
   "/rss",
   "/rss/",
 ];

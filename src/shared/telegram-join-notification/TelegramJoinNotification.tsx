@@ -29,7 +29,7 @@ const TelegramJoinNotification: React.FC = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-24 sm:bottom-20 left-4 right-4 z-50 max-w-md mx-auto animate-fade-in-up  ">
+    <div className="animate-fade-in-up">
       <div className="bg-[var(--card)] border-2 border-[#0088cc]/30 rounded-xl p-4 shadow-2xl hover-lift relative overflow-hidden">
         {/* Decorative gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0088cc]/10 via-transparent to-[#00a8e6]/10 pointer-events-none" />

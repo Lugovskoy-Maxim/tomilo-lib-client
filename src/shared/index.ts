@@ -69,3 +69,4 @@ export { default as ToastContainer } from "./ui/Toast";
 
 // Notifications
 export { default as TelegramJoinNotification } from "./telegram-join-notification/TelegramJoinNotification";
+export { default as CookieConsent } from "./cookie-consent/CookieConsent";

@@ -14,6 +14,7 @@ import { ReportsSection } from "@/shared/admin/ReportsSection";
 import { IpManagementSection } from "@/shared/admin/IpManagementSection";
 import { ShopManagementSection } from "@/shared/admin/ShopManagementSection";
 import { WorkQueueSection } from "@/shared/admin/WorkQueueSection";
+import { AnnouncementsSection } from "@/shared/admin/AnnouncementsSection";
 import { Header } from "@/widgets";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useEffect, useState } from "react";
@@ -74,6 +75,7 @@ export default function AdminPageClient() {
       titles: "Тайтлы",
       chapters: "Главы",
       collections: "Коллекции",
+      announcements: "Новости / Объявления",
       comments: "Комментарии",
       users: "Пользователи",
       reports: "Жалобы",
@@ -107,6 +109,8 @@ export default function AdminPageClient() {
         return <ChaptersSection titleId={selectedTitleId} onTitleChange={setSelectedTitleId} />;
       case "collections":
         return <CollectionsSection onTabChange={(tab: string) => setActiveTab(tab as AdminTab)} />;
+      case "announcements":
+        return <AnnouncementsSection />;
       case "comments":
         return <CommentsSection />;
       case "users":

@@ -7,6 +7,7 @@ import {
   Download,
   Eye,
   FileText,
+  Megaphone,
   MessageCircleWarning,
   Target,
   Users,
@@ -18,7 +19,7 @@ import { useSearchChaptersQuery } from "@/store/api/chaptersApi";
 import { useGetReportsQuery } from "@/store/api/reportsApi";
 import { formatNumber } from "@/lib/utils";
 
-type AdminTab = "overview" | "parser" | "titles" | "chapters" | "work-queue" | "reports";
+type AdminTab = "overview" | "parser" | "titles" | "chapters" | "work-queue" | "reports" | "announcements";
 
 interface OverviewSectionProps {
   onTabChange: (tab: AdminTab) => void;
@@ -191,6 +192,15 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
             icon={<AlertTriangle className="w-4 h-4" />}
             buttonLabel="Исправить"
             onClick={() => onTabChange("work-queue")}
+          />
+          <ActionCard
+            title="Новости и объявления"
+            description="Публикуйте новости на главной и управляйте объявлениями"
+            value={0}
+            tone="warning"
+            icon={<Megaphone className="w-4 h-4" />}
+            buttonLabel="Создать новость"
+            onClick={() => onTabChange("announcements")}
           />
         </div>
       </section>

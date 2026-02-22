@@ -22,6 +22,7 @@ const SEGMENT_TO_KEY: Record<string, keyof typeof MESSAGES.BREADCRUMBS> = {
   about: "ABOUT",
   contact: "CONTACT",
   "terms-of-use": "TERMS_OF_USE",
+  "privacy-policy": "PRIVACY_POLICY",
   copyright: "COPYRIGHT",
   updates: "UPDATES",
   titles: "TITLES",

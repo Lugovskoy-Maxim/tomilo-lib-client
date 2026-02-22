@@ -26,10 +26,11 @@ import { TopCombinedSkeleton } from "@/shared/skeleton/TopCombinedSkeleton";
 import { GridSkeleton } from "@/shared/skeleton/GridSkeleton";
 import Recommendations from "@/shared/recommendations/Recommendations";
 import LinesBackground from "@/shared/lines-background/LinesBackground";
+import NewsBlock from "@/widgets/home-page/NewsBlock";
 
 type VisibleSections = HomeVisibleSections &
   StaticDataVisibleSections &
-  Partial<{ ad: boolean; recommendations: boolean }>;
+  Partial<{ ad: boolean; recommendations: boolean; news: boolean }>;
 
 // Вспомогательный компонент для рендера карусели
 const DataCarousel = ({
@@ -210,6 +211,39 @@ export default function HomePage() {
           skeleton={<div className="w-full min-h-[120px]" aria-hidden />}
         >
           <AdBlock />
+        </LazySection>
+
+        {/* Новости */}
+        <LazySection
+          sectionId="news"
+          onVisible={handleSectionVisible}
+          isVisible={!!visibleSections.news}
+          skeleton={
+            <div className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <div className="w-9 h-9 rounded-xl bg-[var(--muted)] animate-pulse" />
+                <div className="h-7 w-28 bg-[var(--muted)] rounded animate-pulse" />
+              </div>
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                <div className="flex gap-4 p-4 sm:p-5">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-3/4 bg-[var(--muted)] rounded animate-pulse" />
+                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="flex gap-4 p-4 sm:p-5 border-t border-[var(--border)]">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-2/3 bg-[var(--muted)] rounded animate-pulse" />
+                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        >
+          <NewsBlock />
         </LazySection>
 
         {/* Продолжить чтение */}

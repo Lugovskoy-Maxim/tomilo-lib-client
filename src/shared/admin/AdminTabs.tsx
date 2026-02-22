@@ -20,6 +20,7 @@ import {
   ShoppingBag,
   Search,
   ClipboardList,
+  Megaphone,
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -33,6 +34,7 @@ export type AdminTab =
   | "titles"
   | "chapters"
   | "collections"
+  | "announcements"
   | "comments"
   | "users"
   | "reports"
@@ -48,6 +50,7 @@ export const ADMIN_TABS: AdminTab[] = [
   "titles",
   "chapters",
   "collections",
+  "announcements",
   "comments",
   "users",
   "reports",
@@ -73,6 +76,7 @@ const tabGroups = [
       { id: "titles" as AdminTab, label: "Тайтлы", icon: BookOpen },
       { id: "chapters" as AdminTab, label: "Главы", icon: FileText },
       { id: "collections" as AdminTab, label: "Коллекции", icon: FolderOpen },
+      { id: "announcements" as AdminTab, label: "Новости / Объявления", icon: Megaphone },
     ],
   },
   {

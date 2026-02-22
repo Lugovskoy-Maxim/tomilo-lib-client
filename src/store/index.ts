@@ -12,6 +12,7 @@ import { reportsApi } from "./api/reportsApi";
 import { autoParsingApi } from "./api/autoParsingApi";
 import { ipApi } from "./api/ipApi";
 import { shopApi } from "./api/shopApi";
+import { announcementsApi } from "./api/announcementsApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
 import collectionsReducer from "./slices/collectionsSlice";
@@ -50,6 +51,7 @@ export const store = configureStore({
     [autoParsingApi.reducerPath]: autoParsingApi.reducer,
     [ipApi.reducerPath]: ipApi.reducer,
     [shopApi.reducerPath]: shopApi.reducer,
+    [announcementsApi.reducerPath]: announcementsApi.reducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
@@ -66,6 +68,7 @@ export const store = configureStore({
       autoParsingApi.middleware,
       ipApi.middleware,
       shopApi.middleware,
+      announcementsApi.middleware,
     ),
 });
 

@@ -11,6 +11,7 @@ import {
   Send,
   Info,
   FileText,
+  Shield,
   X,
   Rss,
   ArrowUp,
@@ -24,6 +25,7 @@ const FOOTER_NAV = [
   { href: "/about", label: "О нас" },
   { href: "/contact", label: "Контакты" },
   { href: "/terms-of-use", label: "Пользовательское соглашение" },
+  { href: "/privacy-policy", label: "Политика конфиденциальности" },
   { href: "/copyright", label: "Авторское право" },
   { href: "/updates", label: "Лента новых глав" },
 ];
@@ -35,6 +37,7 @@ const MOBILE_MENU_ITEMS = [
   { href: "/contact", label: "Контакты", icon: Mail },
   { href: "/copyright", label: "Авторские права", icon: Copyright },
   { href: "/terms-of-use", label: "Условия использования", icon: FileText },
+  { href: "/privacy-policy", label: "Политика конфиденциальности", icon: Shield },
   { href: "/updates", label: "Лента новых глав", icon: Rss },
 ];
 

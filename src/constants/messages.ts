@@ -54,6 +54,7 @@ export const MESSAGES = {
     ABOUT: "О нас",
     CONTACT: "Контакты",
     TERMS_OF_USE: "Пользовательское соглашение",
+    PRIVACY_POLICY: "Политика конфиденциальности",
     COPYRIGHT: "Правообладателям",
     UPDATES: "Лента новых глав",
     USER: "Профиль",
