@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 import { getOgImageUrl } from "@/lib/seo-og-image";
+import { sanitizeMetaString } from "@/lib/seo-meta-sanitize";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -49,7 +50,14 @@ async function getTitleDataBySlug(slug: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
     const resolvedParams = await params;
-    const { slug } = resolvedParams;
+    const rawSlug = String(resolvedParams.slug ?? "");
+    // Декодируем slug на случай двойного кодирования (Telegram/краулеры по-разному передают URL)
+    let slug: string;
+    try {
+      slug = decodeURIComponent(rawSlug);
+    } catch {
+      slug = rawSlug;
+    }
     const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
     // Получаем данные тайтла по slug
@@ -69,9 +77,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
     const titleType = titleData.type || "other";
     const titleTypeTranslate = translateTitleType(titleType);
+    const genresStr = (titleData.genres ?? []).join(", ");
     const shortDescription = titleData.description
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, "")
-      : `Читать ${titleName} онлайн на Tomilo-lib.ru. ${titleData.genres?.join(", ")}`;
+      : `Читать ${titleName} онлайн на Tomilo-lib.ru.${genresStr ? ` ${genresStr}` : ""}`;
 
     // Базовый URL для картинок: если обложки отдаются с API — crawler должен получать абсолютный URL с того же хоста
     const imageBaseUrl =
@@ -82,10 +91,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
     // Абсолютный URL — Telegram не подставляет домен к относительным путям в og:image
     const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
+    // Санитизация для meta: апостроф/кавычки в названии не ломают парсер Telegram (не показывается Sil%26)
+    const safeTitle = sanitizeMetaString(`Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`);
+    const safeDescription = sanitizeMetaString(shortDescription);
     // Формируем расширенные метаданные (всегда одно изображение для превью в мессенджерах)
     const metadata: Metadata = {
-      title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
-      description: shortDescription,
+      title: safeTitle,
+      description: safeDescription,
       keywords: [
         titleName,
         ...(titleData.genres || []),
@@ -117,10 +129,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
 
       openGraph: {
-        title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
-        description: shortDescription,
+        title: safeTitle,
+        description: safeDescription,
         type: "article" as const,
-        url: `${baseUrl}/titles/${slug}`,
+        url: `${baseUrl}/titles/${encodeURIComponent(slug)}`,
         siteName: "Tomilo-lib.ru",
         locale: "ru_RU",
         images: [
@@ -134,8 +146,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
       twitter: {
         card: "summary_large_image",
-        title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
-        description: shortDescription,
+        title: safeTitle,
+        description: safeDescription,
         images: [ogImageUrl],
         creator: "@tomilo_lib",
         site: "@tomilo_lib",
@@ -179,7 +191,13 @@ export async function generateStaticParams() {
 
 export default async function TitlePageRoute({ params }: PageProps) {
   const resolvedParams = await params;
-  const { slug } = resolvedParams;
+  const rawSlug = String(resolvedParams.slug ?? "");
+  let slug: string;
+  try {
+    slug = decodeURIComponent(rawSlug);
+  } catch {
+    slug = rawSlug;
+  }
 
   return (
     <Suspense
