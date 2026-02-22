@@ -2,7 +2,7 @@ import React, { Suspense } from "react";
 import ServerChapterPage from "./ServerPage";
 import { Metadata } from "next";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
-import { getOgImageUrl, getDefaultOgImagePath } from "@/lib/seo-og-image";
+import { getOgImageUrl } from "@/lib/seo-og-image";
 
 // Кодируем slug для URL (апостроф, кавычки и др.) — бэкенд должен декодировать
 function encodeSlugForApi(slug: string): string {
@@ -78,10 +78,8 @@ export async function generateMetadata({
       baseUrl;
     const coverImage =
       titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
+    // Абсолютный URL — Telegram не подставляет домен к относительным путям в og:image
     const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
-    const defaultPath = getDefaultOgImagePath();
-    const ogImageForMeta =
-      !coverImage?.trim() || ogImageUrl.endsWith(defaultPath) ? defaultPath : ogImageUrl;
     const chapterUrl = `${baseUrl}/titles/${slug}/chapter/${chapterId}`;
 
     // Формируем метаданные (всегда передаём одно изображение для превью в мессенджерах)
@@ -112,7 +110,7 @@ export async function generateMetadata({
         locale: "ru_RU",
         images: [
           {
-            url: ogImageForMeta,
+            url: ogImageUrl,
             width: 1200,
             height: 630,
             alt: coverImage
@@ -125,7 +123,7 @@ export async function generateMetadata({
         card: "summary_large_image",
         title: formattedTitle,
         description: shortDescription,
-        images: [ogImageForMeta],
+        images: [ogImageUrl],
         creator: "@tomilo_lib",
         site: "@tomilo_lib",
       },

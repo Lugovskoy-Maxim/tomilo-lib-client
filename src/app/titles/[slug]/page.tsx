@@ -3,7 +3,7 @@ import { TitleView } from "@/widgets";
 import { Metadata } from "next";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
-import { getOgImageUrl, getDefaultOgImagePath } from "@/lib/seo-og-image";
+import { getOgImageUrl } from "@/lib/seo-og-image";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -80,12 +80,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       baseUrl;
     const coverImage =
       titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
+    // Абсолютный URL — Telegram не подставляет домен к относительным путям в og:image
     const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
-    // Для дефолтной картинки используем относительный путь — Next подставит metadataBase из layout
-    const ogImageForMeta =
-      !coverImage?.trim() || ogImageUrl.endsWith(getDefaultOgImagePath())
-        ? getDefaultOgImagePath()
-        : ogImageUrl;
     // Формируем расширенные метаданные (всегда одно изображение для превью в мессенджерах)
     const metadata: Metadata = {
       title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
@@ -129,7 +125,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         locale: "ru_RU",
         images: [
           {
-            url: ogImageForMeta,
+            url: ogImageUrl,
             width: 1200,
             height: 630,
             alt: coverImage ? `${titleName} - обложка` : "Tomilo-lib — читать онлайн",
@@ -140,7 +136,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         card: "summary_large_image",
         title: `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
         description: shortDescription,
-        images: [ogImageForMeta],
+        images: [ogImageUrl],
         creator: "@tomilo_lib",
         site: "@tomilo_lib",
       },
