@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import {
   Loader2,
@@ -17,6 +17,7 @@ import { useGetSupportedSitesQuery } from "@/store/api/mangaParserApi";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
+import { useCreateAutoParsingJobMutation } from "@/store/api/autoParsingApi";
 
 interface ParsingProgress {
   type: "chapters_info" | "title_import" | "chapter_import";
@@ -52,6 +53,7 @@ export function ParserSection() {
 
   // API hooks
   const { data: supportedSites } = useGetSupportedSitesQuery();
+  const [createAutoParsingJob] = useCreateAutoParsingJobMutation();
 
   // Form states
   const [parsingMode, setParsingMode] = useState<
@@ -64,6 +66,16 @@ export function ParserSection() {
   const [customGenres, setCustomGenres] = useState("");
   const [customType, setCustomType] = useState("");
   const [titleId, setTitleId] = useState("");
+
+  // Создать задачу автопарсинга после успешного старта
+  const [createAutoParsingTask, setCreateAutoParsingTask] = useState(false);
+  const [autoParsingScheduleHour, setAutoParsingScheduleHour] = useState("12");
+  const pendingAutoParsingRef = useRef<{
+    scheduleHour: string;
+    url: string;
+    mode: "title_import" | "chapter_import";
+    titleId?: string;
+  } | null>(null);
 
   // Search for titles when typing titleId
   const { data: searchResults } = useSearchTitlesQuery(
@@ -120,6 +132,37 @@ export function ParserSection() {
       if (progress.sessionId === sessionId) {
         setCurrentProgress(progress);
 
+        const pending = pendingAutoParsingRef.current;
+        if (pending) {
+          const createTask = (resolvedTitleId: string) => {
+            pendingAutoParsingRef.current = null;
+            createAutoParsingJob({
+              titleId: resolvedTitleId,
+              sources: [pending.url],
+              frequency: "daily",
+              scheduleHour: pending.scheduleHour === "" ? undefined : Number(pending.scheduleHour),
+              enabled: true,
+            }).catch(() => {
+              setModalContent({
+                title: "Ошибка",
+                message: "Не удалось создать задачу автопарсинга",
+              });
+              setIsModalOpen(true);
+            });
+          };
+
+          if (progress.status === "started" && pending.mode === "chapter_import" && pending.titleId) {
+            createTask(pending.titleId);
+          }
+          if (
+            progress.status === "completed" &&
+            pending.mode === "title_import" &&
+            (progress.data as { titleId?: string })?.titleId
+          ) {
+            createTask((progress.data as { titleId: string }).titleId);
+          }
+        }
+
         if (progress.status === "completed" && progress.type === "chapters_info") {
           setChaptersInfo(progress.data as ChaptersInfoData);
         }
@@ -155,7 +198,7 @@ export function ParserSection() {
         setIsConnected(false);
       }
     };
-  }, [sessionId, refetchChapters]);
+  }, [sessionId, refetchChapters, createAutoParsingJob]);
 
   const handleStartParsing = () => {
     if (!socket || !isConnected || !url.trim()) return;
@@ -163,6 +206,20 @@ export function ParserSection() {
     setIsParsing(true);
     setCurrentProgress(null);
     setChaptersInfo(null);
+
+    if (
+      createAutoParsingTask &&
+      (parsingMode === "chapter_import" || parsingMode === "title_import")
+    ) {
+      pendingAutoParsingRef.current = {
+        scheduleHour: autoParsingScheduleHour,
+        url: url.trim(),
+        mode: parsingMode,
+        titleId: parsingMode === "chapter_import" ? titleId : undefined,
+      };
+    } else {
+      pendingAutoParsingRef.current = null;
+    }
 
     const baseData = {
       sessionId,
@@ -557,6 +614,50 @@ export function ParserSection() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Создать задачу автопарсинга */}
+        {(parsingMode === "chapter_import" || parsingMode === "title_import") && (
+          <div className="mb-4 p-4 bg-[var(--background)] rounded-[var(--admin-radius)] border border-[var(--border)] space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="create-auto-parsing-task"
+                checked={createAutoParsingTask}
+                onChange={e => setCreateAutoParsingTask(e.target.checked)}
+                className="rounded-[var(--admin-radius)]"
+                disabled={isParsing}
+              />
+              <label
+                htmlFor="create-auto-parsing-task"
+                className="text-sm font-medium text-[var(--foreground)]"
+              >
+                Создать задачу автопарсинга
+              </label>
+            </div>
+            {createAutoParsingTask && (
+              <div>
+                <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-1">
+                  Час запуска (UTC)
+                </label>
+                <select
+                  value={autoParsingScheduleHour}
+                  onChange={e => setAutoParsingScheduleHour(e.target.value)}
+                  className="admin-input bg-[var(--card)]"
+                  disabled={isParsing}
+                >
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {i}:00 UTC
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                  Задача будет создана при успешном начале парсинга.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
