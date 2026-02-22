@@ -147,14 +147,12 @@ export default function ProfileInventory() {
       });
     }
     if (ownedFromProfile.length === 0 || catalogDecorations.length === 0) return [];
-    return ownedFromProfile
-      .map(entry => {
-        const dec = catalogById.get(entry.decorationId);
-        if (!dec) return null;
-        const type = entry.decorationType as Decoration["type"];
-        return { ...dec, type, rarity: normalizeRarity(dec.rarity) };
-      })
-      .filter((d): d is Decoration => d != null);
+    return ownedFromProfile.flatMap(entry => {
+      const dec = catalogById.get(entry.decorationId);
+      if (!dec) return [];
+      const type = entry.decorationType as Decoration["type"];
+      return [{ ...dec, type, rarity: normalizeRarity(dec.rarity) }];
+    });
   }, [userDecorations, ownedFromProfile, catalogDecorations]);
 
   /** В инвентаре показываем только приобретённые декорации. */
