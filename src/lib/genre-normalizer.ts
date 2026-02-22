@@ -1,7 +1,10 @@
 // Нормализатор жанров для приведения к стандартному виду и перевода
 
-// Маппинг английских названий жанров к русским
+import { SENKURO_LABELS_MAP } from "@/constants/senkuroLabels";
+
+// Маппинг английских названий жанров к русским (текущие значения приоритетнее Senkuro)
 export const genreTranslations: Record<string, string> = {
+  ...SENKURO_LABELS_MAP,
   // Базовые жанры
   action: "Боевое",
   adventure: "Приключения",
