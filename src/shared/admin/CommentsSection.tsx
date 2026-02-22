@@ -19,7 +19,9 @@ import Input from "@/shared/ui/input";
 import Button from "@/shared/ui/button";
 import { useToast } from "@/hooks/useToast";
 import { useGetCommentsQuery, useDeleteCommentMutation } from "@/store/api/commentsApi";
+import { useGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { getTitlePath } from "@/lib/title-paths";
 import { Comment, CommentEntityType } from "@/types/comment";
 
 type CommentsViewMode = "cards" | "list";
@@ -28,17 +30,18 @@ type SortMode = "newest" | "oldest" | "popular" | "controversial";
 function CommentEntityLink({ comment }: { comment: Comment }) {
   const { data: titleData } = useGetTitleByIdQuery(
     { id: comment.entityId },
-    { skip: !comment.titleInfo && comment.entityType !== CommentEntityType.TITLE },
+    { skip: comment.entityType !== CommentEntityType.TITLE || !!comment.titleInfo },
   );
 
   const titleName = comment.titleInfo?.name || titleData?.name;
   const titleSlug = comment.titleInfo?.slug || titleData?.slug;
-  const titleId = comment.entityId;
+  const titleId = comment.titleInfo?._id || titleData?._id || comment.entityId;
 
   if (comment.entityType === CommentEntityType.TITLE && (titleName || titleSlug || titleId)) {
+    const href = getTitlePath({ _id: titleId, slug: titleSlug });
     return (
       <Link
-        href={`/titles/${titleSlug || titleId}`}
+        href={href}
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline"
@@ -50,19 +53,40 @@ function CommentEntityLink({ comment }: { comment: Comment }) {
   }
 
   if (comment.entityType === CommentEntityType.CHAPTER) {
-    return titleName || titleSlug ? (
-      <Link
-        href={`/titles/${titleSlug || titleId}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline"
-      >
-        {titleName || "Открыть тайтл"}
-        <ExternalLink className="w-3 h-3" />
-      </Link>
-    ) : (
-      <span className="text-[var(--muted-foreground)]">ID: {titleId}</span>
+    const titleIdFromInfo = comment.titleInfo?._id;
+    const slugFromInfo = comment.titleInfo?.slug;
+    const { data: chapterData } = useGetChapterByIdQuery(comment.entityId, {
+      skip: !!titleIdFromInfo,
+    });
+    const resolvedTitleId =
+      titleIdFromInfo ||
+      (chapterData?.titleId && typeof chapterData.titleId === "object"
+        ? (chapterData.titleId as { _id: string })._id
+        : (chapterData?.titleId as string));
+    const { data: titleDataForChapter } = useGetTitleByIdQuery(
+      { id: resolvedTitleId ?? "" },
+      { skip: !resolvedTitleId || !!slugFromInfo },
     );
+    const slug = slugFromInfo ?? titleDataForChapter?.slug;
+    const titleId = titleIdFromInfo ?? resolvedTitleId;
+    const href =
+      titleId || slug
+        ? `/titles/${slug || titleId}/chapter/${comment.entityId}`
+        : null;
+    if (href) {
+      return (
+        <Link
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline"
+        >
+          {titleName || titleDataForChapter?.name ? `Глава: ${titleName || titleDataForChapter?.name}` : "К главе"}
+          <ExternalLink className="w-3 h-3" />
+        </Link>
+      );
+    }
+    return <span className="text-[var(--muted-foreground)]">ID главы: {comment.entityId}</span>;
   }
 
   return null;
@@ -78,16 +102,61 @@ export function CommentsSection() {
   const [sortMode, setSortMode] = useState<SortMode>("newest");
   const [limit, setLimit] = useState(20);
 
-  const { data, isLoading, isError, refetch } = useGetCommentsQuery({
-    entityType: CommentEntityType.TITLE,
-    entityId: "all",
+  const queryParams = {
+    entityId: "all" as const,
     page: currentPage,
     limit,
     includeReplies: true,
-  });
+  };
+
+  const titleQuery = useGetCommentsQuery({
+    ...queryParams,
+    entityType: CommentEntityType.TITLE,
+  }, { skip: entityType === CommentEntityType.CHAPTER });
+
+  const chapterQuery = useGetCommentsQuery({
+    ...queryParams,
+    entityType: CommentEntityType.CHAPTER,
+  }, { skip: entityType === CommentEntityType.TITLE });
+
+  const isLoading = entityType === CommentEntityType.CHAPTER ? chapterQuery.isLoading : entityType === CommentEntityType.TITLE ? titleQuery.isLoading : (titleQuery.isLoading || chapterQuery.isLoading);
+  const isError = entityType === CommentEntityType.CHAPTER ? chapterQuery.isError : entityType === CommentEntityType.TITLE ? titleQuery.isError : (titleQuery.isError || chapterQuery.isError);
+  const refetch = () => {
+    titleQuery.refetch();
+    chapterQuery.refetch();
+  };
+
+  const paginationData = useMemo(() => {
+    if (entityType === CommentEntityType.TITLE && titleQuery.data?.data) {
+      return titleQuery.data.data;
+    }
+    if (entityType === CommentEntityType.CHAPTER && chapterQuery.data?.data) {
+      return chapterQuery.data.data;
+    }
+    if (entityType === "all" && (titleQuery.data?.data || chapterQuery.data?.data)) {
+      const t = titleQuery.data?.data;
+      const c = chapterQuery.data?.data;
+      const total = (t?.total ?? 0) + (c?.total ?? 0);
+      const totalPages = Math.max(t?.totalPages ?? 0, c?.totalPages ?? 0);
+      return { page: currentPage, limit, total, totalPages, comments: [] };
+    }
+    return null;
+  }, [entityType, currentPage, limit, titleQuery.data, chapterQuery.data]);
 
   const [deleteComment, { isLoading: isDeleting }] = useDeleteCommentMutation();
-  const comments = useMemo(() => data?.data?.comments || [], [data]);
+  const comments = useMemo(() => {
+    if (entityType === CommentEntityType.TITLE) {
+      return titleQuery.data?.data?.comments || [];
+    }
+    if (entityType === CommentEntityType.CHAPTER) {
+      return chapterQuery.data?.data?.comments || [];
+    }
+    const titleComments = titleQuery.data?.data?.comments || [];
+    const chapterComments = chapterQuery.data?.data?.comments || [];
+    return [...titleComments, ...chapterComments].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [entityType, titleQuery.data, chapterQuery.data]);
 
   const processedComments = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -268,12 +337,46 @@ export function CommentsSection() {
                 <span className="inline-flex items-center gap-1">
                   <MessageSquare className="w-3.5 h-3.5" />
                   {comment.entityType}
+                  {comment.replies?.length ? ` · ${comment.replies.length} ответов` : ""}
                 </span>
               </div>
 
-              <div className="mt-2 text-xs text-[var(--muted-foreground)]">
+              <div className="mt-2 text-xs">
+                <span className="text-[var(--muted-foreground)]">К месту: </span>
                 <CommentEntityLink comment={comment} />
               </div>
+
+              {comment.replies && comment.replies.length > 0 && (
+                <div className="mt-4 pl-4 border-l-2 border-[var(--border)] space-y-3">
+                  <p className="text-xs font-medium text-[var(--muted-foreground)]">Ответы ({comment.replies.length})</p>
+                  {comment.replies.map(reply => (
+                    <div
+                      key={reply._id}
+                      className="rounded-lg border border-[var(--border)] bg-[var(--secondary)]/50 p-3"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <p className="text-sm font-medium text-[var(--foreground)] flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+                          {typeof reply.userId !== "string" ? reply.userId.username : "Пользователь"}
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isDeleting}
+                          onClick={() => handleDeleteComment(reply._id)}
+                          className="text-red-500 hover:text-red-700 h-7 px-2"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                      <p className="mt-1.5 text-sm text-[var(--foreground)] whitespace-pre-wrap">{reply.content}</p>
+                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                        {new Date(reply.createdAt).toLocaleString("ru-RU")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </article>
           ))}
         </div>
@@ -291,6 +394,7 @@ export function CommentsSection() {
                   </span>
                 </th>
                 <th className="px-3 py-2 text-left">Дата</th>
+                <th className="px-3 py-2 text-left">К месту</th>
                 <th className="px-3 py-2 text-right">Действия</th>
               </tr>
             </thead>
@@ -300,10 +404,18 @@ export function CommentsSection() {
                   <td className="px-3 py-2">
                     {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
                   </td>
-                  <td className="px-3 py-2 max-w-[420px] truncate">{comment.content}</td>
+                  <td className="px-3 py-2 max-w-[320px]" title={comment.content}>
+                    <span className="truncate block">{comment.content}</span>
+                    {comment.replies?.length ? (
+                      <span className="text-xs text-[var(--muted-foreground)]">+{comment.replies.length} ответов</span>
+                    ) : null}
+                  </td>
                   <td className="px-3 py-2">{comment.entityType}</td>
                   <td className="px-3 py-2 whitespace-nowrap">
                     {new Date(comment.createdAt).toLocaleDateString("ru-RU")}
+                  </td>
+                  <td className="px-3 py-2">
+                    <CommentEntityLink comment={comment} />
                   </td>
                   <td className="px-3 py-2 text-right">
                     <Button
@@ -323,10 +435,10 @@ export function CommentsSection() {
         </div>
       )}
 
-      {data?.data && data.data.totalPages > 1 && (
+      {paginationData && paginationData.totalPages > 1 && (
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-[var(--muted-foreground)]">
-            Страница {data.data.page} из {data.data.totalPages} • Всего: {data.data.total}
+            Страница {paginationData.page} из {paginationData.totalPages} • Всего: {paginationData.total}
           </p>
           <div className="flex gap-2">
             <Button
@@ -340,8 +452,8 @@ export function CommentsSection() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(data.data.totalPages, prev + 1))}
-              disabled={currentPage >= data.data.totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(paginationData.totalPages, prev + 1))}
+              disabled={currentPage >= paginationData.totalPages}
             >
               Вперед
             </Button>
