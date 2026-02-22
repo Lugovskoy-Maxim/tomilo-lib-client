@@ -204,9 +204,11 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
   );
 
   const doLinkYandex = useCallback(
-    async (access_token: string, resolve?: "use_existing" | "link_here" | "merge") => {
+    async (access_token: string | undefined, resolve?: "use_existing" | "link_here" | "merge") => {
       try {
-        const result = await linkYandex({ access_token, resolve }).unwrap();
+        const result = await linkYandex(
+          resolve ? { resolve } : { access_token: access_token! },
+        ).unwrap();
         setConflict(null);
         setPendingYandex(null);
         if (resolve === "use_existing" && result?.data && "access_token" in result.data) {
@@ -219,7 +221,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         const data = (err as { data?: { data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount } } })?.data;
         if (status === 409 && data?.data?.conflict && data?.data?.existingAccount) {
           setConflict({ provider: "yandex", existingAccount: data.data.existingAccount });
-          setPendingYandex({ access_token });
+          setPendingYandex(access_token ? { access_token } : null);
         } else {
           const msg = (err as { data?: { message?: string } })?.data?.message ?? "Не удалось привязать Яндекс.ID";
           toast.error(msg);
@@ -233,22 +235,22 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
   const handleConflictUseExisting = () => {
     if (isVkConflict && pendingVk) {
       doLinkVk(pendingVk, "use_existing");
-    } else if (conflict?.provider === "yandex" && pendingYandex) {
-      doLinkYandex(pendingYandex.access_token, "use_existing");
+    } else if (conflict?.provider === "yandex") {
+      doLinkYandex(undefined, "use_existing");
     }
   };
   const handleConflictLinkHere = () => {
     if (isVkConflict && pendingVk) {
       doLinkVk(pendingVk, "link_here");
-    } else if (conflict?.provider === "yandex" && pendingYandex) {
-      doLinkYandex(pendingYandex.access_token, "link_here");
+    } else if (conflict?.provider === "yandex") {
+      doLinkYandex(undefined, "link_here");
     }
   };
   const handleConflictMerge = () => {
     if (isVkConflict && pendingVk) {
       doLinkVk(pendingVk, "merge");
-    } else if (conflict?.provider === "yandex" && pendingYandex) {
-      doLinkYandex(pendingYandex.access_token, "merge");
+    } else if (conflict?.provider === "yandex") {
+      doLinkYandex(undefined, "merge");
     }
   };
 

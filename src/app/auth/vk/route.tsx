@@ -74,7 +74,7 @@ export async function GET(request: Request) {
                 if (deviceId) linkBody.device_id = deviceId;
                 if (stateFromUrl) linkBody.state = stateFromUrl;
                 function doLink(resolve) {
-                    var body = resolve ? Object.assign({}, linkBody, { resolve: resolve }) : linkBody;
+                    var body = resolve ? { resolve: resolve } : linkBody;
                     return fetch(apiBase + '/auth/link/vk', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
