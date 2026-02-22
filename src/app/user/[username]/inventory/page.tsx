@@ -90,7 +90,7 @@ export default function UserInventoryPage() {
               <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--secondary)]">
                 <div className="aspect-[3/4] relative">
                   <Image
-                    src={equipped.card}
+                    src={equipped.card.startsWith("http") ? equipped.card : getDecorationImageUrl(equipped.card) || equipped.card}
                     alt="Карточка"
                     fill
                     className="object-cover"

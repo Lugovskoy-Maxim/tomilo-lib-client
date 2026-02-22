@@ -121,7 +121,8 @@ export function DecorationCard({
     }
   };
 
-  const renderAction = () => {
+  const compactBtn = "inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium";
+  const renderAction = (compact = false) => {
     if (hidePurchase && !isOwned) return null;
     if (!isAuthenticated) {
       return (
@@ -132,7 +133,12 @@ export function DecorationCard({
     }
     if (!isOwned) {
       if (soldOut) {
-        return (
+        return compact ? (
+          <span className={`${compactBtn} bg-[var(--muted)] text-[var(--muted-foreground)]`}>
+            <PackageX className="w-3.5 h-3.5" />
+            Распродано
+          </span>
+        ) : (
           <div className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
             <PackageX className="w-4 h-4 shrink-0" />
             Распродано
@@ -144,13 +150,13 @@ export function DecorationCard({
           type="button"
           onClick={handlePurchase}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity active:scale-[0.98]"
+          className={compact ? `${compactBtn} bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 transition-opacity` : "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity active:scale-[0.98]"}
         >
           {isLoading ? (
-            <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <span className={`${compact ? "w-3.5 h-3.5" : "w-5 h-5"} border-2 border-current border-t-transparent rounded-full animate-spin`} />
           ) : (
             <>
-              <ShoppingBag className="w-4 h-4 shrink-0" />
+              <ShoppingBag className={compact ? "w-3.5 h-3.5" : "w-4 h-4 shrink-0"} />
               Купить
             </>
           )}
@@ -163,13 +169,13 @@ export function DecorationCard({
           type="button"
           onClick={handleUnequip}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] font-medium text-sm hover:bg-[var(--muted)] disabled:opacity-50 transition-colors active:scale-[0.98]"
+          className={compact ? `${compactBtn} bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--muted)] disabled:opacity-50 transition-colors` : "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] font-medium text-sm hover:bg-[var(--muted)] disabled:opacity-50 transition-colors active:scale-[0.98]"}
         >
           {isLoading ? (
-            <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <span className={`${compact ? "w-3.5 h-3.5" : "w-5 h-5"} border-2 border-current border-t-transparent rounded-full animate-spin`} />
           ) : (
             <>
-              <Check className="w-4 h-4 shrink-0" />
+              <Check className={compact ? "w-3.5 h-3.5" : "w-4 h-4 shrink-0"} />
               Снять
             </>
           )}
@@ -181,13 +187,13 @@ export function DecorationCard({
         type="button"
         onClick={handleEquip}
         disabled={isLoading}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity active:scale-[0.98]"
+        className={compact ? `${compactBtn} bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 transition-opacity` : "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity active:scale-[0.98]"}
       >
         {isLoading ? (
-          <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          <span className={`${compact ? "w-3.5 h-3.5" : "w-5 h-5"} border-2 border-current border-t-transparent rounded-full animate-spin`} />
         ) : (
           <>
-            <Sparkles className="w-4 h-4 shrink-0" />
+            <Sparkles className={compact ? "w-3.5 h-3.5" : "w-4 h-4 shrink-0"} />
             Надеть
           </>
         )}
@@ -391,7 +397,7 @@ export function DecorationCard({
     </div>
   );
 
-  const renderContentBlock = () => (
+  const renderContentBlock = (compactActions = false) => (
     <div className={`p-2.5 sm:p-3 flex flex-col gap-2 ${isOwned ? "opacity-90" : ""}`}>
       <div className="min-w-0">
         <h3 className={`font-semibold text-xs sm:text-sm leading-tight line-clamp-1 ${isOwned ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"}`} title={decoration.name}>
@@ -408,7 +414,11 @@ export function DecorationCard({
           </p>
         )}
       </div>
-      {!hidePurchase && !isOwned && isAuthenticated && soldOut ? (
+      {compactActions ? (
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+          {renderAction(true)}
+        </div>
+      ) : !hidePurchase && !isOwned && isAuthenticated && soldOut ? (
         <div className="flex items-center justify-center gap-2 py-2 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
           <PackageX className="w-4 h-4 shrink-0" />
           Распродано
@@ -443,12 +453,12 @@ export function DecorationCard({
     </div>
   );
 
-  /* Фон профиля: превью как обложка (не карточка), широкий формат */
+  /* Фон профиля: превью как обложка, горизонтальный прямоугольник */
   if (displayType === "background") {
     return (
-      <article className={`group/card relative w-full overflow-hidden rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)] shadow-sm hover:shadow-lg hover:border-[var(--primary)]/30 transition-all duration-300 ${isOwned ? "opacity-95" : ""}`}>
-        {/* Область изображения — как фон/обложка: без внутренней рамки, градиент снизу как на профиле */}
-        <div className={`relative aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] ${isOwned ? "opacity-90" : ""}`}>
+      <article className={`group/card relative w-full self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 ${rarityStyle.border} ${isOwned ? "opacity-95" : ""}`}>
+        {/* Область изображения — горизонтальный баннер (ширина > высота) */}
+        <div className={`relative w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] shrink-0 ${isOwned ? "opacity-90" : ""}`}>
           {isImageLoading && hasImage && (
             <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
               <span className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
@@ -514,46 +524,27 @@ export function DecorationCard({
               </p>
             )}
           </div>
-          {!hidePurchase && !isOwned && isAuthenticated && soldOut ? (
-            <div className="flex items-center justify-center gap-2 py-2 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
-              <PackageX className="w-4 h-4 shrink-0" />
-              Распродано
-            </div>
-          ) : !hidePurchase && !isOwned && isAuthenticated ? (
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
-                <Coins className="w-3.5 h-3.5 text-amber-500" />
-                {decoration.price}
-              </span>
-              <button
-                type="button"
-                onClick={handlePurchase}
-                disabled={isLoading}
-                className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity active:scale-[0.98]"
-              >
-                {isLoading ? (
-                  <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <ShoppingBag className="w-4 h-4 shrink-0" />
-                    Купить
-                  </>
-                )}
-              </button>
-            </div>
-          ) : !hidePurchase && !isOwned && !isAuthenticated ? (
-            <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">Войдите для покупки</p>
-          ) : (
-            renderAction()
-          )}
+          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+            {renderAction(true)}
+          </div>
         </div>
       </article>
     );
   }
 
-  /* Карточка для декора «карточка»: вертикальный формат 9:16 */
+  /* Декорация профиля (карточка): вертикальный прямоугольник */
+  if (displayType === "card") {
+    return (
+      <article className={`group/card relative w-full max-w-[280px] rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft ${rarityStyle.border} ${isOwned ? "opacity-95" : ""}`}>
+        {renderImageBlock("relative aspect-[3/4]")}
+        {renderContentBlock(true)}
+      </article>
+    );
+  }
+
+  /* Прочие декорации: вертикальный формат 9:16 (fallback) */
   return (
-    <article className={`group/card relative w-full max-w-[280px] rounded-2xl border-2 border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/20 transition-all duration-300 card-hover-soft ${isOwned ? "opacity-95" : ""}`}>
+    <article className={`group/card relative w-full max-w-[280px] rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft ${rarityStyle.border} ${isOwned ? "opacity-95" : ""}`}>
       {renderImageBlock("relative aspect-[9/16]")}
       {renderContentBlock()}
     </article>

@@ -78,20 +78,23 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   }`;
 
   return (
-    <div className="relative group overflow-visible">
-      <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover:opacity-100 blur-sm transition-all duration-500" />
-      <div className="absolute -inset-2 rounded-full bg-[var(--primary)]/20 blur-xl transition-all duration-500" />
-      <div className={wrapperClass} style={{ borderRadius: "50%" }}>
-        {avatarInner}
+    <div className="group overflow-visible p-10 sm:p-12">
+      <div className={`relative ${sizeClass}`}>
+        <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover:opacity-100 blur-sm transition-all duration-500" />
+        <div className="absolute -inset-2 rounded-full bg-[var(--primary)]/20 blur-xl transition-all duration-500" />
+        <div className={wrapperClass} style={{ borderRadius: "50%" }}>
+          {avatarInner}
+        </div>
+        {frameUrl && (
+          <img
+            src={frameUrl}
+            alt=""
+            className="absolute left-1/2 top-1/2 w-[180%] h-[180%] -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none object-contain z-10"
+            style={{ maxWidth: "none", maxHeight: "none" }}
+            aria-hidden
+          />
+        )}
       </div>
-      {frameUrl && (
-        <img
-          src={frameUrl}
-          alt=""
-          className="absolute left-1/2 top-1/2 w-[calc(100%+6rem)] h-[calc(100%+6rem)] -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none object-contain z-10 scale-125"
-          aria-hidden
-        />
-      )}
     </div>
   );
 }

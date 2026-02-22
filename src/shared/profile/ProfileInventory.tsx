@@ -11,7 +11,7 @@ import {
 } from "@/store/api/shopApi";
 import { useGetProfileQuery } from "@/store/api/authApi";
 import { DecorationCard } from "@/shared/shop/DecorationCard";
-import { getDecorationImageUrl, type Decoration } from "@/api/shop";
+import { getDecorationImageUrl, normalizeRarity, type Decoration } from "@/api/shop";
 import type { UserProfile } from "@/types/user";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/hooks/useAuth";
@@ -140,7 +140,10 @@ export default function ProfileInventory() {
     if (userDecorations.length > 0) {
       return userDecorations.map((d: Decoration) => {
         const fromCatalog = catalogById.get(d.id);
-        return fromCatalog ? { ...fromCatalog, ...d } : d;
+        if (!fromCatalog) return { ...d, rarity: normalizeRarity(d.rarity) };
+        const merged = { ...fromCatalog, ...d };
+        merged.rarity = normalizeRarity(merged.rarity ?? fromCatalog.rarity);
+        return merged;
       });
     }
     if (ownedFromProfile.length === 0 || catalogDecorations.length === 0) return [];
@@ -149,7 +152,7 @@ export default function ProfileInventory() {
         const dec = catalogById.get(entry.decorationId);
         if (!dec) return null;
         const type = entry.decorationType as Decoration["type"];
-        return { ...dec, type };
+        return { ...dec, type, rarity: normalizeRarity(dec.rarity) };
       })
       .filter((d): d is Decoration => d != null);
   }, [userDecorations, ownedFromProfile, catalogDecorations]);
@@ -269,18 +272,22 @@ export default function ProfileInventory() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredDecorations.map((decoration: Decoration) => (
-              <DecorationCard
+              <div
                 key={decoration.id}
-                decoration={decoration}
-                isOwned={effectiveOwned.includes(decoration.id)}
-                isEquipped={effectiveEquipped.includes(decoration.id)}
-                onEquip={() => handleEquip(decoration.type, decoration.id)}
-                onUnequip={
-                  effectiveEquipped.includes(decoration.id) ? () => handleUnequip(decoration.type) : undefined
-                }
-                isLoading={actionLoading === decoration.id || actionLoading === `unequip-${decoration.type}`}
-                hidePurchase
-              />
+                className={decoration.type === "background" ? "sm:col-span-2" : undefined}
+              >
+                <DecorationCard
+                  decoration={decoration}
+                  isOwned={effectiveOwned.includes(decoration.id)}
+                  isEquipped={effectiveEquipped.includes(decoration.id)}
+                  onEquip={() => handleEquip(decoration.type, decoration.id)}
+                  onUnequip={
+                    effectiveEquipped.includes(decoration.id) ? () => handleUnequip(decoration.type) : undefined
+                  }
+                  isLoading={actionLoading === decoration.id || actionLoading === `unequip-${decoration.type}`}
+                  hidePurchase
+                />
+              </div>
             ))}
           </div>
         )}
