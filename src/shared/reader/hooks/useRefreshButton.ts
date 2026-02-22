@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 
 interface UseRefreshButtonReturn {
   isPressing: boolean;
@@ -13,7 +12,6 @@ interface UseRefreshButtonReturn {
 }
 
 export function useRefreshButton(): UseRefreshButtonReturn {
-  const router = useRouter();
   const [isPressing, setIsPressing] = useState(false);
   const [pressProgress, setPressProgress] = useState(0);
   const [showRefreshTooltip, setShowRefreshTooltip] = useState(false);
@@ -32,7 +30,8 @@ export function useRefreshButton(): UseRefreshButtonReturn {
     }, 100);
     
     pressTimerRef.current = setTimeout(() => {
-      router.refresh();
+      // Полная перезагрузка страницы — сбрасывает состояние при ошибках предзагрузки и т.п.
+      window.location.reload();
       setIsPressing(false);
       setPressProgress(0);
       if (progressIntervalRef.current) {
@@ -40,7 +39,7 @@ export function useRefreshButton(): UseRefreshButtonReturn {
         progressIntervalRef.current = null;
       }
     }, 5000);
-  }, [router]);
+  }, []);
 
   const stopPressing = useCallback(() => {
     if (pressTimerRef.current) {
