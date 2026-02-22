@@ -70,8 +70,9 @@ export default function ProfileLayout({
     </div>
   ) : (
     <ProfileProvider value={profileContextValue}>
+      {/* Баннер как фон/обложка — по ширине, без сильного увеличения */}
       <div
-        className="relative min-h-[60vh] bg-[var(--background)]"
+        className="relative min-h-[50vh] sm:min-h-[55vh] bg-[var(--background)] pt-12 sm:pt-36 bg-no-repeat bg-top"
         style={
           (() => {
             const url = getEquippedBackgroundUrl(userProfile.equippedDecorations) || "/user/banner.jpg";
@@ -84,11 +85,22 @@ export default function ProfileLayout({
           })()
         }
       >
-        <div className="relative w-full mx-auto px-2 min-[360px]:px-3 pt-3 sm:px-4 sm:pt-6 max-w-7xl min-w-0 overflow-x-hidden">
+        {/* Плавный переход: затемнение в цвет фона снизу над баннером */}
+        <div
+          className="absolute inset-0 pointer-events-none z-0"
+          style={{
+            background: "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)",
+          }}
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 from-0% via-transparent via-[35%] to-transparent to-[72%] pointer-events-none z-0" aria-hidden />
+        <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 pt-4 sm:pt-6 max-w-7xl min-w-0 overflow-x-hidden">
           <ProfileHeader />
         </div>
-        <div className="relative w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-7xl min-w-0 overflow-x-hidden bg-[var(--background)]/70 backdrop-blur-sm rounded-xl">
-          <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 xl:gap-8 items-stretch xl:items-start">
+        <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 py-4 sm:py-6 max-w-7xl min-w-0 overflow-x-hidden">
+          <div className="relative rounded-2xl bg-[var(--background)]/55 backdrop-blur-md border border-[var(--border)]/50 shadow-xl shadow-black/5 min-h-[50vh] overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-16 pointer-events-none z-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)', opacity: 0.55 }} aria-hidden />
+            <div className="relative z-10 p-4 sm:p-6 flex flex-col xl:flex-row gap-6 xl:gap-8 items-stretch xl:items-start">
             {/* На больших экранах: одна левая колонка — карточка профиля и навигация */}
             <aside className="xl:w-72 xl:shrink-0 xl:flex xl:flex-col xl:gap-6 xl:sticky xl:top-4">
               <ProfileSidebar
@@ -104,6 +116,7 @@ export default function ProfileLayout({
             <div className="flex-1 min-w-0 w-full">
               <ProfileTabs userProfile={userProfile} />
             </div>
+          </div>
           </div>
         </div>
       </div>

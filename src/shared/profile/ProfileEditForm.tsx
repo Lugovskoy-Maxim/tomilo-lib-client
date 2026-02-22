@@ -30,6 +30,21 @@ function validateEmail(email: string): string | null {
   return null;
 }
 
+/** Приводит дату к формату YYYY-MM-DD для input type="date" */
+function toDateInputValue(dateStr: string | undefined): string {
+  if (!dateStr || !dateStr.trim()) return "";
+  try {
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return "";
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  } catch {
+    return "";
+  }
+}
+
 export default function ProfileEditForm({
   userProfile,
   onSave,
@@ -38,7 +53,7 @@ export default function ProfileEditForm({
 }: ProfileEditFormProps) {
   const [username, setUsername] = useState(userProfile.username);
   const [email, setEmail] = useState(userProfile.email);
-  const [birthDate, setBirthDate] = useState(userProfile.birthDate || "");
+  const [birthDate, setBirthDate] = useState(toDateInputValue(userProfile.birthDate));
   const [errors, setErrors] = useState<{ username?: string; email?: string }>({});
   const [touched, setTouched] = useState<{ username?: boolean; email?: boolean }>({});
 
@@ -46,7 +61,7 @@ export default function ProfileEditForm({
   useEffect(() => {
     setUsername(userProfile.username);
     setEmail(userProfile.email);
-    setBirthDate(userProfile.birthDate || "");
+    setBirthDate(toDateInputValue(userProfile.birthDate));
     setErrors({});
     setTouched({});
   }, [userProfile._id, userProfile.username, userProfile.email, userProfile.birthDate]);

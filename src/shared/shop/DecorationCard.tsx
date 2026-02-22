@@ -443,12 +443,110 @@ export function DecorationCard({
     </div>
   );
 
-  /* Карточка для фонов: широкий формат 16:9 */
+  /* Фон профиля: превью как обложка (не карточка), широкий формат */
   if (displayType === "background") {
     return (
-      <article className={`group/card relative w-full rounded-2xl border-2 border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/20 transition-all duration-300 card-hover-soft ${isOwned ? "opacity-95" : ""}`}>
-        {renderImageBlock("relative aspect-video")}
-        {renderContentBlock()}
+      <article className={`group/card relative w-full overflow-hidden rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)] shadow-sm hover:shadow-lg hover:border-[var(--primary)]/30 transition-all duration-300 ${isOwned ? "opacity-95" : ""}`}>
+        {/* Область изображения — как фон/обложка: без внутренней рамки, градиент снизу как на профиле */}
+        <div className={`relative aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] ${isOwned ? "opacity-90" : ""}`}>
+          {isImageLoading && hasImage && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
+              <span className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+            </div>
+          )}
+          {hasImage ? (
+            <Image
+              src={imageSrc}
+              alt={decoration.name}
+              fill
+              unoptimized
+              className={`object-cover object-center transition-transform duration-300 group-hover/card:scale-105 ${
+                isImageLoading ? "opacity-0" : "opacity-100"
+              } ${isOwned && !isEquipped ? "grayscale group-hover/card:grayscale-0 transition-[filter] duration-300" : ""}`}
+              onLoad={() => setIsImageLoading(false)}
+              onError={() => setIsImageLoading(false)}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <ImageIcon className="w-12 h-12 text-[var(--muted-foreground)]" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)]/70 via-transparent to-transparent pointer-events-none" />
+          <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-sm text-[10px] font-medium text-white/90">
+            Фон профиля
+          </span>
+          <div className="absolute top-2 left-2 right-2 flex flex-wrap items-center gap-1.5">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
+              {rarityStyle.label}
+            </span>
+            {isEquipped && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/90 text-white text-[10px] font-semibold">
+                <Sparkles className="w-3 h-3 fill-current" />
+                Надето
+              </span>
+            )}
+            {soldOut && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-500/90 text-white text-[10px] font-semibold">
+                <PackageX className="w-3 h-3" />
+                Распродано
+              </span>
+            )}
+            {isOwned && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/95 text-white text-[10px] font-semibold shadow-sm">
+                Уже куплено
+              </span>
+            )}
+          </div>
+        </div>
+        <div className={`p-2.5 sm:p-3 flex flex-col gap-2 bg-[var(--card)] ${isOwned ? "opacity-90" : ""}`}>
+          <div className="min-w-0">
+            <h3 className={`font-semibold text-xs sm:text-sm leading-tight line-clamp-1 ${isOwned ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"}`} title={decoration.name}>
+              {decoration.name}
+            </h3>
+            {decoration.description && (
+              <p className="text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-1" title={decoration.description}>
+                {decoration.description}
+              </p>
+            )}
+            {showStock && (
+              <p className="text-[11px] text-[var(--muted-foreground)]">
+                {decoration.stock! <= 0 ? "Нет в наличии" : decoration.stock! <= 3 ? "Осталось мало" : `Осталось: ${decoration.stock}`}
+              </p>
+            )}
+          </div>
+          {!hidePurchase && !isOwned && isAuthenticated && soldOut ? (
+            <div className="flex items-center justify-center gap-2 py-2 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
+              <PackageX className="w-4 h-4 shrink-0" />
+              Распродано
+            </div>
+          ) : !hidePurchase && !isOwned && isAuthenticated ? (
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
+                <Coins className="w-3.5 h-3.5 text-amber-500" />
+                {decoration.price}
+              </span>
+              <button
+                type="button"
+                onClick={handlePurchase}
+                disabled={isLoading}
+                className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity active:scale-[0.98]"
+              >
+                {isLoading ? (
+                  <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <ShoppingBag className="w-4 h-4 shrink-0" />
+                    Купить
+                  </>
+                )}
+              </button>
+            </div>
+          ) : !hidePurchase && !isOwned && !isAuthenticated ? (
+            <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">Войдите для покупки</p>
+          ) : (
+            renderAction()
+          )}
+        </div>
       </article>
     );
   }

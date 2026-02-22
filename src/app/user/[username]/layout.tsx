@@ -120,8 +120,9 @@ export default function UserProfileLayout({
   return (
     <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
       <Header />
+      {/* Баннер как фон/обложка — по ширине, без сильного увеличения */}
       <div
-        className="relative min-h-[60vh] flex flex-1 flex-col bg-[var(--background)]"
+        className="relative min-h-[50vh] sm:min-h-[55vh] flex flex-1 flex-col bg-[var(--background)] pt-12 sm:pt-36 bg-no-repeat bg-top"
         style={{
           backgroundImage: `url(${profileBgUrl})`,
           backgroundSize: "100% auto",
@@ -129,9 +130,20 @@ export default function UserProfileLayout({
           backgroundPosition: "top center",
         }}
       >
-        <div className="relative flex flex-1 flex-col min-h-0">
-          <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden bg-[var(--background)]/70 backdrop-blur-sm">
-            <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 sm:gap-6 lg:gap-8 items-start">
+        {/* Плавный переход: затемнение в цвет фона снизу над баннером */}
+        <div
+          className="absolute inset-0 pointer-events-none z-0"
+          style={{
+            background: "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)",
+          }}
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 from-0% via-transparent via-[35%] to-transparent to-[72%] pointer-events-none z-0" aria-hidden />
+        <div className="relative z-10 flex flex-1 flex-col min-h-0">
+          <div className="w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 py-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden">
+            <div className="relative rounded-2xl bg-[var(--background)]/55 backdrop-blur-md border border-[var(--border)]/50 shadow-xl shadow-black/5 min-h-[40vh] overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-16 pointer-events-none z-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)', opacity: 0.55 }} aria-hidden />
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8 items-start p-4 sm:p-6">
               <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} />
               <div className="min-w-0">
                 <ProfileNav basePath={`/user/${userParam}`} showSettings={false} />
@@ -145,6 +157,7 @@ export default function UserProfileLayout({
                 )}
                 {children}
               </div>
+            </div>
             </div>
           </div>
         </div>

@@ -37,7 +37,12 @@ export default function ProfileCover({ userProfile, backgroundFromParent }: Prof
           )}
         </>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)]/40 via-transparent to-transparent z-20" />
+      {/* Жёсткий переход в цвет фона — и для декоративного баннера */}
+      <div
+        className="absolute inset-0 pointer-events-none z-20"
+        style={{ background: "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)" }}
+        aria-hidden
+      />
 
       <div className="absolute top-2 right-2 min-[360px]:top-3 min-[360px]:right-3 sm:right-6 z-30">
         <span className="inline-flex items-center gap-1 px-2 py-0.5 min-[360px]:px-2.5 min-[360px]:py-1 rounded-full bg-black/30 backdrop-blur-sm text-[10px] min-[360px]:text-xs font-medium text-white border border-white/20">

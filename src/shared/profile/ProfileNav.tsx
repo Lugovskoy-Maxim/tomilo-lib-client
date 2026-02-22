@@ -34,10 +34,10 @@ export default function ProfileNav({ basePath, showSettings }: ProfileNavProps) 
 
   return (
     <nav
-      className="w-full border-b border-[var(--border)] mb-4 sm:mb-6 overflow-x-auto overflow-y-hidden -mx-1 px-1"
+      className="w-full mb-4 sm:mb-6 overflow-x-auto overflow-y-hidden -mx-1 px-1"
       aria-label="Разделы профиля"
     >
-      <div className="flex flex-nowrap min-w-0 gap-0 sm:flex-wrap sm:gap-1 w-max sm:w-auto">
+      <div className="flex flex-nowrap min-w-0 gap-1 sm:gap-2 w-max sm:w-auto">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const active = isActive(tab);
@@ -47,10 +47,10 @@ export default function ProfileNav({ basePath, showSettings }: ProfileNavProps) 
             <Link
               key={tab.id}
               href={href}
-              className={`flex items-center gap-1.5 sm:gap-2 shrink-0 px-2 min-[360px]:px-3 sm:px-4 py-2.5 sm:py-3 font-medium transition-colors text-xs min-[360px]:text-sm border-b-2 -mb-[2px] ${
+              className={`flex items-center gap-1.5 sm:gap-2 shrink-0 px-3 min-[360px]:px-4 sm:px-4 py-2.5 sm:py-2.5 rounded-xl font-medium transition-colors text-xs min-[360px]:text-sm ${
                 active
-                  ? "text-[var(--primary)] border-[var(--primary)]"
-                  : "text-[var(--muted-foreground)] border-transparent hover:text-[var(--foreground)]"
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                  : "text-[var(--muted-foreground)] bg-[var(--secondary)]/50 hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
               }`}
             >
               <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
@@ -61,10 +61,10 @@ export default function ProfileNav({ basePath, showSettings }: ProfileNavProps) 
         {showSettings && (
           <Link
             href={`${basePath}/settings`}
-            className={`flex items-center gap-1.5 sm:gap-2 shrink-0 px-2 min-[360px]:px-3 sm:px-4 py-2.5 sm:py-3 font-medium transition-colors text-xs min-[360px]:text-sm border-b-2 -mb-[2px] ${
+            className={`flex items-center gap-1.5 sm:gap-2 shrink-0 px-3 min-[360px]:px-4 sm:px-4 py-2.5 sm:py-2.5 rounded-xl font-medium transition-colors text-xs min-[360px]:text-sm ${
               pathname === `${basePath}/settings`
-                ? "text-[var(--primary)] border-[var(--primary)]"
-                : "text-[var(--muted-foreground)] border-transparent hover:text-[var(--foreground)]"
+                ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                : "text-[var(--muted-foreground)] bg-[var(--secondary)]/50 hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
             }`}
           >
             <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />

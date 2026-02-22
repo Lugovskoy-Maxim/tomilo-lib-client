@@ -33,12 +33,12 @@ export function ProfileNav({ onNavigate, showActiveChevron = false }: ProfileNav
 
   return (
     <nav
-      className="flex flex-col gap-4 p-3 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--card)]"
+      className="flex flex-col gap-5 p-3 overflow-y-auto rounded-xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm shadow-sm"
       aria-label="Разделы профиля"
     >
       {tabGroups.map(group => (
-        <div key={group.label}>
-          <div className="flex items-center gap-2 px-3 mb-1.5">
+        <div key={group.label} className="space-y-1.5">
+          <div className="flex items-center gap-2 px-3 py-1">
             <group.icon className="w-4 h-4 text-[var(--muted-foreground)]" />
             <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
               {group.label}
@@ -57,10 +57,10 @@ export function ProfileNav({ onNavigate, showActiveChevron = false }: ProfileNav
                     e.preventDefault();
                     setActiveTab(tabId);
                   }}
-                  className={`w-full px-3 py-2.5 rounded-[var(--admin-radius)] font-medium transition-all duration-200 flex items-center gap-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)] ${
+                  className={`w-full px-3 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center gap-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)] ${
                     isActive
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                      : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                      : "text-[var(--muted-foreground)] hover:bg-[var(--accent)]/80 hover:text-[var(--foreground)]"
                   }`}
                 >
                   <Icon
@@ -68,7 +68,7 @@ export function ProfileNav({ onNavigate, showActiveChevron = false }: ProfileNav
                   />
                   <span className="truncate">{meta.label}</span>
                   {showActiveChevron && isActive && (
-                    <ChevronRight className="w-4 h-4 ml-1" />
+                    <ChevronRight className="w-4 h-4 ml-auto shrink-0" />
                   )}
                 </Link>
               );

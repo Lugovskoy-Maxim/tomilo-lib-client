@@ -11,12 +11,12 @@ function ProfileHeader() {
   const router = useRouter();
 
   return (
-    <div className="mb-4 w-full">
+    <div className="mb-2 w-full">
       <div className="flex justify-between items-center gap-3">
         <div className="flex justify-center">
           <button
             onClick={() => router.back()}
-            className="group flex items-center cursor-pointer justify-center gap-1.5 sm:gap-2 px-2 py-2 min-[360px]:px-3 sm:px-4 sm:py-3 bg-[var(--card)] text-[var(--foreground)] rounded-xl hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)] transition-all duration-300 font-medium border border-[var(--border)] hover:border-[var(--primary)] shadow-sm hover:shadow-md hover:shadow-[var(--primary)]/20"
+            className="group flex items-center cursor-pointer justify-center gap-1.5 sm:gap-2 px-2 py-2 min-[360px]:px-3 sm:px-4 sm:py-3 bg-[var(--card)]/90 backdrop-blur-sm text-[var(--foreground)] rounded-xl hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)] transition-all duration-300 font-medium border border-[var(--border)] hover:border-[var(--primary)] shadow-sm hover:shadow-md hover:shadow-[var(--primary)]/20"
           >
             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:-translate-x-0.5" />
             <span className="hidden sm:inline text-sm">Назад</span>

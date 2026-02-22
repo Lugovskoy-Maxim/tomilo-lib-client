@@ -76,20 +76,20 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
   return (
     <div className="w-full min-w-0">
       {/* Мобильное/планшетное меню — только до xl; на xl навигация в layout */}
-      <div className="xl:hidden">
+      <div className="xl:hidden mb-4">
         <button
           type="button"
           onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
-          className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] font-medium shadow-sm hover:bg-[var(--accent)]"
+          className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm text-[var(--foreground)] font-medium shadow-sm hover:bg-[var(--accent)]/80 transition-colors"
           aria-label={isMobileNavOpen ? "Закрыть меню" : "Открыть меню"}
         >
-          {isMobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          <span>{tabMeta[activeTab].label}</span>
+          {isMobileNavOpen ? <X className="w-5 h-5 shrink-0" /> : <Menu className="w-5 h-5 shrink-0" />}
+          <span className="truncate">{tabMeta[activeTab].label}</span>
         </button>
 
         {isMobileNavOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-30 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/40 z-30 backdrop-blur-sm"
             onClick={() => setIsMobileNavOpen(false)}
             aria-hidden
           />
@@ -97,15 +97,16 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
         <aside
           className={`
-            fixed top-0 left-0 z-40 w-72 h-screen
-            bg-[var(--card)] border-r border-[var(--border)]
+            fixed top-0 left-0 z-40 w-72 max-w-[85vw] h-screen
+            bg-[var(--card)]/95 backdrop-blur-md border-r border-[var(--border)]
             transform transition-transform duration-300 ease-in-out flex flex-col shadow-xl
-            ${isMobileNavOpen ? "translate-x-0" : "-translate-x-full"}
+            ${isMobileNavOpen ? "translate-x-0" : "-translate-x-full invisible pointer-events-none"}
           `}
+          aria-hidden={!isMobileNavOpen}
         >
-          <div className="flex-shrink-0 p-4 border-b border-[var(--border)]">
+          <div className="flex-shrink-0 p-4 border-b border-[var(--border)]/80">
             <h2 className="font-semibold text-[var(--foreground)]">Разделы профиля</h2>
-            <p className="text-xs text-[var(--muted-foreground)]">Выберите раздел</p>
+            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Выберите раздел</p>
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto p-3">
             <ProfileNav
@@ -159,7 +160,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
           {/* Закладки */}
           {activeTab === "bookmarks" && (
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
+            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
               <BookmarksSection
                 bookmarks={userProfile.bookmarks}
                 readingHistory={userProfile.readingHistory}
@@ -171,7 +172,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
           {/* История */}
           {activeTab === "history" && (
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
+            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
               <ReadingHistorySection
                 readingHistory={userProfile.readingHistory}
                 showAll={true}
@@ -189,7 +190,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
 
           {/* Обмены */}
           {activeTab === "exchanges" && (
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 sm:p-8 shadow-sm animate-fade-in-up text-center">
+            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-6 sm:p-8 shadow-sm animate-fade-in-up text-center">
               <div className="inline-flex p-4 rounded-2xl bg-[var(--secondary)]/50 border border-[var(--border)]/60 mb-4">
                 <Repeat className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--primary)]" />
               </div>
