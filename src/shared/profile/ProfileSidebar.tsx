@@ -159,14 +159,16 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
           </div>
         </div>
 
-        {/* Краткая статистика */}
+        {/* Краткая статистика (монеты только в своём профиле) */}
         <div className="space-y-2">
           {[
-            { icon: Zap, label: "Опыт", value: experience.toLocaleString() },
-            { icon: Coins, label: "Монеты", value: balance.toLocaleString() },
-            { icon: BookOpen, label: "Глав", value: totalChapters == null ? "—" : totalChapters.toLocaleString() },
-            { icon: Bookmark, label: "Закладки", value: totalBookmarks.toLocaleString() },
-          ].map(({ icon: Icon, label, value }) => (
+            { icon: Zap, label: "Опыт", value: experience.toLocaleString(), show: true },
+            { icon: Coins, label: "Монеты", value: balance.toLocaleString(), show: isOwnProfile },
+            { icon: BookOpen, label: "Глав", value: totalChapters == null ? "—" : totalChapters.toLocaleString(), show: true },
+            { icon: Bookmark, label: "Закладки", value: totalBookmarks.toLocaleString(), show: true },
+          ]
+            .filter(({ show }) => show)
+            .map(({ icon: Icon, label, value }) => (
             <div
               key={label}
               className="flex items-center justify-between py-2 px-2.5 rounded-lg bg-[var(--secondary)]/40 border border-[var(--border)]/50"

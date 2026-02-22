@@ -34,28 +34,48 @@ import ProfileInventory from "@/shared/profile/ProfileInventory";
 export type { ProfileTab } from "./profileTabConfig";
 export { PROFILE_TABS };
 
+export type BreadcrumbItem = { name: string; href?: string; isCurrent?: boolean };
+
 interface ProfileTabsProps {
   userProfile: UserProfile;
+  /** Префикс хлебных крошек (текущий раздел добавится последним; для админки: Админка > Пользователи > username) */
+  breadcrumbPrefix?: BreadcrumbItem[] | null;
+  /** Скрыть вкладки (например, "settings" при просмотре чужого профиля в админке) */
+  hideTabs?: ProfileTab[];
 }
 
-export function ProfileTabs({ userProfile }: ProfileTabsProps) {
+export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: ProfileTabsProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   const tabFromUrl = searchParams.get("tab");
-  const activeTab: ProfileTab = isValidProfileTab(tabFromUrl) ? tabFromUrl : "overview";
+  let activeTab: ProfileTab = isValidProfileTab(tabFromUrl) ? tabFromUrl : "overview";
+  if (hideTabs?.length && hideTabs.includes(activeTab)) {
+    activeTab = "overview";
+  }
 
-  // При открытии /profile без ?tab= — подставить lastTab из localStorage или overview
+  // При открытии без ?tab= — подставить lastTab из localStorage или overview
   useEffect(() => {
     if (isValidProfileTab(tabFromUrl)) return;
     const lastTab = localStorage.getItem("profile:lastTab");
-    const tab = isValidProfileTab(lastTab) ? lastTab : "overview";
+    const tab = isValidProfileTab(lastTab) && (!hideTabs?.length || !hideTabs.includes(lastTab as ProfileTab))
+      ? (lastTab as ProfileTab)
+      : "overview";
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [pathname, router, searchParams, tabFromUrl]);
+  }, [pathname, router, searchParams, tabFromUrl, hideTabs]);
+
+  // Редирект на overview, если открыта скрытая вкладка
+  useEffect(() => {
+    if (hideTabs?.length && tabFromUrl && hideTabs.includes(tabFromUrl as ProfileTab)) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", "overview");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  }, [pathname, router, searchParams, tabFromUrl, hideTabs]);
 
   // Сохранять выбранную вкладку в localStorage
   useEffect(() => {
@@ -112,6 +132,7 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
             <ProfileNav
               onNavigate={() => setIsMobileNavOpen(false)}
               showActiveChevron
+              hideTabs={hideTabs}
             />
           </div>
         </aside>
@@ -121,11 +142,15 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
       <main className="flex-1 min-w-0 flex flex-col">
         <header className="flex-shrink-0 mb-4 sm:mb-6">
           <Breadcrumbs
-            items={[
-              { name: "Главная", href: "/" },
-              { name: "Профиль", href: "/profile" },
-              { name: sectionTitle, isCurrent: true },
-            ]}
+            items={
+              breadcrumbPrefix?.length
+                ? [...breadcrumbPrefix, { name: sectionTitle, isCurrent: true }]
+                : [
+                    { name: "Главная", href: "/" },
+                    { name: "Профиль", href: "/profile" },
+                    { name: sectionTitle, isCurrent: true },
+                  ]
+            }
             className="mb-3"
           />
           <div className="flex flex-wrap items-center gap-3">
@@ -150,8 +175,8 @@ export function ProfileTabs({ userProfile }: ProfileTabsProps) {
               <ProfileAdditionalInfo userProfile={userProfile} />
               <ProfileContent
                 userProfile={userProfile}
-                allBookmarksHref="/profile?tab=bookmarks"
-                historyHref="/profile?tab=history"
+                allBookmarksHref={`${pathname}?tab=bookmarks`}
+                historyHref={`${pathname}?tab=history`}
                 onShowBookmarks={() => setActiveTab("bookmarks")}
                 onShowHistory={() => setActiveTab("history")}
               />

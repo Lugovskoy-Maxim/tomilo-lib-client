@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, notFound } from "next/navigation";
+import Link from "next/link";
 import { useGetProfileByIdQuery, useGetProfileByUsernameQuery } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
@@ -15,6 +16,7 @@ import ProfileSidebar from "@/shared/profile/ProfileSidebar";
 import { getEquippedBackgroundUrl } from "@/api/shop";
 import ProfileNav from "@/shared/profile/ProfileNav";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
+import { ArrowLeft, User as UserIcon } from "lucide-react";
 
 function transformUserToProfile(user: User): UserProfile {
   const u = user as User & {
@@ -141,9 +143,30 @@ export default function UserProfileLayout({
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 from-0% via-transparent via-[35%] to-transparent to-[72%] pointer-events-none z-0" aria-hidden />
         <div className="relative z-10 flex flex-1 flex-col min-h-0">
           <div className="w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 py-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden">
+            {/* Навигация: назад и ссылка «Мой профиль» для авторизованных */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                className="group flex items-center gap-1.5 sm:gap-2 px-2 py-2 min-[360px]:px-3 sm:px-4 sm:py-2.5 bg-[var(--card)]/90 backdrop-blur-sm text-[var(--foreground)] rounded-xl hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)] transition-all duration-300 font-medium border border-[var(--border)] hover:border-[var(--primary)] shadow-sm hover:shadow-md"
+                aria-label="Назад"
+              >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-0.5" />
+                <span className="text-sm">Назад</span>
+              </button>
+              {currentUser && (
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl font-medium text-sm text-[var(--muted-foreground)] bg-[var(--secondary)]/60 border border-[var(--border)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors"
+                >
+                  <UserIcon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                  <span className="hidden sm:inline">Мой профиль</span>
+                </Link>
+              )}
+            </div>
             <div className="relative rounded-2xl bg-[var(--background)]/55 backdrop-blur-md border border-[var(--border)]/50 shadow-xl shadow-black/5 min-h-[40vh] overflow-hidden">
             <div className="absolute inset-x-0 top-0 h-16 pointer-events-none z-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)', opacity: 0.55 }} aria-hidden />
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8 items-start p-4 sm:p-6">
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8 items-start p-4 sm:p-6" role="article" aria-label={`Профиль пользователя ${userProfile.username}`}>
               <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} />
               <div className="min-w-0">
                 <ProfileNav basePath={`/user/${userParam}`} showSettings={false} />
