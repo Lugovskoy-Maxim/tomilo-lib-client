@@ -11,8 +11,8 @@ import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
 import { isMongoObjectId } from "@/lib/isMongoObjectId";
 import { Footer, Header } from "@/widgets";
 import { LoadingState } from "@/shared";
-import PublicProfileCover from "@/shared/profile/PublicProfileCover";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
+import { getEquippedBackgroundUrl } from "@/api/shop";
 import ProfileNav from "@/shared/profile/ProfileNav";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 
@@ -115,25 +115,36 @@ export default function UserProfileLayout({
     notFound();
   }
 
+  const profileBgUrl = getEquippedBackgroundUrl(userProfile.equippedDecorations) || "/user/banner.jpg";
+
   return (
     <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
       <Header />
-      <PublicProfileCover userProfile={userProfile} />
-      <div className="flex flex-1 flex-col min-h-0">
-        <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 sm:gap-6 lg:gap-8 items-start">
-            <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} />
-            <div className="min-w-0">
-              <ProfileNav basePath={`/user/${userParam}`} showSettings={false} />
-              {hasPrivacyNotice && (
-                <div className="mb-4 sm:mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[var(--foreground)]">
-                  <p className="font-medium">Часть данных пользователя скрыта настройками приватности.</p>
-                  <p className="text-[var(--muted-foreground)] mt-1">
-                    Некоторые разделы могут быть недоступны.
-                  </p>
-                </div>
-              )}
-              {children}
+      <div
+        className="relative min-h-[60vh] flex flex-1 flex-col bg-[var(--background)]"
+        style={{
+          backgroundImage: `url(${profileBgUrl})`,
+          backgroundSize: "100% auto",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "top center",
+        }}
+      >
+        <div className="relative flex flex-1 flex-col min-h-0">
+          <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden bg-[var(--background)]/70 backdrop-blur-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 sm:gap-6 lg:gap-8 items-start">
+              <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} />
+              <div className="min-w-0">
+                <ProfileNav basePath={`/user/${userParam}`} showSettings={false} />
+                {hasPrivacyNotice && (
+                  <div className="mb-4 sm:mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[var(--foreground)]">
+                    <p className="font-medium">Часть данных пользователя скрыта настройками приватности.</p>
+                    <p className="text-[var(--muted-foreground)] mt-1">
+                      Некоторые разделы могут быть недоступны.
+                    </p>
+                  </div>
+                )}
+                {children}
+              </div>
             </div>
           </div>
         </div>

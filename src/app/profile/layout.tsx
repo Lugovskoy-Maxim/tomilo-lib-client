@@ -11,8 +11,8 @@ import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { UserProfile } from "@/types/user";
 import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";
 import { ProfileNav } from "@/shared/profile-tabs/ProfileNav";
-import ProfileCover from "@/shared/profile/ProfileCover";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
+import { getEquippedBackgroundUrl } from "@/api/shop";
 import ProfileEditForm from "@/shared/profile/ProfileEditForm";
 import { ProfileProvider } from "@/shared/profile/ProfileContext";
 import Modal from "@/shared/modal/modal";
@@ -70,24 +70,40 @@ export default function ProfileLayout({
     </div>
   ) : (
     <ProfileProvider value={profileContextValue}>
-      <ProfileCover userProfile={userProfile} />
-      <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-7xl min-w-0 overflow-x-hidden">
-        <ProfileHeader />
-        <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 xl:gap-8 items-stretch xl:items-start">
-          {/* На больших экранах: одна левая колонка — карточка профиля и навигация */}
-          <aside className="xl:w-72 xl:shrink-0 xl:flex xl:flex-col xl:gap-6 xl:sticky xl:top-4">
-            <ProfileSidebar
-              userProfile={userProfile}
-              onEdit={() => setIsEditing(true)}
-              onAvatarUpdate={handleAvatarUpdate}
-              isOwnProfile
-            />
-            <div className="hidden xl:block">
-              <ProfileNav />
+      <div
+        className="relative min-h-[60vh] bg-[var(--background)]"
+        style={
+          (() => {
+            const url = getEquippedBackgroundUrl(userProfile.equippedDecorations) || "/user/banner.jpg";
+            return {
+              backgroundImage: `url(${url})`,
+              backgroundSize: "100% auto",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "top center",
+            };
+          })()
+        }
+      >
+        <div className="relative w-full mx-auto px-2 min-[360px]:px-3 pt-3 sm:px-4 sm:pt-6 max-w-7xl min-w-0 overflow-x-hidden">
+          <ProfileHeader />
+        </div>
+        <div className="relative w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-7xl min-w-0 overflow-x-hidden bg-[var(--background)]/70 backdrop-blur-sm rounded-xl">
+          <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 xl:gap-8 items-stretch xl:items-start">
+            {/* На больших экранах: одна левая колонка — карточка профиля и навигация */}
+            <aside className="xl:w-72 xl:shrink-0 xl:flex xl:flex-col xl:gap-6 xl:sticky xl:top-4">
+              <ProfileSidebar
+                userProfile={userProfile}
+                onEdit={() => setIsEditing(true)}
+                onAvatarUpdate={handleAvatarUpdate}
+                isOwnProfile
+              />
+              <div className="hidden xl:block">
+                <ProfileNav />
+              </div>
+            </aside>
+            <div className="flex-1 min-w-0 w-full">
+              <ProfileTabs userProfile={userProfile} />
             </div>
-          </aside>
-          <div className="flex-1 min-w-0 w-full">
-            <ProfileTabs userProfile={userProfile} />
           </div>
         </div>
       </div>

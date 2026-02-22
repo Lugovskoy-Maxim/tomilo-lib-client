@@ -2,7 +2,7 @@
 
 import { UserProfile } from "@/types/user";
 import { ProfileAvatar, UserInfo } from "@/shared";
-import { getDecorationImageUrl } from "@/api/shop";
+import { getEquippedBackgroundUrl } from "@/api/shop";
 import RankStarsOverlay from "./RankStarsOverlay";
 import ProfileStats from "./ProfileStats";
 
@@ -12,7 +12,7 @@ interface PublicProfileBannerProps {
 
 export default function PublicProfileBanner({ userProfile }: PublicProfileBannerProps) {
   const baseBannerUrl = "/user/banner.jpg";
-  const equippedBackgroundUrl = userProfile.equippedDecorations?.background;
+  const equippedBackgroundUrl = getEquippedBackgroundUrl(userProfile.equippedDecorations);
 
   return (
     <div className="flex flex-col rounded-2xl border border-[var(--border)] mb-6 overflow-hidden w-full bg-[var(--card)] shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] animate-fade-in-up">
@@ -28,14 +28,13 @@ export default function PublicProfileBanner({ userProfile }: PublicProfileBanner
         />
         {equippedBackgroundUrl && (
           <img
-            src={equippedBackgroundUrl.startsWith("http") ? equippedBackgroundUrl : getDecorationImageUrl(equippedBackgroundUrl) || equippedBackgroundUrl}
+            src={equippedBackgroundUrl}
             alt=""
             className="absolute inset-0 w-full h-full object-cover object-center z-10 pointer-events-none"
             aria-hidden
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--card)] via-[var(--card)]/60 to-transparent z-20" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent z-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--card)]/50 via-transparent to-transparent z-20" />
 
         <div className="absolute top-3 right-3 z-30">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--card)]/90 backdrop-blur-sm text-xs font-medium text-[var(--foreground)] border border-[var(--border)]/50">

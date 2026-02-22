@@ -36,6 +36,12 @@ export function getEquippedAvatarDecorationUrl(equipped: EquippedDecorations | n
   return getDecorationUrlFromValue(equipped.avatar);
 }
 
+/** URL надетого фона профиля из equippedDecorations.background (строка или объект с imageUrl). */
+export function getEquippedBackgroundUrl(equipped: EquippedDecorations | null | undefined): string | null {
+  if (!equipped) return null;
+  return getDecorationUrlFromValue(equipped.background);
+}
+
 /** Полный URL изображения декорации (imageUrl с бэкенда — относительный путь /uploads/...) */
 export function getDecorationImageUrl(imageUrl: string | undefined): string {
   if (!imageUrl?.trim()) return "";
