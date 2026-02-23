@@ -1,55 +1,58 @@
 "use client";
 
-import { useEffect } from "react";
+import Script from "next/script";
+import { useRef, useState, useEffect } from "react";
 
-// Расширяем глобальный объект Window для поддержки yaContextCb и Ya
 declare global {
   interface Window {
-    yaContextCb: Array<() => void>;
-    Ya: {
-      Context: {
-        AdvManager: {
-          render: (params: { blockId: string; renderTo: string; type?: string }) => void;
-        };
-      };
-    };
+    MRGtag: unknown[];
   }
 }
 
-const AdBlockReading = () => {
-  useEffect(() => {
-    // Проверяем, что window.yaContextCb существует, иначе создаем
-    if (typeof window !== "undefined") {
-      window.yaContextCb = window.yaContextCb || [];
+const AD_LOAD_CHECK_DELAY_MS = 3500;
 
-      // Добавляем код рекламы в очередь
-      window.yaContextCb.push(() => {
-        try {
-          // Проверяем, что Ya.Context.AdvManager доступен
-          if (
-            typeof window.Ya !== "undefined" &&
-            window.Ya.Context &&
-            window.Ya.Context.AdvManager
-          ) {
-            window.Ya.Context.AdvManager.render({
-              blockId: "R-A-17803473-2",
-              renderTo: "yandex_rtb_R-A-17803473-2",
-              type: "feed",
-            });
-          } else {
-            console.warn("Ya.Context.AdvManager is not available");
-          }
-        } catch (error) {
-          console.error("Error rendering ad:", error);
-        }
-      });
-    }
+const AdBlockReading = () => {
+  const insRef = useRef<HTMLModElement>(null);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const ins = insRef.current;
+      if (!ins) return;
+      const hasContent = !!ins.querySelector("iframe");
+      if (!hasContent) {
+        setVisible(false);
+      }
+    }, AD_LOAD_CHECK_DELAY_MS);
+    return () => window.clearTimeout(timer);
   }, []);
+
+  if (!visible) return null;
 
   return (
     <div className="w-full flex justify-center my-6">
-      {/* Yandex.RTB R-A-17803473-2 */}
-      <div id="yandex_rtb_R-A-17803473-2" className="w-full max-w-2xl"></div>
+      <Script
+        src="https://ad.mail.ru/static/ads-async.js"
+        strategy="afterInteractive"
+        async
+      />
+      <div className="w-full max-w-[950px] overflow-hidden">
+        <ins
+          ref={insRef}
+          className="mrg-tag block w-full max-w-full"
+          style={{
+            display: "inline-block",
+            width: "950px",
+            maxWidth: "100%",
+            height: "300px",
+          }}
+          data-ad-client="ad-1977376"
+          data-ad-slot="1977376"
+        />
+      </div>
+      <Script id="mrg-tag-init-reading" strategy="afterInteractive">
+        {`(MRGtag = window.MRGtag || []).push({});`}
+      </Script>
     </div>
   );
 };

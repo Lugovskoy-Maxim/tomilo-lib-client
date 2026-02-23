@@ -32,6 +32,7 @@ import { getChapterPath } from "@/lib/title-paths";
 import { useAuth } from "@/hooks/useAuth";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { GenresList } from "./GenresList";
+import AdBlock from "@/shared/ad-block/AdBlock";
 
 interface RightContentProps {
   titleData: Title;
@@ -505,6 +506,8 @@ export function RightContent({
                 </button>
               </div>
             </div>
+
+            <AdBlock />
 
             {/* Список глав */}
             <div className="space-y-2">
