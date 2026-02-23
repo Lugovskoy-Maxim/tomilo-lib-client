@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { CollectionDetails } from "@/widgets";
+import { buildServerSEOMetadata } from "@/lib/seo-metadata";
+import { getOgImageUrl } from "@/lib/seo-og-image";
+import { sanitizeMetaString } from "@/lib/seo-meta-sanitize";
 
 interface CollectionPageProps {
   params: Promise<{ id: string }>;
@@ -30,64 +33,30 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
     const { id } = resolvedParams;
     const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
-    // Получаем данные коллекции по ID
     const collectionData = await getCollectionDataById(id);
     const collectionName = collectionData.name || "Коллекция";
-    const description = collectionData.description
+    const rawDescription = collectionData.description
       ? collectionData.description.substring(0, 160).replace(/<[^>]*>/g, "") + "..."
       : `Просмотрите коллекцию "${collectionName}" с ${collectionData.titles?.length || 0} тайтлами`;
 
-    const image = collectionData.cover
-      ? `${baseUrl}${collectionData.cover}`
-      : `${baseUrl}/logo/tomilo_color.svg`;
+    const coverPath = collectionData.cover ?? null;
+    const ogImageUrl = getOgImageUrl(baseUrl, coverPath, baseUrl);
 
     const pageTitle = `Коллекция «${collectionName}» — Tomilo-lib.ru`;
     const canonicalUrl = `${baseUrl}/collections/${id}`;
 
-    // Формируем метаданные
-    const metadata: Metadata = {
-      title: pageTitle,
-      description: description,
+    return buildServerSEOMetadata({
+      title: sanitizeMetaString(pageTitle),
+      description: sanitizeMetaString(rawDescription),
       keywords: `${collectionName}, коллекция, тайтлы, манга, маньхуа, манхва, комиксы, онлайн чтение, ${collectionData.titles
         ?.slice(0, 5)
-        .map((title: { name: string }) => title.name)
+        .map((t: { name: string }) => t.name)
         .join(", ")}`,
-      robots: {
-        index: true,
-        follow: true,
-        googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
-      },
-      alternates: {
-        canonical: canonicalUrl,
-        languages: { "ru-RU": canonicalUrl },
-      },
-      openGraph: {
-        title: pageTitle,
-        description: description,
-        type: "website",
-        url: canonicalUrl,
-        siteName: "Tomilo-lib.ru",
-        locale: "ru_RU",
-        images: [
-          {
-            url: image,
-            width: 1200,
-            height: 630,
-            alt: `Коллекция: ${collectionName}`,
-          },
-        ],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: pageTitle,
-        description: description,
-        images: [image],
-        creator: "@tomilo_lib",
-        site: "@tomilo_lib",
-      },
-    };
-
-    return metadata;
+      canonicalUrl,
+      ogImageUrl,
+      ogImageAlt: `Коллекция: ${collectionName}`,
+      type: "website",
+    });
   } catch (error) {
     console.error("Ошибка при генерации метаданных коллекции:", error);
     return {

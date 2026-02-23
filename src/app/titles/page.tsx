@@ -37,19 +37,36 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   };
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+
+const catalogBreadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Главная", item: BASE_URL },
+    { "@type": "ListItem", position: 2, name: "Каталог", item: `${BASE_URL}/titles` },
+  ],
+};
+
 export default function TitlesPageRoute() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-            <div className="text-[var(--foreground)]">Загрузка каталога...</div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogBreadcrumbJsonLd) }}
+      />
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+              <div className="text-[var(--foreground)]">Загрузка каталога...</div>
+            </div>
           </div>
-        </div>
-      }
-    >
-      <TitlesPageClient />
-    </Suspense>
+        }
+      >
+        <TitlesPageClient />
+      </Suspense>
+    </>
   );
 }

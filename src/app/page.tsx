@@ -1,63 +1,43 @@
 import { Metadata } from "next";
 import { HomePage } from "@/widgets";
+import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 
-// Функция для генерации SEO метаданных
+const siteBaseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+
 export async function generateMetadata(): Promise<Metadata> {
-  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+  const baseUrl = siteBaseUrl;
   const title = "Tomilo-lib.ru — Манга, манхва и маньхуа читать онлайн бесплатно";
   const description =
     "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, удобный ридер, закладки и история чтения. Регулярные обновления, каталог по жанрам и коллекции.";
-  // Абсолютный URL — Telegram и др. не подставляют домен к относительным путям в og:image
   const ogImageUrl = getDefaultOgImageUrl(baseUrl);
 
-  return {
+  return buildServerSEOMetadata({
     title,
     description,
     keywords:
       "манга читать онлайн, манхва, маньхуа, комиксы онлайн, читать мангу бесплатно, тайтлы, главы манги, каталог манги, обновления манги, Tomilo-lib",
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-video-preview": -1,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-      },
-    },
-    alternates: {
-      canonical: baseUrl,
-      languages: { "ru-RU": baseUrl },
-    },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      url: baseUrl,
-      siteName: "Tomilo-lib.ru",
-      locale: "ru_RU",
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: "Tomilo-lib — манга, манхва, маньхуа онлайн",
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImageUrl],
-      creator: "@tomilo_lib",
-      site: "@tomilo_lib",
-    },
-  };
+    canonicalUrl: baseUrl,
+    ogImageUrl,
+    ogImageAlt: "Tomilo-lib — манга, манхва, маньхуа онлайн",
+    type: "website",
+  });
 }
 
+const homeBreadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [{ "@type": "ListItem", position: 1, name: "Tomilo-lib.ru", item: siteBaseUrl }],
+};
+
 export default function Home() {
-  return <HomePage />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeBreadcrumbJsonLd) }}
+      />
+      <HomePage />
+    </>
+  );
 }

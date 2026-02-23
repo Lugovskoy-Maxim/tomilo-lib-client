@@ -24,6 +24,7 @@ const siteUrl =
 /** База для разрешения относительных URL в og:image / twitter:image. Без неё соцсети могут не показывать обложку. */
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  applicationName: "Tomilo-lib",
   title: {
     default: "Tomilo-lib.ru — Манга, манхва и маньхуа читать онлайн бесплатно",
     template: "%s",
@@ -119,6 +120,51 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
         <meta name="yandex-verification" content="8f2bae575aa86202" />
+
+        {/* Глобальная структурированная разметка для поисковиков (Google, Yandex, Bing) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": `${siteUrl}/#organization`,
+                  name: "Tomilo-lib.ru",
+                  url: siteUrl,
+                  logo: {
+                    "@type": "ImageObject",
+                    url: `${siteUrl}/logo/tomilo_color.svg`,
+                    width: 200,
+                    height: 60,
+                  },
+                  description:
+                    "Читайте мангу, манхву и маньхуа онлайн бесплатно. Каталог тайтлов, удобный ридер, закладки и история чтения.",
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": `${siteUrl}/#website`,
+                  url: siteUrl,
+                  name: "Tomilo-lib.ru — Манга, манхва и маньхуа онлайн",
+                  description:
+                    "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, регулярные обновления.",
+                  publisher: { "@id": `${siteUrl}/#organization` },
+                  inLanguage: "ru-RU",
+                  potentialAction: {
+                    "@type": "SearchAction",
+                    target: {
+                      "@type": "EntryPoint",
+                      urlTemplate: `${siteUrl}/titles?search={search_term_string}`,
+                    },
+                    "query-input": "required name=search_term_string",
+                  },
+                },
+              ],
+            }),
+          }}
+        />
+
         <Script
           src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js"
           strategy="afterInteractive"

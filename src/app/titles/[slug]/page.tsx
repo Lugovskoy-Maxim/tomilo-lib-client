@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 import { TitleView } from "@/widgets";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 import { getOgImageUrl } from "@/lib/seo-og-image";
 import { sanitizeMetaString } from "@/lib/seo-meta-sanitize";
+import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -94,8 +95,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     // Санитизация для meta: апостроф/кавычки в названии не ломают парсер Telegram (не показывается Sil%26)
     const safeTitle = sanitizeMetaString(`Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`);
     const safeDescription = sanitizeMetaString(shortDescription);
-    // Формируем расширенные метаданные (всегда одно изображение для превью в мессенджерах)
-    const metadata: Metadata = {
+    const canonicalUrl = `${baseUrl}/titles/${encodeURIComponent(slug)}`;
+    const publishedTime =
+      titleData.createdAt && typeof titleData.createdAt === "string"
+        ? new Date(titleData.createdAt).toISOString()
+        : undefined;
+    const modifiedTime =
+      titleData.updatedAt && typeof titleData.updatedAt === "string"
+        ? new Date(titleData.updatedAt).toISOString()
+        : undefined;
+
+    return buildServerSEOMetadata({
       title: safeTitle,
       description: safeDescription,
       keywords: [
@@ -113,57 +123,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ]
         .filter(Boolean)
         .join(", "),
+      category: titleTypeTranslate,
+      canonicalUrl,
+      ogImageUrl,
+      ogImageAlt: coverImage ? `${titleName} - обложка` : "Tomilo-lib — читать онлайн",
+      type: "article",
+      article: {
+        author: titleData.author,
+        publishedTime,
+        modifiedTime,
+        section: titleData.type,
+        tags: titleData.genres,
+      },
       authors: titleData.author ? [titleData.author] : [],
-      creator: titleData.artist || titleData.author,
+      creator: titleData.artist || titleData.author || undefined,
       publisher: "Tomilo-lib.ru",
-      robots: {
-        index: true,
-        follow: true,
-        googleBot: {
-          index: true,
-          follow: true,
-          "max-video-preview": -1,
-          "max-image-preview": "large",
-          "max-snippet": -1,
-        },
-      },
-
-      openGraph: {
-        title: safeTitle,
-        description: safeDescription,
-        type: "article" as const,
-        url: `${baseUrl}/titles/${encodeURIComponent(slug)}`,
-        siteName: "Tomilo-lib.ru",
-        locale: "ru_RU",
-        images: [
-          {
-            url: ogImageUrl,
-            width: 1200,
-            height: 630,
-            alt: coverImage ? `${titleName} - обложка` : "Tomilo-lib — читать онлайн",
-          },
-        ],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: safeTitle,
-        description: safeDescription,
-        images: [ogImageUrl],
-        creator: "@tomilo_lib",
-        site: "@tomilo_lib",
-      },
-      alternates: {
-        canonical: `${baseUrl}/titles/${slug}`,
-        languages: {
-          "ru-RU": `${baseUrl}/titles/${slug}`,
-        },
-      },
-      verification: {
-        yandex: "8f2bae575aa86202",
-      },
-    };
-
-    return metadata;
+      verification: { yandex: "8f2bae575aa86202" },
+    });
   } catch (error) {
     console.error("Ошибка при генерации метаданных:", error);
     return {
@@ -189,6 +165,59 @@ export async function generateStaticParams() {
   }
 }
 
+function buildTitleJsonLd(baseUrl: string, titleData: Record<string, unknown>, titleName: string) {
+  const slug = String(titleData.slug ?? "");
+  const url = `${baseUrl}/titles/${encodeURIComponent(slug)}`;
+  const imageBaseUrl =
+    process.env.NEXT_PUBLIC_IMAGE_URL ||
+    (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/?$/, "") ||
+    baseUrl;
+  const cover =
+    titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
+  const image =
+    cover && typeof cover === "string"
+      ? cover.startsWith("http")
+        ? cover
+        : `${imageBaseUrl.replace(/\/$/, "")}${cover.startsWith("/") ? cover : `/${cover}`}`
+      : `${baseUrl}/logo/og-default.png`;
+  const type = String(titleData.type ?? "other");
+  const isBook = type === "novel" || type === "light_novel";
+  const description = titleData.description
+    ? String(titleData.description).replace(/<[^>]*>/g, "").substring(0, 500)
+    : `Читать ${titleName} онлайн на Tomilo-lib.ru`;
+
+  const mainEntity = {
+    "@context": "https://schema.org",
+    "@type": isBook ? "Book" : "ComicSeries",
+    name: titleName,
+    description,
+    url,
+    image,
+    inLanguage: "ru",
+    author: titleData.author
+      ? { "@type": "Person", name: String(titleData.author) }
+      : undefined,
+    publisher: { "@type": "Organization", name: "Tomilo-lib.ru", url: baseUrl },
+    datePublished: titleData.createdAt || undefined,
+    dateModified: titleData.updatedAt || undefined,
+    ...(titleData.genres && Array.isArray(titleData.genres) && titleData.genres.length > 0
+      ? { genre: titleData.genres.map((g: string) => ({ "@type": "Thing", name: g })) }
+      : {}),
+  };
+
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Главная", item: baseUrl },
+      { "@type": "ListItem", position: 2, name: "Каталог", item: `${baseUrl}/titles` },
+      { "@type": "ListItem", position: 3, name: titleName, item: url },
+    ],
+  };
+
+  return { mainEntity, breadcrumb };
+}
+
 export default async function TitlePageRoute({ params }: PageProps) {
   const resolvedParams = await params;
   const rawSlug = String(resolvedParams.slug ?? "");
@@ -199,18 +228,42 @@ export default async function TitlePageRoute({ params }: PageProps) {
     slug = rawSlug;
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+  const titleData = await getTitleDataBySlug(slug);
+
+  let jsonLdScripts: React.ReactNode = null;
+  if (titleData) {
+    const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
+    const { mainEntity, breadcrumb } = buildTitleJsonLd(baseUrl, titleData as Record<string, unknown>, titleName);
+    jsonLdScripts = (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(mainEntity) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+        />
+      </>
+    );
+  }
+
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-            <div className="text-[var(--foreground)]">Загрузка тайтла...</div>
+    <>
+      {jsonLdScripts}
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+              <div className="text-[var(--foreground)]">Загрузка тайтла...</div>
+            </div>
           </div>
-        </div>
-      }
-    >
-      <TitleView slug={slug} />
-    </Suspense>
+        }
+      >
+        <TitleView slug={slug} />
+      </Suspense>
+    </>
   );
 }

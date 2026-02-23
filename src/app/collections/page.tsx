@@ -1,6 +1,8 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { pageTitle } from "@/lib/page-title";
 import { CollectionsPage } from "@/widgets";
+import { buildServerSEOMetadata } from "@/lib/seo-metadata";
+import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 
 interface CollectionsPageProps {
   searchParams: Promise<{
@@ -24,33 +26,16 @@ export async function generateMetadata({ searchParams }: CollectionsPageProps): 
     : "Подборки тайтлов по темам и жанрам. Коллекции манги, манхвы и маньхуа для удобного чтения онлайн.";
   const canonicalUrl = search ? `${baseUrl}/collections?search=${encodeURIComponent(search)}` : `${baseUrl}/collections`;
 
-  return {
+  return buildServerSEOMetadata({
     title,
     description,
     keywords:
       "коллекции манги, подборки тайтлов, манхва, маньхуа, тематические коллекции, читать онлайн, Tomilo-lib",
-    robots: { index: true, follow: true },
-    alternates: { canonical: canonicalUrl, languages: { "ru-RU": canonicalUrl } },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      url: canonicalUrl,
-      siteName: "Tomilo-lib.ru",
-      locale: "ru_RU",
-      images: [
-        { url: `${baseUrl}/logo/tomilo_color.svg`, width: 1200, height: 630, alt: "Tomilo-lib — коллекции" },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [`${baseUrl}/logo/tomilo_color.svg`],
-      creator: "@tomilo_lib",
-      site: "@tomilo_lib",
-    },
-  };
+    canonicalUrl,
+    ogImageUrl: getDefaultOgImageUrl(baseUrl),
+    ogImageAlt: "Tomilo-lib — коллекции",
+    type: "website",
+  });
 }
 
 // Основной серверный компонент страницы коллекций

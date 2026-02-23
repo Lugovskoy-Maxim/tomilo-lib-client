@@ -3,6 +3,8 @@ import ServerChapterPage from "./ServerPage";
 import { Metadata } from "next";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 import { getOgImageUrl } from "@/lib/seo-og-image";
+import { buildServerSEOMetadata } from "@/lib/seo-metadata";
+import { sanitizeMetaString } from "@/lib/seo-meta-sanitize";
 
 // Кодируем slug для URL (апостроф, кавычки и др.) — бэкенд должен декодировать
 function encodeSlugForApi(slug: string): string {
@@ -63,11 +65,9 @@ export async function generateMetadata({
     const chapterNumber = Number(chapterData.chapterNumber) || 0;
     const chapterTitle = chapterData.title || "";
 
-    // Формирование заголовка по требованиям: "Читать глава № главы и название если есть - название тайтла - Tomilo-lib.ru"
     const formattedTitle = `Глава ${chapterNumber}${
       chapterTitle ? ` "${chapterTitle}"` : ""
     } - ${titleName} - Tomilo-lib.ru`;
-
     const shortDescription = `Читать ${titleName} главу ${chapterNumber}${
       chapterTitle ? ` "${chapterTitle}"` : ""
     } онлайн. Манга, манхва, маньхуа, комиксы.`;
@@ -78,81 +78,32 @@ export async function generateMetadata({
       baseUrl;
     const coverImage =
       titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
-    // Абсолютный URL — Telegram не подставляет домен к относительным путям в og:image
     const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
-    const chapterUrl = `${baseUrl}/titles/${slug}/chapter/${chapterId}`;
+    const chapterUrl = `${baseUrl}/titles/${encodeURIComponent(slug)}/chapter/${chapterId}`;
 
-    // Формируем метаданные (всегда передаём одно изображение для превью в мессенджерах)
-    const metadata: Metadata = {
-      title: formattedTitle,
-      description: shortDescription,
+    return buildServerSEOMetadata({
+      title: sanitizeMetaString(formattedTitle),
+      description: sanitizeMetaString(shortDescription),
       keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, читать онлайн, манга, маньхуа, манхва, комиксы`,
-      robots: {
-        index: true,
-        follow: true,
-        googleBot: {
-          index: true,
-          follow: true,
-          "max-image-preview": "large",
-          "max-snippet": -1,
-        },
-      },
-      alternates: {
-        canonical: chapterUrl,
-        languages: { "ru-RU": chapterUrl },
-      },
-      openGraph: {
-        title: formattedTitle,
-        description: shortDescription,
-        type: "article",
-        url: chapterUrl,
-        siteName: "Tomilo-lib.ru",
-        locale: "ru_RU",
-        images: [
-          {
-            url: ogImageUrl,
-            width: 1200,
-            height: 630,
-            alt: coverImage
-              ? `${titleName} — глава ${chapterNumber}`
-              : "Tomilo-lib — читать мангу, манхву, маньхуа",
-          },
-        ],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: formattedTitle,
-        description: shortDescription,
-        images: [ogImageUrl],
-        creator: "@tomilo_lib",
-        site: "@tomilo_lib",
-      },
-    };
-
-    return metadata;
+      canonicalUrl: chapterUrl,
+      ogImageUrl,
+      ogImageAlt: coverImage
+        ? `${titleName} — глава ${chapterNumber}`
+        : "Tomilo-lib — читать мангу, манхву, маньхуа",
+      type: "article",
+    });
   } catch (error) {
     console.error("Ошибка при генерации метаданных:", error);
     const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
     const fallbackImage = getOgImageUrl(baseUrl, null);
-    return {
+    return buildServerSEOMetadata({
       title: "Ошибка загрузки страницы | Tomilo-lib.ru",
       description: "Произошла ошибка при загрузке страницы",
-      openGraph: {
-        title: "Читать главу | Tomilo-lib.ru",
-        description: "Манга, манхва, маньхуа — читать онлайн на Tomilo-lib.ru",
-        type: "website",
-        url: baseUrl,
-        siteName: "Tomilo-lib.ru",
-        locale: "ru_RU",
-        images: [{ url: fallbackImage, width: 1200, height: 630, alt: "Tomilo-lib" }],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: "Читать главу | Tomilo-lib.ru",
-        description: "Манга, манхва, маньхуа — читать онлайн на Tomilo-lib.ru",
-        images: [fallbackImage],
-      },
-    };
+      canonicalUrl: baseUrl,
+      ogImageUrl: fallbackImage,
+      ogImageAlt: "Tomilo-lib",
+      type: "website",
+    });
   }
 }
 
