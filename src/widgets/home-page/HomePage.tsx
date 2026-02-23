@@ -213,7 +213,7 @@ export default function HomePage() {
           <AdBlock />
         </LazySection>
 
-        {/* Новости */}
+        {/* Новости — временно отключено
         <LazySection
           sectionId="news"
           onVisible={handleSectionVisible}
@@ -245,6 +245,7 @@ export default function HomePage() {
         >
           <NewsBlock />
         </LazySection>
+        */}
 
         {/* Продолжить чтение */}
         <LazySection

@@ -103,6 +103,8 @@ export default function ReadChapterPage({
   const [visibleChapterId, setVisibleChapterId] = useState<string>(chapterId);
   const chapterSectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const loadingChapterIdsRef = useRef<Set<string>>(new Set());
+  // Последовательное отображение картинок в режиме «главы подряд»: показываем только когда все предыдущие в главе загружены
+  const [loadedImagesByChapter, setLoadedImagesByChapter] = useState<Record<string, Set<number>>>({});
 
   // Синхронизируем loadedChapters при смене главы (напр. по URL)
   useEffect(() => {
@@ -110,6 +112,7 @@ export default function ReadChapterPage({
     setFirstLoadedIndex(currentChapterIndex);
     setLastLoadedIndex(currentChapterIndex);
     setVisibleChapterId(chapter._id);
+    setLoadedImagesByChapter({});
   }, [chapter._id, currentChapterIndex]);
 
   // Сброс флага остановки автопрокрутки через некоторое время после остановки
@@ -835,6 +838,12 @@ export default function ReadChapterPage({
                     const errorKey = `${ch._id}-${imageIndex}`;
                     const isError = imageLoadErrors.has(errorKey);
                     const imageUrl = getImageUrl(src);
+                    const loadedInChapter = loadedImagesByChapter[ch._id] ?? new Set<number>();
+                    const visible =
+                      imageIndex === 0 ||
+                      Array.from({ length: imageIndex }, (_, i) => i).every(i =>
+                        loadedInChapter.has(i),
+                      );
                     return (
                       <div key={`${ch._id}-${imageIndex}`} className="flex justify-center">
                         <div
@@ -842,6 +851,8 @@ export default function ReadChapterPage({
                           data-page={imageIndex + 1}
                           style={{
                             maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                            opacity: visible ? 1 : 0,
+                            transition: "opacity 200ms ease-out",
                           }}
                         >
                           {!isError ? (
@@ -855,6 +866,12 @@ export default function ReadChapterPage({
                               className="w-full h-auto shadow-lg sm:shadow-2xl"
                               quality={85}
                               loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
+                              onLoad={() =>
+                                setLoadedImagesByChapter(prev => ({
+                                  ...prev,
+                                  [ch._id]: new Set(prev[ch._id] ?? []).add(imageIndex),
+                                }))
+                              }
                               onError={() => handleImageError(ch._id, imageIndex)}
                               priority={imageIndex < (isMobile ? 3 : 1)}
                             />
@@ -995,6 +1012,12 @@ export default function ReadChapterPage({
                 const errorKey = `${chapter._id}-${imageIndex}`;
                 const isError = imageLoadErrors.has(errorKey);
                 const imageUrl = getImageUrl(src);
+                const loadedInChapter = loadedImagesByChapter[chapter._id] ?? new Set<number>();
+                const visible =
+                  imageIndex === 0 ||
+                  Array.from({ length: imageIndex }, (_, i) => i).every(i =>
+                    loadedInChapter.has(i),
+                  );
 
                 return (
                   <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center">
@@ -1003,6 +1026,8 @@ export default function ReadChapterPage({
                       data-page={imageIndex + 1}
                       style={{
                         maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                        opacity: visible ? 1 : 0,
+                        transition: "opacity 200ms ease-out",
                       }}
                     >
                       {!isError ? (
@@ -1039,6 +1064,12 @@ export default function ReadChapterPage({
                               : imageIndex < (isMobile ? 6 : 3)
                                 ? "eager"
                                 : "lazy"
+                          }
+                          onLoad={() =>
+                            setLoadedImagesByChapter(prev => ({
+                              ...prev,
+                              [chapter._id]: new Set(prev[chapter._id] ?? []).add(imageIndex),
+                            }))
                           }
                           onError={() => handleImageError(chapter._id, imageIndex)}
                           priority={

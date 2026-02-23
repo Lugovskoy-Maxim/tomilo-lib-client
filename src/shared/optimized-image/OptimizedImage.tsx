@@ -10,6 +10,8 @@ interface OptimizedImageProps {
   fill?: boolean;
   quality?: number;
   priority?: boolean;
+  /** Показывать изображение только когда true (для последовательного отображения по порядку) */
+  visible?: boolean;
   onLoad?: () => void;
   onError?: () => void;
   style?: React.CSSProperties;
@@ -27,6 +29,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   height,
   fill = false,
   priority = false,
+  visible = true,
   onLoad,
   onError,
   style,
@@ -224,7 +227,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     return renderError();
   }
 
-  // Определяем стиль отображения в зависимости от состояния загрузки
+  // Определяем стиль отображения: показываем только когда загружено и разрешено (visible — для порядка по индексу)
+  const showImage = isLoaded && visible;
   const imageStyle: React.CSSProperties = fill
     ? {
         display: "block",
@@ -233,7 +237,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         width: "100%",
         height: "100%",
         objectFit: "cover",
-        opacity: isLoaded ? 1 : 0,
+        opacity: showImage ? 1 : 0,
         transition: "opacity 200ms ease-out",
         ...style,
       }
@@ -241,7 +245,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         display: "block",
         width: width ? `${width}px` : "100%",
         height: height ? `${height}px` : "auto",
-        opacity: isLoaded ? 1 : 0,
+        opacity: showImage ? 1 : 0,
         transition: "opacity 200ms ease-out",
         ...style,
       };
