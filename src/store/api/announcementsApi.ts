@@ -31,14 +31,14 @@ export const announcementsApi = createApi({
       transformResponse: (response: ApiResponseDto<unknown>) => {
         const data = response?.data as { announcements?: unknown[]; total?: number; page?: number; limit?: number; totalPages?: number } | undefined;
         const raw = data?.announcements ?? (Array.isArray(data) ? data : []);
-        const announcements = raw.map((a: Record<string, unknown>) => ({
+        const announcements = (raw as Record<string, unknown>[]).map(a => ({
           ...a,
           id: (a.id as string) ?? (a._id as string) ?? "",
         })) as Announcement[];
         const total = data?.total ?? (Array.isArray(data) ? data.length : 0);
         const page = data?.page ?? 1;
         const limit = data?.limit ?? 10;
-        const totalPages = data?.totalPages ?? Math.ceil(total / limit) || 1;
+        const totalPages = data?.totalPages ?? (Math.ceil(total / limit) || 1);
         return {
           ...response,
           data: { announcements, total, page, limit, totalPages },
@@ -75,14 +75,14 @@ export const announcementsApi = createApi({
       transformResponse: (response: ApiResponseDto<unknown>) => {
         const data = response?.data as { announcements?: unknown[]; total?: number; page?: number; limit?: number; totalPages?: number } | undefined;
         const raw = data?.announcements ?? (Array.isArray(data) ? data : []);
-        const announcements = raw.map((a: Record<string, unknown>) => ({
+        const announcements = (raw as Record<string, unknown>[]).map(a => ({
           ...a,
           id: (a.id as string) ?? (a._id as string) ?? "",
         })) as Announcement[];
         const total = data?.total ?? (Array.isArray(data) ? data.length : 0);
         const page = data?.page ?? 1;
         const limit = data?.limit ?? 10;
-        const totalPages = data?.totalPages ?? Math.ceil(total / limit) || 1;
+        const totalPages = data?.totalPages ?? (Math.ceil(total / limit) || 1);
         return {
           ...response,
           data: { announcements, total, page, limit, totalPages },

@@ -28,9 +28,32 @@ type CommentsViewMode = "cards" | "list";
 type SortMode = "newest" | "oldest" | "popular" | "controversial";
 
 function CommentEntityLink({ comment }: { comment: Comment }) {
+  const titleIdFromInfo = comment.titleInfo?._id;
+  const slugFromInfo = comment.titleInfo?.slug;
+
   const { data: titleData } = useGetTitleByIdQuery(
     { id: comment.entityId },
     { skip: comment.entityType !== CommentEntityType.TITLE || !!comment.titleInfo },
+  );
+
+  const { data: chapterData } = useGetChapterByIdQuery(comment.entityId, {
+    skip: comment.entityType !== CommentEntityType.CHAPTER || !!titleIdFromInfo,
+  });
+
+  const resolvedTitleId =
+    (titleIdFromInfo ||
+      (chapterData?.titleId && typeof chapterData.titleId === "object"
+        ? (chapterData.titleId as { _id: string })._id
+        : (chapterData?.titleId as string))) ?? "";
+
+  const { data: titleDataForChapter } = useGetTitleByIdQuery(
+    { id: resolvedTitleId },
+    {
+      skip:
+        comment.entityType !== CommentEntityType.CHAPTER ||
+        !resolvedTitleId ||
+        !!slugFromInfo,
+    },
   );
 
   const titleName = comment.titleInfo?.name || titleData?.name;
@@ -53,25 +76,11 @@ function CommentEntityLink({ comment }: { comment: Comment }) {
   }
 
   if (comment.entityType === CommentEntityType.CHAPTER) {
-    const titleIdFromInfo = comment.titleInfo?._id;
-    const slugFromInfo = comment.titleInfo?.slug;
-    const { data: chapterData } = useGetChapterByIdQuery(comment.entityId, {
-      skip: !!titleIdFromInfo,
-    });
-    const resolvedTitleId =
-      titleIdFromInfo ||
-      (chapterData?.titleId && typeof chapterData.titleId === "object"
-        ? (chapterData.titleId as { _id: string })._id
-        : (chapterData?.titleId as string));
-    const { data: titleDataForChapter } = useGetTitleByIdQuery(
-      { id: resolvedTitleId ?? "" },
-      { skip: !resolvedTitleId || !!slugFromInfo },
-    );
     const slug = slugFromInfo ?? titleDataForChapter?.slug;
-    const titleId = titleIdFromInfo ?? resolvedTitleId;
+    const resolvedId = titleIdFromInfo ?? resolvedTitleId;
     const href =
-      titleId || slug
-        ? `/titles/${slug || titleId}/chapter/${comment.entityId}`
+      resolvedId || slug
+        ? `/titles/${slug || resolvedId}/chapter/${comment.entityId}`
         : null;
     if (href) {
       return (

@@ -142,7 +142,7 @@ export function AnnouncementsSection() {
     try {
       const payload: CreateAnnouncementDto = {
         ...form,
-        tags: Array.isArray(form.tags) ? form.tags : (form.tags as string || "").split(",").map(t => t.trim()).filter(Boolean),
+        tags: Array.isArray(form.tags) ? form.tags : String(form.tags ?? "").split(",").map(t => t.trim()).filter(Boolean),
       };
       await createAnnouncement(payload).unwrap();
       showAlert("Успешно", "Объявление создано");
@@ -159,7 +159,7 @@ export function AnnouncementsSection() {
     try {
       const payload: UpdateAnnouncementDto = {
         ...form,
-        tags: Array.isArray(form.tags) ? form.tags : (form.tags as string || "").split(",").map(t => t.trim()).filter(Boolean),
+        tags: Array.isArray(form.tags) ? form.tags : String(form.tags ?? "").split(",").map(t => t.trim()).filter(Boolean),
       };
       await updateAnnouncement({ id, data: payload }).unwrap();
       showAlert("Успешно", "Объявление обновлено");
@@ -196,7 +196,7 @@ export function AnnouncementsSection() {
         file,
         announcementId: getAnnouncementId(selected) || undefined,
       }).unwrap();
-      const url = res?.data?.url ?? res?.url;
+      const url = res?.data?.url;
       if (url) {
         if (forCover) setForm(f => ({ ...f, coverImage: url }));
         showAlert("Успешно", `Изображение загружено. URL: ${url}`);
@@ -312,7 +312,7 @@ export function AnnouncementsSection() {
         <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Теги (через запятую)</label>
         <input
           type="text"
-          value={Array.isArray(form.tags) ? form.tags.join(", ") : (form.tags as string) ?? ""}
+          value={Array.isArray(form.tags) ? form.tags.join(", ") : String(form.tags ?? "")}
           onChange={e =>
             setForm(f => ({
               ...f,
