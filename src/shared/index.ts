@@ -17,6 +17,7 @@ export { default as CollectionCard } from "./collection-card/CollectionCard";
 export { default as LastUpdates } from "./last-updates/LastUpdates";
 export { default as BookmarkCard } from "./bookmark-card/BookmarkCard";
 export { default as TopTitleCard } from "./top-title-card/TopTitleCard";
+export { default as FeaturedTitleBlock } from "./featured-title/FeaturedTitleBlock";
 
 // Reader
 export { default as NavigationHeader } from "./reader/NavigationHeader";

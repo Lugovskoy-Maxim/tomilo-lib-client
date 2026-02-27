@@ -468,9 +468,7 @@ export default function Carousel<T>({
         {/* Прокручиваемая карусель: с autoScroll — автопрокрутка + перетаскивание, без — обычная. */}
         <div
             ref={scrollContainerRef}
-            className={`flex gap-3 sm:gap-4 overflow-x-auto overflow-y-visible scrollbar-hide cursor-grab active:cursor-grabbing select-none py-2 sm:py-4 min-w-0 touch-pan-both will-change-scroll ${
-              autoScrollInterval ? "" : "snap-x snap-proximity scroll-smooth"
-            }`}
+            className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-visible scrollbar-hide cursor-grab active:cursor-grabbing select-none py-2 sm:py-4 min-w-0 touch-pan-both will-change-scroll"
             onMouseDown={handleMouseDown}
             onMouseEnter={() => {
               if (autoScrollInterval) {
@@ -500,9 +498,7 @@ export default function Carousel<T>({
             {(autoScrollInterval && data.length > 1 ? displayData : data).map((item, index) => (
                 <div
                   key={`${getCardId(item)}-${index}`}
-                  className={`flex-shrink-0 h-full ${cardWidth} ${
-                    autoScrollInterval ? "" : "snap-start"
-                  }`}
+                  className={`flex-shrink-0 h-full ${cardWidth}`}
                   data-card-id={getCardId(item)}
                   data-card-type={type}
                   onClick={(e) => handleCardClick(item, e)}

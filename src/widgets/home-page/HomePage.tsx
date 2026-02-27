@@ -11,6 +11,7 @@ import {
   SectionLoadError,
   TrendingCard,
   UnderratedCard,
+  FeaturedTitleBlock,
 } from "@/shared";
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
@@ -30,7 +31,7 @@ import NewsBlock from "@/widgets/home-page/NewsBlock";
 
 type VisibleSections = HomeVisibleSections &
   StaticDataVisibleSections &
-  Partial<{ ad: boolean; recommendations: boolean; news: boolean }>;
+  Partial<{ ad: boolean; recommendations: boolean; news: boolean; featured: boolean }>;
 
 // Вспомогательный компонент для рендера карусели
 const DataCarousel = ({
@@ -124,32 +125,71 @@ export default function HomePage() {
       <LinesBackground />
       <Header />
       <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full">
-        {/* Популярные тайтлы */}
+        {/* Популярные тайтлы — полноширинный блок */}
         <LazySection
-          sectionId="popular"
+          sectionId="featured"
           onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.popular}
+          isVisible={!!visibleSections.featured}
           skeleton={
-            <CarouselSkeleton
-              cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
-              variant="poster"
-            />
+            <div className="w-full">
+              <div className="relative w-full overflow-hidden bg-[var(--card)]">
+                <div className="flex flex-col md:flex-row min-h-[280px] sm:min-h-[340px] md:min-h-[420px] p-3 sm:p-5 md:p-8 gap-3 sm:gap-5 md:gap-8">
+                  <div className="w-28 sm:w-40 md:w-56 aspect-[2/3] rounded-lg sm:rounded-xl bg-[var(--muted)] animate-pulse mx-auto md:mx-0 flex-shrink-0" />
+                  <div className="flex-1 flex flex-col justify-center gap-3">
+                    <div className="flex gap-2 justify-center md:justify-start">
+                      <div className="h-5 sm:h-6 w-16 sm:w-20 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
+                      <div className="h-5 sm:h-6 w-12 sm:w-16 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
+                      <div className="h-5 sm:h-6 w-10 sm:w-14 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
+                    </div>
+                    <div className="h-6 sm:h-8 w-3/4 bg-[var(--muted)] rounded animate-pulse mx-auto md:mx-0" />
+                    <div className="space-y-2">
+                      <div className="h-3 sm:h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                      <div className="h-3 sm:h-4 w-5/6 bg-[var(--muted)] rounded animate-pulse" />
+                      <div className="h-3 sm:h-4 w-4/6 bg-[var(--muted)] rounded animate-pulse hidden sm:block" />
+                    </div>
+                    <div className="flex gap-2 sm:gap-3 justify-center md:justify-start pt-2">
+                      <div className="h-9 sm:h-10 w-24 sm:w-28 bg-[var(--muted)] rounded-lg sm:rounded-xl animate-pulse" />
+                      <div className="h-9 sm:h-10 w-10 sm:w-28 bg-[var(--muted)] rounded-lg sm:rounded-xl animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           }
         >
-          <DataCarousel
-            title="Популярные тайтлы"
-            data={popularTitles.data}
-            loading={popularTitles.loading}
-            error={popularTitles.error}
-            cardComponent={CarouselCard}
-            type="browse"
-            icon={<Trophy className="w-6 h-6" />}
-            navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-            cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
-            getItemPath={(item: any) => getTitlePath(item)}
-            autoScrollInterval={5000}
-            skeletonVariant="poster"
-          />
+          {popularTitles.loading ? (
+            <div className="w-full">
+              <div className="relative w-full overflow-hidden bg-[var(--card)]">
+                <div className="flex flex-col md:flex-row min-h-[280px] sm:min-h-[340px] md:min-h-[420px] p-3 sm:p-5 md:p-8 gap-3 sm:gap-5 md:gap-8">
+                  <div className="w-28 sm:w-40 md:w-56 aspect-[2/3] rounded-lg sm:rounded-xl bg-[var(--muted)] animate-pulse mx-auto md:mx-0 flex-shrink-0" />
+                  <div className="flex-1 flex flex-col justify-center gap-3">
+                    <div className="flex gap-2 justify-center md:justify-start">
+                      <div className="h-5 sm:h-6 w-16 sm:w-20 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
+                      <div className="h-5 sm:h-6 w-12 sm:w-16 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
+                      <div className="h-5 sm:h-6 w-10 sm:w-14 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
+                    </div>
+                    <div className="h-6 sm:h-8 w-3/4 bg-[var(--muted)] rounded animate-pulse mx-auto md:mx-0" />
+                    <div className="space-y-2">
+                      <div className="h-3 sm:h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                      <div className="h-3 sm:h-4 w-5/6 bg-[var(--muted)] rounded animate-pulse" />
+                      <div className="h-3 sm:h-4 w-4/6 bg-[var(--muted)] rounded animate-pulse hidden sm:block" />
+                    </div>
+                    <div className="flex gap-2 sm:gap-3 justify-center md:justify-start pt-2">
+                      <div className="h-9 sm:h-10 w-24 sm:w-28 bg-[var(--muted)] rounded-lg sm:rounded-xl animate-pulse" />
+                      <div className="h-9 sm:h-10 w-10 sm:w-28 bg-[var(--muted)] rounded-lg sm:rounded-xl animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : popularTitles.error ? (
+            <SectionLoadError sectionTitle="Популярные тайтлы" />
+          ) : (
+            <FeaturedTitleBlock
+              data={popularTitles.data}
+              autoPlayInterval={8000}
+            />
+          )}
         </LazySection>
 
         {/* Недавно добавленные — закомментировано
@@ -300,6 +340,34 @@ export default function HomePage() {
           ) : null}
         </LazySection>
 
+        {/* Telegram секция */}
+        <section className="w-full bg-gradient-to-br from-[#0088cc]/15 to-[#00aaff]/10">
+          <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 md:px-8">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 py-6 sm:py-8">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-[#0088cc] to-[#00aaff] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#0088cc]/20">
+                <Send className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-[var(--foreground)] mb-1.5 sm:mb-2">
+                  Присоединяйтесь к нашему Telegram
+                </h3>
+                <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mb-3 sm:mb-4 max-w-lg">
+                  Будьте первыми, кто узнает о новых релизах, обновлениях и эксклюзивном контенте. 
+                </p>
+                <a
+                  href="https://t.me/tomilolib"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-[#0088cc] hover:bg-[#0077b5] text-white text-sm sm:text-base font-medium transition-colors shadow-md hover:shadow-lg"
+                >
+                  <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  Подписаться
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Недооцененные: высокий рейтинг, мало просмотров */}
         <LazySection
           sectionId="underrated"
@@ -380,34 +448,6 @@ export default function HomePage() {
             )}
           </div>
         </LazySection>
-
-        {/* Telegram секция */}
-        <section className="w-full max-w-7xl mx-auto px-3 sm:px-4">
-          <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[#0088cc]/10 to-[#00aaff]/5 overflow-hidden">
-            <div className="flex flex-col sm:flex-row items-center gap-6 p-6 sm:p-8">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#0088cc] to-[#00aaff] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#0088cc]/20">
-                <Send className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <h3 className="text-lg sm:text-xl font-bold text-[var(--foreground)] mb-2">
-                  Присоединяйтесь к нашему Telegram
-                </h3>
-                <p className="text-sm text-[var(--muted-foreground)] mb-4 max-w-lg">
-                  Будьте первыми, кто узнает о новых релизах, обновлениях и эксклюзивном контенте. 
-                </p>
-                <a
-                  href="https://t.me/tomilolib"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] text-white font-medium transition-colors shadow-md hover:shadow-lg"
-                >
-                  <Send className="w-4 h-4" />
-                  Подписаться
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Рекомендации (только для авторизованных) */}
         {isAuthenticated && (

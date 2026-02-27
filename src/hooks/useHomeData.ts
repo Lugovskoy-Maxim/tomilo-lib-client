@@ -13,6 +13,7 @@ const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
 export type HomeVisibleSections = Partial<{
   popular: boolean;
+  featured: boolean;
   recent: boolean;
   trending: boolean;
   underrated: boolean;
@@ -189,7 +190,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
     refetchOnMountOrArgChange: 600,
   };
 
-  const skipPopular = !visibleSections.popular;
+  const skipPopular = !visibleSections.popular && !visibleSections.featured;
   const skipRecent = !visibleSections.recent;
   const skipTrending = !visibleSections.trending;
   const skipUnderrated = !visibleSections.underrated;
@@ -202,7 +203,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
     data: popularTitlesData,
     isLoading: popularTitlesLoading,
     error: popularTitlesError,
-  } = useGetPopularTitlesQuery({ limit: 35 }, { ...popularCacheOptions, skip: skipPopular });
+  } = useGetPopularTitlesQuery({ limit: 20 }, { ...popularCacheOptions, skip: skipPopular });
 
   // Недавно добавленные в каталог
   const {
