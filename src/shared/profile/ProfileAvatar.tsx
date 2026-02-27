@@ -64,7 +64,6 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   const sizeClass = sizeClasses[size];
   const pixelSize = size === "sm" ? 96 : 144;
   const frameUrl = isCurrentUser ? resolvedFrameUrl : getEquippedFrameUrl(userProfile.equippedDecorations);
-  const avatarDecorationUrl = isCurrentUser ? resolvedAvatarUrl : getAvatarDecorationUrl(userProfile.equippedDecorations);
 
   const { primary: baseAvatarPrimary, fallback: baseAvatarFallback } = userProfile.avatar
     ? getImageUrls(userProfile.avatar)
@@ -92,6 +91,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   );
 
   const hasImage = Boolean(mainImageUrl);
+  const avatarDecorationUrl = decorationUrls.primary;
   const hasDecoration = Boolean(frameUrl || avatarDecorationUrl);
   const wrapperClass = `relative ${sizeClass} aspect-square shrink-0 rounded-full overflow-hidden shadow-2xl glow-avatar transition-transform duration-300 group-hover:scale-105 ${
     hasDecoration ? "" : "border-4 border-[var(--background)]"

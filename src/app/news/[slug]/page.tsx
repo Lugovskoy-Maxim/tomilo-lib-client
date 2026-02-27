@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useMemo } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { useGetAnnouncementBySlugQuery } from "@/store/api/announcementsApi";
@@ -14,8 +14,16 @@ interface PageProps {
 export default function NewsSlugPage({ params }: PageProps) {
   const { slug } = use(params);
   const { data, isLoading, error } = useGetAnnouncementBySlugQuery(slug);
+  const [useCoverFallback, setUseCoverFallback] = useState(false);
 
   const announcement = data?.data;
+
+  const { coverSrc, coverPrimary, coverFallback } = useMemo(() => {
+    if (!announcement?.coverImage) return { coverSrc: "", coverPrimary: "", coverFallback: "" };
+    const { primary, fallback } = getAnnouncementImageUrls(announcement.coverImage);
+    const src = useCoverFallback && fallback !== primary ? fallback : primary;
+    return { coverSrc: src, coverPrimary: primary, coverFallback: fallback };
+  }, [announcement?.coverImage, useCoverFallback]);
 
   if (isLoading) {
     return (
@@ -53,10 +61,6 @@ export default function NewsSlugPage({ params }: PageProps) {
       </>
     );
   }
-
-  const { primary: coverPrimary, fallback: coverFallback } = getAnnouncementImageUrls(announcement.coverImage);
-  const [useCoverFallback, setUseCoverFallback] = useState(false);
-  const coverSrc = useCoverFallback && coverFallback !== coverPrimary ? coverFallback : coverPrimary;
 
   return (
     <>
