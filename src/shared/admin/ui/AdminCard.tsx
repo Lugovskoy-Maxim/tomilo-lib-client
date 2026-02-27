@@ -30,8 +30,6 @@ interface AdminCardProps {
   footer?: React.ReactNode;
   loading?: boolean;
   noPadding?: boolean;
-  /** Отключить эффект hover (удобно для карточек-обёрток таблиц) */
-  noHover?: boolean;
 }
 
 export function AdminCard({
@@ -43,13 +41,11 @@ export function AdminCard({
   footer,
   loading = false,
   noPadding = false,
-  noHover = false,
 }: AdminCardProps) {
   return (
     <div
       className={cn(
         "bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden",
-        !noHover && "card-hover-soft",
         className
       )}
     >
@@ -135,7 +131,6 @@ export function StatCard({
       onClick={onClick}
       className={cn(
         "bg-[var(--card)] rounded-[var(--admin-radius)] border p-4",
-        "card-hover-soft",
         onClick && "cursor-pointer",
         colorMap[color]
       )}

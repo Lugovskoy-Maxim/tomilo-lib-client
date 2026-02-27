@@ -23,7 +23,7 @@ export function UserCard({ user, onView, onDelete, normalizeUrl, formatDate }: U
     user.role === "admin" ? "Админ" : user.role === "moderator" ? "Модератор" : "Пользователь";
 
   return (
-    <div className="bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] p-4 card-hover-soft shadow-sm hover:shadow-md transition-all">
+    <div className="bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
           <div className="w-12 h-12 bg-[var(--secondary)] rounded-full flex items-center justify-center flex-shrink-0">

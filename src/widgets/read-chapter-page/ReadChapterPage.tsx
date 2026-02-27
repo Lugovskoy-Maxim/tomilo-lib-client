@@ -923,7 +923,7 @@ export default function ReadChapterPage({
                       </div>
                     );
                   })}
-                  {ch._id === loadedChapters[loadedChapters.length - 1]?._id && <AdBlockReading />}
+                  {/* ch._id === loadedChapters[loadedChapters.length - 1]?._id && <AdBlockReading /> */}
                 </div>
               ))}
               {loadingNext && (
@@ -1133,8 +1133,9 @@ export default function ReadChapterPage({
               })
             )}
 
-            {/* Рекламный блок */}
+            {/* Рекламный блок — временно отключено
             <AdBlockReading />
+            */}
 
             {/* Футер главы с кнопками навигации */}
             <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10 px-4 sm:px-0">

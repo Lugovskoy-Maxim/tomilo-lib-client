@@ -507,7 +507,7 @@ export function RightContent({
               </div>
             </div>
 
-            <AdBlock />
+            {/* <AdBlock /> */}
 
             {/* Список глав */}
             <div className="space-y-2">

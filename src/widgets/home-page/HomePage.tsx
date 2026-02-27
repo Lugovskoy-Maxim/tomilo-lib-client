@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
-import { BookOpen, Clock, Flame, Gem, LibraryIcon, PlusCircle, SquareArrowOutUpRight, Trophy } from "lucide-react";
+import { BookOpen, Clock, Flame, Gem, LibraryIcon, PlusCircle, SquareArrowOutUpRight, Trophy, Send } from "lucide-react";
 
 import {
   CarouselCard,
@@ -203,7 +203,7 @@ export default function HomePage() {
           )}
         </LazySection>
 
-        {/* Рекламный блок */}
+        {/* Рекламный блок — временно отключено
         <LazySection
           sectionId="ad"
           onVisible={handleSectionVisible}
@@ -212,8 +212,9 @@ export default function HomePage() {
         >
           <AdBlock />
         </LazySection>
+        */}
 
-        {/* Новости — временно отключено
+        {/* Новости */}
         <LazySection
           sectionId="news"
           onVisible={handleSectionVisible}
@@ -245,7 +246,6 @@ export default function HomePage() {
         >
           <NewsBlock />
         </LazySection>
-        */}
 
         {/* Продолжить чтение */}
         <LazySection
@@ -380,6 +380,34 @@ export default function HomePage() {
             )}
           </div>
         </LazySection>
+
+        {/* Telegram секция */}
+        <section className="w-full max-w-7xl mx-auto px-3 sm:px-4">
+          <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[#0088cc]/10 to-[#00aaff]/5 overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-center gap-6 p-6 sm:p-8">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#0088cc] to-[#00aaff] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#0088cc]/20">
+                <Send className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-lg sm:text-xl font-bold text-[var(--foreground)] mb-2">
+                  Присоединяйтесь к нашему Telegram
+                </h3>
+                <p className="text-sm text-[var(--muted-foreground)] mb-4 max-w-lg">
+                  Будьте первыми, кто узнает о новых релизах, обновлениях и эксклюзивном контенте. 
+                </p>
+                <a
+                  href="https://t.me/tomilolib"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] text-white font-medium transition-colors shadow-md hover:shadow-lg"
+                >
+                  <Send className="w-4 h-4" />
+                  Подписаться
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Рекомендации (только для авторизованных) */}
         {isAuthenticated && (
