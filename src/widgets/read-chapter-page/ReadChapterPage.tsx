@@ -27,6 +27,7 @@ import {
 
 import ChapterErrorState from "@/shared/error-state/ChapterErrorState";
 import ReadingPositionRestoreModal from "@/shared/reader/ReadingPositionRestoreModal";
+import { ChapterCommentsSection } from "@/shared/reader/ChapterCommentsSection";
 
 function apiChapterToReaderChapter(ch: Chapter): ReaderChapter {
   const pages = ch.pages || ch.images || [];
@@ -1130,6 +1131,9 @@ export default function ReadChapterPage({
             {/* Рекламный блок — временно отключено
             <AdBlockReading />
             */}
+
+            {/* Секция комментариев */}
+            <ChapterCommentsSection chapterId={chapter._id} />
 
             {/* Футер главы с кнопками навигации */}
             <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10 px-4 sm:px-0">
