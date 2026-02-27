@@ -1214,7 +1214,7 @@ textarea.admin-input {
 }
 
 [data-theme="dark"] .footer-glass {
-  background: rgba(20, 20, 25, 0.9);
+  background: rgba(2, 2, 4, 0.98);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -1327,214 +1327,489 @@ textarea.admin-input {
   }
 }
 
-/* Mobile footer bar — контейнер с отступом под safe area */
-.footer-mobile-bar {
-  padding: 0.5rem 0.75rem max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE FOOTER v2.0 — Полностью переработанный UX/UI
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Основной контейнер */
+.mobile-footer {
+  padding: 0.5rem 1rem max(1rem, env(safe-area-inset-bottom, 1rem));
 }
 
-/* Пилл-контейнер панели: стекло, скругление, тень */
-.footer-mobile-bar-inner {
-  max-width: 28rem;
+/* Pill-контейнер с улучшенным стеклом */
+.mobile-footer__container {
+  max-width: 24rem;
   margin: 0 auto;
-  padding: 0.5rem 0.375rem;
-  border-radius: 1.75rem;
-  background: rgba(var(--background-rgb), 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(var(--border-rgb), 0.7);
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  background: rgba(var(--background-rgb), 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(var(--border-rgb), 0.5);
   box-shadow:
-    0 -2px 16px rgba(0, 0, 0, 0.06),
-    0 4px 20px rgba(0, 0, 0, 0.06),
+    0 4px 24px rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .mobile-footer__container {
+  background: rgba(2, 2, 4, 0.98);
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
-[data-theme="dark"] .footer-mobile-bar-inner {
-  background: rgba(22, 22, 28, 0.92);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 -4px 24px rgba(0, 0, 0, 0.35),
-    0 4px 16px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
 
-.footer-mobile-nav {
+/* Навигация */
+.mobile-footer__nav {
   display: flex;
-  align-items: stretch;
-  justify-content: space-around;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.25rem;
 }
 
-.footer-mobile-item-wrap {
-  display: flex;
-  align-items: stretch;
-}
-
-/* Кнопка/ссылка пункта навигации */
-.footer-mobile-item {
+/* Обычный пункт навигации */
+.mobile-footer__item {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  min-width: 52px;
-  min-height: 52px;
-  padding: 0.375rem 0.5rem;
-  border-radius: 1.25rem;
+  gap: 0.0625rem;
+  min-width: 3.25rem;
+  padding: 0.375rem 0.5rem 0.25rem;
+  border-radius: 1rem;
   color: var(--muted-foreground);
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
   font-weight: 500;
-  line-height: 1.2;
+  letter-spacing: 0.01em;
   text-decoration: none;
-  transition: color 0.2s ease, background 0.2s ease, transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-tap-highlight-color: transparent;
 }
-.footer-mobile-item:active {
-  transform: scale(0.96);
-}
-.footer-mobile-item:hover {
-  color: var(--foreground);
-  background: var(--accent);
+
+.mobile-footer__item:active {
+  transform: scale(0.92);
 }
 
-.footer-mobile-item-active {
+.mobile-footer__item--active {
   color: var(--primary);
-  background: rgba(var(--primary-rgb), 0.12);
-}
-.footer-mobile-item-active:hover {
-  color: var(--primary);
-  background: rgba(var(--primary-rgb), 0.18);
 }
 
-.footer-mobile-icon-wrap {
+/* Контейнер иконки */
+.mobile-footer__icon-container {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 1.5rem;
+  height: 1.5rem;
 }
-.footer-mobile-icon {
-  width: 1.375rem;
-  height: 1.375rem;
-  flex-shrink: 0;
+
+.mobile-footer__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform 0.2s ease;
 }
-.footer-mobile-label {
-  max-width: 4rem;
+
+.mobile-footer__item--active .mobile-footer__icon {
+  transform: scale(1.05);
+}
+
+/* Индикатор активного пункта — точка под иконкой */
+.mobile-footer__indicator {
+  position: absolute;
+  bottom: -0.375rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: indicator-pulse 2s ease-in-out infinite;
+}
+
+@keyframes indicator-pulse {
+  0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.6; transform: translateX(-50%) scale(0.8); }
+}
+
+/* Лейбл */
+.mobile-footer__label {
+  max-width: 3.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
+  opacity: 0.9;
 }
 
-/* ——— Bottom sheet «Ещё» ——— */
-.footer-more-overlay {
+.mobile-footer__item--active .mobile-footer__label {
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* ═══ Главная кнопка — акцентная, выделяющаяся ═══ */
+.mobile-footer__main-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  margin: -1.5rem 0.25rem -0.5rem;
+  border-radius: 50%;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-footer__main-btn-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--card);
+  border: 2px solid rgba(var(--primary-rgb), 0.3);
+  box-shadow:
+    0 4px 16px rgba(var(--primary-rgb), 0.25),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-footer__main-logo {
+  object-fit: cover !important;
+  transition: transform 0.2s ease;
+}
+
+.mobile-footer__main-btn:active .mobile-footer__main-btn-inner {
+  transform: scale(0.92);
+}
+
+.mobile-footer__main-btn--active .mobile-footer__main-btn-inner {
+  border-color: var(--primary);
+  box-shadow:
+    0 6px 24px rgba(var(--primary-rgb), 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.mobile-footer__main-btn--active .mobile-footer__main-logo,
+.mobile-footer__main-btn:hover .mobile-footer__main-logo {
+  transform: scale(1.08);
+}
+
+/* Свечение под главной кнопкой */
+.mobile-footer__main-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--primary-rgb), 0.3) 0%, transparent 70%);
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.mobile-footer__main-btn--active .mobile-footer__main-glow {
+  opacity: 1;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.1); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE SHEET v2.0 — Bottom Sheet с свайпами и группировкой
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Overlay */
+.mobile-sheet-overlay {
   position: fixed;
   inset: 0;
   z-index: var(--z-sheet-backdrop);
   background: rgba(0, 0, 0, 0);
-  backdrop-filter: none;
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
   pointer-events: none;
-  transition: background 0.25s ease, backdrop-filter 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.footer-more-overlay-open {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+
+.mobile-sheet-overlay--open {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   pointer-events: auto;
 }
 
-.footer-more-sheet {
+/* Sheet */
+.mobile-sheet {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: var(--z-sheet);
-  max-height: 70vh;
-  border-radius: 1.25rem 1.25rem 0 0;
+  max-height: 85vh;
+  border-radius: 1.5rem 1.5rem 0 0;
   background: var(--card);
   border: 1px solid var(--border);
   border-bottom: none;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 -8px 40px rgba(0, 0, 0, 0.12),
+    0 -2px 8px rgba(0, 0, 0, 0.04);
   transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
   padding-bottom: env(safe-area-inset-bottom, 0);
+  overflow: hidden;
+  touch-action: none;
 }
-[data-theme="dark"] .footer-more-sheet {
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+
+[data-theme="dark"] .mobile-sheet {
+  background: rgba(2, 2, 4, 0.99);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 -8px 48px rgba(0, 0, 0, 0.5),
+    0 -2px 12px rgba(0, 0, 0, 0.3);
 }
-.footer-more-sheet-open {
+
+.mobile-sheet--open {
   transform: translateY(0);
 }
 
-.footer-more-sheet-handle {
-  width: 2.5rem;
-  height: 0.25rem;
-  margin: 0.5rem auto 0;
-  border-radius: 999px;
-  background: var(--muted-foreground);
-  opacity: 0.4;
+/* Header */
+.mobile-sheet__header {
+  padding: 0.5rem 1rem 0;
+  cursor: grab;
 }
 
-.footer-more-sheet-header {
+.mobile-sheet__header:active {
+  cursor: grabbing;
+}
+
+.mobile-sheet__handle {
+  width: 2.5rem;
+  height: 0.25rem;
+  margin: 0 auto 0.75rem;
+  border-radius: 999px;
+  background: var(--muted-foreground);
+  opacity: 0.25;
+  transition: opacity 0.2s ease, width 0.2s ease;
+}
+
+.mobile-sheet:hover .mobile-sheet__handle {
+  opacity: 0.4;
+  width: 3rem;
+}
+
+.mobile-sheet__title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
 }
-.footer-more-sheet-title {
-  font-size: 1rem;
+
+.mobile-sheet__title-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mobile-sheet__title-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--primary);
+}
+
+.mobile-sheet__title {
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--foreground);
+  letter-spacing: -0.01em;
 }
-.footer-more-sheet-close {
+
+.mobile-sheet__close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 0.75rem;
   color: var(--muted-foreground);
-  background: transparent;
+  background: var(--accent);
   border: none;
   cursor: pointer;
-  transition: color 0.2s ease, background 0.2s ease;
+  transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.footer-more-sheet-close:hover {
+
+.mobile-sheet__close:hover {
   color: var(--foreground);
-  background: var(--accent);
+  background: var(--muted);
 }
 
-.footer-more-sheet-body {
-  padding: 0.25rem 0.75rem 1rem;
+.mobile-sheet__close:active {
+  transform: scale(0.92);
+}
+
+/* Content — прокручиваемая область */
+.mobile-sheet__content {
+  padding: 1rem;
+  max-height: calc(85vh - 8rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Секции */
+.mobile-sheet__section {
+  margin-bottom: 0.5rem;
+}
+
+.mobile-sheet__section:last-child {
+  margin-bottom: 0;
+}
+
+.mobile-sheet__section-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  padding: 0 0.75rem 0.5rem;
+  margin: 0;
+}
+
+.mobile-sheet__section-items {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
 }
-.footer-more-sheet-item {
+
+.mobile-sheet__divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.75rem 0;
+  opacity: 0.6;
+}
+
+/* Пункт меню */
+.mobile-sheet__item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
+  padding: 0.875rem 0.75rem;
+  border-radius: 0.875rem;
   font-size: 0.9375rem;
   color: var(--foreground);
   text-decoration: none;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: all 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.footer-more-sheet-item:hover {
+
+.mobile-sheet__item:hover {
   background: var(--accent);
 }
-.footer-more-sheet-item-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: var(--muted-foreground);
+
+.mobile-sheet__item:active {
+  background: var(--muted);
+  transform: scale(0.98);
+}
+
+.mobile-sheet__item-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  background: rgba(var(--primary-rgb), 0.08);
+  transition: all 0.2s ease;
+}
+
+.mobile-sheet__item:hover .mobile-sheet__item-icon-wrap {
+  background: rgba(var(--primary-rgb), 0.15);
+}
+
+.mobile-sheet__item-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--primary);
   flex-shrink: 0;
 }
-.footer-more-sheet-item:hover .footer-more-sheet-item-icon {
-  color: var(--chart-1);
+
+.mobile-sheet__item-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mobile-sheet__item-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-sheet__item-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(135deg, var(--primary), var(--chart-1));
+  color: white;
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.mobile-sheet__item-arrow {
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobile-sheet__item:hover .mobile-sheet__item-arrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.mobile-sheet__item-external {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--muted-foreground);
+  opacity: 0.6;
+  margin-left: -0.25rem;
+  flex-shrink: 0;
+}
+
+/* Footer внутри sheet */
+.mobile-sheet__footer {
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.mobile-sheet__copyright {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  opacity: 0.7;
 }
 
 /* Mobile nav modern - ReaderControls style */
