@@ -202,6 +202,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
   const {
     data: popularTitlesData,
     isLoading: popularTitlesLoading,
+    isUninitialized: popularTitlesUninitialized,
     error: popularTitlesError,
   } = useGetPopularTitlesQuery({ limit: 20 }, { ...popularCacheOptions, skip: skipPopular });
 
@@ -505,7 +506,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
   return {
     popularTitles: {
       data: popularTitles,
-      loading: popularTitlesLoading,
+      loading: popularTitlesLoading || popularTitlesUninitialized,
       error: popularTitlesError,
     },
     recentTitles: {

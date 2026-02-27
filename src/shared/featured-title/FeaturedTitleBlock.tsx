@@ -281,19 +281,19 @@ export default function FeaturedTitleBlock({
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setTimeout(() => setIsPaused(false), 3000)}
       >
-        <div className="absolute inset-0 bg-black" />
+        <div className="absolute inset-0 bg-zinc-900/30" />
         
         <div
-          className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out opacity-60"
+          className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out opacity-20"
           style={{
             backgroundImage: `url(${imageSrc})`,
-            filter: "blur(40px) saturate(1.3)",
+            filter: "blur(50px) saturate(1.4)",
             transform: "scale(1.2)",
           }}
         />
 
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/50" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-zinc-900/70 via-zinc-900/30 to-zinc-900/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 via-transparent to-zinc-900/40" />
 
         {isAdultContent && !isAgeVerified && (
           <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">

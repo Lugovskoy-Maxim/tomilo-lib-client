@@ -25,6 +25,7 @@ import AdBlock from "@/shared/ad-block/AdBlock";
 import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";
 import { TopCombinedSkeleton } from "@/shared/skeleton/TopCombinedSkeleton";
 import { GridSkeleton } from "@/shared/skeleton/GridSkeleton";
+import { FeaturedTitleSkeleton } from "@/shared/skeleton/FeaturedTitleSkeleton";
 import Recommendations from "@/shared/recommendations/Recommendations";
 import LinesBackground from "@/shared/lines-background/LinesBackground";
 import NewsBlock from "@/widgets/home-page/NewsBlock";
@@ -130,58 +131,10 @@ export default function HomePage() {
           sectionId="featured"
           onVisible={handleSectionVisible}
           isVisible={!!visibleSections.featured}
-          skeleton={
-            <div className="w-full">
-              <div className="relative w-full overflow-hidden bg-[var(--card)]">
-                <div className="flex flex-col md:flex-row min-h-[280px] sm:min-h-[340px] md:min-h-[420px] p-3 sm:p-5 md:p-8 gap-3 sm:gap-5 md:gap-8">
-                  <div className="w-28 sm:w-40 md:w-56 aspect-[2/3] rounded-lg sm:rounded-xl bg-[var(--muted)] animate-pulse mx-auto md:mx-0 flex-shrink-0" />
-                  <div className="flex-1 flex flex-col justify-center gap-3">
-                    <div className="flex gap-2 justify-center md:justify-start">
-                      <div className="h-5 sm:h-6 w-16 sm:w-20 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
-                      <div className="h-5 sm:h-6 w-12 sm:w-16 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
-                      <div className="h-5 sm:h-6 w-10 sm:w-14 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
-                    </div>
-                    <div className="h-6 sm:h-8 w-3/4 bg-[var(--muted)] rounded animate-pulse mx-auto md:mx-0" />
-                    <div className="space-y-2">
-                      <div className="h-3 sm:h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
-                      <div className="h-3 sm:h-4 w-5/6 bg-[var(--muted)] rounded animate-pulse" />
-                      <div className="h-3 sm:h-4 w-4/6 bg-[var(--muted)] rounded animate-pulse hidden sm:block" />
-                    </div>
-                    <div className="flex gap-2 sm:gap-3 justify-center md:justify-start pt-2">
-                      <div className="h-9 sm:h-10 w-24 sm:w-28 bg-[var(--muted)] rounded-lg sm:rounded-xl animate-pulse" />
-                      <div className="h-9 sm:h-10 w-10 sm:w-28 bg-[var(--muted)] rounded-lg sm:rounded-xl animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
+          skeleton={<FeaturedTitleSkeleton />}
         >
           {popularTitles.loading ? (
-            <div className="w-full">
-              <div className="relative w-full overflow-hidden bg-[var(--card)]">
-                <div className="flex flex-col md:flex-row min-h-[280px] sm:min-h-[340px] md:min-h-[420px] p-3 sm:p-5 md:p-8 gap-3 sm:gap-5 md:gap-8">
-                  <div className="w-28 sm:w-40 md:w-56 aspect-[2/3] rounded-lg sm:rounded-xl bg-[var(--muted)] animate-pulse mx-auto md:mx-0 flex-shrink-0" />
-                  <div className="flex-1 flex flex-col justify-center gap-3">
-                    <div className="flex gap-2 justify-center md:justify-start">
-                      <div className="h-5 sm:h-6 w-16 sm:w-20 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
-                      <div className="h-5 sm:h-6 w-12 sm:w-16 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
-                      <div className="h-5 sm:h-6 w-10 sm:w-14 bg-[var(--muted)] rounded-md sm:rounded-lg animate-pulse" />
-                    </div>
-                    <div className="h-6 sm:h-8 w-3/4 bg-[var(--muted)] rounded animate-pulse mx-auto md:mx-0" />
-                    <div className="space-y-2">
-                      <div className="h-3 sm:h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
-                      <div className="h-3 sm:h-4 w-5/6 bg-[var(--muted)] rounded animate-pulse" />
-                      <div className="h-3 sm:h-4 w-4/6 bg-[var(--muted)] rounded animate-pulse hidden sm:block" />
-                    </div>
-                    <div className="flex gap-2 sm:gap-3 justify-center md:justify-start pt-2">
-                      <div className="h-9 sm:h-10 w-24 sm:w-28 bg-[var(--muted)] rounded-lg sm:rounded-xl animate-pulse" />
-                      <div className="h-9 sm:h-10 w-10 sm:w-28 bg-[var(--muted)] rounded-lg sm:rounded-xl animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <FeaturedTitleSkeleton />
           ) : popularTitles.error ? (
             <SectionLoadError sectionTitle="Популярные тайтлы" />
           ) : (
