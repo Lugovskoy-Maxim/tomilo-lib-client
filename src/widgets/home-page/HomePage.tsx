@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { BookOpen, Clock, Flame, Gem, LibraryIcon, PlusCircle, SquareArrowOutUpRight, Trophy, Send } from "lucide-react";
 
 import {
@@ -295,10 +296,10 @@ export default function HomePage() {
 
         {/* Telegram секция */}
         <section className="w-full bg-gradient-to-br from-[#0088cc]/15 to-[#00aaff]/10">
-          <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 md:px-8">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 py-6 sm:py-8">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-[#0088cc] to-[#00aaff] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#0088cc]/20">
-                <Send className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
+          <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 md:px-8 h-[200px]">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 h-full">
+              <div className="flex items-center flex-shrink-0 h-full py-2">
+                <Image src="/tg/tg.png" alt="Telegram" width={200} height={200} className="h-full w-auto object-contain" style={{ filter: "brightness(0) saturate(100%) invert(38%) sepia(98%) saturate(1029%) hue-rotate(175deg) brightness(96%) contrast(101%)" }} />
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-[var(--foreground)] mb-1.5 sm:mb-2">
