@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Plus,
   Search,
@@ -10,6 +10,7 @@ import {
   Pin,
   Megaphone,
   Image as ImageIcon,
+  X,
 } from "lucide-react";
 import {
   useGetAdminAnnouncementsQuery,
@@ -24,7 +25,7 @@ import type {
   UpdateAnnouncementDto,
   AnnouncementLayout,
 } from "@/types/announcement";
-import { AdminCard, AdminModal, ConfirmModal, AlertModal } from "@/shared/admin/ui";
+import { AdminCard, AdminModal, ConfirmModal, AlertModal, RichTextEditor } from "@/shared/admin/ui";
 import LoadingSkeleton from "@/shared/skeleton/skeleton";
 import { ErrorState as SharedErrorState } from "@/shared/error-state";
 import Pagination from "@/shared/browse/pagination";
@@ -79,6 +80,7 @@ export function AnnouncementsSection() {
   const [selected, setSelected] = useState<Announcement | null>(null);
   const [form, setForm] = useState<CreateAnnouncementDto>(emptyForm);
   const [slugManual, setSlugManual] = useState(false);
+  const tagInputRef = useRef<HTMLInputElement>(null);
 
   const {
     data: response,
@@ -251,13 +253,24 @@ export function AnnouncementsSection() {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Контент (HTML)</label>
-        <textarea
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Контент</label>
+        <RichTextEditor
           value={form.body ?? ""}
-          onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
-          rows={6}
-          className="w-full rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--foreground)] font-mono"
-          placeholder="<p>HTML-контент</p>"
+          onChange={body => setForm(f => ({ ...f, body }))}
+          placeholder="Начните писать содержимое объявления..."
+          minHeight="250px"
+          onImageUpload={async file => {
+            try {
+              const res = await uploadImage({
+                file,
+                announcementId: getAnnouncementId(selected) || undefined,
+              }).unwrap();
+              return res?.data?.url ?? null;
+            } catch {
+              showAlert("Ошибка", "Не удалось загрузить изображение");
+              return null;
+            }
+          }}
         />
       </div>
       <div>
@@ -309,19 +322,60 @@ export function AnnouncementsSection() {
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Теги (через запятую)</label>
-        <input
-          type="text"
-          value={Array.isArray(form.tags) ? form.tags.join(", ") : String(form.tags ?? "")}
-          onChange={e =>
-            setForm(f => ({
-              ...f,
-              tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean),
-            }))
-          }
-          className="w-full rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--foreground)]"
-          placeholder="новости, обновления"
-        />
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Теги</label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {(Array.isArray(form.tags) ? form.tags : []).map((tag, idx) => (
+            <span
+              key={`${tag}-${idx}`}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-medium"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => {
+                  const newTags = [...(form.tags ?? [])];
+                  newTags.splice(idx, 1);
+                  setForm(f => ({ ...f, tags: newTags }));
+                }}
+                className="ml-0.5 hover:text-[var(--destructive)] transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            ref={tagInputRef}
+            type="text"
+            className="flex-1 rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--foreground)]"
+            placeholder="Введите тег и нажмите Enter или +"
+            onKeyDown={e => {
+              if (e.key === "Enter" || e.key === ",") {
+                e.preventDefault();
+                const input = e.currentTarget;
+                const value = input.value.trim();
+                if (value && !(form.tags ?? []).includes(value)) {
+                  setForm(f => ({ ...f, tags: [...(f.tags ?? []), value] }));
+                  input.value = "";
+                }
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const value = tagInputRef.current?.value?.trim();
+              if (value && !(form.tags ?? []).includes(value)) {
+                setForm(f => ({ ...f, tags: [...(f.tags ?? []), value] }));
+                if (tagInputRef.current) tagInputRef.current.value = "";
+              }
+            }}
+            className="px-3 py-2 rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--accent)] hover:bg-[var(--muted)] text-[var(--foreground)] text-sm transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
       </div>
       <div className="flex gap-4">
         <label className="flex items-center gap-2 cursor-pointer">

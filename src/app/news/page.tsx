@@ -57,37 +57,35 @@ function NewsCard({ announcement }: { announcement: Announcement }) {
   return (
     <Link
       href={`/news/${encodeURIComponent(announcement.slug)}`}
-      className="group relative flex flex-col rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden hover:border-[var(--primary)]/30 hover:shadow-lg hover:shadow-[var(--primary)]/5 transition-all duration-300"
+      className="group flex gap-4 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden hover:border-[var(--primary)]/30 hover:shadow-lg hover:shadow-[var(--primary)]/5 transition-all duration-300"
     >
-      <div className="relative aspect-[16/9] overflow-hidden">
+      <div className="relative flex-shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden bg-[var(--muted)]">
         <NewsCardImage
           src={announcement.coverImage}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
         {announcement.isPinned && (
-          <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--primary)] text-white text-[10px] font-medium">
+          <span className="absolute top-1 left-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--primary)] text-white">
             <Pin className="w-2.5 h-2.5" />
-            Закреплено
           </span>
         )}
       </div>
-      <div className="flex-1 p-4 flex flex-col">
-        <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mb-2">
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
+        <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mb-1">
           <Calendar className="w-3 h-3" />
           <span>{dateStr}</span>
         </div>
-        <h3 className="font-semibold text-[var(--foreground)] line-clamp-2 mb-2 group-hover:text-[var(--primary)] transition-colors">
+        <h3 className="font-semibold text-[var(--foreground)] text-sm sm:text-base line-clamp-2 mb-1 group-hover:text-[var(--primary)] transition-colors">
           {announcement.title}
         </h3>
         {announcement.shortDescription && (
-          <p className="text-sm text-[var(--muted-foreground)] line-clamp-2 flex-1">
+          <p className="text-xs sm:text-sm text-[var(--muted-foreground)] line-clamp-2">
             {announcement.shortDescription}
           </p>
         )}
         {announcement.tags && announcement.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {announcement.tags.slice(0, 2).map(tag => (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {announcement.tags.slice(0, 3).map(tag => (
               <span
                 key={tag}
                 className="px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px]"
@@ -104,9 +102,9 @@ function NewsCard({ announcement }: { announcement: Announcement }) {
 
 function NewsCardSkeleton() {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-      <div className="aspect-[16/9] bg-[var(--muted)] animate-pulse" />
-      <div className="p-4 space-y-3">
+    <div className="flex gap-4 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+      <div className="flex-shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-lg bg-[var(--muted)] animate-pulse" />
+      <div className="flex-1 flex flex-col justify-center space-y-2">
         <div className="h-3 w-20 bg-[var(--muted)] rounded animate-pulse" />
         <div className="h-5 w-full bg-[var(--muted)] rounded animate-pulse" />
         <div className="h-4 w-3/4 bg-[var(--muted)] rounded animate-pulse" />
@@ -156,7 +154,7 @@ export default function NewsPage() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <NewsCardSkeleton key={i} />
               ))}
@@ -187,7 +185,7 @@ export default function NewsPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {announcements.map(a => (
                   <NewsCard key={a.id} announcement={a} />
                 ))}
