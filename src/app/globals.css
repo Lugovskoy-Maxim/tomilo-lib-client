@@ -62,7 +62,7 @@
 }
 
 [data-theme="dark"] {
-  --background: oklch(16.376% 0.00002 271.152);
+  --background: oklch(22% 0.01 270);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -152,26 +152,47 @@ html.font-rubik body {
 }
 
 [data-theme="dark"] .lines-background svg {
-  opacity: 0.35;
+  opacity: 0.5;
 }
 
-/* Появление линий при загрузке */
+/* Появление линий при загрузке + плавное движение */
 .lines-background__line {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: lines-abstract-draw 1.8s ease-out forwards;
+  animation: 
+    lines-abstract-draw 1.8s ease-out forwards,
+    lines-abstract-flow 12s ease-in-out 2s infinite;
 }
 
-.lines-background__line:nth-child(1) { animation-delay: 0s; }
-.lines-background__line:nth-child(2) { animation-delay: 0.15s; }
-.lines-background__line:nth-child(3) { animation-delay: 0.3s; }
-.lines-background__line:nth-child(4) { animation-delay: 0.2s; }
-.lines-background__line:nth-child(5) { animation-delay: 0.1s; }
-.lines-background__line:nth-child(6) { animation-delay: 0.35s; }
+.lines-background__line:nth-child(1) { animation-delay: 0s, 2s; }
+.lines-background__line:nth-child(2) { animation-delay: 0.15s, 2.5s; }
+.lines-background__line:nth-child(3) { animation-delay: 0.3s, 3s; }
+.lines-background__line:nth-child(4) { animation-delay: 0.2s, 3.5s; }
+.lines-background__line:nth-child(5) { animation-delay: 0.1s, 4s; }
+.lines-background__line:nth-child(6) { animation-delay: 0.35s, 4.5s; }
 
 @keyframes lines-abstract-draw {
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lines-abstract-flow {
+  0%, 100% {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    opacity: 0.7;
+    transform: translateX(8px) translateY(-4px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(0) translateY(6px);
+  }
+  75% {
+    opacity: 0.8;
+    transform: translateX(-6px) translateY(-2px);
   }
 }
 
@@ -193,6 +214,20 @@ html.font-rubik body {
   50% {
     opacity: 0.45;
     transform: scale(1.05);
+  }
+}
+
+/* Плавная пульсация сетки */
+.lines-background__grid {
+  animation: lines-grid-pulse 10s ease-in-out infinite;
+}
+
+@keyframes lines-grid-pulse {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.18;
   }
 }
 
@@ -2084,7 +2119,7 @@ textarea.admin-input {
 }
 
 [data-theme="dark"] {
-  --background-rgb: 20, 20, 25;
+  --background-rgb: 38, 38, 45;
   --foreground-rgb: 250, 250, 250;
   --primary-rgb: 235, 235, 235;
   --secondary-rgb: 40, 40, 45;

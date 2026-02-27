@@ -43,7 +43,7 @@ const MOBILE_MENU_ITEMS = [
 
 const MOBILE_NAV_ITEMS = [
   { href: "/titles", label: "Каталог", icon: Library },
-  { href: "/notifications", label: "Уведомления", icon: Bell },
+  { href: "/notifications", label: "Уведом.", icon: Bell },
   { href: "/", label: "Главная", icon: Home },
   { href: "/bookmarks", label: "Закладки", icon: Bookmark },
 ] as const;

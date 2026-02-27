@@ -15,16 +15,16 @@ export default function LinesBackground() {
       >
         <defs>
           <linearGradient id="abstractGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.03" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0.08" />
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0.18" />
           </linearGradient>
           <linearGradient id="abstractGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.04" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0.07" />
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.1" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0.16" />
           </linearGradient>
           <linearGradient id="abstractGrad3" x1="50%" y1="100%" x2="50%" y2="0%">
             <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
-            <stop offset="50%" stopColor="currentColor" stopOpacity="0.05" />
+            <stop offset="50%" stopColor="currentColor" stopOpacity="0.12" />
             <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
           </linearGradient>
         </defs>
@@ -89,7 +89,7 @@ export default function LinesBackground() {
         </g>
 
         {/* Сетка из тонких линий */}
-        <g className="lines-background__grid" stroke="currentColor" strokeWidth="0.35" opacity="0.04">
+        <g className="lines-background__grid" stroke="currentColor" strokeWidth="0.35" opacity="0.1">
           {[180, 360, 540, 720].map((y) => (
             <line key={`h-${y}`} x1="0" y1={y} x2="1200" y2={y} />
           ))}
