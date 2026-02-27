@@ -6,7 +6,7 @@ const uploadsOrigin = process.env.NEXT_PUBLIC_UPLOADS_URL?.replace(/\/$/, "") ||
 
 /**
  * Нормализует путь для fallback (старый сервер).
- * Убирает /api/ и /uploads/ префиксы, т.к. uploadsOrigin уже содержит /uploads.
+ * Убирает /api/, /uploads/, /tomilolib/ префиксы, т.к. uploadsOrigin уже содержит /uploads.
  */
 function normalizePathForUploads(p: string): string {
   if (!p) return "";
@@ -15,12 +15,14 @@ function normalizePathForUploads(p: string): string {
   if (path.startsWith("api/")) path = path.replace(/^api\//, "/");
   if (path.startsWith("/uploads/")) path = path.replace(/^\/uploads\//, "/");
   if (path.startsWith("/uploads")) path = path.replace(/^\/uploads/, "");
+  if (path.startsWith("/tomilolib/")) path = path.replace(/^\/tomilolib\//, "/");
+  if (path.startsWith("/tomilolib")) path = path.replace(/^\/tomilolib/, "");
   return path.startsWith("/") ? path : `/${path}`;
 }
 
 /**
- * Нормализует путь для S3 (убирает /uploads/ префикс).
- * На S3 файлы лежат без /uploads/ префикса.
+ * Нормализует путь для S3 (убирает /uploads/ и /tomilolib/ префиксы).
+ * На S3 файлы лежат без этих префиксов.
  */
 function normalizePathForS3(p: string): string {
   if (!p) return "";
@@ -29,6 +31,8 @@ function normalizePathForS3(p: string): string {
   if (path.startsWith("api/")) path = path.replace(/^api\//, "/");
   if (path.startsWith("/uploads/")) path = path.replace(/^\/uploads\//, "/");
   if (path.startsWith("/uploads")) path = path.replace(/^\/uploads/, "");
+  if (path.startsWith("/tomilolib/")) path = path.replace(/^\/tomilolib\//, "/");
+  if (path.startsWith("/tomilolib")) path = path.replace(/^\/tomilolib/, "");
   return path.startsWith("/") ? path : `/${path}`;
 }
 
