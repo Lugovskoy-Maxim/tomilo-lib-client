@@ -1,11 +1,11 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { useGetAnnouncementBySlugQuery } from "@/store/api/announcementsApi";
 import { Header, Footer } from "@/widgets";
-import { getAnnouncementImageUrl } from "@/api/config";
+import { getAnnouncementImageUrls } from "@/api/config";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -54,7 +54,9 @@ export default function NewsSlugPage({ params }: PageProps) {
     );
   }
 
-  const coverSrc = getAnnouncementImageUrl(announcement.coverImage) || null;
+  const { primary: coverPrimary, fallback: coverFallback } = getAnnouncementImageUrls(announcement.coverImage);
+  const [useCoverFallback, setUseCoverFallback] = useState(false);
+  const coverSrc = useCoverFallback && coverFallback !== coverPrimary ? coverFallback : coverPrimary;
 
   return (
     <>
@@ -75,6 +77,11 @@ export default function NewsSlugPage({ params }: PageProps) {
                 src={coverSrc}
                 alt=""
                 className="w-full h-auto object-cover max-h-[320px]"
+                onError={() => {
+                  if (!useCoverFallback && coverFallback && coverFallback !== coverPrimary) {
+                    setUseCoverFallback(true);
+                  }
+                }}
               />
             </div>
           )}

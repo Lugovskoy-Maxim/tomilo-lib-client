@@ -2,7 +2,8 @@
 
 import { UserProfile } from "@/types/user";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
-import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl, getDecorationImageUrl } from "@/api/shop";
+import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl, getDecorationImageUrls } from "@/api/shop";
+import { getImageUrls } from "@/lib/asset-url";
 import { useAuth } from "@/hooks/useAuth";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 
@@ -23,16 +24,31 @@ const sizeClasses = {
 };
 
 /** URL декорации «аватар» из профиля (при populate объект с imageUrl или _id). */
-function getAvatarDecorationUrl(equipped: UserProfile["equippedDecorations"]): string | null {
-  if (!equipped?.avatar) return null;
+function getAvatarDecorationUrls(equipped: UserProfile["equippedDecorations"]): { primary: string | null; fallback: string | null } {
+  if (!equipped?.avatar) return { primary: null, fallback: null };
   const raw = equipped.avatar;
-  if (typeof raw === "string") return getEquippedAvatarDecorationUrl(equipped);
+  if (typeof raw === "string") {
+    const url = getEquippedAvatarDecorationUrl(equipped);
+    if (url) {
+      const { primary, fallback } = getDecorationImageUrls(url);
+      return { primary, fallback };
+    }
+    return { primary: null, fallback: null };
+  }
   if (typeof raw === "object" && raw !== null) {
     const o = raw as Record<string, unknown>;
     const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
-    if (imageUrl) return getDecorationImageUrl(imageUrl) || imageUrl;
+    if (imageUrl) {
+      const { primary, fallback } = getDecorationImageUrls(imageUrl);
+      return { primary: primary || imageUrl, fallback: fallback || imageUrl };
+    }
   }
-  return getEquippedAvatarDecorationUrl(equipped);
+  const url = getEquippedAvatarDecorationUrl(equipped);
+  if (url) {
+    const { primary, fallback } = getDecorationImageUrls(url);
+    return { primary, fallback };
+  }
+  return { primary: null, fallback: null };
 }
 
 export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarProps) {
@@ -50,16 +66,21 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   const frameUrl = isCurrentUser ? resolvedFrameUrl : getEquippedFrameUrl(userProfile.equippedDecorations);
   const avatarDecorationUrl = isCurrentUser ? resolvedAvatarUrl : getAvatarDecorationUrl(userProfile.equippedDecorations);
 
-  const baseAvatarUrl = userProfile.avatar
-    ? userProfile.avatar.startsWith("http")
-      ? userProfile.avatar
-      : `${API_CONFIG.basePublicUrl}${userProfile.avatar}`
-    : null;
-  const mainImageUrl = avatarDecorationUrl ?? baseAvatarUrl;
+  const { primary: baseAvatarPrimary, fallback: baseAvatarFallback } = userProfile.avatar
+    ? getImageUrls(userProfile.avatar)
+    : { primary: null, fallback: null };
+  
+  const decorationUrls = isCurrentUser 
+    ? { primary: resolvedAvatarUrl, fallback: null }
+    : getAvatarDecorationUrls(userProfile.equippedDecorations);
+  
+  const mainImageUrl = decorationUrls.primary ?? baseAvatarPrimary;
+  const fallbackImageUrl = decorationUrls.fallback ?? baseAvatarFallback;
 
   const avatarInner = mainImageUrl ? (
     <OptimizedImage
       src={mainImageUrl}
+      fallbackSrc={fallbackImageUrl && fallbackImageUrl !== mainImageUrl ? fallbackImageUrl : undefined}
       alt={userProfile.username || "User avatar"}
       className="w-full h-full object-cover rounded-full"
       height={pixelSize}

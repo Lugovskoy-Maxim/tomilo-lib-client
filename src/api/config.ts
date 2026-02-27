@@ -12,38 +12,52 @@ const apiOrigin = (() => {
   return u.startsWith("http") ? u : `http://${u}`;
 })();
 
-/**
- * Базовый URL для картинок объявлений. Файлы сохраняются в uploads/announcements/ на бэкенде.
- * Используется NEXT_PUBLIC_UPLOADS_URL (например https://tomilo-lib.ru/uploads), чтобы
- * путь /announcements/xxx.jpg превращался в https://tomilo-lib.ru/uploads/announcements/xxx.jpg.
- * Если UPLOADS_URL не задан — берётся origin API.
- */
-const announcementImagesBase = (() => {
-  const uploads = process.env.NEXT_PUBLIC_UPLOADS_URL?.trim();
-  if (uploads) return uploads.replace(/\/$/, "");
-  return apiOrigin;
-})();
+/** S3 URL — основной источник изображений */
+const s3Origin = process.env.NEXT_PUBLIC_S3_URL?.replace(/\/$/, "") || "";
+
+/** Fallback URL для изображений (старый сервер) */
+const uploadsOrigin = process.env.NEXT_PUBLIC_UPLOADS_URL?.replace(/\/$/, "") || apiOrigin;
 
 /**
- * URL изображения объявления. Все пути и URL с /announcements/ или /uploads/
- * собираются через announcementImagesBase, чтобы картинки грузились с сервера, где лежат файлы.
+ * Возвращает primary и fallback URL для изображения объявления.
+ * Primary = S3 (если настроен), fallback = старый сервер.
  */
-export function getAnnouncementImageUrl(pathOrUrl: string | undefined): string {
-  if (!pathOrUrl) return "";
+export function getAnnouncementImageUrls(pathOrUrl: string | undefined): { primary: string; fallback: string } {
+  if (!pathOrUrl) return { primary: "", fallback: "" };
   const s = pathOrUrl.trim();
-  if (!s) return "";
+  if (!s) return { primary: "", fallback: "" };
+
+  let pathname: string;
+
   if (s.startsWith("http://") || s.startsWith("https://")) {
     try {
       const u = new URL(s);
-      const pathname = u.pathname;
-      if (pathname.startsWith("/announcements/") || pathname.startsWith("/uploads/")) {
-        return `${announcementImagesBase}${pathname}`;
+      pathname = u.pathname;
+      if (!pathname.startsWith("/announcements/") && !pathname.startsWith("/uploads/")) {
+        return { primary: s, fallback: s };
       }
-      return s;
     } catch {
-      return s;
+      return { primary: s, fallback: s };
     }
+  } else {
+    pathname = s.startsWith("/") ? s : `/${s}`;
   }
-  const path = s.startsWith("/") ? s : `/${s}`;
-  return `${announcementImagesBase}${path}`;
+
+  if (s3Origin) {
+    return {
+      primary: `${s3Origin}${pathname}`,
+      fallback: `${uploadsOrigin}${pathname}`,
+    };
+  }
+
+  const url = `${uploadsOrigin}${pathname}`;
+  return { primary: url, fallback: url };
+}
+
+/**
+ * URL изображения объявления (primary URL).
+ * Для fallback используйте getAnnouncementImageUrls().
+ */
+export function getAnnouncementImageUrl(pathOrUrl: string | undefined): string {
+  return getAnnouncementImageUrls(pathOrUrl).primary;
 }

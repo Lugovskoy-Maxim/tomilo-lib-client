@@ -44,11 +44,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [isLoading, setIsLoading] = useState(priority);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasError, setHasError] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
+  const [fallbackFailed, setFallbackFailed] = useState(false);
 
   // Сбрасываем состояние при смене src
   useEffect(() => {
-    setHasError(false);
+    setUseFallback(false);
+    setFallbackFailed(false);
     setError(null);
     setIsLoaded(false);
     setShouldLoad(priority);
@@ -112,14 +114,20 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   };
 
   const handleError = () => {
+    if (!useFallback && fallbackSrc && fallbackSrc !== src) {
+      setUseFallback(true);
+      setIsLoading(true);
+      setIsLoaded(false);
+      return;
+    }
     setIsLoading(false);
     setError("Не удалось загрузить изображение");
-    setHasError(true);
+    setFallbackFailed(true);
     if (onError) onError();
   };
 
-  // Определяем реальный src (fallback если есть ошибка)
-  const actualSrc = hasError && fallbackSrc ? fallbackSrc : src;
+  // Определяем реальный src (fallback если основной не загрузился)
+  const actualSrc = useFallback && fallbackSrc ? fallbackSrc : src;
 
   // Определяем классы для изображения
   const imageClasses = [
@@ -222,8 +230,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     );
   };
 
-  // Если есть ошибка и нет fallback, отображаем сообщение об ошибке
-  if (error && !fallbackSrc) {
+  // Если есть ошибка и fallback уже попробован (или его нет), отображаем сообщение об ошибке
+  if (error && (fallbackFailed || !fallbackSrc)) {
     return renderError();
   }
 

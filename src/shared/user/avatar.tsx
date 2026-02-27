@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
+import { getImageUrls } from "@/lib/asset-url";
 
 interface UserAvatarProps {
   avatarUrl?: string | null;
@@ -26,6 +27,17 @@ export default function UserAvatar({
   const [isMounted, setIsMounted] = useState(false);
   const effectiveAvatarUrl = avatarDecorationUrl ?? avatarUrl;
 
+  const { primary: avatarSrc, fallback: avatarFallback } = useMemo(() => {
+    if (!effectiveAvatarUrl) return { primary: "", fallback: "" };
+    if (effectiveAvatarUrl.startsWith("/uploads/") || effectiveAvatarUrl.startsWith("/")) {
+      return getImageUrls(effectiveAvatarUrl);
+    }
+    if (effectiveAvatarUrl.startsWith("http")) {
+      return getImageUrls(effectiveAvatarUrl);
+    }
+    return { primary: effectiveAvatarUrl, fallback: effectiveAvatarUrl };
+  }, [effectiveAvatarUrl]);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -40,11 +52,8 @@ export default function UserAvatar({
       </div>
     ) : (
       <OptimizedImage
-        src={
-          effectiveAvatarUrl.startsWith("/uploads/") || effectiveAvatarUrl.startsWith("/")
-            ? `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${effectiveAvatarUrl}`
-            : effectiveAvatarUrl
-        }
+        src={avatarSrc}
+        fallbackSrc={avatarFallback !== avatarSrc ? avatarFallback : undefined}
         alt={`Аватар ${username || "пользователя"}`}
         width={size}
         height={size}

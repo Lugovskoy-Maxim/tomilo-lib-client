@@ -14,7 +14,7 @@ import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
 import { useIncrementChapterViewsMutation, useLazyGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { useReaderSettings } from "@/shared/reader/hooks/useReaderSettings";
-import { normalizeAssetUrl } from "@/lib/asset-url";
+import { getImageUrls } from "@/lib/asset-url";
 
 import {
   saveReadingPosition,
@@ -37,7 +37,7 @@ function apiChapterToReaderChapter(ch: Chapter): ReaderChapter {
     title: ch.title || "",
     date: ch.releaseDate || "",
     views: Number(ch.views) || 0,
-    images: pages.map((p: string) => normalizeAssetUrl(p)),
+    images: pages.map((p: string) => getImageUrls(p).primary),
   };
 }
 
@@ -71,6 +71,7 @@ export default function ReadChapterPage({
 
   // Состояния
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
+  const [imageFallbacks, setImageFallbacks] = useState<Set<string>>(new Set());
   const [, setIsFullscreen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
@@ -194,16 +195,27 @@ export default function ReadChapterPage({
     }
   }, [hideBottomMenuSetting, isMenuCollapsed]);
 
-  // Функция для получения корректного URL изображения
-  const getImageUrl = useCallback((url: string) => {
+  // Функция для получения корректного URL изображения с учётом fallback
+  const getImageUrlWithFallback = useCallback((url: string, chapterId: string, imageIndex: number) => {
     if (!url) return "";
 
-    // Если URL уже абсолютный (начинается с http), возвращаем как есть
+    const errorKey = `${chapterId}-${imageIndex}`;
+    const { primary, fallback } = getImageUrls(url);
+
+    // Если для этого изображения уже был переключен на fallback
+    if (imageFallbacks.has(errorKey) && fallback && fallback !== primary) {
+      return fallback;
+    }
+
+    return primary;
+  }, [imageFallbacks]);
+
+  // Функция для получения корректного URL изображения (legacy)
+  const getImageUrl = useCallback((url: string) => {
+    if (!url) return "";
     if (url.startsWith("http")) {
       return url;
     }
-
-    // Если URL относительный, добавляем базовый URL
     return `${process.env.NEXT_PUBLIC_URL}${url}`;
   }, []);
 
@@ -265,11 +277,21 @@ export default function ReadChapterPage({
     isAuthenticated,
   ]);
 
-  // Обработчик ошибок загрузки изображений
-  const handleImageError = useCallback((chapterId: string, imageIndex: number) => {
+  // Обработчик ошибок загрузки изображений с fallback
+  const handleImageError = useCallback((chapterId: string, imageIndex: number, imageSrc: string) => {
     const errorKey = `${chapterId}-${imageIndex}`;
+    // Если fallback ещё не использовался, пробуем его
+    if (!imageFallbacks.has(errorKey)) {
+      const { fallback } = getImageUrls(imageSrc);
+      const { primary } = getImageUrls(imageSrc);
+      if (fallback && fallback !== primary) {
+        setImageFallbacks(prev => new Set(prev).add(errorKey));
+        return;
+      }
+    }
+    // Если fallback уже использован или его нет — помечаем как ошибку
     setImageLoadErrors(prev => new Set(prev).add(errorKey));
-  }, []);
+  }, [imageFallbacks]);
 
   // Функция для получения корректного пути
   const getChapterPath = useCallback(
@@ -837,7 +859,8 @@ export default function ReadChapterPage({
                   {ch.images.map((src, imageIndex) => {
                     const errorKey = `${ch._id}-${imageIndex}`;
                     const isError = imageLoadErrors.has(errorKey);
-                    const imageUrl = getImageUrl(src);
+                    const imageUrl = getImageUrlWithFallback(src, ch._id, imageIndex);
+                    const useFallback = imageFallbacks.has(errorKey);
                     const loadedInChapter = loadedImagesByChapter[ch._id] ?? new Set<number>();
                     const visible =
                       imageIndex === 0 ||
@@ -857,9 +880,9 @@ export default function ReadChapterPage({
                         >
                           {!isError ? (
                             <Image
-                              key={`${ch._id}-${imageIndex}-${imageWidth}`}
+                              key={`${ch._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
                               loader={imageLoader}
-                              src={src}
+                              src={imageUrl}
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
@@ -872,7 +895,7 @@ export default function ReadChapterPage({
                                   [ch._id]: new Set(prev[ch._id] ?? []).add(imageIndex),
                                 }))
                               }
-                              onError={() => handleImageError(ch._id, imageIndex)}
+                              onError={() => handleImageError(ch._id, imageIndex, src)}
                               priority={imageIndex < (isMobile ? 3 : 1)}
                             />
                           ) : (
@@ -933,7 +956,8 @@ export default function ReadChapterPage({
                   const src = chapter.images[imageIndex];
                   const errorKey = `${chapter._id}-${imageIndex}`;
                   const isError = imageLoadErrors.has(errorKey);
-                  const imageUrl = getImageUrl(src);
+                  const imageUrl = getImageUrlWithFallback(src, chapter._id, imageIndex);
+                  const useFallback = imageFallbacks.has(errorKey);
 
                   return (
                     <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center">
@@ -946,16 +970,16 @@ export default function ReadChapterPage({
                       >
                         {!isError ? (
                           <Image
-                            key={`${chapter._id}-${imageIndex}-${imageWidth}`}
+                            key={`${chapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
                             loader={imageLoader}
-                            src={src}
+                            src={imageUrl}
                             alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
                             width={isMobile ? 800 : imageWidth}
                             height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
                             className="w-full h-auto shadow-lg sm:shadow-2xl"
                             quality={85}
                             loading="eager"
-                            onError={() => handleImageError(chapter._id, imageIndex)}
+                            onError={() => handleImageError(chapter._id, imageIndex, src)}
                             priority
                           />
                         ) : (
@@ -1011,7 +1035,8 @@ export default function ReadChapterPage({
               chapter.images.map((src, imageIndex) => {
                 const errorKey = `${chapter._id}-${imageIndex}`;
                 const isError = imageLoadErrors.has(errorKey);
-                const imageUrl = getImageUrl(src);
+                const imageUrl = getImageUrlWithFallback(src, chapter._id, imageIndex);
+                const useFallback = imageFallbacks.has(errorKey);
                 const loadedInChapter = loadedImagesByChapter[chapter._id] ?? new Set<number>();
                 const visible =
                   imageIndex === 0 ||
@@ -1032,9 +1057,9 @@ export default function ReadChapterPage({
                     >
                       {!isError ? (
                         <Image
-                          key={`${chapter._id}-${imageIndex}-${imageWidth}`}
+                          key={`${chapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
                           loader={imageLoader}
-                          src={src}
+                          src={imageUrl}
                           alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
                           width={isMobile ? 800 : imageWidth}
                           height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
@@ -1071,7 +1096,7 @@ export default function ReadChapterPage({
                               [chapter._id]: new Set(prev[chapter._id] ?? []).add(imageIndex),
                             }))
                           }
-                          onError={() => handleImageError(chapter._id, imageIndex)}
+                          onError={() => handleImageError(chapter._id, imageIndex, src)}
                           priority={
                             imageLoadPriority.size > 0
                               ? imageLoadPriority.get(imageIndex + 1) === "high"

@@ -3,7 +3,10 @@ import type { EquippedDecorations } from "@/types/user";
 
 const API_BASE = process.env.NEXT_PUBLIC_URL || "http://localhost:3001";
 
-/** Базовый URL сервера (без /api) — с него отдаются /uploads/... */
+/** S3 URL — основной источник изображений */
+const s3Origin = process.env.NEXT_PUBLIC_S3_URL?.replace(/\/$/, "") || "";
+
+/** Базовый URL сервера (без /api) — с него отдаются /uploads/... (fallback) */
 const uploadsOrigin = (() => {
   const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
   return api.replace(/\/api\/?$/, "") || "http://localhost:3001";
@@ -42,16 +45,48 @@ export function getEquippedBackgroundUrl(equipped: EquippedDecorations | null | 
   return getDecorationUrlFromValue(equipped.background);
 }
 
-/** Полный URL изображения декорации (imageUrl с бэкенда — относительный путь /uploads/...) */
-export function getDecorationImageUrl(imageUrl: string | undefined): string {
-  if (!imageUrl?.trim()) return "";
-  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+/**
+ * Возвращает primary и fallback URL для изображения декорации.
+ * Primary = S3 (если настроен), fallback = старый сервер.
+ */
+export function getDecorationImageUrls(imageUrl: string | undefined): { primary: string; fallback: string } {
+  if (!imageUrl?.trim()) return { primary: "", fallback: "" };
+
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    try {
+      const u = new URL(imageUrl);
+      const pathname = u.pathname;
+      if (s3Origin) {
+        return {
+          primary: `${s3Origin}${pathname}`,
+          fallback: `${uploadsOrigin}${pathname}`,
+        };
+      }
+      return { primary: imageUrl, fallback: imageUrl };
+    } catch {
+      return { primary: imageUrl, fallback: imageUrl };
+    }
+  }
+
   let path = imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`;
-  // Не дублировать uploads: если база уже .../uploads, убрать ведущий /uploads из path
   if (uploadsOrigin.endsWith("/uploads") && (path.startsWith("/uploads/") || path === "/uploads")) {
     path = path.slice("/uploads".length) || "/";
   }
-  return `${uploadsOrigin}${path}`;
+
+  if (s3Origin) {
+    return {
+      primary: `${s3Origin}${path}`,
+      fallback: `${uploadsOrigin}${path}`,
+    };
+  }
+
+  const url = `${uploadsOrigin}${path}`;
+  return { primary: url, fallback: url };
+}
+
+/** Полный URL изображения декорации (primary URL). Для fallback используйте getDecorationImageUrls(). */
+export function getDecorationImageUrl(imageUrl: string | undefined): string {
+  return getDecorationImageUrls(imageUrl).primary;
 }
 
 export type DecorationRarity = "common" | "rare" | "epic" | "legendary";

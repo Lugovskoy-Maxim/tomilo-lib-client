@@ -2,10 +2,32 @@
 
 import Link from "next/link";
 import { Megaphone, ChevronRight, Pin, Calendar } from "lucide-react";
+import { useState } from "react";
 import { useGetAnnouncementsQuery } from "@/store/api/announcementsApi";
 import { SectionLoadError } from "@/shared";
-import { getAnnouncementImageUrl } from "@/api/config";
+import { getAnnouncementImageUrls } from "@/api/config";
 import type { Announcement } from "@/types/announcement";
+
+function AnnouncementImage({ src, className }: { src: string | undefined; className?: string }) {
+  const [useFallback, setUseFallback] = useState(false);
+  const { primary, fallback } = getAnnouncementImageUrls(src);
+  const imageSrc = useFallback && fallback !== primary ? fallback : primary;
+
+  if (!imageSrc) return null;
+
+  return (
+    <img
+      src={imageSrc}
+      alt=""
+      className={className}
+      onError={() => {
+        if (!useFallback && fallback && fallback !== primary) {
+          setUseFallback(true);
+        }
+      }}
+    />
+  );
+}
 
 const NEWS_LIMIT = 10;
 
@@ -106,10 +128,9 @@ export default function NewsBlock() {
           >
             <div className="flex flex-col sm:flex-row flex-1 p-3 sm:p-4 gap-3">
               <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--muted)]">
-                {getAnnouncementImageUrl(pinned.coverImage) ? (
-                  <img
-                    src={getAnnouncementImageUrl(pinned.coverImage)}
-                    alt=""
+                {pinned.coverImage ? (
+                  <AnnouncementImage
+                    src={pinned.coverImage}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -147,7 +168,6 @@ export default function NewsBlock() {
         {others.length > 0 && (
         <div className="flex flex-col border-t lg:border-t-0 lg:border-l border-[var(--border)]">
           {others.map(a => {
-            const coverUrl = getAnnouncementImageUrl(a.coverImage);
             const dateStr = formatDate(a.publishedAt ?? a.updatedAt ?? a.createdAt);
             return (
               <Link
@@ -156,8 +176,8 @@ export default function NewsBlock() {
                 className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--accent)]/30 transition-colors border-b border-[var(--border)] last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
               >
                 <div className="w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--muted)]">
-                  {coverUrl ? (
-                    <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+                  {a.coverImage ? (
+                    <AnnouncementImage src={a.coverImage} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-[var(--muted-foreground)] opacity-50" />

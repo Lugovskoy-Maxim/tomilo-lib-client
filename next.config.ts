@@ -46,6 +46,11 @@ const nextConfig: NextConfig = {
         hostname: "tomilo-lib.ru",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "s3.regru.cloud",
+        pathname: "/tomilolib/**",
+      },
     ],
   },
 };

@@ -6,7 +6,7 @@ import Image from "next/image";
 import {
   Decoration,
   DecorationRarity,
-  getDecorationImageUrl,
+  getDecorationImageUrls,
   normalizeRarity,
 } from "@/api/shop";
 import { useAuth } from "@/hooks/useAuth";
@@ -71,11 +71,22 @@ export function DecorationCard({
   const displayType = sectionType ?? decoration.type;
   const { success, error: showError } = useToast();
   const [isImageLoading, setIsImageLoading] = useState(true);
-  const imageSrc = useMemo(
-    () => getDecorationImageUrl(decoration.imageUrl ?? ""),
+  const [useFallbackImage, setUseFallbackImage] = useState(false);
+  const { primary: imageSrcPrimary, fallback: imageSrcFallback } = useMemo(
+    () => getDecorationImageUrls(decoration.imageUrl ?? ""),
     [decoration.imageUrl],
   );
+  const imageSrc = useFallbackImage && imageSrcFallback !== imageSrcPrimary ? imageSrcFallback : imageSrcPrimary;
   const hasImage = Boolean(imageSrc);
+
+  const handleImageError = () => {
+    if (!useFallbackImage && imageSrcFallback && imageSrcFallback !== imageSrcPrimary) {
+      setUseFallbackImage(true);
+      setIsImageLoading(true);
+    } else {
+      setIsImageLoading(false);
+    }
+  };
   const rarity: DecorationRarity = normalizeRarity(decoration.rarity);
   const rarityStyle = RARITY_STYLES[rarity];
   const soldOut = decoration.isSoldOut ?? (decoration.stock !== undefined && decoration.stock <= 0);
@@ -232,7 +243,7 @@ export function DecorationCard({
                   className={`object-cover rounded-full ${isImageLoading ? "opacity-0" : "opacity-100"}`}
                   style={{ borderRadius: "50%" }}
                   onLoad={() => setIsImageLoading(false)}
-                  onError={() => setIsImageLoading(false)}
+                  onError={handleImageError}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)]">
@@ -362,7 +373,7 @@ export function DecorationCard({
             isImageLoading ? "opacity-0" : "opacity-100"
           } ${isOwned && !isEquipped ? "grayscale group-hover/card:grayscale-0 transition-[filter] duration-300" : ""}`}
           onLoad={() => setIsImageLoading(false)}
-          onError={() => setIsImageLoading(false)}
+          onError={handleImageError}
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
@@ -474,7 +485,7 @@ export function DecorationCard({
                 isImageLoading ? "opacity-0" : "opacity-100"
               } ${isOwned && !isEquipped ? "grayscale group-hover/card:grayscale-0 transition-[filter] duration-300" : ""}`}
               onLoad={() => setIsImageLoading(false)}
-              onError={() => setIsImageLoading(false)}
+              onError={handleImageError}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
