@@ -4,8 +4,6 @@ import { CommentEntityType } from "@/types/comment";
 import { CommentsSection } from "@/shared/comments/CommentsSection";
 import { timeAgo } from "@/lib/date-utils";
 import { ReportModal } from "@/shared/report/ReportModal";
-import { ReadingHistoryEntry, ReadingHistoryChapter } from "@/types/store";
-
 import {
   ArrowUpDown,
   BookOpen,
@@ -17,7 +15,6 @@ import {
   Star,
   X,
   CheckCircle,
-  Play,
   Home,
   MessageCircle,
   List,
@@ -32,7 +29,6 @@ import { getChapterPath } from "@/lib/title-paths";
 import { useAuth } from "@/hooks/useAuth";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { GenresList } from "./GenresList";
-import AdBlock from "@/shared/ad-block/AdBlock";
 
 interface RightContentProps {
   titleData: Title;
@@ -513,7 +509,6 @@ export function RightContent({
             <div className="space-y-2">
               {visibleChapters.map((chapter, index) => {
                 const read = isChapterRead(chapter._id || "");
-                const isHovered = hoveredChapterId === chapter._id;
                 const isRemoving = removingChapterId === chapter._id;
 
                 return (

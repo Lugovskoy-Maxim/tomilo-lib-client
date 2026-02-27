@@ -100,7 +100,6 @@ export function AnnouncementsSection() {
 
   const announcements = response?.data?.announcements ?? [];
   const totalPages = response?.data?.totalPages ?? 1;
-  const total = response?.data?.total ?? 0;
 
   useEffect(() => {
     if (selected && isEditOpen) {

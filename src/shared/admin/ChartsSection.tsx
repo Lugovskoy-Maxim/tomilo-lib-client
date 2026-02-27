@@ -66,7 +66,7 @@ export function ChartsSection() {
     { name: "Всего", value: stats.totalTitles, color: COLORS.chart3 },
   ];
 
-  const popularTitlesChart = stats.popularTitles.slice(0, 10).map((title, index) => ({
+  const popularTitlesChart = stats.popularTitles.slice(0, 10).map((title) => ({
     name: title.name.length > 20 ? title.name.substring(0, 20) + "..." : title.name,
     views: title.views,
     dayViews: title.dayViews,

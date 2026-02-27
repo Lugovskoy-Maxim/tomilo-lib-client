@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Megaphone, Pin, Calendar, ChevronRight } from "lucide-react";
+import { ChevronLeft, Megaphone, Pin, Calendar } from "lucide-react";
 import { useGetAnnouncementsQuery } from "@/store/api/announcementsApi";
 import { Header, Footer } from "@/widgets";
 import Pagination from "@/shared/browse/pagination";

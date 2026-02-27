@@ -331,7 +331,6 @@ export const useAuth = () => {
   const updateChapterViewsCount = useCallback(
     async (
       _chapterId: string,
-      _currentViews: number,
     ): Promise<{ success: boolean; error?: string }> => {
       try {
         await incrementChapterViews(_chapterId).unwrap();

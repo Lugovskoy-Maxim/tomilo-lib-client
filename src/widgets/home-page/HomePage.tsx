@@ -2,10 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { BookOpen, Clock, Flame, Gem, LibraryIcon, PlusCircle, SquareArrowOutUpRight, Trophy, Send } from "lucide-react";
+import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight, Send } from "lucide-react";
 
 import {
-  CarouselCard,
   CollectionCard,
   LazySection,
   ReadingCard,
@@ -21,8 +20,6 @@ import { useHomeData, type HomeVisibleSections } from "@/hooks/useHomeData";
 import { useStaticData, type StaticDataVisibleSections } from "@/hooks/useStaticData";
 import { useAuth } from "@/hooks/useAuth";
 import RandomTitlesComponent from "@/shared/random-titles/RandomTitles";
-import { getTitlePath } from "@/lib/title-paths";
-import AdBlock from "@/shared/ad-block/AdBlock";
 import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";
 import { TopCombinedSkeleton } from "@/shared/skeleton/TopCombinedSkeleton";
 import { GridSkeleton } from "@/shared/skeleton/GridSkeleton";
@@ -85,7 +82,6 @@ export default function HomePage() {
 
   const {
     popularTitles,
-    recentTitles,
     randomTitles,
     trendingTitles,
     underratedTitles,

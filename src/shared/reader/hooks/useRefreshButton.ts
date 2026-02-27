@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 interface UseRefreshButtonReturn {
   isPressing: boolean;
@@ -68,14 +68,12 @@ export function useRefreshButton(): UseRefreshButtonReturn {
   }, [isPressing, pressProgress]);
 
   // Cleanup on unmount
-  const cleanup = useCallback(() => {
-    if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
-    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+  useEffect(() => {
+    return () => {
+      if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    };
   }, []);
-
-  // Attach cleanup to component unmount
-  // This will be called when the component using this hook unmounts
-  // We return cleanup function that can be used in useEffect
 
   return {
     isPressing,

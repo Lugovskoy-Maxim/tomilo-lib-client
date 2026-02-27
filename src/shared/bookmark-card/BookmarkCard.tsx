@@ -60,7 +60,7 @@ export default function BookmarkCard({
       } else {
         toast.error(result.error ?? "Ошибка при удалении закладки");
       }
-    } catch (error) {
+    } catch {
       toast.error("Произошла ошибка при удалении закладки");
     } finally {
       setIsRemoving(false);
@@ -79,7 +79,7 @@ export default function BookmarkCard({
       } else {
         toast.error(result.error ?? "Не удалось изменить категорию");
       }
-    } catch (error) {
+    } catch {
       toast.error("Не удалось изменить категорию");
     } finally {
       setIsUpdatingCategory(false);

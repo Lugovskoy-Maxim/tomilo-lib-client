@@ -40,6 +40,7 @@ export default function UpdatesPage() {
         return [...prev, ...newItems];
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latestUpdatesData]);
 
   const hasMore = pageList.length >= UPDATES_PAGE_SIZE;

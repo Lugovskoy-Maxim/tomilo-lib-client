@@ -62,7 +62,7 @@ export function ShopManagementSection() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const { data: decorations = [], isLoading, error, refetch } = useGetDecorationsQuery();
-  const [createDecoration, { isLoading: isCreatingJson }] = useCreateDecorationMutation();
+  const [, { isLoading: isCreatingJson }] = useCreateDecorationMutation();
   const [createDecorationWithImage, { isLoading: isCreatingWithImage }] =
     useCreateDecorationWithImageMutation();
   const [updateDecoration, { isLoading: isUpdatingJson }] = useUpdateDecorationMutation();

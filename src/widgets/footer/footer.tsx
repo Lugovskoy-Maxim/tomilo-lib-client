@@ -177,7 +177,7 @@ export default function Footer() {
           <div className="footer-desktop-grid grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-12 mb-10">
             {/* Колонка 1: Логотип и описание */}
             <div className="md:col-span-5 flex flex-col items-center text-center md:items-start md:text-left">
-              <div className="footer-brand hover-lift p-4 rounded-2xl -m-4">
+              <div className="footer-brand p-4 rounded-2xl -m-4">
                 <Logo variant="footer" />
                 <p className="text-[var(--muted-foreground)] text-sm leading-relaxed mt-3 max-w-[280px]">
                   TOMILO-LIB — платформа для чтения манги, манхвы и маньхуа.

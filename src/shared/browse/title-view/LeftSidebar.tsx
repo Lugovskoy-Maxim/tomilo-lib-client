@@ -7,7 +7,6 @@ import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
 import { useRouter } from "next/navigation";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
 
 interface LeftSidebarProps {
   titleData: Title;

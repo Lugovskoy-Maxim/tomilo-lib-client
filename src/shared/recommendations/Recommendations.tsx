@@ -8,7 +8,6 @@ import { useGetRecommendedTitlesQuery } from "@/store/api/titlesApi";
 import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";
 
 interface RecommendationsProps {
-  userId?: string;
   limit?: number;
 }
 
@@ -16,7 +15,6 @@ interface RecommendationsProps {
 const RECOMMENDED_REFETCH_SEC = 300;
 
 export default function Recommendations({
-  userId,
   limit = 10
 }: RecommendationsProps) {
   const [shouldFetch, setShouldFetch] = useState(false);

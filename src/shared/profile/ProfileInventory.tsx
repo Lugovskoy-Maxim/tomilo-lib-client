@@ -84,9 +84,12 @@ export default function ProfileInventory() {
   const { user } = useAuth();
   const { data: userDecorations = [], isLoading: isLoadingUserDecorations, isError, refetch: refetchDecorations } = useGetUserProfileDecorationsQuery();
   const { data: profileData, refetch: refetchProfile } = useGetProfileQuery();
-  const ownedFromProfile = (profileData?.success && profileData.data
-    ? (profileData.data as UserProfile).ownedDecorations
-    : []) ?? [];
+  const ownedFromProfile = useMemo(
+    () => (profileData?.success && profileData.data
+      ? (profileData.data as UserProfile).ownedDecorations
+      : []) ?? [],
+    [profileData]
+  );
   const needCatalogFallback = userDecorations.length === 0 && ownedFromProfile.length > 0;
   /** Каталог нужен и для fallback-списка, и для подстановки редкости в userDecorations (в профиле API может не отдавать rarity). */
   const needCatalog = needCatalogFallback || userDecorations.length > 0;

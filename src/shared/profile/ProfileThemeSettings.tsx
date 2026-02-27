@@ -7,9 +7,8 @@ interface ProfileThemeSettingsProps {
   isLoading?: boolean;
 }
 
-export default function ProfileThemeSettings({
-  isLoading,
-}: ProfileThemeSettingsProps) {
+export default function ProfileThemeSettings(_props: ProfileThemeSettingsProps) {
+  void _props;
   return (
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">

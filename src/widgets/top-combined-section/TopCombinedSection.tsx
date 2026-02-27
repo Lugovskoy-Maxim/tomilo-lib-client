@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight, Eye, Star, TrendingUp } from "lucide-react";
+import { ArrowRight, Eye, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { TopTitleCombined } from "@/types/constants";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";

@@ -9,7 +9,6 @@ import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { useIncrementViewsMutation, useGetTitleBySlugQuery } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { useAuth } from "@/hooks/useAuth";
-import LoadingState from "@/shared/profile/ProfileLoading";
 import ErrorState from "@/shared/error-state/ErrorState";
 import MobileCover from "@/shared/browse/title-view/MobileCover";
 import { LeftSidebar } from "@/shared/browse/title-view/LeftSidebar";
@@ -30,7 +29,6 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     entityId: string;
     entityTitle: string;
     titleId?: string;
-    creatorId?: string;
   } | null>(null);
 
   // Получаем данные тайтла по slug
@@ -228,6 +226,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
   useEffect(() => {
     const t = searchParams.get("tab");
     if (isValidTab(t)) setActiveTab(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   useEffect(() => {
@@ -650,7 +649,6 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
           entityId={reportModalData.entityId}
           entityTitle={reportModalData.entityTitle}
           titleId={reportModalData.titleId}
-          creatorId={reportModalData.creatorId}
         />
       )}
       </div>

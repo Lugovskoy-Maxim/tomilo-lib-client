@@ -1,7 +1,7 @@
 "use client";
 import { Logo, Search, ErrorBoundary, LoginModal, RegisterModal } from "@/shared";
 import { Navigation, UserBar } from "@/widgets";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { ApiResponseDto } from "@/types/api";
@@ -114,7 +114,7 @@ export default function Header() {
     setRegisterModalOpen(false);
   };
 
-  const closeMobileMenu = () => {
+  const closeMobileMenu = useCallback(() => {
     if (!isMobileMenuOpen) return;
     if (mobileMenuCloseTimeoutRef.current) clearTimeout(mobileMenuCloseTimeoutRef.current);
     setIsMobileMenuClosing(true);
@@ -123,7 +123,7 @@ export default function Header() {
       setIsMobileMenuClosing(false);
       mobileMenuCloseTimeoutRef.current = null;
     }, 220);
-  };
+  }, [isMobileMenuOpen]);
 
   const closeDropdown = () => setIsDropdownOpen(false);
 
@@ -150,7 +150,7 @@ export default function Header() {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = prevOverflow;
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, closeMobileMenu]);
 
   useEffect(() => {
     return () => {
@@ -180,7 +180,7 @@ export default function Header() {
               </button>
             </div>
           )}
-          <div className="flex items-center hover-lift rounded-xl -m-2 p-2">
+          <div className="flex items-center rounded-xl -m-2 p-2">
             <Logo variant="header" />
           </div>
         </div>

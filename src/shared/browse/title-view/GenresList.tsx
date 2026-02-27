@@ -11,30 +11,14 @@ interface GenresListProps {
   ageLimit?: number;
 }
 
-interface Item {
-  type: "genre" | "tag";
-  value: string;
-}
-
-export function GenresList({ genres = [], tags = [], isAdult, ageLimit }: GenresListProps) {
-  const showAdultBadge = isAdult || (ageLimit && ageLimit >= 18);
+export function GenresList({ genres = [], tags = [], ageLimit }: GenresListProps) {
   const showAgeRating = ageLimit && ageLimit > 0;
   const ageRatingLabel =
     ageLimit === 18 ? "18+" : ageLimit === 16 ? "16+" : ageLimit === 12 ? "12+" : `${ageLimit}+`;
 
-  // Цвета для возрастных рейтингов
-  const ageRatingColor =
-    ageLimit === 18
-      ? "text-red-500"
-      : ageLimit === 16
-        ? "text-orange-500"
-        : ageLimit === 12
-          ? "text-yellow-500"
-          : "text-green-500";
-
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showMoreButton, setShowMoreButton] = useState(false);
+  const [, setShowMoreButton] = useState(false);
   const [visibleCount, setVisibleCount] = useState(10);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -53,12 +37,13 @@ export function GenresList({ genres = [], tags = [], isAdult, ageLimit }: Genres
   const allItems = useMemo(() => [...genreItems, ...tagItems], [genreItems, tagItems]);
 
   // Отображаемые элементы с учетом лимита
-  const visibleItems = useMemo(() => {
+  const displayedItems = useMemo(() => {
     if (isExpanded) return allItems;
     return allItems.slice(0, visibleCount);
   }, [allItems, isExpanded, visibleCount]);
 
   const hasMoreItems = allItems.length > visibleCount;
+  void displayedItems;
   const hasItems = allItems.length > 0;
 
   // Проверяем, нужно ли показывать кнопку "Ещё"

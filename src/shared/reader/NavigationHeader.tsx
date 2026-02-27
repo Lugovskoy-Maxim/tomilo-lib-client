@@ -1,6 +1,6 @@
 import Link from "next/link";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
-import { ChevronLeft, ChevronRight, AlertTriangle, List } from "lucide-react";
+import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
 
 interface NavigationHeaderProps {

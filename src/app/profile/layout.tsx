@@ -17,11 +17,8 @@ import ProfileEditForm from "@/shared/profile/ProfileEditForm";
 import { ProfileProvider } from "@/shared/profile/ProfileContext";
 import Modal from "@/shared/modal/modal";
 
-export default function ProfileLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function ProfileLayout(_: { children: React.ReactNode }) {
+  void _;
   const { userProfile, isLoading, authLoading, handleAvatarUpdate } = useProfile();
   const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);

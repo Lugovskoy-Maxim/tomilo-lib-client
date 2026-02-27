@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Filter, X, Check, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
+import { X, Check, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import CollapsibleGenresList from "./CollapsibleGenresList";
 import { translateTitleType, translateTitleStatus } from "@/lib/title-type-translations";
 

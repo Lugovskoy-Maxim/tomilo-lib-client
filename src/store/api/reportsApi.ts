@@ -1,7 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { ApiResponseDto } from "@/types/api";
-import { Report, CreateReportDto, UpdateReportStatusDto, ReportsResponse } from "@/types/report";
+import { Report, UpdateReportStatusDto, ReportsResponse } from "@/types/report";
 
 const REPORTS_TAG = "Reports";
 

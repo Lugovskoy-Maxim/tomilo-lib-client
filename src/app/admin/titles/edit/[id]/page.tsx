@@ -179,7 +179,6 @@ interface BasicInfoSectionProps {
     field: keyof Title,
   ) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   handleArrayFieldChange: (field: "genres" | "tags") => (value: string, isChecked: boolean) => void;
-  handleInputArrayChange: (field: "genres" | "tags") => (values: string[]) => void;
   handleNormalize: (field: "genres" | "tags") => (values: string[]) => {
     normalized: string[];
     changes: Array<{ original: string; normalized: string }>;
@@ -241,8 +240,6 @@ interface GenresTagsSectionProps {
   tags: string[];
   onGenresChange: (value: string, isChecked: boolean) => void;
   onTagsChange: (value: string, isChecked: boolean) => void;
-  onGenresReplace: (values: string[]) => void;
-  onTagsReplace: (values: string[]) => void;
   onNormalizeGenres: (values: string[]) => {
     normalized: string[];
     changes: Array<{ original: string; normalized: string }>;
@@ -377,13 +374,6 @@ export default function TitleEditorPage() {
         };
       });
     };
-
-  const handleInputArrayChange = (field: "genres" | "tags") => (values: string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: values,
-    }));
-  };
 
   // Обработчик нормализации жанров/тегов с уведомлениями
   const handleNormalize = (field: "genres" | "tags") => (values: string[]) => {
@@ -535,7 +525,6 @@ export default function TitleEditorPage() {
                 titleId={titleId}
                 handleInputChange={handleInputChange}
                 handleArrayFieldChange={handleArrayFieldChange}
-                handleInputArrayChange={handleInputArrayChange}
                 handleNormalize={handleNormalize}
                 handleAltNamesChange={handleAltNamesChange}
                 handleImageChange={handleImageChange}
@@ -631,7 +620,6 @@ function BasicInfoSection({
   titleId,
   handleInputChange,
   handleArrayFieldChange,
-  handleInputArrayChange,
   handleNormalize,
   handleAltNamesChange,
   handleImageChange,
@@ -772,8 +760,6 @@ function BasicInfoSection({
         tags={formData.tags}
         onGenresChange={handleArrayFieldChange("genres")}
         onTagsChange={handleArrayFieldChange("tags")}
-        onGenresReplace={handleInputArrayChange("genres")}
-        onTagsReplace={handleInputArrayChange("tags")}
         onNormalizeGenres={handleNormalize("genres")}
         onNormalizeTags={handleNormalize("tags")}
       />
@@ -798,7 +784,6 @@ function GenreTagBlock({
   items,
   selectedItems,
   onChange,
-  onReplace,
   onNormalize,
   toast,
 }: {
@@ -807,7 +792,6 @@ function GenreTagBlock({
   items: string[];
   selectedItems: string[];
   onChange: (value: string, isChecked: boolean) => void;
-  onReplace: (values: string[]) => void;
   onNormalize: (values: string[]) => { normalized: string[]; changes: Array<{ original: string; normalized: string }> };
   toast: { success: (m: string) => void; info: (m: string) => void };
 }) {
@@ -952,8 +936,6 @@ function GenresTagsSection({
   tags,
   onGenresChange,
   onTagsChange,
-  onGenresReplace,
-  onTagsReplace,
   onNormalizeGenres,
   onNormalizeTags,
 }: GenresTagsSectionProps) {
@@ -974,7 +956,6 @@ function GenresTagsSection({
           items={API_CONFIG.genres}
           selectedItems={genres}
           onChange={onGenresChange}
-          onReplace={onGenresReplace}
           onNormalize={onNormalizeGenres}
           toast={toast}
         />
@@ -984,7 +965,6 @@ function GenresTagsSection({
           items={API_CONFIG.tags}
           selectedItems={tags}
           onChange={onTagsChange}
-          onReplace={onTagsReplace}
           onNormalize={onNormalizeTags}
           toast={toast}
         />

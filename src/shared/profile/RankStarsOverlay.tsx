@@ -2,7 +2,6 @@
 
 import { UserProfile } from "@/types/user";
 import { levelToRank, getRankColor } from "@/lib/rank-utils";
-import { useEffect, useState } from "react";
 
 interface RankStarsOverlayProps {
   userProfile: UserProfile;
@@ -10,18 +9,6 @@ interface RankStarsOverlayProps {
 }
 
 export default function RankStarsOverlay({ userProfile, size = 144 }: RankStarsOverlayProps) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
   // Get rank info from level
   const level = userProfile.level ?? 0;
   const rankInfo = levelToRank(level);

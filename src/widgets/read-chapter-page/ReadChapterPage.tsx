@@ -25,7 +25,6 @@ import {
   clearOtherChaptersPositions,
 } from "@/lib/reading-position";
 
-import AdBlockReading from "@/shared/ad-block/AdBlockReading";
 import ChapterErrorState from "@/shared/error-state/ChapterErrorState";
 import ReadingPositionRestoreModal from "@/shared/reader/ReadingPositionRestoreModal";
 
@@ -74,7 +73,6 @@ export default function ReadChapterPage({
   const [imageFallbacks, setImageFallbacks] = useState<Set<string>>(new Set());
   const [, setIsFullscreen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [hideBottomMenuSetting, setHideBottomMenuSetting] = useState(false);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
@@ -114,6 +112,7 @@ export default function ReadChapterPage({
     setLastLoadedIndex(currentChapterIndex);
     setVisibleChapterId(chapter._id);
     setLoadedImagesByChapter({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapter._id, currentChapterIndex]);
 
   // Сброс флага остановки автопрокрутки через некоторое время после остановки
@@ -174,14 +173,7 @@ export default function ReadChapterPage({
   // Refs для предотвращения повторных вызовов
   const historyAddedRef = useRef<Set<string>>(new Set());
   const viewsUpdatedRef = useRef<Set<string>>(new Set());
-  const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const menuHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Функция для показа меню и сброса таймера скрытия
-  const showMenuAndResetTimeout = useCallback(() => {
-    setIsMenuCollapsed(false);
-    resetHideTimeout();
-  }, []);
 
   // Функция для сброса таймера скрытия меню
   const resetHideTimeout = useCallback(() => {
@@ -194,6 +186,12 @@ export default function ReadChapterPage({
       }, 5000);
     }
   }, [hideBottomMenuSetting, isMenuCollapsed]);
+
+  // Функция для показа меню и сброса таймера скрытия
+  const showMenuAndResetTimeout = useCallback(() => {
+    setIsMenuCollapsed(false);
+    resetHideTimeout();
+  }, [resetHideTimeout]);
 
   // Функция для получения корректного URL изображения с учётом fallback
   const getImageUrlWithFallback = useCallback((url: string, chapterId: string, imageIndex: number) => {
@@ -239,7 +237,7 @@ export default function ReadChapterPage({
     if (!viewsUpdatedRef.current.has(chapterKey)) {
       if (isAuthenticated) {
         // Для авторизованных пользователей используем полную функцию с обновлением в БД
-        updateChapterViews(chapter._id, chapter.views || 0)
+        updateChapterViews(chapter._id)
           .then(() => {
             viewsUpdatedRef.current.add(chapterKey);
           })
@@ -350,10 +348,7 @@ export default function ReadChapterPage({
 
   // Обработчики для мобильных контролов
   const handleMobileTap = () => {
-    setIsMobileControlsVisible(true);
-
     // Отображение нижнего меню при тапе по экрану
-
     if (hideBottomMenuSetting) {
       showMenuAndResetTimeout();
       // Остановка автопрокрутки при тапе по экрану (только если меню было свернуто)
@@ -632,7 +627,7 @@ export default function ReadChapterPage({
       setLoadingNext(false);
       loadingChapterIdsRef.current.delete(nextId);
     }
-  }, [isChaptersInRowMode, lastLoadedIndex, chapters.length, loadingNext, chapters, fetchChapterById]);
+  }, [isChaptersInRowMode, lastLoadedIndex, chapters, loadingNext, fetchChapterById]);
 
   useEffect(() => {
     if (!isChaptersInRowMode) return;
@@ -762,7 +757,6 @@ export default function ReadChapterPage({
         canGoPrev={currentChapterIndex > 0}
         canGoNext={currentChapterIndex < chapters.length - 1}
         titleId={titleId}
-        creatorId={title.creatorId}
         imageWidth={imageWidth}
         onImageWidthChange={handleImageWidthChange}
         isMenuHidden={isMenuCollapsed}
@@ -1217,7 +1211,6 @@ export default function ReadChapterPage({
         entityId={effectiveChapter._id}
         entityTitle={`Глава ${effectiveChapter.number}${effectiveChapter.title ? ` - ${effectiveChapter.title}` : ""}`}
         titleId={title._id}
-        creatorId={title.creatorId}
       />
     </div>
   );

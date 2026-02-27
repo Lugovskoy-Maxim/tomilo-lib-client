@@ -287,7 +287,6 @@ export function ReadButton({
   let showIcon = true;
   const bestLastReadChapter = getBestLastReadChapter();
   let lastReadCaption = "";
-  let lastReadCaptionShort = "";
   let lastReadCaptionCompact = "";
 
   // Если есть продолжение чтения для этого тайтла
@@ -307,7 +306,6 @@ export function ReadButton({
       const relative = formatRelativeReadAt(bestLastReadChapter.readAt);
       if (relative) {
         lastReadCaption = relative.desktop;
-        lastReadCaptionShort = relative.mobile;
         lastReadCaptionCompact = relative.mobileCompact;
       }
     }

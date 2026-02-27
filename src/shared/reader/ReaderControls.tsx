@@ -14,7 +14,6 @@ import {
   List,
   Download,
   Wifi,
-  WifiOff,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
@@ -34,7 +33,6 @@ interface ReaderControlsProps {
   currentPage: number;
   chapterImageLength: number;
   titleId: string;
-  creatorId?: string;
   imageWidth?: number;
   onImageWidthChange?: (width: number) => void;
   isMenuHidden?: boolean;
@@ -61,7 +59,6 @@ export default function ReaderControls({
   canGoPrev,
   canGoNext,
   titleId,
-  creatorId,
   imageWidth,
   onImageWidthChange,
   isMenuHidden = false,
@@ -116,12 +113,6 @@ export default function ReaderControls({
     handleSimpleClick,
   } = useRefreshButton();
 
-  const handleMenuToggle = useCallback(() => {
-    setIsMenuOpen(!isMenuOpen);
-    if (!isMenuOpen && onMenuOpen) {
-      onMenuOpen();
-    }
-  }, [isMenuOpen, onMenuOpen]);
 
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const desktopJumpPopoverRef = useRef<HTMLDivElement>(null);
@@ -1181,7 +1172,6 @@ export default function ReaderControls({
           currentChapter.title ? ` - ${currentChapter.title}` : ""
         }`}
         titleId={titleId}
-        creatorId={creatorId}
       />
     </>
   );

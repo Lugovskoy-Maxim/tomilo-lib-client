@@ -103,15 +103,14 @@ export default function FeaturedTitleBlock({
   }, [categoryOpen]);
 
   const currentItem = data[currentIndex];
-  if (!currentItem) return null;
 
-  const titlePath = getTitlePath(currentItem);
-  const isAdultContent = currentItem.isAdult;
-  const isBookmarked = user?.bookmarks
+  const titlePath = currentItem ? getTitlePath(currentItem) : "";
+  const isAdultContent = currentItem?.isAdult;
+  const isBookmarked = user?.bookmarks && currentItem
     ? normalizeBookmarks(user.bookmarks).some(e => e.titleId === currentItem.id)
     : false;
 
-  const imageSrc = currentItem.image
+  const imageSrc = currentItem?.image
     ? currentItem.image.startsWith("http")
       ? currentItem.image
       : `${process.env.NEXT_PUBLIC_URL}${currentItem.image}`
@@ -177,6 +176,8 @@ export default function FeaturedTitleBlock({
       goToNext();
     }
   }, [progress, isPaused, goToNext, data.length]);
+
+  if (!currentItem) return null;
 
   const handleAgeConfirm = () => {
     setIsAgeVerified(true);

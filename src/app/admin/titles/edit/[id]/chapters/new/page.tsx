@@ -40,6 +40,8 @@ export default function ChapterCreatePage() {
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
     const arr = Array.from(files);
+    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+    arr.sort((a, b) => collator.compare(a.name, b.name));
     setPages(arr);
   };
 

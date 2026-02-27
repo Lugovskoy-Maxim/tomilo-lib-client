@@ -141,6 +141,8 @@ export default function ChapterEditorPage() {
     const files = e.target.files;
     if (files && files.length > 0) {
       const newFilesArray = Array.from(files).filter(file => file.type.startsWith("image/"));
+      const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+      newFilesArray.sort((a, b) => collator.compare(a.name, b.name));
       setNewFiles(prev => [...prev, ...newFilesArray]);
     }
     e.target.value = "";
@@ -152,6 +154,8 @@ export default function ChapterEditorPage() {
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       const newFilesArray = Array.from(files).filter(file => file.type.startsWith("image/"));
+      const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+      newFilesArray.sort((a, b) => collator.compare(a.name, b.name));
       setNewFiles(prev => [...prev, ...newFilesArray]);
     }
   };

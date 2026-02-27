@@ -282,10 +282,12 @@ export const selectImageSize = (baseSrc: string, screenWidth: number): string =>
 };
 
 // Экспорт всех функций
-export default {
+const imageOptimizer = {
   optimizeImage,
   ImageLazyLoader,
   useImageState,
   generateSrcSet,
   selectImageSize,
 };
+
+export default imageOptimizer;

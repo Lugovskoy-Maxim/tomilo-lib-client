@@ -575,12 +575,14 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
                       <button
                         onClick={e => {
                           e.stopPropagation();
-                          group.chapters.length === 1
-                            ? handleRemoveFromHistory(
-                                String(group.titleId),
-                                sortedSessions[0]?.[0]?.chapterId,
-                              )
-                            : handleRemoveTitleFromHistory(String(group.titleId), titleName);
+                          if (group.chapters.length === 1) {
+                            handleRemoveFromHistory(
+                              String(group.titleId),
+                              sortedSessions[0]?.[0]?.chapterId,
+                            );
+                          } else {
+                            handleRemoveTitleFromHistory(String(group.titleId), titleName);
+                          }
                         }}
                         className="p-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors"
                         title={group.chapters.length === 1 ? "Удалить из истории" : "Удалить все главы"}

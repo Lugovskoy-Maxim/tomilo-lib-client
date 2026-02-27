@@ -2,7 +2,6 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import type { Decoration } from "@/api/shop";
 import { normalizeRarity } from "@/api/shop";
-import type { ApiResponse } from "@/api/shop";
 import type { CreateDecorationDto, UpdateDecorationDto } from "@/api/shop";
 
 const SHOP_TAG = "Shop" as const;

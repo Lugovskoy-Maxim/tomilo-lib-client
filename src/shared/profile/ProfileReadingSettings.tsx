@@ -64,7 +64,7 @@ export default function ProfileReadingSettings({
     setOrientation((next.orientation as "auto" | "portrait" | "landscape") ?? "auto");
     setImageWidth(next.imageWidth);
     setReadChaptersInRow(next.readChaptersInRow);
-  }, [userProfile._id, userProfile.readingSettings]);
+  }, [userProfile]);
 
   const readingSettings: ReadingSettings = {
     readingMode,

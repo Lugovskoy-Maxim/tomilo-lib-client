@@ -23,7 +23,6 @@ import {
 import { Title, TitleStatus, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ReadButton } from "@/shared/browse/ReadButton";
 import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
@@ -114,7 +113,7 @@ export function LeftSidebar({
 }) {
   const { user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
-  const [isAgeVerified, setIsAgeVerified] = useState(() => checkAgeVerification(user));
+  const [, setIsAgeVerified] = useState(() => checkAgeVerification(user));
 
   const handleAgeConfirm = () => {
     setIsAgeVerified(true);
@@ -470,16 +469,13 @@ export function RightContent({
 
   const handleModalRequired = () => {
     const isLoggedIn = !!user;
-    const isAgeVerified = checkAgeVerification(user);
 
     if (!isLoggedIn) {
       handleLoginModalOpen();
-    } else if (!isAgeVerified) {
+    } else if (!checkAgeVerification(user)) {
       setAgeModalOpen(true);
     }
   };
-
-  const router = useRouter();
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
 

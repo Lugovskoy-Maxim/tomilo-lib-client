@@ -3,7 +3,6 @@ import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { AuthResponse, User, LinkResolve } from "@/types/auth";
 import {
   LoginData,
-  RegisterData,
   SendRegistrationCodeData,
   RegisterWithCodeData,
 } from "@/types/form";

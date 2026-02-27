@@ -106,7 +106,7 @@ export default function NotificationCard({
   selectionMode = false,
 }: NotificationCardProps) {
   const router = useRouter();
-  const [imageError, setImageError] = useState(false);
+  const [, setImageError] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [markAsRead] = useMarkAsReadMutation();

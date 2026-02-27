@@ -5,43 +5,14 @@ import { Chapter, ChaptersResponse, CreateChapterDto, UpdateChapterDto } from "@
 
 const CHAPTERS_TAG = "Chapters";
 
-/** Разбивает строку на сегменты (числа и не-числа) для натуральной сортировки имён файлов. */
-function parseNameSegments(name: string): (string | number)[] {
-  const segments: (string | number)[] = [];
-  let i = 0;
-  while (i < name.length) {
-    const start = i;
-    if (/\d/.test(name[i])) {
-      while (i < name.length && /\d/.test(name[i])) i++;
-      segments.push(parseInt(name.slice(start, i), 10));
-    } else {
-      while (i < name.length && !/\d/.test(name[i])) i++;
-      segments.push(name.slice(start, i));
-    }
-  }
-  return segments;
-}
-
-function compareSegments(a: (string | number)[], b: (string | number)[]): number {
-  const len = Math.min(a.length, b.length);
-  for (let i = 0; i < len; i++) {
-    const x = a[i];
-    const y = b[i];
-    if (typeof x === "number" && typeof y === "number") {
-      if (x !== y) return x - y;
-    } else {
-      const s = String(x).localeCompare(String(y), undefined, { sensitivity: "base" });
-      if (s !== 0) return s;
-    }
-  }
-  return a.length - b.length;
-}
+const naturalCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
 
 /** Сортирует файлы по имени в натуральном порядке (1, 2, 10, а не 1, 10, 2). */
 function sortFilesByNaturalOrder(files: File[]): File[] {
-  const withSegments = files.map(f => ({ file: f, segments: parseNameSegments(f.name) }));
-  withSegments.sort((a, b) => compareSegments(a.segments, b.segments));
-  return withSegments.map(({ file }) => file);
+  return [...files].sort((a, b) => naturalCollator.compare(a.name, b.name));
 }
 
 function toFormData<T extends Record<string, unknown>>(data: Partial<T>): FormData {

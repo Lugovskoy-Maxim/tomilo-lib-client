@@ -14,7 +14,6 @@ interface ReportModalProps {
   entityType: "title" | "chapter";
   entityId: string;
   entityTitle: string;
-  creatorId?: string;
   titleId?: string;
 }
 
@@ -24,7 +23,6 @@ export function ReportModal({
   entityType,
   entityId,
   entityTitle,
-  creatorId,
   titleId,
 }: ReportModalProps) {
   const [reportType, setReportType] = useState<ReportType>(ReportType.ERROR);

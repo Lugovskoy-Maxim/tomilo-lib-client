@@ -44,7 +44,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
     existingAccount: LinkConflictExistingAccount;
   } | null>(null);
   const [pendingVk, setPendingVk] = useState<PendingVkPayload | null>(null);
-  const [pendingYandex, setPendingYandex] = useState<{ access_token: string } | null>(null);
+  const [, setPendingYandex] = useState<{ access_token: string } | null>(null);
 
   const isLinking = isLinkingVk || isLinkingYandex;
 

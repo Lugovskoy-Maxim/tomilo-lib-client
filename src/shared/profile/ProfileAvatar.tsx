@@ -7,9 +7,6 @@ import { getImageUrls } from "@/lib/asset-url";
 import { useAuth } from "@/hooks/useAuth";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 
-const API_CONFIG = {
-  basePublicUrl: process.env.NEXT_PUBLIC_URL || "http://localhost:3001",
-};
 
 interface UserAvatarProps {
   userProfile: UserProfile;

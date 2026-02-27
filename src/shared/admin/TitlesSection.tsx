@@ -7,7 +7,6 @@ import {
   Eye,
   AlertCircle,
   CheckCircle,
-  ArrowUpDown,
   ArrowUp,
   ArrowDown,
   Filter,
@@ -16,8 +15,6 @@ import {
   X,
   CheckSquare,
   Square,
-  MoreHorizontal,
-  Download,
 } from "lucide-react";
 import Link from "next/link";
 import { Title } from "@/types/title";
@@ -27,7 +24,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { useRouter } from "next/navigation";
 import { translateTitleStatus } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
-import { AdminCard, StatCard, MiniCard } from "./ui";
+import { AdminCard, StatCard } from "./ui";
 import { AdminTable } from "./ui";
 import Pagination from "@/shared/browse/pagination";
 import { ConfirmModal, AlertModal } from "./ui";
@@ -218,16 +215,15 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   // Stats — total из API, ongoing/completed из текущей страницы (приблизительно)
   const apiTotal = titlesResponse?.data?.total ?? 0;
   const apiTotalPages = titlesResponse?.data?.totalPages ?? 1;
-  const currentPageTitles = titlesResponse?.data?.data || [];
   const stats = useMemo(() => {
-    const titles = currentPageTitles;
+    const titles = titlesResponse?.data?.data || [];
     return {
       total: apiTotal,
       ongoing: statusFilter === "ongoing" ? apiTotal : titles.filter((t: Title) => t.status === "ongoing").length,
       completed: statusFilter === "completed" ? apiTotal : titles.filter((t: Title) => t.status === "completed").length,
       totalViews: titles.reduce((sum: number, t: Title) => sum + (t.views || 0), 0),
     };
-  }, [titlesResponse, statusFilter, apiTotal, currentPageTitles]);
+  }, [statusFilter, apiTotal, titlesResponse?.data?.data]);
 
   // Handlers
   const handleSort = (field: SortField) => {
@@ -256,7 +252,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
         type: "success",
       });
       setSelectedIds(prev => prev.filter(id => id !== titleToDelete.id));
-    } catch (error) {
+    } catch {
       setAlertModal({
         isOpen: true,
         title: "Ошибка",

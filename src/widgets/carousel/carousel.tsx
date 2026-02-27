@@ -82,11 +82,6 @@ export default function Carousel<T>({
   const [isDragging, setIsDragging] = useState(false);
 
   /**
-   * Флаг для отслеживания, произошел ли реальный drag.
-   */
-  const [hasDragged, setHasDragged] = useState(false);
-
-  /**
    * Флаг для отслеживания, произошел ли drag в текущем взаимодействии (state для прочих проверок).
    */
   const [dragOccurred, setDragOccurred] = useState(false);
@@ -103,9 +98,9 @@ export default function Carousel<T>({
   const [startX, setStartX] = useState(0);
 
   /**
-   * Текущая позиция прокрутки контейнера.
+   * Текущая позиция прокрутки контейнера (используется в handleMouseDown/handleTouchStart).
    */
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const [, setScrollLeft] = useState(0);
 
   /**
    * Время начала перетаскивания для определения click vs drag.
@@ -213,10 +208,10 @@ export default function Carousel<T>({
    * @param item - Объект данных карточки.
    * @returns Строка с ID или пустая строка, если поле не найдено.
    */
-  const getCardId = (item: T) => {
+  const getCardId = useCallback((item: T) => {
     const idValue = item[idField];
     return idValue ? String(idValue) : "";
-  };
+  }, [idField]);
 
   /** Для бесконечной автопрокрутки рендерим два набора данных подряд. */
   const displayData = autoScrollInterval && data.length > 1 ? [...data, ...data] : data;
@@ -260,7 +255,6 @@ export default function Carousel<T>({
     e.preventDefault(); // чтобы ссылки/картинки внутри не перехватывали драг
     pauseAutoScroll();
     setIsDragging(true);
-    setHasDragged(false);
     setDragOccurred(false);
     dragOccurredRef.current = false;
     setStartX(e.pageX);
@@ -282,7 +276,6 @@ export default function Carousel<T>({
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     pauseAutoScroll();
     setIsDragging(true);
-    setHasDragged(false);
     setDragOccurred(false);
     dragOccurredRef.current = false;
     setStartX(e.touches[0].pageX);
@@ -306,7 +299,6 @@ export default function Carousel<T>({
     if (scrolled) dragOccurredRef.current = true;
 
     setIsDragging(false);
-    setHasDragged(false);
     setDragOccurred(false);
     scheduleAutoScrollResume();
     // Держим ref дольше: на мобильных браузер генерирует click ~300ms после touchend
@@ -332,21 +324,6 @@ export default function Carousel<T>({
   const handleCardClick = useCallback((item: T, e: React.MouseEvent | React.TouchEvent) => {
     const currentTime = Date.now();
     const timeDiff = currentTime - dragStartTime;
-    
-    // Определяем координаты в зависимости от типа события
-    let clientX: number;
-    let clientY: number;
-    
-    if ('touches' in e) {
-      // Touch event
-      const touch = e.changedTouches[0];
-      clientX = touch.clientX;
-      clientY = touch.clientY;
-    } else {
-      // Mouse event
-      clientX = (e as React.MouseEvent).clientX;
-      clientY = (e as React.MouseEvent).clientY;
-    }
 
     // Проверяем, был ли это клик (не drag). Используем ref — click приходит после mouseup,
     // к тому моменту state dragOccurred уже сброшен в handleDragEnd, ref ещё не очищен.
@@ -372,13 +349,13 @@ export default function Carousel<T>({
       const path = getItemPath ? getItemPath(item) : `/${type}/${getCardId(item)}`;
       router.push(path);
     }
-  }, [dragOccurred, dragStartTime, data, getItemPath, router, type, getCardId]);
+  }, [dragOccurred, dragStartTime, getItemPath, router, type, getCardId]);
 
   /**
    * Обработчик отпускания кнопки мыши после перетаскивания.
    * @param e - Событие мыши.
    */
-  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+  const handleMouseUp = useCallback(() => {
     if (!isDragging) return;
     handleDragEnd();
   }, [isDragging, handleDragEnd]);
@@ -387,17 +364,8 @@ export default function Carousel<T>({
    * Обработчик окончания касания (touch end).
    * @param e - Событие касания.
    */
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+  const handleTouchEnd = useCallback(() => {
     if (!isDragging) return;
-    
-    const touch = e.changedTouches[0];
-    const mouseEvent = {
-      ...e,
-      clientX: touch.clientX,
-      clientY: touch.clientY,
-      pageX: touch.pageX,
-    } as unknown as React.MouseEvent;
-    
     handleDragEnd();
   }, [isDragging, handleDragEnd]);
 
@@ -411,7 +379,6 @@ export default function Carousel<T>({
     const movedDistance = Math.abs(e.pageX - startX);
     const overThreshold = movedDistance > 10;
     if (overThreshold) {
-      setHasDragged(true);
       setDragOccurred(true);
       dragOccurredRef.current = true;
     }
@@ -435,7 +402,6 @@ export default function Carousel<T>({
     const touch = e.touches[0];
     const movedDistance = Math.abs(touch.pageX - startX);
     if (movedDistance > 10) {
-      setHasDragged(true);
       setDragOccurred(true);
       dragOccurredRef.current = true;
     }

@@ -55,7 +55,7 @@ export default function NotificationsPage() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
 
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { data: notificationsResponse, isLoading, isFetching } = useGetNotificationsQuery(
     { page, limit: 20 },
     { skip: !isAuthenticated }
@@ -63,7 +63,10 @@ export default function NotificationsPage() {
   const [markAllAsRead] = useMarkAllAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
 
-  const notifications = notificationsResponse?.data?.notifications || [];
+  const notificationsData = useMemo(
+    () => notificationsResponse?.data?.notifications || [],
+    [notificationsResponse?.data?.notifications]
+  );
   const pagination = notificationsResponse?.data?.pagination;
 
   // SEO для страницы уведомлений
@@ -88,7 +91,7 @@ export default function NotificationsPage() {
   };
 
   const filteredNotifications = useMemo(() => {
-    return notifications.filter((notification: Notification) => {
+    return notificationsData.filter((notification: Notification) => {
       const isReportReplyType =
         notification.type === "report_response" ||
         notification.type === "complaint_response" ||
@@ -108,7 +111,7 @@ export default function NotificationsPage() {
       }
       return true;
     });
-  }, [notifications, activeFilter, showRead]);
+  }, [notificationsData, activeFilter, showRead]);
 
   const handleSelect = useCallback((id: string, selected: boolean) => {
     setSelectedIds((prev: Set<string>) => {
@@ -156,20 +159,20 @@ export default function NotificationsPage() {
   };
 
   const unreadCount = useMemo(() => 
-    notifications.filter((n: Notification) => !n.isRead).length,
-    [notifications]
+    notificationsData.filter((n: Notification) => !n.isRead).length,
+    [notificationsData]
   );
 
   const typeCounts = useMemo(() => {
     const counts = {
-      all: notifications.length,
+      all: notificationsData.length,
       new_chapter: 0,
       update: 0,
       user: 0,
       system: 0,
       report_response: 0,
     };
-    notifications.forEach(n => {
+    notificationsData.forEach(n => {
       if (n.type === "complaint_response" || n.type === "report_resolved") {
         counts.report_response++;
         return;
@@ -179,7 +182,7 @@ export default function NotificationsPage() {
       }
     });
     return counts;
-  }, [notifications]);
+  }, [notificationsData]);
 
   const groupByDate = (notifications: Notification[]) => {
     const groups: { [key: string]: Notification[] } = {
@@ -620,7 +623,7 @@ export default function NotificationsPage() {
                   : `Нет уведомлений в категории «${filterConfig.find(f => f.key === activeFilter)?.label}». Попробуйте другой фильтр.`}
               </p>
               <div className="flex flex-wrap justify-center gap-3">
-                {!showRead && notifications.some(n => n.isRead) && (
+                {!showRead && notificationsData.some(n => n.isRead) && (
                   <Button
                     variant="outline"
                     onClick={() => setShowRead(true)}

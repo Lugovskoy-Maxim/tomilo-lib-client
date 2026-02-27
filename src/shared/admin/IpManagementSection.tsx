@@ -14,10 +14,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   Search,
-  Plus,
   Clock,
   Globe,
-  AlertTriangle,
 } from "lucide-react";
 import Button from "@/shared/ui/button";
 

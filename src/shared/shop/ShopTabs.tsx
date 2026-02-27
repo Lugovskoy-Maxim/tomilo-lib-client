@@ -44,7 +44,7 @@ export function ShopTabs({ activeTab, onTabChange }: ShopTabsProps) {
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]
                 ${isActive ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}
               `}
-              aria-selected={isActive}
+              aria-current={isActive ? "true" : undefined}
               aria-controls="shop-section"
               id={`shop-tab-${tab.id}`}
             >
