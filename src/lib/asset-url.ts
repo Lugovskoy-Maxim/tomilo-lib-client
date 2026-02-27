@@ -5,15 +5,29 @@ const s3Origin = process.env.NEXT_PUBLIC_S3_URL?.replace(/\/$/, "") || "";
 const uploadsOrigin = process.env.NEXT_PUBLIC_UPLOADS_URL?.replace(/\/$/, "") || "http://localhost:3001/uploads";
 
 /**
- * Нормализует относительный путь для использования в URL.
+ * Нормализует путь для fallback (старый сервер).
  * Убирает /api/ префиксы и приводит к формату /uploads/...
  */
-function normalizePath(p: string): string {
+function normalizePathForUploads(p: string): string {
   if (!p) return "";
   let path = p.startsWith("/") ? p : `/${p}`;
   if (path.startsWith("/api/")) path = path.replace(/^\/api\//, "/uploads/");
   if (path.startsWith("api/")) path = path.replace(/^api\//, "uploads/");
   return path;
+}
+
+/**
+ * Нормализует путь для S3 (убирает /uploads/ префикс).
+ * На S3 файлы лежат без /uploads/ префикса.
+ */
+function normalizePathForS3(p: string): string {
+  if (!p) return "";
+  let path = p.startsWith("/") ? p : `/${p}`;
+  if (path.startsWith("/api/")) path = path.replace(/^\/api\//, "/");
+  if (path.startsWith("api/")) path = path.replace(/^api\//, "/");
+  if (path.startsWith("/uploads/")) path = path.replace(/^\/uploads\//, "/");
+  if (path.startsWith("/uploads")) path = path.replace(/^\/uploads/, "");
+  return path.startsWith("/") ? path : `/${path}`;
 }
 
 /**
@@ -29,9 +43,11 @@ export function getImageUrls(p: string): { primary: string; fallback: string } {
       const u = new URL(normalized);
       const pathname = u.pathname;
       if (s3Origin) {
+        const s3Path = normalizePathForS3(pathname);
+        const uploadsPath = normalizePathForUploads(pathname);
         return {
-          primary: `${s3Origin}${pathname}`,
-          fallback: `${uploadsOrigin}${pathname}`,
+          primary: `${s3Origin}${s3Path}`,
+          fallback: `${uploadsOrigin}${uploadsPath}`,
         };
       }
       return { primary: normalized, fallback: normalized };
@@ -40,17 +56,17 @@ export function getImageUrls(p: string): { primary: string; fallback: string } {
     }
   }
 
-  const path = normalizePath(p);
-  const pathWithSlash = path.startsWith("/") ? path : `/${path}`;
+  const s3Path = normalizePathForS3(p);
+  const uploadsPath = normalizePathForUploads(p);
 
   if (s3Origin) {
     return {
-      primary: `${s3Origin}${pathWithSlash}`,
-      fallback: `${uploadsOrigin}${pathWithSlash}`,
+      primary: `${s3Origin}${s3Path}`,
+      fallback: `${uploadsOrigin}${uploadsPath}`,
     };
   }
 
-  const url = `${uploadsOrigin}${pathWithSlash}`;
+  const url = `${uploadsOrigin}${uploadsPath}`;
   return { primary: url, fallback: url };
 }
 
