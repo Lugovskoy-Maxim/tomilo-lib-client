@@ -142,7 +142,7 @@ export const useStaticData = (visibleSections: StaticDataVisibleSections = {}): 
     const fetchLatestUpdates = async () => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-        const response = await fetch(`${baseUrl}/titles/latest-updates`);
+        const response = await fetch(`${baseUrl}/titles/latest-updates?limit=16`);
 
         if (!response.ok) throw new Error("Failed to fetch latest updates");
 

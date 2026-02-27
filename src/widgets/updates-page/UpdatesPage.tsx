@@ -9,7 +9,7 @@ import { pageTitle } from "@/lib/page-title";
 import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
 import { useSEO } from "@/hooks/useSEO";
 
-const UPDATES_PAGE_SIZE = 18;
+const UPDATES_PAGE_SIZE = 20;
 
 export default function UpdatesPage() {
   const [mounted, setMounted] = useState(false);
@@ -34,9 +34,13 @@ export default function UpdatesPage() {
     if (page === 1) {
       setAccumulatedData(pageList);
     } else {
-      setAccumulatedData((prev: UpdateItem[]) => [...prev, ...pageList]);
+      setAccumulatedData((prev: UpdateItem[]) => {
+        const existingIds = new Set(prev.map(item => item.id));
+        const newItems = pageList.filter(item => !existingIds.has(item.id));
+        return [...prev, ...newItems];
+      });
     }
-  }, [page, latestUpdatesData]);
+  }, [latestUpdatesData]);
 
   const hasMore = pageList.length >= UPDATES_PAGE_SIZE;
   const isLoadingMore = isFetching && page > 1;
