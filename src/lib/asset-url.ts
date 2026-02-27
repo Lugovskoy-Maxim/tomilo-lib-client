@@ -6,14 +6,16 @@ const uploadsOrigin = process.env.NEXT_PUBLIC_UPLOADS_URL?.replace(/\/$/, "") ||
 
 /**
  * Нормализует путь для fallback (старый сервер).
- * Убирает /api/ префиксы и приводит к формату /uploads/...
+ * Убирает /api/ и /uploads/ префиксы, т.к. uploadsOrigin уже содержит /uploads.
  */
 function normalizePathForUploads(p: string): string {
   if (!p) return "";
   let path = p.startsWith("/") ? p : `/${p}`;
-  if (path.startsWith("/api/")) path = path.replace(/^\/api\//, "/uploads/");
-  if (path.startsWith("api/")) path = path.replace(/^api\//, "uploads/");
-  return path;
+  if (path.startsWith("/api/")) path = path.replace(/^\/api\//, "/");
+  if (path.startsWith("api/")) path = path.replace(/^api\//, "/");
+  if (path.startsWith("/uploads/")) path = path.replace(/^\/uploads\//, "/");
+  if (path.startsWith("/uploads")) path = path.replace(/^\/uploads/, "");
+  return path.startsWith("/") ? path : `/${path}`;
 }
 
 /**
