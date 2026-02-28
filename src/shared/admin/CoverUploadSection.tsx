@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent } from "react";
 import { Upload, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 interface CoverUploadSectionProps {
   titleId?: string;
@@ -32,7 +32,7 @@ export function CoverUploadSection({
   }, [selectedFile]);
 
   const resolvedCurrentCover = currentCover
-    ? getCoverUrl(currentCover, "")
+    ? getCoverUrls(currentCover, "").primary
     : "";
 
   return (

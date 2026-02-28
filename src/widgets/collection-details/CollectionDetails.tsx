@@ -10,7 +10,7 @@ import {
 } from "@/store/api/collectionsApi";
 import { LoadingSkeleton } from "@/shared";
 import { Title } from "@/types/title";
-import Image from "next/image";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { ArrowLeft, Eye, FolderX, Star } from "lucide-react";
 import { getTitlePath } from "@/lib/title-paths";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,7 +18,7 @@ import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVe
 import Script from "next/script";
 import { translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrl, getCoverUrls } from "@/lib/asset-url";
 
 export default function CollectionDetails({ collectionId }: { collectionId: string }) {
   const router = useRouter();
@@ -72,8 +72,8 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
 
   useSEO(seoConfig);
 
-  const normalizeImageUrl = (cover: string) => {
-    return getCoverUrl(cover, "/404/image-holder.png");
+  const normalizeImageUrls = (cover: string) => {
+    return getCoverUrls(cover, "/404/image-holder.png");
   };
 
   // Увеличиваем просмотры при загрузке
@@ -180,13 +180,12 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
             {collection.cover && (
               <div className="flex-shrink-0 w-full lg:w-auto flex justify-center lg:justify-end p-4 lg:p-6">
                 <div className="relative rounded-2xl overflow-hidden shadow-xl ring-1 ring-white/10 aspect-square w-36 h-36 sm:w-44 sm:h-44 lg:w-52 lg:h-52">
-                  <Image
-                    loader={({ src, width }) => `${src}?w=${width}`}
-                    src={normalizeImageUrl(collection.cover)}
+                  <OptimizedImage
+                    src={normalizeImageUrls(collection.cover).primary}
+                    fallbackSrc={normalizeImageUrls(collection.cover).fallback}
                     alt={collection.name}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 1024px) 176px, 208px"
                   />
                 </div>
               </div>
@@ -222,12 +221,11 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                 </div>
 
                 <div className="aspect-[3/4] mb-2 sm:mb-3 overflow-hidden rounded-xl relative">
-                  <Image
-                    loader={() => normalizeImageUrl(title?.coverImage || "")}
-                    src={normalizeImageUrl(title?.coverImage || "")}
+                  <OptimizedImage
+                    src={normalizeImageUrls(title?.coverImage || "").primary}
+                    fallbackSrc={normalizeImageUrls(title?.coverImage || "").fallback}
                     alt={title.name}
                     fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 280px"
                     className={`object-cover card-media-hover ${
                       isContentHidden ? "blur-md" : ""
                     }`}

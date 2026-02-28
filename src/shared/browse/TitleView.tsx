@@ -23,7 +23,7 @@ import {
 import { Title, TitleStatus, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
-import Image from "next/image";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { ReadButton } from "@/shared/browse/ReadButton";
 import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,7 +36,7 @@ import { translateTitleType, translateTitleStatus } from "@/lib/title-type-trans
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { GenresList } from "./title-view/GenresList";
 import router from "next/router";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 // Shared UI
 export function TabButton({
@@ -129,14 +129,13 @@ export function LeftSidebar({
     <div className="space-y-4">
       <div className="flex flex-col rounded-full">
         {titleData.coverImage && (
-          <Image
+          <OptimizedImage
             width={320}
             height={480}
-            src={getCoverUrl(titleData.coverImage)}
+            src={getCoverUrls(titleData.coverImage).primary}
+            fallbackSrc={getCoverUrls(titleData.coverImage).fallback}
             alt={titleData.name}
-            unoptimized={true}
             className="w-full max-w-[320px] mx-auto lg:max-w-none h-auto rounded-2xl shadow-lg mb-4 object-cover"
-            sizes="(max-width: 1024px) 320px, 25vw"
           />
         )}
 

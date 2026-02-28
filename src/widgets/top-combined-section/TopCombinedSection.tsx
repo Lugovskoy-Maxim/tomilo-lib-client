@@ -8,7 +8,7 @@ import { getTitlePath } from "@/lib/title-paths";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 // Helper function for formatting views
 function formatViews(num: number | string): string {
@@ -51,9 +51,9 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
     setIsAgeVerified(checkAgeVerification(user || null));
   }, [user]);
 
-  const normalizeImageUrl = (url: string | undefined) => {
-    if (!url) return "";
-    return getCoverUrl(url, "");
+  const normalizeImageUrls = (url: string | undefined) => {
+    if (!url) return { primary: "", fallback: "" };
+    return getCoverUrls(url, "");
   };
 
   // Функция для выполнения действия с карточкой
@@ -114,16 +114,15 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
           <div className="w-20 h-28 sm:w-22 sm:h-32 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--muted)] relative">
             {item.coverImage ? (
               <OptimizedImage
-                src={normalizeImageUrl(item.coverImage)}
+                src={normalizeImageUrls(item.coverImage).primary}
+                fallbackSrc={normalizeImageUrls(item.coverImage).fallback}
                 alt={item.title}
                 width={96}
                 height={128}
                 className={`w-full h-full object-cover card-media-hover ${
                   item.isAdult && !isAgeVerified ? "blur-sm" : ""
                 }`}
-                quality={85}
                 priority={false}
-                onError={() => {}}
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-[var(--muted)] to-[var(--card)] flex items-center justify-center">

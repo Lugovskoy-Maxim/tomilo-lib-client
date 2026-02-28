@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 import {
   useGetAutoParsingJobsQuery,
   useCreateAutoParsingJobMutation,
@@ -201,8 +201,8 @@ export default function AutoParsingSection() {
     setTitleSearch("");
   };
 
-  const getImageUrl = (coverImage?: string) => {
-    return getCoverUrl(coverImage, IMAGE_HOLDER.src);
+  const getImageUrls = (coverImage?: string) => {
+    return getCoverUrls(coverImage, IMAGE_HOLDER.src);
   };
 
   const getJobDisplaySources = (job: AutoParsingJob): string[] =>

@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/useToast";
 import { Pagination } from "@/shared/ui/pagination";
 import { UserCard } from "./UserCard";
 import Image from "next/image";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 type ViewMode = "list" | "cards";
 type UsersSortField = "createdAt" | "username" | "role" | "level";
@@ -114,7 +114,7 @@ export function UsersSection() {
   };
 
   const normalizeUrl = (url: string) => {
-    return getCoverUrl(url, "");
+    return getCoverUrls(url, "").primary;
   };
 
   const formatDate = (dateString: string) => {

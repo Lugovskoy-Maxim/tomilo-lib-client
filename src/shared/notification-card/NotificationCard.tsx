@@ -377,7 +377,8 @@ export default function NotificationCard({
         <div className="flex-shrink-0 p-3 pl-4">
           <div className="relative w-16 h-[5.5rem] rounded-xl overflow-hidden bg-[var(--muted)] shadow-sm ring-1 ring-[var(--border)]">
             <OptimizedImage
-              src={getImageUrl(coverImageUrl)}
+              src={getImageUrls(coverImageUrl).primary}
+              fallbackSrc={getImageUrls(coverImageUrl).fallback}
               alt={
                 typeof notification.titleId === "object"
                   ? notification.titleId?.name || "Обложка"
@@ -385,7 +386,6 @@ export default function NotificationCard({
               }
               className="w-full h-full object-cover"
               onError={() => setImageError(true)}
-              fallbackSrc={IMAGE_HOLDER.src}
             />
           </div>
         </div>
