@@ -1,4 +1,4 @@
-import { Comfortaa, Exo_2, Geist_Mono, Nunito, Rubik } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -35,33 +35,46 @@ export const metadata: Metadata = {
   },
 };
 
-const exo_2 = Exo_2({
+const exo_2 = localFont({
+  src: [
+    { path: "../fonts/Exo2-cyrillic.woff2", weight: "200 700", style: "normal" },
+    { path: "../fonts/Exo2-latin.woff2", weight: "200 700", style: "normal" },
+  ],
   variable: "--font-exo_2",
-  weight: ["200", "400", "700"],
-  subsets: ["latin", "cyrillic"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "../fonts/GeistMono-latin.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
-const comfortaa = Comfortaa({
+const comfortaa = localFont({
+  src: [
+    { path: "../fonts/Comfortaa-cyrillic.woff2", weight: "400 700", style: "normal" },
+    { path: "../fonts/Comfortaa-latin.woff2", weight: "400 700", style: "normal" },
+  ],
   variable: "--font-comfortaa",
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin", "cyrillic"],
+  display: "swap",
 });
 
-const nunito = Nunito({
+const nunito = localFont({
+  src: [
+    { path: "../fonts/Nunito-cyrillic.woff2", weight: "400 700", style: "normal" },
+    { path: "../fonts/Nunito-latin.woff2", weight: "400 700", style: "normal" },
+  ],
   variable: "--font-nunito",
-  weight: ["400", "600", "700"],
-  subsets: ["latin", "cyrillic"],
+  display: "swap",
 });
 
-const rubik = Rubik({
+const rubik = localFont({
+  src: [
+    { path: "../fonts/Rubik-cyrillic.woff2", weight: "400 700", style: "normal" },
+    { path: "../fonts/Rubik-latin.woff2", weight: "400 700", style: "normal" },
+  ],
   variable: "--font-rubik",
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin", "cyrillic"],
+  display: "swap",
 });
 
 export default function RootLayout({

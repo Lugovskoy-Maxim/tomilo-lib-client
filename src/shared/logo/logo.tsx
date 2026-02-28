@@ -1,5 +1,5 @@
 import Image from "next/image";
-import LOGO_IMAGE_COLOR from "../../../public/logo/logo_dragon.png.png";
+import LOGO_IMAGE_COLOR from "../../../public/logo/tomilo_color.svg";
 // import SANTA_HAT_IMAGE from "../../../public/logo/snata_hat.svg";
 
 import Link from "next/link";
@@ -8,22 +8,22 @@ type LogoVariant = "header" | "footer" | "default";
 
 const variantSizes = {
   header: {
-    width: 140,
-    height: 70,
+    width: 100,
+    height: 50,
     className:
-      "w-24 h-12 sm:w-28 sm:h-14 md:w-[140px] md:h-[70px] object-contain object-left",
+      "w-16 h-8 sm:w-20 sm:h-10 md:w-[100px] md:h-[50px] object-contain object-left",
   },
   footer: {
-    width: 160,
-    height: 80,
+    width: 120,
+    height: 60,
     className:
-      "w-28 h-14 sm:w-32 sm:h-16 md:w-[160px] md:h-[80px] object-contain object-left",
+      "w-20 h-10 sm:w-24 sm:h-12 md:w-[120px] md:h-[60px] object-contain object-left",
   },
   default: {
-    width: 140,
-    height: 70,
+    width: 100,
+    height: 50,
     className:
-      "w-28 h-14 sm:w-[140px] sm:h-[70px] object-contain object-left",
+      "w-20 h-10 sm:w-[100px] sm:h-[50px] object-contain object-left",
   },
 } satisfies Record<LogoVariant, { width: number; height: number; className: string }>;
 
