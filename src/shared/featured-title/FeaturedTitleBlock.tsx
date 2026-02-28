@@ -90,6 +90,26 @@ export default function FeaturedTitleBlock({
     setIsAgeVerified(checkAgeVerification(user || null));
   }, [user]);
 
+  // Предзагрузка изображений всех слайдов при монтировании
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    data.forEach((item) => {
+      if (!item.image) return;
+      const { primary, fallback } = getCoverUrls(item.image, "");
+      if (primary) {
+        const img = new Image();
+        img.src = primary;
+        // При ошибке пробуем fallback
+        img.onerror = () => {
+          if (fallback && fallback !== primary) {
+            const fallbackImg = new Image();
+            fallbackImg.src = fallback;
+          }
+        };
+      }
+    });
+  }, [data]);
+
   useEffect(() => {
     setCategoryOpen(false);
     setIsDescriptionExpanded(false);
@@ -324,6 +344,7 @@ export default function FeaturedTitleBlock({
                 className={`${isAdultContent && !isAgeVerified ? "blur-lg" : ""} absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover/cover:scale-105`}
                 src={imageSrc}
                 fallbackSrc={imageFallback}
+                errorSrc={IMAGE_HOLDER.src}
                 alt={currentItem.title}
                 fill
                 priority

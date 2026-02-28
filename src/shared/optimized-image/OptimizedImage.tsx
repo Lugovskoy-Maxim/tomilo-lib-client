@@ -19,6 +19,8 @@ interface OptimizedImageProps {
   draggable?: boolean;
   hidePlaceholder?: boolean;
   fallbackSrc?: string;
+  /** Изображение-заглушка при ошибке загрузки всех источников */
+  errorSrc?: string;
 }
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
@@ -37,6 +39,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   draggable,
   hidePlaceholder = false,
   fallbackSrc,
+  errorSrc,
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -46,15 +49,27 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [useFallback, setUseFallback] = useState(false);
   const [fallbackFailed, setFallbackFailed] = useState(false);
+  const [useErrorSrc, setUseErrorSrc] = useState(false);
 
   // Сбрасываем состояние при смене src
   useEffect(() => {
     setUseFallback(false);
     setFallbackFailed(false);
+    setUseErrorSrc(false);
     setError(null);
-    setIsLoaded(false);
     setShouldLoad(priority);
     setIsLoading(priority);
+    
+    // Проверяем, не загружено ли изображение уже (из кеша)
+    if (priority && imgRef.current) {
+      const img = imgRef.current;
+      if (img.complete && img.naturalWidth > 0) {
+        setIsLoaded(true);
+        setIsLoading(false);
+        return;
+      }
+    }
+    setIsLoaded(false);
   }, [src, priority]);
 
   // Ленивая загрузка: начинаем запрос только около viewport
@@ -114,20 +129,32 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   };
 
   const handleError = () => {
+    // Пробуем fallback если ещё не пробовали
     if (!useFallback && fallbackSrc && fallbackSrc !== src) {
       setUseFallback(true);
       setIsLoading(true);
       setIsLoaded(false);
       return;
     }
+    // Пробуем errorSrc если fallback не сработал
+    if (!useErrorSrc && errorSrc && errorSrc !== src && errorSrc !== fallbackSrc) {
+      setFallbackFailed(true);
+      setUseErrorSrc(true);
+      setIsLoading(true);
+      setIsLoaded(false);
+      return;
+    }
     setIsLoading(false);
-    setError("Не удалось загрузить изображение");
     setFallbackFailed(true);
     if (onError) onError();
   };
 
-  // Определяем реальный src (fallback если основной не загрузился)
-  const actualSrc = useFallback && fallbackSrc ? fallbackSrc : src;
+  // Определяем реальный src (errorSrc -> fallback -> src)
+  const actualSrc = useErrorSrc && errorSrc 
+    ? errorSrc 
+    : useFallback && fallbackSrc 
+      ? fallbackSrc 
+      : src;
 
   // Определяем классы для изображения
   const imageClasses = [
@@ -230,8 +257,9 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     );
   };
 
-  // Если есть ошибка и fallback уже попробован (или его нет), отображаем сообщение об ошибке
-  if (error && (fallbackFailed || !fallbackSrc)) {
+  // Показываем ошибку только если все источники (src, fallback, errorSrc) провалились
+  const allSourcesFailed = fallbackFailed && !useErrorSrc && !errorSrc;
+  if (error && allSourcesFailed) {
     return renderError();
   }
 
