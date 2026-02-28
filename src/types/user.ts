@@ -103,6 +103,33 @@ export interface UserProfile {
   ownedDecorations?: OwnedDecorationEntry[];
   /** Подключённые способы входа: "yandex", "vk" и т.д. */
   linkedProviders?: string[];
+  /** Полученные достижения пользователя */
+  achievements?: UserAchievement[];
+}
+
+/** Типы достижений */
+export type AchievementType = 
+  | "reading"      // За чтение глав
+  | "collection"   // За закладки
+  | "social"       // За привязку соцсетей
+  | "veteran"      // За время на сайте
+  | "special"      // Особые достижения
+  | "level";       // За уровень
+
+/** Редкость достижения */
+export type AchievementRarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
+
+/** Достижение пользователя */
+export interface UserAchievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  type: AchievementType;
+  rarity: AchievementRarity;
+  unlockedAt?: string;
+  progress?: number;
+  maxProgress?: number;
 }
 
 // Дополнительные интерфейсы для расширенной функциональности

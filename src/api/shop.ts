@@ -6,11 +6,14 @@ const API_BASE = process.env.NEXT_PUBLIC_URL || "http://localhost:3001";
 /** S3 URL — основной источник изображений */
 const s3Origin = process.env.NEXT_PUBLIC_S3_URL?.replace(/\/$/, "") || "";
 
-/** Базовый URL сервера (без /api) — с него отдаются /uploads/... (fallback) */
-const uploadsOrigin = (() => {
+/** Оригин API (без /api) — для запросов к бэкенду */
+const apiOrigin = (() => {
   const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
   return api.replace(/\/api\/?$/, "") || "http://localhost:3001";
 })();
+
+/** Fallback URL для изображений (старый сервер) */
+const uploadsOrigin = process.env.NEXT_PUBLIC_UPLOADS_URL?.replace(/\/$/, "") || apiOrigin;
 
 /** Извлекает URL картинки из значения декорации (строка пути/URL или объект при populate с imageUrl). */
 function getDecorationUrlFromValue(raw: string | object | null | undefined): string | null {

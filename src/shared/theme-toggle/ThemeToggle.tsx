@@ -95,18 +95,16 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`relative flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 ${
-        isLoadingTheme ? "animate-pulse scale-90" : "hover:bg-[var(--accent)] hover:scale-110 active:scale-95"
-      }`}
+      className={`theme-toggle-btn ${isLoadingTheme ? "theme-toggle-btn--loading" : ""}`}
       aria-label={`Тема: ${currentTheme.label}. Нажмите для смены`}
       title={`Тема: ${currentTheme.label}`}
       disabled={!mounted || isLoadingTheme}
     >
-      {/* Показываем спиннер во время загрузки */}
+      <span className="theme-toggle-btn__glow" aria-hidden />
       {isLoadingTheme ? (
-        <Loader2 className="w-4 h-4 xs:w-5 xs:h-5 animate-spin" />
+        <Loader2 className="theme-toggle-btn__icon theme-toggle-btn__icon--spin" />
       ) : (
-        <Icon className="w-4 h-4 xs:w-5 xs:h-5 transition-all" />
+        <Icon className="theme-toggle-btn__icon" />
       )}
     </button>
   );

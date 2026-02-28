@@ -218,11 +218,12 @@ export default function ReadChapterPage({
   // Функция загрузчика изображений с поддержкой ширины
   const imageLoader = useCallback(
     ({ src, width }: { src: string; width: number }) => {
-      const imageUrl = getImageUrl(src);
-      // Добавляем параметр ширины к URL для оптимизации
-      return `${imageUrl}?w=${width}`;
+      // src уже содержит корректный URL (primary или fallback) от getImageUrlWithFallback
+      // Не преобразуем его повторно, чтобы fallback работал корректно
+      const separator = src.includes("?") ? "&" : "?";
+      return `${src}${separator}w=${width}`;
     },
-    [getImageUrl],
+    [],
   );
 
   // Обновление просмотров и истории чтения

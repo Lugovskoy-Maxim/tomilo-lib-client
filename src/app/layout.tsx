@@ -4,9 +4,11 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { FontProvider } from "@/contexts/FontContext";
+import { ProgressNotificationProvider } from "@/contexts/ProgressNotificationContext";
 
 import Script from "next/script";
 import { CookieConsent, TelegramJoinNotification, ToastContainer } from "@/shared";
+import ProgressNotificationContainer from "@/shared/ui/ProgressNotificationContainer";
 import type { Metadata, Viewport } from "next";
 import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";
 
@@ -220,6 +222,7 @@ export default function RootLayout({
         className={`${exo_2.variable} ${geistMono.variable} ${comfortaa.variable} ${nunito.variable} ${rubik.variable} antialiased w-full justify-center items-center`}
       >
         <ToastProvider>
+          <ProgressNotificationProvider>
           <Providers>
             <ThemeProvider>
               <FontProvider>
@@ -265,6 +268,8 @@ export default function RootLayout({
             </ThemeProvider>
           </Providers>
           <ToastContainer />
+          <ProgressNotificationContainer />
+          </ProgressNotificationProvider>
         </ToastProvider>
       </body>
     </html>

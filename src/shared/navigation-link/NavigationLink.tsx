@@ -10,15 +10,16 @@ interface NavigationLinkProps {
   icon?: LucideIcon;
 }
 
-export default function NavigationLink({ href, title, onClick, icon: Icon }: NavigationLinkProps) {
+export default function NavigationLink({ href, title, onClick, icon: Icon, isActive }: NavigationLinkProps) {
   return (
     <Link
       href={href}
       onClick={onClick}
-      className="flex cursor-pointer items-center justify-center gap-2 min-h-[40px] min-w-[40px] px-4 py-2 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95"
+      className={`nav-link-modern group ${isActive ? "nav-link-modern--active" : ""}`}
     >
-      {Icon && <Icon className="w-4 h-4 xs:w-5 xs:h-5" />}
-      {title}
+      {Icon && <Icon className="nav-link-modern__icon" />}
+      <span className="nav-link-modern__text">{title}</span>
+      <span className="nav-link-modern__glow" aria-hidden />
     </Link>
   );
 }

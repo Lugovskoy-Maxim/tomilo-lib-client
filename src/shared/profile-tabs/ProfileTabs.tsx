@@ -18,6 +18,9 @@ import { ProfileNav } from "./ProfileNav";
 // Компоненты обзора
 import ProfileAdditionalInfo from "@/shared/profile/ProfileAdditionalInfo";
 import ProfileContent from "@/shared/profile/ProfileContent";
+import ProfileStats from "@/shared/profile/ProfileStats";
+import ProfileAchievements from "@/shared/profile/ProfileAchievements";
+import ProfileProgress from "@/shared/profile/ProfileProgress";
 
 // Компоненты закладок и истории
 import { default as BookmarksSection } from "@/widgets/profile-bookmarks/ProfileBookmarks";
@@ -179,7 +182,30 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
                 historyHref={`${pathname}?tab=history`}
                 onShowBookmarks={() => setActiveTab("bookmarks")}
                 onShowHistory={() => setActiveTab("history")}
+                onShowAchievements={() => setActiveTab("achievements")}
+                onShowStats={() => setActiveTab("stats")}
               />
+            </div>
+          )}
+
+          {/* Статистика */}
+          {activeTab === "stats" && (
+            <div className="animate-fade-in-up">
+              <ProfileStats userProfile={userProfile} showDetailed />
+            </div>
+          )}
+
+          {/* Достижения */}
+          {activeTab === "achievements" && (
+            <div className="animate-fade-in-up">
+              <ProfileAchievements userProfile={userProfile} />
+            </div>
+          )}
+
+          {/* Прогресс */}
+          {activeTab === "progress" && (
+            <div className="animate-fade-in-up">
+              <ProfileProgress userProfile={userProfile} />
             </div>
           )}
 

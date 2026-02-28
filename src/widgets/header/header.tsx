@@ -25,6 +25,7 @@ import {
   Send,
   ChevronRight,
   BookOpen,
+  Crown,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -357,6 +358,20 @@ export default function Header() {
                               <ShoppingBag className="w-4 h-4" />
                             </span>
                             <span className="mobile-menu-item-label">Магазин</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href="/leaders"
+                            onClick={closeMobileMenu}
+                            className="mobile-menu-item"
+                            data-active={pathname === "/leaders" ? "true" : undefined}
+                          >
+                            <span className="mobile-menu-item-icon" aria-hidden>
+                              <Crown className="w-4 h-4" />
+                            </span>
+                            <span className="mobile-menu-item-label">Лидеры</span>
                             <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
                           </Link>
                         </li>

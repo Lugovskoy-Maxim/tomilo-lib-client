@@ -12,16 +12,19 @@ import { UserProfile } from "@/types/user";
 import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";
 import { ProfileNav } from "@/shared/profile-tabs/ProfileNav";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
-import { getEquippedBackgroundUrl } from "@/api/shop";
+import { getEquippedBackgroundUrl, getDecorationImageUrl } from "@/api/shop";
 import ProfileEditForm from "@/shared/profile/ProfileEditForm";
 import { ProfileProvider } from "@/shared/profile/ProfileContext";
 import Modal from "@/shared/modal/modal";
+import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 
 export default function ProfileLayout(_: { children: React.ReactNode }) {
   void _;
   const { userProfile, isLoading, authLoading, handleAvatarUpdate } = useProfile();
   const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
+  
+  const { frameUrl, avatarDecorationUrl } = useResolvedEquippedDecorations();
 
   useSEO(seoConfigs.profile(userProfile?.username || userProfile?.email));
 
@@ -41,7 +44,22 @@ export default function ProfileLayout(_: { children: React.ReactNode }) {
     handleAvatarUpdate,
   };
 
-  // Хедер и футер только в layout; при загрузке/ошибке — контент без своего Header/Footer, чтобы не было двойного хедера
+  const getBackgroundUrl = () => {
+    if (!userProfile?.equippedDecorations) return "/user/banner.jpg";
+    const bg = userProfile.equippedDecorations.background;
+    if (!bg) return "/user/banner.jpg";
+    if (typeof bg === "string") {
+      if (bg.startsWith("http")) return bg;
+      return getDecorationImageUrl(bg) || "/user/banner.jpg";
+    }
+    if (typeof bg === "object") {
+      const o = bg as Record<string, unknown>;
+      const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
+      if (imageUrl) return getDecorationImageUrl(imageUrl) || imageUrl;
+    }
+    return getEquippedBackgroundUrl(userProfile.equippedDecorations) || "/user/banner.jpg";
+  };
+
   const content = authLoading || isLoading ? (
     <div className="flex flex-1 flex-col items-center justify-center min-h-[60vh]">
       <div className="animate-pulse text-center">
@@ -67,22 +85,15 @@ export default function ProfileLayout(_: { children: React.ReactNode }) {
     </div>
   ) : (
     <ProfileProvider value={profileContextValue}>
-      {/* Баннер как фон/обложка — по ширине, без сильного увеличения */}
       <div
         className="relative min-h-[50vh] sm:min-h-[55vh] bg-[var(--background)] pt-12 sm:pt-36 bg-no-repeat bg-top"
-        style={
-          (() => {
-            const url = getEquippedBackgroundUrl(userProfile.equippedDecorations) || "/user/banner.jpg";
-            return {
-              backgroundImage: `url(${url})`,
-              backgroundSize: "100% auto",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "top center",
-            };
-          })()
-        }
+        style={{
+          backgroundImage: `url(${getBackgroundUrl()})`,
+          backgroundSize: "100% auto",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "top center",
+        }}
       >
-        {/* Плавный переход: затемнение в цвет фона снизу над баннером */}
         <div
           className="absolute inset-0 pointer-events-none z-0"
           style={{
@@ -98,22 +109,26 @@ export default function ProfileLayout(_: { children: React.ReactNode }) {
           <div className="relative rounded-2xl bg-[var(--background)]/55 backdrop-blur-md border border-[var(--border)]/50 shadow-xl shadow-black/5 min-h-[50vh] overflow-hidden">
             <div className="absolute inset-x-0 top-0 h-16 pointer-events-none z-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)', opacity: 0.55 }} aria-hidden />
             <div className="relative z-10 p-4 sm:p-6 flex flex-col xl:flex-row gap-6 xl:gap-8 items-stretch xl:items-start">
-            {/* На больших экранах: одна левая колонка — карточка профиля и навигация */}
-            <aside className="xl:w-72 xl:shrink-0 xl:flex xl:flex-col xl:gap-6 xl:sticky xl:top-4">
-              <ProfileSidebar
-                userProfile={userProfile}
-                onEdit={() => setIsEditing(true)}
-                onAvatarUpdate={handleAvatarUpdate}
-                isOwnProfile
-              />
-              <div className="hidden xl:block">
-                <ProfileNav />
+              {/* Левая колонка — только карточка профиля */}
+              <aside className="xl:w-72 xl:shrink-0 xl:sticky xl:top-4">
+                <ProfileSidebar
+                  userProfile={userProfile}
+                  onEdit={() => setIsEditing(true)}
+                  onAvatarUpdate={handleAvatarUpdate}
+                  isOwnProfile
+                />
+              </aside>
+              
+              {/* Центральная часть — контент вкладок */}
+              <div className="flex-1 min-w-0 w-full">
+                <ProfileTabs userProfile={userProfile} />
               </div>
-            </aside>
-            <div className="flex-1 min-w-0 w-full">
-              <ProfileTabs userProfile={userProfile} />
+              
+              {/* Правая колонка — навигация (только на xl экранах) */}
+              <aside className="hidden xl:block xl:w-56 xl:shrink-0 xl:sticky xl:top-4">
+                <ProfileNav />
+              </aside>
             </div>
-          </div>
           </div>
         </div>
       </div>

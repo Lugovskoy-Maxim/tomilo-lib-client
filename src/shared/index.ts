@@ -18,6 +18,7 @@ export { default as LastUpdates } from "./last-updates/LastUpdates";
 export { default as BookmarkCard } from "./bookmark-card/BookmarkCard";
 export { default as TopTitleCard } from "./top-title-card/TopTitleCard";
 export { default as FeaturedTitleBlock } from "./featured-title/FeaturedTitleBlock";
+export { default as LeaderCard } from "./leader-card/LeaderCard";
 
 // Reader
 export { default as NavigationHeader } from "./reader/NavigationHeader";
@@ -46,6 +47,7 @@ export { default as RegisterModal } from "./modal/RegisterModal";
 // Profile
 export { default as ProfileHeader } from "./profile/ProfileHeader";
 export { default as ProfileStats } from "./profile/ProfileStats";
+export { default as ProfileAchievements } from "./profile/ProfileAchievements";
 export { default as EditAvatarButton } from "./profile/ProfileEditAvatarButton";
 export { default as UserInfo } from "./profile/ProfileInfo";
 export { default as ErrorState } from "./profile/ProfileError";

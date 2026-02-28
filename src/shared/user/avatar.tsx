@@ -38,6 +38,11 @@ export default function UserAvatar({
     return { primary: effectiveAvatarUrl, fallback: effectiveAvatarUrl };
   }, [effectiveAvatarUrl]);
 
+  const { primary: frameSrc, fallback: frameFallback } = useMemo(() => {
+    if (!frameUrl) return { primary: "", fallback: "" };
+    return getImageUrls(frameUrl);
+  }, [frameUrl]);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -64,15 +69,19 @@ export default function UserAvatar({
       />
     );
 
-  if (frameUrl) {
+  if (frameSrc) {
     return (
       <div className="relative overflow-visible" style={{ width: size, height: size, borderRadius: "50%" }}>
         <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "50%" }}>{content}</div>
-        <img
-          src={frameUrl}
+        <OptimizedImage
+          src={frameSrc}
+          fallbackSrc={frameFallback !== frameSrc ? frameFallback : undefined}
           alt=""
+          width={size * 1.75}
+          height={size * 1.75}
           className="absolute left-1/2 top-1/2 w-[calc(100%+3rem)] h-[calc(100%+3rem)] -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none object-contain z-10 scale-125"
-          aria-hidden
+          aria-hidden="true"
+          hidePlaceholder={true}
         />
       </div>
     );

@@ -9,6 +9,13 @@ type HomepageSortOrder = "asc" | "desc";
 type HomepageVerification = "any" | "email" | "oauth";
 type HomepageFormat = "basic" | "extended";
 
+export interface HomepageActiveUserEquippedDecorations {
+  avatar?: string | null;
+  frame?: string | null;
+  background?: string | null;
+  card?: string | null;
+}
+
 export interface HomepageActiveUser {
   _id: string;
   username: string;
@@ -24,6 +31,7 @@ export interface HomepageActiveUser {
   activityScore?: number;
   reputationScore?: number;
   bio?: string;
+  equippedDecorations?: HomepageActiveUserEquippedDecorations | null;
 }
 
 export const usersApi = createApi({

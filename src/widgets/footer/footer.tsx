@@ -18,6 +18,7 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
+  Crown,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
@@ -39,6 +40,7 @@ const MOBILE_MENU_SECTIONS = [
     title: "Информация",
     items: [
       { href: "/about", label: "О проекте", icon: Info },
+      { href: "/leaders", label: "Лидеры", icon: Crown },
       { href: "/contact", label: "Связаться с нами", icon: Mail },
       { href: "/updates", label: "Новые главы", icon: Rss, badge: "NEW" },
     ],

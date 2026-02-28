@@ -7,10 +7,16 @@ import {
   Repeat,
   Settings,
   User,
+  Trophy,
+  Activity,
+  TrendingUp,
 } from "lucide-react";
 
 export type ProfileTab =
   | "overview"
+  | "stats"
+  | "achievements"
+  | "progress"
   | "bookmarks"
   | "history"
   | "inventory"
@@ -19,6 +25,9 @@ export type ProfileTab =
 
 export const PROFILE_TABS: ProfileTab[] = [
   "overview",
+  "stats",
+  "achievements",
+  "progress",
   "bookmarks",
   "history",
   "inventory",
@@ -34,6 +43,21 @@ export const tabMeta: Record<
     label: "О себе",
     icon: BarChart3,
     description: "Информация и краткий обзор",
+  },
+  stats: {
+    label: "Статистика",
+    icon: Activity,
+    description: "Детальная статистика и прогресс",
+  },
+  achievements: {
+    label: "Достижения",
+    icon: Trophy,
+    description: "Ваши награды и бейджи",
+  },
+  progress: {
+    label: "Прогресс",
+    icon: TrendingUp,
+    description: "История уровней, опыта и достижений",
   },
   bookmarks: {
     label: "Закладки",
@@ -63,7 +87,7 @@ export const tabMeta: Record<
 };
 
 export const tabGroups: { label: string; icon: React.ElementType; tabs: ProfileTab[] }[] = [
-  { label: "Профиль", icon: User, tabs: ["overview"] },
+  { label: "Профиль", icon: User, tabs: ["overview", "stats", "achievements", "progress"] },
   {
     label: "Контент",
     icon: LayoutDashboard,

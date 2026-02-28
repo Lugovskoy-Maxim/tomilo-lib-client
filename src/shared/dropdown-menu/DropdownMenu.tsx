@@ -12,11 +12,14 @@ import {
   Eye,
   ShoppingBag,
   Palette,
+  Star,
+  Zap,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { UserAvatar } from "..";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import type { EquippedDecorations } from "@/types/user";
+import { levelToRank, getLevelProgress } from "@/lib/rank-utils";
 
 interface UserDropdownProps {
   isOpen: boolean;
@@ -107,7 +110,13 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
 
   const displayName = user?.name || user?.username || "Пользователь";
   const level = user?.level ?? 0;
+  const experience = user?.experience ?? 0;
   const balance = user?.balance ?? 0;
+
+  const rankInfo = levelToRank(level);
+  const { progressPercent, currentLevelExp, nextLevelExp } = getLevelProgress(level, experience);
+  const expInCurrentLevel = experience - currentLevelExp;
+  const expNeeded = nextLevelExp - currentLevelExp;
 
   const themeLabel =
     mounted && theme
@@ -160,41 +169,83 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
       onClick={(e) => e.stopPropagation()}
     >
       {/* Карточка профиля */}
-      <Link
-        ref={firstFocusableRef}
-        href="/profile"
-        onClick={onClose}
-        role="menuitem"
-        className="flex items-center gap-3 p-4 rounded-t-xl transition-colors cursor-pointer border-b border-[var(--border)]/40 bg-[var(--card)]/50 hover:bg-[var(--accent)]/60 focus:bg-[var(--accent)]/60 outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
-      >
-        <div className="shrink-0 rounded-full ring-2 ring-[var(--border)]/60" style={{ width: 44, height: 44 }}>
-          <UserAvatar
-            avatarUrl={user?.avatar}
-            username={displayName}
-            size={44}
-            className="rounded-full w-full h-full"
-            frameUrl={frameUrl ?? undefined}
-            avatarDecorationUrl={avatarDecorationUrl ?? undefined}
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-[var(--foreground)] truncate text-sm">
-            {displayName}
-          </h3>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
-            {level > 0 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--primary)]/15 text-[var(--primary)] text-xs font-medium">
-                {level} ур.
+      <div className="p-4 rounded-t-xl border-b border-[var(--border)]/40 bg-[var(--card)]/50">
+        <Link
+          ref={firstFocusableRef}
+          href="/profile"
+          onClick={onClose}
+          role="menuitem"
+          className="flex items-center gap-3 transition-colors cursor-pointer rounded-lg p-2 -m-2 hover:bg-[var(--accent)]/60 focus:bg-[var(--accent)]/60 outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
+        >
+          <div className="shrink-0 rounded-full ring-2 ring-[var(--border)]/60" style={{ width: 52, height: 52 }}>
+            <UserAvatar
+              avatarUrl={user?.avatar}
+              username={displayName}
+              size={52}
+              className="rounded-full w-full h-full"
+              frameUrl={frameUrl ?? undefined}
+              avatarDecorationUrl={avatarDecorationUrl ?? undefined}
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-[var(--foreground)] truncate text-sm">
+              {displayName}
+            </h3>
+            <p className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">
+              {rankInfo.name}
+            </p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+        </Link>
+
+        {/* Уровень и прогресс */}
+        <div className="mt-3 pt-3 border-t border-[var(--border)]/30">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[var(--primary)]/20 to-[var(--primary)]/10 border border-[var(--primary)]/20">
+                <Zap className="w-3.5 h-3.5 text-[var(--primary)]" aria-hidden />
+                <span className="text-sm font-bold text-[var(--primary)]">{level}</span>
+                <span className="text-xs text-[var(--primary)]/70">ур.</span>
               </span>
-            )}
+              <div className="flex items-center gap-0.5" title={`${rankInfo.stars} из 9 звёзд`}>
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-3 h-3 transition-colors ${
+                      i < rankInfo.stars
+                        ? "text-amber-400 fill-amber-400"
+                        : "text-[var(--border)] fill-transparent"
+                    }`}
+                    aria-hidden
+                  />
+                ))}
+              </div>
+            </div>
             <span className="flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
               <CoinIcon className="w-3.5 h-3.5 text-amber-500" aria-hidden />
-              <span className="font-medium tabular-nums">{balance.toLocaleString("ru-RU")}</span>
+              <span className="font-semibold tabular-nums">{balance.toLocaleString("ru-RU")}</span>
             </span>
           </div>
+
+          {/* Прогресс-бар */}
+          <div className="relative">
+            <div className="h-2 bg-[var(--border)]/40 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/70 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-1.5">
+              <span className="text-[10px] text-[var(--muted-foreground)] tabular-nums">
+                {expInCurrentLevel.toLocaleString("ru-RU")} / {expNeeded.toLocaleString("ru-RU")} XP
+              </span>
+              <span className="text-[10px] text-[var(--muted-foreground)] tabular-nums">
+                {Math.round(progressPercent)}%
+              </span>
+            </div>
+          </div>
         </div>
-        <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
-      </Link>
+      </div>
 
       <div className="dropdown-divider" aria-hidden />
 

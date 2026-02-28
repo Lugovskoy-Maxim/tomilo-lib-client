@@ -2,7 +2,7 @@
 
 import NavigationLink from "@/shared/navigation-link/NavigationLink";
 import { usePathname } from "next/navigation";
-import { BookOpen, ShoppingBag } from "lucide-react";
+import { BookOpen, Crown } from "lucide-react";
 
 interface NavigationProps {
   vertical?: boolean;
@@ -17,9 +17,9 @@ const navigationItems = [
     icon: BookOpen,
   },
   {
-    name: "Магазин",
-    href: "/tomilo-shop",
-    icon: ShoppingBag,
+    name: "Лидеры",
+    href: "/leaders",
+    icon: Crown,
   },
 ];
 

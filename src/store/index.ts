@@ -13,6 +13,7 @@ import { autoParsingApi } from "./api/autoParsingApi";
 import { ipApi } from "./api/ipApi";
 import { shopApi } from "./api/shopApi";
 import { announcementsApi } from "./api/announcementsApi";
+import { leaderboardApi } from "./api/leaderboardApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
 import collectionsReducer from "./slices/collectionsSlice";
@@ -52,6 +53,7 @@ export const store = configureStore({
     [ipApi.reducerPath]: ipApi.reducer,
     [shopApi.reducerPath]: shopApi.reducer,
     [announcementsApi.reducerPath]: announcementsApi.reducer,
+    [leaderboardApi.reducerPath]: leaderboardApi.reducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
@@ -69,6 +71,7 @@ export const store = configureStore({
       ipApi.middleware,
       shopApi.middleware,
       announcementsApi.middleware,
+      leaderboardApi.middleware,
     ),
 });
 

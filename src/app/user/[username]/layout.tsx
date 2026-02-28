@@ -13,8 +13,8 @@ import { isMongoObjectId } from "@/lib/isMongoObjectId";
 import { Footer, Header } from "@/widgets";
 import { LoadingState } from "@/shared";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
-import { getEquippedBackgroundUrl } from "@/api/shop";
-import ProfileNav from "@/shared/profile/ProfileNav";
+import { getEquippedBackgroundUrl, getDecorationImageUrl } from "@/api/shop";
+import { ProfileNav } from "@/shared/profile-tabs/ProfileNav";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { ArrowLeft, User as UserIcon } from "lucide-react";
 
@@ -117,22 +117,34 @@ export default function UserProfileLayout({
     notFound();
   }
 
-  const profileBgUrl = getEquippedBackgroundUrl(userProfile.equippedDecorations) || "/user/banner.jpg";
+  const getProfileBgUrl = () => {
+    if (!userProfile?.equippedDecorations) return "/user/banner.jpg";
+    const bg = userProfile.equippedDecorations.background;
+    if (!bg) return "/user/banner.jpg";
+    if (typeof bg === "string") {
+      if (bg.startsWith("http")) return bg;
+      return getDecorationImageUrl(bg) || "/user/banner.jpg";
+    }
+    if (typeof bg === "object") {
+      const o = bg as Record<string, unknown>;
+      const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
+      if (imageUrl) return getDecorationImageUrl(imageUrl) || imageUrl;
+    }
+    return getEquippedBackgroundUrl(userProfile.equippedDecorations) || "/user/banner.jpg";
+  };
 
   return (
     <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
       <Header />
-      {/* Баннер как фон/обложка — по ширине, без сильного увеличения */}
       <div
         className="relative min-h-[50vh] sm:min-h-[55vh] flex flex-1 flex-col bg-[var(--background)] pt-12 sm:pt-36 bg-no-repeat bg-top"
         style={{
-          backgroundImage: `url(${profileBgUrl})`,
+          backgroundImage: `url(${getProfileBgUrl()})`,
           backgroundSize: "100% auto",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "top center",
         }}
       >
-        {/* Плавный переход: затемнение в цвет фона снизу над баннером */}
         <div
           className="absolute inset-0 pointer-events-none z-0"
           style={{
@@ -142,8 +154,7 @@ export default function UserProfileLayout({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 from-0% via-transparent via-[35%] to-transparent to-[72%] pointer-events-none z-0" aria-hidden />
         <div className="relative z-10 flex flex-1 flex-col min-h-0">
-          <div className="w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 py-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden">
-            {/* Навигация: назад и ссылка «Мой профиль» для авторизованных */}
+          <div className="w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 py-4 sm:py-6 max-w-7xl min-w-0 overflow-x-hidden">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
               <button
                 type="button"
@@ -165,22 +176,31 @@ export default function UserProfileLayout({
               )}
             </div>
             <div className="relative rounded-2xl bg-[var(--background)]/55 backdrop-blur-md border border-[var(--border)]/50 shadow-xl shadow-black/5 min-h-[40vh] overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-16 pointer-events-none z-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)', opacity: 0.55 }} aria-hidden />
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8 items-start p-4 sm:p-6" role="article" aria-label={`Профиль пользователя ${userProfile.username}`}>
-              <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} />
-              <div className="min-w-0">
-                <ProfileNav basePath={`/user/${userParam}`} showSettings={false} />
-                {hasPrivacyNotice && (
-                  <div className="mb-4 sm:mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[var(--foreground)]">
-                    <p className="font-medium">Часть данных пользователя скрыта настройками приватности.</p>
-                    <p className="text-[var(--muted-foreground)] mt-1">
-                      Некоторые разделы могут быть недоступны.
-                    </p>
-                  </div>
-                )}
-                {children}
+              <div className="absolute inset-x-0 top-0 h-16 pointer-events-none z-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)', opacity: 0.55 }} aria-hidden />
+              <div className="relative z-10 p-4 sm:p-6 flex flex-col xl:flex-row gap-6 xl:gap-8 items-stretch xl:items-start" role="article" aria-label={`Профиль пользователя ${userProfile.username}`}>
+                {/* Левая колонка — карточка профиля */}
+                <aside className="xl:w-72 xl:shrink-0 xl:sticky xl:top-4">
+                  <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} />
+                </aside>
+                
+                {/* Центральная часть — контент */}
+                <div className="flex-1 min-w-0">
+                  {hasPrivacyNotice && (
+                    <div className="mb-4 sm:mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[var(--foreground)]">
+                      <p className="font-medium">Часть данных пользователя скрыта настройками приватности.</p>
+                      <p className="text-[var(--muted-foreground)] mt-1">
+                        Некоторые разделы могут быть недоступны.
+                      </p>
+                    </div>
+                  )}
+                  {children}
+                </div>
+                
+                {/* Правая колонка — навигация (только на xl экранах) */}
+                <aside className="hidden xl:block xl:w-56 xl:shrink-0 xl:sticky xl:top-4">
+                  <ProfileNav hideTabs={["settings", "inventory", "exchanges"]} />
+                </aside>
               </div>
-            </div>
             </div>
           </div>
         </div>
