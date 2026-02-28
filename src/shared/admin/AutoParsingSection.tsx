@@ -925,8 +925,7 @@ function ScheduleJobCard({
       <div className="w-10 h-14 bg-[var(--accent)] rounded overflow-hidden flex-shrink-0">
         {job.titleId?.coverImage ? (
           <OptimizedImage
-            src={getImageUrls(job.titleId.coverImage).primary}
-            fallbackSrc={getImageUrls(job.titleId.coverImage).fallback}
+            src={getImageUrl(job.titleId.coverImage)}
             alt={job.titleId?.name || ""}
             className="w-full h-full object-cover"
             width={40}
