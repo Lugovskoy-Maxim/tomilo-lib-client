@@ -205,6 +205,10 @@ export default function AutoParsingSection() {
     return getCoverUrls(coverImage, IMAGE_HOLDER.src);
   };
 
+  const getImageUrl = (coverImage?: string) => {
+    return getImageUrls(coverImage).primary;
+  };
+
   const getJobDisplaySources = (job: AutoParsingJob): string[] =>
     job.sources?.length ? job.sources : job.url?.trim() ? [job.url.trim()] : [];
 
