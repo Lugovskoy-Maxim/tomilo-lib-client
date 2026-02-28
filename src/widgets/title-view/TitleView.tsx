@@ -402,7 +402,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 blur-3xl opacity-70 [@media(prefers-color-scheme:dark)]:opacity-80"
             style={{ backgroundImage: `url(${coverImageUrl})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/50 via-[var(--background)]/75 to-[var(--background)]/95" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/70 via-[var(--background)]/85 to-[var(--background)]" />
         </div>
       )}
       <div className="relative z-10">
@@ -577,7 +577,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
             </div>
 
             <div className="w-full min-w-0 lg:flex-1">
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-sm shadow-sm p-5 sm:p-6 lg:p-8">
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md shadow-sm p-5 sm:p-6 lg:p-8">
                 <RightContent
                 titleData={titleData}
                 activeTab={activeTab}

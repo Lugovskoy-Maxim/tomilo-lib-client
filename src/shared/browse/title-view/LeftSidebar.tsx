@@ -41,7 +41,7 @@ export function LeftSidebar({
   const shouldBlurImage = isAdultContent && !isAgeVerified;
 
   const actionButtonClass =
-    "flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 border border-[var(--border)] bg-[var(--card)]/80 text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--chart-1)]/30 hover:shadow-md";
+    "flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 hover:shadow-md";
 
   return (
     <div className="space-y-5">

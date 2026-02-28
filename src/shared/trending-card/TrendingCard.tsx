@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Flame, Star } from "lucide-react";
+import { Flame } from "lucide-react";
+import RatingBadge from "@/shared/rating-badge/RatingBadge";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,10 +38,6 @@ const formatViews = (value?: number) => {
   return `${views}`;
 };
 
-const formatRating = (value?: number) => {
-  const num = typeof value === "number" ? value : 0;
-  return num.toFixed(1).replace(/\.0$/, "");
-};
 
 export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
   const router = useRouter();
@@ -118,7 +115,7 @@ export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
 
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="flex items-center justify-between gap-2 text-[11px] mb-2">
-              <span className="inline-flex items-center rounded-md border border-orange-500/35 bg-orange-500/10 px-2 py-0.5 text-orange-300 truncate">
+              <span className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--accent)] px-2 py-0.5 text-[var(--foreground)] truncate">
                 {translateTitleType(data.type)}
               </span>
               <span className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--muted)] px-2 py-0.5 text-[var(--muted-foreground)] shrink-0">
@@ -127,20 +124,17 @@ export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
             </div>
 
             <h3
-              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-orange-500 transition-colors duration-300 min-h-[2.5rem]`}
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-[var(--primary)] transition-colors duration-300 min-h-[2.5rem]`}
             >
               {data.title}
             </h3>
 
             <div className="mt-auto pt-2 flex items-center justify-between gap-2">
-              <div className="inline-flex items-center gap-1 rounded-md border border-orange-500/35 bg-orange-500/10 px-2 py-1 text-xs font-medium text-orange-300 min-w-0">
+              <div className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--accent)] px-2 py-1 text-xs font-medium text-[var(--foreground)] min-w-0">
                 <Flame className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">+{formatViews(trendValue)}</span>
               </div>
-              <div className="inline-flex items-center gap-1 rounded-md border border-amber-400/40 bg-black/35 px-2 py-1 text-xs font-semibold text-amber-300 shrink-0">
-                <Star className="w-3.5 h-3.5 fill-current" />
-                <span>{formatRating(data.rating)}</span>
-              </div>
+              <RatingBadge rating={data.rating} size="sm" variant="default" />
             </div>
           </div>
         </div>

@@ -84,14 +84,14 @@ export default function MobileCover({
         </div>
         <button
           onClick={() => setIsReportModalOpen(true)}
-          className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]/80 text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+          className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors"
           aria-label="Сообщить о проблеме"
         >
           <AlertTriangle className="w-5 h-5" />
         </button>
         <button
           onClick={onShare}
-          className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]/80 text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+          className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors"
           aria-label="Поделиться"
         >
           <Share className="w-5 h-5" />
@@ -99,7 +99,7 @@ export default function MobileCover({
         {isAdmin && (
           <Link
             href={`/admin/titles/edit/${titleData._id}`}
-            className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]/80 hover:bg-[var(--secondary)] transition-colors"
+            className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors"
             aria-label="Редактировать"
           >
             <Edit className="w-5 h-5 text-[var(--foreground)]" />

@@ -230,8 +230,8 @@ export default function ProfileStats({ userProfile, showDetailed = true }: Profi
                                 className={`flex items-center justify-between gap-1 text-[10px] sm:text-[11px] py-1 px-1.5 rounded ${isCurrentRank ? 'ring-1 ring-inset' : ''}`}
                                 style={isCurrentRank ? { 
                                   backgroundColor: `${color}15`,
-                                  ringColor: `${color}40`
-                                } : undefined}
+                                  '--tw-ring-color': `${color}40`
+                                } as React.CSSProperties : undefined}
                               >
                                 <div className="flex items-center gap-1.5">
                                   <span 

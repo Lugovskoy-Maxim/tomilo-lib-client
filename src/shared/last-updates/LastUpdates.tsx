@@ -172,7 +172,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
 
           {/* Заголовок тайтла */}
           <h3
-            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-5 group-hover:text-[var(--chart-1)] transition-colors duration-300 min-h-[2.5rem] ${
+            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-5 group-hover:text-[var(--primary)] transition-colors duration-300 min-h-[2.5rem] ${
               data.isAdult && !isAgeVerified ? "blur-sm" : ""
             }`}
           >

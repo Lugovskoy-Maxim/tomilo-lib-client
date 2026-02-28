@@ -73,7 +73,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
           {/* Type badge */}
           <div className="absolute bottom-2 left-2">
-            <div className="bg-black/70 backdrop-blur-sm text-white px-2 py-0.5 rounded-md text-xs font-medium border border-white/10 shadow-lg">
+            <div className="bg-[var(--card)]/90 backdrop-blur-sm text-[var(--foreground)] px-2 py-0.5 rounded-md text-xs font-medium border border-[var(--border)] shadow-lg">
               {translateTitleType(data.type || "")}
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
         {/* Content section — единые отступы */}
         <div className="relative flex-1 p-3 min-w-0 flex flex-col">
           {/* Title */}
-          <h3 className="font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-tight mb-2 group-hover:text-[var(--chart-1)] transition-colors duration-300">
+          <h3 className="font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-tight mb-2 group-hover:text-[var(--primary)] transition-colors duration-300">
             {data.title}
           </h3>
 

@@ -69,7 +69,7 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
 
           {/* Бейдж: количество тайтлов — только здесь, без дублирования */}
           <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10">
-            <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-white/25 shadow-lg min-w-[2.5rem] justify-center" title={`${titlesCount} ${titlesLabel}`}>
+            <div className="flex items-center gap-1.5 bg-[var(--card)]/90 backdrop-blur-sm text-[var(--foreground)] text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-[var(--border)] shadow-lg min-w-[2.5rem] justify-center" title={`${titlesCount} ${titlesLabel}`}>
               <Library className="w-3.5 h-3.5 shrink-0" aria-hidden />
               <span>{titlesCount}</span>
             </div>
@@ -77,7 +77,7 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
 
           {/* Контент внизу */}
           <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
-            <h3 className="text-sm sm:text-base font-semibold drop-shadow-md leading-tight line-clamp-2 group-hover:text-[var(--chart-1)] transition-colors duration-300">
+            <h3 className="text-sm sm:text-base font-semibold drop-shadow-md leading-tight line-clamp-2 group-hover:text-[var(--primary)] transition-colors duration-300">
               {collectionName || "Без названия"}
             </h3>
             {isGrid && (

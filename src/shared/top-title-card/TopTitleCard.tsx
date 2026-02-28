@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Trophy, Eye, Sparkles } from "lucide-react";
+import { Trophy, Eye } from "lucide-react";
+import RatingBadge from "@/shared/rating-badge/RatingBadge";
 import { useAuth } from "@/hooks/useAuth";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { useState, useEffect } from "react";
@@ -108,10 +109,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                   {data.type}
                 </span>
                 <span className="font-medium">{data.year}</span>
-                <div className="flex items-center gap-1 font-medium">
-                  <Sparkles className="w-4 h-4 text-[var(--chart-3)]" />
-                  <span className="text-lg font-bold text-[var(--chart-3)]">{data.rating}</span>
-                </div>
+                <RatingBadge rating={data.rating} size="sm" variant="default" />
               </div>
               <div className="flex flex-wrap gap-1 mb-2">
                 {data.genres.slice(0, 2).map(genre => (
@@ -128,12 +126,6 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                   <div className="flex items-center gap-1 font-medium text-[var(--primary)]">
                     <Eye className="w-4 h-4" />
                     <span>{data.views.toLocaleString()}</span>
-                  </div>
-                )}
-                {data.ratingCount && (
-                  <div className="flex items-center gap-1 font-medium text-[var(--chart-3)]">
-                    <Sparkles className="w-4 h-4" />
-                    <span>{data.ratingCount.toLocaleString()}</span>
                   </div>
                 )}
               </div>
@@ -177,10 +169,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                   {data.type}
                 </span>
                 <span className="font-medium">{data.year}</span>
-                <div className="flex items-center gap-1 font-medium">
-                  <Sparkles className="w-4 h-4 text-[var(--chart-3)]" />
-                  <span className="text-lg font-bold text-[var(--chart-3)]">{data.rating}</span>
-                </div>
+                <RatingBadge rating={data.rating} size="sm" variant="default" />
               </div>
               <div className="flex flex-wrap justify-center gap-1 mb-2">
                 {data.genres.slice(0, 2).map(genre => (
@@ -197,12 +186,6 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
                   <div className="flex items-center gap-1 font-medium text-[var(--primary)]">
                     <Eye className="w-4 h-4" />
                     <span>{data.views.toLocaleString()}</span>
-                  </div>
-                )}
-                {data.ratingCount && (
-                  <div className="flex items-center gap-1 font-medium text-[var(--chart-3)]">
-                    <Sparkles className="w-4 h-4" />
-                    <span>{data.ratingCount.toLocaleString()}</span>
                   </div>
                 )}
               </div>
@@ -249,29 +232,16 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
           <h3 className="font-semibold text-xs sm:text-sm text-[var(--foreground)] mb-1 leading-tight group-hover:text-[var(--primary)] transition-colors line-clamp-2">
             {data.title}
           </h3>
-          <div className="flex justify-around">
-            <div className="flex items-center justify-center gap-1 text-xs text-[var(--muted-foreground)]">
-              <span className="flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-[var(--chart-4)]" />
-                <span className="text-xs font-bold text-[var(--chart-4)]">{data.rating}</span>
-              </span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              {data.views && (
-                <div className="flex items-center justify-center gap-1 text-xs font-medium text-[var(--primary)]">
-                  <Eye className="w-3 h-3" />
-                  <span>
-                    {data.views >= 1000 ? `${(data.views / 1000).toFixed(1)}k` : data.views}
-                  </span>
-                </div>
-              )}
-              {data.ratingCount && (
-                <div className="flex items-center justify-center gap-1 text-xs font-medium text-[var(--chart-4)]">
-                  <Sparkles className="w-3 h-3" />
-                  <span>{data.ratingCount?.toLocaleString()}</span>
-                </div>
-              )}
-            </div>
+          <div className="flex justify-around items-center">
+            <RatingBadge rating={data.rating} size="xs" variant="default" />
+            {data.views && (
+              <div className="flex items-center justify-center gap-1 text-xs font-medium text-[var(--primary)]">
+                <Eye className="w-3 h-3" />
+                <span>
+                  {data.views >= 1000 ? `${(data.views / 1000).toFixed(1)}k` : data.views}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

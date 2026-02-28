@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ChevronLeft, ChevronRight, Star, Eye, BookOpen, Calendar, Tag, Play, Bookmark, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, BookOpen, Calendar, Tag, Play, Bookmark, ChevronDown, ChevronUp } from "lucide-react";
+import RatingBadge from "@/shared/rating-badge/RatingBadge";
 import Link from "next/link";
 import { useToast } from "@/hooks/useToast";
 import { normalizeBookmarks } from "@/lib/bookmarks";
@@ -56,10 +57,6 @@ const formatViews = (value?: number | string) => {
   return `${views}`;
 };
 
-const formatRating = (value?: number) => {
-  const num = typeof value === "number" ? value : 0;
-  return num.toFixed(1).replace(/\.0$/, "");
-};
 
 export default function FeaturedTitleBlock({
   data,
@@ -296,25 +293,12 @@ export default function FeaturedTitleBlock({
       )}
 
       <div
-        className={`relative w-full overflow-hidden bg-[var(--card)] shadow-lg group ${hasHeader ? "rounded-xl sm:rounded-2xl border border-[var(--border)]" : ""}`}
+        className={`relative w-full overflow-hidden group ${hasHeader ? "rounded-xl sm:rounded-2xl" : ""}`}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setTimeout(() => setIsPaused(false), 3000)}
       >
-        <div className="absolute inset-0 bg-zinc-900/30" />
-        
-        <div
-          className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out opacity-20"
-          style={{
-            backgroundImage: `url(${imageSrc})`,
-            filter: "blur(50px) saturate(1.4)",
-            transform: "scale(1.2)",
-          }}
-        />
-
-        <div className="absolute inset-0 bg-gradient-to-r from-zinc-900/70 via-zinc-900/30 to-zinc-900/50" />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 via-transparent to-zinc-900/40" />
 
         {isAdultContent && !isAgeVerified && (
           <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
@@ -331,7 +315,7 @@ export default function FeaturedTitleBlock({
           <div className="relative w-full md:w-auto flex-shrink-0 flex justify-center md:block">
             <Link
               href={titlePath}
-              className="block relative w-28 sm:w-40 md:w-56 aspect-[2/3] rounded-lg sm:rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 transition-transform duration-300 hover:scale-[1.02] group/cover"
+              className="block relative w-28 sm:w-40 md:w-56 aspect-[2/3] rounded-lg sm:rounded-xl overflow-hidden shadow-2xl ring-1 ring-[var(--border)] transition-transform duration-300 hover:scale-[1.02] group/cover"
               onClick={(e) => {
                 if (isAdultContent && !isAgeVerified) {
                   e.preventDefault();
@@ -369,20 +353,17 @@ export default function FeaturedTitleBlock({
 
           <div className="flex-1 flex flex-col justify-center min-w-0 text-center md:text-left">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-              <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-orange-500/40 bg-orange-500/20 backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium text-orange-300">
+              <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
                 <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 {translateTitleType(currentItem.type)}
               </span>
-              <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium text-white/90">
+              <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
                 <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 {currentItem.year}
               </span>
-              <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-amber-400/40 bg-amber-400/20 backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-semibold text-amber-300">
-                <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
-                {formatRating(currentItem.rating)}
-              </span>
+              <RatingBadge rating={currentItem.rating} size="sm" variant="default" />
               {currentItem.views && (
-                <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-blue-400/40 bg-blue-400/20 backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium text-blue-300">
+                <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
                   <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   {formatViews(currentItem.views)}
                 </span>
@@ -390,7 +371,7 @@ export default function FeaturedTitleBlock({
             </div>
 
             <h3
-              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-base sm:text-xl md:text-3xl font-bold text-white mb-1.5 sm:mb-3 leading-tight line-clamp-2`}
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-base sm:text-xl md:text-3xl font-bold text-[var(--foreground)] mb-1.5 sm:mb-3 leading-tight line-clamp-2`}
             >
               {currentItem.title}
             </h3>
@@ -400,13 +381,13 @@ export default function FeaturedTitleBlock({
                 {currentItem.genres.slice(0, 3).map((genre, idx) => (
                   <span
                     key={idx}
-                    className="px-1.5 py-0.5 sm:px-2 rounded-md bg-white/10 text-white/80 text-[10px] sm:text-xs font-medium border border-white/10"
+                    className="px-1.5 py-0.5 sm:px-2 rounded-md bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] sm:text-xs font-medium border border-[var(--border)]"
                   >
                     {genre}
                   </span>
                 ))}
                 {currentItem.genres.length > 3 && (
-                  <span className="px-1.5 py-0.5 sm:px-2 rounded-md bg-white/10 text-white/60 text-[10px] sm:text-xs font-medium border border-white/10">
+                  <span className="px-1.5 py-0.5 sm:px-2 rounded-md bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] sm:text-xs font-medium border border-[var(--border)]">
                     +{currentItem.genres.length - 3}
                   </span>
                 )}
@@ -415,7 +396,7 @@ export default function FeaturedTitleBlock({
 
             <div className="relative mb-3 sm:mb-4 md:mb-6 max-w-2xl mx-auto md:mx-0">
               <p
-                className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-xs sm:text-sm md:text-base text-white/70 leading-relaxed ${
+                className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-xs sm:text-sm md:text-base text-[var(--muted-foreground)] leading-relaxed ${
                   isDescriptionExpanded ? "" : "line-clamp-2 sm:line-clamp-3 md:line-clamp-4"
                 } transition-all duration-300`}
               >
@@ -426,17 +407,17 @@ export default function FeaturedTitleBlock({
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-1.5 sm:gap-3 justify-center md:justify-start items-stretch">
+            <div className="flex flex-wrap gap-1.5 sm:gap-3 justify-center md:justify-start items-stretch mb-6 sm:mb-8">
               <button
                 onClick={handleReadClick}
-                className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-base font-semibold transition-all duration-200 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)]/85 text-[var(--primary-foreground)] text-xs sm:text-base font-semibold transition-all duration-200 shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40 active:scale-[0.98]"
               >
                 <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
                 Читать
               </button>
               <button
                 onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs sm:text-base font-semibold transition-all duration-200 shadow-lg shadow-black/20 hover:shadow-black/30 active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-[var(--secondary)] hover:bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)] text-xs sm:text-base font-semibold transition-all duration-200 active:scale-[0.98]"
               >
                 {isDescriptionExpanded ? (
                   <>
@@ -450,15 +431,15 @@ export default function FeaturedTitleBlock({
                   </>
                 )}
               </button>
-              <div ref={dropdownRef} className={`relative ${categoryOpen ? "z-50" : ""}`}>
+              <div ref={dropdownRef} className={`relative ${categoryOpen ? "z-[60]" : "z-30"}`}>
                 <button
                   ref={bookmarkButtonRef}
                   onClick={handleBookmarkClick}
                   disabled={bookmarkLoading}
                   className={`inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 h-full rounded-lg sm:rounded-xl text-xs sm:text-base font-semibold transition-all duration-200 active:scale-[0.98] ${
                     isBookmarked
-                      ? "bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40"
-                      : "bg-white/20 hover:bg-white/30 text-white shadow-lg shadow-black/20 hover:shadow-black/30"
+                      ? "bg-[var(--primary)] hover:bg-[var(--primary)]/85 text-[var(--primary-foreground)] shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40"
+                      : "bg-[var(--secondary)] hover:bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)]"
                   } ${bookmarkLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {bookmarkLoading ? (
@@ -496,14 +477,14 @@ export default function FeaturedTitleBlock({
             <>
               <button
                 onClick={goToPrevious}
-                className="absolute left-1 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/80 hover:text-white hover:bg-black/60 transition-all duration-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 touch-manipulation"
+                className="absolute left-1 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-[var(--card)] backdrop-blur-sm border border-[var(--border)] flex items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-all duration-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 touch-manipulation"
                 aria-label="Предыдущий"
               >
                 <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
               </button>
               <button
                 onClick={goToNext}
-                className="absolute right-1 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/80 hover:text-white hover:bg-black/60 transition-all duration-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 touch-manipulation"
+                className="absolute right-1 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-[var(--card)] backdrop-blur-sm border border-[var(--border)] flex items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-all duration-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 touch-manipulation"
                 aria-label="Следующий"
               >
                 <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
@@ -513,7 +494,7 @@ export default function FeaturedTitleBlock({
         </div>
 
         {data.length > 1 && (
-          <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none pb-2 sm:pb-4">
+          <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none pb-2 sm:pb-4">
             <div className="w-full max-w-7xl mx-auto flex justify-center">
               <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
                 {data.map((_, index) => (
@@ -522,14 +503,14 @@ export default function FeaturedTitleBlock({
                     onClick={() => goToSlide(index)}
                     className={`relative h-1 sm:h-1.5 rounded-full transition-all duration-300 overflow-hidden touch-manipulation ${
                       index === currentIndex
-                        ? "w-8 sm:w-10 bg-white/20"
-                        : "w-1.5 sm:w-2 bg-white/30 hover:bg-white/50 active:bg-white/50"
+                        ? "w-8 sm:w-10 bg-[var(--muted)]"
+                        : "w-1.5 sm:w-2 bg-[var(--muted-foreground)]/30 hover:bg-[var(--muted-foreground)]/50 active:bg-[var(--muted-foreground)]/50"
                     }`}
                     aria-label={`Перейти к слайду ${index + 1}`}
                   >
                     {index === currentIndex && (
                       <div
-                        className="absolute inset-y-0 left-0 bg-orange-500 rounded-full transition-[width] duration-75 ease-linear"
+                        className="absolute inset-y-0 left-0 bg-[var(--primary)] rounded-full transition-[width] duration-75 ease-linear"
                         style={{ width: `${progress}%` }}
                       />
                     )}

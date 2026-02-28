@@ -132,7 +132,7 @@ export function GenresList({ genres = [], tags = [], ageLimit }: GenresListProps
               return (
                 <span
                   key={`genre-${index}`}
-                  className="genre-badge cursor-pointer rounded-xl text-sm font-medium px-3 py-1 transition-all duration-300 hover:scale-105 hover:shadow-md border border-[var(--border)] bg-[var(--card)]/50 text-[var(--foreground)]"
+                  className="genre-badge cursor-pointer rounded-xl text-sm font-medium px-3 py-1.5 transition-all duration-300 hover:scale-105 hover:shadow-md border border-[var(--border)] bg-[var(--secondary)]/80 text-[var(--foreground)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30"
                   onClick={() => handleItemClick(item.type, item.value)}
                 >
                   {item.value}
@@ -159,7 +159,7 @@ export function GenresList({ genres = [], tags = [], ageLimit }: GenresListProps
               return (
                 <span
                   key={`tag-${index}`}
-                  className="genre-badge cursor-pointer rounded-xl text-sm px-3 py-1.5 transition-all duration-300 hover:scale-105 hover:shadow-md"
+                  className="genre-badge cursor-pointer rounded-xl text-sm px-3 py-1.5 transition-all duration-300 hover:scale-105 hover:shadow-md border border-[var(--border)]/50 bg-[var(--accent)]/80 text-[var(--foreground)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30"
                   onClick={() => handleItemClick(item.type, item.value)}
                 >
                   {item.value}
@@ -174,7 +174,7 @@ export function GenresList({ genres = [], tags = [], ageLimit }: GenresListProps
       {hasMoreItems && (
         <button
           onClick={handleToggle}
-          className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] hover:text-[var(--chart-1)] transition-colors duration-300 mt-2 group"
+          className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors duration-300 mt-2 group"
         >
           {isExpanded ? (
             <>

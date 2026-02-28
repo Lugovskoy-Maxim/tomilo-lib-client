@@ -197,16 +197,17 @@ export default function HomePage() {
           )}
         </LazySection>
 
-        {/* Рекламный блок — временно отключено
-        <LazySection
-          sectionId="ad"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.ad}
-          skeleton={<div className="w-full min-h-[120px]" aria-hidden />}
-        >
-          <AdBlock />
-        </LazySection>
-        */}
+        {/* Рекомендации (только для авторизованных) — сразу после трендов */}
+        {isAuthenticated && (
+          <LazySection
+            sectionId="recommendations"
+            onVisible={handleSectionVisible}
+            isVisible={!!visibleSections.recommendations}
+            skeleton={<CarouselSkeleton cardWidth="w-32 sm:w-36 md:w-40 lg:w-44" variant="poster" />}
+          >
+            <Recommendations limit={10} />
+          </LazySection>
+        )}
 
         {/* Новости */}
         <LazySection
@@ -402,18 +403,6 @@ export default function HomePage() {
             )}
           </div>
         </LazySection>
-
-        {/* Рекомендации (только для авторизованных) */}
-        {isAuthenticated && (
-          <LazySection
-            sectionId="recommendations"
-            onVisible={handleSectionVisible}
-            isVisible={!!visibleSections.recommendations}
-            skeleton={<CarouselSkeleton cardWidth="w-40" variant="poster" />}
-          >
-            <Recommendations limit={10} />
-          </LazySection>
-        )}
 
         {/* Случайные тайтлы */}
         <LazySection

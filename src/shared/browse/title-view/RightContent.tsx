@@ -307,9 +307,9 @@ export function RightContent({
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* Карточка с датой обновления */}
-            <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/50 transition-colors">
-              <div className="flex items-center justify-center gap-2 text-[var(--foreground)]/70">
-                <Calendar className="w-4 h-4 text-[var(--chart-1)]" />
+            <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50 hover:bg-[var(--secondary)]/80 transition-colors">
+              <div className="flex items-center justify-center gap-2 text-[var(--muted-foreground)]">
+                <Calendar className="w-4 h-4 text-[var(--primary)]" />
                 <span className="text-sm">Последнее обновление:</span>
                 <span className="font-medium text-[var(--foreground)]">
                   {titleData?.updatedAt ? timeAgo(titleData.updatedAt) : "неизвестно"}
@@ -319,42 +319,42 @@ export function RightContent({
 
             {/* Сетка информационных карточек */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/60 hover:scale-[1.02] transition-all duration-300 group">
-                <div className="flex items-center gap-2 mb-2 text-[var(--chart-1)]">
+              <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50 hover:bg-[var(--secondary)]/85 hover:scale-[1.02] transition-all duration-300 group">
+                <div className="flex items-center gap-2 mb-2 text-[var(--primary)]">
                   <Calendar className="w-4 h-4" />
                   <span className="text-xs uppercase tracking-wider font-medium">Загружено</span>
                 </div>
-                <div className="text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors">
+                <div className="text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
                   {titleData?.createdAt ? new Date(titleData.createdAt).toLocaleDateString() : "—"}
                 </div>
               </div>
 
-              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/60 hover:scale-[1.02] transition-all duration-300 group">
-                <div className="flex items-center gap-2 mb-2 text-[var(--chart-1)]">
+              <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50 hover:bg-[var(--secondary)]/85 hover:scale-[1.02] transition-all duration-300 group">
+                <div className="flex items-center gap-2 mb-2 text-[var(--primary)]">
                   <BookOpen className="w-4 h-4" />
                   <span className="text-xs uppercase tracking-wider font-medium">Глав</span>
                 </div>
-                <div className="text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors">
+                <div className="text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
                   {titleData?.totalChapters || 0}
                 </div>
               </div>
 
-              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/60 hover:scale-[1.02] transition-all duration-300 group">
-                <div className="flex items-center gap-2 mb-2 text-[var(--chart-1)]">
+              <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50 hover:bg-[var(--secondary)]/85 hover:scale-[1.02] transition-all duration-300 group">
+                <div className="flex items-center gap-2 mb-2 text-[var(--primary)]">
                   <Star className="w-4 h-4" />
                   <span className="text-xs uppercase tracking-wider font-medium">Автор</span>
                 </div>
-                <div className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors line-clamp-1">
+                <div className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">
                   {titleData?.author || "Неизвестно"}
                 </div>
               </div>
 
-              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30 hover:bg-[var(--secondary)]/60 hover:scale-[1.02] transition-all duration-300 group">
-                <div className="flex items-center gap-2 mb-2 text-[var(--chart-1)]">
+              <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50 hover:bg-[var(--secondary)]/85 hover:scale-[1.02] transition-all duration-300 group">
+                <div className="flex items-center gap-2 mb-2 text-[var(--primary)]">
                   <Eye className="w-4 h-4" />
                   <span className="text-xs uppercase tracking-wider font-medium">Художник</span>
                 </div>
-                <div className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors line-clamp-1">
+                <div className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">
                   {titleData?.artist || "Неизвестно"}
                 </div>
               </div>
@@ -362,8 +362,8 @@ export function RightContent({
 
             {/* Альтернативные названия */}
             {titleData?.altNames && titleData.altNames.length > 0 && (
-              <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30">
-                <div className="flex items-center gap-2 mb-3 text-[var(--chart-1)]">
+              <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">
+                <div className="flex items-center gap-2 mb-3 text-[var(--primary)]">
                   <BookOpen className="w-4 h-4" />
                   <span className="text-xs uppercase tracking-wider font-medium">Альтернативные названия</span>
                 </div>
@@ -371,7 +371,7 @@ export function RightContent({
                   {titleData.altNames.map((name, idx) => (
                     <span 
                       key={idx} 
-                      className="text-sm text-[var(--foreground)]/80 bg-[var(--background)]/50 px-3 py-1.5 rounded-xl"
+                      className="text-sm text-[var(--foreground)] bg-[var(--background)]/70 px-3 py-1.5 rounded-xl"
                     >
                       {name}
                     </span>
@@ -381,30 +381,30 @@ export function RightContent({
             )}
 
             {/* Статистика */}
-            <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/30">
-              <div className="flex items-center gap-2 mb-4 text-[var(--chart-1)]">
+            <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">
+              <div className="flex items-center gap-2 mb-4 text-[var(--primary)]">
                 <Eye className="w-4 h-4" />
                 <span className="text-xs uppercase tracking-wider font-medium">Статистика</span>
               </div>
               
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="text-center p-3 bg-[var(--background)]/30 rounded-xl">
-                  <div className="text-2xl font-bold text-[var(--chart-1)] mb-1">
+                <div className="text-center p-3 bg-[var(--background)]/60 rounded-xl">
+                  <div className="text-2xl font-bold text-[var(--primary)] mb-1">
                     {titleData?.views?.toLocaleString() || 0}
                   </div>
-                  <div className="text-xs text-[var(--foreground)]/60">Просмотров</div>
+                  <div className="text-xs text-[var(--muted-foreground)]">Просмотров</div>
                 </div>
-                <div className="text-center p-3 bg-[var(--background)]/30 rounded-xl">
-                  <div className="text-2xl font-bold text-[var(--chart-1)] mb-1">
+                <div className="text-center p-3 bg-[var(--background)]/60 rounded-xl">
+                  <div className="text-2xl font-bold text-[var(--primary)] mb-1">
                     {totalRatings.toLocaleString()}
                   </div>
-                  <div className="text-xs text-[var(--foreground)]/60">Оценок</div>
+                  <div className="text-xs text-[var(--muted-foreground)]">Оценок</div>
                 </div>
               </div>
 
               {totalRatings > 0 && ratingStats.length > 0 && (
                 <div className="space-y-2">
-                  <div className="text-xs text-[var(--foreground)]/60 mb-2">Распределение оценок:</div>
+                  <div className="text-xs text-[var(--muted-foreground)] mb-2">Распределение оценок:</div>
                   <div className="space-y-2">
                     {ratingStats.slice(0, 5).map(stat => (
                       <div
@@ -415,18 +415,18 @@ export function RightContent({
                           <span className="text-sm font-bold text-[var(--foreground)]">
                             {stat.rating}
                           </span>
-                          <Star className="w-3.5 h-3.5 text-[var(--chart-1)] fill-[var(--chart-1)]" />
+                          <Star className="w-3.5 h-3.5 text-[var(--primary)] fill-[var(--primary)]" />
                         </div>
 
-                        <div className="flex-1 bg-[var(--background)]/50 rounded-xl h-2 overflow-hidden">
+                        <div className="flex-1 bg-[var(--background)]/70 rounded-xl h-2 overflow-hidden">
                           <div
-                            className="bg-gradient-to-r from-[var(--chart-1)] to-[var(--chart-5)] h-full rounded-xl transition-all duration-500"
+                            className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/60 h-full rounded-xl transition-all duration-500"
                             style={{ width: `${stat.percentage}%` }}
                           />
                         </div>
                         
-                        <span className="text-xs text-[var(--foreground)]/70 w-16 text-right">
-                          {stat.count} <span className="text-[var(--foreground)]/40">({stat.percentage}%)</span>
+                        <span className="text-xs text-[var(--muted-foreground)] w-16 text-right">
+                          {stat.count} <span className="text-[var(--foreground)]/50">({stat.percentage}%)</span>
                         </span>
                       </div>
                     ))}
@@ -476,7 +476,7 @@ export function RightContent({
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* Панель поиска и сортировки */}
-            <div className="bg-[var(--secondary)]/40 backdrop-blur-md rounded-2xl p-3 border border-[var(--border)]/30">
+            <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-3 border border-[var(--border)]/50">
               <div className="flex w-full flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <input
@@ -484,17 +484,17 @@ export function RightContent({
                     placeholder="Поиск по номеру главы..."
                     value={searchQuery}
                     onChange={e => onSearchChange(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--background)]/60 border border-[var(--border)]/50 rounded-xl text-[var(--foreground)] placeholder-[var(--foreground)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/50 focus:border-[var(--chart-1)] transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--background)]/80 border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] transition-all"
                   />
-                  <Eye className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground)]/40" />
+                  <Eye className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
                 </div>
 
                 <button
                   onClick={() => onSortChange(sortOrder === "desc" ? "asc" : "desc")}
-                  className="px-4 py-2.5 bg-[var(--background)]/60 border border-[var(--border)]/50 rounded-xl text-[var(--foreground)] hover:bg-[var(--chart-1)]/10 hover:border-[var(--chart-1)]/30 transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap group"
+                  className="px-4 py-2.5 bg-[var(--background)]/80 border border-[var(--border)] rounded-xl text-[var(--foreground)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap group"
                 >
                   <ArrowUpDown
-                    className={`w-4 h-4 transition-transform duration-300 text-[var(--chart-1)] ${
+                    className={`w-4 h-4 transition-transform duration-300 text-[var(--primary)] ${
                       sortOrder === "desc" ? "rotate-0" : "rotate-180"
                     }`}
                   />
@@ -515,7 +515,7 @@ export function RightContent({
                   <div
                     key={chapter._id}
                     onClick={() => router.push(getChapterPathCallback(chapter._id))}
-                    className="group flex items-center gap-3 p-3 bg-[var(--secondary)]/30 backdrop-blur-sm rounded-xl border border-[var(--border)]/20 hover:bg-[var(--secondary)]/60 hover:border-[var(--chart-1)]/20 hover:shadow-lg hover:shadow-[var(--chart-1)]/5 transition-all duration-300 cursor-pointer"
+                    className="group flex items-center gap-3 p-3 bg-[var(--secondary)]/60 backdrop-blur-sm rounded-xl border border-[var(--border)]/40 hover:bg-[var(--secondary)]/80 hover:border-[var(--primary)]/30 hover:shadow-lg hover:shadow-[var(--primary)]/5 transition-all duration-300 cursor-pointer"
                     style={{ animationDelay: `${index * 30}ms` }}
                   >
                     {/* Иконка статуса прочтения */}
@@ -563,11 +563,11 @@ export function RightContent({
 
                     {/* Информация о главе */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--chart-1)] transition-colors">
+                      <h3 className="font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors">
                         {getChapterDisplayName(chapter)}
                       </h3>
                       {/* Мобильная версия - дата и просмотры под названием */}
-                      <div className="flex sm:hidden items-center gap-3 text-xs text-[var(--foreground)]/50 mt-0.5">
+                      <div className="flex sm:hidden items-center gap-3 text-xs text-[var(--muted-foreground)] mt-0.5">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {chapter.createdAt 
@@ -586,9 +586,9 @@ export function RightContent({
                     </div>
 
                     {/* Десктопная версия - дата и просмотры справа */}
-                    <div className="hidden sm:flex items-center gap-4 text-sm text-[var(--foreground)]/60 flex-shrink-0">
+                    <div className="hidden sm:flex items-center gap-4 text-sm text-[var(--muted-foreground)] flex-shrink-0">
                       <span className="flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4 text-[var(--chart-1)]" />
+                        <Calendar className="w-4 h-4 text-[var(--primary)]" />
                         {chapter.createdAt 
                           ? new Date(chapter.createdAt).toLocaleDateString('ru-RU', { 
                               day: 'numeric', 
@@ -598,7 +598,7 @@ export function RightContent({
                           : "—"}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <Eye className="w-4 h-4 text-[var(--chart-1)]" />
+                        <Eye className="w-4 h-4 text-[var(--primary)]" />
                         {(chapter.views || 0).toLocaleString()}
                       </span>
                     </div>
@@ -630,17 +630,17 @@ export function RightContent({
       <div className="space-y-6">
         <div className="flex sm:flex-row justify-between sm:items-center gap-4 w-full">
           <div className="flex flex-col sm:flex-row  gap-2">
-            <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-xl text-[var(--primary)]">
-              <Calendar className="w-4 h-4" />
-              <span>{titleData.releaseYear}</span>
+            <div className="flex items-center gap-2 bg-[var(--secondary)]/80 px-3 py-1.5 rounded-xl text-[var(--foreground)] border border-[var(--border)]/50">
+              <Calendar className="w-4 h-4 text-[var(--primary)]" />
+              <span className="font-medium">{titleData.releaseYear}</span>
             </div>
-            <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-xl text-[var(--primary)]">
-              <BookOpen className="w-4 h-4" />
-              <span>{translateTitleType(titleData.type || "")}</span>
+            <div className="flex items-center gap-2 bg-[var(--secondary)]/80 px-3 py-1.5 rounded-xl text-[var(--foreground)] border border-[var(--border)]/50">
+              <BookOpen className="w-4 h-4 text-[var(--primary)]" />
+              <span className="font-medium">{translateTitleType(titleData.type || "")}</span>
             </div>
-            <div className="flex items-center gap-2 bg-[var(--background)]/20 px-3 py-1 rounded-xl text-[var(--primary)]">
-              <CheckCheck className="w-4 h-4" />
-              {titleData?.status && <span>{translateTitleStatus(titleData.status || "")}</span>}
+            <div className="flex items-center gap-2 bg-[var(--secondary)]/80 px-3 py-1.5 rounded-xl text-[var(--foreground)] border border-[var(--border)]/50">
+              <CheckCheck className="w-4 h-4 text-[var(--primary)]" />
+              {titleData?.status && <span className="font-medium">{translateTitleStatus(titleData.status || "")}</span>}
             </div>
             {/* <button
               onClick={() => setIsReportModalOpen(true)}
@@ -660,12 +660,12 @@ export function RightContent({
               <div className="flex flex-col items-end gap-1">
                 <div className="flex items-center gap-2">
                   Рейтинг
-                  <span className="text-xl font-bold text-[var(--chart-1)]">
+                  <span className="text-xl font-bold text-[var(--primary)]">
                     {titleData?.averageRating ? titleData.averageRating.toFixed(1) : "0.0"}
                   </span>
                 </div>
                 {totalRatings > 0 && (
-                  <span className="text-xs text-[var(--foreground)]/60">
+                  <span className="text-xs text-[var(--muted-foreground)]">
                     {totalRatings} {totalRatings === 1 ? "оценка" : totalRatings < 5 ? "оценки" : "оценок"}
                   </span>
                 )}
@@ -678,8 +678,8 @@ export function RightContent({
                   onClick={() => setIsRatingOpen(v => !v)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-300 cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                     pendingRating
-                      ? "bg-[var(--chart-1)] text-white"
-                      : "bg-[var(--background)] text-[var(--primary)] hover:bg-[var(--chart-1)]/10 hover:text-[var(--chart-1)]"
+                      ? "bg-[var(--primary)] text-white"
+                      : "bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] hover:border-[var(--primary)]/30"
                   }`}
                 >
                   <Star className={`w-3 h-3 ${pendingRating ? "fill-white" : ""}`} />
@@ -699,8 +699,8 @@ export function RightContent({
                       {/* Заголовок с текущей оценкой */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-[var(--chart-1)]/10 flex items-center justify-center">
-                            <Star className="w-4 h-4 text-[var(--chart-1)] fill-[var(--chart-1)]" />
+                          <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
+                            <Star className="w-4 h-4 text-[var(--primary)] fill-[var(--primary)]" />
                           </div>
                           <div className="flex flex-col">
                             <span className="text-xs text-[var(--foreground)]/50 uppercase tracking-wider">Оценка</span>
@@ -811,7 +811,7 @@ export function RightContent({
         <div className="relative">
           <div
             ref={descriptionRef}
-            className={`text-[var(--foreground)]/85 leading-relaxed ${
+            className={`text-[var(--foreground)] leading-relaxed ${
               !isDescriptionExpanded ? "line-clamp-4 max-h-[6.5rem]" : "max-h-none"
             } transition-all duration-500 ease-in-out overflow-hidden`}
             dangerouslySetInnerHTML={{
@@ -820,7 +820,7 @@ export function RightContent({
           />
           {/* Градиент для эффекта затухания при свернутом состоянии */}
           {!isDescriptionExpanded && isDescriptionOverflowing && (
-            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[var(--background)] to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[var(--card)] to-transparent pointer-events-none" />
           )}
         </div>
         
@@ -828,7 +828,7 @@ export function RightContent({
         {isDescriptionOverflowing && (
           <button
             onClick={onDescriptionToggle}
-            className="flex items-center gap-1.5 text-[var(--chart-1)] hover:text-[var(--chart-1)]/80 transition-colors mt-3 group"
+            className="flex items-center gap-1.5 text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors mt-3 group"
           >
             <span>{isDescriptionExpanded ? "Свернуть" : "Развернуть описание"}</span>
             <ChevronDown 
@@ -840,7 +840,7 @@ export function RightContent({
         )}
 
         {/* Улучшенные вкладки с иконками */}
-        <div className="bg-[var(--secondary)]/60 backdrop-blur-md rounded-2xl p-1.5 relative border border-[var(--border)]/50">
+        <div className="bg-[var(--secondary)]/80 backdrop-blur-md rounded-2xl p-1.5 relative border border-[var(--border)]">
           <div className="flex gap-1">
             {[
               { 
@@ -871,8 +871,8 @@ export function RightContent({
                   onClick={() => onTabChange(tab.key)}
                   className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-medium transition-all duration-300 ease-out ${
                     isActive
-                      ? "bg-[var(--chart-1)] text-white shadow-lg shadow-[var(--chart-1)]/25"
-                      : "text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-[var(--background)]/50"
+                      ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/25"
+                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--background)]/70"
                   }`}
                 >
                   <Icon className={`w-4 h-4 transition-transform duration-300 ${isActive ? "scale-110" : ""}`} />
@@ -881,7 +881,7 @@ export function RightContent({
                     <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-xl ${
                       isActive 
                         ? "bg-white/20 text-white" 
-                        : "bg-[var(--chart-1)]/10 text-[var(--chart-1)]"
+                        : "bg-[var(--primary)]/10 text-[var(--primary)]"
                     }`}>
                       {tab.count}
                     </span>

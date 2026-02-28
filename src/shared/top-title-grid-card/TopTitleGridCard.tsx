@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import RatingBadge from "@/shared/rating-badge/RatingBadge";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { useAuth } from "@/hooks/useAuth";
@@ -85,9 +85,8 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
             </div>
 
             {/* Рейтинг */}
-            <div className="absolute top-1 right-1 bg-chart-3 text-primary-foreground px-1 py-0.5 rounded text-xs font-bold flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              <span>{data.rating}</span>
+            <div className="absolute top-1 right-1">
+              <RatingBadge rating={data.rating} size="xs" variant="overlay" />
             </div>
           </div>
 
@@ -106,10 +105,7 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
               </div>
 
               {/* Рейтинг */}
-              <div className="flex items-center gap-1 text-muted-foreground text-xs">
-                <Sparkles className="w-3 h-3" />
-                <span>{data.rating}</span>
-              </div>
+              <RatingBadge rating={data.rating} size="xs" variant="inline" />
             </div>
 
             {/* Жанры */}

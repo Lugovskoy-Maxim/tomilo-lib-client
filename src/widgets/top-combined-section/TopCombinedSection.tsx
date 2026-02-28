@@ -1,5 +1,6 @@
 "use client";
-import { ArrowRight, Eye, TrendingUp } from "lucide-react";
+import { ArrowRight, Eye } from "lucide-react";
+import RatingBadge from "@/shared/rating-badge/RatingBadge";
 import Link from "next/link";
 import { TopTitleCombined } from "@/types/constants";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
@@ -148,7 +149,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
               <span className="text-xs text-[var(--muted-foreground)] font-medium">{item.year || "2026"}</span>
             </div>
             <h4
-              className={`font-semibold text-sm text-[var(--foreground)] group-hover:text-[var(--chart-1)] transition-colors duration-300 line-clamp-2 leading-tight ${
+              className={`font-semibold text-sm text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-300 line-clamp-2 leading-tight ${
                 item.isAdult && !isAgeVerified ? "blur-sm" : ""
               }`}
             >
@@ -156,7 +157,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
             </h4>
             <div className="flex items-center justify-between mt-1.5">
               {showViews ? (
-                <span className="flex gap-1 text-xs items-center text-[var(--muted-foreground)] group-hover:text-[var(--chart-1)] transition-colors duration-300">
+                <span className="flex gap-1 text-xs items-center text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors duration-300">
                   <Eye className="w-3.5 h-3.5" />
                   <span className="font-medium">{formatViews(Number(item.views) || 0)}</span>
                 </span>
@@ -165,14 +166,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
               )}
               
               {showRating && (
-                <span
-                  className={`flex gap-1 text-xs font-semibold items-center px-2 py-0.5 rounded-md bg-[var(--muted)]/30 ${
-                    item.rating >= 7 ? "text-[var(--chart-5)]" : "text-[var(--muted-foreground)]"
-                  }`}
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  {item.rating ? parseFloat(item.rating.toFixed(1)).toString() : "0.0"}
-                </span>
+                <RatingBadge rating={item.rating || 0} size="sm" variant="default" />
               )}
             </div>
             

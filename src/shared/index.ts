@@ -19,6 +19,7 @@ export { default as BookmarkCard } from "./bookmark-card/BookmarkCard";
 export { default as TopTitleCard } from "./top-title-card/TopTitleCard";
 export { default as FeaturedTitleBlock } from "./featured-title/FeaturedTitleBlock";
 export { default as LeaderCard } from "./leader-card/LeaderCard";
+export { default as RatingBadge, RatingIcon, formatRating } from "./rating-badge/RatingBadge";
 
 // Reader
 export { default as NavigationHeader } from "./reader/NavigationHeader";
