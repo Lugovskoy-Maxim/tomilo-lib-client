@@ -378,8 +378,7 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
   };
 
   const getImageUrlString = (coverImage: string | undefined) => {
-    const imageUrl = getImageUrl(coverImage);
-    return typeof imageUrl === "string" ? imageUrl : imageUrl.src || "";
+    return getImageUrl(coverImage);
   };
 
   // Форматируем время сессии

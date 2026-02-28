@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ChevronLeft, ChevronRight, Star, Eye, BookOpen, Calendar, Tag, Play, Bookmark, ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Eye, BookOpen, Calendar, Tag, Play, Bookmark, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/useToast";
 import { normalizeBookmarks } from "@/lib/bookmarks";

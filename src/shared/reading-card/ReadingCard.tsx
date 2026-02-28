@@ -42,7 +42,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
   };
 
   const imageUrl = getCoverUrl(data.cover, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
-  const imageUrlString = typeof imageUrl === "string" ? imageUrl : imageUrl.src;
+  const imageUrlString = imageUrl;
 
   return (
     <div

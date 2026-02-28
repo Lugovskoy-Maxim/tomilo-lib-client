@@ -39,7 +39,7 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
   const createdAt = data.createdAt;
 
   const imageUrl = getCoverUrl(collectionImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
-  const imageUrlString = typeof imageUrl === "string" ? imageUrl : imageUrl.src;
+  const imageUrlString = imageUrl;
 
   const cardClasses = `
     group relative select-none rounded-xl overflow-hidden cursor-pointer block
