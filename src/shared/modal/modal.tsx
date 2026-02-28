@@ -55,7 +55,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   const backdropClass = [
-    "fixed inset-0 z-layer-modal flex items-start sm:items-center justify-center p-2 min-[360px]:p-4 overflow-y-auto",
+    "fixed inset-0 z-layer-modal flex items-start sm:items-center justify-center p-1 min-[360px]:p-2 sm:p-4 overflow-y-auto",
     "bg-black/55 backdrop-blur-md modal-backdrop",
     isClosing && "modal-closing",
   ]
@@ -63,9 +63,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     .join(" ");
 
   const contentClass = [
-    "relative w-full max-w-full sm:max-w-md mx-auto bg-[var(--background)] rounded-2xl shadow-2xl border border-[var(--border)]",
-    "max-h-[88dvh] sm:max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col",
-    "mt-8 sm:mt-0 modal-content",
+    "relative w-full max-w-[calc(100%-0.5rem)] min-[360px]:max-w-[calc(100%-1rem)] sm:max-w-md mx-auto bg-[var(--background)] rounded-xl min-[360px]:rounded-2xl shadow-2xl border border-[var(--border)]",
+    "max-h-[92dvh] min-[360px]:max-h-[90dvh] sm:max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col",
+    "mt-4 min-[360px]:mt-6 sm:mt-0 modal-content",
     isClosing && "modal-closing",
   ]
     .filter(Boolean)
@@ -85,23 +85,23 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         className={contentClass}
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-[var(--border)] bg-[var(--background)] flex-shrink-0">
+        <div className="flex items-center justify-between gap-2 min-[360px]:gap-3 px-3 min-[360px]:px-4 sm:px-5 py-2.5 min-[360px]:py-3.5 border-b border-[var(--border)] bg-[var(--background)] flex-shrink-0">
           <h2
             id="modal-title"
-            className="text-base sm:text-lg font-semibold text-[var(--foreground)] truncate"
+            className="text-sm min-[360px]:text-base sm:text-lg font-semibold text-[var(--foreground)] truncate"
           >
             {title}
           </h2>
           <button
             type="button"
             onClick={handleClose}
-            className="flex-shrink-0 p-2.5 rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/40 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+            className="flex-shrink-0 p-2 min-[360px]:p-2.5 rounded-lg min-[360px]:rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/40 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
             aria-label="Закрыть"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5" />
           </button>
         </div>
-        <div className="p-4 sm:p-5 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
+        <div className="p-3 min-[360px]:p-4 sm:p-5 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
           {children}
         </div>
       </div>

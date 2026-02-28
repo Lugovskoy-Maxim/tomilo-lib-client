@@ -249,21 +249,21 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
       : null;
 
   const inputBase =
-    "w-full pl-10 pr-4 py-3 rounded-xl border bg-[var(--secondary)] placeholder:text-[var(--muted-foreground)]/70 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:border-[var(--chart-1)]";
+    "w-full pl-9 min-[360px]:pl-10 pr-3 min-[360px]:pr-4 py-2.5 min-[360px]:py-3 rounded-lg min-[360px]:rounded-xl border bg-[var(--secondary)] placeholder:text-[var(--muted-foreground)]/70 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:border-[var(--chart-1)] text-sm min-[360px]:text-base";
   const inputError = "border-red-500 focus:ring-red-500/20";
   const inputNormal = "border-[var(--border)] hover:border-[var(--muted-foreground)]/50";
-  const inputRightPadding = "pr-11";
+  const inputRightPadding = "pr-10 min-[360px]:pr-11";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={MESSAGES.UI_ELEMENTS.REGISTER_TITLE}>
-      <div className="flex flex-col gap-5">
-        <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
+      <div className="flex flex-col gap-3 min-[360px]:gap-4 sm:gap-5">
+        <p className="text-xs min-[360px]:text-sm text-[var(--muted-foreground)] leading-relaxed">
           {step === "form"
             ? MESSAGES.UI_ELEMENTS.REGISTER_SUBTITLE
             : MESSAGES.UI_ELEMENTS.REGISTER_CODE_SENT}
         </p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 min-[360px]:gap-3 sm:gap-4">
           {apiErrorMessage && (
             <div
               className="flex items-center gap-2.5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm animate-fadeIn"
@@ -479,7 +479,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           </div>
 
           {TURNSTILE_SITE_KEY && (
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-1 min-[360px]:gap-1.5 turnstile-container">
               <Turnstile
                 siteKey={TURNSTILE_SITE_KEY}
                 onSuccess={setCaptchaToken}
@@ -491,21 +491,21 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
                 }}
               />
               {!captchaToken && touched.confirmPassword && (
-                <p className="text-xs text-[var(--muted-foreground)]">
+                <p className="text-[0.625rem] min-[360px]:text-xs text-[var(--muted-foreground)]">
                   Подтвердите, что вы не робот
                 </p>
               )}
             </div>
           )}
 
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-2 min-[360px]:gap-3">
             <input
               id="terms"
               type="checkbox"
-              className="mt-1 w-4 h-4 rounded border-[var(--border)] bg-[var(--secondary)] text-[var(--chart-1)] focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2"
+              className="mt-0.5 min-[360px]:mt-1 w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 rounded border-[var(--border)] bg-[var(--secondary)] text-[var(--chart-1)] focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2"
               required
             />
-            <label htmlFor="terms" className="text-sm text-[var(--foreground)] leading-relaxed cursor-pointer">
+            <label htmlFor="terms" className="text-xs min-[360px]:text-sm text-[var(--foreground)] leading-relaxed cursor-pointer">
               {MESSAGES.UI_ELEMENTS.TERMS_LABEL}{" "}
               <button
                 type="button"
@@ -526,7 +526,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
                 ? !isFormValid() || isLoading
                 : !isCodeStepValid || isLoading
             }
-            className="w-full py-3.5 rounded-xl font-semibold text-white bg-[var(--chart-1)] hover:opacity-95 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-[var(--chart-1)]/25 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+            className="w-full py-2.5 min-[360px]:py-3 sm:py-3.5 rounded-lg min-[360px]:rounded-xl font-semibold text-sm min-[360px]:text-base text-white bg-[var(--chart-1)] hover:opacity-95 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-[var(--chart-1)]/25 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
@@ -541,8 +541,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
           </button>
         </form>
 
-        <div className="pt-4 border-t border-[var(--border)] text-center">
-          <p className="text-sm text-[var(--muted-foreground)]">
+        <div className="pt-3 min-[360px]:pt-4 border-t border-[var(--border)] text-center">
+          <p className="text-xs min-[360px]:text-sm text-[var(--muted-foreground)]">
             {MESSAGES.UI_ELEMENTS.HAVE_ACCOUNT}{" "}
             <button
               type="button"

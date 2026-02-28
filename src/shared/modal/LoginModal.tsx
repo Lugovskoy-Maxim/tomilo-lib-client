@@ -397,18 +397,18 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const errorMessage = getErrorMessage();
 
   const inputBase =
-    "w-full pl-10 pr-4 py-3 rounded-xl border bg-[var(--secondary)] placeholder:text-[var(--muted-foreground)]/70 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:border-[var(--chart-1)]";
+    "w-full pl-9 min-[360px]:pl-10 pr-3 min-[360px]:pr-4 py-2.5 min-[360px]:py-3 rounded-lg min-[360px]:rounded-xl border bg-[var(--secondary)] placeholder:text-[var(--muted-foreground)]/70 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:border-[var(--chart-1)] text-sm min-[360px]:text-base";
   const inputError = "border-red-500 focus:ring-red-500/20";
   const inputNormal = "border-[var(--border)] hover:border-[var(--muted-foreground)]/50";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={MESSAGES.UI_ELEMENTS.LOGIN_TITLE}>
-      <div className="flex flex-col gap-5">
-        <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
+      <div className="flex flex-col gap-3 min-[360px]:gap-4 sm:gap-5">
+        <p className="text-xs min-[360px]:text-sm text-[var(--muted-foreground)] leading-relaxed">
           {MESSAGES.UI_ELEMENTS.LOGIN_SUBTITLE}
         </p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 min-[360px]:gap-3 sm:gap-4">
           {(errorMessage || forgotPasswordSuccess || forgotPasswordError) && (
             <div className="flex flex-col gap-2">
               {errorMessage && (
@@ -551,7 +551,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           <button
             type="submit"
             disabled={!isFormValid() || isLoading}
-            className="w-full py-3.5 rounded-xl font-semibold text-white bg-[var(--chart-1)] hover:opacity-95 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-[var(--chart-1)]/25 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+            className="w-full py-2.5 min-[360px]:py-3 sm:py-3.5 rounded-lg min-[360px]:rounded-xl font-semibold text-sm min-[360px]:text-base text-white bg-[var(--chart-1)] hover:opacity-95 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-[var(--chart-1)]/25 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
@@ -564,15 +564,15 @@ const LoginModal: React.FC<LoginModalProps> = ({
           </button>
         </form>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 min-[360px]:gap-3">
           <div className="flex-1 h-px bg-[var(--border)]" />
-          <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+          <span className="text-[0.625rem] min-[360px]:text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
             {MESSAGES.UI_ELEMENTS.OR}
           </span>
           <div className="flex-1 h-px bg-[var(--border)]" />
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 min-[360px]:gap-3">
           <button
             type="button"
             onClick={() => {
@@ -586,16 +586,16 @@ const LoginModal: React.FC<LoginModalProps> = ({
               const redirectUri = encodeURIComponent("https://tomilo-lib.ru/auth/yandex");
               window.location.href = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
             }}
-            className="w-full h-12 rounded-xl font-medium border border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--muted)] hover:border-[var(--muted-foreground)]/30 transition-colors flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+            className="w-full h-10 min-[360px]:h-11 sm:h-12 rounded-lg min-[360px]:rounded-xl font-medium text-sm min-[360px]:text-base border border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--muted)] hover:border-[var(--muted-foreground)]/30 transition-colors flex items-center justify-center gap-2 min-[360px]:gap-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
             title="Войти через Я.ID"
           >
-            <span className="text-[#FC3F1D] font-bold text-base">Я</span>
+            <span className="text-[#FC3F1D] font-bold text-sm min-[360px]:text-base">Я</span>
             <span>Яндекс.ID</span>
           </button>
           <button
             type="button"
             onClick={() => void redirectToVkAuth()}
-            className="w-full h-12 rounded-xl font-medium bg-[#0077FF] hover:bg-[#0066DD] text-white transition-colors flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-[#0077FF]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
+            className="w-full h-10 min-[360px]:h-11 sm:h-12 rounded-lg min-[360px]:rounded-xl font-medium text-sm min-[360px]:text-base bg-[#0077FF] hover:bg-[#0066DD] text-white transition-colors flex items-center justify-center gap-2 min-[360px]:gap-2.5 focus:outline-none focus:ring-2 focus:ring-[#0077FF]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
             title="Войти через VK ID"
           >
             <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -605,8 +605,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
           </button>
         </div>
 
-        <div className="pt-4 border-t border-[var(--border)] text-center">
-          <p className="text-sm text-[var(--muted-foreground)]">
+        <div className="pt-3 min-[360px]:pt-4 border-t border-[var(--border)] text-center">
+          <p className="text-xs min-[360px]:text-sm text-[var(--muted-foreground)]">
             {MESSAGES.UI_ELEMENTS.NO_ACCOUNT}{" "}
             <button
               type="button"
