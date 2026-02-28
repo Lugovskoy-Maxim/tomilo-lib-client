@@ -15,6 +15,7 @@ import { login, logout, setLoading, updateUser } from "@/store/slices/authSlice"
 import { RootState } from "@/store";
 import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-verification";
+import { ReadingProgressResponse } from "@/types/progress";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const USER_DATA_KEY = "tomilo_lib_user";
@@ -347,7 +348,11 @@ export const useAuth = () => {
   );
 
   const addToReadingHistoryFunc = useCallback(
-    async (titleId: string, chapterId: string): Promise<{ success: boolean; error?: string }> => {
+    async (titleId: string, chapterId: string): Promise<{ 
+      success: boolean; 
+      error?: string; 
+      progress?: ReadingProgressResponse;
+    }> => {
       const stringifyUnknown = (value: unknown): string | null => {
         if (typeof value === "string") return value;
         if (typeof value === "number" || typeof value === "boolean") return String(value);
@@ -362,7 +367,11 @@ export const useAuth = () => {
         return null;
       };
 
-      const tryAdd = async (): Promise<{ success: boolean; error?: string }> => {
+      const tryAdd = async (): Promise<{ 
+        success: boolean; 
+        error?: string; 
+        progress?: ReadingProgressResponse;
+      }> => {
         const result = await addToReadingHistory({
           titleId,
           chapterId,
@@ -378,7 +387,7 @@ export const useAuth = () => {
         }
 
         refetchProfile();
-        return { success: true };
+        return { success: true, progress: result.data };
       };
 
       const getErrorMessage = (err: unknown): string => {

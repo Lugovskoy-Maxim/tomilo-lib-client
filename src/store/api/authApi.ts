@@ -9,6 +9,7 @@ import {
 import { ApiResponseDto } from "@/types/api";
 import { ReadingHistoryEntry, ReadingHistoryChapter, AvatarResponse } from "@/types/store";
 import { BookmarkEntry, BookmarkCategory } from "@/types/user";
+import { ReadingProgressResponse } from "@/types/progress";
 
 export const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
@@ -352,14 +353,14 @@ export const authApi = createApi({
     }),
 
     addToReadingHistory: builder.mutation<
-      ApiResponseDto<User>,
+      ApiResponseDto<ReadingProgressResponse>,
       { titleId: string; chapterId: string }
     >({
       query: ({ titleId, chapterId }) => ({
         url: `/users/profile/history/${titleId}/${chapterId}`,
         method: "POST",
       }),
-      transformResponse(response: ApiResponseDto<User>) {
+      transformResponse(response: ApiResponseDto<ReadingProgressResponse>) {
         if (response && (response as { success?: boolean }).success === false) {
           const r = response as { message?: string; errors?: string[] };
           throw new Error(r.errors?.[0] ?? r.message ?? "Failed to add to reading history");
