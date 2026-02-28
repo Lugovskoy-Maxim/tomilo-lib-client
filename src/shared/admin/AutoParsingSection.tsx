@@ -466,7 +466,8 @@ export default function AutoParsingSection() {
                   <div className="w-24 h-32 bg-[var(--accent)] rounded overflow-hidden flex-shrink-0">
                     {job.titleId?.coverImage ? (
                       <OptimizedImage
-                        src={getImageUrl(job.titleId.coverImage)}
+                        src={getImageUrls(job.titleId.coverImage).primary}
+                        fallbackSrc={getImageUrls(job.titleId.coverImage).fallback}
                         alt={job.titleId?.name || "Title"}
                         className="w-full h-full object-cover"
                         width={96}
@@ -920,7 +921,8 @@ function ScheduleJobCard({
       <div className="w-10 h-14 bg-[var(--accent)] rounded overflow-hidden flex-shrink-0">
         {job.titleId?.coverImage ? (
           <OptimizedImage
-            src={getImageUrl(job.titleId.coverImage)}
+            src={getImageUrls(job.titleId.coverImage).primary}
+            fallbackSrc={getImageUrls(job.titleId.coverImage).fallback}
             alt={job.titleId?.name || ""}
             className="w-full h-full object-cover"
             width={40}
