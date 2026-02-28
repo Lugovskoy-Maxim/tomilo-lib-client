@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Crown, TrendingUp, Clock, Star, Users, Shield } from "lucide-react";
+import { Crown, TrendingUp, Clock, Star, Users, Shield, Flame } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
 import { LoadingSkeleton, ErrorState } from "@/shared";
@@ -48,6 +48,13 @@ const CATEGORIES: CategoryConfig[] = [
     icon: Star,
     description: "Больше всего оценённых тайтлов",
   },
+  {
+    id: "streak",
+    label: "По активности",
+    shortLabel: "Серия",
+    icon: Flame,
+    description: "Самые длинные серии дней активности",
+  },
 ];
 
 interface TransformableUserEquipped {
@@ -70,6 +77,14 @@ interface TransformableUser {
   readingHistory?: Array<{ chapters?: Array<unknown> }>;
   bookmarks?: Array<unknown>;
   equippedDecorations?: TransformableUserEquipped | null;
+  currentStreak?: number;
+  longestStreak?: number;
+  lastStreakDate?: string;
+  readingTimeMinutes?: number;
+  titlesReadCount?: number;
+  completedTitlesCount?: number;
+  commentsCount?: number;
+  likesReceivedCount?: number;
 }
 
 function resolveDecorationValue(
@@ -127,10 +142,17 @@ function transformUsersToLeaderboard(
       role: user.role,
       level: user.level ?? 0,
       experience: user.experience ?? 0,
-      readingTime: chaptersRead * 2,
+      readingTime: user.readingTimeMinutes ?? chaptersRead * 2,
+      readingTimeMinutes: user.readingTimeMinutes ?? chaptersRead * 2,
       chaptersRead,
       ratingsCount: user.bookmarks?.length ?? Math.floor((user.reputationScore ?? 0) * 0.5),
-      commentsCount: Math.floor((user.activityScore ?? 0) * 0.3),
+      commentsCount: user.commentsCount ?? Math.floor((user.activityScore ?? 0) * 0.3),
+      currentStreak: user.currentStreak ?? 0,
+      longestStreak: user.longestStreak ?? 0,
+      lastStreakDate: user.lastStreakDate,
+      titlesReadCount: user.titlesReadCount ?? 0,
+      completedTitlesCount: user.completedTitlesCount ?? 0,
+      likesReceivedCount: user.likesReceivedCount ?? 0,
       equippedDecorations: resolveEquippedDecorations(user.equippedDecorations, decorationsMap),
     };
   });
@@ -145,6 +167,8 @@ function transformUsersToLeaderboard(
         return (b.ratingsCount ?? 0) - (a.ratingsCount ?? 0);
       case "comments":
         return (b.commentsCount ?? 0) - (a.commentsCount ?? 0);
+      case "streak":
+        return (b.currentStreak ?? 0) - (a.currentStreak ?? 0) || (b.longestStreak ?? 0) - (a.longestStreak ?? 0);
       default:
         return 0;
     }

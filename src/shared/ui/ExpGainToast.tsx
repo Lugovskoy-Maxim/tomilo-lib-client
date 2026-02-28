@@ -33,8 +33,9 @@ export default function ExpGainToast({
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className="
         relative flex items-center gap-3 px-4 py-3 rounded-xl 
-        bg-gradient-to-r from-yellow-500/15 to-orange-500/15
-        border border-yellow-500/30 shadow-lg shadow-yellow-500/10
+        bg-[var(--card)] bg-gradient-to-r from-yellow-500/25 to-orange-500/25
+        border border-yellow-500/40 shadow-lg shadow-yellow-500/20
+        backdrop-blur-sm
         min-w-[200px] max-w-[320px]
       "
     >
@@ -121,8 +122,9 @@ export function GroupedExpGainToast({
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className="
         relative flex items-center gap-3 px-4 py-3 rounded-xl 
-        bg-gradient-to-r from-yellow-500/15 to-orange-500/15
-        border border-yellow-500/30 shadow-lg shadow-yellow-500/10
+        bg-[var(--card)] bg-gradient-to-r from-yellow-500/25 to-orange-500/25
+        border border-yellow-500/40 shadow-lg shadow-yellow-500/20
+        backdrop-blur-sm
         min-w-[200px] max-w-[320px]
       "
     >

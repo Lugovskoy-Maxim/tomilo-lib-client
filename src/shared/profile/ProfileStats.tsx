@@ -2,8 +2,8 @@
 
 import { UserProfile, BookmarkCategory } from "@/types/user";
 import { 
-  BookOpen, Clock, HelpCircle, Coins, TrendingUp, Bookmark, Zap,
-  Crown, Flame, Target, Calendar, BarChart3, PieChart, Activity
+  BookOpen, Clock, HelpCircle, Coins, Bookmark, Zap, Crown,
+  Flame, Calendar, PieChart, MessageCircle, Heart, CheckCircle2, Trophy, TrendingUp, Gift
 } from "lucide-react";
 import {
   getRankColor,
@@ -36,18 +36,28 @@ const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
 };
 
 export default function ProfileStats({ userProfile, showDetailed = true }: ProfileStatsProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeStatCard, setActiveStatCard] = useState<string | null>(null);
+  const [showRankTooltip, setShowRankTooltip] = useState(false);
+  const [showCoinsTooltip, setShowCoinsTooltip] = useState(false);
+  const [showExpTooltip, setShowExpTooltip] = useState(false);
 
   const totalBookmarks = userProfile.bookmarks?.length || 0;
   const totalChaptersRead = userProfile.readingHistory?.reduce((total, item) => {
     return total + (item.chaptersCount ?? item.chapters?.length ?? 0);
   }, 0) || 0;
-  const totalTitlesRead = userProfile.readingHistory?.length || 0;
+  const totalTitlesRead = userProfile.titlesReadCount ?? userProfile.readingHistory?.length ?? 0;
 
   const level = userProfile.level ?? 0;
   const experience = userProfile.experience ?? 0;
   const balance = userProfile.balance ?? 0;
+  
+  // Новые данные из бэкенда
+  const readingTimeMinutes = userProfile.readingTimeMinutes ?? totalChaptersRead * 4;
+  const currentStreak = userProfile.currentStreak ?? 0;
+  const longestStreak = userProfile.longestStreak ?? 0;
+  const commentsCount = userProfile.commentsCount ?? 0;
+  const likesReceivedCount = userProfile.likesReceivedCount ?? 0;
+  const completedTitlesCount = userProfile.completedTitlesCount ?? 0;
 
   const { progressPercent: expProgress, nextLevelExp } = getLevelProgress(level, experience);
   const rankInfo = levelToRank(level);
@@ -63,13 +73,19 @@ export default function ProfileStats({ userProfile, showDetailed = true }: Profi
     return categories;
   }, [userProfile.bookmarks]);
 
-  const formatReadingTime = (chapters: number) => {
-    const minutes = chapters * 2;
+  const formatReadingTime = (minutes: number) => {
     if (minutes < 60) return `${minutes} мин`;
     if (minutes < 1440) return `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
     const days = Math.floor(minutes / 1440);
     const hours = Math.floor((minutes % 1440) / 60);
     return `${days} д ${hours} ч`;
+  };
+
+  const formatStreak = (days: number) => {
+    if (days === 0) return "0 дней";
+    if (days === 1) return "1 день";
+    if (days < 5) return `${days} дня`;
+    return `${days} дней`;
   };
 
   const joinedDate = userProfile.createdAt ? new Date(userProfile.createdAt) : null;
@@ -78,22 +94,22 @@ export default function ProfileStats({ userProfile, showDetailed = true }: Profi
 
   const stats = [
     {
-      id: "exp",
-      icon: Zap,
-      label: "Опыт",
-      value: experience.toLocaleString(),
-      subValue: `+${Math.round(experience * 0.1).toLocaleString()} за неделю`,
-      color: "from-yellow-500 to-orange-500",
-      bgColor: "bg-yellow-500/10",
+      id: "streak",
+      icon: Flame,
+      label: "Серия дней",
+      value: formatStreak(currentStreak),
+      subValue: `Рекорд: ${formatStreak(longestStreak)}`,
+      color: "from-orange-500 to-red-500",
+      bgColor: "bg-orange-500/10",
     },
     {
-      id: "balance",
-      icon: Coins,
-      label: "Монеты",
-      value: balance.toLocaleString(),
-      subValue: "Потратить в магазине",
-      color: "from-amber-500 to-yellow-500",
-      bgColor: "bg-amber-500/10",
+      id: "time",
+      icon: Clock,
+      label: "Время чтения",
+      value: formatReadingTime(readingTimeMinutes),
+      subValue: `${totalTitlesRead} тайтлов`,
+      color: "from-purple-500 to-pink-500",
+      bgColor: "bg-purple-500/10",
     },
     {
       id: "chapters",
@@ -103,15 +119,6 @@ export default function ProfileStats({ userProfile, showDetailed = true }: Profi
       subValue: `~${avgChaptersPerDay} в день`,
       color: "from-blue-500 to-cyan-500",
       bgColor: "bg-blue-500/10",
-    },
-    {
-      id: "time",
-      icon: Clock,
-      label: "Время чтения",
-      value: formatReadingTime(totalChaptersRead),
-      subValue: `${totalTitlesRead} тайтлов`,
-      color: "from-purple-500 to-pink-500",
-      bgColor: "bg-purple-500/10",
     },
     {
       id: "bookmarks",
@@ -127,7 +134,7 @@ export default function ProfileStats({ userProfile, showDetailed = true }: Profi
   return (
     <div className="space-y-5">
       {/* Main stats grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {stats.map((stat) => (
           <div
             key={stat.id}
@@ -163,112 +170,256 @@ export default function ProfileStats({ userProfile, showDetailed = true }: Profi
         ))}
       </div>
 
-      {/* Level progress + Rank section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Level, Rank & Economy */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Level progress */}
-        <div className="lg:col-span-2 relative rounded-xl p-5 bg-gradient-to-br from-[var(--secondary)]/50 to-[var(--secondary)]/30 border border-[var(--border)]/60 overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 opacity-5 pointer-events-none transform translate-x-8 -translate-y-8">
-            <TrendingUp className="w-full h-full" />
-          </div>
-          
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-[var(--primary)]/20">
-                <Activity className="w-5 h-5 text-[var(--primary)]" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--foreground)]">Прогресс уровня</h3>
-                <p className="text-xs text-[var(--muted-foreground)]">До следующего уровня</p>
-              </div>
+        <div className="sm:col-span-2 relative rounded-xl p-4 bg-gradient-to-br from-[var(--secondary)]/50 to-[var(--secondary)]/30 border border-[var(--border)]/60">
+          <div className="flex items-center gap-3 mb-3">
+            <div 
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shrink-0"
+              style={{ 
+                backgroundColor: `${rankColor}20`,
+                color: rankColor,
+                boxShadow: `0 0 16px ${rankColor}30`
+              }}
+            >
+              {level}
             </div>
-            <div className="text-right">
-              <p className="text-lg font-bold text-[var(--foreground)]">{level}</p>
-              <p className="text-xs text-[var(--muted-foreground)]">уровень</p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-sm font-bold" style={{ color: rankColor }}>{getRankDisplay(level)}</p>
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="p-1 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    title="Подробнее о рангах"
+                    onClick={() => setShowRankTooltip(!showRankTooltip)}
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                  </button>
+                  {showRankTooltip && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setShowRankTooltip(false)}
+                      />
+                      <div className="absolute right-0 sm:right-0 top-full z-50 mt-2 w-[calc(100vw-2rem)] sm:w-64 max-w-xs rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 sm:p-3 text-left shadow-xl">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-semibold text-[var(--foreground)] flex items-center gap-1.5">
+                            <Crown className="w-3.5 h-3.5 text-amber-500" />
+                            Ранги
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setShowRankTooltip(false)}
+                            className="p-0.5 rounded hover:bg-[var(--accent)] text-[var(--muted-foreground)]"
+                          >
+                            <span className="text-xs">✕</span>
+                          </button>
+                        </div>
+                        <ul className="space-y-0.5 max-h-[50vh] overflow-y-auto">
+                          {RANK_NAMES.slice(1).map((rankName, idx) => {
+                            const rank = idx + 1;
+                            const minLevel = idx * 10;
+                            const maxLevel = rank === 9 ? "90+" : rank * 10 - 1;
+                            const isCurrentRank = rankInfo.rank === rank;
+                            const color = getRankColor(rank);
+                            return (
+                              <li
+                                key={rank}
+                                className={`flex items-center justify-between gap-1 text-[10px] sm:text-[11px] py-1 px-1.5 rounded ${isCurrentRank ? 'ring-1 ring-inset' : ''}`}
+                                style={isCurrentRank ? { 
+                                  backgroundColor: `${color}15`,
+                                  ringColor: `${color}40`
+                                } : undefined}
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <span 
+                                    className="w-4 h-4 sm:w-5 sm:h-5 rounded flex items-center justify-center text-[9px] sm:text-[10px] font-bold shrink-0"
+                                    style={{ backgroundColor: `${color}20`, color }}
+                                  >
+                                    {rank}
+                                  </span>
+                                  <span 
+                                    className="font-medium truncate"
+                                    style={{ color: isCurrentRank ? color : 'var(--foreground)' }}
+                                  >
+                                    {rankName}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {isCurrentRank && (
+                                    <span 
+                                      className="text-[8px] sm:text-[9px] px-1 py-0.5 rounded font-medium"
+                                      style={{ backgroundColor: `${color}25`, color }}
+                                    >
+                                      ВЫ
+                                    </span>
+                                  )}
+                                  <span className="text-[var(--muted-foreground)] text-[9px] sm:text-[10px]">
+                                    {minLevel}-{maxLevel}
+                                  </span>
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="h-3 rounded-full bg-[var(--secondary)] overflow-hidden shadow-inner">
+          <div className="space-y-1.5">
+            <div className="h-2.5 rounded-full bg-[var(--secondary)] overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700 ease-out relative"
                 style={{ 
                   width: `${expProgress}%`,
-                  background: `linear-gradient(90deg, var(--primary) 0%, var(--chart-1) 100%)`,
-                  boxShadow: `0 0 12px var(--primary)`
+                  background: `linear-gradient(90deg, ${rankColor} 0%, ${rankColor}cc 100%)`,
+                  boxShadow: `0 0 8px ${rankColor}50`
                 }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer" />
               </div>
             </div>
-            <div className="flex justify-between text-xs text-[var(--muted-foreground)]">
+            <div className="flex justify-between text-[10px] text-[var(--muted-foreground)]">
               <span className="flex items-center gap-1">
-                <Flame className="w-3 h-3 text-orange-500" />
+                <Zap className="w-3 h-3 text-amber-500" />
                 {experience.toLocaleString()} XP
               </span>
-              <span>{nextLevelExp.toLocaleString()} XP нужно</span>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-[var(--border)]/40 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
-              <Target className="w-3.5 h-3.5" />
-              <span>Осталось <strong className="text-[var(--foreground)]">{(nextLevelExp - experience).toLocaleString()}</strong> XP</span>
-            </div>
-            <div className="text-xs text-[var(--muted-foreground)]">
-              {expProgress.toFixed(1)}% пройдено
+              <span>{(nextLevelExp - experience).toLocaleString()} XP до ур. {level + 1}</span>
             </div>
           </div>
         </div>
 
-        {/* Rank card */}
-        <div 
-          className="relative rounded-xl p-5 overflow-hidden"
-          style={{
-            background: `linear-gradient(135deg, ${rankColor}15 0%, ${rankColor}05 100%)`,
-            border: `1px solid ${rankColor}30`,
-          }}
-        >
-          <div className="absolute top-0 right-0 w-24 h-24 opacity-10 pointer-events-none">
-            <Crown className="w-full h-full" style={{ color: rankColor }} />
-          </div>
-
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-lg"
-                style={{ 
-                  backgroundColor: `${rankColor}25`,
-                  color: rankColor,
-                  boxShadow: `0 4px 20px ${rankColor}30`
-                }}
-              >
-                {rankInfo.rank}
+        {/* XP card */}
+        <div className="relative rounded-xl p-4 bg-gradient-to-br from-amber-500/10 to-yellow-500/5 border border-amber-500/20">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-amber-500/20">
+                <Zap className="w-4 h-4 text-amber-500" />
               </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)]">Текущий ранг</p>
-                <p className="font-bold" style={{ color: rankColor }}>
-                  {getRankDisplay(level)}
-                </p>
-              </div>
+              <span className="text-xs text-[var(--muted-foreground)]">Всего опыта</span>
             </div>
             <button
               type="button"
-              className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              onClick={() => setIsModalOpen(true)}
-              title="Подробнее о рангах"
+              className="p-1 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              onClick={() => setShowExpTooltip(!showExpTooltip)}
             >
-              <HelpCircle className="w-5 h-5" />
+              <HelpCircle className="w-3.5 h-3.5" />
             </button>
           </div>
+          <p className="text-2xl font-bold text-amber-500 tabular-nums">{experience.toLocaleString()}</p>
+          <p className="text-[10px] text-[var(--muted-foreground)] mt-1">{expProgress.toFixed(0)}% до уровня {level + 1}</p>
+          
+          {showExpTooltip && (
+            <>
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setShowExpTooltip(false)}
+              />
+              <div className="absolute left-0 sm:right-0 sm:left-auto top-full z-50 mt-2 w-[calc(100vw-2rem)] sm:w-64 max-w-xs rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 sm:p-3 text-left shadow-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-[var(--foreground)] flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-500" />
+                    Как получить XP
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowExpTooltip(false)}
+                    className="p-0.5 rounded hover:bg-[var(--accent)] text-[var(--muted-foreground)]"
+                  >
+                    <span className="text-xs">✕</span>
+                  </button>
+                </div>
+                <ul className="space-y-1">
+                  {[
+                    { action: "Чтение новой главы", xp: "+10" },
+                    { action: "Ежедневный вход", xp: "+5" },
+                    { action: "Серия 7 дней", xp: "+50" },
+                    { action: "Серия 14 дней", xp: "+100" },
+                    { action: "Серия 21 день", xp: "+150" },
+                    { action: "Серия 30 дней", xp: "+250" },
+                    { action: "Достижение (обычное)", xp: "+10" },
+                    { action: "Достижение (редкое)", xp: "+50" },
+                    { action: "Достижение (эпическое)", xp: "+100" },
+                    { action: "Достижение (легенд.)", xp: "+250" },
+                  ].map((item) => (
+                    <li
+                      key={item.action}
+                      className="flex items-center justify-between text-[10px] sm:text-[11px] py-1 px-1.5 rounded bg-[var(--secondary)]/30"
+                    >
+                      <span className="text-[var(--foreground)]">{item.action}</span>
+                      <span className="text-amber-500 font-bold">{item.xp}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
+        </div>
 
-          <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
-            <div className="flex -space-x-1">
-              {Array.from({ length: rankInfo.stars }).map((_, i) => (
-                <span key={i} className="text-amber-400 drop-shadow-sm">★</span>
-              ))}
+        {/* Balance card */}
+        <div className="relative rounded-xl p-4 bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border border-yellow-500/20">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-yellow-500/20">
+                <Coins className="w-4 h-4 text-yellow-500" />
+              </div>
+              <span className="text-xs text-[var(--muted-foreground)]">Монеты</span>
             </div>
-            <span>{rankInfo.stars} звёзд{rankInfo.stars === 1 ? "а" : rankInfo.stars < 5 ? "ы" : ""}</span>
+            <button
+              type="button"
+              className="p-1 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              onClick={() => setShowCoinsTooltip(!showCoinsTooltip)}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+            </button>
           </div>
+          <p className="text-2xl font-bold text-yellow-500 tabular-nums">{balance.toLocaleString()}</p>
+          <p className="text-[10px] text-[var(--muted-foreground)] mt-1">Для магазина</p>
+          
+          {showCoinsTooltip && (
+            <>
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setShowCoinsTooltip(false)}
+              />
+              <div className="absolute right-0 top-full z-50 mt-2 w-[calc(100vw-2rem)] sm:w-56 max-w-xs rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 sm:p-3 text-left shadow-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-[var(--foreground)] flex items-center gap-1.5">
+                    <Coins className="w-3.5 h-3.5 text-yellow-500" />
+                    Как получить
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowCoinsTooltip(false)}
+                    className="p-0.5 rounded hover:bg-[var(--accent)] text-[var(--muted-foreground)]"
+                  >
+                    <span className="text-xs">✕</span>
+                  </button>
+                </div>
+                <ul className="space-y-1">
+                  {[
+                    { action: "Повышение уровня", coins: "+10" },
+                    { action: "Ежедневный бонус", coins: "+1-5" },
+                    { action: "Активность в серии", coins: "+5" },
+                  ].map((item) => (
+                    <li
+                      key={item.action}
+                      className="flex items-center justify-between text-[10px] sm:text-[11px] py-1 px-1.5 rounded bg-[var(--secondary)]/30"
+                    >
+                      <span className="text-[var(--foreground)]">{item.action}</span>
+                      <span className="text-yellow-500 font-bold">{item.coins}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -323,14 +474,14 @@ export default function ProfileStats({ userProfile, showDetailed = true }: Profi
         </div>
       )}
 
-      {/* Activity summary */}
+      {/* Activity & Social stats */}
       {showDetailed && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { icon: Calendar, label: "Дней на сайте", value: daysSinceJoined.toLocaleString(), color: "text-blue-500" },
-            { icon: BarChart3, label: "Глав/день (средн.)", value: avgChaptersPerDay, color: "text-green-500" },
-            { icon: Bookmark, label: "Тайтлов в списке", value: totalBookmarks.toLocaleString(), color: "text-purple-500" },
-            { icon: BookOpen, label: "Тайтлов прочитано", value: totalTitlesRead.toLocaleString(), color: "text-orange-500" },
+            { icon: MessageCircle, label: "Комментариев", value: commentsCount.toLocaleString(), color: "text-cyan-500" },
+            { icon: Heart, label: "Получено лайков", value: likesReceivedCount.toLocaleString(), color: "text-pink-500" },
+            { icon: CheckCircle2, label: "Завершено тайтлов", value: completedTitlesCount.toLocaleString(), color: "text-green-500" },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50">
               <item.icon className={`w-5 h-5 ${item.color} shrink-0`} />
@@ -343,85 +494,74 @@ export default function ProfileStats({ userProfile, showDetailed = true }: Profi
         </div>
       )}
 
-      {/* Rank Modal */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-[var(--background)]/80 backdrop-blur-sm flex items-center justify-center z-layer-modal p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsModalOpen(false);
-          }}
-        >
-          <div className="bg-[var(--card)] rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto border border-[var(--border)] shadow-2xl animate-fade-in-up">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-amber-500/20">
-                  <Crown className="w-6 h-6 text-amber-500" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-[var(--foreground)]">Система рангов</h3>
-                  <p className="text-xs text-[var(--muted-foreground)]">
-                    Повышайте уровень для новых званий
-                  </p>
-                </div>
+      {/* How to earn XP & Coins */}
+      {showDetailed && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* How to earn XP */}
+          <div className="rounded-xl p-5 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-amber-500/20">
+                <Zap className="w-5 h-5 text-amber-500" />
               </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-lg hover:bg-[var(--secondary)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              >
-                ✕
-              </button>
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--foreground)]">Как получить опыт</h3>
+                <p className="text-xs text-[var(--muted-foreground)]">Способы повышения уровня</p>
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              {Array.from({ length: 9 }, (_, i) => {
-                const rankNum = 9 - i;
-                const minLevel = (rankNum - 1) * 10;
-                const maxLevel = rankNum === 9 ? 90 : rankNum * 10;
-                const isCurrent = level >= minLevel && level < (rankNum === 9 ? Infinity : (rankNum * 10));
-                const color = getRankColor(rankNum);
 
-                return (
-                  <div
-                    key={rankNum}
-                    className={`p-4 rounded-xl border transition-all duration-300 ${
-                      isCurrent 
-                        ? "shadow-lg" 
-                        : "bg-[var(--secondary)]/30 border-[var(--border)]/50 hover:border-[var(--border)]"
-                    }`}
-                    style={isCurrent ? {
-                      background: `linear-gradient(135deg, ${color}15 0%, ${color}05 100%)`,
-                      borderColor: `${color}40`,
-                    } : undefined}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm"
-                          style={{ backgroundColor: `${color}20`, color }}
-                        >
-                          {rankNum}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-sm" style={{ color }}>
-                            {RANK_NAMES[rankNum]}
-                          </p>
-                          <p className="text-[10px] text-[var(--muted-foreground)]">
-                            Уровни {minLevel} — {maxLevel === 90 ? "∞" : maxLevel}
-                          </p>
-                        </div>
-                      </div>
-                      {isCurrent && (
-                        <span 
-                          className="text-xs px-2.5 py-1 rounded-full font-medium"
-                          style={{ backgroundColor: `${color}20`, color }}
-                        >
-                          Текущий
-                        </span>
-                      )}
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                { action: "Чтение новой главы", xp: "+10 XP", icon: BookOpen, color: "text-blue-500" },
+                { action: "Ежедневный вход", xp: "+5 XP", icon: Calendar, color: "text-green-500" },
+                { action: "Серия 7 дней", xp: "+50 XP", icon: Flame, color: "text-orange-500" },
+                { action: "Серия 14 дней", xp: "+100 XP", icon: Flame, color: "text-orange-500" },
+                { action: "Серия 21 день", xp: "+150 XP", icon: Flame, color: "text-red-500" },
+                { action: "Серия 30 дней", xp: "+250 XP", icon: Flame, color: "text-red-500" },
+                { action: "Достижение (обычное)", xp: "+10 XP", icon: Trophy, color: "text-slate-500" },
+                { action: "Достижение (редкое)", xp: "+50 XP", icon: Trophy, color: "text-blue-500" },
+                { action: "Достижение (эпическое)", xp: "+100 XP", icon: Trophy, color: "text-purple-500" },
+                { action: "Достижение (легендарное)", xp: "+250 XP", icon: Trophy, color: "text-amber-500" },
+              ].map((item) => (
+                <div key={item.action} className="flex items-center justify-between p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30">
+                  <div className="flex items-center gap-2">
+                    <item.icon className={`w-4 h-4 ${item.color}`} />
+                    <span className="text-xs text-[var(--foreground)]">{item.action}</span>
                   </div>
-                );
-              })}
+                  <span className="text-xs font-bold text-amber-500">{item.xp}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* How to earn Coins */}
+          <div className="rounded-xl p-5 bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border border-yellow-500/20">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-yellow-500/20">
+                <Coins className="w-5 h-5 text-yellow-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--foreground)]">Как получить монеты</h3>
+                <p className="text-xs text-[var(--muted-foreground)]">Валюта для магазина</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+              {[
+                { action: "Повышение уровня", coins: "+10", icon: TrendingUp, color: "text-green-500" },
+                { action: "Ежедневный бонус", coins: "+1-5", icon: Gift, color: "text-pink-500" },
+                { action: "Серия 7 дней", coins: "+5", icon: Flame, color: "text-orange-500" },
+                { action: "Серия 14 дней", coins: "+10", icon: Flame, color: "text-orange-500" },
+                { action: "Серия 21 день", coins: "+15", icon: Flame, color: "text-red-500" },
+                { action: "Серия 30 дней", coins: "+25", icon: Flame, color: "text-red-500" },
+              ].map((item) => (
+                <div key={item.action} className="flex items-center justify-between p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30">
+                  <div className="flex items-center gap-2">
+                    <item.icon className={`w-4 h-4 ${item.color}`} />
+                    <span className="text-xs text-[var(--foreground)]">{item.action}</span>
+                  </div>
+                  <span className="text-xs font-bold text-yellow-500">{item.coins}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

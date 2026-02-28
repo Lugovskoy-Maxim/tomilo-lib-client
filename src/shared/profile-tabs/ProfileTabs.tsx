@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UserProfile } from "@/types/user";
-import { Menu, Repeat, X } from "lucide-react";
+import { Menu, Repeat, X, ChevronLeft, ChevronRight } from "lucide-react";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 import {
   type ProfileTab,
   tabMeta,
   PROFILE_TABS,
+  tabGroups,
   isValidProfileTab,
 } from "./profileTabConfig";
 import { ProfileNav } from "./ProfileNav";
@@ -52,8 +53,42 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const tabFromUrl = searchParams.get("tab");
+  
+  const visibleTabs = hideTabs?.length 
+    ? PROFILE_TABS.filter(t => !hideTabs.includes(t))
+    : PROFILE_TABS;
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = scrollRef.current;
+    if (el) {
+      el.addEventListener("scroll", checkScroll);
+      window.addEventListener("resize", checkScroll);
+      return () => {
+        el.removeEventListener("scroll", checkScroll);
+        window.removeEventListener("resize", checkScroll);
+      };
+    }
+  }, []);
+
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const scrollAmount = 150;
+    el.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
+  };
   let activeTab: ProfileTab = isValidProfileTab(tabFromUrl) ? tabFromUrl : "overview";
   if (hideTabs?.length && hideTabs.includes(activeTab)) {
     activeTab = "overview";
@@ -98,47 +133,61 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
 
   return (
     <div className="w-full min-w-0">
-      {/* Мобильное/планшетное меню — только до xl; на xl навигация в layout */}
+      {/* Мобильная горизонтальная навигация — только до xl */}
       <div className="xl:hidden mb-4">
-        <button
-          type="button"
-          onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
-          className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm text-[var(--foreground)] font-medium shadow-sm hover:bg-[var(--accent)]/80 transition-colors"
-          aria-label={isMobileNavOpen ? "Закрыть меню" : "Открыть меню"}
-        >
-          {isMobileNavOpen ? <X className="w-5 h-5 shrink-0" /> : <Menu className="w-5 h-5 shrink-0" />}
-          <span className="truncate">{tabMeta[activeTab].label}</span>
-        </button>
-
-        {isMobileNavOpen && (
-          <div
-            className="fixed inset-0 bg-black/40 z-30 backdrop-blur-sm"
-            onClick={() => setIsMobileNavOpen(false)}
-            aria-hidden
-          />
-        )}
-
-        <aside
-          className={`
-            fixed top-0 left-0 z-40 w-72 max-w-[85vw] h-screen
-            bg-[var(--card)]/95 backdrop-blur-md border-r border-[var(--border)]
-            transform transition-transform duration-300 ease-in-out flex flex-col shadow-xl
-            ${isMobileNavOpen ? "translate-x-0" : "-translate-x-full invisible pointer-events-none"}
-          `}
-          aria-hidden={!isMobileNavOpen}
-        >
-          <div className="flex-shrink-0 p-4 border-b border-[var(--border)]/80">
-            <h2 className="font-semibold text-[var(--foreground)]">Разделы профиля</h2>
-            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Выберите раздел</p>
+        <div className="relative">
+          {/* Стрелка влево */}
+          {canScrollLeft && (
+            <button
+              type="button"
+              onClick={() => scroll("left")}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-[var(--background)] via-[var(--background)] to-transparent"
+              aria-label="Прокрутить влево"
+            >
+              <ChevronLeft className="w-5 h-5 text-[var(--muted-foreground)]" />
+            </button>
+          )}
+          
+          {/* Скроллируемые вкладки */}
+          <div 
+            ref={scrollRef}
+            className="flex gap-1 overflow-x-auto scrollbar-hide px-1 py-1 -mx-1"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {visibleTabs.map(tabId => {
+              const meta = tabMeta[tabId];
+              const Icon = meta.icon;
+              const isActive = activeTab === tabId;
+              return (
+                <button
+                  key={tabId}
+                  type="button"
+                  onClick={() => setActiveTab(tabId)}
+                  className={`flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                    isActive
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                      : "bg-[var(--secondary)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="whitespace-nowrap">{meta.label}</span>
+                </button>
+              );
+            })}
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto p-3">
-            <ProfileNav
-              onNavigate={() => setIsMobileNavOpen(false)}
-              showActiveChevron
-              hideTabs={hideTabs}
-            />
-          </div>
-        </aside>
+
+          {/* Стрелка вправо */}
+          {canScrollRight && (
+            <button
+              type="button"
+              onClick={() => scroll("right")}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center bg-gradient-to-l from-[var(--background)] via-[var(--background)] to-transparent"
+              aria-label="Прокрутить вправо"
+            >
+              <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Контент: хлебные крошки + заголовок секции + тело */}

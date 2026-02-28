@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Crown, Medal, Award, Clock, Star, TrendingUp } from "lucide-react";
+import { Crown, Medal, Award, Clock, Star, TrendingUp, Flame } from "lucide-react";
 import { LeaderboardUser, LeaderboardCategory } from "@/store/api/leaderboardApi";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
@@ -122,11 +122,15 @@ function getCategoryValue(user: LeaderboardUser, category: LeaderboardCategory):
     case "level":
       return `Уровень ${user.level ?? 0}`;
     case "readingTime":
-      return formatReadingTime(user.readingTime ?? (user.chaptersRead ?? 0) * 2);
+      return formatReadingTime(user.readingTimeMinutes ?? user.readingTime ?? (user.chaptersRead ?? 0) * 2);
     case "ratings":
       return `${user.ratingsCount ?? 0} оценок`;
     case "comments":
       return `${user.commentsCount ?? 0} комментариев`;
+    case "streak":
+      const streak = user.currentStreak ?? 0;
+      const days = streak === 1 ? "день" : streak < 5 ? "дня" : "дней";
+      return `${streak} ${days} 🔥`;
     default:
       return "";
   }
@@ -140,6 +144,8 @@ function getCategoryIcon(category: LeaderboardCategory) {
       return Clock;
     case "ratings":
       return Star;
+    case "streak":
+      return Flame;
     default:
       return TrendingUp;
   }

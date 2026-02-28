@@ -23,6 +23,7 @@ import {
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/shared";
+import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
 
 const FOOTER_NAV = [
   { href: "/about", label: "О нас" },
@@ -76,6 +77,7 @@ function isActivePath(pathname: string | null, href: string): boolean {
 
 const SCROLL_THRESHOLD_TOP = 400;
 const SWIPE_THRESHOLD = 50;
+const POLL_INTERVAL_MS = 5 * 60 * 1000;
 
 export default function Footer() {
   const pathname = usePathname();
@@ -85,10 +87,19 @@ export default function Footer() {
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [sheetTranslateY, setSheetTranslateY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isTabVisible, setIsTabVisible] = useState(
+    () => (typeof document !== "undefined" ? document.visibilityState === "visible" : true)
+  );
   
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
   const currentY = useRef(0);
+
+  const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
+    pollingInterval: isTabVisible ? POLL_INTERVAL_MS : 0,
+    refetchOnMountOrArgChange: 90,
+  });
+  const notificationCount = unreadCountResponse?.data?.count || 0;
 
   const openMore = useCallback(() => {
     setSheetTranslateY(0);
@@ -128,6 +139,12 @@ export default function Footer() {
     }
     currentY.current = 0;
   }, [closeMore]);
+
+  useEffect(() => {
+    const handler = () => setIsTabVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, []);
 
   useEffect(() => {
     const checkScreen = () => setIsLargeScreen(window.matchMedia("(min-width: 1024px)").matches);
@@ -316,17 +333,29 @@ export default function Footer() {
                 );
               }
               
+              const isNotifications = href === "/notifications";
+              
               return (
                 <Link
                   key={href}
                   href={href}
                   className={`mobile-footer__item ${active ? "mobile-footer__item--active" : ""}`}
-                  aria-label={label}
+                  aria-label={isNotifications && notificationCount > 0 ? `${label} (${notificationCount} новых)` : label}
                   aria-current={active ? "page" : undefined}
                 >
                   <span className="mobile-footer__icon-container">
                     <Icon className="mobile-footer__icon" aria-hidden />
                     {active && <span className="mobile-footer__indicator" aria-hidden />}
+                    {isNotifications && notificationCount > 0 && (
+                      <span
+                        className="absolute -top-1 -right-1 flex items-center justify-center min-w-4 h-4 px-1
+                          bg-[var(--destructive)] text-white text-[10px] font-bold rounded-full
+                          ring-2 ring-[var(--background)] z-10"
+                        aria-hidden
+                      >
+                        {notificationCount > 99 ? "99+" : notificationCount}
+                      </span>
+                    )}
                   </span>
                   <span className="mobile-footer__label">{label}</span>
                 </Link>

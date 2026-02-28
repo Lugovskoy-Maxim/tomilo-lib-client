@@ -41,15 +41,14 @@ export default function MobileCover({
     <div className="lg:hidden mt-2 mb-6">
       {/* Обложка */}
       <div className="relative w-full max-w-[260px] sm:max-w-[280px] mx-auto overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-lg ring-1 ring-[var(--border)]/50">
-        <div className="aspect-[2/3] w-full">
+        <div className="relative aspect-[2/3] w-full">
           {titleData?.coverImage ? (
             <OptimizedImage
               src={getCoverUrls(titleData.coverImage).primary}
               fallbackSrc={getCoverUrls(titleData.coverImage).fallback}
               alt={titleData?.name}
-              width={300}
-              height={450}
-              className={`object-cover w-full h-full ${shouldBlurImage ? "blur-sm" : ""}`}
+              fill
+              className={`object-cover ${shouldBlurImage ? "blur-sm" : ""}`}
               priority
             />
           ) : (
