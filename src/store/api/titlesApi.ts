@@ -51,6 +51,7 @@ export const titlesApi = createApi({
         sortOrder?: "asc" | "desc";
         page?: number;
         limit?: number;
+        includeAdult?: boolean;
       }
     >({
       query: params => {
@@ -72,6 +73,11 @@ export const titlesApi = createApi({
           } else {
             queryParams.ageLimits = params.ageLimits;
           }
+        }
+
+        // Передаём includeAdult только если true (чтобы не менять поведение для неавторизованных)
+        if (!params.includeAdult) {
+          delete queryParams.includeAdult;
         }
 
         return {
@@ -291,10 +297,10 @@ export const titlesApi = createApi({
     }),
 
     // Получить популярные тайтлы
-    getPopularTitles: builder.query<ApiResponseDto<PopularTitle[]>, { limit?: number } | void>({
+    getPopularTitles: builder.query<ApiResponseDto<PopularTitle[]>, { limit?: number; includeAdult?: boolean } | void>({
       query: (params = {}) => ({
         url: "/titles/popular",
-        params: { limit: params?.limit ?? 35 },
+        params: { limit: params?.limit ?? 35, includeAdult: params?.includeAdult || undefined },
       }),
       providesTags: [TITLES_TAG],
       transformResponse: (response: ApiResponseDto<PopularTitle[]>) => response,
@@ -315,7 +321,7 @@ export const titlesApi = createApi({
           ratingCount?: number;
         }[]
       >,
-      { limit?: number }
+      { limit?: number; includeAdult?: boolean }
     >({
       query: params => ({
         url: "/titles/top/day",
@@ -354,7 +360,7 @@ export const titlesApi = createApi({
           ratingCount?: number;
         }[]
       >,
-      { limit?: number }
+      { limit?: number; includeAdult?: boolean }
     >({
       query: params => ({
         url: "/titles/top/week",
@@ -393,7 +399,7 @@ export const titlesApi = createApi({
           ratingCount?: number;
         }[]
       >,
-      { limit?: number }
+      { limit?: number; includeAdult?: boolean }
     >({
       query: params => ({
         url: "/titles/top/month",
@@ -445,11 +451,11 @@ export const titlesApi = createApi({
           ratingCount?: number;
         }[]
       >,
-      { limit?: number }
+      { limit?: number; includeAdult?: boolean }
     >({
       query: params => ({
         url: "/titles/random",
-        params,
+        params: { limit: params.limit, includeAdult: params.includeAdult || undefined },
       }),
       providesTags: [TITLES_TAG],
       transformResponse: (
@@ -472,11 +478,11 @@ export const titlesApi = createApi({
     // Недавно добавленные в каталог тайтлы (GET /titles/titles/recent)
     getRecentTitles: builder.query<
       ApiResponseDto<PopularTitle[]>,
-      { limit?: number; page?: number } | void
+      { limit?: number; page?: number; includeAdult?: boolean } | void
     >({
       query: (params = {}) => ({
         url: "/titles/titles/recent",
-        params: { limit: params?.limit ?? 18, page: params?.page ?? 1 },
+        params: { limit: params?.limit ?? 18, page: params?.page ?? 1, includeAdult: params?.includeAdult || undefined },
       }),
       providesTags: [TITLES_TAG],
       transformResponse: (
@@ -513,11 +519,11 @@ export const titlesApi = createApi({
           isAdult?: boolean;
         }[]
       >,
-      { page?: number; limit?: number }
+      { page?: number; limit?: number; includeAdult?: boolean }
     >({
-      query: ({ page = 1, limit = 18 } = {}) => ({
+      query: ({ page = 1, limit = 18, includeAdult } = {}) => ({
         url: "/titles/latest-updates",
-        params: { page, limit },
+        params: { page, limit, includeAdult: includeAdult || undefined },
       }),
       providesTags: [TITLES_TAG],
       transformResponse: (
@@ -564,7 +570,7 @@ export const titlesApi = createApi({
           ratingCount?: number;
         }[]
       >,
-      { limit?: number }
+      { limit?: number; includeAdult?: boolean }
     >({
       query: params => ({
         url: "/titles/recommended",

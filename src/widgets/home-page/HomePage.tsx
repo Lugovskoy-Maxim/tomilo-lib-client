@@ -19,6 +19,7 @@ import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSectio
 import { useHomeData, type HomeVisibleSections } from "@/hooks/useHomeData";
 import { useStaticData, type StaticDataVisibleSections } from "@/hooks/useStaticData";
 import { useAuth } from "@/hooks/useAuth";
+import { useGetProfileQuery } from "@/store/api/authApi";
 import RandomTitlesComponent from "@/shared/random-titles/RandomTitles";
 import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";
 import { TopCombinedSkeleton } from "@/shared/skeleton/TopCombinedSkeleton";
@@ -80,6 +81,10 @@ export default function HomePage() {
     setVisibleSections(prev => ({ ...prev, [sectionId]: true }));
   }, []);
 
+  const { isAuthenticated, user } = useAuth();
+  const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
+  const includeAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult ?? false;
+
   const {
     popularTitles,
     randomTitles,
@@ -89,9 +94,8 @@ export default function HomePage() {
     topManhua,
     topManhwa,
     top2026,
-  } = useHomeData(visibleSections);
-  const { collections, latestUpdates } = useStaticData(visibleSections);
-  const { isAuthenticated } = useAuth();
+  } = useHomeData({ visibleSections, includeAdult });
+  const { collections, latestUpdates } = useStaticData({ visibleSections, includeAdult });
 
   useEffect(() => {
     setMounted(true);

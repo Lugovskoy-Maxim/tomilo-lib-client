@@ -60,7 +60,16 @@ export type StaticDataVisibleSections = Partial<{
   latestUpdates: boolean;
 }>;
 
-export const useStaticData = (visibleSections: StaticDataVisibleSections = {}): StaticData => {
+export interface StaticDataOptions {
+  visibleSections?: StaticDataVisibleSections;
+  includeAdult?: boolean;
+}
+
+export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSections = {}): StaticData => {
+  // Support both old (visibleSections only) and new (options object) API
+  const isOptionsObject = 'visibleSections' in options || 'includeAdult' in options;
+  const visibleSections = isOptionsObject ? (options as StaticDataOptions).visibleSections ?? {} : options as StaticDataVisibleSections;
+  const includeAdult = isOptionsObject ? (options as StaticDataOptions).includeAdult ?? false : false;
   const [collections, setCollections] = useState({
     data: [] as Collection[],
     loading: true,
@@ -142,7 +151,9 @@ export const useStaticData = (visibleSections: StaticDataVisibleSections = {}): 
     const fetchLatestUpdates = async () => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-        const response = await fetch(`${baseUrl}/titles/latest-updates?limit=16`);
+        const params = new URLSearchParams({ limit: "16" });
+        if (includeAdult) params.append("includeAdult", "true");
+        const response = await fetch(`${baseUrl}/titles/latest-updates?${params.toString()}`);
 
         if (!response.ok) throw new Error("Failed to fetch latest updates");
 
@@ -175,7 +186,7 @@ export const useStaticData = (visibleSections: StaticDataVisibleSections = {}): 
       }
     };
     fetchLatestUpdates();
-  }, [loadLatestUpdates]);
+  }, [loadLatestUpdates, includeAdult]);
 
   return { collections, latestUpdates };
 };

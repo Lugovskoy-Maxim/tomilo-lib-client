@@ -6,6 +6,8 @@ import { Carousel } from "@/widgets";
 import { getTitlePath } from "@/lib/title-paths";
 import { useGetRecommendedTitlesQuery } from "@/store/api/titlesApi";
 import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { useGetProfileQuery } from "@/store/api/authApi";
 
 interface RecommendationsProps {
   limit?: number;
@@ -19,6 +21,9 @@ export default function Recommendations({
 }: RecommendationsProps) {
   const [shouldFetch, setShouldFetch] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const { isAuthenticated, user } = useAuth();
+  const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
+  const includeAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult ?? false;
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -35,7 +40,7 @@ export default function Recommendations({
 
   // Персональные рекомендации — запрос после появления секции в viewport
   const { data, isLoading, error } = useGetRecommendedTitlesQuery(
-    { limit },
+    { limit, includeAdult },
     {
       skip: !shouldFetch,
       refetchOnMountOrArgChange: RECOMMENDED_REFETCH_SEC,

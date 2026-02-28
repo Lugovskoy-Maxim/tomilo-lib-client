@@ -8,6 +8,8 @@ import { GridSection, Footer, Header } from "@/widgets";
 import { pageTitle } from "@/lib/page-title";
 import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
 import { useSEO } from "@/hooks/useSEO";
+import { useAuth } from "@/hooks/useAuth";
+import { useGetProfileQuery } from "@/store/api/authApi";
 
 const UPDATES_PAGE_SIZE = 20;
 
@@ -19,8 +21,12 @@ export default function UpdatesPage() {
   >["data"][number];
   const [accumulatedData, setAccumulatedData] = useState<UpdateItem[]>([]);
 
+  const { isAuthenticated, user } = useAuth();
+  const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
+  const includeAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult ?? false;
+
   const { data: latestUpdatesData, isLoading, isFetching, error } = useGetLatestUpdatesQuery(
-    { page, limit: UPDATES_PAGE_SIZE },
+    { page, limit: UPDATES_PAGE_SIZE, includeAdult },
     { refetchOnMountOrArgChange: false }
   );
 

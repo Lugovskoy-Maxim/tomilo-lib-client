@@ -22,7 +22,12 @@ export type HomeVisibleSections = Partial<{
   random: boolean;
 }>;
 
-export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
+export interface HomeDataOptions {
+  visibleSections?: HomeVisibleSections;
+  includeAdult?: boolean;
+}
+
+export const useHomeData = (options: HomeDataOptions = {}): {
   popularTitles: {
     data: {
       id: string;
@@ -180,6 +185,8 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
     error: unknown;
   };
 } => {
+  const { visibleSections = {}, includeAdult = false } = options;
+  
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
 
@@ -204,21 +211,21 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
     isLoading: popularTitlesLoading,
     isUninitialized: popularTitlesUninitialized,
     error: popularTitlesError,
-  } = useGetPopularTitlesQuery({ limit: 20 }, { ...popularCacheOptions, skip: skipPopular });
+  } = useGetPopularTitlesQuery({ limit: 20, includeAdult }, { ...popularCacheOptions, skip: skipPopular });
 
   // Недавно добавленные в каталог
   const {
     data: recentTitlesData,
     isLoading: recentTitlesLoading,
     error: recentTitlesError,
-  } = useGetRecentTitlesQuery({ limit: 18 }, { ...popularCacheOptions, skip: skipRecent });
+  } = useGetRecentTitlesQuery({ limit: 18, includeAdult }, { ...popularCacheOptions, skip: skipRecent });
 
   // Случайные тайтлы
   const {
     data: randomTitlesData,
     isLoading: randomTitlesLoading,
     error: randomTitlesError,
-  } = useGetRandomTitlesQuery({ limit: 10 }, { ...popularCacheOptions, skip: skipRandom });
+  } = useGetRandomTitlesQuery({ limit: 10, includeAdult }, { ...popularCacheOptions, skip: skipRandom });
 
   const {
     data: trendingTitlesData,
@@ -230,6 +237,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
       sortBy: "weekViews",
       sortOrder: "desc",
       limit: 20,
+      includeAdult,
     },
     { ...popularCacheOptions, skip: skipTrending },
   );
@@ -244,6 +252,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
       sortBy: "averageRating",
       sortOrder: "desc",
       limit: 80,
+      includeAdult,
     },
     { ...popularCacheOptions, skip: skipUnderrated },
   );
@@ -257,6 +266,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
         sortBy: "views",
         sortOrder: "desc",
         limit: 5,
+        includeAdult,
       },
       { ...popularCacheOptions, skip: skipTopCombined },
     ),
@@ -267,6 +277,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
         sortBy: "views",
         sortOrder: "desc",
         limit: 5,
+        includeAdult,
       },
       { ...popularCacheOptions, skip: skipTopCombined },
     ),
@@ -277,6 +288,7 @@ export const useHomeData = (visibleSections: HomeVisibleSections = {}): {
         sortBy: "views",
         sortOrder: "desc",
         limit: 5,
+        includeAdult,
       },
       { ...popularCacheOptions, skip: skipTopCombined },
     ),
