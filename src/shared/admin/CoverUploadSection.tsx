@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent } from "react";
 import { Upload, Image as ImageIcon } from "lucide-react";
-import Image from "next/image";
 import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface CoverUploadSectionProps {
   titleId?: string;
@@ -31,9 +31,9 @@ export function CoverUploadSection({
     }
   }, [selectedFile]);
 
-  const resolvedCurrentCover = currentCover
-    ? getCoverUrls(currentCover, "").primary
-    : "";
+  const { primary: resolvedCurrentCover, fallback: resolvedCoverFallback } = currentCover
+    ? getCoverUrls(currentCover, "")
+    : { primary: "", fallback: "" };
 
   return (
     <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
@@ -50,14 +50,13 @@ export function CoverUploadSection({
               {previewUrl ? "Предпросмотр новой обложки:" : "Текущая обложка:"}
             </p>
             <div className="relative">
-              <Image
-                loader={() => previewUrl || resolvedCurrentCover}
+              <OptimizedImage
                 src={previewUrl || resolvedCurrentCover}
+                fallbackSrc={previewUrl ? undefined : resolvedCoverFallback}
                 alt="Cover"
                 className="max-w-[200px] rounded"
                 width={200}
                 height={300}
-                unoptimized
               />
               {previewUrl && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
