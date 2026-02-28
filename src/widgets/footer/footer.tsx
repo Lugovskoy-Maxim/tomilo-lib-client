@@ -259,7 +259,7 @@ export default function Footer() {
                 Сайт разработан: @TomiloDev
                 <ExternalLink className="w-3 h-3 opacity-70" aria-hidden />
               </Link>
-              <span className="footer-version">Версия 17022026</span>
+              <span className="footer-version">Версия 28022026</span>
             </div>
           </div>
         </div>
