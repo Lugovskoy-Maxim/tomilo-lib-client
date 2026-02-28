@@ -9,6 +9,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface TrendingCardData {
   id: string;
@@ -53,11 +54,7 @@ export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
 
   const titlePath = getTitlePath(data);
   const isAdultContent = data.isAdult;
-  const imageSrc = data.image
-    ? data.image.startsWith("http")
-      ? data.image
-      : `${process.env.NEXT_PUBLIC_URL}${data.image}`
-    : IMAGE_HOLDER.src;
+  const imageSrc = getCoverUrl(data.image, IMAGE_HOLDER.src);
 
   const performCardAction = () => {
     if (onCardClick) {

@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getTitlePath } from "@/lib/title-paths";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface TopTitleGridCardProps {
   data: {
@@ -56,19 +57,7 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
     router.push(getTitlePath(data));
   };
 
-  const getImageUrl = () => {
-    if (!data.image) return IMAGE_HOLDER;
-
-    // Если изображение уже полный URL, используем как есть
-    if (data.image.startsWith("http")) {
-      return data.image;
-    }
-
-    // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${data.image}`;
-  };
-
-  const imageUrl = getImageUrl();
+  const imageUrl = getCoverUrl(data.image, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
 
   return (
     <>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface NavigationHeaderProps {
   title: Title;
@@ -54,7 +55,7 @@ export default function NavigationHeader({
             <div className="flex items-center gap-3 sm:gap-4 min-w-0">
               <div className="relative w-8 h-11 sm:w-10 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 shadow-md ring-1 ring-[var(--border)]">
                 <OptimizedImage
-                  src={process.env.NEXT_PUBLIC_URL + title.image}
+                  src={getCoverUrl(title.image)}
                   alt={title.title}
                   width={40}
                   className="object-cover w-full h-full"

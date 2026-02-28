@@ -91,3 +91,16 @@ export function normalizeAssetUrl(p: string): string {
 export function getFallbackAssetUrl(p: string): string {
   return getImageUrls(p).fallback;
 }
+
+/**
+ * Возвращает URL обложки тайтла с поддержкой S3.
+ * Если путь пустой, возвращает fallbackUrl (по умолчанию пустую строку).
+ * Если путь уже полный URL (http/https), обрабатывает его для S3.
+ */
+export function getCoverUrl(coverPath: string | undefined | null, fallbackUrl: string = ""): string {
+  if (!coverPath) return fallbackUrl;
+  if (coverPath.startsWith("http://") || coverPath.startsWith("https://")) {
+    return getImageUrls(coverPath).primary;
+  }
+  return normalizeAssetUrl(coverPath);
+}

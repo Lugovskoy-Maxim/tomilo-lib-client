@@ -10,6 +10,7 @@ import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useState, useEffect } from "react";
 import { translateTitleType } from "@/lib/title-type-translations";
+import { getCoverUrl } from "@/lib/asset-url";
 
 export interface CardProps {
   id: string;
@@ -99,7 +100,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const isAdultContent = data.isAdult;
   // const isBrowsePage = pathname.startsWith("/browse");
 
-  const imageSrc = data.image ? `${process.env.NEXT_PUBLIC_URL}${data.image}` : IMAGE_HOLDER;
+  const imageSrc = data.image ? getCoverUrl(data.image, IMAGE_HOLDER.src) : IMAGE_HOLDER;
 
   // Преобразуем imageSrc в строку если это объект изображения
   const imageSrcString = typeof imageSrc === "string" ? imageSrc : imageSrc.src;

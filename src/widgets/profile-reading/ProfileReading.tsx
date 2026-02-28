@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getChapterPath } from "@/lib/title-paths";
 import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface TitleData {
   _id: string;
@@ -373,9 +374,7 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
   };
 
   const getImageUrl = (coverImage: string | undefined) => {
-    if (!coverImage) return IMAGE_HOLDER;
-    if (coverImage.startsWith("http")) return coverImage;
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${coverImage}`;
+    return getCoverUrl(coverImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
   };
 
   const getImageUrlString = (coverImage: string | undefined) => {

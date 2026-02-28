@@ -7,6 +7,7 @@ import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
 import { useRouter } from "next/navigation";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useAuth } from "@/hooks/useAuth";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface LeftSidebarProps {
   titleData: Title;
@@ -49,7 +50,7 @@ export function LeftSidebar({
         <div className="aspect-[2/3] w-full">
           {titleData?.coverImage ? (
             <Image
-              src={`${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`}
+              src={getCoverUrl(titleData.coverImage)}
               alt={titleData?.name}
               width={280}
               height={420}

@@ -6,6 +6,7 @@ import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import type { BookmarkCategory } from "@/types/user";
+import { getCoverUrl } from "@/lib/asset-url";
 
 const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
   reading: "Читаю",
@@ -40,9 +41,7 @@ export default function BookmarkLibraryCard({
   const [imageError, setImageError] = useState(false);
   const href = getTitlePath({ _id: titleId, slug });
   const showImage = coverImage && !imageError;
-  const coverUrl = coverImage?.startsWith("http")
-    ? coverImage
-    : `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${coverImage || ""}`;
+  const coverUrl = getCoverUrl(coverImage, "");
   const typeLabel = translateTitleType(type);
   const chaptersLabel =
     chaptersRead != null && chaptersRead > 0

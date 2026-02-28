@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getTitlePath } from "@/lib/title-paths";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface TopTitleData {
   id: string;
@@ -72,7 +73,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
           <div className="flex gap-4 sm:hidden">
             <div className="relative flex-shrink-0">
               <OptimizedImage
-                src={process.env.NEXT_PUBLIC_URL + data.image}
+                src={getCoverUrl(data.image)}
                 alt={data.title}
                 width={120}
                 height={160}
@@ -141,7 +142,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
           <div className="hidden sm:flex flex-col items-center gap-3">
             <div className="relative">
               <OptimizedImage
-                src={process.env.NEXT_PUBLIC_URL + data.image}
+                src={getCoverUrl(data.image)}
                 alt={data.title}
                 width={120}
                 height={160}
@@ -223,7 +224,7 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
       >
         <div className="relative">
           <OptimizedImage
-            src={process.env.NEXT_PUBLIC_URL + data.image}
+            src={getCoverUrl(data.image)}
             alt={data.title}
             width={160}
             height={128}

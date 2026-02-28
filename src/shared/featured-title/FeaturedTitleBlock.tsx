@@ -12,6 +12,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface FeaturedTitleData {
   id: string;
@@ -112,11 +113,7 @@ export default function FeaturedTitleBlock({
     ? normalizeBookmarks(user.bookmarks).some(e => e.titleId === currentItem.id)
     : false;
 
-  const imageSrc = currentItem?.image
-    ? currentItem.image.startsWith("http")
-      ? currentItem.image
-      : `${process.env.NEXT_PUBLIC_URL}${currentItem.image}`
-    : IMAGE_HOLDER.src;
+  const imageSrc = getCoverUrl(currentItem?.image, IMAGE_HOLDER.src);
 
   const goToSlide = useCallback((index: number) => {
     if (isTransitioning) return;

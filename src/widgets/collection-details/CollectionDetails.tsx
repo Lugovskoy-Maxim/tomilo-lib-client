@@ -18,6 +18,7 @@ import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVe
 import Script from "next/script";
 import { translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import { getCoverUrl } from "@/lib/asset-url";
 
 export default function CollectionDetails({ collectionId }: { collectionId: string }) {
   const router = useRouter();
@@ -72,7 +73,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
   useSEO(seoConfig);
 
   const normalizeImageUrl = (cover: string) => {
-    return cover ? process.env.NEXT_PUBLIC_URL + cover : "/404/image-holder.png";
+    return getCoverUrl(cover, "/404/image-holder.png");
   };
 
   // Увеличиваем просмотры при загрузке
@@ -336,7 +337,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
               name: title.name,
               url: `${process.env.NEXT_PUBLIC_URL}${getTitlePath({ id: title._id, slug: title.slug })}`,
               image: title.coverImage
-                ? `${process.env.NEXT_PUBLIC_URL}${title.coverImage}`
+                ? getCoverUrl(title.coverImage)
                 : undefined,
               author: title.author,
               genre: title.genres,

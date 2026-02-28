@@ -36,6 +36,7 @@ import { translateTitleType, translateTitleStatus } from "@/lib/title-type-trans
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { GenresList } from "./title-view/GenresList";
 import router from "next/router";
+import { getCoverUrl } from "@/lib/asset-url";
 
 // Shared UI
 export function TabButton({
@@ -131,7 +132,7 @@ export function LeftSidebar({
           <Image
             width={320}
             height={480}
-            src={process.env.NEXT_PUBLIC_URL + titleData.coverImage}
+            src={getCoverUrl(titleData.coverImage)}
             alt={titleData.name}
             unoptimized={true}
             className="w-full max-w-[320px] mx-auto lg:max-w-none h-auto rounded-2xl shadow-lg mb-4 object-cover"

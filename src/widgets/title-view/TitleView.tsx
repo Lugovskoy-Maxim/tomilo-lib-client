@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import { getCoverUrl } from "@/lib/asset-url";
 
 import { useIncrementViewsMutation, useGetTitleBySlugQuery } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
@@ -389,7 +390,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
 
   // Формируем URL обложки для фона
   const coverImageUrl = titleData.coverImage
-    ? `${process.env.NEXT_PUBLIC_URL}${titleData.coverImage}`
+    ? getCoverUrl(titleData.coverImage)
     : null;
 
   return (

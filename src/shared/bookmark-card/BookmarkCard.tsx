@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/useToast";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleStatus } from "@/lib/title-type-translations";
 import type { BookmarkCategory } from "@/types/user";
+import { getCoverUrl } from "@/lib/asset-url";
 
 const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
   reading: "Читаю",
@@ -87,9 +88,7 @@ export default function BookmarkCard({
   };
 
   const getImageUrl = (coverImage: string | undefined) => {
-    if (!coverImage) return IMAGE_HOLDER.src;
-    if (coverImage.startsWith("http")) return coverImage;
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}${coverImage}`;
+    return getCoverUrl(coverImage, IMAGE_HOLDER.src);
   };
 
   const showImage = title.coverImage && !imageError;
