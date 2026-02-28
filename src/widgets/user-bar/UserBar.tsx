@@ -96,7 +96,11 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
       <div className="flex items-center gap-2 sm:gap-3">
         <ThemeToggle />
 
-        {isAuthenticated && <NotificationButton />}
+        {isAuthenticated && (
+          <div className="hidden lg:block">
+            <NotificationButton />
+          </div>
+        )}
 
         {!isAuthenticated ? (
           <div className="flex items-center gap-2">

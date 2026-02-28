@@ -58,6 +58,11 @@ export default function MobileCover({
         </div>
       </div>
 
+      {/* Название тайтла */}
+      <h1 className="text-center mt-4 text-xl sm:text-2xl font-bold text-[var(--foreground)] px-2 leading-tight">
+        {titleData.name}
+      </h1>
+
       {isAdmin && (
         <p className="text-center mt-2 text-xs text-[var(--muted-foreground)]">ID: {titleData._id}</p>
       )}

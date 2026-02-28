@@ -138,19 +138,23 @@ export default function Footer() {
     let lastScrollY = window.scrollY;
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setShowBackToTop(currentScrollY > SCROLL_THRESHOLD_TOP && isLargeScreen);
+      setShowBackToTop(currentScrollY > SCROLL_THRESHOLD_TOP);
       const scrollingDown = currentScrollY > lastScrollY;
       const atBottom =
         window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 10;
-      if (atBottom) setIsVisible(true);
-      else if (scrollingDown && isVisible) setIsVisible(false);
-      else if (!scrollingDown && !isVisible) setIsVisible(true);
+      if (atBottom) {
+        setIsVisible(true);
+      } else if (scrollingDown) {
+        setIsVisible(false);
+      } else if (!scrollingDown && currentScrollY < lastScrollY) {
+        setIsVisible(true);
+      }
       lastScrollY = currentScrollY;
     };
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isVisible, isLargeScreen]);
+  }, [isLargeScreen]);
 
   useEffect(() => {
     if (isMoreOpen) document.body.style.overflow = "hidden";
@@ -261,12 +265,12 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Кнопка «Наверх» — только на десктопе при прокрутке */}
+      {/* Кнопка «Наверх» — на всех устройствах при прокрутке */}
       {showBackToTop && (
         <button
           type="button"
           onClick={scrollToTop}
-          className="footer-back-to-top fixed bottom-6 right-6 z-40 hidden lg:flex items-center justify-center w-11 h-11 rounded-full shadow-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2"
+          className="footer-back-to-top fixed z-40 flex items-center justify-center shadow-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 bottom-20 right-4 w-10 h-10 rounded-xl lg:bottom-6 lg:right-6 lg:w-11 lg:h-11 lg:rounded-full"
           aria-label="Вернуться наверх"
         >
           <ArrowUp className="w-5 h-5" aria-hidden />

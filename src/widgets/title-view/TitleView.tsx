@@ -15,7 +15,6 @@ import { LeftSidebar } from "@/shared/browse/title-view/LeftSidebar";
 import { RightContent } from "@/shared/browse/title-view/RightContent";
 import { AgeVerificationModal } from "@/shared/modal/AgeVerificationModal";
 import { ReportModal } from "@/shared/report/ReportModal";
-import { ArrowUpToLine } from "lucide-react";
 
 export default function TitleView({ slug: slugProp }: { slug: string }) {
   const params = useParams();
@@ -23,7 +22,6 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
   const { user, useGetReadingHistoryByTitle } = useAuth();
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const [reportModalData, setReportModalData] = useState<{
     entityType: "title" | "chapter";
     entityId: string;
@@ -249,13 +247,6 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
       incrementViews(titleId);
     }
   }, [titleId, incrementViews]);
-
-  // Кнопка «Наверх» — показывать при прокрутке вниз
-  useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Обработчик поиска глав
   const handleSearchChange = (query: string) => {
@@ -613,16 +604,6 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
       </div>
       <Footer />
 
-      {/* Кнопка «Наверх» */}
-      {showScrollTop && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-24 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--chart-1)] text-white shadow-lg shadow-[var(--chart-1)]/30 hover:bg-[var(--chart-1)]/90 hover:shadow-xl transition-all duration-200 md:bottom-8 md:right-8"
-          aria-label="Прокрутить наверх"
-        >
-          <ArrowUpToLine className="h-5 w-5" />
-        </button>
-      )}
 
       {/* Модальное окно для подтверждения возраста */}
       {isAgeModalOpen && (

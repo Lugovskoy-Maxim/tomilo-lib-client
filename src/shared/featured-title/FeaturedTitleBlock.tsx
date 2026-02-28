@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ChevronLeft, ChevronRight, Star, Eye, BookOpen, Calendar, Tag, Play, Bookmark } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Eye, BookOpen, Calendar, Tag, Play, Bookmark, ChevronDown, ChevronUp, X } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/useToast";
 import { normalizeBookmarks } from "@/lib/bookmarks";
@@ -80,6 +80,7 @@ export default function FeaturedTitleBlock({
   const lastTickRef = useRef<number>(Date.now());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -89,6 +90,7 @@ export default function FeaturedTitleBlock({
 
   useEffect(() => {
     setCategoryOpen(false);
+    setIsDescriptionExpanded(false);
   }, [currentIndex]);
 
   useEffect(() => {
@@ -390,40 +392,63 @@ export default function FeaturedTitleBlock({
               </div>
             )}
 
-            <p
-              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-xs sm:text-sm md:text-base text-white/70 leading-relaxed line-clamp-2 sm:line-clamp-3 md:line-clamp-4 mb-3 sm:mb-4 md:mb-6 max-w-2xl mx-auto md:mx-0`}
-            >
-              {truncateDescription(currentItem.description, 180)}
-            </p>
+            <div className="relative mb-3 sm:mb-4 md:mb-6 max-w-2xl mx-auto md:mx-0">
+              <p
+                className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-xs sm:text-sm md:text-base text-white/70 leading-relaxed ${
+                  isDescriptionExpanded ? "" : "line-clamp-2 sm:line-clamp-3 md:line-clamp-4"
+                } transition-all duration-300`}
+              >
+                {isDescriptionExpanded 
+                  ? (currentItem.description || "Описание отсутствует")
+                  : truncateDescription(currentItem.description, 180)
+                }
+              </p>
+            </div>
 
-            <div className="flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-start">
+            <div className="flex flex-wrap gap-1.5 sm:gap-3 justify-center md:justify-start items-stretch">
               <button
                 onClick={handleReadClick}
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm sm:text-base font-semibold transition-all duration-200 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-base font-semibold transition-all duration-200 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98]"
               >
-                <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
                 Читать
+              </button>
+              <button
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs sm:text-base font-semibold transition-all duration-200 shadow-lg shadow-black/20 hover:shadow-black/30 active:scale-[0.98]"
+              >
+                {isDescriptionExpanded ? (
+                  <>
+                    <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Свернуть
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Подробнее
+                  </>
+                )}
               </button>
               <div ref={dropdownRef} className={`relative ${categoryOpen ? "z-50" : ""}`}>
                 <button
                   ref={bookmarkButtonRef}
                   onClick={handleBookmarkClick}
                   disabled={bookmarkLoading}
-                  className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 active:scale-[0.98] ${
+                  className={`inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 h-full rounded-lg sm:rounded-xl text-xs sm:text-base font-semibold transition-all duration-200 active:scale-[0.98] ${
                     isBookmarked
                       ? "bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40"
                       : "bg-white/20 hover:bg-white/30 text-white shadow-lg shadow-black/20 hover:shadow-black/30"
                   } ${bookmarkLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {bookmarkLoading ? (
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                   ) : (
-                    <Bookmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill={isBookmarked ? "currentColor" : "none"} />
+                    <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" fill={isBookmarked ? "currentColor" : "none"} />
                   )}
-                  <span className="hidden xs:inline">{isBookmarked ? "В закладках" : "В закладки"}</span>
+                  {isBookmarked ? "В закладках" : "В закладки"}
                 </button>
                 {categoryOpen && !bookmarkLoading && (
                   <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 bottom-full mb-2 z-50 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[140px] sm:min-w-[160px]">
