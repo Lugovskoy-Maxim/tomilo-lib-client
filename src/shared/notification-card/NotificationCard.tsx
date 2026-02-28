@@ -270,17 +270,17 @@ export default function NotificationCard({
   const getCoverImage = () => {
     if (typeof notification.titleId === "object" && notification.titleId?._id) {
       if (notification.titleId.coverImage) return notification.titleId.coverImage;
-      return `/uploads/titles/${notification.titleId._id}/cover.jpg`;
+      return `titles/${notification.titleId._id}/cover.jpg`;
     }
     if (fetchedTitle?.coverImage) return fetchedTitle.coverImage;
-    if (fetchedTitle?._id) return `/uploads/titles/${fetchedTitle._id}/cover.jpg`;
+    if (fetchedTitle?._id) return `titles/${fetchedTitle._id}/cover.jpg`;
     if (chapterData?.titleInfo?.coverImage) return chapterData.titleInfo.coverImage;
     const chapterTitleId =
       typeof chapterData?.titleId === "string"
         ? chapterData.titleId
         : (chapterData?.titleId as unknown as { _id?: string })?._id;
-    if (chapterTitleId) return `/uploads/titles/${chapterTitleId}/cover.jpg`;
-    if (effectiveTitleId) return `/uploads/titles/${effectiveTitleId}/cover.jpg`;
+    if (chapterTitleId) return `titles/${chapterTitleId}/cover.jpg`;
+    if (effectiveTitleId) return `titles/${effectiveTitleId}/cover.jpg`;
     return undefined;
   };
 
