@@ -105,6 +105,38 @@ export interface UserProfile {
   linkedProviders?: string[];
   /** Полученные достижения пользователя */
   achievements?: UserAchievement[];
+  
+  // Статистика пользователя
+  /** Количество уникальных прочитанных тайтлов */
+  titlesReadCount?: number;
+  /** Количество оставленных комментариев */
+  commentsCount?: number;
+  /** Количество полученных лайков на комментариях */
+  likesReceivedCount?: number;
+  /** Примерное время чтения в минутах */
+  readingTimeMinutes?: number;
+  /** Текущая серия дней с активностью */
+  currentStreak?: number;
+  /** Максимальная серия дней */
+  longestStreak?: number;
+  /** Дата последней активности для streak */
+  lastStreakDate?: string;
+  /** Количество завершённых тайтлов */
+  completedTitlesCount?: number;
+  
+  // Кастомизация профиля
+  /** Краткое описание / статус (до 200 символов) */
+  bio?: string;
+  /** Любимый жанр */
+  favoriteGenre?: string;
+  /** Ссылки на соцсети */
+  socialLinks?: SocialLinks;
+  /** Показывать ли статистику в профиле */
+  showStats?: boolean;
+  /** Показывать ли достижения */
+  showAchievements?: boolean;
+  /** Показывать ли любимых персонажей */
+  showFavoriteCharacters?: boolean;
 }
 
 /** Типы достижений */
@@ -130,6 +162,32 @@ export interface UserAchievement {
   unlockedAt?: string;
   progress?: number;
   maxProgress?: number;
+}
+
+// Статистика пользователя
+export interface UserStats {
+  titlesReadCount: number;
+  commentsCount: number;
+  likesReceivedCount: number;
+  readingTimeMinutes: number;
+  currentStreak: number;
+  longestStreak: number;
+  lastStreakDate?: string;
+  completedTitlesCount: number;
+}
+
+// Ссылки на соцсети
+export interface SocialLinks {
+  telegram?: string;
+  discord?: string;
+  vk?: string;
+}
+
+// Настройки отображения профиля
+export interface ProfileVisibilitySettings {
+  showStats: boolean;
+  showAchievements: boolean;
+  showFavoriteCharacters: boolean;
 }
 
 // Дополнительные интерфейсы для расширенной функциональности

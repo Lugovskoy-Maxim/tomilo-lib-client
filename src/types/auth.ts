@@ -71,6 +71,24 @@ export interface StoredUser {
   linkedProviders?: string[];
   /** Надетые декорации (рамка аватара, фон и т.д.) — отображаются поверх пользовательских */
   equippedDecorations?: import("@/types/user").EquippedDecorations;
+  
+  // Статистика пользователя
+  titlesReadCount?: number;
+  commentsCount?: number;
+  likesReceivedCount?: number;
+  readingTimeMinutes?: number;
+  currentStreak?: number;
+  longestStreak?: number;
+  lastStreakDate?: string;
+  completedTitlesCount?: number;
+  
+  // Кастомизация профиля
+  bio?: string;
+  favoriteGenre?: string;
+  socialLinks?: import("@/types/user").SocialLinks;
+  showStats?: boolean;
+  showAchievements?: boolean;
+  showFavoriteCharacters?: boolean;
 }
 
 export interface AuthResponse {
