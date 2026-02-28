@@ -1,6 +1,5 @@
 import { Share, Edit, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { Title, Chapter } from "@/types/title";
 import type { ReadingHistoryEntry } from "@/types/store";
 import { ReadButton } from "@/shared/browse/ReadButton";
@@ -9,7 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useState } from "react";
 import { ReportModal } from "@/shared/report/ReportModal";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface MobileCoverProps {
   titleData: Title;
@@ -43,15 +43,14 @@ export default function MobileCover({
       <div className="relative w-full max-w-[260px] sm:max-w-[280px] mx-auto overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-lg ring-1 ring-[var(--border)]/50">
         <div className="aspect-[2/3] w-full">
           {titleData?.coverImage ? (
-            <Image
-              src={getCoverUrl(titleData.coverImage)}
+            <OptimizedImage
+              src={getCoverUrls(titleData.coverImage).primary}
+              fallbackSrc={getCoverUrls(titleData.coverImage).fallback}
               alt={titleData?.name}
               width={300}
               height={450}
-              unoptimized={true}
               className={`object-cover w-full h-full ${shouldBlurImage ? "blur-sm" : ""}`}
               priority
-              sizes="(max-width: 640px) 90vw, 280px"
             />
           ) : (
             <div className="w-full h-full bg-[var(--secondary)] border-2 border-dashed border-[var(--border)]" />

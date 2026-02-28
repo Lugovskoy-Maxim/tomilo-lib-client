@@ -9,7 +9,7 @@ import { translateTitleStatus } from "@/lib/title-type-translations";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import type { BookmarkCategory } from "@/types/user";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
   reading: "Читаю",
@@ -60,7 +60,7 @@ export default function BookmarkGridCard({
 
   const href = getTitlePath({ _id: titleId, slug });
   const showImage = coverImage && !imageError;
-  const coverUrl = getCoverUrl(coverImage, "");
+  const { primary: coverUrl, fallback: coverFallback } = getCoverUrls(coverImage, "");
   const progress =
     chaptersRead != null && totalChapters > 0
       ? Math.min(100, (chaptersRead / totalChapters) * 100)
@@ -117,6 +117,7 @@ export default function BookmarkGridCard({
         {showImage ? (
           <OptimizedImage
             src={coverUrl}
+            fallbackSrc={coverFallback}
             alt={name}
             fill
             className="object-cover card-media-hover"

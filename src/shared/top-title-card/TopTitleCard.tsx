@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getTitlePath } from "@/lib/title-paths";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 interface TopTitleData {
   id: string;
@@ -62,6 +62,8 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
     router.push(getTitlePath(data));
   };
 
+  const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(data.image);
+
   if (variant === "top3") {
     return (
       <>
@@ -73,12 +75,12 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
           <div className="flex gap-4 sm:hidden">
             <div className="relative flex-shrink-0">
               <OptimizedImage
-                src={getCoverUrl(data.image)}
+                src={imageSrc}
+                fallbackSrc={imageFallback}
                 alt={data.title}
                 width={120}
                 height={160}
                 className={`w-42 h-52 object-cover rounded-lg shadow-sm ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
-                quality={80}
                 priority={false}
               />
               {data.isAdult && (
@@ -142,12 +144,12 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
           <div className="hidden sm:flex flex-col items-center gap-3">
             <div className="relative">
               <OptimizedImage
-                src={getCoverUrl(data.image)}
+                src={imageSrc}
+                fallbackSrc={imageFallback}
                 alt={data.title}
                 width={120}
                 height={160}
                 className={`w-42 h-54 object-cover rounded-lg shadow-sm ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
-                quality={80}
                 priority={false}
               />
               {data.isAdult && (
@@ -224,12 +226,12 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
       >
         <div className="relative">
           <OptimizedImage
-            src={getCoverUrl(data.image)}
+            src={imageSrc}
+            fallbackSrc={imageFallback}
             alt={data.title}
             width={160}
             height={128}
             className={`w-full h-24 sm:h-32 object-cover rounded-lg shadow-sm ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
-            quality={80}
             priority={false}
           />
           {data.isAdult && (

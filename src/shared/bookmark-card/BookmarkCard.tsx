@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/useToast";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleStatus } from "@/lib/title-type-translations";
 import type { BookmarkCategory } from "@/types/user";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
   reading: "Читаю",
@@ -87,8 +87,8 @@ export default function BookmarkCard({
     }
   };
 
-  const getImageUrl = (coverImage: string | undefined) => {
-    return getCoverUrl(coverImage, IMAGE_HOLDER.src);
+  const getImageUrls = (coverImage: string | undefined) => {
+    return getCoverUrls(coverImage, IMAGE_HOLDER.src);
   };
 
   const showImage = title.coverImage && !imageError;
@@ -115,12 +115,12 @@ export default function BookmarkCard({
       <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 ring-1 ring-[var(--border)]/50">
         {showImage ? (
           <OptimizedImage
-            src={getImageUrl(title.coverImage)}
+            src={getImageUrls(title.coverImage).primary}
+            fallbackSrc={getImageUrls(title.coverImage).fallback}
             alt={title.name}
             width={96}
             height={128}
             className="w-full h-full object-cover card-media-hover"
-            quality={80}
             priority={false}
             onError={() => setImageError(true)}
           />

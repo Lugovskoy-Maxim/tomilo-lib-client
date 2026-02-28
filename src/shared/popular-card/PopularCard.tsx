@@ -10,7 +10,8 @@ import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useState, useEffect } from "react";
 import { translateTitleType } from "@/lib/title-type-translations";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 export interface CardProps {
   id: string;
@@ -100,25 +101,22 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
   const isAdultContent = data.isAdult;
   // const isBrowsePage = pathname.startsWith("/browse");
 
-  const imageSrc = data.image ? getCoverUrl(data.image, IMAGE_HOLDER.src) : IMAGE_HOLDER;
-
-  // Преобразуем imageSrc в строку если это объект изображения
-  const imageSrcString = typeof imageSrc === "string" ? imageSrc : imageSrc.src;
+  const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(data.image, IMAGE_HOLDER.src);
 
   const cardContent = (
     <>
       <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft h-full flex flex-col shadow-sm">
         {/* Image container - 2:3 aspect ratio for manga covers */}
         <div className="relative overflow-hidden flex-shrink-0 aspect-[2/3] w-full bg-[var(--muted)] rounded-t-xl">
-          <img
+          <OptimizedImage
             className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center card-media-hover`}
-            src={imageSrcString}
+            src={imageSrc}
+            fallbackSrc={imageFallback}
             alt={data.title}
-            loading="lazy"
-            decoding="async"
-            fetchPriority="low"
+            fill
             onDragStart={(e: React.DragEvent) => e.preventDefault()}
             draggable={false}
+            hidePlaceholder
           />
 
           {/* Adult badge — компактнее на мобильных */}

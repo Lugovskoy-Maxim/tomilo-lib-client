@@ -1,5 +1,4 @@
 import { Share, Edit, AlertTriangle } from "lucide-react";
-import Image from "next/image";
 import { Title, Chapter } from "@/types/title";
 import type { ReadingHistoryEntry } from "@/types/store";
 import { ReadButton } from "@/shared/browse/ReadButton";
@@ -7,7 +6,8 @@ import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
 import { useRouter } from "next/navigation";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useAuth } from "@/hooks/useAuth";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface LeftSidebarProps {
   titleData: Title;
@@ -49,15 +49,14 @@ export function LeftSidebar({
       <div className="relative w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-lg ring-1 ring-[var(--border)]/50">
         <div className="aspect-[2/3] w-full">
           {titleData?.coverImage ? (
-            <Image
-              src={getCoverUrl(titleData.coverImage)}
+            <OptimizedImage
+              src={getCoverUrls(titleData.coverImage).primary}
+              fallbackSrc={getCoverUrls(titleData.coverImage).fallback}
               alt={titleData?.name}
               width={280}
               height={420}
-              unoptimized={true}
               className={`object-cover w-full h-full ${shouldBlurImage ? "blur-sm" : ""}`}
               priority
-              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 25vw, 280px"
             />
           ) : (
             <div className="w-full h-full bg-[var(--secondary)] border-2 border-dashed border-[var(--border)]" />

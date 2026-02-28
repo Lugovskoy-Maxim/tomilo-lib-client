@@ -2,11 +2,11 @@
 
 import { SearchResult as SearchResultType } from "@/types/search";
 import Link from "next/link";
-import Image from "next/image";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { Star, SearchX, AlertCircle, BookOpen } from "lucide-react";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface SearchResultsProps {
   results: SearchResultType[];
@@ -145,13 +145,14 @@ export default function SearchResults({
           >
             {result.cover ? (
               <div className="relative w-12 h-16 shrink-0 rounded-lg overflow-hidden bg-[var(--muted)] shadow-sm ring-1 ring-[var(--border)]/50">
-                <Image
-                  loader={() => getCoverUrl(result.cover)}
-                  src={getCoverUrl(result.cover)}
+                <OptimizedImage
+                  src={getCoverUrls(result.cover).primary}
+                  fallbackSrc={getCoverUrls(result.cover).fallback}
                   alt=""
                   width={48}
                   height={64}
                   className="object-cover w-full h-full"
+                  hidePlaceholder
                 />
               </div>
             ) : (

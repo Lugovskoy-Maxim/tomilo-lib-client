@@ -9,7 +9,8 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface UnderratedCardData {
   id: string;
@@ -53,7 +54,7 @@ export default function UnderratedCard({ data, onCardClick }: UnderratedCardProp
 
   const titlePath = getTitlePath(data);
   const isAdultContent = data.isAdult;
-  const imageSrc = getCoverUrl(data.image, IMAGE_HOLDER.src);
+  const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(data.image, IMAGE_HOLDER.src);
 
   const performCardAction = () => {
     if (onCardClick) {
@@ -94,14 +95,14 @@ export default function UnderratedCard({ data, onCardClick }: UnderratedCardProp
       <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft p-2.5 sm:p-3 shadow-sm">
         <div className="flex gap-3 min-w-0">
           <div className="relative w-20 sm:w-24 aspect-[2/3] overflow-hidden rounded-lg bg-[var(--muted)] shrink-0 ring-1 ring-[var(--border)]/50">
-            <img
+            <OptimizedImage
               className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center card-media-hover`}
               src={imageSrc}
+              fallbackSrc={imageFallback}
               alt={data.title}
-              loading="lazy"
-              decoding="async"
-              fetchPriority="low"
+              fill
               draggable={false}
+              hidePlaceholder
             />
             {isAdultContent && (
               <div className="absolute top-1.5 right-1.5 z-10">

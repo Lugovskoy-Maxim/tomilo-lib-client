@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getChapterPath } from "@/lib/title-paths";
 import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 interface TitleData {
   _id: string;
@@ -373,12 +373,8 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
     await handleRemoveFromHistory(titleId);
   };
 
-  const getImageUrl = (coverImage: string | undefined) => {
-    return getCoverUrl(coverImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
-  };
-
-  const getImageUrlString = (coverImage: string | undefined) => {
-    return getImageUrl(coverImage);
+  const getImageUrls = (coverImage: string | undefined) => {
+    return getCoverUrls(coverImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
   };
 
   // Форматируем время сессии
@@ -509,27 +505,15 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
               >
                 <div className="flex items-stretch gap-3">
                   <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-[var(--secondary)]">
-                    {title?.coverImage ? (
-                      <OptimizedImage
-                        src={getImageUrlString(title.coverImage)}
-                        alt={title.name || `Манга #${group.titleId}`}
-                        width={96}
-                        height={128}
-                        className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"
-                        quality={80}
-                        priority={false}
-                      />
-                    ) : (
-                      <OptimizedImage
-                        src={IMAGE_HOLDER.src}
-                        alt="Заглушка"
-                        width={96}
-                        height={128}
-                        className="w-full h-full object-cover"
-                        quality={80}
-                        priority={false}
-                      />
-                    )}
+                    <OptimizedImage
+                      src={getImageUrls(title?.coverImage).primary}
+                      fallbackSrc={getImageUrls(title?.coverImage).fallback}
+                      alt={title?.name || `Манга #${group.titleId}`}
+                      width={96}
+                      height={128}
+                      className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"
+                      priority={false}
+                    />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">

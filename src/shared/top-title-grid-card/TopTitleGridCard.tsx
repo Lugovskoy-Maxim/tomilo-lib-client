@@ -1,14 +1,14 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getTitlePath } from "@/lib/title-paths";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface TopTitleGridCardProps {
   data: {
@@ -57,7 +57,7 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
     router.push(getTitlePath(data));
   };
 
-  const imageUrl = getCoverUrl(data.image, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
+  const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(data.image, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
 
   return (
     <>
@@ -69,18 +69,13 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
           {/* Картинка слева */}
           <div className="relative w-16 h-full flex-shrink-0">
             <div className="relative w-full h-full rounded-l-lg overflow-hidden">
-              <Image
-                loader={() => `${imageUrl}`}
-                src={imageUrl}
+              <OptimizedImage
+                src={imageSrc}
+                fallbackSrc={imageFallback}
                 alt={data.title}
                 fill
                 className="object-cover"
-                sizes="64px"
-                unoptimized
-                onError={e => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = IMAGE_HOLDER.src;
-                }}
+                hidePlaceholder
               />
             </div>
 

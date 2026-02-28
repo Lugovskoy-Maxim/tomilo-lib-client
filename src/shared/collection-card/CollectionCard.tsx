@@ -5,7 +5,7 @@ import { Library, Eye, Calendar } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { Collection } from "@/types/collection";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 export type CollectionCardVariant = "compact" | "grid";
 
@@ -38,8 +38,7 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
   const views = data.views ?? 0;
   const createdAt = data.createdAt;
 
-  const imageUrl = getCoverUrl(collectionImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
-  const imageUrlString = imageUrl;
+  const { primary: imageUrl, fallback: imageFallback } = getCoverUrls(collectionImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
 
   const cardClasses = `
     group relative select-none rounded-xl overflow-hidden cursor-pointer block
@@ -56,16 +55,12 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
         <div className="relative w-full h-full">
           <div className="absolute inset-0 overflow-hidden">
             <OptimizedImage
-              src={imageUrlString}
+              src={imageUrl}
+              fallbackSrc={imageFallback}
               alt={collectionName || "Коллекция"}
               fill
               className="object-cover w-full h-full card-media-hover"
-              quality={85}
               priority={false}
-              fallbackSrc={IMAGE_HOLDER.src}
-              onError={() => {
-                console.warn(`Failed to load image for collection ${collectionName}`);
-              }}
             />
           </div>
 

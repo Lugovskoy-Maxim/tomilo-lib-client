@@ -1,7 +1,6 @@
 "use client";
 
 import { Clock, Plus, Sparkles } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -11,7 +10,8 @@ import { timeAgo } from "@/lib/date-utils";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface LatestUpdateCardProps {
   data: {
@@ -61,7 +61,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
     router.push(titlePath);
   };
 
-  const imageUrl = getCoverUrl(data.cover, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
+  const { primary: imageUrl, fallback: imageFallback } = getCoverUrls(data.cover, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
 
   const getDisplayTime = (value: string) => {
     if (!value) return "недавно";
@@ -121,18 +121,13 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
         {/* Image section — пропорциональные размеры */}
         <div className="relative w-[4.5rem] sm:w-[5.5rem] md:w-[6.5rem] self-stretch min-h-24 sm:min-h-28 md:min-h-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
-            <Image
-              loader={() => `${imageUrl}`}
+            <OptimizedImage
               src={imageUrl}
+              fallbackSrc={imageFallback}
               alt={data.title}
               fill
               className={`object-cover card-media-hover ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
-              sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
-              unoptimized
-              onError={e => {
-                const target = e.target as HTMLImageElement;
-                target.src = IMAGE_HOLDER.src;
-              }}
+              hidePlaceholder
             />
           </div>
           

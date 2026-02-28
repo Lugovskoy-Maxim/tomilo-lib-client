@@ -12,7 +12,8 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface FeaturedTitleData {
   id: string;
@@ -113,7 +114,7 @@ export default function FeaturedTitleBlock({
     ? normalizeBookmarks(user.bookmarks).some(e => e.titleId === currentItem.id)
     : false;
 
-  const imageSrc = getCoverUrl(currentItem?.image, IMAGE_HOLDER.src);
+  const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(currentItem?.image, IMAGE_HOLDER.src);
 
   const goToSlide = useCallback((index: number) => {
     if (isTransitioning) return;
@@ -319,13 +320,15 @@ export default function FeaturedTitleBlock({
                 }
               }}
             >
-              <img
+              <OptimizedImage
                 className={`${isAdultContent && !isAgeVerified ? "blur-lg" : ""} absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover/cover:scale-105`}
                 src={imageSrc}
+                fallbackSrc={imageFallback}
                 alt={currentItem.title}
-                loading="eager"
-                decoding="async"
+                fill
+                priority
                 draggable={false}
+                hidePlaceholder
               />
               {isAdultContent && isAgeVerified && (
                 <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">

@@ -7,7 +7,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 interface ReadingItem {
   id: string;
@@ -41,8 +41,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
     router.push(getTitlePath(data));
   };
 
-  const imageUrl = getCoverUrl(data.cover, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
-  const imageUrlString = imageUrl;
+  const { primary: imageUrl, fallback: imageFallback } = getCoverUrls(data.cover, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
 
   return (
     <div
@@ -63,16 +62,12 @@ export default function ReadingCard({ data }: ReadingCardProps) {
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
             <OptimizedImage
-              src={imageUrlString}
+              src={imageUrl}
+              fallbackSrc={imageFallback}
               alt={data.title}
               width={128}
               className="object-cover card-media-hover"
-              quality={85}
               priority={false}
-              fallbackSrc={IMAGE_HOLDER.src}
-              onError={() => {
-                console.warn(`Failed to load image for ${data.title}`);
-              }}
             />
           </div>
 

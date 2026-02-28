@@ -24,7 +24,7 @@ import { useGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { Notification } from "@/types/notifications";
 import { getTitlePath, getChapterPath } from "@/lib/title-paths";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 interface NotificationCardProps {
   notification: Notification;
@@ -258,8 +258,8 @@ export default function NotificationCard({
     onSelect?.(notification._id, e.target.checked);
   };
 
-  const getImageUrl = (coverImage?: string) => {
-    return getCoverUrl(coverImage, IMAGE_HOLDER.src);
+  const getImageUrls = (coverImage?: string) => {
+    return getCoverUrls(coverImage, IMAGE_HOLDER.src);
   };
 
   const effectiveTitleId =

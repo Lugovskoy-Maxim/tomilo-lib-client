@@ -14,7 +14,7 @@ import Link from "next/link";
 import { UserAvatar } from "@/shared";
 import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl } from "@/api/shop";
 import type { EquippedDecorations } from "@/types/user";
-import { getCoverUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 
 interface CommentItemProps {
   comment: Comment;
@@ -133,7 +133,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
           <div className="flex-shrink-0 h-11 w-11 overflow-hidden rounded-full">
             {(() => {
               const avatarUrl = userData?.avatar
-                ? getCoverUrl(userData.avatar)
+                ? getCoverUrls(userData.avatar).primary
                 : undefined;
               const equipped = (userData as { equippedDecorations?: EquippedDecorations; equipped_decorations?: EquippedDecorations })
                 ?.equippedDecorations ?? (userData as { equipped_decorations?: EquippedDecorations })?.equipped_decorations;

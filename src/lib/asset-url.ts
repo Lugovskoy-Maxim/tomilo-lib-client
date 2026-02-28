@@ -104,3 +104,13 @@ export function getCoverUrl(coverPath: string | undefined | null, fallbackUrl: s
   }
   return normalizeAssetUrl(coverPath);
 }
+
+/**
+ * Возвращает primary и fallback URL для обложки.
+ * Primary = S3 (если настроен), fallback = старый сервер.
+ * Если путь пустой, возвращает placeholderUrl для обоих.
+ */
+export function getCoverUrls(coverPath: string | undefined | null, placeholderUrl: string = ""): { primary: string; fallback: string } {
+  if (!coverPath) return { primary: placeholderUrl, fallback: placeholderUrl };
+  return getImageUrls(coverPath);
+}
