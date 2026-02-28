@@ -24,6 +24,7 @@ import { useGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { Notification } from "@/types/notifications";
 import { getTitlePath, getChapterPath } from "@/lib/title-paths";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface NotificationCardProps {
   notification: Notification;
@@ -258,11 +259,7 @@ export default function NotificationCard({
   };
 
   const getImageUrl = (coverImage?: string) => {
-    if (!coverImage) return IMAGE_HOLDER.src;
-    if (coverImage.startsWith("http")) return coverImage;
-    const baseUrl = process.env.NEXT_PUBLIC_URL?.replace(/\/$/, "") || "http://localhost:3001";
-    const cleanPath = coverImage.startsWith("/") ? coverImage : `/${coverImage}`;
-    return `${baseUrl}${cleanPath}`;
+    return getCoverUrl(coverImage, IMAGE_HOLDER.src);
   };
 
   const effectiveTitleId =

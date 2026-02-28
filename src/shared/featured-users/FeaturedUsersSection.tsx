@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { ShieldCheck, TrendingUp } from "lucide-react";
 import { HomepageActiveUser, useGetHomepageActiveUsersQuery, useGetUsersQuery } from "@/store/api/usersApi";
+import { getCoverUrl } from "@/lib/asset-url";
 
 type FeaturedUser = {
   id: string;
@@ -197,11 +198,7 @@ function getInitial(username: string): string {
 
 function normalizeAvatarUrl(avatarUrl: string): string {
   if (!avatarUrl) return "";
-  if (avatarUrl.startsWith("http://") || avatarUrl.startsWith("https://")) {
-    return avatarUrl;
-  }
-  const baseUrl = process.env.NEXT_PUBLIC_URL || "";
-  return `${baseUrl}${avatarUrl}`;
+  return getCoverUrl(avatarUrl, "");
 }
 
 export default function FeaturedUsersSection() {

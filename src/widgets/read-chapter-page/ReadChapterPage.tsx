@@ -212,10 +212,7 @@ export default function ReadChapterPage({
   // Функция для получения корректного URL изображения (legacy)
   const getImageUrl = useCallback((url: string) => {
     if (!url) return "";
-    if (url.startsWith("http")) {
-      return url;
-    }
-    return `${process.env.NEXT_PUBLIC_URL}${url}`;
+    return getImageUrls(url).primary;
   }, []);
 
   // Функция загрузчика изображений с поддержкой ширины

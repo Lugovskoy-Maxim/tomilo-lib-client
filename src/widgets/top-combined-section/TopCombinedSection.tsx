@@ -8,6 +8,7 @@ import { getTitlePath } from "@/lib/title-paths";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
+import { getCoverUrl } from "@/lib/asset-url";
 
 // Helper function for formatting views
 function formatViews(num: number | string): string {
@@ -52,7 +53,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
 
   const normalizeImageUrl = (url: string | undefined) => {
     if (!url) return "";
-    return process.env.NEXT_PUBLIC_URL + url;
+    return getCoverUrl(url, "");
   };
 
   // Функция для выполнения действия с карточкой

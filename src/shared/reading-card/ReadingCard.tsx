@@ -7,6 +7,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface ReadingItem {
   id: string;
@@ -40,22 +41,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
     router.push(getTitlePath(data));
   };
 
-  // Формируем корректный URL для изображения
-  const getImageUrl = () => {
-    if (!data.cover) return IMAGE_HOLDER;
-
-    // Если изображение уже полный URL, используем как есть
-    if (data.cover.startsWith("http")) {
-      return data.cover;
-    }
-
-    // Если относительный путь, добавляем базовый URL
-    const baseUrl = process.env.NEXT_PUBLIC_URL?.replace(/\/$/, "") || "http://localhost:3001";
-    const cleanPath = data.cover.startsWith("/") ? data.cover : `/${data.cover}`;
-    return `${baseUrl}${cleanPath}`;
-  };
-
-  const imageUrl = getImageUrl();
+  const imageUrl = getCoverUrl(data.cover, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
   const imageUrlString = typeof imageUrl === "string" ? imageUrl : imageUrl.src;
 
   return (

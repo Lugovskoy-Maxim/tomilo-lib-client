@@ -6,6 +6,7 @@ import Image from "next/image";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { Star, SearchX, AlertCircle, BookOpen } from "lucide-react";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface SearchResultsProps {
   results: SearchResultType[];
@@ -13,8 +14,6 @@ interface SearchResultsProps {
   error: string | null;
   searchTerm: string;
 }
-
-const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3001";
 
 function HighlightMatch({ text, query }: { text: string; query: string }) {
   if (!query.trim()) return <>{text}</>;
@@ -147,8 +146,8 @@ export default function SearchResults({
             {result.cover ? (
               <div className="relative w-12 h-16 shrink-0 rounded-lg overflow-hidden bg-[var(--muted)] shadow-sm ring-1 ring-[var(--border)]/50">
                 <Image
-                  loader={() => `${baseUrl}${result.cover}`}
-                  src={`${baseUrl}${result.cover}`}
+                  loader={() => getCoverUrl(result.cover)}
+                  src={getCoverUrl(result.cover)}
                   alt=""
                   width={48}
                   height={64}

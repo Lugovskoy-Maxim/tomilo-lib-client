@@ -322,7 +322,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
             description: collection.description,
             url: `${process.env.NEXT_PUBLIC_URL}/collections/${collectionId}`,
             image: collection.cover
-              ? `${process.env.NEXT_PUBLIC_URL}${collection.cover}`
+              ? getCoverUrl(collection.cover)
               : `${process.env.NEXT_PUBLIC_URL}/logo/tomilo_color.svg`,
             numberOfItems: collection.titles?.length || 0,
             dateCreated: collection.createdAt,

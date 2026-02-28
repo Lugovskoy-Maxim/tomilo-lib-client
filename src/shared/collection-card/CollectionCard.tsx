@@ -5,6 +5,7 @@ import { Library, Eye, Calendar } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { Collection } from "@/types/collection";
+import { getCoverUrl } from "@/lib/asset-url";
 
 export type CollectionCardVariant = "compact" | "grid";
 
@@ -37,20 +38,7 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
   const views = data.views ?? 0;
   const createdAt = data.createdAt;
 
-  const getImageUrl = () => {
-    if (!collectionImage) return IMAGE_HOLDER;
-    if (collectionImage.startsWith("http")) return collectionImage;
-
-    const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "");
-    const baseUrl =
-      apiBase?.replace(/\/$/, "") ||
-      process.env.NEXT_PUBLIC_URL?.replace(/\/$/, "") ||
-      "http://localhost:3001";
-    const cleanPath = collectionImage.startsWith("/") ? collectionImage : `/${collectionImage}`;
-    return `${baseUrl}${cleanPath}`;
-  };
-
-  const imageUrl = getImageUrl();
+  const imageUrl = getCoverUrl(collectionImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
   const imageUrlString = typeof imageUrl === "string" ? imageUrl : imageUrl.src;
 
   const cardClasses = `

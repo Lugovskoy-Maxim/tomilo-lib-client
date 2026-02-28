@@ -1,6 +1,7 @@
 import React, { useState, ChangeEvent } from "react";
 import { Upload, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface CoverUploadSectionProps {
   titleId?: string;
@@ -30,11 +31,8 @@ export function CoverUploadSection({
     }
   }, [selectedFile]);
 
-  const apiBase = process.env.NEXT_PUBLIC_URL || "http://localhost:3000/";
   const resolvedCurrentCover = currentCover
-    ? currentCover.startsWith("http")
-      ? currentCover
-      : `${apiBase}${currentCover.startsWith("/") ? "" : "/"}${currentCover}`
+    ? getCoverUrl(currentCover, "")
     : "";
 
   return (

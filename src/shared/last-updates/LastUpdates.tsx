@@ -11,6 +11,7 @@ import { timeAgo } from "@/lib/date-utils";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
+import { getCoverUrl } from "@/lib/asset-url";
 
 interface LatestUpdateCardProps {
   data: {
@@ -60,19 +61,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
     router.push(titlePath);
   };
 
-  const getImageUrl = () => {
-    if (!data.cover) return IMAGE_HOLDER;
-
-    // Если изображение уже полный URL, используем как есть
-    if (data.cover.startsWith("http")) {
-      return data.cover;
-    }
-
-    // Если относительный путь, добавляем базовый URL
-    return `${process.env.NEXT_PUBLIC_URL || "http://localhost:3001"}${data.cover}`;
-  };
-
-  const imageUrl = getImageUrl();
+  const imageUrl = getCoverUrl(data.cover, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
 
   const getDisplayTime = (value: string) => {
     if (!value) return "недавно";
