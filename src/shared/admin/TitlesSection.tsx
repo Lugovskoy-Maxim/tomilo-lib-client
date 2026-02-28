@@ -29,75 +29,59 @@ import { AdminTable } from "./ui";
 import Pagination from "@/shared/browse/pagination";
 import { ConfirmModal, AlertModal } from "./ui";
 import { formatNumber } from "@/lib/utils";
-import { baseUrl } from "@/api/config";
+import { getCoverUrls } from "@/lib/asset-url";
 
-// Helper to normalize image URLs
-function getImageUrl(coverImage: string | undefined): string {
-  if (!coverImage) return typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src;
-  
-  // If it's already a full URL, return it
-  if (coverImage.startsWith("http://") || coverImage.startsWith("https://")) {
-    return coverImage;
-  }
-  
-  // If it's a relative URL starting with /, prepend the base URL
-  if (coverImage.startsWith("/")) {
-    return `${baseUrl}${coverImage}`;
-  }
-  
-  // Otherwise, assume it's a relative path and prepend baseUrl + /
-  return `${baseUrl}/${coverImage}`;
+// Get placeholder image URL
+const placeholderImageUrl = typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+
+// Helper to get image URLs with fallback
+function getImageUrls(coverImage: string | undefined): { primary: string; fallback: string } {
+  return getCoverUrls(coverImage, placeholderImageUrl);
 }
-
-// Get fallback image URL
-const fallbackImageUrl = typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src;
 
 // Cover image component with error handling
 function CoverImage({ 
   src, 
+  fallbackSrc,
   alt, 
   width, 
   height, 
   className = "" 
 }: { 
-  src: string; 
+  src: string;
+  fallbackSrc: string;
   alt: string; 
   width: number; 
   height: number; 
   className?: string;
 }) {
-  const [imgError, setImgError] = useState(false);
   return (
     <OptimizedImage
-      src={imgError ? fallbackImageUrl : src}
+      src={src}
+      fallbackSrc={fallbackSrc}
       alt={alt}
       className={className}
       width={width}
       height={height}
-      onError={() => setImgError(true)}
     />
   );
 }
 
 // Grid cover image component
 function GridCoverImage({ 
-  title, 
-  fallbackImageUrl, 
-  getImageUrl 
+  title
 }: { 
   title: Title; 
-  fallbackImageUrl: string; 
-  getImageUrl: (url: string | undefined) => string;
 }) {
-  const [imgError, setImgError] = useState(false);
+  const { primary, fallback } = getImageUrls(title.coverImage);
   return (
     <OptimizedImage
-      src={imgError ? fallbackImageUrl : getImageUrl(title.coverImage)}
+      src={primary}
+      fallbackSrc={fallback}
       alt={title.name}
       className="object-cover transition-transform duration-300 group-hover:scale-105 w-full h-full"
       width={300}
       height={450}
-      onError={() => setImgError(true)}
     />
   );
 }
@@ -340,7 +324,8 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
       render: (title: Title) => (
         <div className="relative w-12 h-16 rounded overflow-hidden bg-[var(--muted)]">
           <CoverImage
-            src={getImageUrl(title.coverImage)}
+            src={getImageUrls(title.coverImage).primary}
+            fallbackSrc={getImageUrls(title.coverImage).fallback}
             alt={title.name}
             className="object-cover w-full h-full"
             width={48}
@@ -633,10 +618,8 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
             >
               {/* Cover */}
               <div className="relative aspect-[2/3] overflow-hidden bg-[var(--muted)]">
-                <GridCoverImage 
-                  title={title} 
-                  fallbackImageUrl={fallbackImageUrl} 
-                  getImageUrl={getImageUrl} 
+<GridCoverImage
+                  title={title}
                 />
                 
                 {/* Selection checkbox */}

@@ -29,7 +29,8 @@ import { AdminCard, AdminModal, ConfirmModal, AlertModal, RichTextEditor } from 
 import LoadingSkeleton from "@/shared/skeleton/skeleton";
 import { ErrorState as SharedErrorState } from "@/shared/error-state";
 import Pagination from "@/shared/browse/pagination";
-import { getAnnouncementImageUrl } from "@/api/config";
+import { getAnnouncementImageUrls } from "@/api/config";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 const LAYOUTS: { value: AnnouncementLayout; label: string }[] = [
   { value: "default", label: "Обычный" },
@@ -300,9 +301,12 @@ export function AnnouncementsSection() {
         </div>
         {form.coverImage && (
           <div className="mt-2 relative w-24 h-24 rounded overflow-hidden border border-[var(--border)]">
-            <img
-              src={getAnnouncementImageUrl(form.coverImage ?? "")}
+            <OptimizedImage
+              src={getAnnouncementImageUrls(form.coverImage ?? "").primary}
+              fallbackSrc={getAnnouncementImageUrls(form.coverImage ?? "").fallback}
               alt="Обложка"
+              width={96}
+              height={96}
               className="object-cover w-full h-full"
             />
           </div>
@@ -473,9 +477,12 @@ export function AnnouncementsSection() {
                   >
                     <div className="w-14 h-14 flex-shrink-0 rounded overflow-hidden border border-[var(--border)] bg-[var(--muted)]">
                       {a.coverImage ? (
-                        <img
-                          src={getAnnouncementImageUrl(a.coverImage)}
+                        <OptimizedImage
+                          src={getAnnouncementImageUrls(a.coverImage).primary}
+                          fallbackSrc={getAnnouncementImageUrls(a.coverImage).fallback}
                           alt=""
+                          width={56}
+                          height={56}
                           className="w-full h-full object-cover"
                         />
                       ) : (

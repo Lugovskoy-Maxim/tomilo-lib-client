@@ -18,6 +18,8 @@ import { UpdateChapterDto } from "@/types/title";
 import { Chapter } from "@/types/chapter";
 import { ImagePreviewModal } from "@/shared/admin/ImagePreviewModal";
 import { Button } from "@/shared/ui/button";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
+import { getImageUrls } from "@/lib/asset-url";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { Header } from "@/widgets";
 
@@ -530,8 +532,9 @@ export default function ChapterEditorPage() {
                           className="aspect-[2/3] bg-gray-200 cursor-pointer relative"
                           onClick={() => openImagePreview(pageUrl, index)}
                         >
-                          <img
-                            src={process.env.NEXT_PUBLIC_UPLOADS_URL + pageUrl}
+                          <OptimizedImage
+                            src={getImageUrls(pageUrl).primary}
+                            fallbackSrc={getImageUrls(pageUrl).fallback}
                             alt={`Страница ${index + 1}`}
                             className="w-full h-full object-cover"
                           />

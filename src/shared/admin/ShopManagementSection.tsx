@@ -3,7 +3,8 @@
 import React, { useState, useMemo } from "react";
 import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import type { Decoration, DecorationRarity } from "@/api/shop";
-import { getDecorationImageUrl } from "@/api/shop";
+import { getDecorationImageUrls } from "@/api/shop";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import type { DecorationType } from "@/api/shop";
 import {
   useGetDecorationsQuery,
@@ -342,9 +343,12 @@ export function ShopManagementSection() {
                     <td className="py-2 px-2">
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-[var(--muted)] flex items-center justify-center">
                         {d.imageUrl ? (
-                          <img
-                            src={getDecorationImageUrl(d.imageUrl)}
+                          <OptimizedImage
+                            src={getDecorationImageUrls(d.imageUrl).primary}
+                            fallbackSrc={getDecorationImageUrls(d.imageUrl).fallback}
                             alt=""
+                            width={48}
+                            height={48}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -574,13 +578,13 @@ export function ShopManagementSection() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <img
-                    src={getDecorationImageUrl(form.imageUrl)}
+                  <OptimizedImage
+                    src={getDecorationImageUrls(form.imageUrl).primary}
+                    fallbackSrc={getDecorationImageUrls(form.imageUrl).fallback}
                     alt=""
+                    width={96}
+                    height={96}
                     className="w-full h-full object-cover"
-                    onError={e => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
                   />
                 )}
               </div>

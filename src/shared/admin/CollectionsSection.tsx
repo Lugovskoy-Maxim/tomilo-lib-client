@@ -33,10 +33,10 @@ import { Title } from "@/types/title";
 import Modal from "@/shared/modal/modal";
 import LoadingSkeleton from "@/shared/skeleton/skeleton";
 import { ErrorState as SharedErrorState } from "@/shared/error-state";
-import Image from "next/image";
 import Pagination from "@/shared/browse/pagination";
-import { baseUrl } from "@/api/config";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+import { getCoverUrls } from "@/lib/asset-url";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface CollectionsSectionProps {
   onTabChange?: (tab: string) => void;
@@ -412,30 +412,20 @@ export function CollectionsSection({}: CollectionsSectionProps) {
           </div>
         ) : (
           collections.map((collection: Collection, index: number) => {
-            const coverUrl = collection.cover
-              ? collection.cover.startsWith("http")
-                ? collection.cover
-                : `${baseUrl}${collection.cover.startsWith("/") ? "" : "/"}${collection.cover}`
-              : typeof IMAGE_HOLDER === "string"
-                ? IMAGE_HOLDER
-                : IMAGE_HOLDER.src;
+            const placeholderSrc = typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+            const { primary: coverUrl, fallback: coverFallback } = getCoverUrls(collection.cover, placeholderSrc);
             return (
               <div
                 key={`${collection.id}-${index}`}
                 className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden hover:border-[var(--primary)]/50 transition-colors flex flex-col"
               >
                 <div className="relative aspect-[3/4] bg-[var(--muted)]">
-                  <Image
+                  <OptimizedImage
                     src={coverUrl}
+                    fallbackSrc={coverFallback}
                     alt={collection.name}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    unoptimized
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
-                    }}
                   />
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
@@ -673,13 +663,10 @@ function CollectionModal({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const imageCover = (): string => {
-    if (previewUrl && previewUrl.startsWith("data:")) return previewUrl;
-    const cover = formData?.cover;
-    if (cover) {
-      return cover.startsWith("http") ? cover : `${baseUrl}${cover.startsWith("/") ? "" : "/"}${cover}`;
-    }
-    return typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+  const imageCoverUrls = (): { primary: string; fallback: string } => {
+    const placeholderSrc = typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+    if (previewUrl && previewUrl.startsWith("data:")) return { primary: previewUrl, fallback: previewUrl };
+    return getCoverUrls(formData?.cover, placeholderSrc);
   };
 
   return (
@@ -721,17 +708,12 @@ function CollectionModal({
           {(previewUrl || formData.cover || selectedFile) && (
             <div className="mb-4 flex justify-center">
               <div className="relative w-[200px] aspect-[2/3] rounded-[var(--admin-radius)] border border-[var(--border)] overflow-hidden bg-[var(--muted)]">
-                <Image
-                  src={imageCover()}
+                <OptimizedImage
+                  src={imageCoverUrls().primary}
+                  fallbackSrc={imageCoverUrls().fallback}
                   alt="Обложка коллекции"
                   fill
                   className="object-cover"
-                  sizes="200px"
-                  unoptimized
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
-                  }}
                 />
                 {selectedFile && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -872,11 +854,9 @@ function TitlesModal({
     onRemoveTitle(collection.id, titleId);
   };
 
-  const getTitleImageUrl = (t: Title) => {
-    const cover = t.coverImage;
-    if (!cover) return typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
-    if (cover.startsWith("http")) return cover;
-    return `${baseUrl}${cover.startsWith("/") ? "" : "/"}${cover}`;
+  const getTitleImageUrls = (t: Title) => {
+    const placeholderSrc = typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+    return getCoverUrls(t.coverImage, placeholderSrc);
   };
 
   return (
@@ -902,13 +882,12 @@ function TitlesModal({
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="relative w-10 h-14 flex-shrink-0 rounded overflow-hidden bg-[var(--muted)]">
-                        <Image
-                          src={getTitleImageUrl(titleData as Title)}
+                        <OptimizedImage
+                          src={getTitleImageUrls(titleData as Title).primary}
+                          fallbackSrc={getTitleImageUrls(titleData as Title).fallback}
                           alt={titleData.name}
                           fill
                           className="object-cover"
-                          sizes="40px"
-                          unoptimized
                         />
                       </div>
                       <span className="text-[var(--foreground)] truncate">{titleData.name}</span>
@@ -971,13 +950,12 @@ function TitlesModal({
                       }`}
                     >
                       <div className="relative w-8 h-11 flex-shrink-0 rounded overflow-hidden bg-[var(--muted)]">
-                        <Image
-                          src={getTitleImageUrl(title)}
+                        <OptimizedImage
+                          src={getTitleImageUrls(title).primary}
+                          fallbackSrc={getTitleImageUrls(title).fallback}
                           alt={title.name}
                           fill
                           className="object-cover"
-                          sizes="32px"
-                          unoptimized
                         />
                       </div>
                       <div className="min-w-0 flex-1">
