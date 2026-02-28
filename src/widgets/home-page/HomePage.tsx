@@ -107,15 +107,15 @@ export default function HomePage() {
         <LinesBackground />
         <Header />
         <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full">
-          <CarouselSkeleton cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52" variant="poster" />
-          <GridSkeleton showTitle variant="updates" />
+          <FeaturedTitleSkeleton />
+          <GridSkeleton showTitle variant="trending" />
           <GridSkeleton showTitle variant="updates" />
           <div className="w-full">
             <TopCombinedSkeleton />
           </div>
-          <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
+          <GridSkeleton showTitle variant="trending" />
           <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
-          <GridSkeleton showTitle variant="updates" />
+          <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
         </main>
         <Footer />
       </>
@@ -179,10 +179,10 @@ export default function HomePage() {
           sectionId="trending"
           onVisible={handleSectionVisible}
           isVisible={!!visibleSections.trending}
-          skeleton={<GridSkeleton showTitle variant="updates" />}
+          skeleton={<GridSkeleton showTitle variant="trending" />}
         >
           {trendingTitles.loading ? (
-            <GridSkeleton showTitle variant="updates" />
+            <GridSkeleton showTitle variant="trending" />
           ) : trendingTitles.error ? (
             <SectionLoadError sectionTitle="В тренде на этой неделе" />
           ) : (
@@ -328,10 +328,10 @@ export default function HomePage() {
           sectionId="underrated"
           onVisible={handleSectionVisible}
           isVisible={!!visibleSections.underrated}
-          skeleton={<GridSkeleton showTitle variant="updates" />}
+          skeleton={<GridSkeleton showTitle variant="trending" />}
         >
           {underratedTitles.loading ? (
-            <GridSkeleton showTitle variant="updates" />
+            <GridSkeleton showTitle variant="trending" />
           ) : underratedTitles.error ? (
             <SectionLoadError sectionTitle="Недооцененные: высокий рейтинг, мало просмотров" />
           ) : (
@@ -409,7 +409,7 @@ export default function HomePage() {
           sectionId="random"
           onVisible={handleSectionVisible}
           isVisible={!!visibleSections.random}
-          skeleton={<GridSkeleton showTitle variant="updates" />}
+          skeleton={<GridSkeleton showTitle variant="trending" />}
         >
           <RandomTitlesComponent
             data={randomTitles.data}
