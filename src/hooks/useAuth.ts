@@ -178,7 +178,9 @@ export const useAuth = () => {
         updatedAt: result.data?.updatedAt,
       });
 
-      refetchProfile();
+      if (token) {
+        refetchProfile();
+      }
 
       return { success: true };
     } catch (error) {
@@ -223,7 +225,9 @@ export const useAuth = () => {
         updatedAt: result.data?.updatedAt,
       });
 
-      refetchProfile();
+      if (token) {
+        refetchProfile();
+      }
 
       return { success: true };
     } catch (error) {
@@ -386,7 +390,9 @@ export const useAuth = () => {
           return { success: false, error: errorMessage };
         }
 
-        refetchProfile();
+        if (token) {
+          refetchProfile();
+        }
         return { success: true, progress: result.data };
       };
 
@@ -428,7 +434,9 @@ export const useAuth = () => {
         // Retry once on backend version conflict (stale document version)
         if (isVersionConflict(message)) {
           try {
-            await refetchProfile();
+            if (token) {
+              await refetchProfile();
+            }
             return await tryAdd();
           } catch (retryError: unknown) {
             const retryMessage = getErrorMessage(retryError);
@@ -460,7 +468,9 @@ export const useAuth = () => {
         throw new Error(result.message || "Ошибка при удалении из истории чтения");
       }
 
-      refetchProfile();
+      if (token) {
+        refetchProfile();
+      }
 
       return { success: true };
     } catch (error) {

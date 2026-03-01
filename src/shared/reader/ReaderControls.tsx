@@ -14,13 +14,23 @@ import {
   List,
   Download,
   Wifi,
+  Sun,
+  Contrast,
+  Eye,
+  Columns,
+  ArrowLeftRight,
+  RotateCcw,
+  Maximize2,
+  Grid3X3,
+  Timer,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { ReportModal } from "@/shared/report/ReportModal";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
-import { useAutoScroll, useBookmark, useReaderSettings, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED } from "./hooks";
+import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED, type EyeComfortMode } from "./hooks";
+import PageThumbnails from "./PageThumbnails";
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -46,6 +56,7 @@ interface ReaderControlsProps {
   onPreloadChange?: (value: boolean) => void;
   preloadProgress?: number;
   onJumpToPage?: (page: number) => void;
+  chapterImages?: string[];
 }
 
 export default function ReaderControls({
@@ -72,6 +83,7 @@ export default function ReaderControls({
   onPreloadChange,
   preloadProgress = 0,
   onJumpToPage,
+  chapterImages = [],
 }: ReaderControlsProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -79,6 +91,8 @@ export default function ReaderControls({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isJumpPopoverOpen, setIsJumpPopoverOpen] = useState(false);
+  const [isPageGridOpen, setIsPageGridOpen] = useState(false);
+  const [readingTime, setReadingTime] = useState(0);
 
   // Custom hooks
   const {
@@ -102,7 +116,20 @@ export default function ReaderControls({
     setReadChaptersInRow,
     readingMode,
     setReadingMode,
-  } = useReaderSettings();
+    pageGap,
+    setPageGap,
+    brightness,
+    setBrightness,
+    contrast,
+    setContrast,
+    eyeComfortMode,
+    setEyeComfortMode,
+    doublePageMode,
+    setDoublePageMode,
+    fitMode,
+    setFitMode,
+    resetToDefaults,
+  } = useReaderSettingsContext();
 
   const {
     isPressing,
@@ -113,6 +140,29 @@ export default function ReaderControls({
     handleSimpleClick,
   } = useRefreshButton();
 
+  // Таймер чтения
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(Date.now());
+  
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+    
+    timerRef.current = setInterval(() => {
+      setReadingTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+    
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [currentChapter._id]);
+
+  const formatReadingTime = useCallback((seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  }, []);
 
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const desktopJumpPopoverRef = useRef<HTMLDivElement>(null);
@@ -464,6 +514,176 @@ export default function ReaderControls({
                   )}
                 </div>
               )}
+
+              {/* Разделитель */}
+              <div className="flex items-center gap-3 py-2">
+                <div className="flex-1 h-px bg-[var(--border)]" />
+                <span className="text-xs text-[var(--muted-foreground)] font-medium">Изображения</span>
+                <div className="flex-1 h-px bg-[var(--border)]" />
+              </div>
+
+              {/* Яркость */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sun className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  <label className="text-xs font-medium">Яркость: {brightness}%</label>
+                  {brightness !== 100 && (
+                    <button
+                      onClick={() => setBrightness(100)}
+                      className="ml-auto text-[10px] text-[var(--primary)] hover:underline"
+                    >
+                      Сброс
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="5"
+                  value={brightness}
+                  onChange={e => setBrightness(Number(e.target.value))}
+                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
+                />
+              </div>
+
+              {/* Контраст */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Contrast className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  <label className="text-xs font-medium">Контраст: {contrast}%</label>
+                  {contrast !== 100 && (
+                    <button
+                      onClick={() => setContrast(100)}
+                      className="ml-auto text-[10px] text-[var(--primary)] hover:underline"
+                    >
+                      Сброс
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="5"
+                  value={contrast}
+                  onChange={e => setContrast(Number(e.target.value))}
+                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
+                />
+              </div>
+
+              {/* Режим защиты глаз */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  <label className="text-xs font-medium">Защита глаз</label>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {([
+                    { mode: "off", label: "Выкл", color: "bg-white border-gray-300" },
+                    { mode: "warm", label: "Тёплый", color: "bg-orange-100 border-orange-300" },
+                    { mode: "sepia", label: "Сепия", color: "bg-amber-100 border-amber-300" },
+                    { mode: "dark", label: "Тёмный", color: "bg-gray-800 border-gray-600" },
+                  ] as const).map(({ mode, label, color }) => (
+                    <button
+                      key={mode}
+                      onClick={() => setEyeComfortMode(mode)}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
+                        eyeComfortMode === mode
+                          ? "ring-2 ring-[var(--primary)] border-[var(--primary)]"
+                          : "border-[var(--border)] hover:border-[var(--primary)]/50"
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-full border ${color}`} />
+                      <span className="text-[10px]">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Отступы между страницами */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <ArrowLeftRight className="w-4 h-4 text-[var(--muted-foreground)] rotate-90" />
+                  <label className="text-xs font-medium">Отступ между страницами: {pageGap}px</label>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="10"
+                  value={pageGap}
+                  onChange={e => setPageGap(Number(e.target.value))}
+                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
+                />
+                <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] mt-1">
+                  <span>0px</span>
+                  <span>50px</span>
+                  <span>100px</span>
+                </div>
+              </div>
+
+              {/* Режим подгонки изображения */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Maximize2 className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  <label className="text-xs font-medium">Подгонка изображения</label>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {([
+                    { mode: "width", label: "Ширина" },
+                    { mode: "height", label: "Высота" },
+                    { mode: "auto", label: "Авто" },
+                    { mode: "original", label: "100%" },
+                  ] as const).map(({ mode, label }) => (
+                    <button
+                      key={mode}
+                      onClick={() => setFitMode(mode)}
+                      className={`px-2 py-1.5 text-[10px] rounded-lg transition-colors ${
+                        fitMode === mode
+                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                          : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Двойные страницы (только десктоп) - в разработке */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)] opacity-50">
+                <label className="flex items-center cursor-not-allowed">
+                  <input
+                    type="checkbox"
+                    checked={false}
+                    disabled
+                    className="sr-only"
+                  />
+                  <div className="relative w-11 h-6 bg-[var(--muted)] rounded-full">
+                    <div className="absolute top-1 left-1 bg-white w-4 h-4 rounded-full" />
+                  </div>
+                  <div className="ml-3">
+                    <span className="text-sm flex items-center gap-2">
+                      <Columns className="w-4 h-4" />
+                      Двойные страницы
+                      <span className="text-[9px] px-1.5 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full">Скоро</span>
+                    </span>
+                    <p className="text-[10px] text-[var(--muted-foreground)]">
+                      Показывать две страницы рядом (для широких экранов)
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Кнопка сброса настроек */}
+              <button
+                onClick={resetToDefaults}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] rounded-xl text-sm font-medium transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Сбросить все настройки
+              </button>
             </div>
           </div>
 
@@ -665,6 +885,118 @@ export default function ReaderControls({
                   )}
                 </div>
               )}
+
+              {/* Разделитель - мобильная версия */}
+              <div className="flex items-center gap-3 py-2">
+                <div className="flex-1 h-px bg-[var(--border)]" />
+                <span className="text-xs text-[var(--muted-foreground)] font-medium">Изображения</span>
+                <div className="flex-1 h-px bg-[var(--border)]" />
+              </div>
+
+              {/* Яркость - мобильная версия */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sun className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  <label className="text-xs font-medium">Яркость: {brightness}%</label>
+                  {brightness !== 100 && (
+                    <button
+                      onClick={() => setBrightness(100)}
+                      className="ml-auto text-[10px] text-[var(--primary)] hover:underline"
+                    >
+                      Сброс
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="5"
+                  value={brightness}
+                  onChange={e => setBrightness(Number(e.target.value))}
+                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+
+              {/* Контраст - мобильная версия */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Contrast className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  <label className="text-xs font-medium">Контраст: {contrast}%</label>
+                  {contrast !== 100 && (
+                    <button
+                      onClick={() => setContrast(100)}
+                      className="ml-auto text-[10px] text-[var(--primary)] hover:underline"
+                    >
+                      Сброс
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="5"
+                  value={contrast}
+                  onChange={e => setContrast(Number(e.target.value))}
+                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+
+              {/* Режим защиты глаз - мобильная версия */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="w-4 h-4 text-[var(--muted-foreground)]" />
+                  <label className="text-xs font-medium">Защита глаз</label>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {([
+                    { mode: "off", label: "Выкл", color: "bg-white border-gray-300" },
+                    { mode: "warm", label: "Тёплый", color: "bg-orange-100 border-orange-300" },
+                    { mode: "sepia", label: "Сепия", color: "bg-amber-100 border-amber-300" },
+                    { mode: "dark", label: "Тёмный", color: "bg-gray-800 border-gray-600" },
+                  ] as const).map(({ mode, label, color }) => (
+                    <button
+                      key={mode}
+                      onClick={() => setEyeComfortMode(mode)}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
+                        eyeComfortMode === mode
+                          ? "ring-2 ring-[var(--primary)] border-[var(--primary)]"
+                          : "border-[var(--border)] hover:border-[var(--primary)]/50"
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full border ${color}`} />
+                      <span className="text-[10px]">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Отступы между страницами - мобильная версия */}
+              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <ArrowLeftRight className="w-4 h-4 text-[var(--muted-foreground)] rotate-90" />
+                  <label className="text-xs font-medium">Отступ: {pageGap}px</label>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="10"
+                  value={pageGap}
+                  onChange={e => setPageGap(Number(e.target.value))}
+                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+
+              {/* Кнопка сброса настроек - мобильная версия */}
+              <button
+                onClick={resetToDefaults}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] rounded-xl text-sm font-medium transition-colors active:scale-95"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Сбросить настройки
+              </button>
             </div>
           </div>
         </div>
@@ -720,6 +1052,14 @@ export default function ReaderControls({
               </div>
             )}
           </div>
+        </div>
+
+        {/* Таймер чтения */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--card)]/90 border border-[var(--border)] rounded-full shadow-md backdrop-blur-sm">
+          <Timer className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+          <span className="text-xs font-medium tabular-nums text-[var(--foreground)]">
+            {formatReadingTime(readingTime)}
+          </span>
         </div>
 
         {/* Основные кнопки управления */}
@@ -784,6 +1124,17 @@ export default function ReaderControls({
           >
             <MessageCircle className={`w-5 h-5 ${isCommentsOpen ? "text-[var(--primary)]" : ""}`} />
           </button>
+
+          {/* Кнопка сетки страниц */}
+          {chapterImages.length > 0 && onJumpToPage && (
+            <button
+              onClick={() => setIsPageGridOpen(true)}
+              className="p-3 min-h-[44px] min-w-[44px] flex items-center justify-center relative bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95"
+              title="Сетка страниц"
+            >
+              <Grid3X3 className="w-5 h-5" />
+            </button>
+          )}
 
           {/* Кнопка обновления страницы с удержанием */}
           <div className="relative">
@@ -1199,6 +1550,18 @@ export default function ReaderControls({
         }`}
         titleId={titleId}
       />
+
+      {/* Сетка страниц */}
+      {chapterImages.length > 0 && onJumpToPage && (
+        <PageThumbnails
+          images={chapterImages}
+          currentPage={currentPage}
+          onPageSelect={onJumpToPage}
+          chapterNumber={currentChapter.number}
+          isOpen={isPageGridOpen}
+          onClose={() => setIsPageGridOpen(false)}
+        />
+      )}
     </>
   );
 }

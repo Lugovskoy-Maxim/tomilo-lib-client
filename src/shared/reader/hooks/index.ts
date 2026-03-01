@@ -1,4 +1,22 @@
 export { useAutoScroll, type AutoScrollSpeed } from './useAutoScroll';
 export { useBookmark } from './useBookmark';
-export { useReaderSettings, READ_CHAPTERS_IN_ROW_ENABLED, type ReadingMode } from './useReaderSettings';
+export { 
+  useReaderSettings,
+  useReaderSettingsContext,
+  ReaderSettingsProvider,
+  READ_CHAPTERS_IN_ROW_ENABLED, 
+  type ReadingMode,
+  type EyeComfortMode,
+  type FitMode,
+  type ReadingDirection,
+} from './useReaderSettings';
 export { useRefreshButton } from './useRefreshButton';
+export { 
+  useImageLoader,
+  saveLoadingStrategy,
+  getLoadingStrategy,
+  saveImageQuality,
+  getImageQuality,
+  type LoadingStrategy,
+  type ImageQuality,
+} from './useImageLoader';

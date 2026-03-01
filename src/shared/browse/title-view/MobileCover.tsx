@@ -4,7 +4,6 @@ import { Title, Chapter } from "@/types/title";
 import type { ReadingHistoryEntry } from "@/types/store";
 import { ReadButton } from "@/shared/browse/ReadButton";
 import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
-import { SubscribeButton } from "./SubscribeButton";
 import { useAuth } from "@/hooks/useAuth";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useState } from "react";
@@ -20,7 +19,6 @@ interface MobileCoverProps {
   isAdmin: boolean;
   onAgeVerificationRequired: () => void;
   onTabChange?: (tab: "main" | "chapters" | "comments") => void;
-  onLoginRequired?: () => void;
 }
 
 export default function MobileCover({
@@ -30,7 +28,6 @@ export default function MobileCover({
   onShare,
   isAdmin,
   onAgeVerificationRequired,
-  onLoginRequired,
 }: MobileCoverProps) {
   const { user } = useAuth();
   const isAdultContent = titleData.isAdult || (titleData.ageLimit && titleData.ageLimit >= 18);
@@ -80,42 +77,39 @@ export default function MobileCover({
             className="flex-1 rounded-xl py-3 font-semibold shadow-md"
             onAgeVerificationRequired={onAgeVerificationRequired}
           />
-          <div className="shrink-0">
-            <BookmarkButton
-              titleId={titleData._id as string}
-              initialBookmarked={false}
-              className="!p-0 w-12 h-12 min-w-[48px] rounded-xl flex items-center justify-center"
-            />
-          </div>
+          <BookmarkButton
+            titleId={titleData._id as string}
+            initialBookmarked={false}
+            className="!p-0 w-12 h-12 min-w-[48px] rounded-xl flex items-center justify-center shrink-0"
+          />
         </div>
         
         {/* Вторичные действия */}
         <div className="flex gap-2">
-          <SubscribeButton
-            titleId={titleData._id as string}
-            onLoginRequired={onLoginRequired}
-          />
           <button
             onClick={() => setIsReportModalOpen(true)}
-            className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors"
+            className="flex-1 h-11 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors flex items-center justify-center gap-2"
             aria-label="Сообщить о проблеме"
           >
-            <AlertTriangle className="w-5 h-5" />
+            <AlertTriangle className="w-4 h-4" />
+            <span className="text-sm">Сообщить</span>
           </button>
           <button
             onClick={onShare}
-            className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors"
+            className="flex-1 h-11 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors flex items-center justify-center gap-2"
             aria-label="Поделиться"
           >
-            <Share className="w-5 h-5" />
+            <Share className="w-4 h-4" />
+            <span className="text-sm">Поделиться</span>
           </button>
           {isAdmin && (
             <Link
               href={`/admin/titles/edit/${titleData._id}`}
-              className="shrink-0 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors"
+              className="flex-1 h-11 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors flex items-center justify-center gap-2"
               aria-label="Редактировать"
             >
-              <Edit className="w-5 h-5 text-[var(--foreground)]" />
+              <Edit className="w-4 h-4" />
+              <span className="text-sm">Изменить</span>
             </Link>
           )}
         </div>

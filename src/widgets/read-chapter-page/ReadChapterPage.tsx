@@ -15,7 +15,7 @@ import { levelToRank } from "@/lib/rank-utils";
 import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
 import { useIncrementChapterViewsMutation, useLazyGetChapterByIdQuery } from "@/store/api/chaptersApi";
-import { useReaderSettings } from "@/shared/reader/hooks/useReaderSettings";
+import { useReaderSettingsContext, ReaderSettingsProvider } from "@/shared/reader/hooks/useReaderSettings";
 import { getImageUrls } from "@/lib/asset-url";
 
 import {
@@ -56,11 +56,42 @@ export default function ReadChapterPage({
   chapters: ReaderChapter[];
   slug?: string;
 }) {
+  return (
+    <ReaderSettingsProvider>
+      <ReadChapterPageContent
+        title={title}
+        chapter={chapter}
+        chapters={chapters}
+        slug={slug}
+      />
+    </ReaderSettingsProvider>
+  );
+}
+
+function ReadChapterPageContent({
+  title,
+  chapter,
+  chapters,
+  slug,
+}: {
+  title: ReaderTitle;
+  chapter: ReaderChapter;
+  chapters: ReaderChapter[];
+  slug?: string;
+}) {
   const router = useRouter();
 
   const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
   const { showExpGain, showLevelUp, showAchievement } = useProgressNotification();
-  const { readChaptersInRow, readingMode } = useReaderSettings();
+  const { 
+    readChaptersInRow, 
+    readingMode, 
+    pageGap, 
+    brightness, 
+    contrast, 
+    eyeComfortMode, 
+    fitMode,
+  } = useReaderSettingsContext();
   const [fetchChapterById] = useLazyGetChapterByIdQuery();
 
   const [incrementChapterViews] = useIncrementChapterViewsMutation();
@@ -244,6 +275,48 @@ export default function ReadChapterPage({
     if (!url) return "";
     return getImageUrls(url).primary;
   }, []);
+
+  // CSS фильтры для изображений (яркость, контраст, режим защиты глаз)
+  const imageFilterStyle = useMemo((): React.CSSProperties => {
+    const filters: string[] = [];
+    
+    if (brightness !== 100) {
+      filters.push(`brightness(${brightness / 100})`);
+    }
+    if (contrast !== 100) {
+      filters.push(`contrast(${contrast / 100})`);
+    }
+    
+    switch (eyeComfortMode) {
+      case "warm":
+        filters.push("sepia(15%)");
+        break;
+      case "sepia":
+        filters.push("sepia(40%)");
+        break;
+      case "dark":
+        filters.push("brightness(0.85) saturate(0.9)");
+        break;
+    }
+    
+    return filters.length > 0 ? { filter: filters.join(" ") } : {};
+  }, [brightness, contrast, eyeComfortMode]);
+
+
+  // Стиль подгонки изображения
+  const imageFitClass = useMemo(() => {
+    switch (fitMode) {
+      case "width":
+        return "w-full h-auto";
+      case "height":
+        return "h-screen w-auto max-w-full mx-auto";
+      case "original":
+        return "w-auto h-auto max-w-full";
+      case "auto":
+      default:
+        return "w-full max-w-full h-auto";
+    }
+  }, [fitMode]);
 
   // Функция загрузчика изображений с поддержкой ширины
   const imageLoader = useCallback(
@@ -839,9 +912,13 @@ export default function ReadChapterPage({
         onClose={() => setIsRestoreModalOpen(false)}
         onRestore={() => restorePosition(savedReadingPage || 1)}
         onReset={resetPosition}
+        onJumpToPage={(page) => {
+          restorePosition(page);
+        }}
         page={savedReadingPage || 1}
         timestamp={savedPositionTimestamp}
         totalPages={chapter.images.length}
+        chapterTitle={chapter.title ? `Глава ${chapter.number} - ${chapter.title}` : `Глава ${chapter.number}`}
       />
 
       {/* Индикатор предзагрузки */}
@@ -917,6 +994,7 @@ export default function ReadChapterPage({
           }
           setCurrentPage(page);
         }}
+        chapterImages={effectiveChapter.images}
       />
 
       {/* Хедер */}
@@ -994,14 +1072,19 @@ export default function ReadChapterPage({
                         loadedInChapter.has(i),
                       );
                     return (
-                      <div key={`${ch._id}-${imageIndex}`} className="flex justify-center">
+                      <div 
+                        key={`${ch._id}-${imageIndex}`} 
+                        className="flex justify-center"
+                        style={{ marginBottom: `${pageGap}px` }}
+                      >
                         <div
                           className="relative w-full flex justify-center px-0 sm:px-4"
                           data-page={imageIndex + 1}
                           style={{
                             maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                             opacity: visible ? 1 : 0,
-                            transition: "opacity 200ms ease-out",
+                            transition: "opacity 200ms ease-out, filter 200ms ease-out",
+                            ...imageFilterStyle,
                           }}
                         >
                           {!isError ? (
@@ -1012,7 +1095,7 @@ export default function ReadChapterPage({
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                              className="w-full h-auto shadow-lg sm:shadow-2xl cursor-zoom-in"
+                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in`}
                               quality={85}
                               loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
                               onLoad={() =>
@@ -1114,6 +1197,8 @@ export default function ReadChapterPage({
                         data-page={imageIndex + 1}
                         style={{
                           maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                          transition: "filter 200ms ease-out",
+                          ...imageFilterStyle,
                         }}
                         onClick={() => handleImageDoubleTap(imageUrl, `Глава ${chapter.number}, Страница ${imageIndex + 1}`)}
                       >
@@ -1126,7 +1211,7 @@ export default function ReadChapterPage({
                               alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                              className="w-full h-auto shadow-lg sm:shadow-2xl cursor-zoom-in"
+                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in`}
                               quality={85}
                               loading="eager"
                               onError={() => handleImageError(chapter._id, imageIndex, src)}
@@ -1234,14 +1319,19 @@ export default function ReadChapterPage({
                   );
 
                 return (
-                  <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center">
+                  <div 
+                    key={`${chapter._id}-${imageIndex}`} 
+                    className="flex justify-center"
+                    style={{ marginBottom: `${pageGap}px` }}
+                  >
                     <div
                       className="relative w-full flex justify-center px-0 sm:px-4"
                       data-page={imageIndex + 1}
                       style={{
                         maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                         opacity: visible ? 1 : 0,
-                        transition: "opacity 200ms ease-out",
+                        transition: "opacity 200ms ease-out, filter 200ms ease-out",
+                        ...imageFilterStyle,
                       }}
                     >
                       {!isError ? (
@@ -1252,7 +1342,7 @@ export default function ReadChapterPage({
                           alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
                           width={isMobile ? 800 : imageWidth}
                           height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                          className="w-full h-auto shadow-lg sm:shadow-2xl"
+                          className={`${imageFitClass} shadow-lg sm:shadow-2xl`}
                           quality={
                             imageLoadPriority.size > 0
                               ? (() => {

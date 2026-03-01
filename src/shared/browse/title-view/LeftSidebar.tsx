@@ -9,7 +9,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { getCoverUrls } from "@/lib/asset-url";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { TitleAutoParsingManager } from "./TitleAutoParsingManager";
-import { SubscribeButton } from "./SubscribeButton";
 
 interface LeftSidebarProps {
   titleData: Title;
@@ -18,7 +17,6 @@ interface LeftSidebarProps {
   onShare: () => void;
   isAdmin: boolean;
   onAgeVerificationRequired: () => void;
-  onLoginRequired?: () => void;
   onReportClick?: (data: {
     entityType: "title" | "chapter";
     entityId: string;
@@ -35,7 +33,6 @@ export function LeftSidebar({
   onShare,
   isAdmin,
   onAgeVerificationRequired,
-  onLoginRequired,
   onReportClick,
 }: LeftSidebarProps) {
   const router = useRouter();
@@ -84,10 +81,6 @@ export function LeftSidebar({
           titleId={titleData._id as string}
           initialBookmarked={false}
           className="w-full py-3 px-4 text-sm font-medium"
-        />
-        <SubscribeButton
-          titleId={titleData._id as string}
-          onLoginRequired={onLoginRequired}
         />
         <div className="grid grid-cols-2 gap-2">
           <button
