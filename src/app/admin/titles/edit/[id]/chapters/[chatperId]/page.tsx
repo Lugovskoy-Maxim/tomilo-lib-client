@@ -15,8 +15,8 @@ import {
 } from "@/store/api/chaptersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { UpdateChapterDto } from "@/types/title";
-import { Chapter } from "@/types/chapter";
 import { ImagePreviewModal } from "@/shared/admin/ImagePreviewModal";
+import { TranslatorTeamSelect } from "@/shared/admin/TranslatorTeamSelect";
 import { Button } from "@/shared/ui/button";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { getImageUrls } from "@/lib/asset-url";
@@ -25,6 +25,19 @@ import { Header } from "@/widgets";
 
 interface FormActionsProps {
   isSaving: boolean;
+}
+
+interface ChapterFormData {
+  _id: string;
+  chapterNumber: number | string;
+  name?: string;
+  pages: string[];
+  views: number | string;
+  translator?: string;
+  proofreader?: string;
+  qualityCheck?: string;
+  translatorTeamId?: string;
+  translatorTeamName?: string;
 }
 
 export default function ChapterEditorPage() {
@@ -40,12 +53,17 @@ export default function ChapterEditorPage() {
   } = useGetChapterByIdQuery(chapterId, { skip: !chapterId });
   const { data: titleData } = useGetTitleByIdQuery({ id: titleId }, { skip: !titleId });
 
-  const [formData, setFormData] = useState<Chapter>({
+  const [formData, setFormData] = useState<ChapterFormData>({
     _id: "",
     chapterNumber: 0,
     name: "",
     pages: [],
     views: 0,
+    translator: "",
+    proofreader: "",
+    qualityCheck: "",
+    translatorTeamId: undefined,
+    translatorTeamName: undefined,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -64,10 +82,18 @@ export default function ChapterEditorPage() {
 
   useEffect(() => {
     if (chapter && chapter._id !== formData._id) {
-      // Ensure pages is always array
+      const chapterData = chapter as ChapterFormData & typeof chapter;
       setFormData({
-        ...chapter,
-        pages: chapter.pages ?? [],
+        _id: chapterData._id,
+        chapterNumber: chapterData.chapterNumber,
+        name: chapterData.name,
+        pages: chapterData.pages ?? [],
+        views: chapterData.views,
+        translator: chapterData.translator ?? "",
+        proofreader: chapterData.proofreader ?? "",
+        qualityCheck: chapterData.qualityCheck ?? "",
+        translatorTeamId: chapterData.translatorTeamId,
+        translatorTeamName: chapterData.translatorTeamName,
       });
     } else if (apiError) {
       toast.error("Ошибка при загрузке данных главы");
@@ -75,16 +101,15 @@ export default function ChapterEditorPage() {
   }, [chapter, apiError, toast, formData._id]);
 
   const handleInputChange =
-    (field: keyof Chapter) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    (field: keyof ChapterFormData) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       let value: string | string[] = e.target.value;
       if (field === "pages") {
-        // This won't be used here because pages editing is textarea JSON, handled separately
         return;
       }
-      if (field === "chapterNumber" /* || field === "views"*/) {
+      if (field === "chapterNumber") {
         value = e.target.value;
       }
-      setFormData((prev: Chapter) => ({ ...prev, [field]: value }));
+      setFormData((prev: ChapterFormData) => ({ ...prev, [field]: value }));
     };
 
   const handleDeleteImage = (index: number) => {
@@ -226,6 +251,11 @@ export default function ChapterEditorPage() {
               : 0,
         name: formData.name,
         pages: filteredPages,
+        translator: formData.translator || undefined,
+        proofreader: formData.proofreader || undefined,
+        qualityCheck: formData.qualityCheck || undefined,
+        translatorTeamId: formData.translatorTeamId,
+        translatorTeamName: formData.translatorTeamName,
       };
 
       const result = await updateChapterMutation({
@@ -335,7 +365,7 @@ export default function ChapterEditorPage() {
                     type="number"
                     value={formData.chapterNumber}
                     onChange={e =>
-                      setFormData((prev: Chapter) => ({
+                      setFormData((prev: ChapterFormData) => ({
                         ...prev,
                         chapterNumber: e.target.value ? parseFloat(e.target.value) : 0,
                       }))
@@ -345,6 +375,73 @@ export default function ChapterEditorPage() {
                     min={0}
                     step="any"
                     placeholder="Например: 1, 1.5, 10.1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Секция команды перевода */}
+            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Команда перевода</h2>
+              
+              <div className="pb-4 border-b border-[var(--border)]">
+                <TranslatorTeamSelect
+                  titleId={titleId}
+                  selectedTeamId={formData.translatorTeamId}
+                  onSelect={(teamId, teamName) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      translatorTeamId: teamId,
+                      translatorTeamName: teamName,
+                    }));
+                  }}
+                  label="Команда перевода"
+                  placeholder="Выберите команду переводчиков"
+                />
+                <p className="text-xs text-[var(--muted-foreground)] mt-2">
+                  Выберите команду переводчиков, которая работала над этой главой
+                </p>
+              </div>
+
+              <h3 className="text-sm font-medium text-[var(--foreground)] pt-2">Участники (вручную)</h3>
+              <p className="text-xs text-[var(--muted-foreground)] -mt-2">
+                Если команда не зарегистрирована, можно указать участников вручную
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-[var(--foreground)]">
+                    Переводчик
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.translator ?? ""}
+                    onChange={handleInputChange("translator")}
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
+                    placeholder="Имя переводчика"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-[var(--foreground)]">
+                    Редактор
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.proofreader ?? ""}
+                    onChange={handleInputChange("proofreader")}
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
+                    placeholder="Имя редактора"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block mb-1 text-sm font-medium text-[var(--foreground)]">
+                    QC
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.qualityCheck ?? ""}
+                    onChange={handleInputChange("qualityCheck")}
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
+                    placeholder="Имя проверяющего качество"
                   />
                 </div>
               </div>

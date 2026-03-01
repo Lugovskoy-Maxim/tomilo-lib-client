@@ -6,8 +6,17 @@ import type { BookmarkEntry, BookmarkCategory } from "@/types/user";
 import type { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import BookmarkCard from "@/shared/bookmark-card/BookmarkCard";
-import { Bookmark, ChevronUp } from "lucide-react";
+import { Bookmark, ChevronUp, Search, ArrowUpDown, X } from "lucide-react";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+
+type SortOption = "name" | "progress" | "chapters" | "recent";
+
+const SORT_LABELS: Record<SortOption, string> = {
+  name: "По названию",
+  progress: "По прогрессу",
+  chapters: "По главам",
+  recent: "Недавние",
+};
 
 function getTitleIdFromHistoryEntry(entry: ReadingHistoryEntry): string {
   return typeof entry.titleId === "string" ? entry.titleId : entry.titleId?._id ?? "";
@@ -193,6 +202,9 @@ function BookmarkCategorySection({
 function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSectionHeader = true }: BookmarksSectionProps) {
   const normalized = useMemo(() => normalizeBookmarks(bookmarks), [bookmarks]);
   const [currentBookmarks, setCurrentBookmarks] = useState(normalized);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("recent");
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   useEffect(() => {
     setCurrentBookmarks(normalizeBookmarks(bookmarks));
@@ -213,16 +225,58 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
     return map;
   }, [readingHistory]);
 
+  const filteredBookmarks = useMemo(() => {
+    if (!searchQuery.trim()) return currentBookmarks;
+    const query = searchQuery.toLowerCase().trim();
+    return currentBookmarks.filter(entry => {
+      const name = entry.title?.name?.toLowerCase() ?? "";
+      return name.includes(query);
+    });
+  }, [currentBookmarks, searchQuery]);
+
+  const sortedBookmarks = useMemo(() => {
+    const sorted = [...filteredBookmarks];
+    switch (sortBy) {
+      case "name":
+        sorted.sort((a, b) => (a.title?.name ?? "").localeCompare(b.title?.name ?? ""));
+        break;
+      case "progress": {
+        sorted.sort((a, b) => {
+          const aTotal = a.title?.totalChapters ?? 0;
+          const bTotal = b.title?.totalChapters ?? 0;
+          const aRead = chaptersReadByTitleId.get(a.titleId) ?? 0;
+          const bRead = chaptersReadByTitleId.get(b.titleId) ?? 0;
+          const aProgress = aTotal > 0 ? aRead / aTotal : 0;
+          const bProgress = bTotal > 0 ? bRead / bTotal : 0;
+          return bProgress - aProgress;
+        });
+        break;
+      }
+      case "chapters": {
+        sorted.sort((a, b) => {
+          const aTotal = a.title?.totalChapters ?? 0;
+          const bTotal = b.title?.totalChapters ?? 0;
+          return bTotal - aTotal;
+        });
+        break;
+      }
+      case "recent":
+      default:
+        break;
+    }
+    return sorted;
+  }, [filteredBookmarks, sortBy, chaptersReadByTitleId]);
+
   const byCategory = useMemo(() => {
     const map = new Map<BookmarkCategory, BookmarkEntry[]>();
     CATEGORY_ORDER.forEach(c => map.set(c, []));
-    currentBookmarks.forEach(entry => {
+    sortedBookmarks.forEach(entry => {
       const list = map.get(entry.category) ?? [];
       list.push(entry);
       map.set(entry.category, list);
     });
     return map;
-  }, [currentBookmarks]);
+  }, [sortedBookmarks]);
 
   const categoriesWithCount = useMemo(
     () =>
@@ -246,35 +300,149 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
 
   if (!currentBookmarks || currentBookmarks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 min-h-[240px]">
-        <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-4">
-          <Bookmark className="h-8 w-8 text-[var(--primary)]" />
+      <div className="flex flex-col items-center justify-center py-10 px-4 min-h-[280px]">
+        <div className="relative mb-5">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 flex items-center justify-center border border-[var(--primary)]/30 shadow-lg shadow-[var(--primary)]/10">
+            <Bookmark className="h-10 w-10 text-[var(--primary)]" />
+          </div>
+          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[var(--chart-2)] flex items-center justify-center text-white text-xs font-bold shadow-md">
+            0
+          </div>
         </div>
-        <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1">Нет закладок</h3>
-        <p className="text-sm text-[var(--muted-foreground)] text-center">
-          Сохраняйте тайтлы в закладки и распределяйте по категориям
+        <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">Закладки пусты</h3>
+        <p className="text-sm text-[var(--muted-foreground)] text-center max-w-sm mb-5">
+          Добавляйте тайтлы в закладки со страницы произведения, чтобы не потерять интересные истории
         </p>
+        <div className="flex flex-wrap gap-2 justify-center">
+          <a
+            href="/catalog"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity shadow-md"
+          >
+            <Bookmark className="w-4 h-4" />
+            Перейти в каталог
+          </a>
+        </div>
+        <div className="mt-6 grid grid-cols-5 gap-2 opacity-30">
+          {CATEGORY_ORDER.map(cat => (
+            <div key={cat} className="flex flex-col items-center gap-1 text-center">
+              <div className="w-8 h-8 rounded-lg bg-[var(--secondary)] flex items-center justify-center">
+                <Bookmark className="w-4 h-4 text-[var(--muted-foreground)]" />
+              </div>
+              <span className="text-[10px] text-[var(--muted-foreground)]">{CATEGORY_LABELS[cat]}</span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   const maxPerSection = showAll ? undefined : 6;
+  const hasFilters = searchQuery.trim().length > 0;
+  const noResults = hasFilters && sortedBookmarks.length === 0;
 
   return (
-    <div className="space-y-6 min-h-[280px] flex flex-col">
+    <div className="space-y-5 min-h-[280px] flex flex-col">
       {showSectionHeader && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <h2 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
-            <Bookmark className="h-4 w-4 text-[var(--primary)]" />
-            <span>Закладки</span>
-            <span className="text-xs font-normal text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-0.5 rounded-full">
-              {currentBookmarks.length}
-            </span>
-          </h2>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+              <Bookmark className="h-4 w-4 text-[var(--primary)]" />
+              <span>Закладки</span>
+              <span className="text-xs font-normal text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-0.5 rounded-full">
+                {currentBookmarks.length}
+              </span>
+            </h2>
+          </div>
+
+          {/* Поиск и сортировка */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+              <input
+                type="text"
+                placeholder="Поиск по названию..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[var(--primary)]/50 transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowSortMenu(prev => !prev)}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+              >
+                <ArrowUpDown className="w-4 h-4 text-[var(--muted-foreground)]" />
+                <span className="hidden sm:inline">{SORT_LABELS[sortBy]}</span>
+              </button>
+              {showSortMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowSortMenu(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-1 z-20 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[140px]">
+                    {(Object.keys(SORT_LABELS) as SortOption[]).map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setSortBy(option);
+                          setShowSortMenu(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                          sortBy === option
+                            ? "bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
+                            : "text-[var(--foreground)] hover:bg-[var(--accent)]"
+                        }`}
+                      >
+                        {SORT_LABELS[option]}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {hasFilters && (
+            <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+              <span>
+                Найдено: <span className="font-medium text-[var(--foreground)]">{sortedBookmarks.length}</span> из {currentBookmarks.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="text-[var(--primary)] hover:underline"
+              >
+                Сбросить
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {categoriesWithCount.map(({ category, label, count }) => (
+      {noResults && (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <Search className="w-12 h-12 text-[var(--muted-foreground)] opacity-50 mb-3" />
+          <p className="text-sm font-medium text-[var(--foreground)] mb-1">Ничего не найдено</p>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            Попробуйте изменить поисковый запрос
+          </p>
+        </div>
+      )}
+
+      {!noResults && categoriesWithCount.map(({ category, label, count }) => (
         <BookmarkCategorySection
           key={category}
           label={label}

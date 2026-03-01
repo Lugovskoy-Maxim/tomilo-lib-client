@@ -10,6 +10,7 @@ import { getCoverUrls } from "@/lib/asset-url";
 import { useIncrementViewsMutation, useGetTitleBySlugQuery } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import ErrorState from "@/shared/error-state/ErrorState";
 import MobileCover from "@/shared/browse/title-view/MobileCover";
 import { LeftSidebar } from "@/shared/browse/title-view/LeftSidebar";
@@ -21,6 +22,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
   const params = useParams();
   const slug = (typeof params?.slug === "string" ? params.slug : slugProp) ?? slugProp;
   const { user, useGetReadingHistoryByTitle } = useAuth();
+  const toast = useToast();
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportModalData, setReportModalData] = useState<{
@@ -49,25 +51,25 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
 
   const [incrementViews] = useIncrementViewsMutation();
 
-  // Load all chapters - try multiple pages if needed
+  // Load all chapters with a single request using high limit
   const { data: chaptersData, isLoading: chaptersLoading } = useGetChaptersByTitleQuery(
     {
       titleId,
       page: 1,
-      limit: 10000, // Use backend's max limit per page
+      limit: 1000,
       sortOrder,
     },
     {
-      skip: !titleId, // Skip if no titleId
+      skip: !titleId,
     },
   );
 
-  // Load additional pages if there are more chapters
+  // Load page 2 if there are more chapters
   const { data: chaptersDataPage2 } = useGetChaptersByTitleQuery(
     {
       titleId,
       page: 2,
-      limit: 100,
+      limit: 1000,
       sortOrder,
     },
     {
@@ -75,11 +77,12 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     },
   );
 
+  // Load page 3 if needed
   const { data: chaptersDataPage3 } = useGetChaptersByTitleQuery(
     {
       titleId,
       page: 3,
-      limit: 100,
+      limit: 1000,
       sortOrder,
     },
     {
@@ -87,40 +90,20 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     },
   );
 
-  const { data: chaptersDataPage4 } = useGetChaptersByTitleQuery(
-    {
-      titleId,
-      page: 4,
-      limit: 100,
-      sortOrder,
-    },
-    {
-      skip: !titleId || !chaptersDataPage3?.hasMore,
-    },
-  );
+  // Stub for unused pages to maintain compatibility
+  const chaptersDataPage4 = null;
+  const chaptersDataPage5 = null;
 
-  const { data: chaptersDataPage5 } = useGetChaptersByTitleQuery(
-    {
-      titleId,
-      page: 5,
-      limit: 100,
-      sortOrder,
-    },
-    {
-      skip: !titleId || !chaptersDataPage4?.hasMore,
-    },
-  );
-
-  // Load all chapters for ReadButton to ensure correct chapter determination
+  // Load all chapters for ReadButton (sorted asc for correct first/next chapter)
   const { data: allChaptersData } = useGetChaptersByTitleQuery(
     {
       titleId: titleId as string,
       page: 1,
-      limit: 100, // Use backend's max limit per page
+      limit: 1000,
       sortOrder: "asc",
     },
     {
-      skip: !titleId, // Skip if no titleId
+      skip: !titleId,
     },
   );
 
@@ -128,7 +111,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     {
       titleId: titleId as string,
       page: 2,
-      limit: 100,
+      limit: 1000,
       sortOrder: "asc",
     },
     {
@@ -140,7 +123,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     {
       titleId: titleId as string,
       page: 3,
-      limit: 100,
+      limit: 1000,
       sortOrder: "asc",
     },
     {
@@ -148,29 +131,9 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     },
   );
 
-  const { data: allChaptersDataPage4 } = useGetChaptersByTitleQuery(
-    {
-      titleId: titleId as string,
-      page: 4,
-      limit: 100,
-      sortOrder: "asc",
-    },
-    {
-      skip: !titleId || !allChaptersDataPage3?.hasMore,
-    },
-  );
-
-  const { data: allChaptersDataPage5 } = useGetChaptersByTitleQuery(
-    {
-      titleId: titleId as string,
-      page: 5,
-      limit: 100,
-      sortOrder: "asc",
-    },
-    {
-      skip: !titleId || !allChaptersDataPage4?.hasMore,
-    },
-  );
+  // Stub for unused pages to maintain compatibility
+  const allChaptersDataPage4 = null;
+  const allChaptersDataPage5 = null;
 
   // Обработка данных глав - комбинируем все загруженные страницы
   const processedChaptersData = useMemo(() => {
@@ -260,15 +223,23 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
   };
 
   // Обработчик поделиться
-  const handleShare = () => {
+  const handleShare = async () => {
     if (navigator.share) {
-      navigator.share({
-        title: titleData?.name,
-        text: `Посмотрите тайтл: ${titleData?.name}`,
-        url: window.location.href,
-      });
+      try {
+        await navigator.share({
+          title: titleData?.name,
+          text: `Посмотрите тайтл: ${titleData?.name}`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          navigator.clipboard.writeText(window.location.href);
+          toast.success("Ссылка скопирована в буфер обмена");
+        }
+      }
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Ссылка скопирована в буфер обмена");
     }
   };
 

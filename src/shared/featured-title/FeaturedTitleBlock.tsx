@@ -80,8 +80,12 @@ export default function FeaturedTitleBlock({
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
+  
+  const minSwipeDistance = 50;
 
   useEffect(() => {
     setIsAgeVerified(checkAgeVerification(user || null));
@@ -296,8 +300,33 @@ export default function FeaturedTitleBlock({
         className={`relative w-full overflow-hidden group ${hasHeader ? "rounded-xl sm:rounded-2xl" : ""}`}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setTimeout(() => setIsPaused(false), 3000)}
+        onTouchStart={(e) => {
+          setIsPaused(true);
+          setTouchEnd(null);
+          setTouchStart(e.targetTouches[0].clientX);
+        }}
+        onTouchMove={(e) => {
+          setTouchEnd(e.targetTouches[0].clientX);
+        }}
+        onTouchEnd={() => {
+          if (!touchStart || !touchEnd) {
+            setTimeout(() => setIsPaused(false), 3000);
+            return;
+          }
+          const distance = touchStart - touchEnd;
+          const isLeftSwipe = distance > minSwipeDistance;
+          const isRightSwipe = distance < -minSwipeDistance;
+          
+          if (isLeftSwipe && data.length > 1) {
+            goToNext();
+          } else if (isRightSwipe && data.length > 1) {
+            goToPrevious();
+          }
+          
+          setTouchStart(null);
+          setTouchEnd(null);
+          setTimeout(() => setIsPaused(false), 3000);
+        }}
       >
 
         {isAdultContent && !isAgeVerified && (
@@ -311,11 +340,148 @@ export default function FeaturedTitleBlock({
           </div>
         )}
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col min-h-[280px] sm:min-h-[340px] md:min-h-[420px] md:flex-row px-3 py-4 sm:px-6 sm:py-5 md:px-8 md:py-8 gap-3 sm:gap-5 md:gap-8">
-          <div className="relative w-full md:w-auto flex-shrink-0 flex justify-center md:block">
+        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-3 py-4 sm:px-6 sm:py-5 md:px-8 md:py-8 gap-4 sm:gap-5 md:gap-8">
+          {/* Мобильная версия: горизонтальная компоновка обложки и основной информации */}
+          <div className="flex md:hidden gap-3">
             <Link
               href={titlePath}
-              className="block relative w-28 sm:w-40 md:w-56 aspect-[2/3] rounded-lg sm:rounded-xl overflow-hidden shadow-2xl ring-1 ring-[var(--border)] transition-transform duration-300 hover:scale-[1.02] group/cover"
+              className="block relative w-32 min-w-[128px] aspect-[2/3] rounded-lg overflow-hidden shadow-xl ring-1 ring-[var(--border)] flex-shrink-0"
+              onClick={(e) => {
+                if (isAdultContent && !isAgeVerified) {
+                  e.preventDefault();
+                  setPendingAction(() => () => router.push(titlePath));
+                  setShowAgeModal(true);
+                }
+              }}
+            >
+              <OptimizedImage
+                className={`${isAdultContent && !isAgeVerified ? "blur-lg" : ""} absolute inset-0 w-full h-full object-cover object-center`}
+                src={imageSrc}
+                fallbackSrc={imageFallback}
+                errorSrc={IMAGE_HOLDER.src}
+                alt={currentItem.title}
+                fill
+                priority
+                draggable={false}
+                hidePlaceholder
+              />
+              {isAdultContent && isAgeVerified && (
+                <div className="absolute top-1 right-1 z-10">
+                  <div className="bg-red-500/80 backdrop-blur-sm text-white px-1 py-0.5 rounded text-[9px] font-bold">
+                    18+
+                  </div>
+                </div>
+              )}
+            </Link>
+
+            <div className="flex-1 min-w-0 flex flex-col">
+              {/* Бейджи: тип, год, рейтинг */}
+              <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--foreground)]">
+                  <Tag className="w-2.5 h-2.5" />
+                  {translateTitleType(currentItem.type)}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--foreground)]">
+                  {currentItem.year}
+                </span>
+                <RatingBadge rating={currentItem.rating} size="sm" variant="default" />
+              </div>
+
+              {/* Заголовок */}
+              <h3
+                className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-sm font-bold text-[var(--foreground)] leading-tight line-clamp-2 mb-2`}
+              >
+                {currentItem.title}
+              </h3>
+
+              {/* Жанры - компактно */}
+              {currentItem.genres && currentItem.genres.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {currentItem.genres.slice(0, 2).map((genre, idx) => (
+                    <span
+                      key={idx}
+                      className="px-1.5 py-0.5 rounded bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] font-medium"
+                    >
+                      {genre}
+                    </span>
+                  ))}
+                  {currentItem.genres.length > 2 && (
+                    <span className="px-1.5 py-0.5 rounded bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] font-medium">
+                      +{currentItem.genres.length - 2}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Кнопки действий - мобильная версия */}
+              <div className="flex gap-2 mt-auto">
+                <button
+                  onClick={handleReadClick}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-semibold shadow-lg shadow-[var(--primary)]/25 active:scale-[0.98]"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  Читать
+                </button>
+                <button
+                  ref={bookmarkButtonRef}
+                  onClick={handleBookmarkClick}
+                  disabled={bookmarkLoading}
+                  className={`px-3 py-2 rounded-lg text-xs font-semibold active:scale-[0.98] ${
+                    isBookmarked
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : "bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)]"
+                  } ${bookmarkLoading ? "opacity-50" : ""}`}
+                >
+                  {bookmarkLoading ? (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    <Bookmark className="w-4 h-4" fill={isBookmarked ? "currentColor" : "none"} />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Описание для мобильных - отдельно под карточкой */}
+          <div className="md:hidden pb-6">
+            <p
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-xs text-[var(--muted-foreground)] leading-relaxed ${
+                isDescriptionExpanded ? "" : "line-clamp-2"
+              }`}
+            >
+              {isDescriptionExpanded 
+                ? (currentItem.description || "Описание отсутствует")
+                : truncateDescription(currentItem.description, 120)
+              }
+            </p>
+            {currentItem.description && currentItem.description.length > 120 && (
+              <button
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                className="inline-flex items-center gap-1 text-[var(--primary)] text-xs font-medium mt-1.5"
+              >
+                {isDescriptionExpanded ? (
+                  <>
+                    Свернуть
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  </>
+                ) : (
+                  <>
+                    Развернуть
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* Десктопная версия обложки */}
+          <div className="hidden md:block relative flex-shrink-0">
+            <Link
+              href={titlePath}
+              className="block relative w-56 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl ring-1 ring-[var(--border)] transition-transform duration-300 hover:scale-[1.02] group/cover"
               onClick={(e) => {
                 if (isAdultContent && !isAgeVerified) {
                   e.preventDefault();
@@ -336,125 +502,125 @@ export default function FeaturedTitleBlock({
                 hidePlaceholder
               />
               {isAdultContent && isAgeVerified && (
-                <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
-                  <div className="bg-red-500/80 backdrop-blur-sm text-white px-1.5 py-0.5 sm:px-2 rounded text-[10px] sm:text-xs font-bold">
+                <div className="absolute top-2 right-2 z-10">
+                  <div className="bg-red-500/80 backdrop-blur-sm text-white px-2 py-0.5 rounded text-xs font-bold">
                     18+
                   </div>
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/cover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3 sm:pb-4">
-                <span className="text-white text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-1.5">
-                  <Play className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/cover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+                <span className="text-white text-sm font-medium flex items-center gap-1.5">
+                  <Play className="w-4 h-4 fill-current" />
                   Читать
                 </span>
               </div>
             </Link>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center min-w-0 text-center md:text-left">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-              <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
-                <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+          {/* Десктопный контент */}
+          <div className="hidden md:flex flex-1 flex-col justify-center min-w-0 text-left">
+            <div className="flex flex-wrap items-center justify-start gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-[var(--foreground)]">
+                <Tag className="w-3 h-3" />
                 {translateTitleType(currentItem.type)}
               </span>
-              <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
-                <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-[var(--foreground)]">
+                <Calendar className="w-3 h-3" />
                 {currentItem.year}
               </span>
               <RatingBadge rating={currentItem.rating} size="sm" variant="default" />
               {currentItem.views && (
-                <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
-                  <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-[var(--foreground)]">
+                  <Eye className="w-3 h-3" />
                   {formatViews(currentItem.views)}
                 </span>
               )}
             </div>
 
             <h3
-              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-base sm:text-xl md:text-3xl font-bold text-[var(--foreground)] mb-1.5 sm:mb-3 leading-tight line-clamp-2`}
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-3xl font-bold text-[var(--foreground)] mb-3 leading-tight line-clamp-2`}
             >
               {currentItem.title}
             </h3>
 
             {currentItem.genres && currentItem.genres.length > 0 && (
-              <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-2 sm:mb-4 justify-center md:justify-start">
-                {currentItem.genres.slice(0, 3).map((genre, idx) => (
+              <div className="flex flex-wrap gap-1.5 mb-4 justify-start">
+                {currentItem.genres.slice(0, 4).map((genre, idx) => (
                   <span
                     key={idx}
-                    className="px-1.5 py-0.5 sm:px-2 rounded-md bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] sm:text-xs font-medium border border-[var(--border)]"
+                    className="px-2 py-0.5 rounded-md bg-[var(--accent)] text-[var(--muted-foreground)] text-xs font-medium border border-[var(--border)]"
                   >
                     {genre}
                   </span>
                 ))}
-                {currentItem.genres.length > 3 && (
-                  <span className="px-1.5 py-0.5 sm:px-2 rounded-md bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] sm:text-xs font-medium border border-[var(--border)]">
-                    +{currentItem.genres.length - 3}
+                {currentItem.genres.length > 4 && (
+                  <span className="px-2 py-0.5 rounded-md bg-[var(--accent)] text-[var(--muted-foreground)] text-xs font-medium border border-[var(--border)]">
+                    +{currentItem.genres.length - 4}
                   </span>
                 )}
               </div>
             )}
 
-            <div className="relative mb-3 sm:mb-4 md:mb-6 max-w-2xl mx-auto md:mx-0">
+            <div className="relative mb-6 max-w-2xl">
               <p
-                className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-xs sm:text-sm md:text-base text-[var(--muted-foreground)] leading-relaxed ${
-                  isDescriptionExpanded ? "" : "line-clamp-2 sm:line-clamp-3 md:line-clamp-4"
+                className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-base text-[var(--muted-foreground)] leading-relaxed ${
+                  isDescriptionExpanded ? "" : "line-clamp-4"
                 } transition-all duration-300`}
               >
                 {isDescriptionExpanded 
                   ? (currentItem.description || "Описание отсутствует")
-                  : truncateDescription(currentItem.description, 180)
+                  : truncateDescription(currentItem.description, 250)
                 }
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-1.5 sm:gap-3 justify-center md:justify-start items-stretch mb-6 sm:mb-8">
+            <div className="flex flex-wrap gap-3 justify-start items-stretch mb-8">
               <button
                 onClick={handleReadClick}
-                className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)]/85 text-[var(--primary-foreground)] text-xs sm:text-base font-semibold transition-all duration-200 shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40 active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)]/85 text-[var(--primary-foreground)] text-base font-semibold transition-all duration-200 shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40 active:scale-[0.98]"
               >
-                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
+                <BookOpen className="w-4 h-4" />
                 Читать
               </button>
               <button
                 onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-[var(--secondary)] hover:bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)] text-xs sm:text-base font-semibold transition-all duration-200 active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--secondary)] hover:bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)] text-base font-semibold transition-all duration-200 active:scale-[0.98]"
               >
                 {isDescriptionExpanded ? (
                   <>
-                    <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <ChevronUp className="w-4 h-4" />
                     Свернуть
                   </>
                 ) : (
                   <>
-                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <ChevronDown className="w-4 h-4" />
                     Подробнее
                   </>
                 )}
               </button>
               <div ref={dropdownRef} className={`relative ${categoryOpen ? "z-[60]" : "z-30"}`}>
                 <button
-                  ref={bookmarkButtonRef}
                   onClick={handleBookmarkClick}
                   disabled={bookmarkLoading}
-                  className={`inline-flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-5 sm:py-2.5 h-full rounded-lg sm:rounded-xl text-xs sm:text-base font-semibold transition-all duration-200 active:scale-[0.98] ${
+                  className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 h-full rounded-xl text-base font-semibold transition-all duration-200 active:scale-[0.98] ${
                     isBookmarked
                       ? "bg-[var(--primary)] hover:bg-[var(--primary)]/85 text-[var(--primary-foreground)] shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40"
                       : "bg-[var(--secondary)] hover:bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)]"
                   } ${bookmarkLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {bookmarkLoading ? (
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                   ) : (
-                    <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" fill={isBookmarked ? "currentColor" : "none"} />
+                    <Bookmark className="w-4 h-4" fill={isBookmarked ? "currentColor" : "none"} />
                   )}
                   {isBookmarked ? "В закладках" : "В закладки"}
                 </button>
                 {categoryOpen && !bookmarkLoading && (
-                  <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 bottom-full mb-2 z-50 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[140px] sm:min-w-[160px]">
-                    <p className="px-2.5 sm:px-3 py-1 sm:py-1.5 text-[9px] sm:text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
+                  <div className="absolute left-0 bottom-full mb-2 z-50 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]">
+                    <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
                       Добавить в категорию
                     </p>
                     {CATEGORIES.map(cat => (
@@ -462,7 +628,7 @@ export default function FeaturedTitleBlock({
                         key={cat}
                         type="button"
                         onClick={() => handleAddWithCategory(cat)}
-                        className="w-full text-left px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent)] active:bg-[var(--accent)] first:rounded-t-none rounded-none last:rounded-b-lg"
+                        className="w-full text-left px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent)] active:bg-[var(--accent)] first:rounded-t-none rounded-none last:rounded-b-lg"
                       >
                         {CATEGORY_LABELS[cat]}
                       </button>
@@ -475,36 +641,37 @@ export default function FeaturedTitleBlock({
 
           {data.length > 1 && (
             <>
+              {/* Навигация для десктопа */}
               <button
                 onClick={goToPrevious}
-                className="absolute left-1 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-[var(--card)] backdrop-blur-sm border border-[var(--border)] flex items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-all duration-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 touch-manipulation"
+                className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-[var(--card)] backdrop-blur-sm border border-[var(--border)] items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100"
                 aria-label="Предыдущий"
               >
-                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                <ChevronLeft className="w-6 h-6" />
               </button>
               <button
                 onClick={goToNext}
-                className="absolute right-1 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-[var(--card)] backdrop-blur-sm border border-[var(--border)] flex items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-all duration-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 touch-manipulation"
+                className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-[var(--card)] backdrop-blur-sm border border-[var(--border)] items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100"
                 aria-label="Следующий"
               >
-                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                <ChevronRight className="w-6 h-6" />
               </button>
             </>
           )}
         </div>
 
         {data.length > 1 && (
-          <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none pb-2 sm:pb-4">
-            <div className="w-full max-w-7xl mx-auto flex justify-center">
-              <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+          <div className="relative z-10 pointer-events-none pb-2 md:pb-4 -mt-2">
+            <div className="w-full flex justify-center">
+              <div className="flex items-center gap-2 pointer-events-auto px-3">
                 {data.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => goToSlide(index)}
-                    className={`relative h-1 sm:h-1.5 rounded-full transition-all duration-300 overflow-hidden touch-manipulation ${
+                    className={`relative h-1.5 md:h-2 rounded-full transition-all duration-300 overflow-hidden touch-manipulation ${
                       index === currentIndex
-                        ? "w-8 sm:w-10 bg-[var(--muted)]"
-                        : "w-1.5 sm:w-2 bg-[var(--muted-foreground)]/30 hover:bg-[var(--muted-foreground)]/50 active:bg-[var(--muted-foreground)]/50"
+                        ? "w-10 md:w-12 bg-[var(--muted)]"
+                        : "w-2 md:w-2.5 bg-[var(--muted-foreground)]/30 hover:bg-[var(--muted-foreground)]/50 active:bg-[var(--muted-foreground)]/50"
                     }`}
                     aria-label={`Перейти к слайду ${index + 1}`}
                   >

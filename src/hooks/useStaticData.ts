@@ -148,16 +148,25 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
 
   useEffect(() => {
     if (!loadLatestUpdates) return;
+    let cancelled = false;
+    const controller = new AbortController();
+    
     const fetchLatestUpdates = async () => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
         const params = new URLSearchParams({ limit: "16" });
         if (includeAdult) params.append("includeAdult", "true");
-        const response = await fetch(`${baseUrl}/titles/latest-updates?${params.toString()}`);
+        const response = await fetch(
+          `${baseUrl}/titles/latest-updates?${params.toString()}`,
+          { signal: controller.signal }
+        );
 
         if (!response.ok) throw new Error("Failed to fetch latest updates");
+        if (cancelled) return;
 
         const result = await response.json();
+        if (cancelled) return;
+        
         const raw = result.data?.data ?? result.data?.items ?? result.data;
         const list = Array.isArray(raw) ? raw : [];
         const transformedData = list.map((item: ApiLatestUpdate) => {
@@ -177,7 +186,8 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
           loading: false,
           error: null,
         });
-      } catch {
+      } catch (err) {
+        if (cancelled || (err instanceof Error && err.name === "AbortError")) return;
         setLatestUpdates({
           data: [],
           loading: false,
@@ -186,6 +196,11 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
       }
     };
     fetchLatestUpdates();
+    
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [loadLatestUpdates, includeAdult]);
 
   return { collections, latestUpdates };

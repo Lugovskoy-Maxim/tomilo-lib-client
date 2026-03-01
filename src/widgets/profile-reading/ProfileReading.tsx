@@ -394,28 +394,31 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
 
   if (!readingHistory || readingHistory.length === 0 || groupedHistory.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-sm text-[var(--muted-foreground)]">
-          Здесь появятся главы, которые вы прочитаете
+      <div className="flex flex-col items-center justify-center py-10 px-4 text-center min-h-[280px]">
+        <div className="relative mb-5">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/10">
+            <Clock className="h-10 w-10 text-blue-500" />
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] flex items-center justify-center shadow-md">
+            <ChevronRight className="w-4 h-4 text-white" />
+          </div>
+        </div>
+        <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">История пуста</h3>
+        <p className="text-sm text-[var(--muted-foreground)] max-w-sm mb-5">
+          Здесь будут отображаться главы, которые вы прочитаете. Начните читать любой тайтл из каталога!
         </p>
-        {onShowAllHistory ? (
-          <button
-            type="button"
-            onClick={onShowAllHistory}
-            className="mt-3 text-xs min-[360px]:text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
-          >
-            Вся история
-            <ChevronRight className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
-          </button>
-        ) : historyHref ? (
-          <Link
-            href={historyHref}
-            className="mt-3 text-xs min-[360px]:text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
-          >
-            Вся история
-            <ChevronRight className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
-          </Link>
-        ) : null}
+        <a
+          href="/catalog"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-md"
+        >
+          <Clock className="w-4 h-4" />
+          Начать читать
+        </a>
+        <div className="mt-6 flex items-center gap-3 text-[var(--muted-foreground)] opacity-50">
+          <div className="w-12 h-16 rounded-lg bg-[var(--secondary)] animate-pulse" />
+          <div className="w-12 h-16 rounded-lg bg-[var(--secondary)] animate-pulse delay-100" />
+          <div className="w-12 h-16 rounded-lg bg-[var(--secondary)] animate-pulse delay-200" />
+        </div>
       </div>
     );
   }

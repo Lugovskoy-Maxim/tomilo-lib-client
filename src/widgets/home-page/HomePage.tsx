@@ -1,8 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
-import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight, Send } from "lucide-react";
+import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight } from "lucide-react";
 
 import {
   CollectionCard,
@@ -13,6 +12,11 @@ import {
   UnderratedCard,
   FeaturedTitleBlock,
 } from "@/shared";
+import { 
+  GenresQuickAccess, 
+  TelegramSection, 
+  QuickActions 
+} from "@/shared/home";
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSection";
@@ -20,6 +24,7 @@ import { useHomeData, type HomeVisibleSections } from "@/hooks/useHomeData";
 import { useStaticData, type StaticDataVisibleSections } from "@/hooks/useStaticData";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetProfileQuery } from "@/store/api/authApi";
+import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
 import RandomTitlesComponent from "@/shared/random-titles/RandomTitles";
 import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";
 import { TopCombinedSkeleton } from "@/shared/skeleton/TopCombinedSkeleton";
@@ -95,7 +100,23 @@ export default function HomePage() {
     topManhwa,
     top2026,
   } = useHomeData({ visibleSections, includeAdult });
-  const { collections, latestUpdates } = useStaticData({ visibleSections, includeAdult });
+  const { collections } = useStaticData({ visibleSections, includeAdult });
+
+  // Используем RTK Query для последних обновлений (корректно обрабатывает изменение includeAdult)
+  const shouldLoadLatestUpdates = visibleSections.latestUpdates ?? false;
+  const {
+    data: latestUpdatesData,
+    isLoading: latestUpdatesLoading,
+    error: latestUpdatesError,
+  } = useGetLatestUpdatesQuery(
+    { limit: 16, includeAdult },
+    { skip: !shouldLoadLatestUpdates }
+  );
+  const latestUpdates = {
+    data: latestUpdatesData?.data ?? [],
+    loading: latestUpdatesLoading,
+    error: latestUpdatesError ? "load_failed" : null,
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -145,6 +166,13 @@ export default function HomePage() {
             />
           )}
         </LazySection>
+
+        {/* Быстрые действия для авторизованных пользователей — отключено
+        <QuickActions />
+        */}
+
+        {/* Быстрый доступ к жанрам */}
+        <GenresQuickAccess />
 
         {/* Недавно добавленные — закомментировано
         <LazySection
@@ -295,33 +323,8 @@ export default function HomePage() {
           ) : null}
         </LazySection>
 
-        {/* Telegram секция */}
-        <section className="w-full bg-gradient-to-br from-[#0088cc]/15 to-[#00aaff]/10">
-          <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 md:px-8 py-6 sm:py-0 sm:h-[200px]">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 h-full">
-              <div className="flex items-center flex-shrink-0 sm:h-full py-2">
-                <Image src="/tg/tg.png" alt="Telegram" width={200} height={200} className="w-24 h-24 sm:h-full sm:w-auto object-contain" style={{ filter: "brightness(0) saturate(100%) invert(38%) sepia(98%) saturate(1029%) hue-rotate(175deg) brightness(96%) contrast(101%)" }} />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <h3 className="text-base sm:text-lg md:text-xl font-bold text-[var(--foreground)] mb-1.5 sm:mb-2">
-                  Присоединяйтесь к нашему Telegram
-                </h3>
-                <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mb-3 sm:mb-4 max-w-lg">
-                  Будьте первыми, кто узнает о новых релизах, обновлениях и эксклюзивном контенте. 
-                </p>
-                <a
-                  href="https://t.me/tomilolib"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-[#0088cc] hover:bg-[#0077b5] text-white text-sm sm:text-base font-medium transition-colors shadow-md hover:shadow-lg"
-                >
-                  <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  Подписаться
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Telegram секция - улучшенная */}
+        <TelegramSection />
 
         {/* Недооцененные: высокий рейтинг, мало просмотров */}
         <LazySection

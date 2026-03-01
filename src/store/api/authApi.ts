@@ -427,6 +427,24 @@ export const authApi = createApi({
         body: emailDto,
       }),
     }),
+
+    // Ежедневный бонус / стрик
+    claimDailyBonus: builder.mutation<
+      ApiResponseDto<{ 
+        success: boolean; 
+        message: string;
+        currentStreak: number;
+        experienceGained: number;
+        coinsGained?: number;
+      }>,
+      void
+    >({
+      query: () => ({
+        url: "/users/daily-bonus",
+        method: "POST",
+      }),
+      invalidatesTags: ["Auth"],
+    }),
   }),
 });
 
@@ -456,4 +474,5 @@ export const {
   useClearReadingHistoryMutation,
   useChangePasswordMutation,
   useForgotPasswordMutation,
+  useClaimDailyBonusMutation,
 } = authApi;

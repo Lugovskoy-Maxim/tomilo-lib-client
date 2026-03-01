@@ -106,16 +106,26 @@ export function ChapterReactions({
   const secondaryReactions = reactions.slice(3);
 
   return (
-    <div className="bg-[var(--secondary)]/60 backdrop-blur-sm rounded-xl p-4 border border-[var(--border)]/30">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Heart className="w-4 h-4 text-[var(--primary)]" />
-          <span className="text-sm font-medium text-[var(--foreground)]">Оцените главу</span>
+    <div className="bg-gradient-to-br from-[var(--secondary)]/60 to-[var(--card)]/40 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-[var(--border)]/30 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
+            <Heart className="w-4 h-4 text-[var(--primary)]" />
+          </div>
+          <div>
+            <span className="text-sm font-medium text-[var(--foreground)]">Оцените главу</span>
+            <p className="text-xs text-[var(--muted-foreground)] hidden sm:block">Ваша реакция важна для переводчика</p>
+          </div>
         </div>
         {totalReactions > 0 && (
-          <span className="text-xs text-[var(--muted-foreground)]">
-            {totalReactions} {totalReactions === 1 ? "реакция" : totalReactions < 5 ? "реакции" : "реакций"}
-          </span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--primary)]/10 rounded-full">
+            <span className="text-xs font-medium text-[var(--primary)]">
+              {totalReactions}
+            </span>
+            <span className="text-xs text-[var(--muted-foreground)]">
+              {totalReactions === 1 ? "реакция" : totalReactions < 5 ? "реакции" : "реакций"}
+            </span>
+          </div>
         )}
       </div>
 
@@ -130,33 +140,37 @@ export function ChapterReactions({
               key={reaction.type}
               onClick={() => handleReaction(reaction.type)}
               disabled={isLoading}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`group flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl transition-all duration-200 active:scale-95 ${
                 isSelected
-                  ? `${reaction.bgColor} ${reaction.activeColor} ring-1 ring-current`
-                  : "bg-[var(--background)]/50 text-[var(--muted-foreground)] hover:bg-[var(--background)]/80 hover:text-[var(--foreground)]"
+                  ? `${reaction.bgColor} ${reaction.activeColor} ring-2 ring-current shadow-sm`
+                  : "bg-[var(--background)]/60 text-[var(--muted-foreground)] hover:bg-[var(--background)]/90 hover:text-[var(--foreground)] hover:shadow-sm"
               }`}
               title={reaction.label}
             >
               {isLoading && selectedReaction === reaction.type ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
               ) : (
-                <Icon className={`w-4 h-4 ${isSelected ? "scale-110" : ""} transition-transform`} />
+                <Icon className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 ${isSelected ? "scale-110 animate-bounce-once" : "group-hover:scale-110"}`} />
               )}
-              {count > 0 && <span className="text-xs font-medium">{count}</span>}
+              {count > 0 && (
+                <span className={`text-xs sm:text-sm font-semibold ${isSelected ? "" : "text-[var(--foreground)]"}`}>
+                  {count}
+                </span>
+              )}
             </button>
           );
         })}
 
         <button
           onClick={() => setShowAllReactions(!showAllReactions)}
-          className="px-2 py-2 rounded-lg bg-[var(--background)]/50 text-[var(--muted-foreground)] hover:bg-[var(--background)]/80 hover:text-[var(--foreground)] transition-all"
+          className={`flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[var(--background)]/60 text-[var(--muted-foreground)] hover:bg-[var(--background)]/90 hover:text-[var(--foreground)] transition-all active:scale-95 ${showAllReactions ? "ring-2 ring-[var(--primary)]/30" : ""}`}
         >
-          <span className="text-xs">+{secondaryReactions.length}</span>
+          <span className="text-xs font-medium">+{secondaryReactions.length}</span>
         </button>
       </div>
 
       {showAllReactions && (
-        <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-[var(--border)]/30 animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[var(--border)]/30 animate-in fade-in slide-in-from-top-2 duration-300">
           {secondaryReactions.map(reaction => {
             const Icon = reaction.icon;
             const isSelected = selectedReaction === reaction.type;
@@ -167,20 +181,20 @@ export function ChapterReactions({
                 key={reaction.type}
                 onClick={() => handleReaction(reaction.type)}
                 disabled={isLoading}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 ${
+                className={`group flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-200 active:scale-95 ${
                   isSelected
-                    ? `${reaction.bgColor} ${reaction.activeColor} ring-1 ring-current`
-                    : "bg-[var(--background)]/50 text-[var(--muted-foreground)] hover:bg-[var(--background)]/80 hover:text-[var(--foreground)]"
+                    ? `${reaction.bgColor} ${reaction.activeColor} ring-2 ring-current shadow-sm`
+                    : "bg-[var(--background)]/60 text-[var(--muted-foreground)] hover:bg-[var(--background)]/90 hover:text-[var(--foreground)]"
                 }`}
                 title={reaction.label}
               >
                 {isLoading && selectedReaction === reaction.type ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <Icon className={`w-4 h-4 ${isSelected ? "scale-110" : ""} transition-transform`} />
+                  <Icon className={`w-4 h-4 transition-transform duration-200 ${isSelected ? "scale-110" : "group-hover:scale-110"}`} />
                 )}
-                <span className="text-xs">{reaction.label}</span>
-                {count > 0 && <span className="text-xs font-medium">({count})</span>}
+                <span className="text-xs font-medium">{reaction.label}</span>
+                {count > 0 && <span className="text-xs font-semibold ml-0.5">({count})</span>}
               </button>
             );
           })}

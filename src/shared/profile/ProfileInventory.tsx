@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Package, ImageIcon, User, Layers } from "lucide-react";
+import { Package, ImageIcon, User, Layers, Sparkles, Crown, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import {
   useGetUserProfileDecorationsQuery,
@@ -198,6 +198,24 @@ export default function ProfileInventory() {
     );
   }
 
+  const inventoryStats = useMemo(() => {
+    const total = displayList.length;
+    const equipped = effectiveEquipped.length;
+    const byType = {
+      avatar: displayList.filter((d: Decoration) => d.type === "avatar").length,
+      frame: displayList.filter((d: Decoration) => d.type === "frame").length,
+      background: displayList.filter((d: Decoration) => d.type === "background").length,
+      card: displayList.filter((d: Decoration) => d.type === "card").length,
+    };
+    const byRarity = {
+      common: displayList.filter((d: Decoration) => d.rarity === "common").length,
+      rare: displayList.filter((d: Decoration) => d.rarity === "rare").length,
+      epic: displayList.filter((d: Decoration) => d.rarity === "epic").length,
+      legendary: displayList.filter((d: Decoration) => d.rarity === "legendary").length,
+    };
+    return { total, equipped, byType, byRarity };
+  }, [displayList, effectiveEquipped]);
+
   return (
     <div className="w-full animate-fade-in-up">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 shadow-sm">
@@ -211,17 +229,47 @@ export default function ProfileInventory() {
                 Инвентарь
               </h2>
               <p className="text-[var(--muted-foreground)] text-sm">
-                Декорации профиля
+                {inventoryStats.total} {inventoryStats.total === 1 ? "предмет" : inventoryStats.total < 5 ? "предмета" : "предметов"} • {inventoryStats.equipped} надето
               </p>
             </div>
           </div>
           <Link
             href="/tomilo-shop"
-            className="text-sm font-medium text-[var(--primary)] hover:underline shrink-0"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-md shrink-0"
           >
-            Магазин →
+            <ShoppingBag className="w-4 h-4" />
+            В магазин
           </Link>
         </div>
+
+        {inventoryStats.total > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+            {inventoryStats.byRarity.legendary > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+                <Crown className="w-4 h-4 text-amber-500" />
+                <span className="text-xs font-medium text-amber-500">{inventoryStats.byRarity.legendary} легенд.</span>
+              </div>
+            )}
+            {inventoryStats.byRarity.epic > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                <span className="text-xs font-medium text-purple-500">{inventoryStats.byRarity.epic} эпич.</span>
+              </div>
+            )}
+            {inventoryStats.byRarity.rare > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <Package className="w-4 h-4 text-blue-500" />
+                <span className="text-xs font-medium text-blue-500">{inventoryStats.byRarity.rare} редких</span>
+              </div>
+            )}
+            {inventoryStats.byRarity.common > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+                <Package className="w-4 h-4 text-[var(--muted-foreground)]" />
+                <span className="text-xs font-medium text-[var(--muted-foreground)]">{inventoryStats.byRarity.common} обычных</span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2 mb-6">
           {(["all", "avatar", "frame", "background", "card"] as const).map((t) => {
@@ -244,30 +292,56 @@ export default function ProfileInventory() {
         </div>
 
         {filteredDecorations.length === 0 ? (
-          <div className="text-center py-14 text-[var(--muted-foreground)] rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50">
-            <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p className="font-medium">
-              {isError ? "Не удалось загрузить инвентарь" : displayList.length === 0 ? "Пока ничего нет" : "В этой категории пока ничего нет"}
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center rounded-xl bg-gradient-to-b from-[var(--secondary)]/30 to-transparent border border-[var(--border)]/50">
+            <div className="relative mb-5">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-purple-500/30 shadow-lg shadow-purple-500/10">
+                <Package className="h-10 w-10 text-purple-500" />
+              </div>
+              {displayList.length === 0 && (
+                <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[var(--chart-2)] flex items-center justify-center shadow-md">
+                  <ShoppingBag className="w-3 h-3 text-white" />
+                </div>
+              )}
+            </div>
+            <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
+              {isError ? "Ошибка загрузки" : displayList.length === 0 ? "Инвентарь пуст" : "Категория пуста"}
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)] max-w-sm mb-5">
+              {isError 
+                ? "Не удалось загрузить инвентарь. Проверьте подключение и попробуйте снова." 
+                : displayList.length === 0 
+                  ? "Украсьте свой профиль уникальными рамками, аватарами и фонами из магазина!" 
+                  : "В этой категории пока ничего нет. Посетите магазин за новыми предметами."}
             </p>
-            <p className="text-sm mt-1">
-              {isError ? "Проверьте подключение и попробуйте снова" : displayList.length === 0 ? "Купите декорации в магазине" : "Выберите другую категорию или купите декорации в магазине"}
-            </p>
-            {isError && (
+            {isError ? (
               <button
                 type="button"
                 onClick={() => refetchDecorations()}
-                className="mt-4 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-md"
               >
-                Повторить
+                Повторить попытку
               </button>
-            )}
-            {!isError && (
+            ) : (
               <Link
                 href="/tomilo-shop"
-                className="inline-block mt-4 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-md"
               >
-                В магазин
+                <Sparkles className="w-4 h-4" />
+                Открыть магазин
               </Link>
+            )}
+            {displayList.length === 0 && !isError && (
+              <div className="mt-6 flex items-center gap-3 opacity-40">
+                <div className="w-12 h-12 rounded-lg bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
+                  <User className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </div>
+                <div className="w-12 h-12 rounded-lg bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
+                  <Layers className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </div>
+                <div className="w-20 h-12 rounded-lg bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
+                  <ImageIcon className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </div>
+              </div>
             )}
           </div>
         ) : (

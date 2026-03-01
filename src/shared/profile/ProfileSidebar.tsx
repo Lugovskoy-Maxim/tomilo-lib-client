@@ -4,7 +4,7 @@ import { UserProfile } from "@/types/user";
 import { ProfileAvatar, EditAvatarButton } from "@/shared";
 import RankStarsOverlay from "./RankStarsOverlay";
 import { Button } from "@/shared/ui/button";
-import { Pencil, Sparkles, Shield, Calendar1, Play } from "lucide-react";
+import { Pencil, Sparkles, Shield, Calendar1, Play, Coins, Flame } from "lucide-react";
 import { getRankColor, getRankDisplay, getLevelProgress, levelToRank } from "@/lib/rank-utils";
 import { useProgressNotification } from "@/contexts/ProgressNotificationContext";
 
@@ -19,6 +19,8 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
   const { showLevelUp, showAchievement, showExpGain } = useProgressNotification();
   const level = userProfile.level ?? 0;
   const experience = userProfile.experience ?? 0;
+  const balance = userProfile.balance ?? 0;
+  const currentStreak = userProfile.currentStreak ?? 0;
   const { progressPercent: expProgress, nextLevelExp } = getLevelProgress(level, experience);
   const isAdmin = userProfile.role === "admin";
   const joinedDate = userProfile.createdAt ? new Date(userProfile.createdAt) : null;
@@ -91,6 +93,26 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
             <span className="truncate">Редактировать профиль</span>
           </Button>
         )}
+
+        {/* Баланс и серия */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+            <Coins className="w-4 h-4 text-yellow-500 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-yellow-500 tabular-nums">{balance.toLocaleString()}</p>
+              <p className="text-[9px] text-[var(--muted-foreground)]">Монеты</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+            <Flame className="w-4 h-4 text-orange-500 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-orange-500 tabular-nums">{currentStreak}</p>
+              <p className="text-[9px] text-[var(--muted-foreground)]">
+                {currentStreak === 1 ? "день" : currentStreak < 5 ? "дня" : "дней"}
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Дата регистрации */}
         <div className="flex items-center justify-center gap-2 text-xs text-[var(--muted-foreground)] mb-5 py-2 px-3 rounded-lg bg-[var(--secondary)]/30">

@@ -15,6 +15,9 @@ interface LeaderCardProps {
   rank: number;
   category: LeaderboardCategory;
   variant?: "default" | "top3";
+  isCurrentUser?: boolean;
+  showAnimation?: boolean;
+  animationDelay?: number;
 }
 
 function normalizeAvatarUrl(avatarUrl: string): string {
@@ -206,9 +209,25 @@ function getRankStyles(rank: number): {
   };
 }
 
-function Top3Card({ user, rank, category }: Omit<LeaderCardProps, "variant">) {
+function getSecondaryValue(user: LeaderboardUser, category: LeaderboardCategory): string | null {
+  switch (category) {
+    case "level":
+      return user.experience ? `${user.experience.toLocaleString()} XP` : null;
+    case "readingTime":
+      return user.chaptersRead ? `${user.chaptersRead} глав` : null;
+    case "ratings":
+      return user.titlesReadCount ? `${user.titlesReadCount} тайтлов` : null;
+    case "streak":
+      return user.longestStreak ? `Рекорд: ${user.longestStreak} дн.` : null;
+    default:
+      return null;
+  }
+}
+
+function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animationDelay = 0 }: Omit<LeaderCardProps, "variant">) {
   const [frameError, setFrameError] = useState(false);
   const [cardError, setCardError] = useState(false);
+  const [isVisible, setIsVisible] = useState(!showAnimation);
   
   const RankIcon = getRankIcon(rank)!;
   const CategoryIcon = getCategoryIcon(category);
@@ -217,15 +236,23 @@ function Top3Card({ user, rank, category }: Omit<LeaderCardProps, "variant">) {
   const level = user.level ?? 0;
   const frameUrl = getFrameUrl(user.equippedDecorations);
   const cardUrl = getCardUrl(user.equippedDecorations);
+  const secondaryValue = getSecondaryValue(user, category);
 
-  const avatarSize = rank === 1 ? "w-24 h-24" : "w-20 h-20";
-  const avatarPixels = rank === 1 ? 96 : 80;
-  const cardPadding = rank === 1 ? "p-6" : "p-5";
+  const avatarSize = rank === 1 ? "w-28 h-28" : "w-20 h-20";
+  const avatarPixels = rank === 1 ? 112 : 80;
+  const cardPadding = rank === 1 ? "p-8" : "p-5";
   const iconSize = rank === 1 ? "w-8 h-8" : "w-6 h-6";
-  const badgeSize = rank === 1 ? "w-12 h-12" : "w-10 h-10";
+  const badgeSize = rank === 1 ? "w-14 h-14" : "w-10 h-10";
 
   const showCard = cardUrl && !cardError;
   const showFrame = frameUrl && !frameError;
+
+  useState(() => {
+    if (showAnimation) {
+      const timer = setTimeout(() => setIsVisible(true), animationDelay);
+      return () => clearTimeout(timer);
+    }
+  });
 
   return (
     <Link
@@ -235,8 +262,21 @@ function Top3Card({ user, rank, category }: Omit<LeaderCardProps, "variant">) {
         transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl
         bg-[var(--card)] ${styles.cardBorder} ${styles.glow}
         overflow-hidden group
+        ${isCurrentUser ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]" : ""}
+        ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4") : ""}
+        ${rank === 1 ? "md:pb-10" : ""}
       `}
+      style={showAnimation ? { transitionDelay: `${animationDelay}ms` } : undefined}
     >
+      {rank === 1 && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-1 h-8 bg-yellow-400/40 blur-sm animate-pulse" style={{ animationDelay: "0ms" }} />
+          <div className="absolute top-2 right-1/3 w-1 h-6 bg-yellow-400/30 blur-sm animate-pulse" style={{ animationDelay: "200ms" }} />
+          <div className="absolute top-4 left-1/2 w-1.5 h-10 bg-yellow-400/50 blur-sm animate-pulse" style={{ animationDelay: "400ms" }} />
+          <div className="absolute top-1 right-1/4 w-1 h-7 bg-amber-400/40 blur-sm animate-pulse" style={{ animationDelay: "600ms" }} />
+        </div>
+      )}
+      
       {showCard ? (
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity"
@@ -257,10 +297,18 @@ function Top3Card({ user, rank, category }: Omit<LeaderCardProps, "variant">) {
         className={`
           absolute -top-1 -right-1 ${badgeSize} rounded-xl flex items-center justify-center
           ${styles.bg} ${styles.text} shadow-lg z-20 border-2 border-white/20
+          ${rank === 1 ? "animate-bounce" : ""}
         `}
+        style={rank === 1 ? { animationDuration: "2s" } : undefined}
       >
         <RankIcon className={iconSize} />
       </div>
+
+      {isCurrentUser && (
+        <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium">
+          Вы
+        </div>
+      )}
 
       <div className="relative z-10 mb-4">
         <div className="relative">
@@ -270,6 +318,7 @@ function Top3Card({ user, rank, category }: Omit<LeaderCardProps, "variant">) {
             className={`
               ${avatarSize} rounded-full object-cover border-4 ${styles.cardBorder}
               shadow-xl group-hover:shadow-2xl transition-shadow bg-[var(--secondary)]
+              ${rank === 1 ? "ring-4 ring-yellow-400/30" : ""}
             `}
           />
           {showFrame && (
@@ -292,7 +341,7 @@ function Top3Card({ user, rank, category }: Omit<LeaderCardProps, "variant">) {
 
       <div className="relative z-10 w-full">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <p className="font-bold text-lg text-[var(--foreground)] truncate max-w-[150px]">
+          <p className={`font-bold text-[var(--foreground)] truncate max-w-[150px] ${rank === 1 ? "text-xl" : "text-lg"}`}>
             {user.username}
           </p>
           {user.role && user.role !== "user" && (
@@ -317,40 +366,64 @@ function Top3Card({ user, rank, category }: Omit<LeaderCardProps, "variant">) {
             {getCategoryValue(user, category)}
           </span>
         </div>
+
+        {secondaryValue && (
+          <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+            {secondaryValue}
+          </p>
+        )}
       </div>
     </Link>
   );
 }
 
-function DefaultCard({ user, rank, category }: Omit<LeaderCardProps, "variant">) {
+function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, animationDelay = 0 }: Omit<LeaderCardProps, "variant">) {
   const [isHovered, setIsHovered] = useState(false);
   const [frameError, setFrameError] = useState(false);
   const [cardError, setCardError] = useState(false);
+  const [isVisible, setIsVisible] = useState(!showAnimation);
   
   const CategoryIcon = getCategoryIcon(category);
   const avatarUrl = user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR;
   const level = user.level ?? 0;
   const frameUrl = getFrameUrl(user.equippedDecorations);
   const cardUrl = getCardUrl(user.equippedDecorations);
+  const secondaryValue = getSecondaryValue(user, category);
 
   const showFrame = frameUrl && !frameError;
   const showCard = cardUrl && !cardError;
 
+  useState(() => {
+    if (showAnimation) {
+      const timer = setTimeout(() => setIsVisible(true), animationDelay);
+      return () => clearTimeout(timer);
+    }
+  });
+
+  const isTopTen = rank <= 10;
+
   return (
     <Link
       href={`/user/${user._id}`}
-      className="
+      className={`
         relative flex items-center gap-4 rounded-xl border-2 p-4 transition-all duration-200
         hover:shadow-md hover:scale-[1.01]
         bg-[var(--card)] border-[var(--border)] hover:border-[var(--primary)]/50
-      "
+        ${isCurrentUser ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)] border-[var(--primary)]/30" : ""}
+        ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2") : ""}
+      `}
+      style={showAnimation ? { transitionDelay: `${animationDelay}ms` } : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="
+      <div className={`
         flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm
-        border-2 bg-[var(--muted)] border-[var(--border)] text-[var(--foreground)]
-      ">
+        border-2
+        ${isTopTen 
+          ? "bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]" 
+          : "bg-[var(--muted)] border-[var(--border)] text-[var(--foreground)]"
+        }
+      `}>
         #{rank}
       </div>
 
@@ -358,7 +431,10 @@ function DefaultCard({ user, rank, category }: Omit<LeaderCardProps, "variant">)
         <img
           src={avatarUrl}
           alt={user.username}
-          className="w-12 h-12 rounded-full object-cover border-2 border-[var(--border)] bg-[var(--secondary)]"
+          className={`
+            w-12 h-12 rounded-full object-cover border-2 bg-[var(--secondary)]
+            ${isCurrentUser ? "border-[var(--primary)]" : "border-[var(--border)]"}
+          `}
         />
         {showFrame && (
           <img
@@ -375,11 +451,18 @@ function DefaultCard({ user, rank, category }: Omit<LeaderCardProps, "variant">)
             aria-hidden
           />
         )}
+        {isCurrentUser && (
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold flex items-center justify-center border-2 border-[var(--background)]">
+            Я
+          </div>
+        )}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="font-semibold text-[var(--foreground)] truncate">{user.username}</p>
+          <p className={`font-semibold truncate ${isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
+            {user.username}
+          </p>
           {user.role && user.role !== "user" && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] font-medium capitalize">
               {user.role}
@@ -390,12 +473,23 @@ function DefaultCard({ user, rank, category }: Omit<LeaderCardProps, "variant">)
           <span className="text-xs px-2 py-1 rounded-full font-medium bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)]">
             {getRankDisplay(level).split("  ")[0]}
           </span>
+          {secondaryValue && (
+            <span className="text-xs text-[var(--muted-foreground)] hidden sm:inline">
+              {secondaryValue}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-right bg-[var(--secondary)] px-3 py-2 rounded-lg">
-        <CategoryIcon className="w-4 h-4 text-[var(--foreground)]" />
-        <span className="font-bold text-[var(--foreground)] whitespace-nowrap">
+      <div className={`
+        flex items-center gap-2 text-right px-3 py-2 rounded-lg
+        ${isTopTen 
+          ? "bg-gradient-to-r from-[var(--primary)]/10 to-[var(--primary)]/5 border border-[var(--primary)]/20" 
+          : "bg-[var(--secondary)]"
+        }
+      `}>
+        <CategoryIcon className={`w-4 h-4 ${isTopTen ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`} />
+        <span className={`font-bold whitespace-nowrap ${isTopTen ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
           {getCategoryValue(user, category)}
         </span>
       </div>
@@ -425,10 +519,36 @@ function DefaultCard({ user, rank, category }: Omit<LeaderCardProps, "variant">)
   );
 }
 
-export default function LeaderCard({ user, rank, category, variant = "default" }: LeaderCardProps) {
+export default function LeaderCard({ 
+  user, 
+  rank, 
+  category, 
+  variant = "default",
+  isCurrentUser = false,
+  showAnimation = false,
+  animationDelay = 0,
+}: LeaderCardProps) {
   if (variant === "top3" || rank <= 3) {
-    return <Top3Card user={user} rank={rank} category={category} />;
+    return (
+      <Top3Card 
+        user={user} 
+        rank={rank} 
+        category={category}
+        isCurrentUser={isCurrentUser}
+        showAnimation={showAnimation}
+        animationDelay={animationDelay}
+      />
+    );
   }
 
-  return <DefaultCard user={user} rank={rank} category={category} />;
+  return (
+    <DefaultCard 
+      user={user} 
+      rank={rank} 
+      category={category}
+      isCurrentUser={isCurrentUser}
+      showAnimation={showAnimation}
+      animationDelay={animationDelay}
+    />
+  );
 }

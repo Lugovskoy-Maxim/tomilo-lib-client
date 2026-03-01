@@ -34,6 +34,7 @@ import ProfilePrivacySettings from "@/shared/profile/ProfilePrivacySettings";
 import ProfileSecuritySettings from "@/shared/profile/ProfileSecuritySettings";
 import ProfileDisplaySettings from "@/shared/profile/ProfileDisplaySettings";
 import ProfileInventory from "@/shared/profile/ProfileInventory";
+import SettingsNavigation from "@/shared/profile/SettingsNavigation";
 
 export type { ProfileTab } from "./profileTabConfig";
 export { PROFILE_TABS };
@@ -314,13 +315,24 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
 
           {/* Настройки */}
           {activeTab === "settings" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in-up">
-              <ProfileNotificationsSettings userProfile={userProfile} />
-              <ProfileDisplaySettings userProfile={userProfile} />
-              <ProfileReadingSettings userProfile={userProfile} />
-              <ProfilePrivacySettings userProfile={userProfile} />
-              <div className="lg:col-span-2">
-                <ProfileSecuritySettings userProfile={userProfile} />
+            <div className="animate-fade-in-up">
+              <SettingsNavigation />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div id="settings-notifications">
+                  <ProfileNotificationsSettings userProfile={userProfile} />
+                </div>
+                <div id="settings-display">
+                  <ProfileDisplaySettings userProfile={userProfile} />
+                </div>
+                <div id="settings-reading">
+                  <ProfileReadingSettings userProfile={userProfile} />
+                </div>
+                <div id="settings-privacy">
+                  <ProfilePrivacySettings userProfile={userProfile} />
+                </div>
+                <div id="settings-security" className="lg:col-span-2">
+                  <ProfileSecuritySettings userProfile={userProfile} />
+                </div>
               </div>
             </div>
           )}

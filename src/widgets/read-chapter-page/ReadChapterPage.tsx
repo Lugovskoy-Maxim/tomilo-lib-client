@@ -10,7 +10,7 @@ import { useProgressNotification } from "@/contexts/ProgressNotificationContext"
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { Chapter } from "@/types/title";
-import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight, ChevronUp, Keyboard, ZoomIn, Clock } from "lucide-react";
 import { levelToRank } from "@/lib/rank-utils";
 import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
@@ -96,8 +96,33 @@ export default function ReadChapterPage({
   const [forceStopAutoScroll, setForceStopAutoScroll] = useState(false);
   const [preloadAllImages, setPreloadAllImages] = useState(false);
   const [preloadProgress, setPreloadProgress] = useState(0);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const [showKeyboardHints, setShowKeyboardHints] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<{ src: string; alt: string } | null>(null);
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const [totalContentHeight, setTotalContentHeight] = useState(0);
   const isPagedMode = readingMode === "paged";
   const isChaptersInRowMode = readChaptersInRow && !isPagedMode;
+  
+  // Рассчитываем время чтения на основе реальной высоты контента
+  const estimatedReadingTime = useMemo(() => {
+    // Средняя скорость чтения манги: ~100-150px в секунду при скролле
+    // Берем среднюю скорость 120px/сек
+    const pixelsPerSecond = 120;
+    
+    if (totalContentHeight > 0) {
+      // Если есть реальная высота контента
+      const totalSeconds = totalContentHeight / pixelsPerSecond;
+      return Math.max(1, Math.ceil(totalSeconds / 60));
+    }
+    
+    // Fallback: примерная оценка на основе количества страниц
+    // Средняя высота страницы манги ~1400px
+    const avgPageHeight = 1400;
+    const estimatedHeight = chapter.images.length * avgPageHeight;
+    const totalSeconds = estimatedHeight / pixelsPerSecond;
+    return Math.max(1, Math.ceil(totalSeconds / 60));
+  }, [chapter.images.length, totalContentHeight]);
 
   // Чтение глав подряд: загруженные главы (текущая + подгруженные сверху/снизу)
   const [loadedChapters, setLoadedChapters] = useState<ReaderChapter[]>(() => [chapter]);
@@ -399,7 +424,7 @@ export default function ReadChapterPage({
     }
   };
 
-  // Скрытие хедера при скролле с оптимизацией
+  // Скрытие хедера при скролле с оптимизацией + показ кнопки "Наверх"
   useEffect(() => {
     let ticking = false;
 
@@ -410,24 +435,22 @@ export default function ReadChapterPage({
 
           if (currentScrollY > lastScrollY && currentScrollY > 100) {
             setIsHeaderVisible(false);
-            // Скрытие нижнего меню при скролле вниз
             if (hideBottomMenuSetting) {
               setIsMenuCollapsed(true);
             }
           } else if (currentScrollY < lastScrollY) {
             setIsHeaderVisible(true);
-            // Отображение нижнего меню при скролле вверх
             if (hideBottomMenuSetting) {
               showMenuAndResetTimeout();
             }
-            // Сброс флага остановки автопрокрутки при скролле вверх
             setForceStopAutoScroll(false);
           } else if (currentScrollY === lastScrollY) {
-            // Сброс флага остановки автопрокрутки при остановке скролла
             setForceStopAutoScroll(false);
           }
 
-          // Проверка достижения максимальной прокрутки
+          // Показ кнопки "Вернуться наверх" после 600px прокрутки
+          setShowScrollToTop(currentScrollY > 600);
+
           if (window.innerHeight + currentScrollY >= document.body.offsetHeight - 100) {
             if (hideBottomMenuSetting) {
               setIsMenuCollapsed(true);
@@ -441,10 +464,47 @@ export default function ReadChapterPage({
       }
     };
 
-    // Используем passive: true для лучшей производительности
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY, hideBottomMenuSetting, showMenuAndResetTimeout]);
+
+  // Обработчик двойного тапа для зума
+  const handleImageDoubleTap = useCallback((src: string, alt: string) => {
+    const now = Date.now();
+    if (now - lastTapTime < 300) {
+      setZoomedImage({ src, alt });
+    }
+    setLastTapTime(now);
+  }, [lastTapTime]);
+
+  // Scroll to top функция
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // Swipe navigation для постраничного режима
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+  
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    const diffX = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
+
+    if (isPagedMode) {
+      if (diffX > minSwipeDistance) {
+        // Свайп влево - следующая страница
+        setCurrentPage(prev => Math.min(chapter.images.length, prev + 1));
+      } else if (diffX < -minSwipeDistance) {
+        // Свайп вправо - предыдущая страница
+        setCurrentPage(prev => Math.max(1, prev - 1));
+      }
+    }
+  }, [isPagedMode, chapter.images.length]);
 
   // Загрузка настройки предзагрузки из localStorage
   useEffect(() => {
@@ -526,6 +586,34 @@ export default function ReadChapterPage({
       setIsPositionRestored(true);
     }
   }, [titleId, chapterId]);
+
+  // Измерение реальной высоты контента после загрузки изображений
+  useEffect(() => {
+    if (isPagedMode || !isPositionRestored) return;
+    
+    const measureContentHeight = () => {
+      const chapterContainer = document.querySelector('.chapter-container');
+      if (chapterContainer) {
+        const height = chapterContainer.scrollHeight;
+        if (height > 0) {
+          setTotalContentHeight(height);
+        }
+      }
+    };
+    
+    // Измеряем после небольшой задержки, чтобы изображения успели загрузиться
+    const timeoutId = setTimeout(measureContentHeight, 2000);
+    
+    // Также измеряем при каждой загрузке изображения
+    const loadedCount = Object.values(loadedImagesByChapter).reduce(
+      (acc, set) => acc + set.size, 0
+    );
+    if (loadedCount > 0) {
+      measureContentHeight();
+    }
+    
+    return () => clearTimeout(timeoutId);
+  }, [isPagedMode, isPositionRestored, loadedImagesByChapter]);
 
   // Предзагрузка всех изображений при включенной настройке
   useEffect(() => {
@@ -872,8 +960,11 @@ export default function ReadChapterPage({
           {isChaptersInRowMode ? (
             <>
               {loadingPrev && (
-                <div className="py-8 text-center text-[var(--muted-foreground)]">
-                  Загрузка предыдущей главы…
+                <div className="py-10 flex flex-col items-center justify-center gap-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
+                  </div>
+                  <p className="text-sm text-[var(--muted-foreground)]">Загрузка предыдущей главы…</p>
                 </div>
               )}
               {loadedChapters.map(ch => (
@@ -921,7 +1012,7 @@ export default function ReadChapterPage({
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                              className="w-full h-auto shadow-lg sm:shadow-2xl"
+                              className="w-full h-auto shadow-lg sm:shadow-2xl cursor-zoom-in"
                               quality={85}
                               loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
                               onLoad={() =>
@@ -932,13 +1023,19 @@ export default function ReadChapterPage({
                               }
                               onError={() => handleImageError(ch._id, imageIndex, src)}
                               priority={imageIndex < (isMobile ? 3 : 1)}
+                              onClick={() => handleImageDoubleTap(imageUrl, `Глава ${ch.number}, Страница ${imageIndex + 1}`)}
                             />
                           ) : (
-                            <div className="w-full min-h-[200px] sm:h-64 bg-[var(--card)] flex items-center justify-center px-4">
-                              <div className="text-center">
-                                <div className="text-[var(--destructive)] mb-3 text-sm sm:text-base">
-                                  Ошибка загрузки изображения
+                            <div className="w-full min-h-[180px] sm:min-h-[240px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-lg border border-[var(--border)]/50">
+                              <div className="text-center max-w-xs">
+                                <div className="w-10 h-10 mx-auto mb-2.5 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center">
+                                  <svg className="w-5 h-5 text-[var(--destructive)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
                                 </div>
+                                <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mb-2.5">
+                                  Страница {imageIndex + 1} не загрузилась
+                                </p>
                                 <button
                                   onClick={() => {
                                     setImageLoadErrors(prev => {
@@ -946,10 +1043,18 @@ export default function ReadChapterPage({
                                       newSet.delete(errorKey);
                                       return newSet;
                                     });
+                                    setImageFallbacks(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.delete(errorKey);
+                                      return newSet;
+                                    });
                                   }}
-                                  className="px-4 py-3 sm:py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded-lg sm:rounded transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors text-xs sm:text-sm font-medium min-h-[40px] touch-manipulation active:scale-95"
                                 >
-                                  Повторить загрузку
+                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  Повторить
                                 </button>
                               </div>
                             </div>
@@ -962,8 +1067,11 @@ export default function ReadChapterPage({
                 </div>
               ))}
               {loadingNext && (
-                <div className="py-8 text-center text-[var(--muted-foreground)]">
-                  Загрузка следующей главы…
+                <div className="py-10 flex flex-col items-center justify-center gap-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
+                  </div>
+                  <p className="text-sm text-[var(--muted-foreground)]">Загрузка следующей главы…</p>
                 </div>
               )}
             </>
@@ -995,49 +1103,79 @@ export default function ReadChapterPage({
                   const useFallback = imageFallbacks.has(errorKey);
 
                   return (
-                    <div key={`${chapter._id}-${imageIndex}`} className="flex justify-center">
+                    <div 
+                      key={`${chapter._id}-${imageIndex}`} 
+                      className="flex justify-center select-none"
+                      onTouchStart={handleTouchStart}
+                      onTouchEnd={handleTouchEnd}
+                    >
                       <div
                         className="relative w-full flex justify-center px-0 sm:px-4"
                         data-page={imageIndex + 1}
                         style={{
                           maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                         }}
+                        onClick={() => handleImageDoubleTap(imageUrl, `Глава ${chapter.number}, Страница ${imageIndex + 1}`)}
                       >
                         {!isError ? (
-                          <Image
-                            key={`${chapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
-                            loader={imageLoader}
-                            src={imageUrl}
-                            alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
-                            width={isMobile ? 800 : imageWidth}
-                            height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                            className="w-full h-auto shadow-lg sm:shadow-2xl"
-                            quality={85}
-                            loading="eager"
-                            onError={() => handleImageError(chapter._id, imageIndex, src)}
-                            priority
-                          />
-                        ) : (
-                          <div className="w-full min-h-[200px] sm:h-64 bg-[var(--card)] flex items-center justify-center px-4">
-                            <div className="text-center">
-                              <div className="text-[var(--destructive)] mb-3 text-sm sm:text-base">
-                                Ошибка загрузки изображения
+                          <>
+                            <Image
+                              key={`${chapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
+                              loader={imageLoader}
+                              src={imageUrl}
+                              alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
+                              width={isMobile ? 800 : imageWidth}
+                              height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                              className="w-full h-auto shadow-lg sm:shadow-2xl cursor-zoom-in"
+                              quality={85}
+                              loading="eager"
+                              onError={() => handleImageError(chapter._id, imageIndex, src)}
+                              priority
+                            />
+                            {/* Zoom hint on first page */}
+                            {imageIndex === 0 && (
+                              <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-2.5 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-xs text-white/80 opacity-0 animate-fade-in-delayed pointer-events-none">
+                                <ZoomIn className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Двойной клик для зума</span>
+                                <span className="sm:hidden">2x тап для зума</span>
                               </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="w-full min-h-[300px] sm:min-h-[400px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-xl border border-[var(--border)]/50">
+                            <div className="text-center max-w-xs">
+                              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center">
+                                <svg className="w-8 h-8 text-[var(--destructive)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">
+                                Не удалось загрузить страницу {imageIndex + 1}
+                              </h4>
+                              <p className="text-sm text-[var(--muted-foreground)] mb-4">
+                                Проверьте подключение к интернету и попробуйте снова
+                              </p>
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setImageLoadErrors(prev => {
                                     const newSet = new Set(prev);
                                     newSet.delete(errorKey);
                                     return newSet;
                                   });
+                                  setImageFallbacks(prev => {
+                                    const newSet = new Set(prev);
+                                    newSet.delete(errorKey);
+                                    return newSet;
+                                  });
                                 }}
-                                className="px-4 py-3 sm:py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded-lg sm:rounded transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
+                                className="inline-flex items-center gap-2 px-5 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-xl transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95"
                               >
-                                Повторить загрузку
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Повторить
                               </button>
-                              <div className="mt-3 text-xs sm:text-sm text-[var(--muted-foreground)] break-all max-w-[280px] sm:max-w-md">
-                                URL: {imageUrl}
-                              </div>
                             </div>
                           </div>
                         )}
@@ -1045,6 +1183,20 @@ export default function ReadChapterPage({
                     </div>
                   );
                 })()}
+                {/* Swipe hint для мобильных */}
+                {isMobile && currentPage === 1 && (
+                  <div className="py-3 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                    <div className="inline-flex items-center gap-2 px-3 py-2 bg-[var(--secondary)]/80 rounded-full text-xs text-[var(--muted-foreground)]">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                      </svg>
+                      <span>Свайпайте для навигации</span>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
                 <div className="py-5 sm:py-6 px-4 sm:px-0">
                   <div className="flex items-center justify-center gap-3 max-w-xl mx-auto">
                     <button
@@ -1053,14 +1205,16 @@ export default function ReadChapterPage({
                       className="group flex cursor-pointer items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-sm font-medium min-h-[48px] touch-manipulation active:scale-95"
                     >
                       <ArrowBigLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                      <span>Предыдущая страница</span>
+                      <span className="hidden sm:inline">Предыдущая страница</span>
+                      <span className="sm:hidden">Назад</span>
                     </button>
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(chapter.images.length, prev + 1))}
                       disabled={currentPage >= chapter.images.length}
                       className="group flex cursor-pointer items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-sm font-medium min-h-[48px] touch-manipulation active:scale-95"
                     >
-                      <span>Следующая страница</span>
+                      <span className="hidden sm:inline">Следующая страница</span>
+                      <span className="sm:hidden">Далее</span>
                       <ArrowBigRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                     </button>
                   </div>
@@ -1139,11 +1293,16 @@ export default function ReadChapterPage({
                           }
                         />
                       ) : (
-                        <div className="w-full min-h-[200px] sm:h-64 bg-[var(--card)] flex items-center justify-center px-4">
-                          <div className="text-center">
-                            <div className="text-[var(--destructive)] mb-3 text-sm sm:text-base">
-                              Ошибка загрузки изображения
+                        <div className="w-full min-h-[200px] sm:min-h-[280px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-lg border border-[var(--border)]/50">
+                          <div className="text-center max-w-xs">
+                            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center">
+                              <svg className="w-6 h-6 text-[var(--destructive)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
                             </div>
+                            <p className="text-sm text-[var(--muted-foreground)] mb-3">
+                              Страница {imageIndex + 1} не загрузилась
+                            </p>
                             <button
                               onClick={() => {
                                 setImageLoadErrors(prev => {
@@ -1151,14 +1310,19 @@ export default function ReadChapterPage({
                                   newSet.delete(errorKey);
                                   return newSet;
                                 });
+                                setImageFallbacks(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(errorKey);
+                                  return newSet;
+                                });
                               }}
-                              className="px-4 py-3 sm:py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/80 rounded-lg sm:rounded transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
+                              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95"
                             >
-                              Повторить загрузку
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              Повторить
                             </button>
-                            <div className="mt-3 text-xs sm:text-sm text-[var(--muted-foreground)] break-all max-w-[280px] sm:max-w-md">
-                              URL: {imageUrl}
-                            </div>
                           </div>
                         </div>
                       )}
@@ -1271,6 +1435,126 @@ export default function ReadChapterPage({
         entityTitle={`Глава ${effectiveChapter.number}${effectiveChapter.title ? ` - ${effectiveChapter.title}` : ""}`}
         titleId={title._id}
       />
+
+      {/* Floating Progress Bar */}
+      <div className="fixed top-0 left-0 right-0 z-[60] h-1 bg-[var(--muted)]/30">
+        <div 
+          className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] transition-all duration-200 ease-out"
+          style={{ width: `${Math.max(0, Math.min(100, Math.round((currentPage / Math.max(chapter.images.length, 1)) * 100)))}%` }}
+        />
+      </div>
+
+      {/* Scroll to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed left-4 z-[50] p-3 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg transition-all duration-300 hover:bg-[var(--accent)] hover:scale-110 active:scale-95 ${
+          showScrollToTop 
+            ? "opacity-100 translate-y-0 pointer-events-auto bottom-20 sm:bottom-6" 
+            : "opacity-0 translate-y-4 pointer-events-none bottom-20 sm:bottom-6"
+        }`}
+        title="Вернуться наверх"
+      >
+        <ChevronUp className="w-5 h-5 text-[var(--foreground)]" />
+      </button>
+
+      {/* Keyboard Shortcuts Button (Desktop) */}
+      <button
+        onClick={() => setShowKeyboardHints(!showKeyboardHints)}
+        className="hidden sm:flex fixed left-4 bottom-20 z-[50] p-3 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg transition-all duration-300 hover:bg-[var(--accent)] hover:scale-110 active:scale-95 items-center justify-center"
+        title="Горячие клавиши"
+      >
+        <Keyboard className="w-5 h-5 text-[var(--foreground)]" />
+      </button>
+
+      {/* Keyboard Shortcuts Modal */}
+      {showKeyboardHints && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowKeyboardHints(false)}
+          />
+          <div className="relative w-full max-w-sm bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-[var(--border)]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+                  <Keyboard className="w-5 h-5 text-[var(--primary)]" />
+                </div>
+                <h3 className="font-semibold text-lg text-[var(--foreground)]">Горячие клавиши</h3>
+              </div>
+            </div>
+            <div className="p-5 space-y-3">
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-[var(--foreground)]">Предыдущая глава</span>
+                <kbd className="px-3 py-1.5 bg-[var(--secondary)] rounded-lg text-xs font-mono border border-[var(--border)]">←</kbd>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-[var(--foreground)]">Следующая глава</span>
+                <kbd className="px-3 py-1.5 bg-[var(--secondary)] rounded-lg text-xs font-mono border border-[var(--border)]">→</kbd>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-[var(--foreground)]">Выйти из полноэкранного</span>
+                <kbd className="px-3 py-1.5 bg-[var(--secondary)] rounded-lg text-xs font-mono border border-[var(--border)]">Esc</kbd>
+              </div>
+            </div>
+            <div className="p-4 border-t border-[var(--border)] bg-[var(--background)]/50">
+              <button
+                onClick={() => setShowKeyboardHints(false)}
+                className="w-full py-2.5 bg-[var(--secondary)] hover:bg-[var(--accent)] rounded-xl text-sm font-medium transition-colors"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Zoom Image Modal */}
+      {zoomedImage && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-zoom-out"
+          onClick={() => setZoomedImage(null)}
+        >
+          <div className="relative max-w-[95vw] max-h-[95vh] animate-in zoom-in-90 duration-200">
+            <Image
+              src={zoomedImage.src}
+              alt={zoomedImage.alt}
+              width={1920}
+              height={2560}
+              className="max-w-full max-h-[95vh] object-contain"
+              quality={100}
+              priority
+            />
+            <button
+              onClick={() => setZoomedImage(null)}
+              className="absolute top-4 right-4 p-3 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+            >
+              <span className="sr-only">Закрыть</span>
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Estimated Reading Time Indicator (показывается в начале главы) */}
+      {currentPage <= 2 && !isChaptersInRowMode && (
+        <div className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-[45] animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="flex items-center gap-2 px-4 py-2 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg text-sm text-[var(--muted-foreground)]">
+            <Clock className="w-4 h-4" />
+            <span>
+              {estimatedReadingTime < 1 
+                ? "< 1 мин." 
+                : estimatedReadingTime === 1 
+                  ? "~1 мин." 
+                  : `~${estimatedReadingTime} мин.`
+              }
+            </span>
+            <span className="text-xs opacity-60">•</span>
+            <span className="text-xs">{chapter.images.length} стр.</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

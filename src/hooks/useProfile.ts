@@ -29,6 +29,10 @@ function transformUserToProfile(user: User): UserProfile | null {
     birthDate: user.birthDate,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+    // Streak data
+    currentStreak: user.currentStreak,
+    longestStreak: user.longestStreak,
+    lastStreakDate: user.lastStreakDate,
     // Privacy and display settings
     privacy: user.privacy,
     displaySettings: user.displaySettings,

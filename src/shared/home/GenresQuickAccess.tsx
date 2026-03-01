@@ -33,14 +33,14 @@ const POPULAR_GENRES: GenreItemProps[] = [
   { name: "Гарем", icon: Crown, color: "text-amber-500", bgColor: "bg-amber-500/10 hover:bg-amber-500/20", href: "/titles?genres=Гарем" },
 ];
 
-function GenreChip({ name, icon: Icon, color, bgColor, href }: GenreItemProps) {
+function GenreChip({ name, icon: Icon, color, bgColor, href, hiddenOnMobile }: GenreItemProps & { hiddenOnMobile?: boolean }) {
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl ${bgColor} border border-transparent hover:border-current/20 transition-all duration-300 group`}
+      className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl ${bgColor} border border-transparent hover:border-current/20 transition-all duration-300 group ${hiddenOnMobile ? 'hidden sm:flex' : ''}`}
     >
-      <Icon className={`w-4 h-4 ${color} group-hover:scale-110 transition-transform`} />
-      <span className="text-sm font-medium text-[var(--foreground)] whitespace-nowrap">
+      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${color} group-hover:scale-110 transition-transform`} />
+      <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] whitespace-nowrap">
         {name}
       </span>
     </Link>
@@ -54,7 +54,7 @@ export function GenresQuickAccess() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-[var(--primary)]" />
-            <h3 className="text-base sm:text-lg font-semibold text-[var(--foreground)]">
+            <h3 className="text-base sm:text-lg font-semibold text-[var(--muted-foreground)]">
               Популярные жанры
             </h3>
           </div>
@@ -67,9 +67,9 @@ export function GenresQuickAccess() {
           </Link>
         </div>
 
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {POPULAR_GENRES.map(genre => (
-            <GenreChip key={genre.name} {...genre} />
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+          {POPULAR_GENRES.map((genre, index) => (
+            <GenreChip key={genre.name} {...genre} hiddenOnMobile={index >= 6} />
           ))}
         </div>
       </div>

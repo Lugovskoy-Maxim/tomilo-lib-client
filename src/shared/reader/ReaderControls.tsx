@@ -672,16 +672,28 @@ export default function ReaderControls({
 
       {/* Боковое меню (десктоп) */}
       <div className="hidden sm:flex fixed right-4 top-1/2 -translate-y-1/2 z-40 flex-col gap-3">
-        {/* Счётчик страниц */}
+        {/* Счётчик страниц с улучшенным визуальным feedback */}
         <div className="w-full flex justify-center">
           <div className="relative" ref={desktopJumpPopoverRef}>
             <button
               type="button"
               onClick={handleCounterClick}
-              className="text-[var(--muted-foreground)] text-sm border border-[var(--border)] bg-[var(--card)]/95 rounded-2xl shadow-lg px-3 py-1.5 font-medium backdrop-blur-sm hover:bg-[var(--accent)] transition-colors"
+              className="group relative overflow-hidden text-sm border border-[var(--border)] bg-[var(--card)]/95 rounded-2xl shadow-lg px-4 py-2 font-medium backdrop-blur-sm hover:bg-[var(--accent)] transition-all duration-300 hover:scale-105 hover:shadow-xl"
               title={onJumpToPage ? "Нажмите для перехода к странице" : "Счётчик страниц"}
             >
-              {currentPage} / {chapterImageLength} ({chapterProgressPercent}%)
+              {/* Progress background */}
+              <div 
+                className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/20 to-[var(--accent)]/20 transition-all duration-500"
+                style={{ width: `${chapterProgressPercent}%` }}
+              />
+              <span className="relative z-10 flex items-center gap-2">
+                <span className="text-[var(--primary)] font-bold">{currentPage}</span>
+                <span className="text-[var(--muted-foreground)]">/</span>
+                <span className="text-[var(--foreground)]">{chapterImageLength}</span>
+                <span className="text-xs text-[var(--muted-foreground)] ml-1 px-1.5 py-0.5 bg-[var(--secondary)] rounded-full">
+                  {chapterProgressPercent}%
+                </span>
+              </span>
             </button>
             {isJumpPopoverOpen && onJumpToPage && (
               <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 z-[80] w-[240px] p-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl">
@@ -806,7 +818,7 @@ export default function ReaderControls({
         </div>
       </div>
 
-      {/* Мобильный счётчик */}
+      {/* Мобильный счётчик с улучшенным дизайном */}
       <div
         className={`sm:hidden fixed z-[45] transition-all duration-300 ease-in-out ${
           isMenuHidden ? 'bottom-16 right-2 xs:right-4 opacity-100' : 'bottom-16 left-0 right-0 opacity-100'
@@ -818,10 +830,24 @@ export default function ReaderControls({
               <button
                 type="button"
                 onClick={handleCounterClick}
-                className={`text-[var(--primary)] text-xs xs:text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-lg xs:rounded-xl px-2 xs:px-3 py-1 xs:py-1.5 shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-[var(--accent)] ${isMenuHidden ? 'scale-90' : 'scale-100'}`}
+                className={`group relative overflow-hidden text-xs xs:text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-xl xs:rounded-2xl px-3 xs:px-4 py-1.5 xs:py-2 shadow-lg backdrop-blur-sm transition-all duration-300 active:scale-95 ${isMenuHidden ? 'scale-90' : 'scale-100'}`}
                 title={onJumpToPage ? "Нажмите для перехода к странице" : "Счётчик страниц"}
               >
-                {currentPage} / {chapterImageLength} ({chapterProgressPercent}%)
+                {/* Mini progress bar */}
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--muted)]">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] transition-all duration-300"
+                    style={{ width: `${chapterProgressPercent}%` }}
+                  />
+                </div>
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <span className="text-[var(--primary)] font-bold">{currentPage}</span>
+                  <span className="text-[var(--muted-foreground)] text-xs">/</span>
+                  <span className="text-[var(--foreground)]">{chapterImageLength}</span>
+                  <span className="text-[10px] xs:text-xs text-[var(--muted-foreground)] ml-0.5">
+                    ({chapterProgressPercent}%)
+                  </span>
+                </span>
               </button>
               {isJumpPopoverOpen && onJumpToPage && (
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-[80] w-[220px] p-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl">

@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Shuffle, Star, ChevronRight, BookOpen } from "lucide-react";
+import { Shuffle, Star, ChevronDown, BookOpen } from "lucide-react";
 import { useGetRecommendedTitlesQuery } from "@/store/api/titlesApi";
 import { normalizeAssetUrl } from "@/lib/asset-url";
-import { Title } from "@/types/title";
+import { translateTitleType } from "@/lib/title-type-translations";
 
 interface SimilarTitlesProps {
   titleId: string;
@@ -33,7 +33,7 @@ function TitleCard({ title, slug }: { title: SimilarTitle; slug?: string }) {
   return (
     <Link
       href={titlePath}
-      className="group flex-shrink-0 w-[140px] sm:w-[160px]"
+      className="group"
     >
       <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-2 bg-[var(--secondary)]/50">
         {title.cover && !imageError ? (
@@ -72,7 +72,7 @@ function TitleCard({ title, slug }: { title: SimilarTitle; slug?: string }) {
       <h4 className="text-sm font-medium text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
         {title.title}
       </h4>
-      <span className="text-xs text-[var(--muted-foreground)]">{title.type}</span>
+      <span className="text-xs text-[var(--muted-foreground)]">{translateTitleType(title.type)}</span>
     </Link>
   );
 }
@@ -88,12 +88,12 @@ export function SimilarTitles({ titleId, genres, currentTitleSlug }: SimilarTitl
           <Shuffle className="w-5 h-5 text-[var(--primary)]" />
           <span className="font-medium text-[var(--foreground)]">Похожие тайтлы</span>
         </div>
-        <div className="flex gap-4 overflow-hidden">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="animate-pulse flex-shrink-0 w-[140px]">
+            <div key={i} className="animate-pulse">
               <div className="aspect-[3/4] rounded-xl bg-[var(--background)]/50 mb-2" />
-              <div className="w-24 h-4 rounded bg-[var(--background)]/50 mb-1" />
-              <div className="w-16 h-3 rounded bg-[var(--background)]/50" />
+              <div className="w-3/4 h-4 rounded bg-[var(--background)]/50 mb-1" />
+              <div className="w-1/2 h-3 rounded bg-[var(--background)]/50" />
             </div>
           ))}
         </div>
@@ -108,7 +108,8 @@ export function SimilarTitles({ titleId, genres, currentTitleSlug }: SimilarTitl
   const filteredTitles = data.data.filter(t => t.id !== titleId);
   if (filteredTitles.length === 0) return null;
 
-  const displayedTitles = showAll ? filteredTitles : filteredTitles.slice(0, 6);
+  const hasMore = filteredTitles.length > 4;
+  const displayedTitles = showAll ? filteredTitles : filteredTitles.slice(0, 4);
 
   return (
     <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">
@@ -117,31 +118,30 @@ export function SimilarTitles({ titleId, genres, currentTitleSlug }: SimilarTitl
           <Shuffle className="w-5 h-5 text-[var(--primary)]" />
           <span className="font-medium text-[var(--foreground)]">Похожие тайтлы</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => refetch()}
-            className="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
-            title="Обновить рекомендации"
-          >
-            <Shuffle className="w-4 h-4" />
-          </button>
-          {filteredTitles.length > 6 && (
-            <button
-              onClick={() => setShowAll(!showAll)}
-              className="flex items-center gap-1 text-sm text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors"
-            >
-              {showAll ? "Свернуть" : "Все"}
-              <ChevronRight className={`w-4 h-4 transition-transform ${showAll ? "rotate-90" : ""}`} />
-            </button>
-          )}
-        </div>
+        <button
+          onClick={() => refetch()}
+          className="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+          title="Обновить рекомендации"
+        >
+          <Shuffle className="w-4 h-4" />
+        </button>
       </div>
 
-      <div className={`flex gap-4 ${showAll ? "flex-wrap" : "overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[var(--primary)]/20 scrollbar-track-transparent"}`}>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {displayedTitles.map(title => (
           <TitleCard key={title.id} title={title} />
         ))}
       </div>
+
+      {hasMore && (
+        <button
+          onClick={() => setShowAll(!showAll)}
+          className="flex items-center justify-center gap-1.5 w-full mt-4 py-2.5 text-sm font-medium text-[var(--primary)] bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 border border-[var(--primary)]/20 hover:border-[var(--primary)]/30 rounded-xl transition-all"
+        >
+          <span>{showAll ? "Свернуть" : `Показать ещё ${filteredTitles.length - 4}`}</span>
+          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`} />
+        </button>
+      )}
     </div>
   );
 }

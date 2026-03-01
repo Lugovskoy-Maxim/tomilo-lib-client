@@ -8,6 +8,7 @@ import { ChapterStatus, CreateChapterDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { Header } from "@/widgets";
+import { TranslatorTeamSelect } from "@/shared/admin/TranslatorTeamSelect";
 
 export default function ChapterCreatePage() {
   const params = useParams();
@@ -29,6 +30,8 @@ export default function ChapterCreatePage() {
     translator: "",
     proofreader: "",
     qualityCheck: "",
+    translatorTeamId: undefined,
+    translatorTeamName: undefined,
     releaseDate: undefined,
   });
   const [pages, setPages] = useState<File[]>([]);
@@ -237,7 +240,29 @@ export default function ChapterCreatePage() {
             </div>
 
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-4">
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">Участники</h2>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Команда перевода</h2>
+              
+              {/* Выбор команды переводчиков */}
+              <div className="pb-4 border-b border-[var(--border)]">
+                <TranslatorTeamSelect
+                  titleId={titleId}
+                  selectedTeamId={form.translatorTeamId}
+                  onSelect={(teamId, teamName) => {
+                    handleChange("translatorTeamId", teamId);
+                    handleChange("translatorTeamName", teamName);
+                  }}
+                  label="Команда перевода"
+                  placeholder="Выберите команду переводчиков"
+                />
+                <p className="text-xs text-[var(--muted-foreground)] mt-2">
+                  Выберите команду переводчиков, которая работала над этой главой
+                </p>
+              </div>
+
+              <h3 className="text-sm font-medium text-[var(--foreground)] pt-2">Участники (вручную)</h3>
+              <p className="text-xs text-[var(--muted-foreground)] -mt-2">
+                Если команда не зарегистрирована, можно указать участников вручную
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="flex flex-col gap-1">
                   <span className="text-sm font-medium text-[var(--foreground)]">Переводчик</span>
@@ -246,6 +271,7 @@ export default function ChapterCreatePage() {
                     value={form.translator ?? ""}
                     onChange={e => handleChange("translator", e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
+                    placeholder="Имя переводчика"
                   />
                 </label>
                 <label className="flex flex-col gap-1">
@@ -255,6 +281,7 @@ export default function ChapterCreatePage() {
                     value={form.proofreader ?? ""}
                     onChange={e => handleChange("proofreader", e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
+                    placeholder="Имя редактора"
                   />
                 </label>
                 <label className="flex flex-col gap-1 md:col-span-2">
@@ -264,6 +291,7 @@ export default function ChapterCreatePage() {
                     value={form.qualityCheck ?? ""}
                     onChange={e => handleChange("qualityCheck", e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
+                    placeholder="Имя проверяющего качество"
                   />
                 </label>
               </div>
