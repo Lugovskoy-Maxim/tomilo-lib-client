@@ -12,6 +12,9 @@ const DOUBLE_PAGE_KEY = "reader-double-page";
 const FIT_MODE_KEY = "reader-fit-mode";
 const READING_DIRECTION_KEY = "reader-direction";
 const INFINITE_SCROLL_KEY = "reader-infinite-scroll";
+const SHOW_TIMER_KEY = "reader-show-timer";
+const SHOW_HINTS_KEY = "reader-show-hints";
+const SHOW_PROGRESS_KEY = "reader-show-progress";
 
 export type ReadingMode = "feed" | "paged";
 export type EyeComfortMode = "off" | "warm" | "sepia" | "dark";
@@ -42,6 +45,12 @@ interface UseReaderSettingsReturn {
   setReadingDirection: (dir: ReadingDirection) => void;
   infiniteScroll: boolean;
   setInfiniteScroll: (value: boolean) => void;
+  showTimer: boolean;
+  setShowTimer: (value: boolean) => void;
+  showHints: boolean;
+  setShowHints: (value: boolean) => void;
+  showProgress: boolean;
+  setShowProgress: (value: boolean) => void;
   resetToDefaults: () => void;
 }
 
@@ -59,6 +68,9 @@ const DEFAULT_SETTINGS = {
   fitMode: "width" as FitMode,
   readingDirection: "ltr" as ReadingDirection,
   infiniteScroll: false,
+  showTimer: true,
+  showHints: true,
+  showProgress: true,
 };
 
 function getInitialSettings() {
@@ -77,6 +89,9 @@ function getInitialSettings() {
   const savedFitMode = localStorage.getItem(FIT_MODE_KEY);
   const savedDirection = localStorage.getItem(READING_DIRECTION_KEY);
   const savedInfiniteScroll = localStorage.getItem(INFINITE_SCROLL_KEY);
+  const savedShowTimer = localStorage.getItem(SHOW_TIMER_KEY);
+  const savedShowHints = localStorage.getItem(SHOW_HINTS_KEY);
+  const savedShowProgress = localStorage.getItem(SHOW_PROGRESS_KEY);
 
   const pageGapParsed = savedPageGap ? parseInt(savedPageGap, 10) : NaN;
   const brightnessParsed = savedBrightness ? parseInt(savedBrightness, 10) : NaN;
@@ -114,6 +129,15 @@ function getInitialSettings() {
     infiniteScroll: savedInfiniteScroll !== null
       ? savedInfiniteScroll === "true"
       : DEFAULT_SETTINGS.infiniteScroll,
+    showTimer: savedShowTimer !== null
+      ? savedShowTimer === "true"
+      : DEFAULT_SETTINGS.showTimer,
+    showHints: savedShowHints !== null
+      ? savedShowHints === "true"
+      : DEFAULT_SETTINGS.showHints,
+    showProgress: savedShowProgress !== null
+      ? savedShowProgress === "true"
+      : DEFAULT_SETTINGS.showProgress,
   };
 }
 
@@ -125,7 +149,7 @@ export function useReaderSettings(): UseReaderSettingsReturn {
     setSettings(loadedSettings);
   }, []);
 
-  const { showPageCounter, readChaptersInRow: readChaptersInRowState, readingMode, pageGap, brightness, contrast, eyeComfortMode, doublePageMode, fitMode, readingDirection, infiniteScroll } = settings;
+  const { showPageCounter, readChaptersInRow: readChaptersInRowState, readingMode, pageGap, brightness, contrast, eyeComfortMode, doublePageMode, fitMode, readingDirection, infiniteScroll, showTimer, showHints, showProgress } = settings;
 
   const setShowPageCounter = useCallback((value: boolean) => {
     setSettings(prev => ({ ...prev, showPageCounter: value }));
@@ -220,6 +244,27 @@ export function useReaderSettings(): UseReaderSettingsReturn {
     }
   }, []);
 
+  const setShowTimer = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, showTimer: value }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SHOW_TIMER_KEY, value.toString());
+    }
+  }, []);
+
+  const setShowHints = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, showHints: value }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SHOW_HINTS_KEY, value.toString());
+    }
+  }, []);
+
+  const setShowProgress = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, showProgress: value }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SHOW_PROGRESS_KEY, value.toString());
+    }
+  }, []);
+
   const resetToDefaults = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);
     if (typeof window !== "undefined") {
@@ -234,6 +279,9 @@ export function useReaderSettings(): UseReaderSettingsReturn {
       localStorage.removeItem(FIT_MODE_KEY);
       localStorage.removeItem(READING_DIRECTION_KEY);
       localStorage.removeItem(INFINITE_SCROLL_KEY);
+      localStorage.removeItem(SHOW_TIMER_KEY);
+      localStorage.removeItem(SHOW_HINTS_KEY);
+      localStorage.removeItem(SHOW_PROGRESS_KEY);
     }
   }, []);
 
@@ -261,6 +309,12 @@ export function useReaderSettings(): UseReaderSettingsReturn {
     setReadingDirection,
     infiniteScroll,
     setInfiniteScroll,
+    showTimer,
+    setShowTimer,
+    showHints,
+    setShowHints,
+    showProgress,
+    setShowProgress,
     resetToDefaults,
   };
 }
@@ -276,7 +330,7 @@ export function ReaderSettingsProvider({ children }: { children: ReactNode }) {
     setSettings(loadedSettings);
   }, []);
 
-  const { showPageCounter, readChaptersInRow: readChaptersInRowState, readingMode, pageGap, brightness, contrast, eyeComfortMode, doublePageMode, fitMode, readingDirection, infiniteScroll } = settings;
+  const { showPageCounter, readChaptersInRow: readChaptersInRowState, readingMode, pageGap, brightness, contrast, eyeComfortMode, doublePageMode, fitMode, readingDirection, infiniteScroll, showTimer, showHints, showProgress } = settings;
 
   const setShowPageCounter = useCallback((value: boolean) => {
     setSettings(prev => ({ ...prev, showPageCounter: value }));
@@ -371,6 +425,27 @@ export function ReaderSettingsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const setShowTimer = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, showTimer: value }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SHOW_TIMER_KEY, value.toString());
+    }
+  }, []);
+
+  const setShowHints = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, showHints: value }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SHOW_HINTS_KEY, value.toString());
+    }
+  }, []);
+
+  const setShowProgress = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, showProgress: value }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SHOW_PROGRESS_KEY, value.toString());
+    }
+  }, []);
+
   const resetToDefaults = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);
     if (typeof window !== "undefined") {
@@ -385,6 +460,9 @@ export function ReaderSettingsProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(FIT_MODE_KEY);
       localStorage.removeItem(READING_DIRECTION_KEY);
       localStorage.removeItem(INFINITE_SCROLL_KEY);
+      localStorage.removeItem(SHOW_TIMER_KEY);
+      localStorage.removeItem(SHOW_HINTS_KEY);
+      localStorage.removeItem(SHOW_PROGRESS_KEY);
     }
   }, []);
 
@@ -412,6 +490,12 @@ export function ReaderSettingsProvider({ children }: { children: ReactNode }) {
     setReadingDirection,
     infiniteScroll,
     setInfiniteScroll,
+    showTimer,
+    setShowTimer,
+    showHints,
+    setShowHints,
+    showProgress,
+    setShowProgress,
     resetToDefaults,
   };
 

@@ -92,6 +92,7 @@ function ReadChapterPageContent({
     eyeComfortMode, 
     fitMode,
     infiniteScroll,
+    showHints,
   } = useReaderSettingsContext();
   const [fetchChapterById] = useLazyGetChapterByIdQuery();
 
@@ -1426,7 +1427,7 @@ function ReadChapterPageContent({
                               priority
                             />
                             {/* Zoom hint on first page */}
-                            {imageIndex === 0 && isImageLoaded && (
+                            {showHints && imageIndex === 0 && isImageLoaded && (
                               <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-2.5 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-xs text-white/80 opacity-0 animate-fade-in-delayed pointer-events-none">
                                 <ZoomIn className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Двойной клик для зума</span>
@@ -1477,7 +1478,7 @@ function ReadChapterPageContent({
                   );
                 })()}
                 {/* Swipe hint для мобильных */}
-                {isMobile && currentPage === 1 && (
+                {showHints && isMobile && currentPage === 1 && (
                   <div className="py-3 text-center animate-in fade-in slide-in-from-top-2 duration-500">
                     <div className="inline-flex items-center gap-2 px-3 py-2 bg-[var(--secondary)]/80 rounded-full text-xs text-[var(--muted-foreground)]">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

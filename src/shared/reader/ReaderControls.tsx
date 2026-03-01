@@ -21,6 +21,7 @@ import {
   Grid3X3,
   Timer,
   Infinity,
+  Percent,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
@@ -29,6 +30,7 @@ import { ReportModal } from "@/shared/report/ReportModal";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED } from "./hooks";
 import PageThumbnails from "./PageThumbnails";
+import { useGetCommentsQuery } from "@/store/api/commentsApi";
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -126,6 +128,12 @@ export default function ReaderControls({
     setFitMode,
     infiniteScroll,
     setInfiniteScroll,
+    showTimer,
+    setShowTimer,
+    showHints,
+    setShowHints,
+    showProgress,
+    setShowProgress,
     resetToDefaults,
   } = useReaderSettingsContext();
 
@@ -137,6 +145,15 @@ export default function ReaderControls({
     stopPressing,
     handleSimpleClick,
   } = useRefreshButton();
+
+  // Получаем количество комментариев
+  const { data: commentsData } = useGetCommentsQuery({
+    entityType: CommentEntityType.CHAPTER,
+    entityId: currentChapter._id,
+    page: 1,
+    limit: 1,
+  });
+  const commentsCount = commentsData?.data?.total || 0;
 
   // Настройка продолжения чтения
   const [instantContinue, setInstantContinueState] = useState(() => {
@@ -590,6 +607,37 @@ export default function ReaderControls({
                 </div>
 
                 <div className="space-y-2">
+                  {/* Быстрые переключатели */}
+                  <div className="grid grid-cols-3 gap-2 p-3 bg-[var(--secondary)]/50 rounded-2xl">
+                    <button
+                      onClick={() => setShowTimer(!showTimer)}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                        showTimer ? "bg-[var(--primary)]/15 ring-2 ring-[var(--primary)]" : "bg-[var(--card)] hover:bg-[var(--muted)]"
+                      }`}
+                    >
+                      <Timer className={`w-5 h-5 ${showTimer ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
+                      <span className="text-xs font-medium">Таймер</span>
+                    </button>
+                    <button
+                      onClick={() => setShowProgress(!showProgress)}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                        showProgress ? "bg-[var(--primary)]/15 ring-2 ring-[var(--primary)]" : "bg-[var(--card)] hover:bg-[var(--muted)]"
+                      }`}
+                    >
+                      <Percent className={`w-5 h-5 ${showProgress ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
+                      <span className="text-xs font-medium">Прогресс</span>
+                    </button>
+                    <button
+                      onClick={() => setShowHints(!showHints)}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                        showHints ? "bg-[var(--primary)]/15 ring-2 ring-[var(--primary)]" : "bg-[var(--card)] hover:bg-[var(--muted)]"
+                      }`}
+                    >
+                      <Eye className={`w-5 h-5 ${showHints ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
+                      <span className="text-xs font-medium">Подсказки</span>
+                    </button>
+                  </div>
+
                   {/* Счётчик страниц */}
                   <button
                     onClick={() => setShowPageCounter(!showPageCounter)}
@@ -905,6 +953,46 @@ export default function ReaderControls({
                 </button>
               )}
 
+              {/* Интерфейс */}
+              <div className="space-y-3">
+                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Интерфейс</span>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => setShowTimer(!showTimer)}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
+                      showTimer ? "bg-[var(--primary)]/10 ring-2 ring-[var(--primary)]" : "bg-[var(--secondary)]"
+                    }`}
+                  >
+                    <Timer className={`w-5 h-5 ${showTimer ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
+                    <div className="text-center">
+                      <div className="text-[10px] font-medium">Таймер</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setShowProgress(!showProgress)}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
+                      showProgress ? "bg-[var(--primary)]/10 ring-2 ring-[var(--primary)]" : "bg-[var(--secondary)]"
+                    }`}
+                  >
+                    <Percent className={`w-5 h-5 ${showProgress ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
+                    <div className="text-center">
+                      <div className="text-[10px] font-medium">Прогресс</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setShowHints(!showHints)}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
+                      showHints ? "bg-[var(--primary)]/10 ring-2 ring-[var(--primary)]" : "bg-[var(--secondary)]"
+                    }`}
+                  >
+                    <Eye className={`w-5 h-5 ${showHints ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
+                    <div className="text-center">
+                      <div className="text-[10px] font-medium">Подсказки</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
               {/* Сброс */}
               <button
                 onClick={resetToDefaults}
@@ -930,17 +1018,21 @@ export default function ReaderControls({
               title={onJumpToPage ? "Нажмите для перехода к странице" : "Счётчик страниц"}
             >
               {/* Progress background */}
-              <div 
-                className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/20 to-[var(--accent)]/20 transition-all duration-500"
-                style={{ width: `${chapterProgressPercent}%` }}
-              />
+              {showProgress && (
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/20 to-[var(--accent)]/20 transition-all duration-500"
+                  style={{ width: `${chapterProgressPercent}%` }}
+                />
+              )}
               <span className="relative z-10 flex items-center gap-2">
                 <span className="text-[var(--primary)] font-bold">{currentPage}</span>
                 <span className="text-[var(--muted-foreground)]">/</span>
                 <span className="text-[var(--foreground)]">{chapterImageLength}</span>
-                <span className="text-xs text-[var(--muted-foreground)] ml-1 px-1.5 py-0.5 bg-[var(--secondary)] rounded-full">
-                  {chapterProgressPercent}%
-                </span>
+                {showProgress && (
+                  <span className="text-xs text-[var(--muted-foreground)] ml-1 px-1.5 py-0.5 bg-[var(--secondary)] rounded-full">
+                    {chapterProgressPercent}%
+                  </span>
+                )}
               </span>
             </button>
             {isJumpPopoverOpen && onJumpToPage && (
@@ -971,12 +1063,14 @@ export default function ReaderControls({
         </div>
 
         {/* Таймер чтения */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--card)]/90 border border-[var(--border)] rounded-full shadow-md backdrop-blur-sm">
-          <Timer className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-          <span className="text-xs font-medium tabular-nums text-[var(--foreground)]">
-            {formatReadingTime(readingTime)}
-          </span>
-        </div>
+        {showTimer && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--card)]/90 border border-[var(--border)] rounded-full shadow-md backdrop-blur-sm">
+            <Timer className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+            <span className="text-xs font-medium tabular-nums text-[var(--foreground)]">
+              {formatReadingTime(readingTime)}
+            </span>
+          </div>
+        )}
 
         {/* Основные кнопки управления */}
         <div className="flex flex-col items-center gap-2 bg-[var(--card)]/95 border border-[var(--border)] rounded-2xl p-3 shadow-lg backdrop-blur-sm">
@@ -1039,6 +1133,11 @@ export default function ReaderControls({
             title="Комментарии"
           >
             <MessageCircle className={`w-5 h-5 ${isCommentsOpen ? "text-[var(--primary)]" : ""}`} />
+            {commentsCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-[var(--primary)] text-white text-[10px] font-bold rounded-full shadow-sm">
+                {commentsCount > 99 ? "99+" : commentsCount}
+              </span>
+            )}
           </button>
 
           {/* Кнопка сетки страниц */}
@@ -1101,19 +1200,23 @@ export default function ReaderControls({
                 title={onJumpToPage ? "Нажмите для перехода к странице" : "Счётчик страниц"}
               >
                 {/* Mini progress bar */}
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--muted)]">
-                  <div 
-                    className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] transition-all duration-300"
-                    style={{ width: `${chapterProgressPercent}%` }}
-                  />
-                </div>
+                {showProgress && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--muted)]">
+                    <div 
+                      className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] transition-all duration-300"
+                      style={{ width: `${chapterProgressPercent}%` }}
+                    />
+                  </div>
+                )}
                 <span className="relative z-10 flex items-center gap-1.5">
                   <span className="text-[var(--primary)] font-bold">{currentPage}</span>
                   <span className="text-[var(--muted-foreground)] text-xs">/</span>
                   <span className="text-[var(--foreground)]">{chapterImageLength}</span>
-                  <span className="text-[10px] xs:text-xs text-[var(--muted-foreground)] ml-0.5">
-                    ({chapterProgressPercent}%)
-                  </span>
+                  {showProgress && (
+                    <span className="text-[10px] xs:text-xs text-[var(--muted-foreground)] ml-0.5">
+                      ({chapterProgressPercent}%)
+                    </span>
+                  )}
                 </span>
               </button>
               {isJumpPopoverOpen && onJumpToPage && (
@@ -1238,12 +1341,17 @@ export default function ReaderControls({
           {/* Кнопка комментариев */}
           <button
             onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-            className={`shrink-0 min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`relative shrink-0 min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
             }`}
             title="Комментарии"
           >
             <MessageCircle className="w-4 h-4 xs:w-5 xs:h-5" />
+            {commentsCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center px-1 bg-[var(--primary)] text-white text-[9px] font-bold rounded-full shadow-sm">
+                {commentsCount > 99 ? "99+" : commentsCount}
+              </span>
+            )}
           </button>
 
           {/* Кнопка обновления страницы с удержанием */}
@@ -1403,26 +1511,40 @@ export default function ReaderControls({
         <>
           {/* Overlay для закрытия панели комментариев */}
           <div
-            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm sm:hidden"
+            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
             onClick={() => setIsCommentsOpen(false)}
           />
 
           {/* Боковая панель комментариев (десктоп) */}
-          <div className="hidden sm:block fixed right-20 top-1/2 -translate-y-1/2 w-[420px] max-h-[85vh] bg-[var(--card)]/95 backdrop-blur-md border border-[var(--border)] rounded-3xl shadow-2xl z-[60] overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--background)]/50">
-              <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
-                <MessageCircle className="w-6 h-6 text-[var(--primary)]" />
-                Комментарии к главе
-              </h3>
-              <button
-                onClick={() => setIsCommentsOpen(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                title="Закрыть"
-              >
-                <X className="w-6 h-6 text-[var(--muted-foreground)]" />
-              </button>
+          <div className="hidden sm:block fixed right-20 top-1/2 -translate-y-1/2 w-[440px] max-h-[85vh] bg-[var(--card)] backdrop-blur-xl border border-[var(--border)]/50 rounded-3xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300">
+            {/* Header с градиентом */}
+            <div className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/10 via-transparent to-[var(--primary)]/5" />
+              <div className="relative flex items-center justify-between p-5 border-b border-[var(--border)]/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-base text-[var(--foreground)]">
+                      Комментарии
+                    </h3>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      Глава {currentChapter.number}
+                      {commentsCount > 0 && ` • ${commentsCount} ${commentsCount === 1 ? 'комментарий' : commentsCount < 5 ? 'комментария' : 'комментариев'}`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsCommentsOpen(false)}
+                  className="p-2.5 hover:bg-[var(--secondary)] rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                  title="Закрыть"
+                >
+                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </button>
+              </div>
             </div>
-            <div className="overflow-y-auto max-h-[calc(85vh-80px)] p-5">
+            <div className="overflow-y-auto max-h-[calc(85vh-90px)] p-5">
               <CommentsSection
                 entityType={CommentEntityType.CHAPTER}
                 entityId={currentChapter._id}
@@ -1431,19 +1553,38 @@ export default function ReaderControls({
           </div>
 
           {/* Мобильная панель комментариев */}
-          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl">
-            <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--background)]/50 backdrop-blur-sm">
-              <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
-                <MessageCircle className="w-6 h-6 text-[var(--primary)]" />
-                Комментарии к главе
-              </h3>
-              <button
-                onClick={() => setIsCommentsOpen(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                title="Закрыть"
-              >
-                <X className="w-6 h-6 text-[var(--muted-foreground)]" />
-              </button>
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)] backdrop-blur-xl border-t border-[var(--border)]/50 shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl animate-in fade-in slide-in-from-bottom-4 duration-300">
+            {/* Drag indicator */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-[var(--muted-foreground)]/30" />
+            </div>
+            
+            {/* Header с градиентом */}
+            <div className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/10 via-transparent to-[var(--primary)]/5" />
+              <div className="relative flex items-center justify-between px-5 py-4 border-b border-[var(--border)]/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-base text-[var(--foreground)]">
+                      Комментарии
+                    </h3>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      Глава {currentChapter.number}
+                      {commentsCount > 0 && ` • ${commentsCount}`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsCommentsOpen(false)}
+                  className="p-2.5 hover:bg-[var(--secondary)] rounded-xl transition-all duration-200 active:scale-95"
+                  title="Закрыть"
+                >
+                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </button>
+              </div>
             </div>
             <div className="overflow-y-auto flex-1 p-5">
               <CommentsSection
