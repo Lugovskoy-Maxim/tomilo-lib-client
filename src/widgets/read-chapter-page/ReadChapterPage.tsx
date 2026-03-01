@@ -1196,7 +1196,7 @@ function ReadChapterPageContent({
 
       {/* Основной контент */}
       <main
-        className={`pt-20 sm:pt-16 ${isMenuCollapsed ? "pb-0" : "pb-16"}`}
+        className={`pt-20 sm:pt-16 ${isMenuCollapsed ? "pb-0" : "pb-16"} reader-scroll-container`}
         onClick={handleMobileTap}
       >
         <div className="container mx-auto">
@@ -1236,7 +1236,7 @@ function ReadChapterPageContent({
                     return (
                       <div 
                         key={`${ch._id}-${imageIndex}`} 
-                        className="flex justify-center"
+                        className="flex justify-center reader-image-container"
                         style={{ marginBottom: `${pageGap}px` }}
                       >
                         <div
@@ -1526,7 +1526,7 @@ function ReadChapterPageContent({
                 return (
                   <div 
                     key={`${chapter._id}-${imageIndex}`} 
-                    className="flex justify-center"
+                    className="flex justify-center reader-image-container"
                     style={{ marginBottom: `${pageGap}px` }}
                   >
                     <div
@@ -1797,7 +1797,7 @@ function ReadChapterPageContent({
                         return (
                           <div 
                             key={`${loadedChapter._id}-${imageIndex}`} 
-                            className="flex justify-center"
+                            className="flex justify-center reader-image-container"
                             style={{ marginBottom: `${pageGap}px` }}
                           >
                             <div

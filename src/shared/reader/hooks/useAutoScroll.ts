@@ -24,8 +24,12 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
   const isAutoScrollingRef = useRef(isAutoScrolling);
   const [autoScrollSpeed, setAutoScrollSpeedState] = useState<AutoScrollSpeed>("medium");
   const autoScrollSpeedRef = useRef(autoScrollSpeed);
-  const rafRef = useRef<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopAutoScrollRef = useRef<(() => void) | null>(null);
+  
+  // Sub-pixel accumulator for smooth scrolling
+  const accumulatedRef = useRef(0);
+  const lastAppliedRef = useRef(0);
 
   useEffect(() => {
     isAutoScrollingRef.current = isAutoScrolling;
@@ -53,9 +57,9 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
   }, []);
 
   const stopAutoScroll = useCallback(() => {
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
     setIsAutoScrolling(false);
   }, []);
@@ -68,52 +72,51 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
     if (isAutoScrollingRef.current) return;
     setIsAutoScrolling(true);
 
-    // Pixels per second
-    const speedMap = { slow: 35, medium: 90, fast: 180 };
+    // Pixels per second for each speed
+    const speedMap = { slow: 30, medium: 80, fast: 160 };
     
-    // Use start time and position for linear interpolation
-    const startTime = performance.now();
-    const startScrollY = window.scrollY;
-    let lastAppliedY = startScrollY;
+    // Use 60fps interval for consistent timing
+    const INTERVAL_MS = 16.67; // ~60fps
+    
+    // Initialize accumulator with current scroll position
+    accumulatedRef.current = window.scrollY;
+    lastAppliedRef.current = window.scrollY;
 
-    const tick = (now: number) => {
-      if (!isAutoScrollingRef.current) return;
-
-      const elapsed = now - startTime;
-      const pxPerSecond = speedMap[autoScrollSpeedRef.current];
-      
-      // Calculate target position based on elapsed time
-      const targetY = startScrollY + (pxPerSecond * elapsed) / 1000;
-      
-      // Check if user manually scrolled (difference too big)
-      const currentY = window.scrollY;
-      const expectedY = lastAppliedY;
-      
-      if (Math.abs(currentY - expectedY) > 3) {
-        // User scrolled - restart with new base position
+    intervalRef.current = setInterval(() => {
+      if (!isAutoScrollingRef.current) {
         stopAutoScrollRef.current?.();
         return;
       }
 
+      const pxPerSecond = speedMap[autoScrollSpeedRef.current];
+      const pxPerFrame = pxPerSecond * (INTERVAL_MS / 1000);
+      
+      // Check if user manually scrolled
+      const currentY = window.scrollY;
+      if (Math.abs(currentY - lastAppliedRef.current) > 2) {
+        // User scrolled - update accumulator to match
+        accumulatedRef.current = currentY;
+        lastAppliedRef.current = currentY;
+      }
+      
+      // Accumulate sub-pixel movement
+      accumulatedRef.current += pxPerFrame;
+      
       // Check end
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      if (targetY >= maxScroll) {
-        window.scrollTo({ top: maxScroll, behavior: 'instant' });
+      if (accumulatedRef.current >= maxScroll) {
+        window.scrollTo(0, maxScroll);
         stopAutoScrollRef.current?.();
         return;
       }
 
-      // Apply scroll - round to avoid sub-pixel jitter
-      const newY = Math.round(targetY);
-      if (newY !== lastAppliedY) {
-        window.scrollTo({ top: newY, behavior: 'instant' });
-        lastAppliedY = newY;
+      // Only apply when we have a new whole pixel to scroll
+      const newY = Math.floor(accumulatedRef.current);
+      if (newY > lastAppliedRef.current) {
+        window.scrollTo(0, newY);
+        lastAppliedRef.current = newY;
       }
-
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    rafRef.current = requestAnimationFrame(tick);
+    }, INTERVAL_MS);
   }, []);
 
   const toggleAutoScroll = useCallback(() => {
@@ -164,7 +167,9 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
 
   // Cleanup
   useEffect(() => {
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    return () => { 
+      if (intervalRef.current) clearInterval(intervalRef.current); 
+    };
   }, []);
 
   return {
