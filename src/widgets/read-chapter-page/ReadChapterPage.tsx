@@ -30,6 +30,8 @@ import {
 import ChapterErrorState from "@/shared/error-state/ChapterErrorState";
 import ReadingPositionRestoreModal from "@/shared/reader/ReadingPositionRestoreModal";
 import { ChapterCommentsSection } from "@/shared/reader/ChapterCommentsSection";
+import { ChapterTranslatorInfo } from "@/shared/reader/ChapterTranslatorInfo";
+import { ChapterReactions } from "@/shared/reader/ChapterReactions";
 
 function apiChapterToReaderChapter(ch: Chapter): ReaderChapter {
   const pages = ch.pages || ch.images || [];
@@ -1169,6 +1171,21 @@ export default function ReadChapterPage({
             {/* Рекламный блок — временно отключено
             <AdBlockReading />
             */}
+
+            {/* Реакции на главу */}
+            <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-8">
+              <ChapterReactions
+                chapterId={chapter._id}
+                titleId={titleId}
+              />
+            </div>
+
+            {/* Информация о переводчике */}
+            <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-6">
+              <ChapterTranslatorInfo
+                titleId={titleId}
+              />
+            </div>
 
             {/* Секция комментариев */}
             <ChapterCommentsSection chapterId={chapter._id} />

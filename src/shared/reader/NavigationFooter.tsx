@@ -1,22 +1,44 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Home } from "lucide-react";
 import { ReaderChapter as Chapter, ReaderTitle as Title } from "@/shared/reader/types";
+import { ChapterTranslatorInfo } from "./ChapterTranslatorInfo";
+import { ChapterReactions } from "./ChapterReactions";
 
 interface NavigationFooterProps {
   title: Title;
   prevChapter: Chapter | null;
   nextChapter: Chapter | null;
+  currentChapter: Chapter;
+  chapterTranslator?: string;
+  onLoginRequired?: () => void;
 }
 
 export default function NavigationFooter({
   title,
   prevChapter,
   nextChapter,
+  currentChapter,
+  chapterTranslator,
+  onLoginRequired,
 }: NavigationFooterProps) {
   return (
     <div className="bg-[var(--background)] border-t border-[var(--border)] py-6">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="flex items-center justify-between">
+      <div className="max-w-4xl mx-auto px-4 space-y-6">
+        {/* Реакции на главу */}
+        <ChapterReactions
+          chapterId={currentChapter._id}
+          titleId={title._id}
+          onLoginRequired={onLoginRequired}
+        />
+
+        {/* Информация о переводчике */}
+        <ChapterTranslatorInfo
+          titleId={title._id}
+          chapterTranslator={chapterTranslator}
+        />
+
+        {/* Навигация между главами */}
+        <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]/30">
           <div className="flex-1">
             {prevChapter ? (
               <Link
@@ -77,3 +99,5 @@ export default function NavigationFooter({
     </div>
   );
 }
+
+export { NavigationFooter };

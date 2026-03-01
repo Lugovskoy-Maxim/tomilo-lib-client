@@ -337,12 +337,14 @@ export default function ChapterEditorPage() {
                     onChange={e =>
                       setFormData((prev: Chapter) => ({
                         ...prev,
-                        chapterNumber: Number(e.target.value),
+                        chapterNumber: e.target.value ? parseFloat(e.target.value) : 0,
                       }))
                     }
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
                     required
                     min={0}
+                    step="any"
+                    placeholder="Например: 1, 1.5, 10.1"
                   />
                 </div>
               </div>

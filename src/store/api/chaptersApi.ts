@@ -125,7 +125,12 @@ export const chaptersApi = createApi({
     >({
       query: ({ data, pages }) => {
         const formData = toFormData<CreateChapterDto>(data);
-        sortFilesByNaturalOrder(pages).forEach(file => formData.append("pages", file));
+        const sortedPages = sortFilesByNaturalOrder(pages);
+        const fileOrder = sortedPages.map(file => file.name);
+        formData.append("fileOrder", JSON.stringify(fileOrder));
+        sortedPages.forEach((file, index) => {
+          formData.append(`pages`, new File([file], `${String(index).padStart(6, "0")}_${file.name}`, { type: file.type }));
+        });
         return {
           url: "/chapters/upload",
           method: "POST",
@@ -138,7 +143,12 @@ export const chaptersApi = createApi({
     addPagesToChapter: builder.mutation<Chapter, { id: string; pages: File[] }>({
       query: ({ id, pages }) => {
         const formData = new FormData();
-        sortFilesByNaturalOrder(pages).forEach(file => formData.append("pages", file));
+        const sortedPages = sortFilesByNaturalOrder(pages);
+        const fileOrder = sortedPages.map(file => file.name);
+        formData.append("fileOrder", JSON.stringify(fileOrder));
+        sortedPages.forEach((file, index) => {
+          formData.append(`pages`, new File([file], `${String(index).padStart(6, "0")}_${file.name}`, { type: file.type }));
+        });
         return {
           url: `/chapters/${id}/pages`,
           method: "POST",

@@ -29,6 +29,9 @@ import { getChapterPath } from "@/lib/title-paths";
 import { useAuth } from "@/hooks/useAuth";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { GenresList } from "./GenresList";
+import { CharactersSection } from "./CharactersSection";
+import { TranslatorsSection } from "./TranslatorsSection";
+import { SimilarTitles } from "./SimilarTitles";
 
 interface RightContentProps {
   titleData: Title;
@@ -434,6 +437,19 @@ export function RightContent({
                 </div>
               )}
             </div>
+
+            {/* Секция персонажей */}
+            <CharactersSection titleId={titleId} />
+
+            {/* Секция команды перевода */}
+            <TranslatorsSection titleId={titleId} />
+
+            {/* Похожие тайтлы */}
+            <SimilarTitles 
+              titleId={titleId} 
+              genres={titleData.genres} 
+              currentTitleSlug={slug}
+            />
           </div>
         );
 

@@ -8,6 +8,8 @@ import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useAuth } from "@/hooks/useAuth";
 import { getCoverUrls } from "@/lib/asset-url";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
+import { TitleAutoParsingManager } from "./TitleAutoParsingManager";
+import { SubscribeButton } from "./SubscribeButton";
 
 interface LeftSidebarProps {
   titleData: Title;
@@ -16,6 +18,7 @@ interface LeftSidebarProps {
   onShare: () => void;
   isAdmin: boolean;
   onAgeVerificationRequired: () => void;
+  onLoginRequired?: () => void;
   onReportClick?: (data: {
     entityType: "title" | "chapter";
     entityId: string;
@@ -32,6 +35,7 @@ export function LeftSidebar({
   onShare,
   isAdmin,
   onAgeVerificationRequired,
+  onLoginRequired,
   onReportClick,
 }: LeftSidebarProps) {
   const router = useRouter();
@@ -81,6 +85,10 @@ export function LeftSidebar({
           initialBookmarked={false}
           className="w-full py-3 px-4 text-sm font-medium"
         />
+        <SubscribeButton
+          titleId={titleData._id as string}
+          onLoginRequired={onLoginRequired}
+        />
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => {
@@ -118,14 +126,20 @@ export function LeftSidebar({
           </button>
         </div>
         {isAdmin && (
-          <button
-            onClick={() => router.push(`/admin/titles/edit/${titleData._id}`)}
-            className={actionButtonClass}
-            aria-label="Редактировать"
-          >
-            <Edit className="w-4 h-4 shrink-0" />
-            <span>Редактировать</span>
-          </button>
+          <>
+            <button
+              onClick={() => router.push(`/admin/titles/edit/${titleData._id}`)}
+              className={actionButtonClass}
+              aria-label="Редактировать"
+            >
+              <Edit className="w-4 h-4 shrink-0" />
+              <span>Редактировать</span>
+            </button>
+            <TitleAutoParsingManager
+              titleId={titleData._id as string}
+              titleName={titleData.name}
+            />
+          </>
         )}
       </div>
     </div>
