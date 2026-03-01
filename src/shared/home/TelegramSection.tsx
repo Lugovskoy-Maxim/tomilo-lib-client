@@ -13,7 +13,6 @@ export function TelegramSection() {
   return (
     <section className="w-full">
       <div className="relative overflow-hidden bg-gradient-to-br from-[#0088cc]/20 via-[#00aaff]/10 to-[#0088cc]/5">
-        <div className="absolute inset-0 bg-[url('/patterns/dots.svg')] opacity-5" />
         
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#0088cc]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#00aaff]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />

@@ -499,6 +499,10 @@ textarea.admin-input {
   animation: shimmer 1.5s infinite;
 }
 
+.animate-shimmer {
+  animation: shimmer 1.5s infinite ease-in-out;
+}
+
 /* Badge стили для карточек */
 .admin-badge {
   display: inline-flex;

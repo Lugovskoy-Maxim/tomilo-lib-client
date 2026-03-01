@@ -11,6 +11,7 @@ const EYE_COMFORT_KEY = "reader-eye-comfort";
 const DOUBLE_PAGE_KEY = "reader-double-page";
 const FIT_MODE_KEY = "reader-fit-mode";
 const READING_DIRECTION_KEY = "reader-direction";
+const INFINITE_SCROLL_KEY = "reader-infinite-scroll";
 
 export type ReadingMode = "feed" | "paged";
 export type EyeComfortMode = "off" | "warm" | "sepia" | "dark";
@@ -39,6 +40,8 @@ interface UseReaderSettingsReturn {
   setFitMode: (mode: FitMode) => void;
   readingDirection: ReadingDirection;
   setReadingDirection: (dir: ReadingDirection) => void;
+  infiniteScroll: boolean;
+  setInfiniteScroll: (value: boolean) => void;
   resetToDefaults: () => void;
 }
 
@@ -55,6 +58,7 @@ const DEFAULT_SETTINGS = {
   doublePageMode: false,
   fitMode: "width" as FitMode,
   readingDirection: "ltr" as ReadingDirection,
+  infiniteScroll: false,
 };
 
 function getInitialSettings() {
@@ -72,6 +76,7 @@ function getInitialSettings() {
   const savedDoublePage = localStorage.getItem(DOUBLE_PAGE_KEY);
   const savedFitMode = localStorage.getItem(FIT_MODE_KEY);
   const savedDirection = localStorage.getItem(READING_DIRECTION_KEY);
+  const savedInfiniteScroll = localStorage.getItem(INFINITE_SCROLL_KEY);
 
   const pageGapParsed = savedPageGap ? parseInt(savedPageGap, 10) : NaN;
   const brightnessParsed = savedBrightness ? parseInt(savedBrightness, 10) : NaN;
@@ -106,6 +111,9 @@ function getInitialSettings() {
     readingDirection: (savedDirection === "ltr" || savedDirection === "rtl") 
       ? savedDirection 
       : DEFAULT_SETTINGS.readingDirection,
+    infiniteScroll: savedInfiniteScroll !== null
+      ? savedInfiniteScroll === "true"
+      : DEFAULT_SETTINGS.infiniteScroll,
   };
 }
 
@@ -117,7 +125,7 @@ export function useReaderSettings(): UseReaderSettingsReturn {
     setSettings(loadedSettings);
   }, []);
 
-  const { showPageCounter, readChaptersInRow: readChaptersInRowState, readingMode, pageGap, brightness, contrast, eyeComfortMode, doublePageMode, fitMode, readingDirection } = settings;
+  const { showPageCounter, readChaptersInRow: readChaptersInRowState, readingMode, pageGap, brightness, contrast, eyeComfortMode, doublePageMode, fitMode, readingDirection, infiniteScroll } = settings;
 
   const setShowPageCounter = useCallback((value: boolean) => {
     setSettings(prev => ({ ...prev, showPageCounter: value }));
@@ -205,6 +213,13 @@ export function useReaderSettings(): UseReaderSettingsReturn {
     }
   }, []);
 
+  const setInfiniteScroll = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, infiniteScroll: value }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(INFINITE_SCROLL_KEY, value.toString());
+    }
+  }, []);
+
   const resetToDefaults = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);
     if (typeof window !== "undefined") {
@@ -218,6 +233,7 @@ export function useReaderSettings(): UseReaderSettingsReturn {
       localStorage.removeItem(DOUBLE_PAGE_KEY);
       localStorage.removeItem(FIT_MODE_KEY);
       localStorage.removeItem(READING_DIRECTION_KEY);
+      localStorage.removeItem(INFINITE_SCROLL_KEY);
     }
   }, []);
 
@@ -243,6 +259,8 @@ export function useReaderSettings(): UseReaderSettingsReturn {
     setFitMode,
     readingDirection,
     setReadingDirection,
+    infiniteScroll,
+    setInfiniteScroll,
     resetToDefaults,
   };
 }
@@ -258,7 +276,7 @@ export function ReaderSettingsProvider({ children }: { children: ReactNode }) {
     setSettings(loadedSettings);
   }, []);
 
-  const { showPageCounter, readChaptersInRow: readChaptersInRowState, readingMode, pageGap, brightness, contrast, eyeComfortMode, doublePageMode, fitMode, readingDirection } = settings;
+  const { showPageCounter, readChaptersInRow: readChaptersInRowState, readingMode, pageGap, brightness, contrast, eyeComfortMode, doublePageMode, fitMode, readingDirection, infiniteScroll } = settings;
 
   const setShowPageCounter = useCallback((value: boolean) => {
     setSettings(prev => ({ ...prev, showPageCounter: value }));
@@ -346,6 +364,13 @@ export function ReaderSettingsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const setInfiniteScroll = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, infiniteScroll: value }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(INFINITE_SCROLL_KEY, value.toString());
+    }
+  }, []);
+
   const resetToDefaults = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);
     if (typeof window !== "undefined") {
@@ -359,6 +384,7 @@ export function ReaderSettingsProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(DOUBLE_PAGE_KEY);
       localStorage.removeItem(FIT_MODE_KEY);
       localStorage.removeItem(READING_DIRECTION_KEY);
+      localStorage.removeItem(INFINITE_SCROLL_KEY);
     }
   }, []);
 
@@ -384,6 +410,8 @@ export function ReaderSettingsProvider({ children }: { children: ReactNode }) {
     setFitMode,
     readingDirection,
     setReadingDirection,
+    infiniteScroll,
+    setInfiniteScroll,
     resetToDefaults,
   };
 

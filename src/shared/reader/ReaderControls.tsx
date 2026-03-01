@@ -17,19 +17,17 @@ import {
   Sun,
   Contrast,
   Eye,
-  Columns,
-  ArrowLeftRight,
   RotateCcw,
-  Maximize2,
   Grid3X3,
   Timer,
+  Infinity,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { ReportModal } from "@/shared/report/ReportModal";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
-import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED, type EyeComfortMode } from "./hooks";
+import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED } from "./hooks";
 import PageThumbnails from "./PageThumbnails";
 
 interface ReaderControlsProps {
@@ -124,10 +122,10 @@ export default function ReaderControls({
     setContrast,
     eyeComfortMode,
     setEyeComfortMode,
-    doublePageMode,
-    setDoublePageMode,
     fitMode,
     setFitMode,
+    infiniteScroll,
+    setInfiniteScroll,
     resetToDefaults,
   } = useReaderSettingsContext();
 
@@ -139,6 +137,20 @@ export default function ReaderControls({
     stopPressing,
     handleSimpleClick,
   } = useRefreshButton();
+
+  // Настройка продолжения чтения
+  const [instantContinue, setInstantContinueState] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("reader-instant-continue") === "true";
+  });
+
+  const toggleInstantContinue = useCallback(() => {
+    setInstantContinueState(prev => {
+      const newValue = !prev;
+      localStorage.setItem("reader-instant-continue", newValue.toString());
+      return newValue;
+    });
+  }, []);
 
   // Таймер чтения
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -275,411 +287,408 @@ export default function ReaderControls({
 
   return (
     <>
-      {/* Панель настроек */}
+      {/* Панель настроек — новый дизайн */}
       {isSettingsOpen && (
         <div ref={settingsPanelRef} className="fixed inset-0 z-[70]">
+          {/* Оверлей */}
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsSettingsOpen(false)}
+          />
+          
           {/* Десктопная панель */}
-          <div
-            className="absolute inset-y-0 right-0 w-[360px] lg:w-[380px] bg-[var(--card)]/95 backdrop-blur-md border-l border-[var(--border)] shadow-2xl sm:block hidden transform transition-transform duration-300 ease-in-out rounded-l-3xl overflow-hidden"
-            style={{ transform: "translateX(0)" }}
-          >
-            <div className="p-4 border-b border-[var(--border)] bg-[var(--background)]/50">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-base text-[var(--foreground)] flex items-center gap-2">
+          <div className="absolute inset-y-0 right-0 w-[400px] lg:w-[420px] bg-[var(--card)] border-l border-[var(--border)] shadow-2xl sm:flex hidden flex-col animate-in slide-in-from-right duration-300">
+            {/* Заголовок */}
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-gradient-to-r from-[var(--primary)]/5 to-transparent">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                   <Settings className="w-5 h-5 text-[var(--primary)]" />
-                  Настройки
-                </h3>
-                <button
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-                  title="Закрыть"
-                >
-                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
-                </button>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-base">Настройки чтения</h3>
+                  <p className="text-xs text-[var(--muted-foreground)]">Персонализируйте опыт чтения</p>
+                </div>
               </div>
+              <button
+                onClick={() => setIsSettingsOpen(false)}
+                className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+              </button>
             </div>
-            <div className="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-73px)]">
-              {/* Ширина изображения */}
-              {onImageWidthChange && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <label className="block text-xs font-medium mb-2">
-                    Ширина картинки: {imageWidth}px
-                  </label>
-                  <input
-                    type="range"
-                    min="768"
-                    max="1440"
-                    step="64"
-                    value={imageWidth}
-                    onChange={e => onImageWidthChange(Number(e.target.value))}
-                    className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <div className="flex justify-between text-[11px] text-[var(--muted-foreground)] mt-1.5">
-                    <span>768px</span>
-                    <span>1440px</span>
-                  </div>
-                </div>
-              )}
 
-              {/* Скорость автоскролла */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Скорость автоскролла</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["slow", "medium", "fast"] as const).map(speed => (
-                    <button
-                      key={speed}
-                      onClick={() => setAutoScrollSpeed(speed)}
-                      className={`px-2 py-2 text-xs rounded-lg transition-colors ${
-                        autoScrollSpeed === speed
-                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                          : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
-                      }`}
-                    >
-                      {speed === "slow" ? "Медленно" : speed === "medium" ? "Средне" : "Быстро"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Режим чтения</label>
-                <div className="grid grid-cols-2 gap-2">
+            {/* Контент */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              
+              {/* Быстрые настройки */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
                   <button
-                    onClick={() => setReadingMode("feed")}
-                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
-                      readingMode === "feed"
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    onClick={() => setReadingMode(readingMode === "feed" ? "paged" : "feed")}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                      readingMode === "feed" 
+                        ? "border-[var(--primary)] bg-[var(--primary)]/5" 
+                        : "border-[var(--border)] hover:border-[var(--primary)]/50"
                     }`}
                   >
-                    Лента
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      readingMode === "feed" ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
+                    }`}>
+                      <List className="w-4 h-4" />
+                    </div>
+                    <div className="text-center">
+                      <span className="text-xs font-medium block">{readingMode === "feed" ? "Лента" : "Страницы"}</span>
+                      <span className="text-[9px] text-[var(--muted-foreground)]">
+                        {readingMode === "feed" ? "Скролл вниз" : "По одной"}
+                      </span>
+                    </div>
                   </button>
+
                   <button
-                    onClick={() => setReadingMode("paged")}
-                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
-                      readingMode === "paged"
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                    onClick={() => setInfiniteScroll(!infiniteScroll)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                      infiniteScroll 
+                        ? "border-[var(--primary)] bg-[var(--primary)]/5" 
+                        : "border-[var(--border)] hover:border-[var(--primary)]/50"
                     }`}
                   >
-                    Постранично
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      infiniteScroll ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
+                    }`}>
+                      <Infinity className="w-4 h-4" />
+                    </div>
+                    <div className="text-center">
+                      <span className="text-xs font-medium block">Бесконечно</span>
+                      <span className="text-[9px] text-[var(--muted-foreground)]">
+                        {infiniteScroll ? "Главы подряд" : "Одна глава"}
+                      </span>
+                    </div>
                   </button>
+
+                  <button
+                    onClick={toggleInstantContinue}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                      instantContinue 
+                        ? "border-[var(--primary)] bg-[var(--primary)]/5" 
+                        : "border-[var(--border)] hover:border-[var(--primary)]/50"
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      instantContinue ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
+                    }`}>
+                      <Play className="w-4 h-4" />
+                    </div>
+                    <div className="text-center">
+                      <span className="text-xs font-medium block">Мгновенно</span>
+                      <span className="text-[9px] text-[var(--muted-foreground)]">
+                        {instantContinue ? "Без окна" : "С окном"}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+                
+                {/* Подсказки */}
+                <div className="text-[10px] text-[var(--muted-foreground)] bg-[var(--secondary)]/50 rounded-xl p-3 space-y-1">
+                  <p><span className="font-medium text-[var(--foreground)]">Лента/Страницы:</span> скролл всех страниц или листание по одной</p>
+                  <p><span className="font-medium text-[var(--foreground)]">Бесконечно:</span> автоматическая загрузка следующей главы при прокрутке</p>
+                  <p><span className="font-medium text-[var(--foreground)]">Мгновенно:</span> продолжать чтение без показа окна выбора позиции</p>
                 </div>
               </div>
 
-              {/* Тема */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Тема</label>
-                <ThemeToggleGroup />
-              </div>
+              {/* Изображения */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-5 bg-[var(--primary)] rounded-full" />
+                  <h4 className="font-semibold text-sm">Изображения</h4>
+                </div>
 
-              {/* Переключатель счетчика страниц */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showPageCounter}
-                    onChange={() => setShowPageCounter(!showPageCounter)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                      showPageCounter ? "bg-[var(--primary)]" : ""
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        showPageCounter ? "transform translate-x-5" : ""
-                      }`}
-                    ></div>
-                  </div>
-                  <span className="ml-3 text-sm">Счетчик страниц</span>
-                </label>
-              </div>
-
-              {/* Переключатель скрытия нижнего меню */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hideBottomMenuSetting}
-                    onChange={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                      hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        hideBottomMenuSetting ? "transform translate-x-5" : ""
-                      }`}
-                    ></div>
-                  </div>
-                  <span className="ml-3 text-sm">Автоскрытие меню</span>
-                </label>
-              </div>
-
-              {/* Чтение глав подряд (отключено) */}
-              {READ_CHAPTERS_IN_ROW_ENABLED && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <label className="flex items-center cursor-pointer">
+                {/* Ширина */}
+                {onImageWidthChange && (
+                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Ширина</span>
+                      <span className="text-xs text-[var(--muted-foreground)] bg-[var(--muted)] px-2 py-1 rounded-lg">{imageWidth}px</span>
+                    </div>
                     <input
-                      type="checkbox"
-                      checked={readChaptersInRow}
-                      onChange={() => setReadChaptersInRow(!readChaptersInRow)}
-                      className="sr-only"
+                      type="range"
+                      min="768"
+                      max="1440"
+                      step="64"
+                      value={imageWidth}
+                      onChange={e => onImageWidthChange(Number(e.target.value))}
+                      className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-[var(--primary)]"
                     />
-                    <div
-                      className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                        readChaptersInRow ? "bg-[var(--primary)]" : ""
-                      }`}
-                    >
-                      <div
-                        className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                          readChaptersInRow ? "transform translate-x-5" : ""
-                        }`}
-                      ></div>
-                    </div>
-                    <span className="ml-3 text-sm">Главы подряд</span>
-                  </label>
-                  <p className="text-[11px] text-[var(--muted-foreground)] mt-2 ml-0 leading-relaxed">
-                    При прокрутке до конца или начала подгружается следующая/предыдущая глава, адрес обновляется.
-                  </p>
-                </div>
-              )}
+                  </div>
+                )}
 
-              {/* Переключатель предзагрузки всех изображений */}
-              {onPreloadChange && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <div className="flex items-start gap-2.5 mb-2">
-                    <div className={`p-2 rounded-lg ${preloadAllImages ? 'bg-[var(--primary)]/10' : 'bg-[var(--muted)]'}`}>
-                      {preloadAllImages ? (
-                        <Download className="w-4 h-4 text-[var(--primary)]" />
-                      ) : (
-                        <Wifi className="w-4 h-4 text-[var(--muted-foreground)]" />
-                      )}
+                {/* Яркость и контраст */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sun className="w-4 h-4 text-yellow-500" />
+                        <span className="text-xs font-medium">Яркость</span>
+                      </div>
+                      <span className="text-[10px] text-[var(--muted-foreground)]">{brightness}%</span>
                     </div>
-                    <div className="flex-1">
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={preloadAllImages}
-                          onChange={() => onPreloadChange(!preloadAllImages)}
-                          className="sr-only"
-                        />
-                        <div
-                          className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                            preloadAllImages ? "bg-[var(--primary)]" : ""
+                    <input
+                      type="range"
+                      min="50"
+                      max="150"
+                      step="5"
+                      value={brightness}
+                      onChange={e => setBrightness(Number(e.target.value))}
+                      className="w-full h-1.5 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-yellow-500"
+                    />
+                  </div>
+
+                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Contrast className="w-4 h-4 text-blue-500" />
+                        <span className="text-xs font-medium">Контраст</span>
+                      </div>
+                      <span className="text-[10px] text-[var(--muted-foreground)]">{contrast}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="50"
+                      max="150"
+                      step="5"
+                      value={contrast}
+                      onChange={e => setContrast(Number(e.target.value))}
+                      className="w-full h-1.5 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Защита глаз */}
+                <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-[var(--muted-foreground)]" />
+                    <span className="text-sm font-medium">Режим защиты глаз</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {([
+                      { mode: "off", label: "Выкл", bg: "bg-white", ring: "ring-gray-200" },
+                      { mode: "warm", label: "Тёплый", bg: "bg-gradient-to-br from-orange-100 to-orange-200", ring: "ring-orange-300" },
+                      { mode: "sepia", label: "Сепия", bg: "bg-gradient-to-br from-amber-100 to-amber-200", ring: "ring-amber-300" },
+                      { mode: "dark", label: "Тёмный", bg: "bg-gradient-to-br from-gray-700 to-gray-900", ring: "ring-gray-500" },
+                    ] as const).map(({ mode, label, bg, ring }) => (
+                      <button
+                        key={mode}
+                        onClick={() => setEyeComfortMode(mode)}
+                        className={`relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                          eyeComfortMode === mode
+                            ? `ring-2 ${ring} scale-105 shadow-lg`
+                            : "hover:scale-105"
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl ${bg} shadow-sm`} />
+                        <span className={`text-[10px] font-medium ${eyeComfortMode === mode ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}>
+                          {label}
+                        </span>
+                        {eyeComfortMode === mode && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-[var(--primary)] rounded-full flex items-center justify-center">
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Подгонка и отступы */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
+                    <span className="text-xs font-medium">Подгонка</span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {([
+                        { mode: "width", label: "По ширине" },
+                        { mode: "height", label: "По высоте" },
+                        { mode: "auto", label: "Авто" },
+                        { mode: "original", label: "Оригинал" },
+                      ] as const).map(({ mode, label }) => (
+                        <button
+                          key={mode}
+                          onClick={() => setFitMode(mode)}
+                          className={`px-2 py-1.5 text-[10px] rounded-lg transition-all ${
+                            fitMode === mode
+                              ? "bg-[var(--primary)] text-white font-medium shadow-md"
+                              : "bg-[var(--muted)] hover:bg-[var(--accent)]"
                           }`}
                         >
-                          <div
-                            className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                              preloadAllImages ? "transform translate-x-5" : ""
-                            }`}
-                          ></div>
-                        </div>
-                        <span className="ml-3 text-sm font-medium">Предзагружать главу</span>
-                      </label>
-                      <p className="text-[11px] text-[var(--muted-foreground)] mt-1.5 leading-relaxed">
-                        Для нестабильного интернета. Загружает все страницы сразу, но требует больше трафика.
-                      </p>
+                          {label}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  
-                  {/* Прогресс предзагрузки */}
-                  {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
-                    <div className="mt-3 pt-3 border-t border-[var(--border)]">
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="text-[var(--muted-foreground)]">Загрузка главы...</span>
-                        <span className="font-medium text-[var(--primary)]">{preloadProgress}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-[var(--muted)] rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
-                          style={{ width: `${preloadProgress}%` }}
-                        />
-                      </div>
+
+                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium">Отступ</span>
+                      <span className="text-[10px] text-[var(--muted-foreground)]">{pageGap}px</span>
                     </div>
-                  )}
-                  
-                  {preloadAllImages && preloadProgress === 100 && (
-                    <div className="mt-3 pt-3 border-t border-[var(--border)] flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>Глава полностью загружена</span>
+                    <div className="flex gap-1.5">
+                      {[0, 20, 40, 60].map(gap => (
+                        <button
+                          key={gap}
+                          onClick={() => setPageGap(gap)}
+                          className={`flex-1 py-1.5 text-[10px] rounded-lg transition-all ${
+                            pageGap === gap
+                              ? "bg-[var(--primary)] text-white font-medium"
+                              : "bg-[var(--muted)] hover:bg-[var(--accent)]"
+                          }`}
+                        >
+                          {gap}
+                        </button>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Автопрокрутка */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-5 bg-[var(--accent)] rounded-full" />
+                  <h4 className="font-semibold text-sm">Автопрокрутка</h4>
+                </div>
+
+                <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium">Скорость</span>
+                    <span className="text-xs px-2 py-0.5 bg-[var(--muted)] rounded-full">
+                      {autoScrollSpeed === "slow" ? "Медленно" : autoScrollSpeed === "medium" ? "Средне" : "Быстро"}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    {(["slow", "medium", "fast"] as const).map(speed => (
+                      <button
+                        key={speed}
+                        onClick={() => setAutoScrollSpeed(speed)}
+                        className={`flex-1 py-2.5 text-xs rounded-xl transition-all ${
+                          autoScrollSpeed === speed
+                            ? "bg-[var(--primary)] text-white font-medium shadow-md"
+                            : "bg-[var(--muted)] hover:bg-[var(--accent)]"
+                        }`}
+                      >
+                        {speed === "slow" ? "🐢" : speed === "medium" ? "🚶" : "🏃"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Интерфейс */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-5 bg-green-500 rounded-full" />
+                  <h4 className="font-semibold text-sm">Интерфейс</h4>
+                </div>
+
+                <div className="space-y-2">
+                  {/* Счётчик страниц */}
+                  <button
+                    onClick={() => setShowPageCounter(!showPageCounter)}
+                    className="w-full flex items-center justify-between p-4 bg-[var(--secondary)]/50 rounded-2xl hover:bg-[var(--secondary)] transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--muted)] flex items-center justify-center">
+                        <span className="text-xs font-bold">1/9</span>
+                      </div>
+                      <span className="text-sm">Счётчик страниц</span>
+                    </div>
+                    <div className={`w-10 h-6 rounded-full transition-colors ${showPageCounter ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                      <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform mt-0.5 ${showPageCounter ? "translate-x-4.5 ml-0.5" : "ml-0.5"}`} />
+                    </div>
+                  </button>
+
+                  {/* Автоскрытие меню */}
+                  <button
+                    onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
+                    className="w-full flex items-center justify-between p-4 bg-[var(--secondary)]/50 rounded-2xl hover:bg-[var(--secondary)] transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--muted)] flex items-center justify-center">
+                        <Eye className="w-4 h-4" />
+                      </div>
+                      <span className="text-sm">Автоскрытие меню</span>
+                    </div>
+                    <div className={`w-10 h-6 rounded-full transition-colors ${hideBottomMenuSetting ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                      <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform mt-0.5 ${hideBottomMenuSetting ? "translate-x-4.5 ml-0.5" : "ml-0.5"}`} />
+                    </div>
+                  </button>
+
+                  {/* Тема */}
+                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl">
+                    <span className="text-sm font-medium block mb-3">Тема оформления</span>
+                    <ThemeToggleGroup />
+                  </div>
+                </div>
+              </div>
+
+              {/* Предзагрузка */}
+              {onPreloadChange && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-5 bg-purple-500 rounded-full" />
+                    <h4 className="font-semibold text-sm">Загрузка</h4>
+                  </div>
+
+                  <button
+                    onClick={() => onPreloadChange(!preloadAllImages)}
+                    className={`w-full p-4 rounded-2xl border-2 transition-all ${
+                      preloadAllImages 
+                        ? "border-[var(--primary)] bg-[var(--primary)]/5" 
+                        : "border-[var(--border)] hover:border-[var(--primary)]/50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        preloadAllImages ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
+                      }`}>
+                        {preloadAllImages ? <Download className="w-5 h-5" /> : <Wifi className="w-5 h-5" />}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-sm font-medium">Предзагрузка главы</div>
+                        <div className="text-xs text-[var(--muted-foreground)]">
+                          {preloadAllImages ? "Загружает все страницы сразу" : "Для нестабильного интернета"}
+                        </div>
+                      </div>
+                      {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
+                        <div className="w-10 h-10 relative">
+                          <svg className="w-10 h-10 -rotate-90">
+                            <circle cx="20" cy="20" r="16" fill="none" stroke="var(--muted)" strokeWidth="3" />
+                            <circle 
+                              cx="20" cy="20" r="16" fill="none" stroke="var(--primary)" strokeWidth="3"
+                              strokeDasharray={`${preloadProgress} 100`}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold">{preloadProgress}%</span>
+                        </div>
+                      )}
+                      {preloadAllImages && preloadProgress === 100 && (
+                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
                 </div>
               )}
+            </div>
 
-              {/* Разделитель */}
-              <div className="flex items-center gap-3 py-2">
-                <div className="flex-1 h-px bg-[var(--border)]" />
-                <span className="text-xs text-[var(--muted-foreground)] font-medium">Изображения</span>
-                <div className="flex-1 h-px bg-[var(--border)]" />
-              </div>
-
-              {/* Яркость */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sun className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  <label className="text-xs font-medium">Яркость: {brightness}%</label>
-                  {brightness !== 100 && (
-                    <button
-                      onClick={() => setBrightness(100)}
-                      className="ml-auto text-[10px] text-[var(--primary)] hover:underline"
-                    >
-                      Сброс
-                    </button>
-                  )}
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="150"
-                  step="5"
-                  value={brightness}
-                  onChange={e => setBrightness(Number(e.target.value))}
-                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
-                />
-              </div>
-
-              {/* Контраст */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <Contrast className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  <label className="text-xs font-medium">Контраст: {contrast}%</label>
-                  {contrast !== 100 && (
-                    <button
-                      onClick={() => setContrast(100)}
-                      className="ml-auto text-[10px] text-[var(--primary)] hover:underline"
-                    >
-                      Сброс
-                    </button>
-                  )}
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="150"
-                  step="5"
-                  value={contrast}
-                  onChange={e => setContrast(Number(e.target.value))}
-                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
-                />
-              </div>
-
-              {/* Режим защиты глаз */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <Eye className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  <label className="text-xs font-medium">Защита глаз</label>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {([
-                    { mode: "off", label: "Выкл", color: "bg-white border-gray-300" },
-                    { mode: "warm", label: "Тёплый", color: "bg-orange-100 border-orange-300" },
-                    { mode: "sepia", label: "Сепия", color: "bg-amber-100 border-amber-300" },
-                    { mode: "dark", label: "Тёмный", color: "bg-gray-800 border-gray-600" },
-                  ] as const).map(({ mode, label, color }) => (
-                    <button
-                      key={mode}
-                      onClick={() => setEyeComfortMode(mode)}
-                      className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
-                        eyeComfortMode === mode
-                          ? "ring-2 ring-[var(--primary)] border-[var(--primary)]"
-                          : "border-[var(--border)] hover:border-[var(--primary)]/50"
-                      }`}
-                    >
-                      <div className={`w-6 h-6 rounded-full border ${color}`} />
-                      <span className="text-[10px]">{label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Отступы между страницами */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <ArrowLeftRight className="w-4 h-4 text-[var(--muted-foreground)] rotate-90" />
-                  <label className="text-xs font-medium">Отступ между страницами: {pageGap}px</label>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="10"
-                  value={pageGap}
-                  onChange={e => setPageGap(Number(e.target.value))}
-                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] mt-1">
-                  <span>0px</span>
-                  <span>50px</span>
-                  <span>100px</span>
-                </div>
-              </div>
-
-              {/* Режим подгонки изображения */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <Maximize2 className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  <label className="text-xs font-medium">Подгонка изображения</label>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {([
-                    { mode: "width", label: "Ширина" },
-                    { mode: "height", label: "Высота" },
-                    { mode: "auto", label: "Авто" },
-                    { mode: "original", label: "100%" },
-                  ] as const).map(({ mode, label }) => (
-                    <button
-                      key={mode}
-                      onClick={() => setFitMode(mode)}
-                      className={`px-2 py-1.5 text-[10px] rounded-lg transition-colors ${
-                        fitMode === mode
-                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                          : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Двойные страницы (только десктоп) - в разработке */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)] opacity-50">
-                <label className="flex items-center cursor-not-allowed">
-                  <input
-                    type="checkbox"
-                    checked={false}
-                    disabled
-                    className="sr-only"
-                  />
-                  <div className="relative w-11 h-6 bg-[var(--muted)] rounded-full">
-                    <div className="absolute top-1 left-1 bg-white w-4 h-4 rounded-full" />
-                  </div>
-                  <div className="ml-3">
-                    <span className="text-sm flex items-center gap-2">
-                      <Columns className="w-4 h-4" />
-                      Двойные страницы
-                      <span className="text-[9px] px-1.5 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full">Скоро</span>
-                    </span>
-                    <p className="text-[10px] text-[var(--muted-foreground)]">
-                      Показывать две страницы рядом (для широких экранов)
-                    </p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Кнопка сброса настроек */}
+            {/* Футер */}
+            <div className="p-5 border-t border-[var(--border)] bg-[var(--secondary)]/30">
               <button
                 onClick={resetToDefaults}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] rounded-xl text-sm font-medium transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--muted)] hover:bg-[var(--accent)] rounded-xl text-sm font-medium transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
                 Сбросить все настройки
@@ -688,311 +697,218 @@ export default function ReaderControls({
           </div>
 
           {/* Мобильная панель */}
-          <div
-            className="sm:hidden fixed inset-x-0 bottom-0 top-16 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] shadow-2xl z-[70] overflow-y-auto rounded-t-3xl"
-          >
-            <div className="p-4 border-b border-[var(--border)] sticky top-0 bg-[var(--background)]/70 backdrop-blur-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-base text-[var(--foreground)] flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-[var(--primary)]" />
-                  Настройки
-                </h3>
-                <button
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-                  title="Закрыть"
-                >
-                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
-                </button>
-              </div>
+          <div className="sm:hidden fixed inset-x-0 bottom-0 max-h-[85vh] bg-[var(--card)] border-t border-[var(--border)] shadow-2xl z-[70] overflow-hidden rounded-t-3xl animate-in slide-in-from-bottom duration-300 flex flex-col">
+            {/* Ручка */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-12 h-1.5 bg-[var(--muted)] rounded-full" />
             </div>
 
-            <div className="p-4 space-y-3 pb-6">
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Скорость автоскролла</label>
-                <div className="grid grid-cols-3 gap-2">
+            {/* Заголовок */}
+            <div className="flex items-center justify-between px-5 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+                  <Settings className="w-4 h-4 text-[var(--primary)]" />
+                </div>
+                <span className="font-semibold">Настройки</span>
+              </div>
+              <button
+                onClick={() => setIsSettingsOpen(false)}
+                className="p-2 hover:bg-[var(--muted)] rounded-xl"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Контент */}
+            <div className="flex-1 overflow-y-auto px-5 pb-8 space-y-5">
+              {/* Быстрые действия */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-4 gap-2">
+                  <button
+                    onClick={() => setReadingMode(readingMode === "feed" ? "paged" : "feed")}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                      readingMode === "feed" ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--secondary)]"
+                    }`}
+                  >
+                    <List className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">{readingMode === "feed" ? "Лента" : "Стр."}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setInfiniteScroll(!infiniteScroll)}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                      infiniteScroll ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--secondary)]"
+                    }`}
+                  >
+                    <Infinity className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">{infiniteScroll ? "Вкл" : "Выкл"}</span>
+                  </button>
+
+                  <button
+                    onClick={toggleInstantContinue}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                      instantContinue ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--secondary)]"
+                    }`}
+                  >
+                    <Play className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">{instantContinue ? "Вкл" : "Выкл"}</span>
+                  </button>
+
+                  <button
+                    onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                      hideBottomMenuSetting ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--secondary)]"
+                    }`}
+                  >
+                    <Eye className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">Меню</span>
+                  </button>
+                </div>
+                
+                {/* Подсказки - мобильная версия */}
+                <div className="text-[9px] text-[var(--muted-foreground)] bg-[var(--secondary)]/50 rounded-xl p-2.5 grid grid-cols-2 gap-x-3 gap-y-1">
+                  <p><span className="font-medium">Лента:</span> скролл страниц</p>
+                  <p><span className="font-medium">∞:</span> главы подряд</p>
+                  <p><span className="font-medium">▶:</span> без окна выбора</p>
+                  <p><span className="font-medium">Меню:</span> автоскрытие</p>
+                </div>
+              </div>
+
+              {/* Яркость/Контраст */}
+              <div className="space-y-3">
+                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Изображения</span>
+                
+                <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sun className="w-4 h-4 text-yellow-500" />
+                        <span className="text-xs">Яркость</span>
+                      </div>
+                      <span className="text-xs text-[var(--muted-foreground)]">{brightness}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="50"
+                      max="150"
+                      step="5"
+                      value={brightness}
+                      onChange={e => setBrightness(Number(e.target.value))}
+                      className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-yellow-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Contrast className="w-4 h-4 text-blue-500" />
+                        <span className="text-xs">Контраст</span>
+                      </div>
+                      <span className="text-xs text-[var(--muted-foreground)]">{contrast}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="50"
+                      max="150"
+                      step="5"
+                      value={contrast}
+                      onChange={e => setContrast(Number(e.target.value))}
+                      className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Защита глаз - мобильная */}
+                <div className="grid grid-cols-4 gap-2">
+                  {([
+                    { mode: "off", label: "Выкл", bg: "bg-white" },
+                    { mode: "warm", label: "Тёплый", bg: "bg-orange-100" },
+                    { mode: "sepia", label: "Сепия", bg: "bg-amber-100" },
+                    { mode: "dark", label: "Тёмный", bg: "bg-gray-800" },
+                  ] as const).map(({ mode, label, bg }) => (
+                    <button
+                      key={mode}
+                      onClick={() => setEyeComfortMode(mode)}
+                      className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all ${
+                        eyeComfortMode === mode ? "ring-2 ring-[var(--primary)] scale-105" : ""
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-lg ${bg} shadow-sm`} />
+                      <span className="text-[9px]">{label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Отступы */}
+                <div className="flex gap-2">
+                  {[0, 20, 40, 60].map(gap => (
+                    <button
+                      key={gap}
+                      onClick={() => setPageGap(gap)}
+                      className={`flex-1 py-2.5 text-xs rounded-xl transition-all ${
+                        pageGap === gap
+                          ? "bg-[var(--primary)] text-white font-medium"
+                          : "bg-[var(--secondary)]"
+                      }`}
+                    >
+                      {gap}px
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Автопрокрутка */}
+              <div className="space-y-3">
+                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Автопрокрутка</span>
+                <div className="flex gap-2">
                   {(["slow", "medium", "fast"] as const).map(speed => (
                     <button
                       key={speed}
                       onClick={() => setAutoScrollSpeed(speed)}
-                      className={`px-2 py-2 text-xs rounded-lg transition-colors ${
+                      className={`flex-1 py-3 rounded-xl transition-all ${
                         autoScrollSpeed === speed
-                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                          : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                          ? "bg-[var(--primary)] text-white"
+                          : "bg-[var(--secondary)]"
                       }`}
                     >
-                      {speed === "slow" ? "Медленно" : speed === "medium" ? "Средне" : "Быстро"}
+                      <span className="text-lg">{speed === "slow" ? "🐢" : speed === "medium" ? "🚶" : "🏃"}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Режим чтения</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setReadingMode("feed")}
-                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
-                      readingMode === "feed"
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
-                    }`}
-                  >
-                    Лента
-                  </button>
-                  <button
-                    onClick={() => setReadingMode("paged")}
-                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
-                      readingMode === "paged"
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
-                    }`}
-                  >
-                    Постранично
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Тема</label>
+              {/* Тема */}
+              <div className="space-y-3">
+                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Тема</span>
                 <ThemeToggleGroup />
               </div>
 
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showPageCounter}
-                    onChange={() => setShowPageCounter(!showPageCounter)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                      showPageCounter ? "bg-[var(--primary)]" : ""
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        showPageCounter ? "transform translate-x-5" : ""
-                      }`}
-                    ></div>
-                  </div>
-                  <span className="ml-3 text-sm">Счетчик страниц</span>
-                </label>
-              </div>
-
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hideBottomMenuSetting}
-                    onChange={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                      hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        hideBottomMenuSetting ? "transform translate-x-5" : ""
-                      }`}
-                    ></div>
-                  </div>
-                  <span className="ml-3 text-sm">Автоскрытие меню</span>
-                </label>
-              </div>
-
-              {READ_CHAPTERS_IN_ROW_ENABLED && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={readChaptersInRow}
-                      onChange={() => setReadChaptersInRow(!readChaptersInRow)}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                        readChaptersInRow ? "bg-[var(--primary)]" : ""
-                      }`}
-                    >
-                      <div
-                        className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                          readChaptersInRow ? "transform translate-x-5" : ""
-                        }`}
-                      ></div>
-                    </div>
-                    <span className="ml-3 text-sm">Главы подряд</span>
-                  </label>
-                  <p className="text-[11px] text-[var(--muted-foreground)] mt-2">При прокрутке подгружается следующая/предыдущая глава.</p>
-                </div>
-              )}
-
-              {/* Переключатель предзагрузки - мобильная версия */}
+              {/* Предзагрузка */}
               {onPreloadChange && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <div className="flex items-start gap-2.5 mb-2">
-                    <div className={`p-2 rounded-lg ${preloadAllImages ? 'bg-[var(--primary)]/10' : 'bg-[var(--muted)]'}`}>
-                      {preloadAllImages ? (
-                        <Download className="w-4 h-4 text-[var(--primary)]" />
-                      ) : (
-                        <Wifi className="w-4 h-4 text-[var(--muted-foreground)]" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={preloadAllImages}
-                          onChange={() => onPreloadChange(!preloadAllImages)}
-                          className="sr-only"
-                        />
-                        <div
-                          className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                            preloadAllImages ? "bg-[var(--primary)]" : ""
-                          }`}
-                        >
-                          <div
-                            className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                              preloadAllImages ? "transform translate-x-5" : ""
-                            }`}
-                          ></div>
-                        </div>
-                        <span className="ml-3 text-sm font-medium">Предзагружать главу</span>
-                      </label>
-                      <p className="text-[11px] text-[var(--muted-foreground)] mt-1.5 leading-relaxed">
-                        Для нестабильного интернета. Загружает все страницы сразу.
-                      </p>
+                <button
+                  onClick={() => onPreloadChange(!preloadAllImages)}
+                  className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all ${
+                    preloadAllImages ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]" : "bg-[var(--secondary)]"
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    preloadAllImages ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
+                  }`}>
+                    {preloadAllImages ? <Download className="w-5 h-5" /> : <Wifi className="w-5 h-5" />}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="text-sm font-medium">Предзагрузка</div>
+                    <div className="text-xs text-[var(--muted-foreground)]">
+                      {preloadAllImages ? `${preloadProgress}% загружено` : "Для слабого интернета"}
                     </div>
                   </div>
-                  
-                  {/* Прогресс предзагрузки - мобильная версия */}
-                  {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
-                    <div className="mt-3 pt-3 border-t border-[var(--border)]">
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="text-[var(--muted-foreground)]">Загрузка...</span>
-                        <span className="font-medium text-[var(--primary)]">{preloadProgress}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-[var(--muted)] rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
-                          style={{ width: `${preloadProgress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
+                </button>
               )}
 
-              {/* Разделитель - мобильная версия */}
-              <div className="flex items-center gap-3 py-2">
-                <div className="flex-1 h-px bg-[var(--border)]" />
-                <span className="text-xs text-[var(--muted-foreground)] font-medium">Изображения</span>
-                <div className="flex-1 h-px bg-[var(--border)]" />
-              </div>
-
-              {/* Яркость - мобильная версия */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sun className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  <label className="text-xs font-medium">Яркость: {brightness}%</label>
-                  {brightness !== 100 && (
-                    <button
-                      onClick={() => setBrightness(100)}
-                      className="ml-auto text-[10px] text-[var(--primary)] hover:underline"
-                    >
-                      Сброс
-                    </button>
-                  )}
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="150"
-                  step="5"
-                  value={brightness}
-                  onChange={e => setBrightness(Number(e.target.value))}
-                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-
-              {/* Контраст - мобильная версия */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <Contrast className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  <label className="text-xs font-medium">Контраст: {contrast}%</label>
-                  {contrast !== 100 && (
-                    <button
-                      onClick={() => setContrast(100)}
-                      className="ml-auto text-[10px] text-[var(--primary)] hover:underline"
-                    >
-                      Сброс
-                    </button>
-                  )}
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="150"
-                  step="5"
-                  value={contrast}
-                  onChange={e => setContrast(Number(e.target.value))}
-                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-
-              {/* Режим защиты глаз - мобильная версия */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <Eye className="w-4 h-4 text-[var(--muted-foreground)]" />
-                  <label className="text-xs font-medium">Защита глаз</label>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {([
-                    { mode: "off", label: "Выкл", color: "bg-white border-gray-300" },
-                    { mode: "warm", label: "Тёплый", color: "bg-orange-100 border-orange-300" },
-                    { mode: "sepia", label: "Сепия", color: "bg-amber-100 border-amber-300" },
-                    { mode: "dark", label: "Тёмный", color: "bg-gray-800 border-gray-600" },
-                  ] as const).map(({ mode, label, color }) => (
-                    <button
-                      key={mode}
-                      onClick={() => setEyeComfortMode(mode)}
-                      className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
-                        eyeComfortMode === mode
-                          ? "ring-2 ring-[var(--primary)] border-[var(--primary)]"
-                          : "border-[var(--border)] hover:border-[var(--primary)]/50"
-                      }`}
-                    >
-                      <div className={`w-5 h-5 rounded-full border ${color}`} />
-                      <span className="text-[10px]">{label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Отступы между страницами - мобильная версия */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <ArrowLeftRight className="w-4 h-4 text-[var(--muted-foreground)] rotate-90" />
-                  <label className="text-xs font-medium">Отступ: {pageGap}px</label>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="10"
-                  value={pageGap}
-                  onChange={e => setPageGap(Number(e.target.value))}
-                  className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-
-              {/* Кнопка сброса настроек - мобильная версия */}
+              {/* Сброс */}
               <button
                 onClick={resetToDefaults}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] rounded-xl text-sm font-medium transition-colors active:scale-95"
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-[var(--muted)] hover:bg-[var(--accent)] rounded-xl text-sm font-medium transition-colors active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" />
                 Сбросить настройки
