@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   useGetReportsQuery,
   useUpdateReportStatusMutation,
@@ -18,10 +18,24 @@ import {
   LayoutList,
   Clock3,
   MessageSquareReply,
+  CheckSquare,
+  Square,
+  X,
+  Download,
+  FileText,
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { ReportEntityInfo } from "./ReportEntityInfo";
-import { AdminModal } from "./ui/AdminModal";
+import { AdminModal, ConfirmModal } from "./ui/AdminModal";
+
+const RESPONSE_TEMPLATES = [
+  { label: "Исправлено", text: "Спасибо за обращение! Проблема была исправлена." },
+  { label: "Проверено", text: "Спасибо за сообщение. Мы проверили указанную информацию." },
+  { label: "Опечатка исправлена", text: "Опечатка исправлена. Благодарим за внимательность!" },
+  { label: "Дубликат", text: "Эта проблема уже была решена ранее. Спасибо за обращение." },
+  { label: "Не воспроизводится", text: "К сожалению, нам не удалось воспроизвести описанную проблему. Если она повторится, пожалуйста, сообщите нам." },
+  { label: "Отклонено", text: "После рассмотрения мы решили отклонить данное обращение." },
+];
 
 type ReportsViewMode = "list" | "cards";
 type ReportsSortMode = "newest" | "oldest" | "open-first";
@@ -61,6 +75,10 @@ export function ReportsSection() {
   const [responseModalResolveTo, setResponseModalResolveTo] = useState<boolean | null>(null);
   const [responseModalText, setResponseModalText] = useState("");
   const [isResponseSubmitting, setIsResponseSubmitting] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkResolveOpen, setBulkResolveOpen] = useState(false);
+  const [isBulkResolving, setIsBulkResolving] = useState(false);
 
   const { data, error, isLoading, refetch } = useGetReportsQuery({
     page,
@@ -196,6 +214,69 @@ export function ReportsSection() {
     }
   };
 
+  const handleSelectReport = useCallback((id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    const unresolvedIds = processedReports.filter(r => !r.isResolved).map(r => r._id);
+    if (selectedIds.length === unresolvedIds.length && unresolvedIds.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(unresolvedIds);
+    }
+  }, [selectedIds.length, processedReports]);
+
+  const handleBulkResolve = async () => {
+    if (selectedIds.length === 0) return;
+    setIsBulkResolving(true);
+    try {
+      const results = await Promise.allSettled(
+        selectedIds.map(id => updateReportStatus({ id, data: { isResolved: true, resolutionMessage: "Массово закрыто администратором" } }).unwrap())
+      );
+      const failed = results.filter(r => r.status === "rejected").length;
+      const success = results.length - failed;
+      if (failed === 0) {
+        toast.success(`Закрыто ${success} жалоб`);
+      } else {
+        toast.error(`Закрыто: ${success}, ошибок: ${failed}`);
+      }
+      setSelectedIds([]);
+      setBulkResolveOpen(false);
+      refetch();
+    } catch {
+      toast.error("Ошибка при массовом закрытии");
+    } finally {
+      setIsBulkResolving(false);
+    }
+  };
+
+  const handleUseTemplate = (text: string) => {
+    setResponseModalText(text);
+    setShowTemplates(false);
+  };
+
+  const handleExportCSV = useCallback(() => {
+    const headers = ["ID", "Тип", "Контент", "Пользователь", "Статус", "Дата создания", "Ответ"];
+    const rows = processedReports.map(r => [
+      r._id,
+      reportTypeLabels[r.reportType] || r.reportType,
+      `"${(r.content || "").replace(/"/g, '""')}"`,
+      r.userId?.username || "Аноним",
+      r.isResolved ? "Решена" : "Открыта",
+      new Date(r.createdAt).toLocaleDateString("ru-RU"),
+      `"${(getReportResponse(r) || "").replace(/"/g, '""')}"`,
+    ]);
+    const csv = [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `reports_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [processedReports]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -292,10 +373,47 @@ export function ReportsSection() {
           </button>
         </div>
 
+        <button
+          onClick={handleExportCSV}
+          className="p-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+          title="Экспорт CSV"
+        >
+          <Download className="w-4 h-4" />
+        </button>
+
         <Button onClick={refetch} variant="outline" size="sm" className="whitespace-nowrap">
           Обновить
         </Button>
       </div>
+
+      {/* Bulk actions */}
+      {selectedIds.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 p-3 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/30">
+          <span className="text-sm font-medium text-[var(--primary)]">
+            Выбрано: {selectedIds.length}
+          </span>
+          <button
+            onClick={handleSelectAll}
+            className="text-xs sm:text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            {selectedIds.length === processedReports.filter(r => !r.isResolved).length ? "Снять все" : "Выбрать все открытые"}
+          </button>
+          <div className="flex-1" />
+          <button
+            onClick={() => setBulkResolveOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm text-green-600 hover:bg-green-500/10 rounded-lg transition-colors"
+          >
+            <CheckCircle className="w-4 h-4" />
+            <span className="hidden sm:inline">Закрыть</span>
+          </button>
+          <button
+            onClick={() => setSelectedIds([])}
+            className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {processedReports.length === 0 ? (
         <div className="text-center py-12">
@@ -310,16 +428,36 @@ export function ReportsSection() {
           {processedReports.map(report => (
             <article
               key={report._id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-4"
+              className={`rounded-xl border p-4 ${
+                report.isResolved
+                  ? "border-[var(--border)] bg-[var(--background)]/70 opacity-70"
+                  : selectedIds.includes(report._id)
+                    ? "border-[var(--primary)]/50 bg-[var(--primary)]/5"
+                    : "border-[var(--border)] bg-[var(--background)]/70"
+              }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType]}`}
-                  >
-                    {reportTypeLabels[report.reportType]}
-                  </span>
-                  <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">{report._id}</p>
+                <div className="flex items-start gap-2">
+                  {!report.isResolved && (
+                    <button
+                      onClick={() => handleSelectReport(report._id)}
+                      className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex-shrink-0 mt-0.5"
+                    >
+                      {selectedIds.includes(report._id) ? (
+                        <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
+                      ) : (
+                        <Square className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
+                  <div>
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType]}`}
+                    >
+                      {reportTypeLabels[report.reportType]}
+                    </span>
+                    <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">{report._id}</p>
+                  </div>
                 </div>
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-[var(--admin-radius)] text-xs ${
@@ -402,6 +540,18 @@ export function ReportsSection() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--secondary)]">
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs w-10">
+                  <button
+                    onClick={handleSelectAll}
+                    className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  >
+                    {selectedIds.length === processedReports.filter(r => !r.isResolved).length && processedReports.filter(r => !r.isResolved).length > 0 ? (
+                      <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
+                </th>
                 <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Тип</th>
                 <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Описание</th>
                 <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Пользователь</th>
@@ -412,7 +562,32 @@ export function ReportsSection() {
             </thead>
             <tbody>
               {processedReports.map(report => (
-                <tr key={report._id} className="border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors">
+                <tr
+                  key={report._id}
+                  className={`border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors ${
+                    report.isResolved
+                      ? "opacity-70"
+                      : selectedIds.includes(report._id)
+                        ? "bg-[var(--primary)]/5"
+                        : ""
+                  }`}
+                >
+                  <td className="py-2.5 px-3">
+                    {!report.isResolved ? (
+                      <button
+                        onClick={() => handleSelectReport(report._id)}
+                        className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                      >
+                        {selectedIds.includes(report._id) ? (
+                          <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
+                        ) : (
+                          <Square className="w-4 h-4" />
+                        )}
+                      </button>
+                    ) : (
+                      <span className="w-6 h-6 block" />
+                    )}
+                  </td>
                   <td className="py-2.5 px-3">
                     <span
                       className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType]}`}
@@ -547,6 +722,32 @@ export function ReportsSection() {
         <p className="text-sm text-[var(--muted-foreground)] mb-2">
           Текст сохранится в отчёте. Для жалоб он будет отправлен инициатору. Ответ можно изменить позже.
         </p>
+
+        <div className="mb-3">
+          <button
+            type="button"
+            onClick={() => setShowTemplates(!showTemplates)}
+            className="flex items-center gap-1.5 text-sm text-[var(--primary)] hover:underline"
+          >
+            <FileText className="w-4 h-4" />
+            {showTemplates ? "Скрыть шаблоны" : "Использовать шаблон"}
+          </button>
+          {showTemplates && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {RESPONSE_TEMPLATES.map(template => (
+                <button
+                  key={template.label}
+                  type="button"
+                  onClick={() => handleUseTemplate(template.text)}
+                  className="px-3 py-1.5 text-xs rounded-lg border border-[var(--border)] bg-[var(--secondary)] hover:bg-[var(--accent)] transition-colors"
+                >
+                  {template.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <textarea
           value={responseModalText}
           onChange={e => setResponseModalText(e.target.value)}
@@ -560,6 +761,17 @@ export function ReportsSection() {
           {responseModalText.length} / 2000
         </p>
       </AdminModal>
+
+      <ConfirmModal
+        isOpen={bulkResolveOpen}
+        onClose={() => setBulkResolveOpen(false)}
+        onConfirm={handleBulkResolve}
+        title="Массовое закрытие жалоб"
+        message={`Вы уверены, что хотите закрыть ${selectedIds.length} жалоб? Они будут отмечены как решённые.`}
+        confirmText={isBulkResolving ? "Закрытие..." : "Закрыть"}
+        confirmVariant="primary"
+        isLoading={isBulkResolving}
+      />
     </div>
   );
 }

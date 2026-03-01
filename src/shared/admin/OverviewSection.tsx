@@ -118,54 +118,54 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--card)] to-[var(--secondary)]/30 p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold text-[var(--foreground)]">Операционная сводка</h2>
-            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+      <section className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--card)] to-[var(--secondary)]/30 p-3 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-start justify-between gap-2 sm:gap-3">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base sm:text-xl font-semibold text-[var(--foreground)]">Операционная сводка</h2>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-[var(--muted-foreground)]">
               Что происходит на платформе и что нужно сделать в первую очередь
             </p>
           </div>
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 px-3 py-2 text-sm">
+          <div className="rounded-lg sm:rounded-xl border border-[var(--border)] bg-[var(--background)]/70 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
             <span className="text-[var(--muted-foreground)]">Критичных задач:</span>{" "}
             <span className="font-semibold text-[var(--foreground)]">{blockersTotal}</span>
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 min-[400px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <OverviewMetricCard
-          icon={<BookOpen className="w-5 h-5" />}
+          icon={<BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />}
           label="Тайтлы"
           value={formatNumber(stats.totalTitles)}
           note={`${formatNumber(stats.ongoingTitles || 0)} онгоингов`}
         />
         <OverviewMetricCard
-          icon={<FileText className="w-5 h-5" />}
+          icon={<FileText className="w-4 h-4 sm:w-5 sm:h-5" />}
           label="Главы"
           value={formatNumber(stats.totalChapters)}
           note={`${formatNumber(stats.monthly?.newChapters || 0)} за месяц`}
         />
         <OverviewMetricCard
-          icon={<Users className="w-5 h-5" />}
+          icon={<Users className="w-4 h-4 sm:w-5 sm:h-5" />}
           label="Пользователи"
           value={formatNumber(stats.totalUsers)}
           note={`${formatNumber(stats.daily?.newUsers || 0)} новых сегодня`}
         />
         <OverviewMetricCard
-          icon={<Eye className="w-5 h-5" />}
+          icon={<Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
           label="Просмотры"
           value={formatNumber(stats.totalViews)}
           note={`${formatNumber(stats.daily?.views || 0)} за сегодня`}
         />
       </section>
 
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
-        <h3 className="text-lg font-semibold text-[var(--foreground)]">Что требует внимания</h3>
-        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+      <section className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-5">
+        <h3 className="text-base sm:text-lg font-semibold text-[var(--foreground)]">Что требует внимания</h3>
+        <p className="mt-1 text-xs sm:text-sm text-[var(--muted-foreground)]">
           Приоритетные задачи, которые напрямую влияют на качество контента
         </p>
-        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="mt-3 sm:mt-4 grid gap-2 sm:gap-3 grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4">
           <ActionCard
             title="Новые жалобы"
             description="Проверьте обращения пользователей и закройте валидные кейсы"
@@ -205,15 +205,15 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-        <div className="border-b border-[var(--border)] bg-[var(--secondary)]/20 p-4">
-          <h3 className="text-lg font-semibold text-[var(--foreground)]">Динамика по периоду</h3>
-          <div className="mt-3 flex gap-2">
+      <section className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+        <div className="border-b border-[var(--border)] bg-[var(--secondary)]/20 p-3 sm:p-4">
+          <h3 className="text-base sm:text-lg font-semibold text-[var(--foreground)]">Динамика по периоду</h3>
+          <div className="mt-2 sm:mt-3 flex gap-1.5 sm:gap-2">
             {(["daily", "weekly", "monthly"] as const).map(period => (
               <button
                 key={period}
                 onClick={() => setActivePeriod(period)}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors ${
                   activePeriod === period
                     ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                     : "bg-[var(--card)] text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
@@ -225,7 +225,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
           </div>
         </div>
 
-        <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-2 sm:gap-4 p-3 sm:p-5 grid-cols-2 lg:grid-cols-4">
           <PeriodKpi
             label="Просмотры"
             value={periodData.views}
@@ -253,77 +253,77 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-          <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--secondary)]/20 px-4 py-3">
-            <h3 className="font-semibold text-[var(--foreground)]">Лидеры по просмотрам</h3>
-            <button onClick={() => onTabChange("titles")} className="text-sm text-[var(--primary)] hover:underline">
+      <section className="grid gap-3 sm:gap-4 lg:grid-cols-2">
+        <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+          <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--secondary)]/20 px-3 sm:px-4 py-2.5 sm:py-3">
+            <h3 className="text-sm sm:text-base font-semibold text-[var(--foreground)]">Лидеры по просмотрам</h3>
+            <button onClick={() => onTabChange("titles")} className="text-xs sm:text-sm text-[var(--primary)] hover:underline">
               К тайтлам
             </button>
           </div>
           <div className="divide-y divide-[var(--border)]">
-            {popularTitles.slice(0, 6).map((title, index) => (
-              <div key={title.id} className="flex items-center gap-3 px-4 py-3">
-                <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] text-xs font-semibold">
+            {popularTitles.slice(0, 5).map((title, index) => (
+              <div key={title.id} className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3">
+                <span className="inline-flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] text-[10px] sm:text-xs font-semibold">
                   {index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[var(--foreground)]">{title.name}</p>
-                  <p className="text-xs text-[var(--muted-foreground)]">
+                  <p className="truncate text-xs sm:text-sm font-medium text-[var(--foreground)]">{title.name}</p>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">
                     {formatNumber(title.dayViews || 0)} сегодня
                   </p>
                 </div>
-                <p className="text-sm font-semibold text-[var(--foreground)]">
+                <p className="text-xs sm:text-sm font-semibold text-[var(--foreground)] flex-shrink-0">
                   {formatNumber(title.views || 0)}
                 </p>
               </div>
             ))}
             {popularTitles.length === 0 && (
-              <div className="px-4 py-8 text-center text-sm text-[var(--muted-foreground)]">Нет данных</div>
+              <div className="px-3 sm:px-4 py-6 sm:py-8 text-center text-xs sm:text-sm text-[var(--muted-foreground)]">Нет данных</div>
             )}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-          <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--secondary)]/20 px-4 py-3">
-            <h3 className="font-semibold text-[var(--foreground)]">Лидеры по главам</h3>
-            <button onClick={() => onTabChange("chapters")} className="text-sm text-[var(--primary)] hover:underline">
+        <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+          <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--secondary)]/20 px-3 sm:px-4 py-2.5 sm:py-3">
+            <h3 className="text-sm sm:text-base font-semibold text-[var(--foreground)]">Лидеры по главам</h3>
+            <button onClick={() => onTabChange("chapters")} className="text-xs sm:text-sm text-[var(--primary)] hover:underline">
               К главам
             </button>
           </div>
           <div className="divide-y divide-[var(--border)]">
-            {popularChapters.slice(0, 6).map((chapter, index) => (
-              <div key={chapter.id} className="flex items-center gap-3 px-4 py-3">
-                <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] text-xs font-semibold">
+            {popularChapters.slice(0, 5).map((chapter, index) => (
+              <div key={chapter.id} className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3">
+                <span className="inline-flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] text-[10px] sm:text-xs font-semibold">
                   {index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[var(--foreground)]">
+                  <p className="truncate text-xs sm:text-sm font-medium text-[var(--foreground)]">
                     {chapter.name || `Глава ${chapter.chapterNumber}`}
                   </p>
-                  <p className="truncate text-xs text-[var(--muted-foreground)]">
+                  <p className="truncate text-[10px] sm:text-xs text-[var(--muted-foreground)]">
                     {chapter.titleName || "Тайтл не указан"}
                   </p>
                 </div>
-                <p className="text-sm font-semibold text-[var(--foreground)]">
+                <p className="text-xs sm:text-sm font-semibold text-[var(--foreground)] flex-shrink-0">
                   {formatNumber(chapter.views || 0)}
                 </p>
               </div>
             ))}
             {popularChapters.length === 0 && (
-              <div className="px-4 py-8 text-center text-sm text-[var(--muted-foreground)]">Нет данных</div>
+              <div className="px-3 sm:px-4 py-6 sm:py-8 text-center text-xs sm:text-sm text-[var(--muted-foreground)]">Нет данных</div>
             )}
           </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
-        <h3 className="font-semibold text-[var(--foreground)]">Быстрые действия</h3>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <QuickAction icon={<Target className="w-4 h-4" />} label="Создать тайтл" onClick={() => onTabChange("titles")} />
-          <QuickAction icon={<FileText className="w-4 h-4" />} label="Проверить главы" onClick={() => onTabChange("chapters")} />
-          <QuickAction icon={<Download className="w-4 h-4" />} label="Запустить парсер" onClick={() => onTabChange("parser")} />
-          <QuickAction icon={<ClipboardList className="w-4 h-4" />} label="Открыть очередь" onClick={() => onTabChange("work-queue")} />
+      <section className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-5">
+        <h3 className="text-sm sm:text-base font-semibold text-[var(--foreground)]">Быстрые действия</h3>
+        <div className="mt-2 sm:mt-3 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4">
+          <QuickAction icon={<Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />} label="Создать тайтл" onClick={() => onTabChange("titles")} />
+          <QuickAction icon={<FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />} label="Проверить главы" onClick={() => onTabChange("chapters")} />
+          <QuickAction icon={<Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />} label="Запустить парсер" onClick={() => onTabChange("parser")} />
+          <QuickAction icon={<ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4" />} label="Открыть очередь" onClick={() => onTabChange("work-queue")} />
         </div>
       </section>
     </div>
@@ -342,13 +342,16 @@ function OverviewMetricCard({
   note: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
-      <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-        <span>{icon}</span>
-        <span className="text-sm">{label}</span>
+    <div className="group relative rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4 overflow-hidden transition-all duration-200 hover:border-[var(--primary)]/30 hover:shadow-md hover:-translate-y-0.5">
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="relative">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className="flex-shrink-0 p-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">{icon}</span>
+          <span className="text-xs sm:text-sm font-medium text-[var(--muted-foreground)] truncate">{label}</span>
+        </div>
+        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-[var(--foreground)] tracking-tight">{value}</p>
+        <p className="mt-1 text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">{note}</p>
       </div>
-      <p className="mt-2 text-2xl font-bold text-[var(--foreground)]">{value}</p>
-      <p className="mt-1 text-xs text-[var(--muted-foreground)]">{note}</p>
     </div>
   );
 }
@@ -370,22 +373,38 @@ function ActionCard({
   tone: "warning" | "danger";
   icon: React.ReactNode;
 }) {
-  const toneClass =
-    tone === "danger"
-      ? "border-[var(--destructive)]/30 bg-[var(--destructive)]/5"
-      : "border-amber-500/30 bg-amber-500/10";
+  const toneConfig = {
+    danger: {
+      border: "border-red-500/30",
+      bg: "bg-gradient-to-br from-red-500/10 to-red-500/5",
+      iconBg: "bg-red-500/15 text-red-600 dark:text-red-400",
+      pulse: value > 0 ? "animate-pulse" : "",
+    },
+    warning: {
+      border: "border-amber-500/30",
+      bg: "bg-gradient-to-br from-amber-500/10 to-amber-500/5",
+      iconBg: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+      pulse: "",
+    },
+  };
+
+  const config = toneConfig[tone];
 
   return (
-    <div className={`rounded-xl border p-4 ${toneClass}`}>
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-[var(--foreground)]">{title}</p>
-        <span className="text-[var(--muted-foreground)]">{icon}</span>
+    <div className={`group relative rounded-xl border p-4 overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${config.border} ${config.bg}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-[var(--foreground)]">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-[var(--foreground)] tracking-tight">{formatNumber(value)}</p>
+          <p className="mt-1.5 text-[11px] text-[var(--muted-foreground)] line-clamp-2 leading-relaxed">{description}</p>
+        </div>
+        <div className={`p-2.5 rounded-xl flex-shrink-0 ${config.iconBg} ${config.pulse}`}>
+          {icon}
+        </div>
       </div>
-      <p className="mt-2 text-2xl font-bold text-[var(--foreground)]">{formatNumber(value)}</p>
-      <p className="mt-1 text-xs text-[var(--muted-foreground)]">{description}</p>
       <button
         onClick={onClick}
-        className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--accent)]"
+        className="mt-4 w-full rounded-lg bg-[var(--card)] border border-[var(--border)] px-4 py-2 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--primary)]/30 active:scale-[0.98] transition-all"
       >
         {buttonLabel}
       </button>
@@ -405,22 +424,26 @@ function PeriodKpi({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)]/20 p-4">
-      <div className="flex items-center justify-between text-[var(--muted-foreground)]">
-        <span className="text-sm">{label}</span>
-        <span>{icon}</span>
+    <div className="group relative rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4 overflow-hidden transition-all duration-200 hover:border-[var(--primary)]/30">
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="flex items-center justify-between">
+        <span className="text-xs sm:text-sm text-[var(--muted-foreground)] font-medium truncate pr-2">{label}</span>
+        <span className="p-1.5 rounded-lg bg-[var(--secondary)] text-[var(--muted-foreground)] flex-shrink-0">{icon}</span>
       </div>
-      <p className="mt-2 text-xl font-bold text-[var(--foreground)]">{formatNumber(value)}</p>
+      <p className="mt-2 sm:mt-3 text-xl sm:text-2xl font-bold text-[var(--foreground)] tracking-tight">{formatNumber(value)}</p>
       {trend && (
-        <div
-          className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${
-            trend.isPositive
-              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-              : "bg-[var(--destructive)]/15 text-[var(--destructive)]"
-          }`}
-        >
-          {trend.isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-          {trend.value}%
+        <div className="mt-2 flex items-center gap-2">
+          <div
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-semibold ${
+              trend.isPositive
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                : "bg-red-500/15 text-red-600 dark:text-red-400"
+            }`}
+          >
+            {trend.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+            {trend.value}%
+          </div>
+          <span className="text-[10px] text-[var(--muted-foreground)]">vs пред. период</span>
         </div>
       )}
     </div>
@@ -439,10 +462,12 @@ function QuickAction({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--secondary)]/20 px-3 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+      className="group flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--foreground)] hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/5 active:scale-[0.98] transition-all"
     >
-      <span className="text-[var(--primary)]">{icon}</span>
-      <span className="truncate">{label}</span>
+      <span className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-[var(--primary-foreground)] transition-colors flex-shrink-0">
+        {icon}
+      </span>
+      <span className="font-medium truncate">{label}</span>
     </button>
   );
 }

@@ -15,6 +15,11 @@ import { IpManagementSection } from "@/shared/admin/IpManagementSection";
 import { ShopManagementSection } from "@/shared/admin/ShopManagementSection";
 import { WorkQueueSection } from "@/shared/admin/WorkQueueSection";
 import { AnnouncementsSection } from "@/shared/admin/AnnouncementsSection";
+import { GenresSection } from "@/shared/admin/GenresSection";
+import { AchievementsSection } from "@/shared/admin/AchievementsSection";
+import { NotificationsSection } from "@/shared/admin/NotificationsSection";
+import { SiteSettingsSection } from "@/shared/admin/SiteSettingsSection";
+import { AuditLogsSection } from "@/shared/admin/AuditLogsSection";
 import { Header } from "@/widgets";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useEffect, useState } from "react";
@@ -76,11 +81,16 @@ export default function AdminPageClient() {
       chapters: "Главы",
       collections: "Коллекции",
       announcements: "Новости / Объявления",
+      genres: "Жанры",
+      achievements: "Достижения",
       comments: "Комментарии",
       users: "Пользователи",
       reports: "Жалобы",
+      notifications: "Уведомления",
       "ip-management": "IP-управление",
       shop: "Магазин",
+      "site-settings": "Настройки сайта",
+      "audit-logs": "Аудит-логи",
       "work-queue": "Рабочая очередь",
     };
     return titles[activeTab] || "Админ-панель";
@@ -111,16 +121,26 @@ export default function AdminPageClient() {
         return <CollectionsSection onTabChange={(tab: string) => setActiveTab(tab as AdminTab)} />;
       case "announcements":
         return <AnnouncementsSection />;
+      case "genres":
+        return <GenresSection />;
+      case "achievements":
+        return <AchievementsSection />;
       case "comments":
         return <CommentsSection />;
       case "users":
         return <UsersSection />;
       case "reports":
         return <ReportsSection />;
+      case "notifications":
+        return <NotificationsSection />;
       case "ip-management":
         return <IpManagementSection />;
       case "shop":
         return <ShopManagementSection />;
+      case "site-settings":
+        return <SiteSettingsSection />;
+      case "audit-logs":
+        return <AuditLogsSection />;
       case "work-queue":
         return <WorkQueueSection />;
       default:

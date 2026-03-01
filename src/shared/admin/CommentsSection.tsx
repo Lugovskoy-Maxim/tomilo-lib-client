@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   MessageSquare,
@@ -14,18 +14,26 @@ import {
   LayoutList,
   Grid3X3,
   ExternalLink,
+  EyeOff,
+  Eye,
+  CheckSquare,
+  Square,
+  X,
+  Download,
 } from "lucide-react";
 import Input from "@/shared/ui/input";
 import Button from "@/shared/ui/button";
 import { useToast } from "@/hooks/useToast";
-import { useGetCommentsQuery, useDeleteCommentMutation } from "@/store/api/commentsApi";
+import { useGetCommentsQuery, useDeleteCommentMutation, useUpdateCommentMutation } from "@/store/api/commentsApi";
 import { useGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { getTitlePath } from "@/lib/title-paths";
 import { Comment, CommentEntityType } from "@/types/comment";
+import { ConfirmModal } from "./ui";
 
 type CommentsViewMode = "cards" | "list";
 type SortMode = "newest" | "oldest" | "popular" | "controversial";
+type VisibilityFilter = "all" | "visible" | "hidden";
 
 function CommentEntityLink({ comment }: { comment: Comment }) {
   const titleIdFromInfo = comment.titleInfo?._id;
@@ -110,6 +118,10 @@ export function CommentsSection() {
   const [viewMode, setViewMode] = useState<CommentsViewMode>("cards");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
   const [limit, setLimit] = useState(20);
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const queryParams = {
     entityId: "all" as const,
@@ -153,6 +165,7 @@ export function CommentsSection() {
   }, [entityType, currentPage, limit, titleQuery.data, chapterQuery.data]);
 
   const [deleteComment, { isLoading: isDeleting }] = useDeleteCommentMutation();
+  const [updateComment] = useUpdateCommentMutation();
   const comments = useMemo(() => {
     if (entityType === CommentEntityType.TITLE) {
       return titleQuery.data?.data?.comments || [];
@@ -173,6 +186,10 @@ export function CommentsSection() {
     const filtered = comments.filter(comment => {
       const byType = entityType === "all" || comment.entityType === entityType;
       if (!byType) return false;
+      
+      if (visibilityFilter === "visible" && !comment.isVisible) return false;
+      if (visibilityFilter === "hidden" && comment.isVisible) return false;
+      
       if (!normalizedSearch) return true;
 
       const author = typeof comment.userId === "string" ? "" : comment.userId.username;
@@ -194,7 +211,7 @@ export function CommentsSection() {
     });
 
     return sorted;
-  }, [comments, entityType, searchTerm, sortMode]);
+  }, [comments, entityType, searchTerm, sortMode, visibilityFilter]);
 
   const stats = useMemo(
     () => ({
@@ -218,6 +235,77 @@ export function CommentsSection() {
       toast.error("Не удалось удалить комментарий");
     }
   };
+
+  const handleToggleVisibility = async (comment: Comment) => {
+    try {
+      await updateComment({ id: comment._id, data: { isVisible: !comment.isVisible } }).unwrap();
+      toast.success(comment.isVisible ? "Комментарий скрыт" : "Комментарий показан");
+      refetch();
+    } catch {
+      toast.error("Не удалось изменить видимость");
+    }
+  };
+
+  const handleSelectComment = useCallback((id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    if (selectedIds.length === processedComments.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(processedComments.map(c => c._id));
+    }
+  }, [selectedIds.length, processedComments]);
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      const results = await Promise.allSettled(selectedIds.map(id => deleteComment(id).unwrap()));
+      const failed = results.filter(r => r.status === "rejected").length;
+      const success = results.length - failed;
+      if (failed === 0) {
+        toast.success(`Удалено ${success} комментариев`);
+      } else {
+        toast.error(`Удалено: ${success}, ошибок: ${failed}`);
+      }
+      setSelectedIds([]);
+      setBulkDeleteOpen(false);
+      refetch();
+    } catch {
+      toast.error("Ошибка при массовом удалении");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const handleExportCSV = useCallback(() => {
+    const headers = ["ID", "Автор", "Комментарий", "Тип", "Лайки", "Дизлайки", "Скрыт", "Дата"];
+    const rows = processedComments.map(c => [
+      c._id,
+      typeof c.userId !== "string" ? c.userId.username : "Пользователь",
+      c.content.substring(0, 100),
+      c.entityType,
+      c.likes || 0,
+      c.dislikes || 0,
+      c.isVisible ? "Нет" : "Да",
+      new Date(c.createdAt).toLocaleDateString("ru-RU"),
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `comments_export_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success("Экспорт завершён");
+  }, [processedComments, toast]);
 
   if (isLoading) {
     return <div className="text-center py-8">Загрузка комментариев...</div>;
@@ -271,6 +359,16 @@ export function CommentsSection() {
 
         <div className="flex items-center gap-2">
           <select
+            value={visibilityFilter}
+            onChange={e => setVisibilityFilter(e.target.value as VisibilityFilter)}
+            className="admin-input"
+            title="Видимость"
+          >
+            <option value="all">Все</option>
+            <option value="visible">Видимые</option>
+            <option value="hidden">Скрытые</option>
+          </select>
+          <select
             value={limit}
             onChange={e => {
               setLimit(Number(e.target.value));
@@ -283,6 +381,13 @@ export function CommentsSection() {
             <option value={50}>50</option>
             <option value={100}>100</option>
           </select>
+          <button
+            onClick={handleExportCSV}
+            className="p-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+            title="Экспорт CSV"
+          >
+            <Download className="w-4 h-4" />
+          </button>
           <div className="flex items-center rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--secondary)] p-1">
             <button
               onClick={() => setViewMode("cards")}
@@ -302,6 +407,35 @@ export function CommentsSection() {
         </div>
       </div>
 
+      {/* Bulk actions */}
+      {selectedIds.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 p-3 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/30">
+          <span className="text-sm font-medium text-[var(--primary)]">
+            Выбрано: {selectedIds.length}
+          </span>
+          <button
+            onClick={handleSelectAll}
+            className="text-xs sm:text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            {selectedIds.length === processedComments.length ? "Снять все" : "Выбрать все"}
+          </button>
+          <div className="flex-1" />
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Удалить</span>
+          </button>
+          <button
+            onClick={() => setSelectedIds([])}
+            className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {processedComments.length === 0 ? (
         <div className="text-center py-10 text-[var(--muted-foreground)]">Комментарии не найдены</div>
       ) : viewMode === "cards" ? (
@@ -309,25 +443,57 @@ export function CommentsSection() {
           {processedComments.map(comment => (
             <article
               key={comment._id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-4"
+              className={`rounded-xl border p-4 ${
+                !comment.isVisible
+                  ? "border-yellow-500/30 bg-yellow-500/5"
+                  : selectedIds.includes(comment._id)
+                    ? "border-[var(--primary)]/50 bg-[var(--primary)]/5"
+                    : "border-[var(--border)] bg-[var(--background)]/70"
+              }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="font-medium text-[var(--foreground)] flex items-center gap-1.5">
-                    <User className="w-4 h-4 text-[var(--muted-foreground)]" />
-                    {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">{comment._id}</p>
+                <div className="flex items-start gap-2 min-w-0">
+                  <button
+                    onClick={() => handleSelectComment(comment._id)}
+                    className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex-shrink-0 mt-0.5"
+                  >
+                    {selectedIds.includes(comment._id) ? (
+                      <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
+                  <div>
+                    <p className="font-medium text-[var(--foreground)] flex items-center gap-1.5">
+                      <User className="w-4 h-4 text-[var(--muted-foreground)]" />
+                      {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
+                      {!comment.isVisible && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600">скрыт</span>
+                      )}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">{comment._id}</p>
+                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={isDeleting}
-                  onClick={() => handleDeleteComment(comment._id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleToggleVisibility(comment)}
+                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    title={comment.isVisible ? "Скрыть" : "Показать"}
+                  >
+                    {comment.isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={isDeleting}
+                    onClick={() => handleDeleteComment(comment._id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
               <p className="mt-3 text-sm text-[var(--foreground)] whitespace-pre-wrap">{comment.content}</p>
@@ -394,6 +560,18 @@ export function CommentsSection() {
           <table className="w-full text-sm">
             <thead className="bg-[var(--secondary)]/60">
               <tr>
+                <th className="px-3 py-2 text-left w-10">
+                  <button
+                    onClick={handleSelectAll}
+                    className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  >
+                    {selectedIds.length === processedComments.length && processedComments.length > 0 ? (
+                      <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
+                </th>
                 <th className="px-3 py-2 text-left">Пользователь</th>
                 <th className="px-3 py-2 text-left">Комментарий</th>
                 <th className="px-3 py-2 text-left">
@@ -409,9 +587,35 @@ export function CommentsSection() {
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
               {processedComments.map(comment => (
-                <tr key={comment._id} className="hover:bg-[var(--accent)]/30">
+                <tr
+                  key={comment._id}
+                  className={`hover:bg-[var(--accent)]/30 ${
+                    !comment.isVisible
+                      ? "bg-yellow-500/5"
+                      : selectedIds.includes(comment._id)
+                        ? "bg-[var(--primary)]/5"
+                        : ""
+                  }`}
+                >
                   <td className="px-3 py-2">
-                    {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
+                    <button
+                      onClick={() => handleSelectComment(comment._id)}
+                      className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    >
+                      {selectedIds.includes(comment._id) ? (
+                        <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
+                      ) : (
+                        <Square className="w-4 h-4" />
+                      )}
+                    </button>
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className="flex items-center gap-1.5">
+                      {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
+                      {!comment.isVisible && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600">скрыт</span>
+                      )}
+                    </span>
                   </td>
                   <td className="px-3 py-2 max-w-[320px]" title={comment.content}>
                     <span className="truncate block">{comment.content}</span>
@@ -427,15 +631,26 @@ export function CommentsSection() {
                     <CommentEntityLink comment={comment} />
                   </td>
                   <td className="px-3 py-2 text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={isDeleting}
-                      onClick={() => handleDeleteComment(comment._id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleToggleVisibility(comment)}
+                        className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                        title={comment.isVisible ? "Скрыть" : "Показать"}
+                      >
+                        {comment.isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isDeleting}
+                        onClick={() => handleDeleteComment(comment._id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -469,6 +684,16 @@ export function CommentsSection() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        onConfirm={handleBulkDelete}
+        title="Удалить комментарии"
+        message={`Вы уверены, что хотите удалить ${selectedIds.length} комментариев? Это действие нельзя отменить.`}
+        confirmText={isBulkDeleting ? "Удаление..." : "Удалить"}
+        isLoading={isBulkDeleting}
+      />
     </div>
   );
 }

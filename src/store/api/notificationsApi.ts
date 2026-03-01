@@ -10,6 +10,38 @@ import {
   DeleteNotificationResponse,
 } from "@/types/notifications";
 
+export type SystemNotificationType = "info" | "warning" | "success" | "error" | "announcement";
+
+export interface SystemNotificationRequest {
+  title: string;
+  message: string;
+  type: SystemNotificationType;
+  targetUsers?: "all" | "active" | string[]; // "all", "active" (last 30 days), or specific user IDs
+  linkUrl?: string;
+  expiresAt?: string;
+}
+
+export interface SystemNotificationStats {
+  total: number;
+  sent: number;
+  read: number;
+  pending: number;
+}
+
+export interface SystemNotification {
+  _id: string;
+  title: string;
+  message: string;
+  type: SystemNotificationType;
+  targetUsers: "all" | "active" | string[];
+  linkUrl?: string;
+  expiresAt?: string;
+  sentCount: number;
+  readCount: number;
+  createdAt: string;
+  createdBy: string;
+}
+
 export const notificationsApi = createApi({
   reducerPath: "notificationsApi",
   baseQuery: baseQueryWithReauth,
@@ -72,6 +104,43 @@ export const notificationsApi = createApi({
       }),
       invalidatesTags: ["Notifications", "UnreadCount"],
     }),
+
+    // Admin: Get system notifications history
+    getSystemNotifications: builder.query<
+      ApiResponseDto<{ notifications: SystemNotification[]; pagination: { total: number; page: number; limit: number; pages: number } }>,
+      { page?: number; limit?: number }
+    >({
+      query: ({ page = 1, limit = 20 }) => ({
+        url: `/notifications/admin/system?page=${page}&limit=${limit}`,
+      }),
+      providesTags: ["Notifications"],
+    }),
+
+    // Admin: Send system notification
+    sendSystemNotification: builder.mutation<ApiResponseDto<SystemNotification>, SystemNotificationRequest>({
+      query: data => ({
+        url: "/notifications/admin/system",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+
+    // Admin: Get notification stats
+    getNotificationStats: builder.query<ApiResponseDto<SystemNotificationStats>, void>({
+      query: () => ({
+        url: "/notifications/admin/stats",
+      }),
+    }),
+
+    // Admin: Delete system notification
+    deleteSystemNotification: builder.mutation<ApiResponseDto<void>, string>({
+      query: id => ({
+        url: `/notifications/admin/system/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
   }),
 });
 
@@ -82,4 +151,8 @@ export const {
   useMarkAsUnreadMutation,
   useMarkAllAsReadMutation,
   useDeleteNotificationMutation,
+  useGetSystemNotificationsQuery,
+  useSendSystemNotificationMutation,
+  useGetNotificationStatsQuery,
+  useDeleteSystemNotificationMutation,
 } = notificationsApi;
