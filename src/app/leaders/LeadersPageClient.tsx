@@ -209,14 +209,13 @@ export default function LeadersPageClient() {
   const mounted = useMounted();
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>("level");
-  const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("all");
+  const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("month");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [showAdmins, setShowAdmins] = useState(false);
+  const [showAdmins, setShowAdmins] = useState(true);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const isCurrentUserAdmin = user?.role === "admin" || user?.role === "moderator";
   const supportsPeriod = activeCategory === "ratings" || activeCategory === "comments";
 
   useEffect(() => {
@@ -455,24 +454,22 @@ export default function LeadersPageClient() {
               )}
             </div>
 
-            {isCurrentUserAdmin && (
-              <button
-                onClick={() => setShowAdmins(!showAdmins)}
-                className={`
-                  flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200
-                  border-2
-                  ${showAdmins
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
-                    : "bg-[var(--secondary)] text-[var(--foreground)] border-[var(--border)] hover:border-[var(--primary)]/50"
-                  }
-                `}
-                title={showAdmins ? "Скрыть админов" : "Показать админов"}
-              >
-                <Shield className="w-4 h-4" />
-                {showAdmins ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                <span className="hidden sm:inline">{showAdmins ? "Скрыть админов" : "Показать админов"}</span>
-              </button>
-            )}
+            <button
+              onClick={() => setShowAdmins(!showAdmins)}
+              className={`
+                flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200
+                border-2
+                ${showAdmins
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
+                  : "bg-[var(--secondary)] text-[var(--foreground)] border-[var(--border)] hover:border-[var(--primary)]/50"
+                }
+              `}
+              title={showAdmins ? "Скрыть админов" : "Показать админов"}
+            >
+              <Shield className="w-4 h-4" />
+              {showAdmins ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              <span className="hidden sm:inline">{showAdmins ? "Скрыть админов" : "Показать админов"}</span>
+            </button>
           </div>
 
           {user && currentUserRank && currentUserData && !searchQuery && (
