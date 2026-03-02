@@ -60,7 +60,7 @@ export interface TitlesByGenreResponse {
   };
 }
 
-const TITLES_TAG = "Titles";
+export const TITLES_TAG = "Titles";
 
 export const titlesApi = createApi({
   reducerPath: "titlesApi",
