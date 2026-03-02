@@ -191,37 +191,37 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
       onClick={(e) => e.stopPropagation()}
     >
       {/* Карточка профиля */}
-      <div className="p-3 rounded-t-xl border-b border-[var(--border)]/40 bg-[var(--card)]/50">
+      <div className="p-4 rounded-t-xl border-b border-[var(--border)]/40 bg-[var(--card)]/50">
         <Link
           ref={firstFocusableRef}
           href="/profile"
           onClick={onClose}
           role="menuitem"
-          className="flex items-center gap-2.5 transition-colors cursor-pointer rounded-lg p-1.5 -m-1.5 hover:bg-[var(--accent)]/60 focus:bg-[var(--accent)]/60 outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
+          className="flex items-center gap-3 transition-colors cursor-pointer rounded-lg p-2 -m-2 hover:bg-[var(--accent)]/60 focus:bg-[var(--accent)]/60 outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
         >
-          <div className="shrink-0 rounded-full ring-2 ring-[var(--border)]/60" style={{ width: 44, height: 44 }}>
+          <div className="shrink-0 rounded-full ring-2 ring-[var(--border)]/60" style={{ width: 53, height: 53 }}>
             <UserAvatar
               avatarUrl={user?.avatar}
               username={displayName}
-              size={44}
+              size={53}
               className="rounded-full w-full h-full"
               frameUrl={frameUrl ?? undefined}
               avatarDecorationUrl={avatarDecorationUrl ?? undefined}
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-[var(--foreground)] truncate text-sm">
+            <h3 className="font-semibold text-[var(--foreground)] truncate text-base">
               {displayName}
             </h3>
-            <p className="text-xs text-[var(--muted-foreground)] truncate">
+            <p className="text-sm text-[var(--muted-foreground)] truncate">
               {rankInfo.name}
             </p>
           </div>
-          <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+          <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
         </Link>
 
         {/* Уровень и баланс */}
-        <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-[var(--border)]/30">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--border)]/30">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--primary)]/10 text-xs text-[var(--primary)] font-medium">
               <Zap className="w-3 h-3" aria-hidden />

@@ -371,7 +371,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
   };
 
   const sidebarContent = (
-    <nav ref={navRef} className="flex flex-col gap-2 p-3 flex-1 admin-sidebar-scroll">
+    <nav ref={navRef} className="flex flex-col gap-2 p-3 h-full overflow-y-auto admin-sidebar-scroll">
       {!isCollapsed && (
         <div className="px-1 mb-2">
           <div className="relative">
@@ -480,13 +480,13 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
 
       <aside
         className={`
-          fixed lg:sticky top-0 lg:top-auto left-0 z-40 lg:z-auto
+          fixed lg:relative top-0 left-0 z-40 lg:z-auto
           ${isCollapsed ? "w-[68px]" : "w-72 lg:w-64"}
-          h-screen lg:h-[calc(100vh-var(--header-height))]
+          h-screen lg:h-full
           bg-[var(--card)] border-r border-[var(--border)]
           transform transition-all duration-300 ease-out
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          flex flex-col shadow-2xl lg:shadow-none
+          flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none
         `}
       >
         <div className="flex-shrink-0 p-3 border-b border-[var(--border)]">
@@ -512,7 +512,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">{sidebarContent}</div>
+        <div className="flex-1 min-h-0 overflow-hidden">{sidebarContent}</div>
 
         <div className={`flex-shrink-0 p-3 border-t border-[var(--border)] ${isCollapsed ? "px-2" : ""}`}>
           <Link

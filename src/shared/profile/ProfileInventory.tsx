@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Package, ImageIcon, User, Layers, Sparkles, Crown, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import {
@@ -93,7 +93,10 @@ export default function ProfileInventory() {
   const needCatalogFallback = userDecorations.length === 0 && ownedFromProfile.length > 0;
   /** Каталог нужен и для fallback-списка, и для подстановки редкости в userDecorations (в профиле API может не отдавать rarity). */
   const needCatalog = needCatalogFallback || userDecorations.length > 0;
-  const { data: catalogDecorations = [], isLoading: isLoadingCatalog } = useGetDecorationsQuery(undefined, { skip: !needCatalog });
+  const { data: catalogDecorations = [], isLoading: isLoadingCatalog, refetch: refetchCatalog } = useGetDecorationsQuery(undefined, {
+    skip: !needCatalog,
+    refetchOnMountOrArgChange: 60,
+  });
   const isLoading = isLoadingUserDecorations || (needCatalogFallback && isLoadingCatalog);
   const profile = profileData?.success ? profileData.data : null;
   const profileWithDecorations = profile as (typeof profile) & UserProfile | null;
@@ -149,14 +152,36 @@ export default function ProfileInventory() {
         return merged;
       });
     }
-    if (ownedFromProfile.length === 0 || catalogDecorations.length === 0) return [];
+    if (ownedFromProfile.length === 0) return [];
     return ownedFromProfile.flatMap(entry => {
       const dec = catalogById.get(entry.decorationId);
-      if (!dec) return [];
       const type = entry.decorationType as Decoration["type"];
-      return [{ ...dec, type, rarity: normalizeRarity(dec.rarity) }];
+      if (dec) {
+        return [{ ...dec, type, rarity: normalizeRarity(dec.rarity) }];
+      }
+      return [{
+        id: entry.decorationId,
+        name: "",
+        description: "",
+        price: 0,
+        imageUrl: "",
+        type,
+        rarity: "common",
+      }];
     });
   }, [userDecorations, ownedFromProfile, catalogDecorations]);
+
+  /** Если в профиле есть купленные декорации, которых нет в каталоге (например, только что добавленные), подтягиваем каталог. */
+  const hasRefetchedForMissing = useRef(false);
+  useEffect(() => {
+    if (!needCatalog || catalogDecorations.length === 0 || ownedFromProfile.length === 0 || hasRefetchedForMissing.current) return;
+    const catalogIds = new Set(catalogDecorations.map(d => d.id));
+    const missing = ownedFromProfile.some(e => !catalogIds.has(e.decorationId));
+    if (missing) {
+      hasRefetchedForMissing.current = true;
+      refetchCatalog();
+    }
+  }, [needCatalog, catalogDecorations.length, ownedFromProfile, refetchCatalog]);
 
   /** В инвентаре показываем только приобретённые декорации. */
   const filteredDecorations = useMemo(() => {

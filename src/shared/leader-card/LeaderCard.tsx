@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Crown, Medal, Award, Clock, Star, TrendingUp, Flame } from "lucide-react";
-import { LeaderboardUser, LeaderboardCategory } from "@/store/api/leaderboardApi";
+import { LeaderboardUser, LeaderboardCategory, DecorationRarity } from "@/store/api/leaderboardApi";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
-import { getDecorationImageUrl, getEquippedFrameUrl, getEquippedBackgroundUrl } from "@/api/shop";
+import { getDecorationImageUrl, getEquippedFrameUrl, getEquippedBackgroundUrl, getEquippedAvatarDecorationUrl } from "@/api/shop";
 import { EquippedDecorations } from "@/types/user";
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
@@ -39,6 +39,9 @@ function resolveDecorationValue(raw: string | object | null | undefined): string
     const o = raw as Record<string, unknown>;
     const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
     if (imageUrl) {
+      if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+        return imageUrl;
+      }
       const resolved = getDecorationImageUrl(imageUrl);
       return resolved || imageUrl;
     }
@@ -48,7 +51,11 @@ function resolveDecorationValue(raw: string | object | null | undefined): string
   const str = String(raw).trim();
   if (!str) return null;
   
-  if (isValidUrl(str)) {
+  if (str.startsWith("http://") || str.startsWith("https://")) {
+    return str;
+  }
+  
+  if (str.startsWith("/")) {
     const resolved = getDecorationImageUrl(str);
     return resolved || str;
   }
@@ -86,6 +93,58 @@ function getBackgroundUrl(equipped: LeaderboardUser["equippedDecorations"]): str
   if (fromHelper) return fromHelper;
   
   return resolveDecorationValue(equipped.background);
+}
+
+function getAvatarDecorationUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
+  if (!equipped?.avatar) return null;
+  
+  const fromHelper = getEquippedAvatarDecorationUrl(equipped as EquippedDecorations);
+  if (fromHelper) return fromHelper;
+  
+  return resolveDecorationValue(equipped.avatar);
+}
+
+function getRarityStyles(rarity: DecorationRarity | null | undefined): {
+  borderClass: string;
+  glowClass: string;
+  gradientClass: string;
+  badgeClass: string;
+  animationClass: string;
+} {
+  switch (rarity) {
+    case "legendary":
+      return {
+        borderClass: "border-amber-400",
+        glowClass: "shadow-[0_0_20px_rgba(251,191,36,0.5)] hover:shadow-[0_0_30px_rgba(251,191,36,0.7)]",
+        gradientClass: "from-amber-400/40 via-yellow-500/30 to-orange-400/40",
+        badgeClass: "bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950",
+        animationClass: "animate-pulse",
+      };
+    case "epic":
+      return {
+        borderClass: "border-purple-500",
+        glowClass: "shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)]",
+        gradientClass: "from-purple-500/30 via-violet-500/20 to-fuchsia-500/30",
+        badgeClass: "bg-gradient-to-r from-purple-500 to-violet-500 text-white",
+        animationClass: "",
+      };
+    case "rare":
+      return {
+        borderClass: "border-blue-500",
+        glowClass: "shadow-[0_0_12px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]",
+        gradientClass: "from-blue-500/25 via-sky-500/15 to-cyan-500/25",
+        badgeClass: "bg-gradient-to-r from-blue-500 to-sky-500 text-white",
+        animationClass: "",
+      };
+    default:
+      return {
+        borderClass: "",
+        glowClass: "",
+        gradientClass: "",
+        badgeClass: "",
+        animationClass: "",
+      };
+  }
 }
 
 function formatReadingTime(minutes: number): string {
@@ -214,16 +273,25 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
   const [frameError, setFrameError] = useState(false);
   const [cardError, setCardError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [avatarDecorationError, setAvatarDecorationError] = useState(false);
   const [isVisible, setIsVisible] = useState(!showAnimation);
   
   const RankIcon = getRankIcon(rank)!;
   const CategoryIcon = getCategoryIcon(category);
   const styles = getRankStyles(rank);
-  const avatarUrl = avatarError ? DEFAULT_AVATAR : (user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR);
+  const avatarDecorationUrl = getAvatarDecorationUrl(user.equippedDecorations);
+  const baseAvatarUrl = user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR;
+  const avatarUrl = avatarError 
+    ? DEFAULT_AVATAR 
+    : (avatarDecorationUrl && !avatarDecorationError ? avatarDecorationUrl : baseAvatarUrl);
   const level = user.level ?? 0;
   const frameUrl = getFrameUrl(user.equippedDecorations);
   const cardUrl = getCardUrl(user.equippedDecorations);
   const secondaryValue = getSecondaryValue(user, category);
+  
+  const cardRarity = user.equippedDecorations?.cardRarity;
+  const frameRarity = user.equippedDecorations?.frameRarity;
+  const rarityStyles = getRarityStyles(cardRarity || frameRarity);
 
   const avatarSize = rank === 1 ? "w-28 h-28" : "w-20 h-20";
   const avatarPixels = rank === 1 ? 112 : 80;
@@ -233,6 +301,11 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
 
   const showCard = cardUrl && !cardError;
   const showFrame = frameUrl && !frameError;
+  const hasRarityEffect = Boolean(cardRarity && cardRarity !== "common");
+  const rarityAnimationClass = cardRarity === "legendary" ? "rarity-legendary" 
+    : cardRarity === "epic" ? "rarity-epic" 
+    : cardRarity === "rare" ? "rarity-rare" 
+    : "";
 
   useEffect(() => {
     if (showAnimation) {
@@ -248,8 +321,9 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
       href={`/user/${user._id}`}
       className={`
         relative flex flex-col items-center justify-end text-center rounded-2xl border-2
-        transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl
-        bg-[var(--card)] ${styles.cardBorder} ${styles.glow}
+        transition-all duration-300 hover:scale-[1.03]
+        bg-[var(--card)] ${hasRarityEffect ? rarityStyles.borderClass : styles.cardBorder} 
+        ${hasRarityEffect ? rarityAnimationClass : styles.glow}
         overflow-hidden group
         ${isCurrentUser ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]" : ""}
         ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4") : ""}
@@ -259,7 +333,34 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         ...(showAnimation ? { transitionDelay: `${animationDelay}ms` } : {})
       }}
     >
-      {rank === 1 && (
+      {/* Rarity glow effect overlay */}
+      {hasRarityEffect && (
+        <div className={`absolute inset-0 pointer-events-none z-0 bg-gradient-to-b ${rarityStyles.gradientClass} ${rarityStyles.animationClass}`} />
+      )}
+      
+      {/* Legendary sparkle effects */}
+      {cardRarity === "legendary" && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-30">
+          <div className="absolute top-[10%] left-[20%] w-1 h-1 bg-amber-300 rounded-full animate-ping" style={{ animationDuration: "1.5s" }} />
+          <div className="absolute top-[30%] right-[15%] w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping" style={{ animationDuration: "2s", animationDelay: "0.5s" }} />
+          <div className="absolute top-[50%] left-[10%] w-1 h-1 bg-orange-300 rounded-full animate-ping" style={{ animationDuration: "1.8s", animationDelay: "1s" }} />
+          <div className="absolute top-[70%] right-[25%] w-1 h-1 bg-amber-400 rounded-full animate-ping" style={{ animationDuration: "2.2s", animationDelay: "0.3s" }} />
+        </div>
+      )}
+      
+      {/* Epic shimmer effect */}
+      {cardRarity === "epic" && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-30">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent animate-shimmer" 
+               style={{ 
+                 backgroundSize: "200% 100%",
+                 animation: "shimmer 3s ease-in-out infinite"
+               }} 
+          />
+        </div>
+      )}
+      
+      {rank === 1 && !hasRarityEffect && (
         <div className={`absolute inset-0 pointer-events-none overflow-hidden z-30 transition-opacity duration-300 ${showCard ? "group-hover:opacity-0" : ""}`}>
           <div className="absolute top-0 left-1/4 w-1 h-8 bg-yellow-400/40 blur-sm animate-pulse" style={{ animationDelay: "0ms" }} />
           <div className="absolute top-2 right-1/3 w-1 h-6 bg-yellow-400/30 blur-sm animate-pulse" style={{ animationDelay: "200ms" }} />
@@ -281,7 +382,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
           />
         </div>
       ) : (
-        <div className={`absolute inset-0 bg-gradient-to-b ${styles.gradient} pointer-events-none`} />
+        <div className={`absolute inset-0 bg-gradient-to-b ${hasRarityEffect ? rarityStyles.gradientClass : styles.gradient} pointer-events-none`} />
       )}
 
       <div
@@ -313,7 +414,13 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
               shadow-xl group-hover:shadow-2xl transition-shadow bg-[var(--secondary)]
               ${rank === 1 ? "ring-4 ring-yellow-400/30" : ""}
             `}
-            onError={() => setAvatarError(true)}
+            onError={() => {
+              if (avatarDecorationUrl && !avatarDecorationError) {
+                setAvatarDecorationError(true);
+              } else {
+                setAvatarError(true);
+              }
+            }}
           />
           {showFrame && (
             <img
@@ -384,14 +491,28 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   const [frameError, setFrameError] = useState(false);
   const [cardError, setCardError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [avatarDecorationError, setAvatarDecorationError] = useState(false);
   const [isVisible, setIsVisible] = useState(!showAnimation);
   
   const CategoryIcon = getCategoryIcon(category);
-  const avatarUrl = avatarError ? DEFAULT_AVATAR : (user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR);
+  const avatarDecorationUrl = getAvatarDecorationUrl(user.equippedDecorations);
+  const baseAvatarUrl = user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR;
+  const avatarUrl = avatarError 
+    ? DEFAULT_AVATAR 
+    : (avatarDecorationUrl && !avatarDecorationError ? avatarDecorationUrl : baseAvatarUrl);
   const level = user.level ?? 0;
   const frameUrl = getFrameUrl(user.equippedDecorations);
   const cardUrl = getCardUrl(user.equippedDecorations);
   const secondaryValue = getSecondaryValue(user, category);
+  
+  const cardRarity = user.equippedDecorations?.cardRarity;
+  const frameRarity = user.equippedDecorations?.frameRarity;
+  const rarityStyles = getRarityStyles(cardRarity || frameRarity);
+  const hasRarityEffect = Boolean((cardRarity || frameRarity) && (cardRarity !== "common" && frameRarity !== "common"));
+  const rarityAnimationClass = cardRarity === "legendary" || frameRarity === "legendary" ? "rarity-legendary" 
+    : cardRarity === "epic" || frameRarity === "epic" ? "rarity-epic" 
+    : cardRarity === "rare" || frameRarity === "rare" ? "rarity-rare" 
+    : "";
 
   const showFrame = frameUrl && !frameError;
   const showCard = cardUrl && !cardError;
@@ -412,35 +533,50 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
       href={`/user/${user._id}`}
       className={`
         relative flex items-center gap-4 rounded-xl border-2 p-4 transition-all duration-200
-        hover:shadow-md hover:scale-[1.01]
-        bg-[var(--card)] border-[var(--border)] hover:border-[var(--primary)]/50
+        hover:scale-[1.01]
+        bg-[var(--card)] ${hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"} 
+        ${hasRarityEffect ? rarityAnimationClass : "hover:shadow-md hover:border-[var(--primary)]/50"}
         ${isCurrentUser ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)] border-[var(--primary)]/30" : ""}
         ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2") : ""}
+        overflow-hidden
       `}
       style={showAnimation ? { transitionDelay: `${animationDelay}ms` } : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Rarity background gradient for DefaultCard */}
+      {hasRarityEffect && (
+        <div className={`absolute inset-0 pointer-events-none bg-gradient-to-r ${rarityStyles.gradientClass} opacity-30`} />
+      )}
+      
       <div className={`
         flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm
-        border-2
-        ${isTopTen 
-          ? "bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]" 
-          : "bg-[var(--muted)] border-[var(--border)] text-[var(--foreground)]"
+        border-2 relative z-10
+        ${hasRarityEffect 
+          ? `${rarityStyles.badgeClass} border-transparent`
+          : isTopTen 
+            ? "bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]" 
+            : "bg-[var(--muted)] border-[var(--border)] text-[var(--foreground)]"
         }
       `}>
         #{rank}
       </div>
 
-      <div className="flex-shrink-0 relative">
+      <div className="flex-shrink-0 relative z-10">
         <img
           src={avatarUrl}
           alt={user.username}
           className={`
             w-12 h-12 rounded-full object-cover border-2 bg-[var(--secondary)]
-            ${isCurrentUser ? "border-[var(--primary)]" : "border-[var(--border)]"}
+            ${isCurrentUser ? "border-[var(--primary)]" : hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}
           `}
-          onError={() => setAvatarError(true)}
+          onError={() => {
+            if (avatarDecorationUrl && !avatarDecorationError) {
+              setAvatarDecorationError(true);
+            } else {
+              setAvatarError(true);
+            }
+          }}
         />
         {showFrame && (
           <img
@@ -464,7 +600,7 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
         )}
       </div>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 relative z-10">
         <div className="flex items-center gap-2">
           <p className={`font-semibold truncate ${isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
             {user.username}
@@ -488,14 +624,16 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
       </div>
 
       <div className={`
-        flex items-center gap-2 text-right px-3 py-2 rounded-lg
-        ${isTopTen 
-          ? "bg-gradient-to-r from-[var(--primary)]/10 to-[var(--primary)]/5 border border-[var(--primary)]/20" 
-          : "bg-[var(--secondary)]"
+        flex items-center gap-2 text-right px-3 py-2 rounded-lg relative z-10
+        ${hasRarityEffect
+          ? `${rarityStyles.badgeClass}`
+          : isTopTen 
+            ? "bg-gradient-to-r from-[var(--primary)]/10 to-[var(--primary)]/5 border border-[var(--primary)]/20" 
+            : "bg-[var(--secondary)]"
         }
       `}>
-        <CategoryIcon className={`w-4 h-4 ${isTopTen ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`} />
-        <span className={`font-bold whitespace-nowrap ${isTopTen ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
+        <CategoryIcon className={`w-4 h-4 ${hasRarityEffect ? "" : isTopTen ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`} />
+        <span className={`font-bold whitespace-nowrap ${hasRarityEffect ? "" : isTopTen ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
           {getCategoryValue(user, category)}
         </span>
       </div>

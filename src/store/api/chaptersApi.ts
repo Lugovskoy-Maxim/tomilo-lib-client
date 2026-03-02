@@ -2,6 +2,7 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { ApiResponseDto } from "@/types/api";
 import { Chapter, ChaptersResponse, CreateChapterDto, UpdateChapterDto } from "@/types/title";
+import { titlesApi } from "./titlesApi";
 
 const CHAPTERS_TAG = "Chapters";
 
@@ -117,6 +118,10 @@ export const chaptersApi = createApi({
         body: data,
       }),
       invalidatesTags: [CHAPTERS_TAG],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled;
+        dispatch(titlesApi.util.invalidateTags(["Titles"]));
+      },
     }),
 
     createChapterWithPages: builder.mutation<
@@ -138,6 +143,10 @@ export const chaptersApi = createApi({
         };
       },
       invalidatesTags: [CHAPTERS_TAG],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled;
+        dispatch(titlesApi.util.invalidateTags(["Titles"]));
+      },
     }),
 
     addPagesToChapter: builder.mutation<Chapter, { id: string; pages: File[] }>({
@@ -170,6 +179,10 @@ export const chaptersApi = createApi({
     deleteChapter: builder.mutation<void, string>({
       query: id => ({ url: `/chapters/${id}`, method: "DELETE" }),
       invalidatesTags: [CHAPTERS_TAG],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled;
+        dispatch(titlesApi.util.invalidateTags(["Titles"]));
+      },
     }),
 
     // Увеличение счётчика просмотров главы (доступно без авторизации)

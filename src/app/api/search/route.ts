@@ -34,19 +34,22 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
-    const titles = Array.isArray(data?.data)
-      ? data.data
-      : Array.isArray(data?.titles)
-        ? data.titles
-        : Array.isArray(data)
-          ? data
-          : [];
+    const titles = Array.isArray(data?.data?.titles)
+      ? data.data.titles
+      : Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.titles)
+          ? data.titles
+          : Array.isArray(data)
+            ? data
+            : [];
 
     const results = titles
       .map(
         (t: {
           _id?: string;
           id?: string;
+          slug?: string;
           name?: string;
           title?: string;
           coverImage?: string;
@@ -56,14 +59,19 @@ export async function GET(req: NextRequest) {
           releaseYear?: number;
           year?: number;
           rating?: number;
+          averageRating?: number;
+          totalChapters?: number;
+          chaptersCount?: number;
         }) => ({
           id: String(t._id ?? t.id ?? ""),
+          slug: t.slug ?? undefined,
           title: String(t.name ?? t.title ?? ""),
           cover: t.coverImage ?? t.image ?? undefined,
           description: t.description ?? undefined,
           type: t.type ?? undefined,
           releaseYear: t.releaseYear ?? t.year ?? undefined,
-          rating: t.rating ?? undefined,
+          rating: t.averageRating ?? t.rating ?? undefined,
+          totalChapters: t.totalChapters ?? t.chaptersCount ?? undefined,
         }),
       )
       .filter((r: { id: string; title: string }) => r.id && r.title);

@@ -175,7 +175,7 @@ export default function SearchResults({
                     {result.releaseYear}
                   </span>
                 )}
-                {result.rating != null && (
+                {result.rating != null && result.rating > 0 && (
                   <span className="flex items-center gap-0.5 text-xs text-[var(--chart-1)] font-medium">
                     <Star className="w-3.5 h-3.5 fill-[var(--chart-1)]" />
                     {result.rating.toFixed(1)}

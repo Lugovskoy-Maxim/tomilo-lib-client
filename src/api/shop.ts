@@ -25,7 +25,9 @@ function getDecorationUrlFromValue(raw: string | object | null | undefined): str
   if (typeof raw === "object") {
     const o = raw as Record<string, unknown>;
     const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
-    if (imageUrl) return getDecorationImageUrl(imageUrl) || imageUrl;
+    if (imageUrl) {
+      return imageUrl.startsWith("http") ? imageUrl : getDecorationImageUrl(imageUrl) || imageUrl;
+    }
   }
   return null;
 }
@@ -132,6 +134,10 @@ export interface Decoration {
   stock?: number;
   /** Распродано — покупка недоступна. */
   isSoldOut?: boolean;
+  /** Цена по подписке (если есть скидка для подписчиков). */
+  subscriptionPrice?: number;
+  /** Бонусные монеты за покупку. */
+  bonus?: number;
 }
 
 export interface ApiResponse<T> {
@@ -160,6 +166,8 @@ function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
     isEquipped: (item.isEquipped ?? item.is_equipped) as boolean | undefined,
     stock: stock != null ? Number(stock) : undefined,
     isSoldOut: isSoldOut ?? (stock != null && Number(stock) <= 0),
+    subscriptionPrice: (item.subscriptionPrice ?? item.subscription_price) as number | undefined,
+    bonus: (item.bonus as number | undefined) ?? undefined,
   };
 }
 

@@ -21,13 +21,27 @@ export const baseQueryWithReauth: BaseQueryFn = async (
   api: BaseQueryApi,
   extraOptions,
 ) => {
+  // Some endpoints are intentionally public. If backend rejects invalid Bearer tokens even for public routes,
+  // sending Authorization may turn a public 200 into a 401. Keep these requests token-free.
+  const PUBLIC_ENDPOINTS = new Set([
+    "getDecorations",
+    "getDecorationsByType",
+  ]);
+
+  // #region agent log
+  if (typeof args === "object" && args !== null && "body" in args && args.body instanceof FormData) {
+    fetch('http://127.0.0.1:7250/ingest/c0a453a6-7d03-4b94-b375-b950753b7f4a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'545edb'},body:JSON.stringify({sessionId:'545edb',location:'baseQueryWithReauth.ts',message:'body is FormData before baseQuery',data:{url:(args as { url?: string }).url},timestamp:Date.now(),hypothesisId:'H3-H5'})}).catch(()=>{});
+  }
+  // #endregion
   const baseQuery = fetchBaseQuery({
     baseUrl: API_BASE,
     credentials: "include",
-    prepareHeaders(headers) {
+    prepareHeaders(headers, ctx) {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
+        const endpoint = (ctx as { endpoint?: string } | undefined)?.endpoint;
+        const shouldAttachToken = Boolean(token) && (!endpoint || !PUBLIC_ENDPOINTS.has(endpoint));
+        if (shouldAttachToken && token) {
           headers.set("authorization", `Bearer ${token}`);
         }
       }

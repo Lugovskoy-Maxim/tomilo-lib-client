@@ -16,7 +16,7 @@ import { useGetHomepageActiveUsersQuery } from "@/store/api/usersApi";
 import { useGetDecorationsQuery } from "@/store/api/shopApi";
 import { useMounted } from "@/hooks/useMounted";
 import { useAuth } from "@/hooks/useAuth";
-import { getDecorationImageUrl } from "@/api/shop";
+import { getDecorationImageUrl, type DecorationRarity } from "@/api/shop";
 
 type CategoryConfig = {
   id: LeaderboardCategory;
@@ -76,10 +76,10 @@ const PERIODS: PeriodConfig[] = [
 ];
 
 interface TransformableUserEquipped {
-  avatar?: string | null;
-  frame?: string | null;
-  background?: string | null;
-  card?: string | null;
+  avatar?: string | { id?: string; _id?: string; imageUrl?: string; image_url?: string } | null;
+  frame?: string | { id?: string; _id?: string; imageUrl?: string; image_url?: string } | null;
+  background?: string | { id?: string; _id?: string; imageUrl?: string; image_url?: string } | null;
+  card?: string | { id?: string; _id?: string; imageUrl?: string; image_url?: string } | null;
 }
 
 interface TransformableUser {
@@ -108,47 +108,97 @@ interface TransformableUser {
   showStats?: boolean;
 }
 
+type DecorationValue = string | { id?: string; _id?: string; imageUrl?: string; image_url?: string; rarity?: DecorationRarity } | null | undefined;
+type DecorationMapEntry = { imageUrl: string; rarity: DecorationRarity; type: string };
+
+interface ResolvedDecoration {
+  url: string | null;
+  rarity: DecorationRarity | null;
+}
+
 function resolveDecorationValue(
-  value: string | null | undefined,
-  decorationsMap: Map<string, string>
-): string | null {
-  if (!value) return null;
+  value: DecorationValue,
+  decorationsMap: Map<string, DecorationMapEntry>
+): ResolvedDecoration {
+  if (value == null) return { url: null, rarity: null };
+  
+  if (typeof value === "object") {
+    const obj = value as { id?: string; _id?: string; imageUrl?: string; image_url?: string; rarity?: DecorationRarity };
+    const imageUrl = obj.imageUrl ?? obj.image_url;
+    if (imageUrl) {
+      return { 
+        url: getDecorationImageUrl(imageUrl) || imageUrl,
+        rarity: obj.rarity ?? null
+      };
+    }
+    const id = obj.id ?? obj._id;
+    if (id && decorationsMap.has(id)) {
+      const entry = decorationsMap.get(id)!;
+      return { 
+        url: getDecorationImageUrl(entry.imageUrl) || entry.imageUrl,
+        rarity: entry.rarity
+      };
+    }
+    return { url: null, rarity: null };
+  }
+  
   const trimmed = value.trim();
-  if (!trimmed) return null;
+  if (!trimmed) return { url: null, rarity: null };
   
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
-    return getDecorationImageUrl(trimmed) || trimmed;
+    return { url: getDecorationImageUrl(trimmed) || trimmed, rarity: null };
   }
   
   if (/^[a-f0-9]{24}$/i.test(trimmed)) {
-    const imageUrl = decorationsMap.get(trimmed);
-    if (imageUrl) {
-      return getDecorationImageUrl(imageUrl) || imageUrl;
+    const entry = decorationsMap.get(trimmed);
+    if (entry) {
+      return { 
+        url: getDecorationImageUrl(entry.imageUrl) || entry.imageUrl,
+        rarity: entry.rarity
+      };
     }
-    return null;
+    return { url: null, rarity: null };
   }
   
-  return getDecorationImageUrl(trimmed) || null;
+  return { url: getDecorationImageUrl(trimmed) || null, rarity: null };
+}
+
+interface ResolvedEquippedDecorations {
+  avatar?: string | null;
+  frame?: string | null;
+  background?: string | null;
+  card?: string | null;
+  cardRarity?: DecorationRarity | null;
+  frameRarity?: DecorationRarity | null;
+  avatarRarity?: DecorationRarity | null;
 }
 
 function resolveEquippedDecorations(
   equipped: TransformableUserEquipped | null | undefined,
-  decorationsMap: Map<string, string>
-): TransformableUserEquipped | null {
+  decorationsMap: Map<string, DecorationMapEntry>
+): ResolvedEquippedDecorations | null {
   if (!equipped) return null;
   
+  const avatar = resolveDecorationValue(equipped.avatar, decorationsMap);
+  const frame = resolveDecorationValue(equipped.frame, decorationsMap);
+  const card = resolveDecorationValue(equipped.card, decorationsMap);
+  const background = resolveDecorationValue(equipped.background, decorationsMap);
+  
   return {
-    avatar: resolveDecorationValue(equipped.avatar, decorationsMap),
-    frame: resolveDecorationValue(equipped.frame, decorationsMap),
-    background: resolveDecorationValue(equipped.background, decorationsMap),
-    card: resolveDecorationValue(equipped.card, decorationsMap),
+    avatar: avatar.url,
+    frame: frame.url,
+    background: background.url,
+    card: card.url,
+    cardRarity: card.rarity,
+    frameRarity: frame.rarity,
+    avatarRarity: avatar.rarity,
   };
 }
 
 function transformUsersToLeaderboard(
   users: TransformableUser[],
   category: LeaderboardCategory,
-  decorationsMap: Map<string, string>
+  decorationsMap: Map<string, DecorationMapEntry>
 ): LeaderboardUser[] {
   const visibleUsers = users.filter(user => user.showStats !== false);
   
@@ -258,10 +308,10 @@ export default function LeadersPageClient() {
   const { data: allDecorations = [] } = useGetDecorationsQuery();
 
   const decorationsMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, { imageUrl: string; rarity: DecorationRarity; type: string }>();
     for (const d of allDecorations) {
       if (d.id && d.imageUrl) {
-        map.set(d.id, d.imageUrl);
+        map.set(d.id, { imageUrl: d.imageUrl, rarity: d.rarity ?? "common", type: d.type });
       }
     }
     return map;
