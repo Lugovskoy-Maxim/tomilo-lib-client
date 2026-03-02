@@ -6,7 +6,7 @@ import { Crown, Medal, Award, Clock, Star, TrendingUp, Flame } from "lucide-reac
 import { LeaderboardUser, LeaderboardCategory } from "@/store/api/leaderboardApi";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
-import { getDecorationImageUrl } from "@/api/shop";
+import { getDecorationImageUrl, getEquippedFrameUrl, getEquippedBackgroundUrl } from "@/api/shop";
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
 
@@ -31,20 +31,32 @@ function isValidUrl(value: string): boolean {
   return value.startsWith("http://") || value.startsWith("https://") || value.startsWith("/");
 }
 
-function resolveDecorationUrl(value: string | null | undefined): string | null {
-  if (!value) return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
+function resolveDecorationValue(raw: string | object | null | undefined): string | null {
+  if (raw == null) return null;
   
-  if (isValidUrl(trimmed)) {
-    return getDecorationImageUrl(trimmed) || trimmed;
-  }
-  
-  if (/^[a-f0-9]{24}$/i.test(trimmed)) {
+  if (typeof raw === "object") {
+    const o = raw as Record<string, unknown>;
+    const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
+    if (imageUrl) {
+      const resolved = getDecorationImageUrl(imageUrl);
+      return resolved || imageUrl;
+    }
     return null;
   }
   
-  const maybeUrl = getDecorationImageUrl(trimmed);
+  const str = String(raw).trim();
+  if (!str) return null;
+  
+  if (isValidUrl(str)) {
+    const resolved = getDecorationImageUrl(str);
+    return resolved || str;
+  }
+  
+  if (/^[a-f0-9]{24}$/i.test(str)) {
+    return null;
+  }
+  
+  const maybeUrl = getDecorationImageUrl(str);
   if (maybeUrl && isValidUrl(maybeUrl)) {
     return maybeUrl;
   }
@@ -53,60 +65,26 @@ function resolveDecorationUrl(value: string | null | undefined): string | null {
 }
 
 function getFrameUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
-  if (!equipped?.frame) return null;
+  if (!equipped) return null;
   
-  const frameValue = equipped.frame;
-  if (typeof frameValue === "string") {
-    return resolveDecorationUrl(frameValue);
-  }
+  const fromHelper = getEquippedFrameUrl(equipped as { frame?: string | object | null });
+  if (fromHelper) return fromHelper;
   
-  if (typeof frameValue === "object" && frameValue !== null) {
-    const obj = frameValue as Record<string, unknown>;
-    const imageUrl = (obj.imageUrl ?? obj.image_url) as string | undefined;
-    if (imageUrl) {
-      return resolveDecorationUrl(imageUrl);
-    }
-  }
-  
-  return null;
+  return resolveDecorationValue(equipped.frame);
 }
 
 function getCardUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
   if (!equipped?.card) return null;
-  
-  const cardValue = equipped.card;
-  if (typeof cardValue === "string") {
-    return resolveDecorationUrl(cardValue);
-  }
-  
-  if (typeof cardValue === "object" && cardValue !== null) {
-    const obj = cardValue as Record<string, unknown>;
-    const imageUrl = (obj.imageUrl ?? obj.image_url) as string | undefined;
-    if (imageUrl) {
-      return resolveDecorationUrl(imageUrl);
-    }
-  }
-  
-  return null;
+  return resolveDecorationValue(equipped.card);
 }
 
 function getBackgroundUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
-  if (!equipped?.background) return null;
+  if (!equipped) return null;
   
-  const bgValue = equipped.background;
-  if (typeof bgValue === "string") {
-    return resolveDecorationUrl(bgValue);
-  }
+  const fromHelper = getEquippedBackgroundUrl(equipped as { background?: string | object | null });
+  if (fromHelper) return fromHelper;
   
-  if (typeof bgValue === "object" && bgValue !== null) {
-    const obj = bgValue as Record<string, unknown>;
-    const imageUrl = (obj.imageUrl ?? obj.image_url) as string | undefined;
-    if (imageUrl) {
-      return resolveDecorationUrl(imageUrl);
-    }
-  }
-  
-  return null;
+  return resolveDecorationValue(equipped.background);
 }
 
 function formatReadingTime(minutes: number): string {
@@ -262,18 +240,20 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
     <Link
       href={`/user/${user._id}`}
       className={`
-        relative flex flex-col items-center text-center rounded-2xl border-2 ${cardPadding}
+        relative flex flex-col items-center justify-end text-center rounded-2xl border-2
         transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl
         bg-[var(--card)] ${styles.cardBorder} ${styles.glow}
         overflow-hidden group
         ${isCurrentUser ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]" : ""}
         ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4") : ""}
-        ${rank === 1 ? "md:pb-10" : ""}
       `}
-      style={showAnimation ? { transitionDelay: `${animationDelay}ms` } : undefined}
+      style={{ 
+        aspectRatio: "9 / 16",
+        ...(showAnimation ? { transitionDelay: `${animationDelay}ms` } : {})
+      }}
     >
       {rank === 1 && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-30 group-hover:opacity-0 transition-opacity duration-300">
           <div className="absolute top-0 left-1/4 w-1 h-8 bg-yellow-400/40 blur-sm animate-pulse" style={{ animationDelay: "0ms" }} />
           <div className="absolute top-2 right-1/3 w-1 h-6 bg-yellow-400/30 blur-sm animate-pulse" style={{ animationDelay: "200ms" }} />
           <div className="absolute top-4 left-1/2 w-1.5 h-10 bg-yellow-400/50 blur-sm animate-pulse" style={{ animationDelay: "400ms" }} />
@@ -283,7 +263,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
       
       {showCard ? (
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity"
+          className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-100 transition-opacity duration-300"
           style={{ backgroundImage: `url(${cardUrl})` }}
         >
           <img 
@@ -301,6 +281,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         className={`
           absolute -top-1 -right-1 ${badgeSize} rounded-xl flex items-center justify-center
           ${styles.bg} ${styles.text} shadow-lg z-20 border-2 border-white/20
+          group-hover:opacity-0 transition-opacity duration-300
           ${rank === 1 ? "animate-bounce" : ""}
         `}
         style={rank === 1 ? { animationDuration: "2s" } : undefined}
@@ -309,12 +290,12 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
       </div>
 
       {isCurrentUser && (
-        <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium">
+        <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium group-hover:opacity-0 transition-opacity duration-300">
           Вы
         </div>
       )}
 
-      <div className="relative z-10 mb-4">
+      <div className="relative z-10 mb-4 group-hover:opacity-0 transition-opacity duration-300">
         <div className="relative">
           <img
             src={avatarUrl}
@@ -344,20 +325,20 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         </div>
       </div>
 
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full px-3 py-3 rounded-b-xl bg-gradient-to-t from-black/70 via-black/50 to-transparent group-hover:opacity-0 transition-opacity duration-300">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <p className={`font-bold text-[var(--foreground)] truncate max-w-[150px] ${rank === 1 ? "text-xl" : "text-lg"}`}>
+          <p className={`font-bold text-white truncate max-w-[150px] drop-shadow-md ${rank === 1 ? "text-xl" : "text-lg"}`}>
             {user.username}
           </p>
           {user.role && user.role !== "user" && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] capitalize">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 text-white capitalize font-medium">
               {user.role}
             </span>
           )}
         </div>
 
         <div className="flex justify-center mb-3">
-          <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)]">
+          <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-white/20 text-white border border-white/30">
             {getRankDisplay(level).split("  ")[0]}
           </span>
         </div>
@@ -373,7 +354,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         </div>
 
         {secondaryValue && (
-          <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+          <p className="mt-2 text-xs text-white/70">
             {secondaryValue}
           </p>
         )}

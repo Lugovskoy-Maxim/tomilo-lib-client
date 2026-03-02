@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Crown, TrendingUp, Clock, Star, Users, Flame, Search, RefreshCw, ChevronUp } from "lucide-react";
+import { Crown, TrendingUp, Clock, Star, Users, Flame, Search, RefreshCw, ChevronUp, Shield, Eye, EyeOff, Calendar, MessageSquare } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
 import { LoadingSkeleton, ErrorState } from "@/shared";
@@ -9,6 +9,7 @@ import LeaderCard from "@/shared/leader-card/LeaderCard";
 import {
   useGetLeaderboardQuery,
   LeaderboardCategory,
+  LeaderboardPeriod,
   LeaderboardUser,
 } from "@/store/api/leaderboardApi";
 import { useGetHomepageActiveUsersQuery } from "@/store/api/usersApi";
@@ -49,12 +50,30 @@ const CATEGORIES: CategoryConfig[] = [
     description: "Больше всего оценённых тайтлов",
   },
   {
+    id: "comments",
+    label: "По комментариям",
+    shortLabel: "Комментарии",
+    icon: MessageSquare,
+    description: "Самые активные комментаторы",
+  },
+  {
     id: "streak",
     label: "По активности",
     shortLabel: "Серия",
     icon: Flame,
     description: "Самые длинные серии дней активности",
   },
+];
+
+type PeriodConfig = {
+  id: LeaderboardPeriod;
+  label: string;
+  shortLabel: string;
+};
+
+const PERIODS: PeriodConfig[] = [
+  { id: "all", label: "За всё время", shortLabel: "Всё время" },
+  { id: "month", label: "За месяц", shortLabel: "Месяц" },
 ];
 
 interface TransformableUserEquipped {
@@ -85,6 +104,7 @@ interface TransformableUser {
   completedTitlesCount?: number;
   commentsCount?: number;
   likesReceivedCount?: number;
+  ratingsCount?: number;
 }
 
 function resolveDecorationValue(
@@ -145,7 +165,7 @@ function transformUsersToLeaderboard(
       readingTime: user.readingTimeMinutes ?? chaptersRead * 2,
       readingTimeMinutes: user.readingTimeMinutes ?? chaptersRead * 2,
       chaptersRead,
-      ratingsCount: user.bookmarks?.length ?? Math.floor((user.reputationScore ?? 0) * 0.5),
+      ratingsCount: user.ratingsCount ?? user.bookmarks?.length ?? Math.floor((user.reputationScore ?? 0) * 0.5),
       commentsCount: user.commentsCount ?? Math.floor((user.activityScore ?? 0) * 0.3),
       currentStreak: user.currentStreak ?? 0,
       longestStreak: user.longestStreak ?? 0,
@@ -181,10 +201,15 @@ export default function LeadersPage() {
   const mounted = useMounted();
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>("level");
+  const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showAdmins, setShowAdmins] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+
+  const isCurrentUserAdmin = user?.role === "admin" || user?.role === "moderator";
+  const supportsPeriod = activeCategory === "ratings" || activeCategory === "comments";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -202,7 +227,11 @@ export default function LeadersPage() {
     data: leaderboardData,
     isLoading: leaderboardLoading,
     error: leaderboardError,
-  } = useGetLeaderboardQuery({ category: activeCategory, limit: 50 });
+  } = useGetLeaderboardQuery({ 
+    category: activeCategory, 
+    period: supportsPeriod ? activePeriod : "all",
+    limit: 50 
+  });
 
   const {
     data: homepageUsersData,
@@ -276,12 +305,19 @@ export default function LeadersPage() {
   const activeCategoryConfig = CATEGORIES.find(c => c.id === activeCategory);
 
   const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim()) return leaderboardUsers;
-    const query = searchQuery.toLowerCase().trim();
-    return leaderboardUsers.filter(u => 
-      u.username.toLowerCase().includes(query)
-    );
-  }, [leaderboardUsers, searchQuery]);
+    let users = leaderboardUsers;
+    
+    if (!showAdmins) {
+      users = users.filter(u => u.role !== "admin" && u.role !== "moderator");
+    }
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      users = users.filter(u => u.username.toLowerCase().includes(query));
+    }
+    
+    return users;
+  }, [leaderboardUsers, searchQuery, showAdmins]);
 
   const userRankMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -360,6 +396,30 @@ export default function LeadersPage() {
             })}
           </div>
 
+          {supportsPeriod && (
+            <div className="flex justify-center gap-2 mb-4">
+              <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[var(--secondary)] border border-[var(--border)]">
+                <Calendar className="w-4 h-4 ml-2 text-[var(--muted-foreground)]" />
+                {PERIODS.map(period => (
+                  <button
+                    key={period.id}
+                    onClick={() => setActivePeriod(period.id)}
+                    className={`
+                      px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200
+                      ${activePeriod === period.id
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                        : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+                      }
+                    `}
+                  >
+                    <span className="hidden sm:inline">{period.label}</span>
+                    <span className="sm:hidden">{period.shortLabel}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
             <div className={`
               relative w-full sm:w-80 transition-all duration-200
@@ -390,6 +450,25 @@ export default function LeadersPage() {
                 </button>
               )}
             </div>
+
+            {isCurrentUserAdmin && (
+              <button
+                onClick={() => setShowAdmins(!showAdmins)}
+                className={`
+                  flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200
+                  border-2
+                  ${showAdmins
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
+                    : "bg-[var(--secondary)] text-[var(--foreground)] border-[var(--border)] hover:border-[var(--primary)]/50"
+                  }
+                `}
+                title={showAdmins ? "Скрыть админов" : "Показать админов"}
+              >
+                <Shield className="w-4 h-4" />
+                {showAdmins ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <span className="hidden sm:inline">{showAdmins ? "Скрыть админов" : "Показать админов"}</span>
+              </button>
+            )}
           </div>
 
           {user && currentUserRank && currentUserData && !searchQuery && (
@@ -436,7 +515,7 @@ export default function LeadersPage() {
                     />
                   </div>
                   {filteredUsers[1] && (
-                    <div className="md:order-1 md:mt-4">
+                    <div className="md:order-1 md:mt-8 md:scale-90 origin-top">
                       <LeaderCard
                         user={filteredUsers[1]}
                         rank={2}
@@ -448,7 +527,7 @@ export default function LeadersPage() {
                     </div>
                   )}
                   {filteredUsers[2] && (
-                    <div className="md:order-3 md:mt-4">
+                    <div className="md:order-3 md:mt-8 md:scale-90 origin-top">
                       <LeaderCard
                         user={filteredUsers[2]}
                         rank={3}

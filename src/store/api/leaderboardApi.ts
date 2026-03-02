@@ -4,6 +4,7 @@ import { ApiResponse } from "@/types/api";
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
 export type LeaderboardCategory = "level" | "readingTime" | "ratings" | "comments" | "streak";
+export type LeaderboardPeriod = "all" | "month";
 
 export interface LeaderboardUserEquippedDecorations {
   avatar?: string | null;
@@ -38,6 +39,7 @@ export interface LeaderboardResponse {
   users: LeaderboardUser[];
   total: number;
   category: LeaderboardCategory;
+  period?: LeaderboardPeriod;
 }
 
 export const leaderboardApi = createApi({
@@ -59,11 +61,11 @@ export const leaderboardApi = createApi({
   endpoints: builder => ({
     getLeaderboard: builder.query<
       ApiResponse<LeaderboardResponse>,
-      { category: LeaderboardCategory; limit?: number; page?: number }
+      { category: LeaderboardCategory; period?: LeaderboardPeriod; limit?: number; page?: number }
     >({
-      query: ({ category, limit = 50, page = 1 }) => ({
+      query: ({ category, period = "all", limit = 50, page = 1 }) => ({
         url: "/users/leaderboard",
-        params: { category, limit, page },
+        params: { category, period, limit, page },
       }),
       providesTags: ["Leaderboard"],
     }),
