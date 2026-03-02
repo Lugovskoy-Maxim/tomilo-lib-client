@@ -110,7 +110,7 @@ export default function HomePage() {
     error: latestUpdatesError,
   } = useGetLatestUpdatesQuery(
     { limit: 16, includeAdult },
-    { skip: !shouldLoadLatestUpdates }
+    { skip: !shouldLoadLatestUpdates, refetchOnMountOrArgChange: true, refetchOnFocus: true }
   );
   const latestUpdates = {
     data: latestUpdatesData?.data ?? [],

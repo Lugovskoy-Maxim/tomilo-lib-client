@@ -27,7 +27,7 @@ export default function UpdatesPage() {
 
   const { data: latestUpdatesData, isLoading, isFetching, error } = useGetLatestUpdatesQuery(
     { page, limit: UPDATES_PAGE_SIZE, includeAdult },
-    { refetchOnMountOrArgChange: false }
+    { refetchOnMountOrArgChange: true, refetchOnFocus: true }
   );
 
   const rawPageData = latestUpdatesData?.data;

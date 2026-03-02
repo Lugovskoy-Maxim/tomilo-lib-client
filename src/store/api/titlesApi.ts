@@ -64,7 +64,7 @@ export const TITLES_TAG = "Titles";
 
 export const titlesApi = createApi({
   reducerPath: "titlesApi",
-  keepUnusedDataFor: 300, // 5 мин по умолчанию — меньше запросов к серверу при переходах
+  keepUnusedDataFor: 60, // 1 мин — кеш последних обновлений и др.
   baseQuery: baseQueryWithReauth,
   tagTypes: [TITLES_TAG],
   endpoints: builder => ({
