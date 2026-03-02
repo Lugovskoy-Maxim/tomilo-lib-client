@@ -20,6 +20,7 @@ import {
   Sparkles,
   Crown,
   HelpCircle,
+  Ticket,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
@@ -47,6 +48,7 @@ const MOBILE_MENU_SECTIONS = [
       { href: "/leaders", label: "Лидеры", icon: Crown },
       { href: "/contact", label: "Связаться с нами", icon: Mail },
       { href: "/updates", label: "Новые главы", icon: Rss, badge: "NEW" },
+      { href: "/promo", label: "Промокоды", icon: Ticket },
     ],
   },
   {

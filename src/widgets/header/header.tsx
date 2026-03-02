@@ -26,6 +26,7 @@ import {
   ChevronRight,
   BookOpen,
   Crown,
+  Ticket,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -386,6 +387,20 @@ export default function Header() {
                               <LayoutList className="w-4 h-4" />
                             </span>
                             <span className="mobile-menu-item-label">Обновления</span>
+                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href="/promo"
+                            onClick={closeMobileMenu}
+                            className="mobile-menu-item"
+                            data-active={pathname === "/promo" ? "true" : undefined}
+                          >
+                            <span className="mobile-menu-item-icon" aria-hidden>
+                              <Ticket className="w-4 h-4" />
+                            </span>
+                            <span className="mobile-menu-item-label">Промокоды</span>
                             <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
                           </Link>
                         </li>

@@ -35,8 +35,10 @@ function TitleCard({ title }: { title: SimilarTitle }) {
             src={normalizeAssetUrl(title.cover)}
             alt={title.title}
             fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 200px"
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             onError={() => setImageError(true)}
+            unoptimized
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

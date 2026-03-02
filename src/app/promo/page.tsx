@@ -3,16 +3,20 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Header, Footer } from "@/widgets";
-import { AuthGuard } from "@/guard/AuthGuard";
+import { LoginModal, RegisterModal } from "@/shared";
 import { useRedeemPromoCodeMutation, useLazyCheckPromoCodeQuery } from "@/store/api/promocodesApi";
 import { useSEO } from "@/hooks/useSEO";
 import { useToast } from "@/hooks/useToast";
-import { Gift, Ticket, Coins, Crown, Palette, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Gift, Ticket, Coins, Crown, Palette, CheckCircle2, Loader2, Sparkles, LogIn } from "lucide-react";
 import type { PromoCodeReward } from "@/types/promocode";
+import type { ApiResponseDto } from "@/types/api";
+import type { AuthResponse } from "@/types/auth";
 
 function PromoPageContent() {
   const searchParams = useSearchParams();
   const toast = useToast();
+  const { isAuthenticated, login } = useAuth();
   
   const [code, setCode] = useState("");
   const [isChecking, setIsChecking] = useState(false);
@@ -20,9 +24,29 @@ function PromoPageContent() {
   const [redeemSuccess, setRedeemSuccess] = useState(false);
   const [grantedRewards, setGrantedRewards] = useState<PromoCodeReward[] | null>(null);
   const [newBalance, setNewBalance] = useState<number | null>(null);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
 
   const [checkPromoCode] = useLazyCheckPromoCodeQuery();
   const [redeemPromoCode, { isLoading: isRedeeming }] = useRedeemPromoCodeMutation();
+
+  const handleLoginModalOpen = () => setLoginModalOpen(true);
+  const handleLoginModalClose = () => setLoginModalOpen(false);
+  const handleRegisterModalClose = () => setRegisterModalOpen(false);
+  const handleSwitchToRegister = () => {
+    setLoginModalOpen(false);
+    setRegisterModalOpen(true);
+  };
+  const handleSwitchToLogin = () => {
+    setRegisterModalOpen(false);
+    setLoginModalOpen(true);
+  };
+  const handleAuthSuccess = (authResponse: ApiResponseDto<AuthResponse>) => {
+    login(authResponse);
+    setLoginModalOpen(false);
+    setRegisterModalOpen(false);
+    toast.success("Вы успешно вошли! Теперь можете активировать промокод.");
+  };
 
   useSEO({
     title: "Активировать промокод - Tomilo-lib.ru",
@@ -39,6 +63,12 @@ function PromoPageContent() {
 
   const handleCheckCode = async () => {
     if (!code.trim()) return;
+    
+    if (!isAuthenticated) {
+      toast.error("Для проверки промокода необходимо войти в аккаунт");
+      handleLoginModalOpen();
+      return;
+    }
     
     setIsChecking(true);
     setPreviewRewards(null);
@@ -59,6 +89,12 @@ function PromoPageContent() {
 
   const handleRedeem = async () => {
     if (!code.trim()) return;
+    
+    if (!isAuthenticated) {
+      toast.error("Для активации промокода необходимо войти в аккаунт");
+      handleLoginModalOpen();
+      return;
+    }
 
     try {
       const result = await redeemPromoCode({ code: code.trim().toUpperCase() }).unwrap();
@@ -139,6 +175,24 @@ function PromoPageContent() {
       </section>
 
       <div className="max-w-xl mx-auto px-4 py-12 sm:px-6">
+        {!isAuthenticated && (
+          <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-center gap-3">
+            <LogIn className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-[var(--foreground)]">
+                Для активации промокода необходимо{" "}
+                <button
+                  type="button"
+                  onClick={handleLoginModalOpen}
+                  className="font-medium text-[var(--primary)] hover:underline"
+                >
+                  войти в аккаунт
+                </button>
+              </p>
+            </div>
+          </div>
+        )}
+
         {redeemSuccess ? (
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 text-center shadow-lg">
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
@@ -316,20 +370,32 @@ function PromoPageContent() {
       </div>
 
       <Footer />
+
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={handleLoginModalClose}
+        onSwitchToRegister={handleSwitchToRegister}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      <RegisterModal
+        isOpen={registerModalOpen}
+        onClose={handleRegisterModalClose}
+        onSwitchToLogin={handleSwitchToLogin}
+        onAuthSuccess={handleAuthSuccess}
+      />
     </main>
   );
 }
 
 export default function PromoPage() {
   return (
-    <AuthGuard>
-      <Suspense fallback={
-        <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
-        </main>
-      }>
-        <PromoPageContent />
-      </Suspense>
-    </AuthGuard>
+    <Suspense fallback={
+      <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+      </main>
+    }>
+      <PromoPageContent />
+    </Suspense>
   );
 }
