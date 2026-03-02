@@ -7,6 +7,7 @@ import { LeaderboardUser, LeaderboardCategory } from "@/store/api/leaderboardApi
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
 import { getDecorationImageUrl, getEquippedFrameUrl, getEquippedBackgroundUrl } from "@/api/shop";
+import { EquippedDecorations } from "@/types/user";
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
 
@@ -67,7 +68,7 @@ function resolveDecorationValue(raw: string | object | null | undefined): string
 function getFrameUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
   if (!equipped) return null;
   
-  const fromHelper = getEquippedFrameUrl(equipped as { frame?: string | object | null });
+  const fromHelper = getEquippedFrameUrl(equipped as EquippedDecorations);
   if (fromHelper) return fromHelper;
   
   return resolveDecorationValue(equipped.frame);
@@ -81,7 +82,7 @@ function getCardUrl(equipped: LeaderboardUser["equippedDecorations"]): string | 
 function getBackgroundUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
   if (!equipped) return null;
   
-  const fromHelper = getEquippedBackgroundUrl(equipped as { background?: string | object | null });
+  const fromHelper = getEquippedBackgroundUrl(equipped as EquippedDecorations);
   if (fromHelper) return fromHelper;
   
   return resolveDecorationValue(equipped.background);

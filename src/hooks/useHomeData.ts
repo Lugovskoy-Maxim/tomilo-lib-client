@@ -513,7 +513,9 @@ export const useHomeData = (options: HomeDataOptions = {}): {
           readingHistory: latestChapter
             ? {
                 titleId,
-                chapterId: latestChapter.chapterId,
+                chapterId: typeof latestChapter.chapterId === "object" && latestChapter.chapterId !== null
+                  ? (latestChapter.chapterId as { _id: string })._id
+                  : String(latestChapter.chapterId),
                 chapterNumber: latestChapter.chapterNumber,
                 lastReadDate: latestChapter.readAt,
               }

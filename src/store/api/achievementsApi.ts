@@ -65,10 +65,10 @@ export const achievementsApi = createApi({
   endpoints: builder => ({
     getAchievements: builder.query<
       ApiResponse<{ achievements: Achievement[]; pagination: { total: number; page: number; limit: number; pages: number } }>,
-      { search?: string; type?: string; page?: number; limit?: number }
+      { search?: string; type?: string; rarity?: string; page?: number; limit?: number }
     >({
-      query: ({ search = "", type = "", page = 1, limit = 50 }) => ({
-        url: `/achievements/admin?search=${encodeURIComponent(search)}&type=${type}&page=${page}&limit=${limit}`,
+      query: ({ search = "", type = "", rarity = "", page = 1, limit = 50 }) => ({
+        url: `/achievements/admin?search=${encodeURIComponent(search)}&type=${type}&rarity=${rarity}&page=${page}&limit=${limit}`,
       }),
       providesTags: ["Achievements"],
     }),

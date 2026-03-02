@@ -27,10 +27,17 @@ interface ChapterData {
   readAt: string;
 }
 
+interface RawChapterData {
+  chapterId: string | { _id: string };
+  chapterNumber: number;
+  chapterTitle?: string | null;
+  readAt: string;
+}
+
 interface HistoryItem {
   titleId: string | TitleData;
   titleData?: TitleData;
-  chapters: ChapterData[];
+  chapters: RawChapterData[];
   chaptersCount?: number;
   readAt: string;
 }
@@ -453,8 +460,10 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
         if (!existingIds.has(chapterIdValue)) {
           existingIds.add(chapterIdValue);
           group.chapters.push({
-            ...chapter,
             chapterId: chapterIdValue,
+            chapterNumber: chapter.chapterNumber,
+            chapterTitle: chapter.chapterTitle ?? null,
+            readAt: chapter.readAt,
           });
         }
       });

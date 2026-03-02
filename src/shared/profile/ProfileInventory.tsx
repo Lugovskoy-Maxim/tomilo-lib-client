@@ -164,6 +164,24 @@ export default function ProfileInventory() {
     return displayList.filter((d: Decoration) => d.type === typeFilter);
   }, [displayList, typeFilter]);
 
+  const inventoryStats = useMemo(() => {
+    const total = displayList.length;
+    const equipped = effectiveEquipped.length;
+    const byType = {
+      avatar: displayList.filter((d: Decoration) => d.type === "avatar").length,
+      frame: displayList.filter((d: Decoration) => d.type === "frame").length,
+      background: displayList.filter((d: Decoration) => d.type === "background").length,
+      card: displayList.filter((d: Decoration) => d.type === "card").length,
+    };
+    const byRarity = {
+      common: displayList.filter((d: Decoration) => d.rarity === "common").length,
+      rare: displayList.filter((d: Decoration) => d.rarity === "rare").length,
+      epic: displayList.filter((d: Decoration) => d.rarity === "epic").length,
+      legendary: displayList.filter((d: Decoration) => d.rarity === "legendary").length,
+    };
+    return { total, equipped, byType, byRarity };
+  }, [displayList, effectiveEquipped]);
+
   const handleEquip = async (type: "avatar" | "frame" | "background" | "card", decorationId: string) => {
     setActionLoading(decorationId);
     try {
@@ -197,24 +215,6 @@ export default function ProfileInventory() {
       </div>
     );
   }
-
-  const inventoryStats = useMemo(() => {
-    const total = displayList.length;
-    const equipped = effectiveEquipped.length;
-    const byType = {
-      avatar: displayList.filter((d: Decoration) => d.type === "avatar").length,
-      frame: displayList.filter((d: Decoration) => d.type === "frame").length,
-      background: displayList.filter((d: Decoration) => d.type === "background").length,
-      card: displayList.filter((d: Decoration) => d.type === "card").length,
-    };
-    const byRarity = {
-      common: displayList.filter((d: Decoration) => d.rarity === "common").length,
-      rare: displayList.filter((d: Decoration) => d.rarity === "rare").length,
-      epic: displayList.filter((d: Decoration) => d.rarity === "epic").length,
-      legendary: displayList.filter((d: Decoration) => d.rarity === "legendary").length,
-    };
-    return { total, equipped, byType, byRarity };
-  }, [displayList, effectiveEquipped]);
 
   return (
     <div className="w-full animate-fade-in-up">

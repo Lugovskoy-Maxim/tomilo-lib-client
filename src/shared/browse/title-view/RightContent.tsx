@@ -738,7 +738,7 @@ export function RightContent({
                   <Search className="w-16 h-16 text-[var(--muted-foreground)]/30 mb-4" />
                   <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Глава не найдена</h3>
                   <p className="text-sm text-[var(--muted-foreground)] mb-4">
-                    По запросу "{searchQuery}" ничего не найдено
+                    По запросу &ldquo;{searchQuery}&rdquo; ничего не найдено
                   </p>
                   <button
                     onClick={() => onSearchChange("")}

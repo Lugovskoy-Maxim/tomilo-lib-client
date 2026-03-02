@@ -43,25 +43,6 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
   const [showCoinsTooltip, setShowCoinsTooltip] = useState(false);
   const [showExpTooltip, setShowExpTooltip] = useState(false);
 
-  // Если это публичный просмотр и пользователь скрыл статистику — не показываем
-  const isStatsHidden = isPublicView && userProfile.showStats === false;
-  
-  if (isStatsHidden) {
-    return (
-      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-6 sm:p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
-          <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        </div>
-        <p className="text-[var(--foreground)] font-medium mb-1">Статистика скрыта</p>
-        <p className="text-sm text-[var(--muted-foreground)]">
-          Пользователь ограничил доступ к своей статистике в настройках приватности.
-        </p>
-      </div>
-    );
-  }
-
   const totalBookmarks = userProfile.bookmarks?.length || 0;
   const totalChaptersRead = userProfile.readingHistory?.reduce((total, item) => {
     return total + (item.chaptersCount ?? item.chapters?.length ?? 0);
@@ -93,6 +74,25 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
     });
     return categories;
   }, [userProfile.bookmarks]);
+
+  // Если это публичный просмотр и пользователь скрыл статистику — не показываем
+  const isStatsHidden = isPublicView && userProfile.showStats === false;
+  
+  if (isStatsHidden) {
+    return (
+      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-6 sm:p-8 text-center">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
+          <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <p className="text-[var(--foreground)] font-medium mb-1">Статистика скрыта</p>
+        <p className="text-sm text-[var(--muted-foreground)]">
+          Пользователь ограничил доступ к своей статистике в настройках приватности.
+        </p>
+      </div>
+    );
+  }
 
   const formatReadingTime = (minutes: number) => {
     if (minutes < 60) return `${minutes} мин`;

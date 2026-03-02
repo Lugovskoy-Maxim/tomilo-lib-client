@@ -55,7 +55,10 @@ export function ContinueReadingButton({ className }: ContinueReadingButtonProps)
 
   const handleClick = () => {
     // Используем ID главы из нового API endpoint если доступен, иначе из истории
-    const chapterId = chapterData?._id || lastReadChapter?.chapterId;
+    const rawChapterId = chapterData?._id || lastReadChapter?.chapterId;
+    const chapterId = typeof rawChapterId === "object" && rawChapterId !== null
+      ? (rawChapterId as { _id: string })._id
+      : rawChapterId;
     if (lastReadChapter?.titleId && chapterId) {
       // Создаем объект тайтла для передачи в getChapterPath
       const title = { id: lastReadChapter.titleId, slug: undefined };

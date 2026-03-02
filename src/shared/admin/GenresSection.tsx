@@ -63,7 +63,7 @@ export function GenresSection() {
   const pagination = genresData?.data?.pagination || { total: 0, page: 1, limit: 50, pages: 0 };
 
   const filteredAndSortedGenres = useMemo(() => {
-    let filtered = rawGenres.filter(g => g.titlesCount >= minTitlesFilter);
+    const filtered = rawGenres.filter(g => g.titlesCount >= minTitlesFilter);
     
     return [...filtered].sort((a, b) => {
       let aVal: string | number;
