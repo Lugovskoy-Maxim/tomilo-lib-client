@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Search, List, Grid3X3, Trash2, Eye, ArrowUpDown, ArrowUp, ArrowDown, Download, Filter, Ban, Shield, X, RefreshCw, MessageCircle, UserCheck, UserX, Edit, Wallet, History, ChevronRight, Save, Plus, Minus, Clock, AlertCircle } from "lucide-react";
 import { useGetUsersQuery, useDeleteUserMutation, useBanUserMutation, useUpdateUserRoleMutation, useUpdateUserBalanceMutation, useGetUserBanHistoryQuery, useGetUserTransactionsQuery, useUpdateUserDataMutation, useGetUserByIdQuery } from "@/store/api/usersApi";
 import { useUnbanUserMutation, useDeleteUserCommentsMutation, useLazyExportUsersQuery } from "@/store/api/adminApi";
+import { authApi } from "@/store/api/authApi";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/store";
 import { UserProfile } from "@/types/user";
 import { useToast } from "@/hooks/useToast";
 import { Pagination } from "@/shared/ui/pagination";
@@ -87,6 +90,11 @@ export function UsersSection() {
   const [updateUserData] = useUpdateUserDataMutation();
   const [triggerExportUsers] = useLazyExportUsersQuery();
   const toast = useToast();
+  const dispatch = useDispatch<AppDispatch>();
+  
+  const invalidateAuthCache = useCallback(() => {
+    dispatch(authApi.util.invalidateTags(["Auth"]));
+  }, [dispatch]);
   
   // Selected user queries
   const { data: selectedUserData, refetch: refetchSelectedUser } = useGetUserByIdQuery(selectedUserId!, { skip: !selectedUserId });
@@ -303,10 +311,11 @@ export function UsersSection() {
       setEditData({});
       refetch();
       refetchSelectedUser();
+      invalidateAuthCache();
     } catch {
       toast.error("Ошибка при обновлении данных");
     }
-  }, [selectedUserId, editData, updateUserData, toast, refetch, refetchSelectedUser]);
+  }, [selectedUserId, editData, updateUserData, toast, refetch, refetchSelectedUser, invalidateAuthCache]);
 
   const handleUpdateBalance = useCallback(async (isAdd: boolean) => {
     if (!selectedUserId || !balanceAmount || !balanceDescription) {
@@ -330,10 +339,11 @@ export function UsersSection() {
       setBalanceAmount("");
       setBalanceDescription("");
       refetchSelectedUser();
+      invalidateAuthCache();
     } catch {
       toast.error("Ошибка при обновлении баланса");
     }
-  }, [selectedUserId, balanceAmount, balanceDescription, updateUserBalance, toast, refetchSelectedUser]);
+  }, [selectedUserId, balanceAmount, balanceDescription, updateUserBalance, toast, refetchSelectedUser, invalidateAuthCache]);
 
   const handleBanFromModal = useCallback(async () => {
     if (!selectedUserId || !banReason) {
@@ -359,10 +369,11 @@ export function UsersSection() {
       toast.success("Роль изменена");
       refetch();
       if (selectedUserId === userId) refetchSelectedUser();
+      invalidateAuthCache();
     } catch {
       toast.error("Ошибка при смене роли");
     }
-  }, [updateUserRole, toast, refetch, selectedUserId, refetchSelectedUser]);
+  }, [updateUserRole, toast, refetch, selectedUserId, refetchSelectedUser, invalidateAuthCache]);
 
   const handleDeleteCommentsFromList = useCallback(async (userId: string, username: string) => {
     if (!confirm(`Удалить все комментарии пользователя "${username}"? Это действие нельзя отменить.`)) return;

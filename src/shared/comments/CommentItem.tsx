@@ -15,6 +15,8 @@ import { UserAvatar } from "@/shared";
 import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl } from "@/api/shop";
 import type { EquippedDecorations } from "@/types/user";
 import { getCoverUrls } from "@/lib/asset-url";
+import { LeaderTop10Badge } from "./LeaderTop10Badge";
+import { useTop10Badge } from "@/hooks/useTop10Badge";
 
 interface CommentItemProps {
   comment: Comment;
@@ -46,6 +48,9 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   const isOwner = user && userData && user._id === userData._id;
   const profileHref =
     userData?._id ? (isOwner ? "/profile" : `/user/${encodeURIComponent(userData._id)}`) : null;
+
+  const { badges: top10Badges } = useTop10Badge(userData?._id);
+  const isInTop10 = top10Badges.length > 0;
 
   // Реакции: из comment.reactions или из старых likes/dislikes
   const displayReactions = useMemo((): CommentReactionCount[] => {
@@ -123,8 +128,12 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   return (
     <article
       id={`comment-${comment._id}`}
-      className={`rounded-lg overflow-hidden scroll-mt-4 ${
+      className={`rounded-xl overflow-hidden scroll-mt-4 transition-all ${
         level > 0 ? "ml-5 mt-2 pl-3 border-l border-[var(--primary)]/20" : ""
+      } ${
+        isInTop10 
+          ? "bg-gradient-to-br from-[var(--primary)]/8 via-[var(--primary)]/3 to-transparent border border-[var(--primary)]/15 shadow-sm shadow-[var(--primary)]/5" 
+          : ""
       }`}
     >
       <div className="p-3">
@@ -189,8 +198,12 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               {comment.isEdited && (
                 <span className="text-[10px] text-[var(--muted-foreground)] italic">изм.</span>
               )}
-              {isOwner && (
-                <div className="relative ml-auto">
+              
+              {/* Right side: Top10 badge and owner menu */}
+              <div className="flex items-center gap-2 ml-auto">
+                <LeaderTop10Badge userId={userData?._id} />
+                {isOwner && (
+                  <div className="relative">
                   <button
                     onClick={() => setShowMenu(!showMenu)}
                     className="p-1 rounded-md hover:bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
@@ -221,9 +234,10 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                         Удалить
                       </button>
                     </div>
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <p className="text-[var(--foreground)] text-[14px] leading-snug whitespace-pre-wrap break-words mb-2">

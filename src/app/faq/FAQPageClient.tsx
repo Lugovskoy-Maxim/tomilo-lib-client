@@ -1,27 +1,40 @@
-import type { Metadata } from "next";
-import { buildServerSEOMetadata } from "@/lib/seo-metadata";
-import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
-import FAQPageClient from "./FAQPageClient";
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import {
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  BookOpen,
+  User,
+  Bell,
+  Shield,
+  Eye,
+  Settings,
+  Coins,
+  Trophy,
+  Mail,
+  Send,
+} from "lucide-react";
+import { Header, Footer } from "@/widgets";
+import { Breadcrumbs } from "@/shared";
 
-const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
-
-export async function generateMetadata(): Promise<Metadata> {
-  return buildServerSEOMetadata({
-    title: "Частые вопросы (FAQ) — справка и помощь | Tomilo-lib.ru",
-    description:
-      "Ответы на популярные вопросы о Tomilo-lib: настройка профиля, режимы чтения, уведомления, приватность, монеты и достижения. Справочный центр платформы.",
-    keywords:
-      "FAQ, частые вопросы, помощь, справка, настройки, как читать мангу, профиль, уведомления, приватность, достижения, Tomilo-lib",
-    canonicalUrl: `${baseUrl}/faq`,
-    ogImageUrl: getDefaultOgImageUrl(baseUrl),
-    ogImageAlt: "Tomilo-lib — частые вопросы",
-    type: "website",
-  });
+interface FAQItem {
+  question: string;
+  answer: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
-const FAQ_DATA = [
+interface FAQSection {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: FAQItem[];
+}
+
+const FAQ_DATA: FAQSection[] = [
   {
-    section: "Чтение",
+    title: "Чтение",
+    icon: BookOpen,
     items: [
       {
         question: "Как изменить режим чтения?",
@@ -46,7 +59,8 @@ const FAQ_DATA = [
     ],
   },
   {
-    section: "Профиль и аккаунт",
+    title: "Профиль и аккаунт",
+    icon: User,
     items: [
       {
         question: "Как изменить аватар?",
@@ -71,7 +85,8 @@ const FAQ_DATA = [
     ],
   },
   {
-    section: "Уведомления",
+    title: "Уведомления",
+    icon: Bell,
     items: [
       {
         question: "Какие уведомления можно настроить?",
@@ -86,7 +101,8 @@ const FAQ_DATA = [
     ],
   },
   {
-    section: "Приватность",
+    title: "Приватность",
+    icon: Shield,
     items: [
       {
         question: "Кто может видеть мой профиль?",
@@ -106,7 +122,8 @@ const FAQ_DATA = [
     ],
   },
   {
-    section: "Контент и отображение",
+    title: "Контент и отображение",
+    icon: Eye,
     items: [
       {
         question: "Как включить отображение контента 18+?",
@@ -126,7 +143,8 @@ const FAQ_DATA = [
     ],
   },
   {
-    section: "Монеты и достижения",
+    title: "Монеты и достижения",
+    icon: Coins,
     items: [
       {
         question: "Как заработать монеты?",
@@ -146,7 +164,8 @@ const FAQ_DATA = [
     ],
   },
   {
-    section: "Общие вопросы",
+    title: "Общие вопросы",
+    icon: Settings,
     items: [
       {
         question: "Как добавить тайтл в закладки?",
@@ -172,42 +191,113 @@ const FAQ_DATA = [
   },
 ];
 
-const faqPageJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: FAQ_DATA.flatMap(section =>
-    section.items.map(item => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    }))
-  ),
-};
+function FAQAccordion({ section }: { section: FAQSection }) {
+  const [openItems, setOpenItems] = useState<number[]>([]);
 
-const faqBreadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Главная", item: baseUrl },
-    { "@type": "ListItem", position: 2, name: "Частые вопросы", item: `${baseUrl}/faq` },
-  ],
-};
+  const toggleItem = (index: number) => {
+    setOpenItems((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
 
-export default function FAQPage() {
+  const Icon = section.icon;
+
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPageJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqBreadcrumbJsonLd) }}
-      />
-      <FAQPageClient />
-    </>
+    <div className="content-card">
+      <h2 className="content-card-section-title">
+        <Icon className="w-5 h-5" />
+        {section.title}
+      </h2>
+      <div className="space-y-2">
+        {section.items.map((item, index) => {
+          const isOpen = openItems.includes(index);
+          return (
+            <div
+              key={index}
+              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)]/30 overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => toggleItem(index)}
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-[var(--accent)]/50 transition-colors"
+              >
+                <span className="text-sm font-medium text-[var(--foreground)]">
+                  {item.question}
+                </span>
+                {isOpen ? (
+                  <ChevronUp className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0" />
+                )}
+              </button>
+              {isOpen && (
+                <div className="px-4 pb-4 pt-1 animate-fade-in">
+                  <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
+                    {item.answer}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function FAQPageClient() {
+  return (
+    <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
+      <Header />
+      <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden pb-12 sm:pb-16">
+        <Breadcrumbs className="mb-6" />
+        <div className="content-page-hero">
+          <h1 className="flex items-center justify-center gap-3">
+            <HelpCircle className="w-8 h-8" />
+            Частые вопросы
+          </h1>
+          <p>
+            Ответы на популярные вопросы о работе платформы, настройках профиля,
+            чтении и других функциях сервиса.
+          </p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {FAQ_DATA.map((section) => (
+            <FAQAccordion key={section.title} section={section} />
+          ))}
+
+          <section className="content-card lg:col-span-2">
+            <h2 className="content-card-section-title">
+              <Trophy className="w-5 h-5" />
+              Не нашли ответ?
+            </h2>
+            <p className="content-card-body">
+              Если вы не нашли ответ на свой вопрос, свяжитесь с нами любым удобным
+              способом. Мы постараемся ответить как можно скорее.
+            </p>
+            <div className="content-link-group">
+              <Link href="mailto:support@tomilo-lib.ru" className="content-link-primary">
+                <Mail className="w-4 h-4" />
+                support@tomilo-lib.ru
+              </Link>
+              <Link
+                href="https://t.me/tomilolib"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="content-link-primary"
+              >
+                <Send className="w-4 h-4" />
+                Telegram-канал
+              </Link>
+              <Link href="/contact" className="content-link-outline">
+                Страница контактов
+              </Link>
+            </div>
+          </section>
+        </div>
+      </div>
+      <Footer />
+    </main>
   );
 }

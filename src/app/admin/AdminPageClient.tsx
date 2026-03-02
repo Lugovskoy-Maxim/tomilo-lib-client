@@ -13,6 +13,7 @@ import { CommentsSection } from "@/shared/admin/CommentsSection";
 import { ReportsSection } from "@/shared/admin/ReportsSection";
 import { IpManagementSection } from "@/shared/admin/IpManagementSection";
 import { ShopManagementSection } from "@/shared/admin/ShopManagementSection";
+import { PromoCodesSection } from "@/shared/admin/PromoCodesSection";
 import { WorkQueueSection } from "@/shared/admin/WorkQueueSection";
 import { AnnouncementsSection } from "@/shared/admin/AnnouncementsSection";
 import { GenresSection } from "@/shared/admin/GenresSection";
@@ -89,6 +90,7 @@ export default function AdminPageClient() {
       notifications: "Уведомления",
       "ip-management": "IP-управление",
       shop: "Магазин",
+      "promo-codes": "Промокоды",
       "site-settings": "Настройки сайта",
       "audit-logs": "Аудит-логи",
       "work-queue": "Рабочая очередь",
@@ -137,6 +139,8 @@ export default function AdminPageClient() {
         return <IpManagementSection />;
       case "shop":
         return <ShopManagementSection />;
+      case "promo-codes":
+        return <PromoCodesSection />;
       case "site-settings":
         return <SiteSettingsSection />;
       case "audit-logs":

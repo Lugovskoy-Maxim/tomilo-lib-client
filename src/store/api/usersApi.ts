@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponse } from "@/types/api";
 import { UserProfile } from "@/types/user";
+import { authApi } from "./authApi";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
@@ -165,6 +166,12 @@ export const usersApi = createApi({
         body: { role },
       }),
       invalidatesTags: (result, error, { userId }) => [{ type: "Users", id: userId }, "Users"],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(["Auth"]));
+        } catch {}
+      },
     }),
     
     // Ban user
@@ -202,6 +209,12 @@ export const usersApi = createApi({
         body: { amount, description },
       }),
       invalidatesTags: (result, error, { userId }) => [{ type: "Users", id: userId }, "Users"],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(["Auth"]));
+        } catch {}
+      },
     }),
     
     // Get user transactions
@@ -219,10 +232,16 @@ export const usersApi = createApi({
     updateUserData: builder.mutation<ApiResponse<UserProfile>, UpdateUserDataRequest>({
       query: ({ userId, data }) => ({
         url: `/users/admin/${userId}`,
-        method: "PATCH",
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, { userId }) => [{ type: "Users", id: userId }, "Users"],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(["Auth"]));
+        } catch {}
+      },
     }),
   }),
 });

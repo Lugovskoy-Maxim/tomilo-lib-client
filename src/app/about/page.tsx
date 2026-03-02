@@ -2,22 +2,63 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Mail, Send } from "lucide-react";
 import { Header, Footer } from "@/widgets";
-import { pageTitle } from "@/lib/page-title";
 import { Breadcrumbs } from "@/shared";
+import { buildServerSEOMetadata } from "@/lib/seo-metadata";
+import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 
-export const metadata: Metadata = {
-  title: "О нас - Tomilo-lib.ru",
-  description:
-    "Узнайте больше о платформе Tomilo-lib.ru - современной платформе для чтения манги, манхвы и маньхуа.",
+const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildServerSEOMetadata({
+    title: "О нас — о платформе Tomilo-lib для чтения манги | Tomilo-lib.ru",
+    description:
+      "Tomilo-lib — современная платформа для чтения манги, манхвы и маньхуа онлайн. Узнайте о нашей миссии, возможностях и планах развития.",
+    keywords:
+      "о нас, о платформе, Tomilo-lib, манга онлайн, читать мангу, миссия, команда, развитие платформы",
+    canonicalUrl: `${baseUrl}/about`,
+    ogImageUrl: getDefaultOgImageUrl(baseUrl),
+    ogImageAlt: "Tomilo-lib — о нас",
+    type: "website",
+  });
+}
+
+const aboutBreadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Главная", item: baseUrl },
+    { "@type": "ListItem", position: 2, name: "О нас", item: `${baseUrl}/about` },
+  ],
+};
+
+const aboutPageJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  mainEntity: {
+    "@type": "Organization",
+    name: "Tomilo-lib.ru",
+    url: baseUrl,
+    description:
+      "Tomilo-lib — современная платформа для чтения манги, манхвы и маньхуа онлайн бесплатно.",
+    foundingDate: "2024",
+    sameAs: ["https://t.me/tomilolib", "https://t.me/TomiloDev"],
+  },
 };
 
 export default function AboutPage() {
-  pageTitle.setTitlePage("О нас - Tomilo-lib.ru");
-
   return (
-    <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
-      <Header />
-      <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden pb-12 sm:pb-16">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutBreadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageJsonLd) }}
+      />
+      <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
+        <Header />
+        <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden pb-12 sm:pb-16">
         <Breadcrumbs className="mb-6" />
         <div className="content-page-hero">
           <h1>О платформе TOMILO-LIB</h1>
@@ -91,9 +132,10 @@ export default function AboutPage() {
               </Link>
             </div>
           </section>
+          </div>
         </div>
-      </div>
-      <Footer />
-    </main>
+        <Footer />
+      </main>
+    </>
   );
 }

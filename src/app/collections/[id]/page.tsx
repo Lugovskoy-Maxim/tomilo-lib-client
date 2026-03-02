@@ -66,15 +66,77 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
   }
 }
 
-// Серверный компонент страницы коллекции по ID
+const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+
+function buildCollectionJsonLd(collectionData: Record<string, unknown>, id: string) {
+  const collectionName = String(collectionData.name || "Коллекция");
+  const description = collectionData.description
+    ? String(collectionData.description).replace(/<[^>]*>/g, "").substring(0, 500)
+    : `Коллекция тайтлов "${collectionName}"`;
+  const titlesCount = Array.isArray(collectionData.titles) ? collectionData.titles.length : 0;
+
+  const collectionList = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: collectionName,
+    description,
+    url: `${baseUrl}/collections/${id}`,
+    numberOfItems: titlesCount,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Tomilo-lib.ru",
+      url: baseUrl,
+    },
+  };
+
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Главная", item: baseUrl },
+      { "@type": "ListItem", position: 2, name: "Коллекции", item: `${baseUrl}/collections` },
+      { "@type": "ListItem", position: 3, name: collectionName, item: `${baseUrl}/collections/${id}` },
+    ],
+  };
+
+  return { collectionList, breadcrumb };
+}
+
 export default async function CollectionPageRoute({ params }: CollectionPageProps) {
   const resolvedParams = await params;
   const { id } = resolvedParams;
 
-  // Валидация ID
   if (!id || id === "undefined") {
     notFound();
   }
 
-  return <CollectionDetails collectionId={id} />;
+  let jsonLdScripts: React.ReactNode = null;
+  
+  try {
+    const collectionData = await getCollectionDataById(id);
+    if (collectionData) {
+      const { collectionList, breadcrumb } = buildCollectionJsonLd(collectionData, id);
+      jsonLdScripts = (
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionList) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+          />
+        </>
+      );
+    }
+  } catch {
+    // JSON-LD is optional
+  }
+
+  return (
+    <>
+      {jsonLdScripts}
+      <CollectionDetails collectionId={id} />
+    </>
+  );
 }

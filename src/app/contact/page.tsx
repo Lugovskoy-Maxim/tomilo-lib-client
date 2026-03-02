@@ -2,22 +2,69 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Mail, Send, Clock, Code } from "lucide-react";
 import { Header, Footer } from "@/widgets";
-import { pageTitle } from "@/lib/page-title";
 import { Breadcrumbs } from "@/shared";
+import { buildServerSEOMetadata } from "@/lib/seo-metadata";
+import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 
-export const metadata: Metadata = {
-  title: "Контакты - Tomilo-lib.ru",
-  description:
-    "Свяжитесь с нами. Контактная информация платформы Tomilo-lib.ru — email и Telegram.",
+const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildServerSEOMetadata({
+    title: "Контакты — связь с командой Tomilo-lib | Tomilo-lib.ru",
+    description:
+      "Контактная информация Tomilo-lib. Email поддержки, Telegram-канал, связь с разработчиками. Мы готовы помочь!",
+    keywords:
+      "контакты, связаться, поддержка, email, Telegram, обратная связь, Tomilo-lib, помощь",
+    canonicalUrl: `${baseUrl}/contact`,
+    ogImageUrl: getDefaultOgImageUrl(baseUrl),
+    ogImageAlt: "Tomilo-lib — контакты",
+    type: "website",
+  });
+}
+
+const contactBreadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Главная", item: baseUrl },
+    { "@type": "ListItem", position: 2, name: "Контакты", item: `${baseUrl}/contact` },
+  ],
+};
+
+const contactPageJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  mainEntity: {
+    "@type": "Organization",
+    name: "Tomilo-lib.ru",
+    url: baseUrl,
+    email: "support@tomilo-lib.ru",
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        email: "support@tomilo-lib.ru",
+        contactType: "customer support",
+        availableLanguage: "Russian",
+      },
+    ],
+    sameAs: ["https://t.me/tomilolib", "https://t.me/TomiloDev"],
+  },
 };
 
 export default function ContactPage() {
-  pageTitle.setTitlePage("Контакты - Tomilo-lib.ru");
-
   return (
-    <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
-      <Header />
-      <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden pb-12 sm:pb-16">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactBreadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageJsonLd) }}
+      />
+      <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
+        <Header />
+        <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden pb-12 sm:pb-16">
         <Breadcrumbs className="mb-6" />
         <div className="content-page-hero">
           <h1>Контакты</h1>
@@ -104,8 +151,9 @@ export default function ContactPage() {
             </ul>
           </section>
         </div>
-      </div>
-      <Footer />
-    </main>
+        </div>
+        <Footer />
+      </main>
+    </>
   );
 }

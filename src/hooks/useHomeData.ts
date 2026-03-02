@@ -212,7 +212,7 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     isLoading: popularTitlesLoading,
     isUninitialized: popularTitlesUninitialized,
     error: popularTitlesError,
-  } = useGetPopularTitlesQuery({ limit: 20, includeAdult }, { ...popularCacheOptions, skip: skipPopular });
+  } = useGetPopularTitlesQuery({ limit: 10, includeAdult }, { ...popularCacheOptions, skip: skipPopular });
 
   // Недавно добавленные в каталог
   const {

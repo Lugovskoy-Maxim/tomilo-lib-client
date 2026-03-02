@@ -31,6 +31,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   Command,
+  Ticket,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -53,6 +54,7 @@ export type AdminTab =
   | "notifications"
   | "ip-management"
   | "shop"
+  | "promo-codes"
   | "site-settings"
   | "audit-logs"
   | "work-queue";
@@ -74,6 +76,7 @@ export const ADMIN_TABS: AdminTab[] = [
   "notifications",
   "ip-management",
   "shop",
+  "promo-codes",
   "site-settings",
   "audit-logs",
   "work-queue",
@@ -134,6 +137,7 @@ const tabGroups: TabGroup[] = [
     tabs: [
       { id: "ip-management", label: "IP-управление", icon: Shield },
       { id: "shop", label: "Магазин", icon: ShoppingBag },
+      { id: "promo-codes", label: "Промокоды", icon: Ticket },
       { id: "site-settings", label: "Настройки сайта", icon: Wrench },
       { id: "audit-logs", label: "Аудит-логи", icon: ScrollText },
       { id: "work-queue", label: "Рабочая очередь", icon: ClipboardList },

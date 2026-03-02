@@ -211,33 +211,35 @@ export default function HomePage() {
         {/* Быстрый доступ к жанрам */}
         <GenresQuickAccess />
 
-        {/* Недавно добавленные — закомментировано
+        {/* Продолжить чтение — для авторизованных пользователей в приоритете */}
         <LazySection
-          sectionId="recent"
+          sectionId="reading"
           onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.recent}
+          isVisible={!!visibleSections.reading}
           skeleton={
             <CarouselSkeleton
-              cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
-              variant="poster"
+              cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
+              variant="reading"
+              showDescription
             />
           }
         >
           <DataCarousel
-            title="Недавно добавленные"
-            data={recentTitles.data}
-            loading={recentTitles.loading}
-            error={recentTitles.error}
-            cardComponent={CarouselCard}
+            title="Продолжить чтение"
+            data={readingProgress.data}
+            loading={readingProgress.loading}
+            error={readingProgress.error}
+            cardComponent={ReadingCard}
+            description="Это главы, которые вы ещё не прочитали. Данный список генерируется на основании вашей истории чтения."
             type="browse"
-            icon={<PlusCircle className="w-6 h-6" />}
+            icon={<BookOpen className="w-6 h-6" />}
             navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-            cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-48 2xl:w-52"
-            getItemPath={(item: any) => getTitlePath(item)}
-            skeletonVariant="poster"
+            descriptionLink={{ text: "истории чтения", href: "/profile" }}
+            showNavigation={false}
+            cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
+            skeletonVariant="reading"
           />
         </LazySection>
-        */}
 
         {/* В тренде на этой неделе */}
         <LazySection
@@ -262,7 +264,30 @@ export default function HomePage() {
           )}
         </LazySection>
 
-        {/* Рекомендации (только для авторизованных) — сразу после трендов */}
+        {/* Последние обновления */}
+        <LazySection
+          sectionId="latestUpdates"
+          onVisible={handleSectionVisible}
+          isVisible={!!visibleSections.latestUpdates}
+          skeleton={<GridSkeleton variant="updates" />}
+        >
+          {latestUpdates.loading ? (
+            <GridSkeleton variant="updates" />
+          ) : latestUpdates.error ? null : Array.isArray(latestUpdates.data) && latestUpdates.data.length > 0 ? (
+            <GridSection
+              title="Последние обновления"
+              description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."
+              type="browse"
+              href="/updates"
+              icon={<Clock className="w-6 h-6" />}
+              data={latestUpdates.data}
+              cardComponent={LatestUpdateCard}
+              layout="auto-fit"
+            />
+          ) : null}
+        </LazySection>
+
+        {/* Рекомендации (только для авторизованных) */}
         {isAuthenticated && (
           <LazySection
             sectionId="recommendations"
@@ -306,62 +331,6 @@ export default function HomePage() {
         >
           <NewsBlock />
         </LazySection>
-
-        {/* Продолжить чтение */}
-        <LazySection
-          sectionId="reading"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.reading}
-          skeleton={
-            <CarouselSkeleton
-              cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
-              variant="reading"
-              showDescription
-            />
-          }
-        >
-          <DataCarousel
-            title="Продолжить чтение"
-            data={readingProgress.data}
-            loading={readingProgress.loading}
-            error={readingProgress.error}
-            cardComponent={ReadingCard}
-            description="Это главы, которые вы ещё не прочитали. Данный список генерируется на основании вашей истории чтения."
-            type="browse"
-            icon={<BookOpen className="w-6 h-6" />}
-            navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-            descriptionLink={{ text: "истории чтения", href: "/profile" }}
-            showNavigation={false}
-            cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
-            skeletonVariant="reading"
-          />
-        </LazySection>
-
-        {/* Последние обновления */}
-        <LazySection
-          sectionId="latestUpdates"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.latestUpdates}
-          skeleton={<GridSkeleton variant="updates" />}
-        >
-          {latestUpdates.loading ? (
-            <GridSkeleton variant="updates" />
-          ) : latestUpdates.error ? null : Array.isArray(latestUpdates.data) && latestUpdates.data.length > 0 ? (
-            <GridSection
-              title="Последние обновления"
-              description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."
-              type="browse"
-              href="/updates"
-              icon={<Clock className="w-6 h-6" />}
-              data={latestUpdates.data}
-              cardComponent={LatestUpdateCard}
-              layout="auto-fit"
-            />
-          ) : null}
-        </LazySection>
-
-        {/* Telegram секция - улучшенная */}
-        <TelegramSection />
 
         {/* Недооцененные: высокий рейтинг, мало просмотров */}
         <LazySection
@@ -419,6 +388,9 @@ export default function HomePage() {
             error={randomTitles.error}
           />
         </LazySection>
+
+        {/* Telegram секция */}
+        <TelegramSection />
 
         {/* Коллекции */}
         <LazySection

@@ -41,8 +41,11 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ProfileTab } from "@/shared/profile-tabs/profileTabConfig";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/useToast";
+import { authApi } from "@/store/api/authApi";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/store";
 
 function AdminControlsPanel({
   userId,
@@ -56,7 +59,12 @@ function AdminControlsPanel({
   username: string;
 }) {
   const toast = useToast();
+  const dispatch = useDispatch<AppDispatch>();
   const [activePanel, setActivePanel] = useState<"role" | "ban" | "balance" | "edit" | null>(null);
+  
+  const invalidateAuthCache = useCallback(() => {
+    dispatch(authApi.util.invalidateTags(["Auth"]));
+  }, [dispatch]);
   const [selectedRole, setSelectedRole] = useState<UserRole>(currentRole as UserRole);
   const [banReason, setBanReason] = useState("");
   const [banDuration, setBanDuration] = useState<string>("permanent");
@@ -85,6 +93,7 @@ function AdminControlsPanel({
       await updateRole({ userId, role: selectedRole }).unwrap();
       toast.success(`Роль пользователя изменена на ${getRoleName(selectedRole)}`);
       setActivePanel(null);
+      invalidateAuthCache();
     } catch (error) {
       toast.error("Ошибка при изменении роли");
     }
@@ -151,6 +160,7 @@ function AdminControlsPanel({
       setBalanceDescription("");
       setActivePanel(null);
       refetchTransactions();
+      invalidateAuthCache();
     } catch (error) {
       toast.error("Ошибка при изменении баланса");
     }
