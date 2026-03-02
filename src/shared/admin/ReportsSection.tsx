@@ -23,10 +23,41 @@ import {
   X,
   Download,
   FileText,
+  RefreshCw,
+  User,
+  ExternalLink,
+  Calendar,
+  Eye,
+  Filter,
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { ReportEntityInfo } from "./ReportEntityInfo";
 import { AdminModal, ConfirmModal } from "./ui/AdminModal";
+import Image from "next/image";
+import { getCoverUrls } from "@/lib/asset-url";
+
+const DEFAULT_AVATAR = "/logo/ring_logo.png";
+
+function isValidAvatarUrl(avatar: string | undefined): boolean {
+  if (!avatar) return false;
+  if (avatar.includes("undefined") || avatar.includes("null")) return false;
+  return true;
+}
+
+function isStaticAsset(path: string): boolean {
+  return path.startsWith("/logo/") || path.startsWith("/images/") || path.startsWith("/icons/");
+}
+
+function getUserAvatar(report: Report): string {
+  if (!report.userId) return DEFAULT_AVATAR;
+  const avatar = report.userId.avatar;
+  return isValidAvatarUrl(avatar) ? avatar! : DEFAULT_AVATAR;
+}
+
+function normalizeAvatarUrl(url: string): string {
+  if (isStaticAsset(url)) return url;
+  return getCoverUrls(url, "").primary;
+}
 
 const RESPONSE_TEMPLATES = [
   { label: "Исправлено", text: "Спасибо за обращение! Проблема была исправлена." },
@@ -39,6 +70,25 @@ const RESPONSE_TEMPLATES = [
 
 type ReportsViewMode = "list" | "cards";
 type ReportsSortMode = "newest" | "oldest" | "open-first";
+type EntityTypeFilter = "all" | "title" | "chapter";
+
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return "только что";
+  if (minutes < 60) return `${minutes} мин назад`;
+  if (hours < 24) return `${hours} ч назад`;
+  if (days === 1) return "вчера";
+  if (days < 7) return `${days} дн назад`;
+  
+  return date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+}
 
 const reportTypeLabels = {
   [ReportType.ERROR]: "Ошибка",
@@ -79,6 +129,12 @@ export function ReportsSection() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkResolveOpen, setBulkResolveOpen] = useState(false);
   const [isBulkResolving, setIsBulkResolving] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [entityTypeFilter, setEntityTypeFilter] = useState<EntityTypeFilter>("all");
+  const [detailReport, setDetailReport] = useState<Report | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const { data, error, isLoading, refetch } = useGetReportsQuery({
     page,
@@ -100,6 +156,11 @@ export function ReportsSection() {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     const filtered = reports.filter(report => {
+      // Entity type filter
+      if (entityTypeFilter !== "all" && report.entityType !== entityTypeFilter) {
+        return false;
+      }
+      
       if (!normalizedSearch) return true;
       const haystack = [
         report.content,
@@ -126,7 +187,7 @@ export function ReportsSection() {
       }
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [reports, searchTerm, sortMode]);
+  }, [reports, searchTerm, sortMode, entityTypeFilter]);
 
   const stats = useMemo(
     () => ({
@@ -277,6 +338,48 @@ export function ReportsSection() {
     URL.revokeObjectURL(url);
   }, [processedReports]);
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  }, [refetch]);
+
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.length === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      const results = await Promise.allSettled(
+        selectedIds.map(id => deleteReport(id).unwrap())
+      );
+      const failed = results.filter(r => r.status === "rejected").length;
+      const success = results.length - failed;
+      if (failed === 0) {
+        toast.success(`Удалено ${success} жалоб`);
+      } else {
+        toast.error(`Удалено: ${success}, ошибок: ${failed}`);
+      }
+      setSelectedIds([]);
+      setBulkDeleteOpen(false);
+      refetch();
+    } catch {
+      toast.error("Ошибка при массовом удалении");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }, [selectedIds, deleteReport, toast, refetch]);
+
+  const handleViewUserProfile = useCallback((userId: string) => {
+    window.open(`/user/${userId}`, "_blank");
+  }, []);
+
+  const openDetailModal = useCallback((report: Report) => {
+    setDetailReport(report);
+  }, []);
+
+  const closeDetailModal = useCallback(() => {
+    setDetailReport(null);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -373,6 +476,16 @@ export function ReportsSection() {
           </button>
         </div>
 
+        <select
+          value={entityTypeFilter}
+          onChange={e => setEntityTypeFilter(e.target.value as EntityTypeFilter)}
+          className="admin-input"
+        >
+          <option value="all">Все источники</option>
+          <option value="title">Тайтлы</option>
+          <option value="chapter">Главы</option>
+        </select>
+
         <button
           onClick={handleExportCSV}
           className="p-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
@@ -381,9 +494,14 @@ export function ReportsSection() {
           <Download className="w-4 h-4" />
         </button>
 
-        <Button onClick={refetch} variant="outline" size="sm" className="whitespace-nowrap">
-          Обновить
-        </Button>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="p-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors disabled:opacity-50"
+          title="Обновить"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+        </button>
       </div>
 
       {/* Bulk actions */}
@@ -405,6 +523,13 @@ export function ReportsSection() {
           >
             <CheckCircle className="w-4 h-4" />
             <span className="hidden sm:inline">Закрыть</span>
+          </button>
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Удалить</span>
           </button>
           <button
             onClick={() => setSelectedIds([])}
@@ -490,12 +615,30 @@ export function ReportsSection() {
                 </div>
               )}
 
-              <div className="mt-3 text-xs text-[var(--muted-foreground)]">
-                <div>Пользователь: {report.userId?.username || "Аноним"}</div>
-                <div className="mt-1 inline-flex items-center gap-1">
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[var(--muted-foreground)]">
+                <button
+                  onClick={() => report.userId && handleViewUserProfile(report.userId._id)}
+                  disabled={!report.userId}
+                  className="inline-flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors disabled:opacity-50"
+                >
+                  <Image
+                    src={normalizeAvatarUrl(getUserAvatar(report))}
+                    alt=""
+                    width={16}
+                    height={16}
+                    unoptimized
+                    className="w-4 h-4 rounded-full object-cover bg-[var(--secondary)]"
+                  />
+                  {report.userId?.username || "Аноним"}
+                  {report.userId && <ExternalLink className="w-2.5 h-2.5 opacity-50" />}
+                </button>
+                <span className="inline-flex items-center gap-1">
                   <Clock3 className="w-3.5 h-3.5" />
-                  {new Date(report.createdAt).toLocaleString("ru-RU")}
-                </div>
+                  {formatTimeAgo(report.createdAt)}
+                </span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--secondary)]">
+                  {report.entityType === "title" ? "Тайтл" : "Глава"}
+                </span>
               </div>
 
               <div className="mt-2 text-sm">
@@ -506,11 +649,18 @@ export function ReportsSection() {
                 />
               </div>
 
-              <div className="mt-3 flex justify-end gap-2">
+              <div className="mt-3 flex justify-end gap-1">
+                <button
+                  onClick={() => openDetailModal(report)}
+                  className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
+                  title="Подробнее"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => openResponseModal(report, report.isResolved)}
                   disabled={isStatusUpdating}
-                  className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
+                  className="p-2 text-[var(--muted-foreground)] hover:text-blue-500 hover:bg-blue-500/10 rounded-[var(--admin-radius)] transition-colors"
                   title={getReportResponse(report) ? "Изменить ответ" : "Ответить"}
                 >
                   <MessageSquareReply className="w-4 h-4" />
@@ -518,7 +668,11 @@ export function ReportsSection() {
                 <button
                   onClick={() => handleStatusChange(report._id, !report.isResolved)}
                   disabled={isStatusUpdating}
-                  className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
+                  className={`p-2 rounded-[var(--admin-radius)] transition-colors ${
+                    report.isResolved 
+                      ? "text-yellow-500 hover:bg-yellow-500/10" 
+                      : "text-green-500 hover:bg-green-500/10"
+                  }`}
                   title={report.isResolved ? "Открыть" : "Закрыть"}
                 >
                   {report.isResolved ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
@@ -604,7 +758,17 @@ export function ReportsSection() {
                     )}
                   </td>
                   <td className="py-2.5 px-3">
-                    <span className="font-medium text-sm">{report.userId?.username || "Аноним"}</span>
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={normalizeAvatarUrl(getUserAvatar(report))}
+                        alt=""
+                        width={24}
+                        height={24}
+                        unoptimized
+                        className="w-6 h-6 rounded-full object-cover bg-[var(--secondary)]"
+                      />
+                      <span className="font-medium text-sm">{report.userId?.username || "Аноним"}</span>
+                    </div>
                   </td>
                   <td className="py-2.5 px-3">
                     {report.isResolved ? (
@@ -772,6 +936,173 @@ export function ReportsSection() {
         confirmVariant="primary"
         isLoading={isBulkResolving}
       />
+
+      <ConfirmModal
+        isOpen={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        onConfirm={handleBulkDelete}
+        title="Массовое удаление жалоб"
+        message={`Вы уверены, что хотите удалить ${selectedIds.length} жалоб? Это действие нельзя отменить.`}
+        confirmText={isBulkDeleting ? "Удаление..." : "Удалить"}
+        confirmVariant="danger"
+        isLoading={isBulkDeleting}
+      />
+
+      {/* Report Detail Modal */}
+      <AdminModal
+        isOpen={!!detailReport}
+        onClose={closeDetailModal}
+        title="Детали жалобы"
+        size="lg"
+      >
+        {detailReport && (
+          <div className="space-y-4">
+            {/* Status and Type */}
+            <div className="flex items-center gap-3">
+              <span
+                className={`inline-block px-3 py-1 rounded-full text-sm font-medium text-white ${reportTypeColors[detailReport.reportType]}`}
+              >
+                {reportTypeLabels[detailReport.reportType]}
+              </span>
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  detailReport.isResolved
+                    ? "bg-[var(--chart-2)]/15 text-[var(--chart-2)]"
+                    : "bg-[var(--chart-5)]/15 text-[var(--chart-5)]"
+                }`}
+              >
+                {detailReport.isResolved ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-1.5" />
+                    Решена
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="w-4 h-4 mr-1.5" />
+                    Открыта
+                  </>
+                )}
+              </span>
+            </div>
+
+            {/* User info */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--secondary)]/50">
+              <Image
+                src={normalizeAvatarUrl(getUserAvatar(detailReport))}
+                alt=""
+                width={40}
+                height={40}
+                unoptimized
+                className="w-10 h-10 rounded-full object-cover bg-[var(--secondary)]"
+              />
+              <div className="flex-1 min-w-0">
+                <span className="font-medium text-[var(--foreground)]">
+                  {detailReport.userId?.username || "Аноним"}
+                </span>
+                {detailReport.userId?.email && (
+                  <p className="text-xs text-[var(--muted-foreground)]">{detailReport.userId.email}</p>
+                )}
+              </div>
+              {detailReport.userId && (
+                <button
+                  onClick={() => handleViewUserProfile(detailReport.userId._id)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-sm hover:bg-[var(--primary)]/20 transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Профиль
+                </button>
+              )}
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
+                <p className="text-xs text-[var(--muted-foreground)]">Создана</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">{new Date(detailReport.createdAt).toLocaleDateString("ru-RU")}</p>
+              </div>
+              <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
+                <p className="text-xs text-[var(--muted-foreground)]">Источник</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">{detailReport.entityType === "title" ? "Тайтл" : "Глава"}</p>
+              </div>
+              <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
+                <p className="text-xs text-[var(--muted-foreground)]">ID жалобы</p>
+                <p className="text-[10px] font-mono text-[var(--foreground)] truncate">{detailReport._id}</p>
+              </div>
+              <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
+                <p className="text-xs text-[var(--muted-foreground)]">Entity ID</p>
+                <p className="text-[10px] font-mono text-[var(--foreground)] truncate">{detailReport.entityId}</p>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="rounded-lg border border-[var(--border)] p-4">
+              <p className="text-xs text-[var(--muted-foreground)] mb-2">Содержание жалобы</p>
+              <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">{detailReport.content}</p>
+            </div>
+
+            {/* Admin response */}
+            {getReportResponse(detailReport) && (
+              <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
+                <p className="text-xs text-green-600 mb-2">Ответ администратора</p>
+                <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">{getReportResponse(detailReport)}</p>
+                {detailReport.resolvedAt && (
+                  <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+                    Закрыта: {new Date(detailReport.resolvedAt).toLocaleString("ru-RU")}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Entity link */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--secondary)]/50">
+              <span className="text-sm text-[var(--muted-foreground)]">Источник:</span>
+              <ReportEntityInfo
+                entityType={detailReport.entityType}
+                entityId={detailReport.entityId}
+                titleId={detailReport.titleId}
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)]">
+              <button
+                onClick={() => {
+                  openResponseModal(detailReport, detailReport.isResolved);
+                  closeDetailModal();
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-colors"
+              >
+                <MessageSquareReply className="w-4 h-4" />
+                {getReportResponse(detailReport) ? "Изменить ответ" : "Ответить"}
+              </button>
+              <button
+                onClick={() => {
+                  handleStatusChange(detailReport._id, !detailReport.isResolved);
+                  closeDetailModal();
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  detailReport.isResolved
+                    ? "bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20"
+                    : "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                }`}
+              >
+                {detailReport.isResolved ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                {detailReport.isResolved ? "Переоткрыть" : "Закрыть"}
+              </button>
+              <button
+                onClick={() => {
+                  handleDelete(detailReport._id);
+                  closeDetailModal();
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Удалить
+              </button>
+            </div>
+          </div>
+        )}
+      </AdminModal>
     </div>
   );
 }

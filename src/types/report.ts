@@ -8,6 +8,7 @@ export interface ReportUser {
   _id: string;
   username: string;
   email: string;
+  avatar?: string;
 }
 
 export interface Report {

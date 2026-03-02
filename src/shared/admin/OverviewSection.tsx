@@ -11,12 +11,16 @@ import {
   MessageCircleWarning,
   Target,
   Users,
+  Activity,
+  Server,
+  Clock,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useGetStatsQuery } from "@/store/api/statsApi";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { useSearchChaptersQuery } from "@/store/api/chaptersApi";
 import { useGetReportsQuery } from "@/store/api/reportsApi";
+import { useGetDashboardQuery, useGetActivityQuery, useGetSystemInfoQuery } from "@/store/api/adminApi";
 import { formatNumber } from "@/lib/utils";
 
 type AdminTab = "overview" | "parser" | "titles" | "chapters" | "work-queue" | "reports" | "announcements";
@@ -55,7 +59,15 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
     isResolved: "false",
   });
 
+  // Новые эндпоинты из adminApi
+  const { data: dashboardData } = useGetDashboardQuery();
+  const { data: activityData } = useGetActivityQuery({ limit: 5 });
+  const { data: systemInfoData } = useGetSystemInfoQuery();
+
   const stats = statsData?.data;
+  const dashboard = dashboardData?.data;
+  const recentActivity = activityData?.data;
+  const systemInfo = systemInfoData?.data;
 
   const periodData = useMemo(
     () =>
@@ -326,6 +338,112 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
           <QuickAction icon={<ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4" />} label="Открыть очередь" onClick={() => onTabChange("work-queue")} />
         </div>
       </section>
+
+      {/* Секция с системной информацией и последней активностью */}
+      <section className="grid gap-3 sm:gap-4 lg:grid-cols-2">
+        {/* Системная информация */}
+        {systemInfo && (
+          <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--secondary)]/20 px-3 sm:px-4 py-2.5 sm:py-3">
+              <h3 className="text-sm sm:text-base font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <Server className="w-4 h-4 text-[var(--primary)]" />
+                Система
+              </h3>
+            </div>
+            <div className="p-3 sm:p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Uptime</span>
+                <span className="text-xs sm:text-sm font-medium text-[var(--foreground)]">
+                  {Math.floor((systemInfo.uptime ?? 0) / 3600)}ч {Math.floor(((systemInfo.uptime ?? 0) % 3600) / 60)}м
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Память</span>
+                <span className="text-xs sm:text-sm font-medium text-[var(--foreground)]">
+                  {(systemInfo.memory?.percentage ?? 0).toFixed(1)}% ({Math.round((systemInfo.memory?.used ?? 0) / 1024 / 1024)} MB)
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">CPU</span>
+                <span className="text-xs sm:text-sm font-medium text-[var(--foreground)]">
+                  {(systemInfo.cpu?.usage ?? 0).toFixed(1)}% ({systemInfo.cpu?.cores ?? 0} ядер)
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Node.js</span>
+                <span className="text-xs sm:text-sm font-medium text-[var(--foreground)]">
+                  {systemInfo.nodejs?.version ?? "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">БД</span>
+                <span className={`text-xs sm:text-sm font-medium ${systemInfo.database?.connected ? 'text-green-500' : 'text-red-500'}`}>
+                  {systemInfo.database?.connected ? 'Подключена' : 'Отключена'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Последняя активность */}
+        {recentActivity && recentActivity.length > 0 && (
+          <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--secondary)]/20 px-3 sm:px-4 py-2.5 sm:py-3">
+              <h3 className="text-sm sm:text-base font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[var(--primary)]" />
+                Последняя активность
+              </h3>
+            </div>
+            <div className="divide-y divide-[var(--border)]">
+              {recentActivity.map((activity, index) => (
+                <div key={activity.id || `activity-${index}`} className="flex items-start gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3">
+                  <div className="flex-shrink-0 p-1.5 rounded-lg bg-[var(--secondary)]">
+                    <Clock className="w-3 h-3 text-[var(--muted-foreground)]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-[var(--foreground)] line-clamp-1">{activity.description}</p>
+                    <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
+                      {activity.username && <span className="font-medium">{activity.username}</span>}
+                      {activity.username && " • "}
+                      {new Date(activity.createdAt).toLocaleString('ru-RU', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        day: 'numeric',
+                        month: 'short'
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Дополнительная статистика из нового dashboard API */}
+      {dashboard && (
+        <section className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-5">
+          <h3 className="text-sm sm:text-base font-semibold text-[var(--foreground)] mb-3">Активность сегодня</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 rounded-xl bg-[var(--secondary)]/50 text-center">
+              <p className="text-lg sm:text-xl font-bold text-[var(--primary)]">{dashboard.activity?.readingToday ?? 0}</p>
+              <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">Читают</p>
+            </div>
+            <div className="p-3 rounded-xl bg-[var(--secondary)]/50 text-center">
+              <p className="text-lg sm:text-xl font-bold text-[var(--primary)]">{dashboard.activity?.bookmarksToday ?? 0}</p>
+              <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">Закладки</p>
+            </div>
+            <div className="p-3 rounded-xl bg-[var(--secondary)]/50 text-center">
+              <p className="text-lg sm:text-xl font-bold text-[var(--primary)]">{dashboard.activity?.ratingsToday ?? 0}</p>
+              <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">Оценки</p>
+            </div>
+            <div className="p-3 rounded-xl bg-[var(--secondary)]/50 text-center">
+              <p className="text-lg sm:text-xl font-bold text-[var(--primary)]">{dashboard.users?.activeToday ?? 0}</p>
+              <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">Активных</p>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

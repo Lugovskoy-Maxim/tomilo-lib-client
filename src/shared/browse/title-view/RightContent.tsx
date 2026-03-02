@@ -25,8 +25,8 @@ import {
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useUpdateRatingMutation } from "@/store/api/titlesApi";
-import { useGetReadingHistoryReadIdsQuery } from "@/store/api/authApi";
+import { useUpdateRatingMutation, useGetTitleStatsQuery, useGetMyTitleRatingQuery } from "@/store/api/titlesApi";
+import { useGetReadingHistoryReadIdsQuery, useGetTitleProgressQuery } from "@/store/api/authApi";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getChapterPath } from "@/lib/title-paths";
@@ -81,27 +81,6 @@ export function RightContent({
   const [pendingRating, setPendingRating] = useState<number | null>(null);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
 
-  // Текущая оценка: приоритет — с сервера (ratings по userId), иначе localStorage
-  useEffect(() => {
-    if (!titleData?._id) return;
-    const ratings = titleData.ratings;
-    if (user?._id && Array.isArray(ratings)) {
-      const entry = ratings.find(
-        (r): r is TitleRatingEntry => typeof r === "object" && r !== null && "userId" in r && r.userId === user._id,
-      );
-      if (entry) {
-        setPendingRating(entry.rating);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(`title-rating-${titleData._id}`, String(entry.rating));
-        }
-        return;
-      }
-    }
-    if (typeof window !== "undefined") {
-      const savedRating = localStorage.getItem(`title-rating-${titleData._id}`);
-      if (savedRating) setPendingRating(parseInt(savedRating, 10));
-    }
-  }, [titleData?._id, titleData?.ratings, user?._id]);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [hoveredChapterId, setHoveredChapterId] = useState<string | null>(null);
   const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
@@ -143,6 +122,56 @@ export function RightContent({
     skip: !user || !titleId,
   });
   const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
+
+  // Статистика тайтла (расширенные данные о просмотрах и закладках)
+  const { data: titleStatsData } = useGetTitleStatsQuery(titleId, {
+    skip: !titleId,
+  });
+
+  // Рейтинг текущего пользователя для тайтла
+  const { data: myRatingData } = useGetMyTitleRatingQuery(titleId, {
+    skip: !user || !titleId,
+  });
+
+  // Текущая оценка: приоритет — с сервера через новый эндпоинт my-rating, затем ratings по userId, иначе localStorage
+  useEffect(() => {
+    if (!titleData?._id) return;
+    
+    // Приоритет 1: данные из нового эндпоинта my-rating
+    if (myRatingData?.data?.hasRated && myRatingData.data.rating !== null) {
+      setPendingRating(myRatingData.data.rating);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`title-rating-${titleData._id}`, String(myRatingData.data.rating));
+      }
+      return;
+    }
+    
+    // Приоритет 2: поиск в массиве ratings (fallback для старого формата)
+    const ratings = titleData.ratings;
+    if (user?._id && Array.isArray(ratings)) {
+      const entry = ratings.find(
+        (r): r is TitleRatingEntry => typeof r === "object" && r !== null && "userId" in r && r.userId === user._id,
+      );
+      if (entry) {
+        setPendingRating(entry.rating);
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`title-rating-${titleData._id}`, String(entry.rating));
+        }
+        return;
+      }
+    }
+    
+    // Приоритет 3: localStorage
+    if (typeof window !== "undefined") {
+      const savedRating = localStorage.getItem(`title-rating-${titleData._id}`);
+      if (savedRating) setPendingRating(parseInt(savedRating, 10));
+    }
+  }, [titleData?._id, titleData?.ratings, user?._id, myRatingData]);
+
+  // Прогресс чтения с сервера
+  const { data: titleProgressData } = useGetTitleProgressQuery(titleId, {
+    skip: !user || !titleId,
+  });
 
   // Получаем количество комментариев для отображения в табах
   const { data: commentsData } = useGetCommentsQuery(
@@ -359,7 +388,22 @@ export function RightContent({
                 <Calendar className="w-4 h-4 text-[var(--primary)]" />
                 <span className="text-sm">Последнее обновление:</span>
                 <span className="font-medium text-[var(--foreground)]">
-                  {titleData?.updatedAt ? timeAgo(titleData.updatedAt) : "неизвестно"}
+                  {(() => {
+                    // Находим дату последней добавленной главы
+                    const lastChapterDate = chapters.length > 0
+                      ? chapters.reduce((latest, ch) => {
+                          const chDate = new Date(ch.createdAt).getTime();
+                          return chDate > latest ? chDate : latest;
+                        }, 0)
+                      : null;
+                    
+                    if (lastChapterDate) {
+                      return timeAgo(new Date(lastChapterDate).toISOString());
+                    }
+                    
+                    // Fallback на createdAt тайтла если глав нет
+                    return titleData?.createdAt ? timeAgo(titleData.createdAt) : "неизвестно";
+                  })()}
                 </span>
               </div>
             </div>
@@ -434,20 +478,55 @@ export function RightContent({
                 <span className="text-xs uppercase tracking-wider font-medium">Статистика</span>
               </div>
               
+              {/* Основная статистика */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center p-3 bg-[var(--background)]/60 rounded-xl">
                   <div className="text-2xl font-bold text-[var(--primary)] mb-1">
-                    {titleData?.views?.toLocaleString() || 0}
+                    {(titleStatsData?.data?.views ?? titleData?.views ?? 0).toLocaleString()}
                   </div>
                   <div className="text-xs text-[var(--muted-foreground)]">Просмотров</div>
                 </div>
                 <div className="text-center p-3 bg-[var(--background)]/60 rounded-xl">
                   <div className="text-2xl font-bold text-[var(--primary)] mb-1">
-                    {totalRatings.toLocaleString()}
+                    {(titleStatsData?.data?.totalRatings ?? totalRatings).toLocaleString()}
                   </div>
                   <div className="text-xs text-[var(--muted-foreground)]">Оценок</div>
                 </div>
               </div>
+
+              {/* Расширенная статистика просмотров */}
+              {titleStatsData?.data && (
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="text-center p-2 bg-[var(--background)]/40 rounded-lg">
+                    <div className="text-sm font-semibold text-[var(--foreground)]">
+                      {titleStatsData.data.dayViews?.toLocaleString() || 0}
+                    </div>
+                    <div className="text-[10px] text-[var(--muted-foreground)]">За день</div>
+                  </div>
+                  <div className="text-center p-2 bg-[var(--background)]/40 rounded-lg">
+                    <div className="text-sm font-semibold text-[var(--foreground)]">
+                      {titleStatsData.data.weekViews?.toLocaleString() || 0}
+                    </div>
+                    <div className="text-[10px] text-[var(--muted-foreground)]">За неделю</div>
+                  </div>
+                  <div className="text-center p-2 bg-[var(--background)]/40 rounded-lg">
+                    <div className="text-sm font-semibold text-[var(--foreground)]">
+                      {titleStatsData.data.monthViews?.toLocaleString() || 0}
+                    </div>
+                    <div className="text-[10px] text-[var(--muted-foreground)]">За месяц</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Количество закладок */}
+              {titleStatsData?.data?.bookmarksCount !== undefined && titleStatsData.data.bookmarksCount > 0 && (
+                <div className="flex items-center justify-between p-2 bg-[var(--background)]/40 rounded-lg mb-4">
+                  <span className="text-xs text-[var(--muted-foreground)]">В закладках у читателей</span>
+                  <span className="text-sm font-semibold text-[var(--primary)]">
+                    {titleStatsData.data.bookmarksCount.toLocaleString()}
+                  </span>
+                </div>
+              )}
 
               {totalRatings > 0 && ratingStats.length > 0 && (
                 <div className="space-y-2">
@@ -533,9 +612,11 @@ export function RightContent({
           );
         }
 
-        const totalChaptersCount = chapters.length;
-        const readChaptersCount = chapters.filter(ch => isChapterRead(ch._id || "")).length;
-        const progressPercent = totalChaptersCount > 0 ? Math.round((readChaptersCount / totalChaptersCount) * 100) : 0;
+        // Используем данные прогресса с сервера, если доступны, иначе считаем локально
+        const serverProgress = titleProgressData?.data;
+        const totalChaptersCount = serverProgress?.totalChapters ?? chapters.length;
+        const readChaptersCount = serverProgress?.chaptersRead ?? chapters.filter(ch => isChapterRead(ch._id || "")).length;
+        const progressPercent = serverProgress?.progressPercent ?? (totalChaptersCount > 0 ? Math.round((readChaptersCount / totalChaptersCount) * 100) : 0);
         const hasReadingProgress = user && readChaptersCount > 0;
 
         return (

@@ -1,12 +1,16 @@
 import React, { useState } from "react";
-import { Trash2, Eye, Shield, Crown, User, Calendar, TrendingUp, MoreHorizontal, Copy, Check } from "lucide-react";
+import { Trash2, Eye, Shield, Crown, User, Calendar, TrendingUp, MoreHorizontal, Copy, Check, Ban, UserCheck, MessageCircle, Edit } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import Image from "next/image";
 
 interface UserCardProps {
-  user: UserProfile;
+  user: UserProfile & { isBanned?: boolean };
   onView: (userId: string) => void;
   onDelete: (id: string, username: string) => void;
+  onEdit?: (userId: string) => void;
+  onBan?: (userId: string) => void;
+  onUnban?: (userId: string) => void;
+  onDeleteComments?: (userId: string, username: string) => void;
   normalizeUrl: (url: string) => string;
   formatDate: (dateString: string) => string;
 }
@@ -38,13 +42,14 @@ const roleConfig = {
   },
 };
 
-export function UserCard({ user, onView, onDelete, normalizeUrl, formatDate }: UserCardProps) {
+export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDeleteComments, normalizeUrl, formatDate }: UserCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
 
   const config = roleConfig[user.role as keyof typeof roleConfig] || roleConfig.user;
   const RoleIcon = config.icon;
+  const isBanned = user.isBanned === true;
 
   const handleCopyId = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -63,7 +68,7 @@ export function UserCard({ user, onView, onDelete, normalizeUrl, formatDate }: U
         transition-all duration-300 ease-out
         hover:shadow-lg hover:shadow-[var(--primary)]/5
         hover:-translate-y-0.5
-        ${config.borderClass}
+        ${isBanned ? "border-red-500/50" : config.borderClass}
         ${isHovered ? "border-[var(--primary)]/50" : ""}
       `}
       onMouseEnter={() => setIsHovered(true)}
@@ -72,7 +77,7 @@ export function UserCard({ user, onView, onDelete, normalizeUrl, formatDate }: U
         setShowActions(false);
       }}
     >
-      <div className={`absolute inset-0 opacity-50 ${config.bgClass}`} />
+      <div className={`absolute inset-0 opacity-50 ${isBanned ? "bg-gradient-to-r from-red-500/10 to-red-500/5" : config.bgClass}`} />
       
       <div className="relative p-4">
         <div className="flex items-start gap-3">
@@ -83,7 +88,7 @@ export function UserCard({ user, onView, onDelete, normalizeUrl, formatDate }: U
               transition-all duration-300
               ${isHovered ? "ring-[var(--primary)]/50 scale-105" : "ring-transparent"}
             `}>
-              {user.avatar ? (
+              {user.avatar && !user.avatar.includes("undefined") && !user.avatar.includes("null") ? (
                 <Image
                   src={normalizeUrl(user.avatar)}
                   alt={user.username}
@@ -104,19 +109,26 @@ export function UserCard({ user, onView, onDelete, normalizeUrl, formatDate }: U
             <div className={`
               absolute -bottom-1 -right-1 w-5 h-5 rounded-full
               flex items-center justify-center
-              ${config.badgeClass}
+              ${isBanned ? "bg-red-500 text-white" : config.badgeClass}
               shadow-sm
             `}>
-              <RoleIcon className="w-3 h-3" />
+              {isBanned ? <Ban className="w-3 h-3" /> : <RoleIcon className="w-3 h-3" />}
             </div>
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h3 className="font-semibold text-[var(--foreground)] truncate text-sm leading-tight">
-                  {user.username}
-                </h3>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-semibold text-[var(--foreground)] truncate text-sm leading-tight">
+                    {user.username}
+                  </h3>
+                  {isBanned && (
+                    <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-500 text-white">
+                      БАН
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">
                   {user.email}
                 </p>
@@ -164,35 +176,96 @@ export function UserCard({ user, onView, onDelete, normalizeUrl, formatDate }: U
         <div 
           className={`
             overflow-hidden transition-all duration-300 ease-out
-            ${showActions ? "max-h-16 opacity-100 mt-3" : "max-h-0 opacity-0"}
+            ${showActions ? "max-h-32 opacity-100 mt-3" : "max-h-0 opacity-0"}
           `}
         >
-          <div className="flex items-center gap-2 pt-3 border-t border-[var(--border)]">
-            <button
-              onClick={() => onView(user._id)}
-              className="
-                flex-1 flex items-center justify-center gap-1.5 
-                px-3 py-2 rounded-lg text-xs font-medium
-                bg-[var(--primary)]/10 text-[var(--primary)]
-                hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]
-                transition-all duration-200 active:scale-[0.98]
-              "
-            >
-              <Eye className="w-3.5 h-3.5" />
-              Профиль
-            </button>
-            <button
-              onClick={() => onDelete(user._id, user.username)}
-              className="
-                flex items-center justify-center gap-1.5 
-                px-3 py-2 rounded-lg text-xs font-medium
-                bg-red-500/10 text-red-600 dark:text-red-400
-                hover:bg-red-500 hover:text-white
-                transition-all duration-200 active:scale-[0.98]
-              "
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+          <div className="flex flex-col gap-2 pt-3 border-t border-[var(--border)]">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onView(user._id)}
+                className="
+                  flex-1 flex items-center justify-center gap-1.5 
+                  px-3 py-2 rounded-lg text-xs font-medium
+                  bg-[var(--primary)]/10 text-[var(--primary)]
+                  hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]
+                  transition-all duration-200 active:scale-[0.98]
+                "
+              >
+                <Eye className="w-3.5 h-3.5" />
+                Подробнее
+              </button>
+              {onEdit && (
+                <button
+                  onClick={() => onEdit(user._id)}
+                  className="
+                    p-2 rounded-lg text-xs font-medium
+                    bg-blue-500/10 text-blue-600 dark:text-blue-400
+                    hover:bg-blue-500 hover:text-white
+                    transition-all duration-200 active:scale-[0.98]
+                  "
+                  title="Редактировать"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button
+                onClick={() => onDelete(user._id, user.username)}
+                className="
+                  p-2 rounded-lg text-xs font-medium
+                  bg-red-500/10 text-red-600 dark:text-red-400
+                  hover:bg-red-500 hover:text-white
+                  transition-all duration-200 active:scale-[0.98]
+                "
+                title="Удалить"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              {isBanned && onUnban ? (
+                <button
+                  onClick={() => onUnban(user._id)}
+                  className="
+                    flex-1 flex items-center justify-center gap-1.5 
+                    px-3 py-2 rounded-lg text-xs font-medium
+                    bg-green-500/10 text-green-600 dark:text-green-400
+                    hover:bg-green-500 hover:text-white
+                    transition-all duration-200 active:scale-[0.98]
+                  "
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  Разблокировать
+                </button>
+              ) : onBan ? (
+                <button
+                  onClick={() => onBan(user._id)}
+                  className="
+                    flex-1 flex items-center justify-center gap-1.5 
+                    px-3 py-2 rounded-lg text-xs font-medium
+                    bg-orange-500/10 text-orange-600 dark:text-orange-400
+                    hover:bg-orange-500 hover:text-white
+                    transition-all duration-200 active:scale-[0.98]
+                  "
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  Заблокировать
+                </button>
+              ) : null}
+              {onDeleteComments && (
+                <button
+                  onClick={() => onDeleteComments(user._id, user.username)}
+                  className="
+                    p-2 rounded-lg text-xs font-medium
+                    bg-yellow-500/10 text-yellow-600 dark:text-yellow-400
+                    hover:bg-yellow-500 hover:text-white
+                    transition-all duration-200 active:scale-[0.98]
+                  "
+                  title="Удалить комментарии"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

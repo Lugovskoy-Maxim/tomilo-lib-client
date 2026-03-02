@@ -4,7 +4,7 @@ import { UserProfile } from "@/types/user";
 import { ProfileAvatar, EditAvatarButton } from "@/shared";
 import RankStarsOverlay from "./RankStarsOverlay";
 import { Button } from "@/shared/ui/button";
-import { Pencil, Sparkles, Shield, Calendar1, Play, Coins, Flame } from "lucide-react";
+import { Pencil, Sparkles, Shield, Calendar1, Play, Coins, Flame, Heart } from "lucide-react";
 import { getRankColor, getRankDisplay, getLevelProgress, levelToRank } from "@/lib/rank-utils";
 import { useProgressNotification } from "@/contexts/ProgressNotificationContext";
 
@@ -79,6 +79,11 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
               {isAdmin ? "Администратор" : "Культиватор"}
             </span>
           </div>
+          {userProfile.bio && (
+            <p className="mt-3 text-xs sm:text-sm text-[var(--muted-foreground)] leading-relaxed px-2 line-clamp-3">
+              {userProfile.bio}
+            </p>
+          )}
         </div>
 
         {onEdit && (
@@ -113,6 +118,14 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
             </div>
           </div>
         </div>
+
+        {/* Любимый жанр */}
+        {userProfile.favoriteGenre && (
+          <div className="flex items-center justify-center gap-2 text-xs text-[var(--muted-foreground)] mb-2 py-2 px-3 rounded-lg bg-pink-500/10 border border-pink-500/20">
+            <Heart className="w-3.5 h-3.5 shrink-0 text-pink-500" />
+            <span className="text-pink-500 font-medium truncate">{userProfile.favoriteGenre}</span>
+          </div>
+        )}
 
         {/* Дата регистрации */}
         <div className="flex items-center justify-center gap-2 text-xs text-[var(--muted-foreground)] mb-5 py-2 px-3 rounded-lg bg-[var(--secondary)]/30">

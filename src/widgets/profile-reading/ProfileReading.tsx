@@ -9,11 +9,13 @@ import { useRouter } from "next/navigation";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getChapterPath } from "@/lib/title-paths";
 import { useGetReadingHistoryByTitleQuery } from "@/store/api/authApi";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { getCoverUrls } from "@/lib/asset-url";
 
 interface TitleData {
   _id: string;
-  name: string;
+  name?: string;
+  title?: string;
   coverImage?: string;
   slug?: string;
 }
@@ -260,11 +262,160 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
   );
 });
 
+interface HistoryTitleCardProps {
+  group: GroupedTitleHistory;
+  isExpandedTitle: boolean;
+  onToggleExpand: () => void;
+  onRemoveChapter: (titleId: string, chapterId: string) => void;
+  onRemoveTitle: (titleId: string, titleName?: string | null) => void;
+}
+
+const HistoryTitleCard = memo(function HistoryTitleCard({
+  group,
+  isExpandedTitle,
+  onToggleExpand,
+  onRemoveChapter,
+  onRemoveTitle,
+}: HistoryTitleCardProps) {
+  const router = useRouter();
+  
+  const hasPopulatedTitle = Boolean(
+    group.titleData && (group.titleData.name || group.titleData.title) && group.titleData.coverImage
+  );
+
+  const { data: fetchedTitle } = useGetTitleByIdQuery(
+    { id: group.titleId },
+    { skip: hasPopulatedTitle || !group.titleId },
+  );
+
+  const title = useMemo(() => {
+    if (hasPopulatedTitle) return group.titleData;
+    if (fetchedTitle) {
+      return {
+        _id: fetchedTitle._id,
+        name: fetchedTitle.name,
+        coverImage: fetchedTitle.coverImage,
+        slug: fetchedTitle.slug,
+      };
+    }
+    return group.titleData;
+  }, [hasPopulatedTitle, group.titleData, fetchedTitle]);
+
+  const titleName = title?.name || title?.title || "";
+
+  const sessions = useMemo(() => groupChaptersBySession(group.chapters), [group.chapters]);
+  const sortedSessions = useMemo(() => sortSessionsByTime(sessions), [sessions]);
+  const allChaptersSorted = useMemo(() => sortChaptersByNumber(group.chapters), [group.chapters]);
+  const lastChapter = sortedSessions[0]?.[0];
+
+  const handleCardClick = useCallback(() => {
+    if (lastChapter && group.titleId) {
+      router.push(
+        getChapterPath(
+          { id: group.titleId, slug: title?.slug },
+          lastChapter.chapterId,
+        ),
+      );
+    }
+  }, [lastChapter, group.titleId, title?.slug, router]);
+
+  const handleToggleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleExpand();
+  }, [onToggleExpand]);
+
+  const handleRemoveClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (group.chapters.length === 1) {
+      onRemoveChapter(String(group.titleId), sortedSessions[0]?.[0]?.chapterId);
+    } else {
+      onRemoveTitle(String(group.titleId), titleName);
+    }
+  }, [group.chapters.length, group.titleId, sortedSessions, onRemoveChapter, onRemoveTitle, titleName]);
+
+  return (
+    <div
+      className="rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/50 overflow-hidden transition-all duration-200 shadow-sm"
+    >
+      <div
+        className="p-3 cursor-pointer group/card"
+        onClick={handleCardClick}
+      >
+        <div className="flex items-stretch gap-3">
+          <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-[var(--secondary)]">
+            <OptimizedImage
+              src={getImageUrls(title?.coverImage).primary}
+              fallbackSrc={getImageUrls(title?.coverImage).fallback}
+              alt={titleName || `Манга #${group.titleId}`}
+              width={96}
+              height={128}
+              className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"
+              priority={false}
+            />
+          </div>
+
+          <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
+            <div>
+              <h3 className="font-semibold text-[var(--foreground)] text-sm truncate mb-1">
+                {titleName || `Манга #${group.titleId}`}
+              </h3>
+              <p className="text-xs text-[var(--primary)] font-medium mb-1.5">
+                {allChaptersSorted.length > 0
+                  ? formatChapterRange(allChaptersSorted)
+                  : "—"}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]">
+              <span className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
+                {sortedSessions[0] ? formatSessionTime(sortedSessions[0]) : "—"}
+              </span>
+              <span>
+                Прочитано глав: {group.chaptersCount ?? group.chapters.length}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-between items-end gap-2">
+            <button
+              onClick={handleToggleClick}
+              className="p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+              title={isExpandedTitle ? "Свернуть" : "Развернуть"}
+            >
+              {isExpandedTitle ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+            {!isExpandedTitle && (
+              <button
+                onClick={handleRemoveClick}
+                className="p-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors"
+                title={group.chapters.length === 1 ? "Удалить из истории" : "Удалить все главы"}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {isExpandedTitle && (
+        <ExpandedHistoryContent
+          titleId={group.titleId}
+          fallbackChapters={group.chapters}
+          onRemove={onRemoveChapter}
+        />
+      )}
+    </div>
+  );
+});
+
 function ReadingHistorySection({ readingHistory, showAll = false, showSectionHeader = true, historyHref, onShowAllHistory }: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [expandedTitles, setExpandedTitles] = useState<Set<string>>(new Set());
   const [isExpanded, setIsExpanded] = useState(showAll);
-  const router = useRouter();
 
   // Группируем историю по тайтлам
   const groupedHistory = useMemo(() => {
@@ -450,119 +601,16 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
       )}
 
       <div className="grid grid-cols-1 gap-3">
-        {displayedTitles.map(group => {
-          // Группируем главы по сессиям и сортируем сессии по времени (новые первыми)
-          const sessions = groupChaptersBySession(group.chapters);
-          const sortedSessions = sortSessionsByTime(sessions);
-          const isExpandedTitle = expandedTitles.has(group.titleId);
-          // Все прочитанные главы (полный список по номерам) для отображения
-          const allChaptersSorted = sortChaptersByNumber(group.chapters);
-          // Последняя прочитанная глава - для перехода по клику
-          const lastChapter = sortedSessions[0]?.[0];
-          const title = group.titleData;
-          const titleName = title?.name || "";
-
-          return (
-            <div
-              key={group.titleId}
-              className="rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/50 overflow-hidden transition-all duration-200 shadow-sm"
-            >
-              <div
-                className="p-3 cursor-pointer group/card"
-                onClick={() => {
-                  if (lastChapter && group.titleId) {
-                    router.push(
-                      getChapterPath(
-                        { id: group.titleId, slug: title?.slug },
-                        lastChapter.chapterId,
-                      ),
-                    );
-                  }
-                }}
-              >
-                <div className="flex items-stretch gap-3">
-                  <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-[var(--secondary)]">
-                    <OptimizedImage
-                      src={getImageUrls(title?.coverImage).primary}
-                      fallbackSrc={getImageUrls(title?.coverImage).fallback}
-                      alt={title?.name || `Манга #${group.titleId}`}
-                      width={96}
-                      height={128}
-                      className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"
-                      priority={false}
-                    />
-                  </div>
-
-                  <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
-                    <div>
-                      <h3 className="font-semibold text-[var(--foreground)] text-sm truncate mb-1">
-                        {title?.name || `Манга #${group.titleId}`}
-                      </h3>
-                      <p className="text-xs text-[var(--primary)] font-medium mb-1.5">
-                        {allChaptersSorted.length > 0
-                          ? formatChapterRange(allChaptersSorted)
-                          : "—"}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        {sortedSessions[0] ? formatSessionTime(sortedSessions[0]) : "—"}
-                      </span>
-                      <span>
-                        Прочитано глав: {group.chaptersCount ?? group.chapters.length}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col justify-between items-end gap-2">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        toggleTitleExpanded(group.titleId);
-                      }}
-                      className="p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
-                      title={isExpandedTitle ? "Свернуть" : "Развернуть"}
-                    >
-                      {isExpandedTitle ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </button>
-                    {!isExpandedTitle && (
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          if (group.chapters.length === 1) {
-                            handleRemoveFromHistory(
-                              String(group.titleId),
-                              sortedSessions[0]?.[0]?.chapterId,
-                            );
-                          } else {
-                            handleRemoveTitleFromHistory(String(group.titleId), titleName);
-                          }
-                        }}
-                        className="p-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors"
-                        title={group.chapters.length === 1 ? "Удалить из истории" : "Удалить все главы"}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {isExpandedTitle && (
-                <ExpandedHistoryContent
-                  titleId={group.titleId}
-                  fallbackChapters={group.chapters}
-                  onRemove={handleRemoveFromHistory}
-                />
-              )}
-            </div>
-          );
-        })}
+        {displayedTitles.map(group => (
+          <HistoryTitleCard
+            key={group.titleId}
+            group={group}
+            isExpandedTitle={expandedTitles.has(group.titleId)}
+            onToggleExpand={() => toggleTitleExpanded(group.titleId)}
+            onRemoveChapter={handleRemoveFromHistory}
+            onRemoveTitle={handleRemoveTitleFromHistory}
+          />
+        ))}
       </div>
 
       {hasMoreTitles && !isExpanded && (

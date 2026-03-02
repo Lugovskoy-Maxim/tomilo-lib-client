@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
-import { Title, CreateTitleDto, UpdateTitleDto } from "@/types/title";
+import { Title, CreateTitleDto, UpdateTitleDto, TitleType } from "@/types/title";
 import { ApiResponseDto } from "@/types/api";
 import { formatChapterRanges } from "@/lib/format-chapter-ranges";
 
@@ -14,6 +14,50 @@ interface PopularTitle {
   type: string;
   releaseYear: number;
   isAdult?: boolean;
+}
+
+/** Похожий тайтл */
+export interface SimilarTitle {
+  id: string;
+  title: string;
+  slug: string;
+  cover: string;
+  rating: number;
+  type: TitleType | string;
+  releaseYear: number;
+  genres: string[];
+  isAdult: boolean;
+}
+
+/** Статистика тайтла */
+export interface TitleStats {
+  views: number;
+  dayViews: number;
+  weekViews: number;
+  monthViews: number;
+  totalChapters: number;
+  averageRating: number;
+  totalRatings: number;
+  bookmarksCount: number;
+  commentsCount: number;
+}
+
+/** Рейтинг пользователя для тайтла */
+export interface UserTitleRating {
+  hasRated: boolean;
+  rating: number | null;
+}
+
+/** Ответ с тайтлами по жанру */
+export interface TitlesByGenreResponse {
+  genre: string;
+  titles: Title[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }
 
 const TITLES_TAG = "Titles";
@@ -595,6 +639,42 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
+    // Похожие тайтлы (по жанрам и тегам)
+    getSimilarTitles: builder.query<
+      ApiResponseDto<SimilarTitle[]>,
+      { id: string; limit?: number; includeAdult?: boolean }
+    >({
+      query: ({ id, limit = 10, includeAdult }) => ({
+        url: `/titles/${id}/similar`,
+        params: { limit, includeAdult: includeAdult || undefined },
+      }),
+      providesTags: (result, error, { id }) => [{ type: TITLES_TAG, id: `similar-${id}` }],
+    }),
+
+    // Статистика тайтла (просмотры, рейтинг, закладки)
+    getTitleStats: builder.query<ApiResponseDto<TitleStats>, string>({
+      query: id => `/titles/${id}/stats`,
+      providesTags: (result, error, id) => [{ type: TITLES_TAG, id: `stats-${id}` }],
+    }),
+
+    // Проверка рейтинга пользователя для тайтла
+    getMyTitleRating: builder.query<ApiResponseDto<UserTitleRating>, string>({
+      query: id => `/titles/${id}/my-rating`,
+      providesTags: (result, error, id) => [{ type: TITLES_TAG, id: `rating-${id}` }],
+    }),
+
+    // Тайтлы по жанру с пагинацией
+    getTitlesByGenre: builder.query<
+      ApiResponseDto<TitlesByGenreResponse>,
+      { genre: string; page?: number; limit?: number; includeAdult?: boolean }
+    >({
+      query: ({ genre, page = 1, limit = 20, includeAdult }) => ({
+        url: `/titles/genre/${encodeURIComponent(genre)}`,
+        params: { page, limit, includeAdult: includeAdult || undefined },
+      }),
+      providesTags: (result, error, { genre }) => [{ type: TITLES_TAG, id: `genre-${genre}` }],
+    }),
+
     // Удаление тайтла
     deleteTitle: builder.mutation<void, string>({
       query: id => ({
@@ -627,5 +707,9 @@ export const {
   useGetRecentTitlesQuery,
   useGetLatestUpdatesQuery,
   useGetRecommendedTitlesQuery,
+  useGetSimilarTitlesQuery,
+  useGetTitleStatsQuery,
+  useGetMyTitleRatingQuery,
+  useGetTitlesByGenreQuery,
   useDeleteTitleMutation,
 } = titlesApi;

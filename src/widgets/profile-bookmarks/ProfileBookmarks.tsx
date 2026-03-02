@@ -8,6 +8,7 @@ import { normalizeBookmarks } from "@/lib/bookmarks";
 import BookmarkCard from "@/shared/bookmark-card/BookmarkCard";
 import { Bookmark, ChevronUp, Search, ArrowUpDown, X } from "lucide-react";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { useGetBookmarkCountsQuery } from "@/store/api/authApi";
 
 type SortOption = "name" | "progress" | "chapters" | "recent";
 
@@ -206,6 +207,10 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [showSortMenu, setShowSortMenu] = useState(false);
 
+  // Запрос количества закладок по категориям с сервера
+  const { data: bookmarkCountsData } = useGetBookmarkCountsQuery();
+  const serverCounts = bookmarkCountsData?.data;
+
   useEffect(() => {
     setCurrentBookmarks(normalizeBookmarks(bookmarks));
   }, [bookmarks]);
@@ -283,9 +288,11 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
       CATEGORY_ORDER.map(cat => ({
         category: cat,
         label: CATEGORY_LABELS[cat],
-        count: byCategory.get(cat)?.length ?? 0,
-      })).filter(c => c.count > 0),
-    [byCategory],
+        // Используем серверные счётчики если доступны, иначе локальные
+        count: serverCounts?.[cat] ?? byCategory.get(cat)?.length ?? 0,
+        localCount: byCategory.get(cat)?.length ?? 0,
+      })).filter(c => c.localCount > 0),
+    [byCategory, serverCounts],
   );
 
   const handleRemoveBookmark = (titleId: string) => {
@@ -349,7 +356,7 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
               <Bookmark className="h-4 w-4 text-[var(--primary)]" />
               <span>Закладки</span>
               <span className="text-xs font-normal text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-0.5 rounded-full">
-                {currentBookmarks.length}
+                {serverCounts?.total ?? currentBookmarks.length}
               </span>
             </h2>
           </div>

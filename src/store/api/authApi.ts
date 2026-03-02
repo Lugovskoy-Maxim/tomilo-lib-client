@@ -11,6 +11,33 @@ import { ReadingHistoryEntry, ReadingHistoryChapter, AvatarResponse } from "@/ty
 import { BookmarkEntry, BookmarkCategory } from "@/types/user";
 import { ReadingProgressResponse } from "@/types/progress";
 
+/** Статус закладки тайтла */
+export interface BookmarkStatusResponse {
+  isBookmarked: boolean;
+  category: BookmarkCategory | null;
+}
+
+/** Количество закладок по категориям */
+export interface BookmarkCountsResponse {
+  reading: number;
+  planned: number;
+  completed: number;
+  favorites: number;
+  dropped: number;
+  total: number;
+}
+
+/** Прогресс чтения тайтла */
+export interface TitleProgressResponse {
+  titleId: string;
+  lastChapterId: string | null;
+  lastChapterNumber: number | null;
+  chaptersRead: number;
+  totalChapters: number;
+  progressPercent: number;
+  readAt: string | null;
+}
+
 export const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
 /** Формат элемента истории с сервера (пагинированный ответ: data.items) */
@@ -445,6 +472,39 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Auth"],
     }),
+
+    // Проверка статуса закладки (добавлен ли тайтл и в какой категории)
+    getBookmarkStatus: builder.query<
+      ApiResponseDto<BookmarkStatusResponse>,
+      string
+    >({
+      query: titleId => `/users/profile/bookmarks/${titleId}/status`,
+      providesTags: (result, error, titleId) => [
+        { type: "Bookmarks", id: titleId },
+        "Bookmarks",
+      ],
+    }),
+
+    // Количество закладок по категориям
+    getBookmarkCounts: builder.query<
+      ApiResponseDto<BookmarkCountsResponse>,
+      void
+    >({
+      query: () => "/users/profile/bookmarks/counts",
+      providesTags: ["Bookmarks"],
+    }),
+
+    // Прогресс чтения тайтла
+    getTitleProgress: builder.query<
+      ApiResponseDto<TitleProgressResponse>,
+      string
+    >({
+      query: titleId => `/users/profile/progress/${titleId}`,
+      providesTags: (result, error, titleId) => [
+        { type: "ReadingHistory", id: titleId },
+        "ReadingHistory",
+      ],
+    }),
   }),
 });
 
@@ -466,12 +526,15 @@ export const {
   useUpdateBookmarkCategoryMutation,
   useRemoveBookmarkMutation,
   useGetBookmarksQuery,
+  useGetBookmarkStatusQuery,
+  useGetBookmarkCountsQuery,
   useGetReadingHistoryQuery,
   useGetReadingHistoryByTitleQuery,
   useGetReadingHistoryReadIdsQuery,
   useAddToReadingHistoryMutation,
   useRemoveFromReadingHistoryMutation,
   useClearReadingHistoryMutation,
+  useGetTitleProgressQuery,
   useChangePasswordMutation,
   useForgotPasswordMutation,
   useClaimDailyBonusMutation,

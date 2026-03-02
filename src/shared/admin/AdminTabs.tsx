@@ -341,16 +341,24 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
             )}
             {getReportBadge(tab.id)}
             {showPinButton && (
-              <button
+              <span
+                role="button"
+                tabIndex={0}
                 onClick={e => togglePin(tab.id, e)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    togglePin(tab.id, e as unknown as React.MouseEvent);
+                  }
+                }}
                 className={`
-                  p-1 rounded transition-all
+                  p-1 rounded transition-all cursor-pointer
                   ${isPinned ? "text-amber-500" : "opacity-0 group-hover:opacity-100 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}
                 `}
                 title={isPinned ? "Открепить" : "Закрепить"}
               >
                 <Star className={`w-3.5 h-3.5 ${isPinned ? "fill-current" : ""}`} />
-              </button>
+              </span>
             )}
           </>
         )}
@@ -359,7 +367,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
   };
 
   const sidebarContent = (
-    <nav ref={navRef} className="flex flex-col gap-2 p-3 overflow-y-auto flex-1 admin-sidebar-scroll">
+    <nav ref={navRef} className="flex flex-col gap-2 p-3 flex-1 admin-sidebar-scroll">
       {!isCollapsed && (
         <div className="px-1 mb-2">
           <div className="relative">

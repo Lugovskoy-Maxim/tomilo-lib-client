@@ -21,6 +21,8 @@ import { auditLogsApi } from "./api/auditLogsApi";
 import { charactersApi } from "./api/charactersApi";
 import { translatorsApi } from "./api/translatorsApi";
 import { subscriptionsApi } from "./api/subscriptionsApi";
+import { searchApi } from "./api/searchApi";
+import { adminApi } from "./api/adminApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
 import collectionsReducer from "./slices/collectionsSlice";
@@ -68,6 +70,8 @@ export const store = configureStore({
     [charactersApi.reducerPath]: charactersApi.reducer,
     [translatorsApi.reducerPath]: translatorsApi.reducer,
     [subscriptionsApi.reducerPath]: subscriptionsApi.reducer,
+    [searchApi.reducerPath]: searchApi.reducer,
+    [adminApi.reducerPath]: adminApi.reducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
@@ -93,6 +97,8 @@ export const store = configureStore({
       charactersApi.middleware,
       translatorsApi.middleware,
       subscriptionsApi.middleware,
+      searchApi.middleware,
+      adminApi.middleware,
     ),
 });
 

@@ -52,12 +52,14 @@ function getLastReadInfo(entry: ReadingHistoryEntry): {
 } | null {
   if (!entry) return null;
   
-  const isPopulated = typeof entry.titleId === "object";
-  const titleData = isPopulated ? entry.titleId : null;
+  const isPopulated = typeof entry.titleId === "object" && entry.titleId !== null;
+  const titleData = isPopulated
+    ? (entry.titleId as { _id: string; name?: string; title?: string; slug?: string; coverImage?: string; chapters?: { chapterNumber: number }[] })
+    : null;
   
   const titleId = isPopulated ? titleData!._id : (entry.titleId as string);
   const titleSlug = isPopulated ? titleData!.slug : undefined;
-  const titleName = isPopulated ? titleData!.name : "Неизвестный тайтл";
+  const titleName = (isPopulated ? (titleData!.name || titleData!.title) : null) || "Неизвестный тайтл";
   const coverImage = isPopulated ? (titleData!.coverImage ?? null) : null;
   
   const titleChapters = isPopulated ? (titleData!.chapters as TitleChapterInfo[] | undefined) : undefined;
@@ -65,7 +67,15 @@ function getLastReadInfo(entry: ReadingHistoryEntry): {
   
   const lastChapterData = entry.chapters?.[entry.chapters.length - 1];
   const lastChapterNumber = lastChapterData?.chapterNumber ?? 1;
-  const lastChapterId = lastChapterData?.chapterId ?? null;
+  
+  // chapterId может быть строкой или populated объектом с _id
+  const rawChapterId = lastChapterData?.chapterId;
+  const lastChapterId: string | null = rawChapterId
+    ? (typeof rawChapterId === "object" && rawChapterId !== null && "_id" in rawChapterId
+        ? (rawChapterId as { _id: string })._id
+        : String(rawChapterId))
+    : null;
+  
   const lastChapterTitle = lastChapterData?.chapterTitle ?? null;
   
   let nextChapterId: string | null = null;

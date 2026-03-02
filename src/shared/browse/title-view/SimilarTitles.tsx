@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Shuffle, Star, ChevronDown, BookOpen } from "lucide-react";
-import { useGetRecommendedTitlesQuery } from "@/store/api/titlesApi";
+import { useGetSimilarTitlesQuery, SimilarTitle as SimilarTitleType } from "@/store/api/titlesApi";
 import { normalizeAssetUrl } from "@/lib/asset-url";
 import { translateTitleType } from "@/lib/title-type-translations";
 
@@ -12,19 +12,12 @@ interface SimilarTitlesProps {
   titleId: string;
   genres?: string[];
   currentTitleSlug?: string;
+  includeAdult?: boolean;
 }
 
-interface SimilarTitle {
-  id: string;
-  title: string;
-  cover: string;
-  rating: number;
-  type: string;
-  releaseYear: number;
-  description: string;
-  isAdult: boolean;
+interface SimilarTitle extends SimilarTitleType {
+  description?: string;
   ratingCount?: number;
-  slug?: string;
 }
 
 function TitleCard({ title }: { title: SimilarTitle }) {
@@ -78,8 +71,12 @@ function TitleCard({ title }: { title: SimilarTitle }) {
   );
 }
 
-export function SimilarTitles({ titleId, genres, currentTitleSlug }: SimilarTitlesProps) {
-  const { data, isLoading, error, refetch } = useGetRecommendedTitlesQuery({ limit: 12, includeAdult: false });
+export function SimilarTitles({ titleId, genres, currentTitleSlug, includeAdult = false }: SimilarTitlesProps) {
+  const { data, isLoading, error, refetch } = useGetSimilarTitlesQuery({ 
+    id: titleId, 
+    limit: 12, 
+    includeAdult 
+  });
   const [showAll, setShowAll] = useState(false);
 
   if (isLoading) {
@@ -106,11 +103,11 @@ export function SimilarTitles({ titleId, genres, currentTitleSlug }: SimilarTitl
     return null;
   }
 
-  const filteredTitles = data.data.filter(t => t.id !== titleId);
-  if (filteredTitles.length === 0) return null;
+  const similarTitles = data.data || [];
+  if (similarTitles.length === 0) return null;
 
-  const hasMore = filteredTitles.length > 4;
-  const displayedTitles = showAll ? filteredTitles : filteredTitles.slice(0, 4);
+  const hasMore = similarTitles.length > 4;
+  const displayedTitles = showAll ? similarTitles : similarTitles.slice(0, 4);
 
   return (
     <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">
@@ -139,7 +136,7 @@ export function SimilarTitles({ titleId, genres, currentTitleSlug }: SimilarTitl
           onClick={() => setShowAll(!showAll)}
           className="flex items-center justify-center gap-1.5 w-full mt-4 py-2.5 text-sm font-medium text-[var(--primary)] bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 border border-[var(--primary)]/20 hover:border-[var(--primary)]/30 rounded-xl transition-all"
         >
-          <span>{showAll ? "Свернуть" : `Показать ещё ${filteredTitles.length - 4}`}</span>
+          <span>{showAll ? "Свернуть" : `Показать ещё ${similarTitles.length - 4}`}</span>
           <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`} />
         </button>
       )}
