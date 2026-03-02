@@ -99,6 +99,19 @@ export const shopApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: [SHOP_TAG],
   endpoints: builder => ({
+    /** Админский список украшений (может включать недоступные в магазине). */
+    getAdminDecorations: builder.query<Decoration[], void>({
+      query: () => "/shop/admin/decorations",
+      transformResponse: parseDecorationsResponse,
+      providesTags: result =>
+        Array.isArray(result)
+          ? [
+              ...result.map(({ id }) => ({ type: SHOP_TAG, id })),
+              { type: SHOP_TAG, id: "LIST" },
+            ]
+          : [{ type: SHOP_TAG, id: "LIST" }],
+    }),
+
     getDecorations: builder.query<Decoration[], void>({
       query: () => "/shop/decorations",
       transformResponse: parseDecorationsResponse,
@@ -151,8 +164,12 @@ export const shopApi = createApi({
       }
     >({
       query: ({ file, type, name, description, price, rarity, isAvailable, stock }) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7250/ingest/c0a453a6-7d03-4b94-b375-b950753b7f4a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'545edb'},body:JSON.stringify({sessionId:'545edb',location:'shopApi.ts:createDecorationWithImage',message:'upload args',data:{fileIsFile:file instanceof File,fileName:file?.name,fileSize:file instanceof File ? file.size : undefined,fileType:file instanceof File ? file.type : undefined},timestamp:Date.now(),hypothesisId:'H1-H3'})}).catch(()=>{});
+        // #endregion
         const formData = new FormData();
-        formData.append("file", file);
+        // Backend expects "file" (multer). Use explicit filename so server recognizes the part.
+        formData.append("file", file, file.name || "image");
         formData.append("type", type);
         if (name !== undefined && name !== "") formData.append("name", name);
         if (description !== undefined && description !== "") formData.append("description", description);
@@ -160,6 +177,9 @@ export const shopApi = createApi({
         if (rarity !== undefined) formData.append("rarity", rarity);
         if (isAvailable !== undefined) formData.append("isAvailable", String(isAvailable));
         if (stock !== undefined) formData.append("stock", String(stock));
+        // #region agent log
+        fetch('http://127.0.0.1:7250/ingest/c0a453a6-7d03-4b94-b375-b950753b7f4a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'545edb'},body:JSON.stringify({sessionId:'545edb',location:'shopApi.ts:createDecorationWithImage:return',message:'request config',data:{bodyIsFormData:formData instanceof FormData},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
         return {
           url: "/shop/admin/decorations/upload",
           method: "POST",
@@ -201,7 +221,8 @@ export const shopApi = createApi({
     >({
       query: ({ id, file, name, description, price, type, rarity, isAvailable, stock }) => {
         const formData = new FormData();
-        formData.append("file", file);
+        // Backend expects "file" (multer). Use explicit filename so server recognizes the part.
+        formData.append("file", file, file.name || "image");
         if (name !== undefined) formData.append("name", name);
         if (description !== undefined) formData.append("description", description);
         if (price !== undefined) formData.append("price", String(price));
@@ -264,6 +285,7 @@ export const shopApi = createApi({
 });
 
 export const {
+  useGetAdminDecorationsQuery,
   useGetDecorationsQuery,
   useGetDecorationsByTypeQuery,
   useGetUserProfileDecorationsQuery,

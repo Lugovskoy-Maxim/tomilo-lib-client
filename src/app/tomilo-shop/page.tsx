@@ -27,16 +27,16 @@ export default function TomiloShopPage() {
           <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-[var(--primary)]/5 blur-3xl" />
           <div className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-[var(--chart-1)]/5 blur-3xl" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 py-10 sm:py-14 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-sm font-medium mb-6 border border-[var(--primary)]/20">
+        <div className="relative max-w-7xl mx-auto px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+          <div className="text-center max-w-xl sm:max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs sm:text-sm font-medium mb-4 border border-[var(--primary)]/20">
               <Sparkles className="w-4 h-4" />
               Магазин украшений
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] tracking-tight mb-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--foreground)] tracking-tight mb-3">
               Персонализируйте свой профиль
             </h1>
-            <p className="text-base sm:text-lg text-[var(--muted-foreground)] leading-relaxed">
+            <p className="text-sm sm:text-base text-[var(--muted-foreground)] leading-relaxed">
               Аватары и фоны для профиля, карточки для колоды — собирайте коллекцию и выражайте
               свой стиль.
             </p>

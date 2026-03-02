@@ -62,8 +62,12 @@ export function ShopManagementSection() {
   const [deleteTarget, setDeleteTarget] = useState<Decoration | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const { data: decorations = [], isLoading, error, refetch } = useGetDecorationsQuery();
-  const [, { isLoading: isCreatingJson }] = useCreateDecorationMutation();
+  const publicDecorationsQuery = useGetDecorationsQuery();
+  const decorations = publicDecorationsQuery.data ?? [];
+  const isLoading = publicDecorationsQuery.isLoading;
+  const error = publicDecorationsQuery.error;
+  const refetch = publicDecorationsQuery.refetch;
+  const [createDecoration, { isLoading: isCreatingJson }] = useCreateDecorationMutation();
   const [createDecorationWithImage, { isLoading: isCreatingWithImage }] =
     useCreateDecorationWithImageMutation();
   const [updateDecoration, { isLoading: isUpdatingJson }] = useUpdateDecorationMutation();
@@ -166,29 +170,54 @@ export function ShopManagementSection() {
         closeForm();
         refetch();
       } else {
-        if (!imageFile) {
-          toast.error("Выберите файл изображения");
-          return;
+        if (imageFile) {
+          // #region agent log
+          fetch('http://127.0.0.1:7250/ingest/c0a453a6-7d03-4b94-b375-b950753b7f4a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'545edb'},body:JSON.stringify({sessionId:'545edb',location:'ShopManagementSection.tsx:handleSubmit',message:'before createDecorationWithImage',data:{imageFileName:imageFile?.name,imageFileSize:imageFile?.size,imageFileType:imageFile?.type},timestamp:Date.now(),hypothesisId:'H1-H2'})}).catch(()=>{});
+          // #endregion
+          await createDecorationWithImage({
+            file: imageFile,
+            type: form.type,
+            name: form.name.trim() || undefined,
+            description: form.description.trim() || undefined,
+            price: form.price,
+            rarity: form.rarity,
+            isAvailable: form.isAvailable,
+            stock: stockParam,
+          }).unwrap();
+        } else {
+          const url = form.imageUrl.trim();
+          if (!url) {
+            toast.error("Выберите файл изображения или укажите URL");
+            return;
+          }
+          await createDecoration({
+            name: form.name.trim(),
+            description: form.description.trim(),
+            price: form.price,
+            imageUrl: url,
+            type: form.type,
+            rarity: form.rarity,
+            isAvailable: form.isAvailable,
+            stock: stockParam,
+          }).unwrap();
         }
-        await createDecorationWithImage({
-          file: imageFile,
-          type: form.type,
-          name: form.name.trim() || undefined,
-          description: form.description.trim() || undefined,
-          price: form.price,
-          rarity: form.rarity,
-          isAvailable: form.isAvailable,
-          stock: stockParam,
-        }).unwrap();
         toast.success("Украшение добавлено");
         closeForm();
         refetch();
       }
     } catch (e) {
-      const msg = e && typeof e === "object" && "data" in e
-        ? String((e as { data?: { message?: string } }).data?.message ?? "Ошибка сохранения")
-        : "Ошибка сохранения";
-      toast.error(msg);
+      const err = e as { data?: unknown; error?: unknown; status?: unknown };
+      const data = err?.data as any;
+      const firstError =
+        Array.isArray(data?.errors) && data.errors.length > 0
+          ? (typeof data.errors[0] === "string" ? data.errors[0] : data.errors[0]?.message)
+          : undefined;
+      const msg =
+        (typeof data?.message === "string" && data.message) ||
+        firstError ||
+        (typeof err?.error === "string" && err.error) ||
+        "Ошибка сохранения";
+      toast.error(String(msg));
     }
   };
 
@@ -569,6 +598,23 @@ export function ShopManagementSection() {
               onChange={handleImageFileChange}
               className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[var(--primary)] file:text-[var(--primary-foreground)]"
             />
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                URL изображения (альтернатива файлу)
+              </label>
+              <input
+                type="text"
+                value={form.imageUrl}
+                onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                placeholder="https://... или /uploads/..."
+              />
+              {!editingDecoration && (
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                  Можно создать украшение без загрузки файла, если бэкенд принимает URL.
+                </p>
+              )}
+            </div>
             {(imageFile || form.imageUrl) && (
               <div className="mt-2 w-24 h-24 rounded-lg overflow-hidden bg-[var(--muted)]">
                 {imageFile ? (
