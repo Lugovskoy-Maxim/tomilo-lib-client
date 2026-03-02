@@ -22,6 +22,8 @@ interface ProfileContentProps {
   hiddenHistoryMessage?: string;
   bookmarksEmptyStateMessage?: string;
   showAchievementsPreview?: boolean;
+  /** Публичный просмотр чужого профиля - скрывает приватные компоненты */
+  isPublicView?: boolean;
 }
 
 export default function ProfileContent({
@@ -36,26 +38,29 @@ export default function ProfileContent({
   hiddenHistoryMessage,
   bookmarksEmptyStateMessage,
   showAchievementsPreview = true,
+  isPublicView = false,
 }: ProfileContentProps) {
   return (
     <div className="flex flex-col gap-4 sm:gap-6 items-stretch max-w-4xl min-w-0">
-      {/* Welcome - приветствие */}
-      <ProfileWelcome userProfile={userProfile} />
+      {/* Welcome - приветствие (только для своего профиля) */}
+      {!isPublicView && <ProfileWelcome userProfile={userProfile} />}
 
-      {/* Quick Actions - быстрые действия */}
-      <ProfileQuickActions />
+      {/* Quick Actions - быстрые действия (только для своего профиля) */}
+      {!isPublicView && <ProfileQuickActions />}
 
-      {/* Continue Reading - продолжить чтение */}
-      <ContinueReading userProfile={userProfile} />
+      {/* Continue Reading - продолжить чтение (только для своего профиля) */}
+      {!isPublicView && <ContinueReading userProfile={userProfile} />}
 
-      {/* Progress & Bonus Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Next Rank Progress - прогресс до следующего ранга */}
-        <NextRankProgress userProfile={userProfile} onShowStats={onShowStats} />
+      {/* Progress & Bonus Grid (только для своего профиля) */}
+      {!isPublicView && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Next Rank Progress - прогресс до следующего ранга */}
+          <NextRankProgress userProfile={userProfile} onShowStats={onShowStats} />
 
-        {/* Daily Bonus - ежедневный бонус */}
-        <DailyBonus userProfile={userProfile} />
-      </div>
+          {/* Daily Bonus - ежедневный бонус */}
+          <DailyBonus userProfile={userProfile} />
+        </div>
+      )}
 
       {/* Achievements preview */}
       {showAchievementsPreview && (

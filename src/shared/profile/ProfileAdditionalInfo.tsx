@@ -413,7 +413,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
         isLoading={isLinking}
       />
 
-      {userProfile.emailVerified !== true && (
+      {isOwnProfile && userProfile.emailVerified !== true && (
         <div className="mt-5 flex justify-center">
           <button
             type="button"

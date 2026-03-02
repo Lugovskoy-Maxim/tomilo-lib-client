@@ -14,7 +14,7 @@ import { Footer, Header } from "@/widgets";
 import { LoadingState } from "@/shared";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
 import { getEquippedBackgroundUrl, getDecorationImageUrl } from "@/api/shop";
-import { ProfileNav } from "@/shared/profile-tabs/ProfileNav";
+import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { ArrowLeft, User as UserIcon } from "lucide-react";
 
@@ -61,11 +61,7 @@ function transformUserToProfile(user: User): UserProfile {
   };
 }
 
-export default function UserProfileLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function UserProfileLayout() {
   const params = useParams();
   const userParam = typeof params.username === "string" ? params.username : "";
   const loadById = isMongoObjectId(userParam);
@@ -90,8 +86,9 @@ export default function UserProfileLayout({
   );
   const privacy = userProfile?.privacy;
   const isProfileRestricted = Boolean(privacy && privacy.profileVisibility !== "public");
+  const isBookmarksRestricted = Boolean(!isOwnProfile && privacy && privacy.profileVisibility !== "public");
   const isReadingHistoryRestricted = Boolean(
-    privacy && privacy.readingHistoryVisibility !== "public",
+    !isOwnProfile && privacy && privacy.readingHistoryVisibility !== "public",
   );
   const hasPrivacyNotice = isProfileRestricted || isReadingHistoryRestricted;
 
@@ -177,13 +174,13 @@ export default function UserProfileLayout({
             </div>
             <div className="relative rounded-2xl bg-[var(--background)]/55 backdrop-blur-md border border-[var(--border)]/50 shadow-xl shadow-black/5 min-h-[40vh] overflow-hidden">
               <div className="absolute inset-x-0 top-0 h-16 pointer-events-none z-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)', opacity: 0.55 }} aria-hidden />
-              <div className="relative z-10 p-4 sm:p-6 flex flex-col xl:flex-row gap-6 xl:gap-8 items-stretch xl:items-start" role="article" aria-label={`Профиль пользователя ${userProfile.username}`}>
+              <div className="relative z-10 p-4 sm:p-6 flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:items-start" role="article" aria-label={`Профиль пользователя ${userProfile.username}`}>
                 {/* Левая колонка — карточка профиля */}
-                <aside className="xl:w-72 xl:shrink-0 xl:sticky xl:top-4">
+                <aside className="lg:w-72 lg:shrink-0 lg:sticky lg:top-4">
                   <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} />
                 </aside>
                 
-                {/* Центральная часть — контент */}
+                {/* Центральная часть — контент с вкладками */}
                 <div className="flex-1 min-w-0">
                   {hasPrivacyNotice && (
                     <div className="mb-4 sm:mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[var(--foreground)]">
@@ -193,13 +190,18 @@ export default function UserProfileLayout({
                       </p>
                     </div>
                   )}
-                  {children}
+                  <ProfileTabs 
+                    userProfile={userProfile} 
+                    hideTabs={["settings", "inventory", "exchanges"]}
+                    isPublicView
+                    isBookmarksRestricted={isBookmarksRestricted}
+                    isHistoryRestricted={isReadingHistoryRestricted}
+                    breadcrumbPrefix={[
+                      { name: "Главная", href: "/" },
+                      { name: userProfile.username, href: `/user/${userParam}` },
+                    ]}
+                  />
                 </div>
-                
-                {/* Правая колонка — навигация (только на xl экранах) */}
-                <aside className="hidden xl:block xl:w-56 xl:shrink-0 xl:sticky xl:top-4">
-                  <ProfileNav hideTabs={["settings", "inventory", "exchanges"]} />
-                </aside>
               </div>
             </div>
           </div>

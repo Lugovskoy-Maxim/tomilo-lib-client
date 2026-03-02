@@ -228,12 +228,13 @@ function getSecondaryValue(user: LeaderboardUser, category: LeaderboardCategory)
 function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animationDelay = 0 }: Omit<LeaderCardProps, "variant">) {
   const [frameError, setFrameError] = useState(false);
   const [cardError, setCardError] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const [isVisible, setIsVisible] = useState(!showAnimation);
   
   const RankIcon = getRankIcon(rank)!;
   const CategoryIcon = getCategoryIcon(category);
   const styles = getRankStyles(rank);
-  const avatarUrl = user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR;
+  const avatarUrl = avatarError ? DEFAULT_AVATAR : (user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR);
   const level = user.level ?? 0;
   const frameUrl = getFrameUrl(user.equippedDecorations);
   const cardUrl = getCardUrl(user.equippedDecorations);
@@ -323,6 +324,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
               shadow-xl group-hover:shadow-2xl transition-shadow bg-[var(--secondary)]
               ${rank === 1 ? "ring-4 ring-yellow-400/30" : ""}
             `}
+            onError={() => setAvatarError(true)}
           />
           {showFrame && (
             <img
@@ -384,10 +386,11 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   const [isHovered, setIsHovered] = useState(false);
   const [frameError, setFrameError] = useState(false);
   const [cardError, setCardError] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const [isVisible, setIsVisible] = useState(!showAnimation);
   
   const CategoryIcon = getCategoryIcon(category);
-  const avatarUrl = user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR;
+  const avatarUrl = avatarError ? DEFAULT_AVATAR : (user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR);
   const level = user.level ?? 0;
   const frameUrl = getFrameUrl(user.equippedDecorations);
   const cardUrl = getCardUrl(user.equippedDecorations);
@@ -440,6 +443,7 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
             w-12 h-12 rounded-full object-cover border-2 bg-[var(--secondary)]
             ${isCurrentUser ? "border-[var(--primary)]" : "border-[var(--border)]"}
           `}
+          onError={() => setAvatarError(true)}
         />
         {showFrame && (
           <img

@@ -45,9 +45,15 @@ interface ProfileTabsProps {
   breadcrumbPrefix?: BreadcrumbItem[] | null;
   /** Скрыть вкладки (например, "settings" при просмотре чужого профиля в админке) */
   hideTabs?: ProfileTab[];
+  /** Публичный просмотр чужого профиля - скрывает приватные компоненты */
+  isPublicView?: boolean;
+  /** Закладки скрыты настройками приватности */
+  isBookmarksRestricted?: boolean;
+  /** История чтения скрыта настройками приватности */
+  isHistoryRestricted?: boolean;
 }
 
-export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: ProfileTabsProps) {
+export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicView = false, isBookmarksRestricted = false, isHistoryRestricted = false }: ProfileTabsProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -283,6 +289,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
                 onShowHistory={() => setActiveTab("history")}
                 onShowAchievements={() => setActiveTab("achievements")}
                 onShowStats={() => setActiveTab("stats")}
+                isPublicView={isPublicView}
               />
             </div>
           )}
@@ -311,23 +318,55 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
           {/* Закладки */}
           {activeTab === "bookmarks" && (
             <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
-              <BookmarksSection
-                bookmarks={userProfile.bookmarks}
-                readingHistory={userProfile.readingHistory}
-                showAll={true}
-                showSectionHeader={false}
-              />
+              {isBookmarksRestricted ? (
+                <div className="flex-1 flex items-center justify-center text-center py-12">
+                  <div className="max-w-sm">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
+                      <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <p className="text-[var(--foreground)] font-medium mb-1">Закладки скрыты</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      Пользователь ограничил доступ к своим закладкам в настройках приватности.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <BookmarksSection
+                  bookmarks={userProfile.bookmarks}
+                  readingHistory={userProfile.readingHistory}
+                  showAll={true}
+                  showSectionHeader={false}
+                />
+              )}
             </div>
           )}
 
           {/* История */}
           {activeTab === "history" && (
             <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
-              <ReadingHistorySection
-                readingHistory={userProfile.readingHistory}
-                showAll={true}
-                showSectionHeader={false}
-              />
+              {isHistoryRestricted ? (
+                <div className="flex-1 flex items-center justify-center text-center py-12">
+                  <div className="max-w-sm">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
+                      <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <p className="text-[var(--foreground)] font-medium mb-1">История чтения скрыта</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      Пользователь ограничил доступ к истории чтения в настройках приватности.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <ReadingHistorySection
+                  readingHistory={userProfile.readingHistory}
+                  showAll={true}
+                  showSectionHeader={false}
+                />
+              )}
             </div>
           )}
 
