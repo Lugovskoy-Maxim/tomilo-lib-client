@@ -30,10 +30,10 @@ import {
 import Input from "@/shared/ui/input";
 import Button from "@/shared/ui/button";
 import { useToast } from "@/hooks/useToast";
-import { useGetCommentsQuery, useDeleteCommentMutation, useUpdateCommentMutation } from "@/store/api/commentsApi";
+import { useGetCommentsQuery, useUpdateCommentMutation } from "@/store/api/commentsApi";
 import { useGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
-import { useGetCommentsStatsQuery, useBulkDeleteCommentsMutation, useUpdateCommentVisibilityMutation } from "@/store/api/adminApi";
+import { useGetCommentsStatsQuery, useBulkDeleteCommentsMutation, useUpdateCommentVisibilityMutation, useDeleteCommentMutation } from "@/store/api/adminApi";
 import { getTitlePath } from "@/lib/title-paths";
 import { Comment, CommentEntityType, CommentReactionCount } from "@/types/comment";
 import { ConfirmModal, AdminModal } from "./ui";
