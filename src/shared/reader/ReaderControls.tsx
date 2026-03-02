@@ -174,6 +174,8 @@ export default function ReaderControls({
   const startTimeRef = useRef<number>(Date.now());
   
   useEffect(() => {
+    // Сбрасываем таймер при смене главы
+    setReadingTime(0);
     startTimeRef.current = Date.now();
     
     timerRef.current = setInterval(() => {
@@ -316,691 +318,584 @@ export default function ReaderControls({
           {/* Десктопная панель */}
           <div className="absolute inset-y-0 right-0 w-[400px] lg:w-[420px] bg-[var(--card)] border-l border-[var(--border)] shadow-2xl sm:flex hidden flex-col animate-in slide-in-from-right duration-300">
             {/* Заголовок */}
-            <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-gradient-to-r from-[var(--primary)]/5 to-transparent">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
-                  <Settings className="w-5 h-5 text-[var(--primary)]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-base">Настройки чтения</h3>
-                  <p className="text-xs text-[var(--muted-foreground)]">Персонализируйте опыт чтения</p>
-                </div>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
+              <span className="font-semibold text-base">Настройки читалки</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={resetToDefaults}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] rounded-lg transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Сбросить
+                </button>
+                <button
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </button>
               </div>
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors"
-              >
-                <X className="w-5 h-5 text-[var(--muted-foreground)]" />
-              </button>
             </div>
 
             {/* Контент */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
               
-              {/* Быстрые настройки */}
+              {/* Режим чтения */}
               <div className="space-y-3">
-                <div className="grid grid-cols-3 gap-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Режим чтения</span>
+                <div className="flex bg-[var(--secondary)] rounded-xl p-1">
                   <button
-                    onClick={() => setReadingMode(readingMode === "feed" ? "paged" : "feed")}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
-                      readingMode === "feed" 
-                        ? "border-[var(--primary)] bg-[var(--primary)]/5" 
-                        : "border-[var(--border)] hover:border-[var(--primary)]/50"
+                    onClick={() => setReadingMode("feed")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      readingMode === "feed"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      readingMode === "feed" ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
-                    }`}>
-                      <List className="w-4 h-4" />
-                    </div>
-                    <div className="text-center">
-                      <span className="text-xs font-medium block">{readingMode === "feed" ? "Лента" : "Страницы"}</span>
-                      <span className="text-[9px] text-[var(--muted-foreground)]">
-                        {readingMode === "feed" ? "Скролл вниз" : "По одной"}
-                      </span>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-4 h-3 border border-current rounded-sm flex flex-col justify-center gap-0.5 px-0.5">
+                        <div className="h-0.5 bg-current rounded-full" />
+                      </div>
                     </div>
                   </button>
-
                   <button
-                    onClick={() => setInfiniteScroll(!infiniteScroll)}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
-                      infiniteScroll 
-                        ? "border-[var(--primary)] bg-[var(--primary)]/5" 
-                        : "border-[var(--border)] hover:border-[var(--primary)]/50"
+                    onClick={() => setReadingMode("paged")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      readingMode === "paged"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      infiniteScroll ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
-                    }`}>
-                      <Infinity className="w-4 h-4" />
-                    </div>
-                    <div className="text-center">
-                      <span className="text-xs font-medium block">Бесконечно</span>
-                      <span className="text-[9px] text-[var(--muted-foreground)]">
-                        {infiniteScroll ? "Главы подряд" : "Одна глава"}
-                      </span>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex gap-0.5">
+                        <div className="w-2 h-3 border border-current rounded-sm" />
+                        <div className="w-2 h-3 border border-current rounded-sm opacity-50" />
+                      </div>
                     </div>
                   </button>
-
-                  <button
-                    onClick={toggleInstantContinue}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
-                      instantContinue 
-                        ? "border-[var(--primary)] bg-[var(--primary)]/5" 
-                        : "border-[var(--border)] hover:border-[var(--primary)]/50"
-                    }`}
-                  >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      instantContinue ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
-                    }`}>
-                      <Play className="w-4 h-4" />
-                    </div>
-                    <div className="text-center">
-                      <span className="text-xs font-medium block">Мгновенно</span>
-                      <span className="text-[9px] text-[var(--muted-foreground)]">
-                        {instantContinue ? "Без окна" : "С окном"}
-                      </span>
-                    </div>
-                  </button>
-                </div>
-                
-                {/* Подсказки */}
-                <div className="text-[10px] text-[var(--muted-foreground)] bg-[var(--secondary)]/50 rounded-xl p-3 space-y-1">
-                  <p><span className="font-medium text-[var(--foreground)]">Лента/Страницы:</span> скролл всех страниц или листание по одной</p>
-                  <p><span className="font-medium text-[var(--foreground)]">Бесконечно:</span> автоматическая загрузка следующей главы при прокрутке</p>
-                  <p><span className="font-medium text-[var(--foreground)]">Мгновенно:</span> продолжать чтение без показа окна выбора позиции</p>
                 </div>
               </div>
 
-              {/* Изображения */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-[var(--primary)] rounded-full" />
-                  <h4 className="font-semibold text-sm">Изображения</h4>
-                </div>
-
-                {/* Ширина */}
-                {onImageWidthChange && (
-                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Ширина</span>
-                      <span className="text-xs text-[var(--muted-foreground)] bg-[var(--muted)] px-2 py-1 rounded-lg">{imageWidth}px</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="768"
-                      max="1440"
-                      step="64"
-                      value={imageWidth}
-                      onChange={e => onImageWidthChange(Number(e.target.value))}
-                      className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-[var(--primary)]"
-                    />
+              {/* Переключатели */}
+              <div className="space-y-1">
+                {/* Все главы подряд */}
+                <button
+                  onClick={() => setInfiniteScroll(!infiniteScroll)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Infinity className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Все главы подряд</span>
                   </div>
-                )}
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${infiniteScroll ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${infiniteScroll ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
 
-                {/* Яркость и контраст */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Sun className="w-4 h-4 text-yellow-500" />
-                        <span className="text-xs font-medium">Яркость</span>
+                {/* Полноэкранный режим (автоскрытие меню) */}
+                <button
+                  onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg className="w-5 h-5 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    <span className="text-sm">Полноэкранный режим</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${hideBottomMenuSetting ? "bg-[var(--muted)]" : "bg-[var(--primary)]"}`}>
+                    {hideBottomMenuSetting ? (
+                      <div className="absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-sm flex items-center justify-center">
+                        <X className="w-3 h-3 text-[var(--muted-foreground)]" />
                       </div>
-                      <span className="text-[10px] text-[var(--muted-foreground)]">{brightness}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="50"
-                      max="150"
-                      step="5"
-                      value={brightness}
-                      onChange={e => setBrightness(Number(e.target.value))}
-                      className="w-full h-1.5 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-yellow-500"
-                    />
-                  </div>
-
-                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Contrast className="w-4 h-4 text-blue-500" />
-                        <span className="text-xs font-medium">Контраст</span>
+                    ) : (
+                      <div className="absolute top-1 right-1 w-5 h-5 bg-white rounded-full shadow-sm flex items-center justify-center">
+                        <svg className="w-3 h-3 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
                       </div>
-                      <span className="text-[10px] text-[var(--muted-foreground)]">{contrast}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="50"
-                      max="150"
-                      step="5"
-                      value={contrast}
-                      onChange={e => setContrast(Number(e.target.value))}
-                      className="w-full h-1.5 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-blue-500"
-                    />
+                    )}
                   </div>
-                </div>
+                </button>
 
-                {/* Защита глаз */}
-                <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Eye className="w-4 h-4 text-[var(--muted-foreground)]" />
-                    <span className="text-sm font-medium">Режим защиты глаз</span>
+                {/* Нумерация страниц */}
+                <button
+                  onClick={() => setShowPageCounter(!showPageCounter)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <List className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Нумерация страниц</span>
                   </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {([
-                      { mode: "off", label: "Выкл", bg: "bg-white", ring: "ring-gray-200" },
-                      { mode: "warm", label: "Тёплый", bg: "bg-gradient-to-br from-orange-100 to-orange-200", ring: "ring-orange-300" },
-                      { mode: "sepia", label: "Сепия", bg: "bg-gradient-to-br from-amber-100 to-amber-200", ring: "ring-amber-300" },
-                      { mode: "dark", label: "Тёмный", bg: "bg-gradient-to-br from-gray-700 to-gray-900", ring: "ring-gray-500" },
-                    ] as const).map(({ mode, label, bg, ring }) => (
-                      <button
-                        key={mode}
-                        onClick={() => setEyeComfortMode(mode)}
-                        className={`relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
-                          eyeComfortMode === mode
-                            ? `ring-2 ${ring} scale-105 shadow-lg`
-                            : "hover:scale-105"
-                        }`}
-                      >
-                        <div className={`w-10 h-10 rounded-xl ${bg} shadow-sm`} />
-                        <span className={`text-[10px] font-medium ${eyeComfortMode === mode ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}>
-                          {label}
-                        </span>
-                        {eyeComfortMode === mode && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-[var(--primary)] rounded-full flex items-center justify-center">
-                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                    ))}
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showPageCounter ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showPageCounter ? "translate-x-6" : "translate-x-1"}`} />
                   </div>
-                </div>
+                </button>
 
-                {/* Подгонка и отступы */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
-                    <span className="text-xs font-medium">Подгонка</span>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {([
-                        { mode: "width", label: "По ширине" },
-                        { mode: "height", label: "По высоте" },
-                        { mode: "auto", label: "Авто" },
-                        { mode: "original", label: "Оригинал" },
-                      ] as const).map(({ mode, label }) => (
-                        <button
-                          key={mode}
-                          onClick={() => setFitMode(mode)}
-                          className={`px-2 py-1.5 text-[10px] rounded-lg transition-all ${
-                            fitMode === mode
-                              ? "bg-[var(--primary)] text-white font-medium shadow-md"
-                              : "bg-[var(--muted)] hover:bg-[var(--accent)]"
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
+                {/* Показывать прогресс */}
+                <button
+                  onClick={() => setShowProgress(!showProgress)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Percent className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Показывать прогресс</span>
                   </div>
-
-                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium">Отступ</span>
-                      <span className="text-[10px] text-[var(--muted-foreground)]">{pageGap}px</span>
-                    </div>
-                    <div className="flex gap-1.5">
-                      {[0, 20, 40, 60].map(gap => (
-                        <button
-                          key={gap}
-                          onClick={() => setPageGap(gap)}
-                          className={`flex-1 py-1.5 text-[10px] rounded-lg transition-all ${
-                            pageGap === gap
-                              ? "bg-[var(--primary)] text-white font-medium"
-                              : "bg-[var(--muted)] hover:bg-[var(--accent)]"
-                          }`}
-                        >
-                          {gap}
-                        </button>
-                      ))}
-                    </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showProgress ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showProgress ? "translate-x-6" : "translate-x-1"}`} />
                   </div>
-                </div>
-              </div>
+                </button>
 
-              {/* Автопрокрутка */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-[var(--accent)] rounded-full" />
-                  <h4 className="font-semibold text-sm">Автопрокрутка</h4>
-                </div>
-
-                <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium">Скорость</span>
-                    <span className="text-xs px-2 py-0.5 bg-[var(--muted)] rounded-full">
-                      {autoScrollSpeed === "slow" ? "Медленно" : autoScrollSpeed === "medium" ? "Средне" : "Быстро"}
-                    </span>
+                {/* Таймер чтения */}
+                <button
+                  onClick={() => setShowTimer(!showTimer)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Timer className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Время чтения</span>
                   </div>
-                  <div className="flex gap-2">
-                    {(["slow", "medium", "fast"] as const).map(speed => (
-                      <button
-                        key={speed}
-                        onClick={() => setAutoScrollSpeed(speed)}
-                        className={`flex-1 py-2.5 text-xs rounded-xl transition-all ${
-                          autoScrollSpeed === speed
-                            ? "bg-[var(--primary)] text-white font-medium shadow-md"
-                            : "bg-[var(--muted)] hover:bg-[var(--accent)]"
-                        }`}
-                      >
-                        {speed === "slow" ? "🐢" : speed === "medium" ? "🚶" : "🏃"}
-                      </button>
-                    ))}
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showTimer ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showTimer ? "translate-x-6" : "translate-x-1"}`} />
                   </div>
-                </div>
-              </div>
-
-              {/* Интерфейс */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-green-500 rounded-full" />
-                  <h4 className="font-semibold text-sm">Интерфейс</h4>
-                </div>
-
-                <div className="space-y-2">
-                  {/* Быстрые переключатели */}
-                  <div className="grid grid-cols-3 gap-2 p-3 bg-[var(--secondary)]/50 rounded-2xl">
-                    <button
-                      onClick={() => setShowTimer(!showTimer)}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
-                        showTimer ? "bg-[var(--primary)]/15 ring-2 ring-[var(--primary)]" : "bg-[var(--card)] hover:bg-[var(--muted)]"
-                      }`}
-                    >
-                      <Timer className={`w-5 h-5 ${showTimer ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
-                      <span className="text-xs font-medium">Таймер</span>
-                    </button>
-                    <button
-                      onClick={() => setShowProgress(!showProgress)}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
-                        showProgress ? "bg-[var(--primary)]/15 ring-2 ring-[var(--primary)]" : "bg-[var(--card)] hover:bg-[var(--muted)]"
-                      }`}
-                    >
-                      <Percent className={`w-5 h-5 ${showProgress ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
-                      <span className="text-xs font-medium">Прогресс</span>
-                    </button>
-                    <button
-                      onClick={() => setShowHints(!showHints)}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
-                        showHints ? "bg-[var(--primary)]/15 ring-2 ring-[var(--primary)]" : "bg-[var(--card)] hover:bg-[var(--muted)]"
-                      }`}
-                    >
-                      <Eye className={`w-5 h-5 ${showHints ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
-                      <span className="text-xs font-medium">Подсказки</span>
-                    </button>
-                  </div>
-
-                  {/* Счётчик страниц */}
-                  <button
-                    onClick={() => setShowPageCounter(!showPageCounter)}
-                    className="w-full flex items-center justify-between p-4 bg-[var(--secondary)]/50 rounded-2xl hover:bg-[var(--secondary)] transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[var(--muted)] flex items-center justify-center">
-                        <span className="text-xs font-bold">1/9</span>
-                      </div>
-                      <span className="text-sm">Счётчик страниц</span>
-                    </div>
-                    <div className={`w-10 h-6 rounded-full transition-colors ${showPageCounter ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
-                      <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform mt-0.5 ${showPageCounter ? "translate-x-4.5 ml-0.5" : "ml-0.5"}`} />
-                    </div>
-                  </button>
-
-                  {/* Автоскрытие меню */}
-                  <button
-                    onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
-                    className="w-full flex items-center justify-between p-4 bg-[var(--secondary)]/50 rounded-2xl hover:bg-[var(--secondary)] transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[var(--muted)] flex items-center justify-center">
-                        <Eye className="w-4 h-4" />
-                      </div>
-                      <span className="text-sm">Автоскрытие меню</span>
-                    </div>
-                    <div className={`w-10 h-6 rounded-full transition-colors ${hideBottomMenuSetting ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
-                      <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform mt-0.5 ${hideBottomMenuSetting ? "translate-x-4.5 ml-0.5" : "ml-0.5"}`} />
-                    </div>
-                  </button>
-
-                  {/* Тема */}
-                  <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl">
-                    <span className="text-sm font-medium block mb-3">Тема оформления</span>
-                    <ThemeToggleGroup />
-                  </div>
-                </div>
-              </div>
-
-              {/* Предзагрузка */}
-              {onPreloadChange && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-5 bg-purple-500 rounded-full" />
-                    <h4 className="font-semibold text-sm">Загрузка</h4>
-                  </div>
-
-                  <button
-                    onClick={() => onPreloadChange(!preloadAllImages)}
-                    className={`w-full p-4 rounded-2xl border-2 transition-all ${
-                      preloadAllImages 
-                        ? "border-[var(--primary)] bg-[var(--primary)]/5" 
-                        : "border-[var(--border)] hover:border-[var(--primary)]/50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        preloadAllImages ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
-                      }`}>
-                        {preloadAllImages ? <Download className="w-5 h-5" /> : <Wifi className="w-5 h-5" />}
-                      </div>
-                      <div className="flex-1 text-left">
-                        <div className="text-sm font-medium">Предзагрузка главы</div>
-                        <div className="text-xs text-[var(--muted-foreground)]">
-                          {preloadAllImages ? "Загружает все страницы сразу" : "Для нестабильного интернета"}
-                        </div>
-                      </div>
-                      {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
-                        <div className="w-10 h-10 relative">
-                          <svg className="w-10 h-10 -rotate-90">
-                            <circle cx="20" cy="20" r="16" fill="none" stroke="var(--muted)" strokeWidth="3" />
-                            <circle 
-                              cx="20" cy="20" r="16" fill="none" stroke="var(--primary)" strokeWidth="3"
-                              strokeDasharray={`${preloadProgress} 100`}
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold">{preloadProgress}%</span>
-                        </div>
-                      )}
-                      {preloadAllImages && preloadProgress === 100 && (
-                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Футер */}
-            <div className="p-5 border-t border-[var(--border)] bg-[var(--secondary)]/30">
-              <button
-                onClick={resetToDefaults}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--muted)] hover:bg-[var(--accent)] rounded-xl text-sm font-medium transition-colors"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Сбросить все настройки
-              </button>
-            </div>
-          </div>
-
-          {/* Мобильная панель */}
-          <div className="sm:hidden fixed inset-x-0 bottom-0 max-h-[85vh] bg-[var(--card)] border-t border-[var(--border)] shadow-2xl z-[70] overflow-hidden rounded-t-3xl animate-in slide-in-from-bottom duration-300 flex flex-col">
-            {/* Ручка */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-12 h-1.5 bg-[var(--muted)] rounded-full" />
-            </div>
-
-            {/* Заголовок */}
-            <div className="flex items-center justify-between px-5 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
-                  <Settings className="w-4 h-4 text-[var(--primary)]" />
-                </div>
-                <span className="font-semibold">Настройки</span>
-              </div>
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-xl"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Контент */}
-            <div className="flex-1 overflow-y-auto px-5 pb-8 space-y-5">
-              {/* Быстрые действия */}
-              <div className="space-y-3">
-                <div className="grid grid-cols-4 gap-2">
-                  <button
-                    onClick={() => setReadingMode(readingMode === "feed" ? "paged" : "feed")}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
-                      readingMode === "feed" ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--secondary)]"
-                    }`}
-                  >
-                    <List className="w-5 h-5" />
-                    <span className="text-[10px] font-medium">{readingMode === "feed" ? "Лента" : "Стр."}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setInfiniteScroll(!infiniteScroll)}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
-                      infiniteScroll ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--secondary)]"
-                    }`}
-                  >
-                    <Infinity className="w-5 h-5" />
-                    <span className="text-[10px] font-medium">{infiniteScroll ? "Вкл" : "Выкл"}</span>
-                  </button>
-
-                  <button
-                    onClick={toggleInstantContinue}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
-                      instantContinue ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--secondary)]"
-                    }`}
-                  >
-                    <Play className="w-5 h-5" />
-                    <span className="text-[10px] font-medium">{instantContinue ? "Вкл" : "Выкл"}</span>
-                  </button>
-
-                  <button
-                    onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
-                      hideBottomMenuSetting ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--secondary)]"
-                    }`}
-                  >
-                    <Eye className="w-5 h-5" />
-                    <span className="text-[10px] font-medium">Меню</span>
-                  </button>
-                </div>
-                
-                {/* Подсказки - мобильная версия */}
-                <div className="text-[9px] text-[var(--muted-foreground)] bg-[var(--secondary)]/50 rounded-xl p-2.5 grid grid-cols-2 gap-x-3 gap-y-1">
-                  <p><span className="font-medium">Лента:</span> скролл страниц</p>
-                  <p><span className="font-medium">∞:</span> главы подряд</p>
-                  <p><span className="font-medium">▶:</span> без окна выбора</p>
-                  <p><span className="font-medium">Меню:</span> автоскрытие</p>
-                </div>
-              </div>
-
-              {/* Яркость/Контраст */}
-              <div className="space-y-3">
-                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Изображения</span>
-                
-                <div className="p-4 bg-[var(--secondary)]/50 rounded-2xl space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Sun className="w-4 h-4 text-yellow-500" />
-                        <span className="text-xs">Яркость</span>
-                      </div>
-                      <span className="text-xs text-[var(--muted-foreground)]">{brightness}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="50"
-                      max="150"
-                      step="5"
-                      value={brightness}
-                      onChange={e => setBrightness(Number(e.target.value))}
-                      className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-yellow-500"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Contrast className="w-4 h-4 text-blue-500" />
-                        <span className="text-xs">Контраст</span>
-                      </div>
-                      <span className="text-xs text-[var(--muted-foreground)]">{contrast}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="50"
-                      max="150"
-                      step="5"
-                      value={contrast}
-                      onChange={e => setContrast(Number(e.target.value))}
-                      className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer accent-blue-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Защита глаз - мобильная */}
-                <div className="grid grid-cols-4 gap-2">
-                  {([
-                    { mode: "off", label: "Выкл", bg: "bg-white" },
-                    { mode: "warm", label: "Тёплый", bg: "bg-orange-100" },
-                    { mode: "sepia", label: "Сепия", bg: "bg-amber-100" },
-                    { mode: "dark", label: "Тёмный", bg: "bg-gray-800" },
-                  ] as const).map(({ mode, label, bg }) => (
-                    <button
-                      key={mode}
-                      onClick={() => setEyeComfortMode(mode)}
-                      className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all ${
-                        eyeComfortMode === mode ? "ring-2 ring-[var(--primary)] scale-105" : ""
-                      }`}
-                    >
-                      <div className={`w-8 h-8 rounded-lg ${bg} shadow-sm`} />
-                      <span className="text-[9px]">{label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Отступы */}
-                <div className="flex gap-2">
-                  {[0, 20, 40, 60].map(gap => (
-                    <button
-                      key={gap}
-                      onClick={() => setPageGap(gap)}
-                      className={`flex-1 py-2.5 text-xs rounded-xl transition-all ${
-                        pageGap === gap
-                          ? "bg-[var(--primary)] text-white font-medium"
-                          : "bg-[var(--secondary)]"
-                      }`}
-                    >
-                      {gap}px
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Автопрокрутка */}
-              <div className="space-y-3">
-                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Автопрокрутка</span>
-                <div className="flex gap-2">
-                  {(["slow", "medium", "fast"] as const).map(speed => (
-                    <button
-                      key={speed}
-                      onClick={() => setAutoScrollSpeed(speed)}
-                      className={`flex-1 py-3 rounded-xl transition-all ${
-                        autoScrollSpeed === speed
-                          ? "bg-[var(--primary)] text-white"
-                          : "bg-[var(--secondary)]"
-                      }`}
-                    >
-                      <span className="text-lg">{speed === "slow" ? "🐢" : speed === "medium" ? "🚶" : "🏃"}</span>
-                    </button>
-                  ))}
-                </div>
+                </button>
               </div>
 
               {/* Тема */}
               <div className="space-y-3">
-                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Тема</span>
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Тема</span>
                 <ThemeToggleGroup />
+              </div>
+
+              {/* Вмещать изображения */}
+              <div className="space-y-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Вмещать изображения</span>
+                <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+                  <button
+                    onClick={() => setFitMode("width")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      fitMode === "width"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
+                    }`}
+                  >
+                    По ширине
+                  </button>
+                  <button
+                    onClick={() => setFitMode("height")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      fitMode === "height"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
+                    }`}
+                  >
+                    По высоте
+                  </button>
+                </div>
+              </div>
+
+              {/* Показать меню */}
+              {onHideBottomMenuChange && (
+                <div className="space-y-3">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Показать меню</span>
+                  <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+                    <button
+                      onClick={() => onHideBottomMenuChange(false)}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        !hideBottomMenuSetting
+                          ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                          : "text-[var(--muted-foreground)]"
+                      }`}
+                    >
+                      Скроллом
+                    </button>
+                    <button
+                      onClick={() => onHideBottomMenuChange(true)}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        hideBottomMenuSetting
+                          ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                          : "text-[var(--muted-foreground)]"
+                      }`}
+                    >
+                      Только кликом
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Ширина контейнера */}
+              {onImageWidthChange && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Ширина контейнера</span>
+                    <span className="text-sm font-medium text-[var(--primary)]">{imageWidth} PX</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="320"
+                    max="1440"
+                    step="20"
+                    value={imageWidth}
+                    onChange={e => onImageWidthChange(Number(e.target.value))}
+                    className="w-full h-1.5 bg-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                  />
+                </div>
+              )}
+
+              {/* Яркость изображений */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Яркость изображений</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">{brightness}</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="5"
+                  value={brightness}
+                  onChange={e => setBrightness(Number(e.target.value))}
+                  className="w-full h-1.5 bg-gradient-to-r from-[var(--muted)] via-[var(--primary)] to-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                />
+              </div>
+
+              {/* Скорость автопрокрутки */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Скорость автопрокрутки</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">
+                    {autoScrollSpeed === "slow" ? "МЕДЛЕННО" : autoScrollSpeed === "medium" ? "СРЕДНЕ" : "БЫСТРО"}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="1"
+                  value={autoScrollSpeed === "slow" ? 0 : autoScrollSpeed === "medium" ? 1 : 2}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setAutoScrollSpeed(val === 0 ? "slow" : val === 1 ? "medium" : "fast");
+                  }}
+                  className="w-full h-1.5 bg-gradient-to-r from-[var(--muted)] via-[var(--primary)] to-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                />
               </div>
 
               {/* Предзагрузка */}
               {onPreloadChange && (
                 <button
                   onClick={() => onPreloadChange(!preloadAllImages)}
-                  className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all ${
-                    preloadAllImages ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]" : "bg-[var(--secondary)]"
-                  }`}
+                  className="w-full flex items-center justify-between py-3.5 border-t border-[var(--border)]/50"
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    preloadAllImages ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
-                  }`}>
-                    {preloadAllImages ? <Download className="w-5 h-5" /> : <Wifi className="w-5 h-5" />}
-                  </div>
-                  <div className="flex-1 text-left">
-                    <div className="text-sm font-medium">Предзагрузка</div>
-                    <div className="text-xs text-[var(--muted-foreground)]">
-                      {preloadAllImages ? `${preloadProgress}% загружено` : "Для слабого интернета"}
+                  <div className="flex items-center gap-3">
+                    <Download className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <div className="text-left">
+                      <span className="text-sm block">Предзагрузка главы</span>
+                      {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
+                        <span className="text-xs text-[var(--muted-foreground)]">{preloadProgress}% загружено</span>
+                      )}
                     </div>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${preloadAllImages ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${preloadAllImages ? "translate-x-6" : "translate-x-1"}`} />
                   </div>
                 </button>
               )}
+            </div>
+          </div>
 
-              {/* Интерфейс */}
+          {/* Мобильная панель */}
+          <div className="sm:hidden fixed inset-x-0 bottom-0 max-h-[90vh] bg-[var(--card)] border-t border-[var(--border)] shadow-2xl z-[70] overflow-hidden rounded-t-3xl animate-in slide-in-from-bottom duration-300 flex flex-col">
+            {/* Ручка */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-[var(--muted-foreground)]/30 rounded-full" />
+            </div>
+
+            {/* Заголовок */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
+              <span className="font-semibold text-base">Настройки читалки</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={resetToDefaults}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] rounded-lg transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Сбросить
+                </button>
+                <button
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Контент */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+              
+              {/* Режим чтения */}
               <div className="space-y-3">
-                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Интерфейс</span>
-                <div className="grid grid-cols-3 gap-2">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Режим чтения</span>
+                <div className="flex bg-[var(--secondary)] rounded-xl p-1">
                   <button
-                    onClick={() => setShowTimer(!showTimer)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
-                      showTimer ? "bg-[var(--primary)]/10 ring-2 ring-[var(--primary)]" : "bg-[var(--secondary)]"
+                    onClick={() => setReadingMode("feed")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      readingMode === "feed"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    <Timer className={`w-5 h-5 ${showTimer ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
-                    <div className="text-center">
-                      <div className="text-[10px] font-medium">Таймер</div>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-4 h-3 border border-current rounded-sm flex flex-col justify-center gap-0.5 px-0.5">
+                        <div className="h-0.5 bg-current rounded-full" />
+                      </div>
                     </div>
                   </button>
                   <button
-                    onClick={() => setShowProgress(!showProgress)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
-                      showProgress ? "bg-[var(--primary)]/10 ring-2 ring-[var(--primary)]" : "bg-[var(--secondary)]"
+                    onClick={() => setReadingMode("paged")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      readingMode === "paged"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    <Percent className={`w-5 h-5 ${showProgress ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
-                    <div className="text-center">
-                      <div className="text-[10px] font-medium">Прогресс</div>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setShowHints(!showHints)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
-                      showHints ? "bg-[var(--primary)]/10 ring-2 ring-[var(--primary)]" : "bg-[var(--secondary)]"
-                    }`}
-                  >
-                    <Eye className={`w-5 h-5 ${showHints ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
-                    <div className="text-center">
-                      <div className="text-[10px] font-medium">Подсказки</div>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex gap-0.5">
+                        <div className="w-2 h-3 border border-current rounded-sm" />
+                        <div className="w-2 h-3 border border-current rounded-sm opacity-50" />
+                      </div>
                     </div>
                   </button>
                 </div>
               </div>
 
-              {/* Сброс */}
-              <button
-                onClick={resetToDefaults}
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-[var(--muted)] hover:bg-[var(--accent)] rounded-xl text-sm font-medium transition-colors active:scale-95"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Сбросить настройки
-              </button>
+              {/* Переключатели */}
+              <div className="space-y-1">
+                {/* Все главы подряд */}
+                <button
+                  onClick={() => setInfiniteScroll(!infiniteScroll)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Infinity className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Все главы подряд</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${infiniteScroll ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${infiniteScroll ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+
+                {/* Полноэкранный режим (автоскрытие меню) */}
+                <button
+                  onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg className="w-5 h-5 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    <span className="text-sm">Полноэкранный режим</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${hideBottomMenuSetting ? "bg-[var(--muted)]" : "bg-[var(--primary)]"}`}>
+                    {hideBottomMenuSetting ? (
+                      <div className="absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-sm flex items-center justify-center">
+                        <X className="w-3 h-3 text-[var(--muted-foreground)]" />
+                      </div>
+                    ) : (
+                      <div className="absolute top-1 right-1 w-5 h-5 bg-white rounded-full shadow-sm flex items-center justify-center">
+                        <svg className="w-3 h-3 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                {/* Нумерация страниц */}
+                <button
+                  onClick={() => setShowPageCounter(!showPageCounter)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <List className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Нумерация страниц</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showPageCounter ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showPageCounter ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+
+                {/* Показывать прогресс */}
+                <button
+                  onClick={() => setShowProgress(!showProgress)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Percent className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Показывать прогресс</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showProgress ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showProgress ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+
+                {/* Таймер чтения */}
+                <button
+                  onClick={() => setShowTimer(!showTimer)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Timer className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Время чтения</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showTimer ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showTimer ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+              </div>
+
+              {/* Тема */}
+              <div className="space-y-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Тема</span>
+                <ThemeToggleGroup />
+              </div>
+
+              {/* Вмещать изображения */}
+              <div className="space-y-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Вмещать изображения</span>
+                <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+                  <button
+                    onClick={() => setFitMode("width")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      fitMode === "width"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
+                    }`}
+                  >
+                    По ширине
+                  </button>
+                  <button
+                    onClick={() => setFitMode("height")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      fitMode === "height"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
+                    }`}
+                  >
+                    По высоте
+                  </button>
+                </div>
+              </div>
+
+              {/* Показать меню */}
+              {onHideBottomMenuChange && (
+                <div className="space-y-3">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Показать меню</span>
+                  <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+                    <button
+                      onClick={() => onHideBottomMenuChange(false)}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        !hideBottomMenuSetting
+                          ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                          : "text-[var(--muted-foreground)]"
+                      }`}
+                    >
+                      Скроллом
+                    </button>
+                    <button
+                      onClick={() => onHideBottomMenuChange(true)}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        hideBottomMenuSetting
+                          ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                          : "text-[var(--muted-foreground)]"
+                      }`}
+                    >
+                      Только кликом
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Ширина контейнера */}
+              {onImageWidthChange && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Ширина контейнера</span>
+                    <span className="text-sm font-medium text-[var(--primary)]">{imageWidth} PX</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="320"
+                    max="1440"
+                    step="20"
+                    value={imageWidth}
+                    onChange={e => onImageWidthChange(Number(e.target.value))}
+                    className="w-full h-1.5 bg-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                  />
+                </div>
+              )}
+
+              {/* Яркость изображений */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Яркость изображений</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">{brightness}</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="5"
+                  value={brightness}
+                  onChange={e => setBrightness(Number(e.target.value))}
+                  className="w-full h-1.5 bg-gradient-to-r from-[var(--muted)] via-[var(--primary)] to-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                />
+              </div>
+
+              {/* Скорость автопрокрутки */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Скорость автопрокрутки</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">
+                    {autoScrollSpeed === "slow" ? "МЕДЛЕННО" : autoScrollSpeed === "medium" ? "СРЕДНЕ" : "БЫСТРО"}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="1"
+                  value={autoScrollSpeed === "slow" ? 0 : autoScrollSpeed === "medium" ? 1 : 2}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setAutoScrollSpeed(val === 0 ? "slow" : val === 1 ? "medium" : "fast");
+                  }}
+                  className="w-full h-1.5 bg-gradient-to-r from-[var(--muted)] via-[var(--primary)] to-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                />
+              </div>
+
+              {/* Предзагрузка */}
+              {onPreloadChange && (
+                <button
+                  onClick={() => onPreloadChange(!preloadAllImages)}
+                  className="w-full flex items-center justify-between py-3.5 border-t border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Download className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <div className="text-left">
+                      <span className="text-sm block">Предзагрузка главы</span>
+                      {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
+                        <span className="text-xs text-[var(--muted-foreground)]">{preloadProgress}% загружено</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${preloadAllImages ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${preloadAllImages ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+              )}
+
             </div>
           </div>
         </div>
@@ -1459,7 +1354,11 @@ export default function ReaderControls({
                       <div className={`font-medium truncate ${
                         chapter._id === currentChapter._id ? "text-[var(--primary)]" : "text-[var(--foreground)]"
                       }`}>
-                        {chapter.title || `Глава ${chapter.number}`}
+                        {chapter.title && 
+                         chapter.title !== String(chapter.number) && 
+                         !chapter.title.toLowerCase().match(/^глава\s*\d+$/)
+                          ? chapter.title 
+                          : `Глава ${chapter.number}`}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-0.5">
                         <span>{chapter.date ? new Date(chapter.date).toLocaleDateString('ru-RU') : ''}</span>

@@ -72,11 +72,16 @@ export default function ControlsPanel({
             onChange={e => router.push(`/titles/${title.slug}/chapter/${e.target.value}`)}
             className="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] min-w-[120px]"
           >
-            {chapters.map(ch => (
-              <option key={ch._id} value={ch._id || ch.number}>
-                Глава {ch.number} {ch.title && `- ${ch.title}`}
-              </option>
-            ))}
+            {chapters.map(ch => {
+              const showTitle = ch.title && 
+                ch.title !== String(ch.number) && 
+                !ch.title.toLowerCase().match(/^глава\s*\d+$/);
+              return (
+                <option key={ch._id} value={ch._id || ch.number}>
+                  Глава {ch.number}{showTitle ? ` - ${ch.title}` : ''}
+                </option>
+              );
+            })}
           </select>
 
           <button

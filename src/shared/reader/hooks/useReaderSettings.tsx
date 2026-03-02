@@ -68,8 +68,8 @@ const DEFAULT_SETTINGS = {
   fitMode: "width" as FitMode,
   readingDirection: "ltr" as ReadingDirection,
   infiniteScroll: false,
-  showTimer: true,
-  showHints: true,
+  showTimer: false,
+  showHints: false,
   showProgress: true,
 };
 

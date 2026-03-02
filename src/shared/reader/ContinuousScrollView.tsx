@@ -39,8 +39,6 @@ export default function ContinuousScrollView({
   );
   const observerRef = useRef<IntersectionObserver | null>(null);
   const imageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  // Последовательное отображение: показываем картинку только когда все предыдущие загружены
-  const [loadedIndices, setLoadedIndices] = useState<Set<number>>(new Set());
 
   // Calculate cumulative images up to each chapter
   const cumulativeImages: number[] = [];
@@ -49,12 +47,6 @@ export default function ContinuousScrollView({
     cumulativeImages.push(totalImages);
     totalImages += ch.images.length;
   });
-
-  // Сброс порядка загрузки только при смене главы (переход по другой главе), не при подгрузке соседних
-  const firstChapterId = chapters[0]?._id ?? "";
-  useEffect(() => {
-    setLoadedIndices(new Set());
-  }, [firstChapterId]);
 
   // Scroll to initial position
   useEffect(() => {
@@ -144,9 +136,6 @@ export default function ContinuousScrollView({
         {chapters.map((chapter, chapterIdx) =>
           chapter.images.map((image, imageIdx) => {
             const globalIndex = cumulativeImages[chapterIdx] + imageIdx;
-            const visible =
-              globalIndex === 0 ||
-              Array.from({ length: globalIndex }, (_, i) => i).every(i => loadedIndices.has(i));
             return (
               <div key={`${chapter._id}-${imageIdx}`} className="flex justify-center">
                 {!imageLoadErrors.has(globalIndex) ? (
@@ -166,9 +155,7 @@ export default function ContinuousScrollView({
                         imageWidth === "fit" ? "100%" : imageWidth === "original" ? "auto" : "100%",
                       height: "auto",
                     }}
-                    visible={visible}
                     onLoad={() => {
-                      setLoadedIndices(prev => new Set(prev).add(globalIndex));
                       if (globalIndex === 0) onImageLoad?.();
                     }}
                     onError={() => onImageError(globalIndex)}

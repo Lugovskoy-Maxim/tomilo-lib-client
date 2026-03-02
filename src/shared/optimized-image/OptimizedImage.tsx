@@ -51,8 +51,17 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [fallbackFailed, setFallbackFailed] = useState(false);
   const [useErrorSrc, setUseErrorSrc] = useState(false);
 
-  // Сбрасываем состояние при смене src
+  // Храним предыдущий src для сравнения
+  const prevSrcRef = useRef(src);
+
+  // Сбрасываем состояние только при смене src (не при смене priority)
   useEffect(() => {
+    // Если src не изменился, не сбрасываем состояние
+    if (prevSrcRef.current === src) {
+      return;
+    }
+    prevSrcRef.current = src;
+
     setUseFallback(false);
     setFallbackFailed(false);
     setUseErrorSrc(false);
@@ -61,7 +70,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     setIsLoading(priority);
     
     // Проверяем, не загружено ли изображение уже (из кеша)
-    if (priority && imgRef.current) {
+    if (imgRef.current) {
       const img = imgRef.current;
       if (img.complete && img.naturalWidth > 0) {
         setIsLoaded(true);

@@ -72,7 +72,9 @@ export default function NavigationHeader({
                   <span className="hidden sm:inline">Глава </span>
                   <span className="sm:hidden">Гл. </span>
                   {chapter.number}
-                  {chapter.title && (
+                  {chapter.title && 
+                   chapter.title !== String(chapter.number) &&
+                   !chapter.title.toLowerCase().match(/^глава\s*\d+$/) && (
                     <span className="hidden sm:inline"> — {chapter.title}</span>
                   )}
                 </div>

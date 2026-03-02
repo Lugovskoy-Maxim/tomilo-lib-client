@@ -228,24 +228,20 @@ function ReadChapterPageContent({
   }, [infiniteScroll, isPagedMode, isLoadingNextChapter, loadedChapters, loadedChapterIds, chapters, fetchChapterById, isAuthenticated, addToReadingHistory, titleId]);
   
   // Рассчитываем время чтения на основе реальной высоты контента
-  const estimatedReadingTime = useMemo(() => {
-    // Средняя скорость чтения манги: ~100-150px в секунду при скролле
-    // Берем среднюю скорость 120px/сек
+  // Функция для расчёта времени чтения по количеству страниц
+  const calculateReadingTime = useCallback((imagesCount: number, contentHeight?: number) => {
     const pixelsPerSecond = 120;
     
-    if (totalContentHeight > 0) {
-      // Если есть реальная высота контента
-      const totalSeconds = totalContentHeight / pixelsPerSecond;
+    if (contentHeight && contentHeight > 0) {
+      const totalSeconds = contentHeight / pixelsPerSecond;
       return Math.max(1, Math.ceil(totalSeconds / 60));
     }
     
-    // Fallback: примерная оценка на основе количества страниц
-    // Средняя высота страницы манги ~1400px
     const avgPageHeight = 1400;
-    const estimatedHeight = chapter.images.length * avgPageHeight;
+    const estimatedHeight = imagesCount * avgPageHeight;
     const totalSeconds = estimatedHeight / pixelsPerSecond;
     return Math.max(1, Math.ceil(totalSeconds / 60));
-  }, [chapter.images.length, totalContentHeight]);
+  }, []);
 
   // Чтение глав подряд: дополнительные состояния
   const [firstLoadedIndex, setFirstLoadedIndex] = useState(currentChapterIndex);
@@ -420,6 +416,19 @@ function ReadChapterPageContent({
     },
     [],
   );
+
+  // Проверяет, нужно ли показывать название главы (не дублирует номер)
+  const shouldShowChapterTitle = useCallback((chapterTitle: string | undefined, chapterNumber: number): boolean => {
+    if (!chapterTitle) return false;
+    const titleLower = chapterTitle.toLowerCase().trim();
+    const numberStr = String(chapterNumber);
+    // Не показываем если: title === номер, или title === "глава N", или title === "N"
+    if (titleLower === numberStr) return false;
+    if (titleLower === `глава ${numberStr}`) return false;
+    if (titleLower === `глава${numberStr}`) return false;
+    if (/^глава\s*\d+$/.test(titleLower) && titleLower.includes(numberStr)) return false;
+    return true;
+  }, []);
 
   // Обновление просмотров и истории чтения
   useEffect(() => {
@@ -1002,11 +1011,17 @@ function ReadChapterPageContent({
     ? (loadedChapters.find(c => c._id === visibleChapterId) ?? chapter)
     : chapter;
 
+  // Рассчитываем время чтения для текущей (видимой) главы
+  const estimatedReadingTime = useMemo(() => {
+    if (!effectiveChapter) return 1;
+    return calculateReadingTime(effectiveChapter.images.length, totalContentHeight);
+  }, [effectiveChapter, totalContentHeight, calculateReadingTime]);
+
   // Динамическое обновление SEO при смене главы (бесконечное чтение)
   useEffect(() => {
     if (!infiniteScroll || !effectiveChapter) return;
     
-    const chapterTitle = effectiveChapter.title 
+    const chapterTitle = shouldShowChapterTitle(effectiveChapter.title, effectiveChapter.number)
       ? `Глава ${effectiveChapter.number}: ${effectiveChapter.title}`
       : `Глава ${effectiveChapter.number}`;
     
@@ -1083,7 +1098,7 @@ function ReadChapterPageContent({
         page={savedReadingPage || 1}
         timestamp={savedPositionTimestamp}
         totalPages={chapter.images.length}
-        chapterTitle={chapter.title ? `Глава ${chapter.number} - ${chapter.title}` : `Глава ${chapter.number}`}
+        chapterTitle={shouldShowChapterTitle(chapter.title, chapter.number) ? `Глава ${chapter.number} - ${chapter.title}` : `Глава ${chapter.number}`}
       />
 
       {/* Индикатор предзагрузки */}
@@ -1219,11 +1234,17 @@ function ReadChapterPageContent({
                   data-chapter-id={ch._id}
                   className="chapter-container"
                 >
-                  <div className="py-3 sm:py-2 text-center border-b border-[var(--border)] mb-3 sm:mb-2 px-4 sm:px-0">
-                    <h2 className="text-lg sm:text-xl font-semibold leading-tight">
-                      Глава {ch.number}
-                      {ch.title && ` - ${ch.title}`}
-                    </h2>
+                  <div className="bg-[var(--primary)]/10 py-6 mb-8">
+                    <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
+                      <div className="h-px bg-[var(--primary)]/30 flex-1" />
+                      <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
+                        <span className="text-sm font-bold text-[var(--primary)]">Глава {ch.number}</span>
+                        {shouldShowChapterTitle(ch.title, ch.number) && (
+                          <span className="text-sm text-[var(--muted-foreground)]">{ch.title}</span>
+                        )}
+                      </div>
+                      <div className="h-px bg-[var(--primary)]/30 flex-1" />
+                    </div>
                   </div>
                   {ch.images.map((src, imageIndex) => {
                     const errorKey = `${ch._id}-${imageIndex}`;
@@ -1343,11 +1364,17 @@ function ReadChapterPageContent({
           <>
           <div className="chapter-container" data-infinite-chapter={chapter._id}>
             {/* Заголовок главы */}
-            <div className="py-3 sm:py-2 text-center border-b border-[var(--border)] mb-3 sm:mb-2 px-4 sm:px-0">
-              <h2 className="text-lg sm:text-xl font-semibold leading-tight">
-                Глава {chapter.number}
-                {chapter.title && ` - ${chapter.title}`}
-              </h2>
+            <div className="bg-[var(--primary)]/10 py-6 mb-8">
+              <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
+                <div className="h-px bg-[var(--primary)]/30 flex-1" />
+                <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
+                  <span className="text-sm font-bold text-[var(--primary)]">Глава {chapter.number}</span>
+                  {shouldShowChapterTitle(chapter.title, chapter.number) && (
+                    <span className="text-sm text-[var(--muted-foreground)]">{chapter.title}</span>
+                  )}
+                </div>
+                <div className="h-px bg-[var(--primary)]/30 flex-1" />
+              </div>
             </div>
 
             {/* Изображения главы */}
@@ -1771,7 +1798,7 @@ function ReadChapterPageContent({
                         <div className="h-px bg-[var(--primary)]/30 flex-1" />
                         <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
                           <span className="text-sm font-bold text-[var(--primary)]">Глава {loadedChapter.number}</span>
-                          {loadedChapter.title && (
+                          {shouldShowChapterTitle(loadedChapter.title, loadedChapter.number) && (
                             <span className="text-sm text-[var(--muted-foreground)]">{loadedChapter.title}</span>
                           )}
                         </div>
@@ -1965,7 +1992,7 @@ function ReadChapterPageContent({
         onClose={() => setIsReportModalOpen(false)}
         entityType="chapter"
         entityId={effectiveChapter._id}
-        entityTitle={`Глава ${effectiveChapter.number}${effectiveChapter.title ? ` - ${effectiveChapter.title}` : ""}`}
+        entityTitle={`Глава ${effectiveChapter.number}${shouldShowChapterTitle(effectiveChapter.title, effectiveChapter.number) ? ` - ${effectiveChapter.title}` : ""}`}
         titleId={title._id}
       />
 
@@ -2084,7 +2111,7 @@ function ReadChapterPageContent({
               }
             </span>
             <span className="text-xs opacity-60">•</span>
-            <span className="text-xs">{chapter.images.length} стр.</span>
+            <span className="text-xs">{effectiveChapter?.images.length ?? chapter.images.length} стр.</span>
           </div>
         </div>
       )}
