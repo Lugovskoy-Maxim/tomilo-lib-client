@@ -80,9 +80,29 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
             </span>
           </div>
           {userProfile.bio && (
-            <p className="mt-3 text-xs sm:text-sm text-[var(--muted-foreground)] leading-relaxed px-2 line-clamp-3">
-              {userProfile.bio}
-            </p>
+            <div className="mt-4 relative group">
+              <div 
+                className="absolute inset-0 rounded-2xl opacity-50 blur-xl transition-opacity duration-500 group-hover:opacity-70"
+                style={{ background: `linear-gradient(135deg, ${rankColor}15 0%, transparent 50%, ${rankColor}10 100%)` }}
+              />
+              <div className="relative overflow-hidden rounded-2xl bg-[var(--card)]/60 border border-[var(--border)]/50 backdrop-blur-md shadow-lg">
+                <div 
+                  className="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
+                  style={{ background: `linear-gradient(to bottom, ${rankColor}, ${rankColor}50)` }}
+                />
+                <div className="px-4 py-3 pl-5">
+                  <svg className="absolute top-2 left-3 w-3 h-3 opacity-30" style={{ color: rankColor }} fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                  </svg>
+                  <p className="text-xs sm:text-sm text-[var(--foreground)]/90 leading-relaxed italic line-clamp-3 pl-3">
+                    {userProfile.bio}
+                  </p>
+                  <svg className="absolute bottom-2 right-3 w-3 h-3 opacity-30 rotate-180" style={{ color: rankColor }} fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 

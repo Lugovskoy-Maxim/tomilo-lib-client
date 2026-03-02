@@ -37,6 +37,19 @@ function transformUserToProfile(user: User): UserProfile | null {
     equippedDecorations: (user as User & { equippedDecorations?: UserProfile["equippedDecorations"] }).equippedDecorations ??
       (user as unknown as Record<string, unknown>).equipped_decorations as UserProfile["equippedDecorations"],
     ownedDecorations: (user as User & { ownedDecorations?: UserProfile["ownedDecorations"] }).ownedDecorations,
+    // Кастомизация профиля
+    bio: user.bio,
+    favoriteGenre: user.favoriteGenre,
+    socialLinks: user.socialLinks,
+    showStats: user.showStats,
+    showAchievements: user.showAchievements,
+    showFavoriteCharacters: user.showFavoriteCharacters,
+    // Статистика
+    titlesReadCount: user.titlesReadCount,
+    commentsCount: user.commentsCount,
+    likesReceivedCount: user.likesReceivedCount,
+    readingTimeMinutes: user.readingTimeMinutes,
+    completedTitlesCount: user.completedTitlesCount,
   };
 }
 

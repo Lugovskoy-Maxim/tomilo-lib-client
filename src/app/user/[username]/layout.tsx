@@ -58,6 +58,22 @@ function transformUserToProfile(user: User): UserProfile {
     equippedDecorations: u.equippedDecorations,
     linkedProviders: getLinkedProvidersFromUser(u),
     ownedDecorations: u.ownedDecorations,
+    // Кастомизация профиля
+    bio: u.bio,
+    favoriteGenre: u.favoriteGenre,
+    socialLinks: u.socialLinks,
+    showStats: u.showStats,
+    showAchievements: u.showAchievements,
+    showFavoriteCharacters: u.showFavoriteCharacters,
+    // Статистика
+    currentStreak: u.currentStreak,
+    longestStreak: u.longestStreak,
+    lastStreakDate: u.lastStreakDate,
+    titlesReadCount: u.titlesReadCount,
+    commentsCount: u.commentsCount,
+    likesReceivedCount: u.likesReceivedCount,
+    readingTimeMinutes: u.readingTimeMinutes,
+    completedTitlesCount: u.completedTitlesCount,
   };
 }
 
