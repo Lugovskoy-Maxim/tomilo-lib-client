@@ -136,6 +136,16 @@ export default function Carousel<T>({
     return () => mq.removeEventListener("change", set);
   }, []);
 
+  // Очистка timeout при unmount для предотвращения утечки памяти
+  useEffect(() => {
+    return () => {
+      if (autoScrollResumeTimeoutRef.current) {
+        clearTimeout(autoScrollResumeTimeoutRef.current);
+        autoScrollResumeTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   /** Пауза автопрокрутки при начале взаимодействия. */
   const pauseAutoScroll = useCallback(() => {
     autoScrollPausedRef.current = true;

@@ -5,7 +5,7 @@ import { ReadingHistoryEntry } from "@/types/store";
 import { Play, BookOpen, ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getChapterPath, getTitlePath } from "@/lib/title-paths";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -107,10 +107,16 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
     return getLastReadInfo(sorted[0]);
   }, [readingHistory]);
 
+  const coverImage = lastRead?.coverImage;
+  
   const imageUrls = useMemo(() => {
-    if (!lastRead?.coverImage) return null;
-    return getCoverUrls(lastRead.coverImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
-  }, [lastRead?.coverImage]);
+    if (!coverImage) return null;
+    return getCoverUrls(coverImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
+  }, [coverImage]);
+  
+  useEffect(() => {
+    setImageError(false);
+  }, [coverImage]);
   
   if (!lastRead) {
     return (

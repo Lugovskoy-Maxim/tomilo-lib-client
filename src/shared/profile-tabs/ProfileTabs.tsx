@@ -11,10 +11,8 @@ import {
   type ProfileTab,
   tabMeta,
   PROFILE_TABS,
-  tabGroups,
   isValidProfileTab,
 } from "./profileTabConfig";
-import { ProfileNav } from "./ProfileNav";
 
 // Компоненты обзора
 import ProfileAdditionalInfo from "@/shared/profile/ProfileAdditionalInfo";
@@ -57,6 +55,11 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasDraggedRef = useRef(false);
 
   const tabFromUrl = searchParams.get("tab");
   
@@ -64,24 +67,23 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
     ? PROFILE_TABS.filter(t => !hideTabs.includes(t))
     : PROFILE_TABS;
 
-  const checkScroll = () => {
+  useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
-  };
 
-  useEffect(() => {
+    const checkScroll = () => {
+      setCanScrollLeft(el.scrollLeft > 0);
+      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+    };
+
     checkScroll();
-    const el = scrollRef.current;
-    if (el) {
-      el.addEventListener("scroll", checkScroll);
-      window.addEventListener("resize", checkScroll);
-      return () => {
-        el.removeEventListener("scroll", checkScroll);
-        window.removeEventListener("resize", checkScroll);
-      };
-    }
+    el.addEventListener("scroll", checkScroll, { passive: true });
+    window.addEventListener("resize", checkScroll, { passive: true });
+    
+    return () => {
+      el.removeEventListener("scroll", checkScroll);
+      window.removeEventListener("resize", checkScroll);
+    };
   }, []);
 
   const scroll = (direction: "left" | "right") => {
@@ -89,6 +91,45 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
     if (!el) return;
     const scrollAmount = 150;
     el.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+    el.style.cursor = "grabbing";
+    el.style.userSelect = "none";
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 5) {
+      hasDraggedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleMouseUp = () => {
+    const el = scrollRef.current;
+    if (el) {
+      el.style.cursor = "grab";
+      el.style.userSelect = "";
+    }
+    isDraggingRef.current = false;
+  };
+
+  const handleMouseLeave = () => {
+    if (isDraggingRef.current) {
+      handleMouseUp();
+    }
   };
   let activeTab: ProfileTab = isValidProfileTab(tabFromUrl) ? tabFromUrl : "overview";
   if (hideTabs?.length && hideTabs.includes(activeTab)) {
@@ -134,8 +175,8 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
 
   return (
     <div className="w-full min-w-0">
-      {/* Мобильная горизонтальная навигация — только до xl */}
-      <div className="xl:hidden mb-4">
+      {/* Горизонтальная навигация */}
+      <div className="mb-4">
         <div className="relative">
           {/* Стрелка влево */}
           {canScrollLeft && (
@@ -152,8 +193,12 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
           {/* Скроллируемые вкладки */}
           <div 
             ref={scrollRef}
-            className="flex gap-1 overflow-x-auto scrollbar-hide px-1 py-1 -mx-1"
+            className="flex gap-1 overflow-x-auto scrollbar-hide px-1 py-1 -mx-1 cursor-grab select-none"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
           >
             {visibleTabs.map(tabId => {
               const meta = tabMeta[tabId];
@@ -163,7 +208,11 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
                 <button
                   key={tabId}
                   type="button"
-                  onClick={() => setActiveTab(tabId)}
+                  onClick={() => {
+                    if (!hasDraggedRef.current) {
+                      setActiveTab(tabId);
+                    }
+                  }}
                   className={`flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                     isActive
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"

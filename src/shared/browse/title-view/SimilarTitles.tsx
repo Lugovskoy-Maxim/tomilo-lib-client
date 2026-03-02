@@ -24,11 +24,12 @@ interface SimilarTitle {
   description: string;
   isAdult: boolean;
   ratingCount?: number;
+  slug?: string;
 }
 
-function TitleCard({ title, slug }: { title: SimilarTitle; slug?: string }) {
+function TitleCard({ title }: { title: SimilarTitle }) {
   const [imageError, setImageError] = useState(false);
-  const titlePath = `/titles/${slug || title.id}`;
+  const titlePath = `/titles/${title.slug || title.id}`;
 
   return (
     <Link

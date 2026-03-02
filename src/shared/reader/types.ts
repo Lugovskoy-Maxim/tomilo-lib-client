@@ -28,6 +28,7 @@ export interface ReaderChapter {
   images: string[];
   createdAt?: string;
   updatedAt?: string;
-  date: string;
+  date?: string;
   views: number;
+  teamId?: string;
 }

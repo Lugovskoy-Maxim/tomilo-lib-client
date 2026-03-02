@@ -1,13 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { memo, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
-import { useState, useEffect } from "react";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getCoverUrls } from "@/lib/asset-url";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
@@ -30,7 +29,7 @@ export interface PopularCardProps {
   onCardClick?: (id: string) => void;
 }
 
-export default function PopularCard({ data, onCardClick }: PopularCardProps) {
+function PopularCard({ data, onCardClick }: PopularCardProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
@@ -43,31 +42,28 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
 
   const titlePath = getTitlePath(data);
 
-  const performCardAction = () => {
+  const performCardAction = useCallback(() => {
     if (onCardClick) {
       onCardClick(data.id);
     } else {
       router.push(titlePath);
     }
-  };
+  }, [onCardClick, data.id, router, titlePath]);
 
-  // Обработка подтверждения возраста
-  const handleAgeConfirm = () => {
+  const handleAgeConfirm = useCallback(() => {
     setIsAgeVerified(true);
     setShowAgeModal(false);
-
-    // Выполняем отложенное действие после подтверждения возраста
     if (pendingAction) {
-      pendingAction(); // Просто вызываем функцию
+      pendingAction();
     }
-  };
+  }, [pendingAction]);
 
-  const handleAgeCancel = () => {
+  const handleAgeCancel = useCallback(() => {
     setShowAgeModal(false);
     setPendingAction(null);
-  };
+  }, []);
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = useCallback((e: React.MouseEvent) => {
     if (onCardClick) {
       e.preventDefault();
       e.stopPropagation();
@@ -81,8 +77,7 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
       setShowAgeModal(true);
       return;
     }
-    // Иначе переход по Link (не preventDefault)
-  };
+  }, [onCardClick, data.id, data.isAdult, isAgeVerified, performCardAction]);
 
   const isAdultContent = data.isAdult;
   // const isBrowsePage = pathname.startsWith("/browse");
@@ -185,3 +180,5 @@ export default function PopularCard({ data, onCardClick }: PopularCardProps) {
     </Link>
   );
 }
+
+export default memo(PopularCard);

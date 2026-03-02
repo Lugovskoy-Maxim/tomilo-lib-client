@@ -4,7 +4,6 @@ import { UserProfile } from "@/types/user";
 import { Crown, ChevronRight, Zap, Target } from "lucide-react";
 import { getLevelProgress, getRankColor, levelToRank } from "@/lib/rank-utils";
 import { useMemo } from "react";
-import Link from "next/link";
 
 interface NextRankProgressProps {
   userProfile: UserProfile;

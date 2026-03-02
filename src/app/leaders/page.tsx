@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Crown, TrendingUp, Clock, Star, Users, Shield, Flame, Search, RefreshCw, ChevronUp } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
@@ -11,7 +11,7 @@ import {
   LeaderboardCategory,
   LeaderboardUser,
 } from "@/store/api/leaderboardApi";
-import { useGetHomepageActiveUsersQuery, useGetUsersQuery } from "@/store/api/usersApi";
+import { useGetHomepageActiveUsersQuery } from "@/store/api/usersApi";
 import { useGetDecorationsQuery } from "@/store/api/shopApi";
 import { useSEO } from "@/hooks/useSEO";
 import { useMounted } from "@/hooks/useMounted";
@@ -207,6 +207,8 @@ export default function LeadersPage() {
     error: leaderboardError,
   } = useGetLeaderboardQuery({ category: activeCategory, limit: 50 });
 
+  const hasLeaderboardData = Boolean(leaderboardData?.data?.users?.length);
+
   const {
     data: homepageUsersData,
     isLoading: homepageLoading,
@@ -217,14 +219,8 @@ export default function LeadersPage() {
     sortOrder: "desc",
     requireAvatar: false,
     format: "extended",
-  });
-
-  const {
-    data: allUsersData,
-    isLoading: allUsersLoading,
-  } = useGetUsersQuery({
-    page: 1,
-    limit: 100,
+  }, {
+    skip: hasLeaderboardData,
   });
 
   const { data: allDecorations = [] } = useGetDecorationsQuery();
@@ -268,34 +264,17 @@ export default function LeadersPage() {
       return [];
     })();
 
-    const adminUsersData = allUsersData?.data?.users ?? [];
-
-    const allUsersMap = new Map<string, TransformableUser>();
-    
-    for (const u of homepageUsers) {
-      allUsersMap.set(u._id, u as TransformableUser);
-    }
-    
-    for (const u of adminUsersData) {
-      if (!allUsersMap.has(u._id)) {
-        allUsersMap.set(u._id, u as TransformableUser);
-      } else {
-        const existing = allUsersMap.get(u._id)!;
-        allUsersMap.set(u._id, { ...existing, ...u } as TransformableUser);
-      }
-    }
-
-    const mergedUsers = Array.from(allUsersMap.values())
-      .filter(u => shouldFilterAdmins ? (u.role !== "admin" && u.role !== "moderator") : true);
+    const mergedUsers = homepageUsers
+      .filter((u): u is TransformableUser => shouldFilterAdmins ? (u.role !== "admin" && u.role !== "moderator") : true);
 
     if (mergedUsers.length > 0) {
       return transformUsersToLeaderboard(mergedUsers, activeCategory, decorationsMap).slice(0, 50);
     }
 
     return [];
-  }, [leaderboardData, homepageUsersData, allUsersData, activeCategory, showAdmins, decorationsMap]);
+  }, [leaderboardData, homepageUsersData, activeCategory, showAdmins, decorationsMap]);
 
-  const isLoading = leaderboardLoading || homepageLoading || allUsersLoading;
+  const isLoading = leaderboardLoading || (!hasLeaderboardData && homepageLoading);
   const hasError = leaderboardError && leaderboardUsers.length === 0;
 
   const activeCategoryConfig = CATEGORIES.find(c => c.id === activeCategory);
@@ -308,11 +287,18 @@ export default function LeadersPage() {
     );
   }, [leaderboardUsers, searchQuery]);
 
+  const userRankMap = useMemo(() => {
+    const map = new Map<string, number>();
+    leaderboardUsers.forEach((u, index) => {
+      map.set(u._id, index + 1);
+    });
+    return map;
+  }, [leaderboardUsers]);
+
   const currentUserRank = useMemo(() => {
     if (!user?._id) return null;
-    const index = leaderboardUsers.findIndex(u => u._id === user._id);
-    return index >= 0 ? index + 1 : null;
-  }, [leaderboardUsers, user?._id]);
+    return userRankMap.get(user._id) ?? null;
+  }, [userRankMap, user?._id]);
 
   const currentUserData = useMemo(() => {
     if (!user?._id) return null;
@@ -502,7 +488,7 @@ export default function LeadersPage() {
                 <div className="space-y-2">
                   {(searchQuery ? filteredUsers : filteredUsers.slice(3)).map((userData, index) => {
                     const actualRank = searchQuery 
-                      ? leaderboardUsers.findIndex(u => u._id === userData._id) + 1
+                      ? (userRankMap.get(userData._id) ?? index + 1)
                       : index + 4;
                     return (
                       <LeaderCard
@@ -518,16 +504,14 @@ export default function LeadersPage() {
                   })}
                 </div>
               )}
-
-              {searchQuery && filteredUsers.length === 0 && (
-                <div className="text-center py-12">
-                  <Search className="w-16 h-16 text-[var(--muted-foreground)] mx-auto mb-4 opacity-50" />
-                  <p className="text-[var(--muted-foreground)]">Пользователь не найден</p>
-                  <p className="text-sm text-[var(--muted-foreground)] mt-2">
-                    Попробуйте изменить поисковый запрос
-                  </p>
-                </div>
-              )}
+            </div>
+          ) : searchQuery && filteredUsers.length === 0 ? (
+            <div className="text-center py-12">
+              <Search className="w-16 h-16 text-[var(--muted-foreground)] mx-auto mb-4 opacity-50" />
+              <p className="text-[var(--muted-foreground)]">Пользователь не найден</p>
+              <p className="text-sm text-[var(--muted-foreground)] mt-2">
+                Попробуйте изменить поисковый запрос
+              </p>
             </div>
           ) : (
             <div className="text-center py-12">

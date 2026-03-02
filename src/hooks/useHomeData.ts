@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useMemo } from "react";
 import {
   useGetPopularTitlesQuery,
   useGetRecentTitlesQuery,
@@ -310,38 +311,42 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     },
   );
 
-  // Преобразование популярных тайтлов
-  const popularTitles =
+  // Мемоизированное преобразование популярных тайтлов
+  const popularTitles = useMemo(() =>
     popularTitlesData?.data?.map(item => ({
       id: item.id,
-      slug: (item as any).slug, // Добавляем поддержку slug
+      slug: (item as any).slug,
       title: item.title,
       image: item.cover,
       description: item.description,
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.rating || 0,
-      genres: [], // Сервер не возвращает жанры для популярных тайтлов
-      isAdult: item.isAdult ?? false, // Используем isAdult из API или false по умолчанию
-    })) || [];
+      genres: [],
+      isAdult: item.isAdult ?? false,
+    })) || [],
+    [popularTitlesData]
+  );
 
-  // Преобразование случайных тайтлов
-  const randomTitles =
+  // Мемоизированное преобразование случайных тайтлов
+  const randomTitles = useMemo(() =>
     randomTitlesData?.data?.map(item => ({
       id: item.id,
-      slug: item.slug, // Добавляем поддержку slug
+      slug: item.slug,
       title: item.title,
       image: item.cover,
       description: item.description,
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.rating || 0,
-      genres: [], // Жанры не возвращаются для случайных тайтлов
+      genres: [],
       isAdult: item.isAdult ?? false,
-    })) || [];
+    })) || [],
+    [randomTitlesData]
+  );
 
-  // Недавно добавленные (поддержка полей name/coverImage с бэкенда)
-  const recentTitles =
+  // Мемоизированное преобразование недавно добавленных
+  const recentTitles = useMemo(() =>
     recentTitlesData?.data?.map((item: any) => ({
       id: item.id ?? item._id,
       slug: item.slug,
@@ -353,10 +358,12 @@ export const useHomeData = (options: HomeDataOptions = {}): {
       rating: item.rating ?? 0,
       genres: [],
       isAdult: item.isAdult ?? false,
-    })) ?? [];
+    })) ?? [],
+    [recentTitlesData]
+  );
 
-  // Преобразование трендовых тайтлов (рост за неделю)
-  const trendingTitles =
+  // Мемоизированное преобразование трендовых тайтлов
+  const trendingTitles = useMemo(() =>
     trendingTitlesData?.data?.data?.map(item => ({
       id: item._id,
       slug: (item as any).slug,
@@ -370,11 +377,67 @@ export const useHomeData = (options: HomeDataOptions = {}): {
       rating: item.averageRating || item.rating || 0,
       genres: normalizeGenres(item.genres || []),
       isAdult: item.isAdult ?? false,
-    })) || [];
+    })) || [],
+    [trendingTitlesData]
+  );
 
-  // Преобразование кандидатов для блока "Недооцененные"
-  const underratedCandidates =
-    underratedCandidatesData?.data?.data?.map(item => ({
+  // Мемоизированное преобразование кандидатов для блока "Недооцененные"
+  const underratedTitles = useMemo(() => {
+    const candidates =
+      underratedCandidatesData?.data?.data?.map(item => ({
+        id: item._id,
+        slug: (item as any).slug,
+        title: item.name,
+        image: item.coverImage || "",
+        description: item.description,
+        views: item.views || 0,
+        type: item.type || "Неуказан",
+        year: item.releaseYear || new Date().getFullYear(),
+        rating: item.averageRating || item.rating || 0,
+        genres: normalizeGenres(item.genres || []),
+        isAdult: item.isAdult ?? false,
+      })) || [];
+
+    if (candidates.length === 0) return [];
+
+    const viewsDistribution = candidates
+      .map(item => item.views)
+      .sort((a, b) => a - b);
+    const lowViewsThreshold = viewsDistribution[Math.floor(viewsDistribution.length * 0.35)] || 0;
+
+    const filtered = candidates
+      .filter(item => item.rating >= 7.5 && item.views <= lowViewsThreshold)
+      .slice(0, 20);
+
+    return filtered.length > 0
+      ? filtered
+      : candidates
+          .filter(item => item.rating >= 7)
+          .sort((a, b) => a.views - b.views)
+          .slice(0, 20);
+  }, [underratedCandidatesData]);
+
+  // Мемоизированное преобразование топ тайтлов Маньхуа
+  const topManhua = useMemo(() =>
+    topManhuaData?.data?.data?.map(item => ({
+      id: item._id,
+      slug: (item as any).slug,
+      title: item.name,
+      image: item.coverImage || "",
+      description: item.description,
+      type: item.type || "Неуказан",
+      views: item.views || 0,
+      year: item.releaseYear || new Date().getFullYear(),
+      rating: item.averageRating || item.rating || 0,
+      genres: normalizeGenres(item.genres || []),
+      isAdult: item.isAdult ?? false,
+    })) || [],
+    [topManhuaData]
+  );
+
+  // Мемоизированное преобразование топ тайтлов Манхва
+  const topManhwa = useMemo(() =>
+    topManhwaData?.data?.data?.map(item => ({
       id: item._id,
       slug: (item as any).slug,
       title: item.name,
@@ -386,66 +449,15 @@ export const useHomeData = (options: HomeDataOptions = {}): {
       rating: item.averageRating || item.rating || 0,
       genres: normalizeGenres(item.genres || []),
       isAdult: item.isAdult ?? false,
-    })) || [];
+    })) || [],
+    [topManhwaData]
+  );
 
-  // Недооценённые: высокий рейтинг + нижний сегмент по просмотрам
-  const viewsDistribution = underratedCandidates
-    .map(item => item.views)
-    .sort((a, b) => a - b);
-  const lowViewsThreshold =
-    viewsDistribution.length > 0
-      ? viewsDistribution[Math.floor(viewsDistribution.length * 0.35)]
-      : 0;
-
-  const underratedFiltered = underratedCandidates
-    .filter(item => item.rating >= 7.5 && item.views <= lowViewsThreshold)
-    .slice(0, 20);
-
-  const underratedTitles =
-    underratedFiltered.length > 0
-      ? underratedFiltered
-      : underratedCandidates
-          .filter(item => item.rating >= 7)
-          .sort((a, b) => a.views - b.views)
-          .slice(0, 20);
-
-  // Преобразование топ тайтлов Маньхуа
-  const topManhua =
-    topManhuaData?.data?.data?.map(item => ({
-      id: item._id,
-      slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
-      title: item.name,
-      image: item.coverImage || "",
-      description: item.description,
-      type: item.type || "Неуказан",
-      views: item.views || 0,
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.averageRating || item.rating || 0,
-      genres: normalizeGenres(item.genres || []),
-      isAdult: item.isAdult ?? false,
-    })) || [];
-
-  // Преобразование топ тайтлов Манхва
-  const topManhwa =
-    topManhwaData?.data?.data?.map(item => ({
-      id: item._id,
-      slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
-      title: item.name,
-      image: item.coverImage || "",
-      description: item.description,
-      views: item.views || 0,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.averageRating || item.rating || 0,
-      genres: normalizeGenres(item.genres || []),
-      isAdult: item.isAdult ?? false,
-    })) || [];
-
-  // Преобразование топ тайтлов 2026 года
-  const top2026 =
+  // Мемоизированное преобразование топ тайтлов 2026 года
+  const top2026 = useMemo(() =>
     top2026Data?.data?.data?.map(item => ({
       id: item._id,
-      slug: (item as any).slug, // Добавляем поддержку slug для правильной навигации
+      slug: (item as any).slug,
       title: item.name,
       image: item.coverImage || "",
       description: item.description,
@@ -455,16 +467,18 @@ export const useHomeData = (options: HomeDataOptions = {}): {
       rating: item.averageRating || item.rating || 0,
       genres: normalizeGenres(item.genres || []),
       isAdult: item.isAdult ?? false,
-    })) || [];
+    })) || [],
+    [top2026Data]
+  );
 
-  // Преобразование прогресса чтения (сортировка по дате последнего чтения, самые свежие сначала)
-  const readingHistoryArray = Array.isArray(readingHistory?.data)
-    ? readingHistory.data
-    : [];
-  const readingProgress =
-    readingHistoryArray
+  // Мемоизированное преобразование прогресса чтения
+  const readingProgress = useMemo(() => {
+    const readingHistoryArray = Array.isArray(readingHistory?.data)
+      ? readingHistory.data
+      : [];
+
+    return readingHistoryArray
       .map(item => {
-        // Проверяем, что chapters существует и это массив
         const chaptersArray = item.chapters && Array.isArray(item.chapters) ? item.chapters : [];
 
         const latestChapter =
@@ -474,7 +488,6 @@ export const useHomeData = (options: HomeDataOptions = {}): {
               })
             : null;
 
-        // Безопасное получение данных о тайтле
         const titleData = item.titleId && typeof item.titleId === "object" ? item.titleId : {};
         const titleId =
           typeof item.titleId === "string"
@@ -485,8 +498,6 @@ export const useHomeData = (options: HomeDataOptions = {}): {
         const totalChapters = titleChapters.length;
         const currentChapter = latestChapter?.chapterNumber || 0;
 
-        // Считаем новые главы по номеру: главы с номером больше последней прочитанной
-        // (releaseDate не используется, т.к. API истории часто не возвращает его для глав)
         const newChapters = titleChapters.filter(
           (ch: Chapter) => (ch.chapterNumber ?? 0) > currentChapter,
         ).length;
@@ -495,7 +506,7 @@ export const useHomeData = (options: HomeDataOptions = {}): {
           id: titleId,
           title: (titleData as { name?: string }).name || `Манга #${titleId}`,
           cover: (titleData as { coverImage?: string }).coverImage || "",
-          currentChapter: currentChapter,
+          currentChapter,
           totalChapters,
           newChaptersSinceLastRead: newChapters,
           type: (titleData as { type?: string }).type || "Неуказан",
@@ -507,13 +518,12 @@ export const useHomeData = (options: HomeDataOptions = {}): {
                 lastReadDate: latestChapter.readAt,
               }
             : undefined,
-          // Добавляем timestamp для сортировки
           lastReadTimestamp: latestChapter ? new Date(latestChapter.readAt).getTime() : 0,
         };
       })
       .filter(item => item.currentChapter <= item.totalChapters && item.totalChapters > 0)
-      // Сортировка по дате последнего чтения (свежие сначала)
       .sort((a, b) => b.lastReadTimestamp - a.lastReadTimestamp);
+  }, [readingHistory]);
 
   return {
     popularTitles: {

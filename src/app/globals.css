@@ -4061,3 +4061,31 @@ textarea.admin-input {
 .animate-bounce-once {
   animation: bounce-once 0.3s ease-out;
 }
+
+/* ============================================
+   GRID ITEM ANIMATIONS (TitleGrid performance)
+   ============================================ */
+
+.grid-item-animate {
+  animation: fadeInUp 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.grid-item-delay-0 { animation-delay: 0ms; }
+.grid-item-delay-1 { animation-delay: 50ms; }
+.grid-item-delay-2 { animation-delay: 100ms; }
+.grid-item-delay-3 { animation-delay: 150ms; }
+.grid-item-delay-4 { animation-delay: 200ms; }
+.grid-item-delay-5 { animation-delay: 250ms; }
+.grid-item-delay-6 { animation-delay: 300ms; }
+.grid-item-delay-7 { animation-delay: 350ms; }
+.grid-item-delay-8 { animation-delay: 400ms; }
+.grid-item-delay-9 { animation-delay: 450ms; }
+.grid-item-delay-10 { animation-delay: 500ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-item-animate {
+    animation: none;
+    opacity: 1;
+  }
+}

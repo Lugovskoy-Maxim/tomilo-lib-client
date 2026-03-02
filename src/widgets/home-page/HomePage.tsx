@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight } from "lucide-react";
 
 import {
@@ -15,7 +15,6 @@ import {
 import { 
   GenresQuickAccess, 
   TelegramSection, 
-  QuickActions 
 } from "@/shared/home";
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
@@ -23,7 +22,6 @@ import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSectio
 import { useHomeData, type HomeVisibleSections } from "@/hooks/useHomeData";
 import { useStaticData, type StaticDataVisibleSections } from "@/hooks/useStaticData";
 import { useAuth } from "@/hooks/useAuth";
-import { useGetProfileQuery } from "@/store/api/authApi";
 import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
 import RandomTitlesComponent from "@/shared/random-titles/RandomTitles";
 import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";
@@ -38,22 +36,24 @@ type VisibleSections = HomeVisibleSections &
   StaticDataVisibleSections &
   Partial<{ ad: boolean; recommendations: boolean; news: boolean; featured: boolean }>;
 
-// Вспомогательный компонент для рендера карусели
-const DataCarousel = ({
-  title,
-  data,
-  loading,
-  error,
-  cardComponent: CardComponent,
-  ...carouselProps
-}: {
+interface DataCarouselProps {
   title: string;
   data: unknown[];
   loading: boolean;
   error: unknown;
   cardComponent: React.ComponentType<any>;
   [key: string]: any;
-}) => {
+}
+
+// Мемоизированный компонент для рендера карусели — предотвращает лишние ререндеры
+const DataCarousel = memo(function DataCarousel({
+  title,
+  data,
+  loading,
+  error,
+  cardComponent: CardComponent,
+  ...carouselProps
+}: DataCarouselProps) {
   if (loading) {
     return (
       <CarouselSkeleton
@@ -76,7 +76,7 @@ const DataCarousel = ({
       {...carouselProps}
     />
   );
-};
+});
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
@@ -86,9 +86,9 @@ export default function HomePage() {
     setVisibleSections(prev => ({ ...prev, [sectionId]: true }));
   }, []);
 
+  // useAuth уже вызывает useGetProfileQuery внутри себя — не дублируем запрос
   const { isAuthenticated, user } = useAuth();
-  const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
-  const includeAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult ?? false;
+  const includeAdult = user?.displaySettings?.isAdult ?? false;
 
   const {
     popularTitles,
@@ -117,6 +117,43 @@ export default function HomePage() {
     loading: latestUpdatesLoading,
     error: latestUpdatesError ? "load_failed" : null,
   };
+
+  // Мемоизация данных для TopCombinedSection — предотвращает пересоздание объекта при каждом рендере
+  const topCombinedData = useMemo(() => ({
+    topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
+      id: item.id,
+      slug: item.slug,
+      title: item.title,
+      coverImage: item.image,
+      type: item.type,
+      year: item.year,
+      rating: item.rating,
+      views: item.views || "0К",
+      isAdult: item.isAdult ?? false,
+    })),
+    top2026: (top2026.data || []).slice(0, 5).map(item => ({
+      id: item.id,
+      slug: item.slug,
+      title: item.title,
+      coverImage: item.image,
+      type: item.type,
+      year: item.year,
+      rating: item.rating,
+      views: item.views || "0К",
+      isAdult: item.isAdult ?? false,
+    })),
+    topManhua: (topManhua.data || []).slice(0, 5).map(item => ({
+      id: item.id,
+      slug: item.slug,
+      title: item.title,
+      coverImage: item.image,
+      type: item.type,
+      year: item.year,
+      rating: item.rating,
+      views: item.views || "0К",
+      isAdult: item.isAdult ?? false,
+    })),
+  }), [topManhwa.data, top2026.data, topManhua.data]);
 
   useEffect(() => {
     setMounted(true);
@@ -364,45 +401,7 @@ export default function HomePage() {
             {topManhwa.loading || top2026.loading || topManhua.loading ? (
               <TopCombinedSkeleton />
             ) : topManhwa.error || top2026.error || topManhua.error ? null : (
-              <TopCombinedSection
-                data={{
-                  topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
-                    id: item.id,
-                    slug: item.slug,
-                    title: item.title,
-                    coverImage: item.image,
-                    type: item.type,
-                    year: item.year,
-                    rating: item.rating,
-                    views: item.views || "0К",
-                    isAdult: item.isAdult ?? false,
-                  })),
-
-                  top2026: (top2026.data || []).slice(0, 5).map(item => ({
-                    id: item.id,
-                    slug: item.slug,
-                    title: item.title,
-                    coverImage: item.image,
-                    type: item.type,
-                    year: item.year,
-                    rating: item.rating,
-                    views: item.views || "0К",
-                    isAdult: item.isAdult ?? false,
-                  })),
-
-                  topManhua: (topManhua.data || []).slice(0, 5).map(item => ({
-                    id: item.id,
-                    slug: item.slug,
-                    title: item.title,
-                    coverImage: item.image,
-                    type: item.type,
-                    year: item.year,
-                    rating: item.rating,
-                    views: item.views || "0К",
-                    isAdult: item.isAdult ?? false,
-                  })),
-                }}
-              />
+              <TopCombinedSection data={topCombinedData} />
             )}
           </div>
         </LazySection>

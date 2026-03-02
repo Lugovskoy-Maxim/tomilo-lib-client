@@ -51,7 +51,7 @@ export const useAuth = () => {
     isLoading: readingHistoryLoading,
     error: readingHistoryError,
   } = useGetReadingHistoryQuery(
-    { limit: 200 },
+    { limit: 200, light: false },
     {
       skip: !getToken(),
     },

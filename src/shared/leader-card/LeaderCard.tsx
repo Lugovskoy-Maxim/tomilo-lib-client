@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import Link from "next/link";
 import { Crown, Medal, Award, Clock, Star, TrendingUp, Flame } from "lucide-react";
 import { LeaderboardUser, LeaderboardCategory } from "@/store/api/leaderboardApi";
@@ -247,12 +247,14 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
   const showCard = cardUrl && !cardError;
   const showFrame = frameUrl && !frameError;
 
-  useState(() => {
+  useEffect(() => {
     if (showAnimation) {
       const timer = setTimeout(() => setIsVisible(true), animationDelay);
       return () => clearTimeout(timer);
+    } else {
+      setIsVisible(true);
     }
-  });
+  }, [showAnimation, animationDelay]);
 
   return (
     <Link
@@ -393,12 +395,14 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   const showFrame = frameUrl && !frameError;
   const showCard = cardUrl && !cardError;
 
-  useState(() => {
+  useEffect(() => {
     if (showAnimation) {
       const timer = setTimeout(() => setIsVisible(true), animationDelay);
       return () => clearTimeout(timer);
+    } else {
+      setIsVisible(true);
     }
-  });
+  }, [showAnimation, animationDelay]);
 
   const isTopTen = rank <= 10;
 
@@ -519,7 +523,7 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   );
 }
 
-export default function LeaderCard({ 
+const LeaderCard = memo(function LeaderCard({ 
   user, 
   rank, 
   category, 
@@ -551,4 +555,6 @@ export default function LeaderCard({
       animationDelay={animationDelay}
     />
   );
-}
+});
+
+export default LeaderCard;

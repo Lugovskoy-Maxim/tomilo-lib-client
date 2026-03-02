@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useUpdateRatingMutation } from "@/store/api/titlesApi";
 import { useGetReadingHistoryReadIdsQuery } from "@/store/api/authApi";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
@@ -44,9 +44,7 @@ interface RightContentProps {
   isDescriptionExpanded: boolean;
   onDescriptionToggle: () => void;
   chapters: Chapter[];
-  hasMoreChapters: boolean;
   chaptersLoading: boolean;
-  onLoadMoreChapters: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   sortOrder: "desc" | "asc";
@@ -54,7 +52,6 @@ interface RightContentProps {
   titleId: string;
   user: User | null;
   onAgeVerificationRequired?: () => void;
-  basePath?: string;
   slug?: string;
 }
 
@@ -65,6 +62,7 @@ export function RightContent({
   isDescriptionExpanded,
   onDescriptionToggle,
   chapters,
+  chaptersLoading,
   searchQuery,
   onSearchChange,
   sortOrder,
@@ -78,8 +76,6 @@ export function RightContent({
   const [updateRating] = useUpdateRatingMutation();
   const descriptionRef = useRef<HTMLDivElement>(null);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
-  const [displayedChapters, setDisplayedChapters] = useState<Chapter[]>([]);
-  const [visibleChapters, setVisibleChapters] = useState<Chapter[]>([]);
   const [loadedChaptersCount, setLoadedChaptersCount] = useState(20);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
@@ -235,12 +231,15 @@ export function RightContent({
     }
   }, [titleData?.description]);
 
-  useEffect(() => {
+  // Фильтрация и сортировка глав через useMemo (без лишних state и effect)
+  const displayedChapters = useMemo(() => {
+    let result = chapters;
+    
     if (searchQuery) {
       const query = searchQuery.trim().toLowerCase();
       const queryNumber = parseFloat(query);
       
-      const filteredChapters = chapters.filter(chapter => {
+      result = chapters.filter(chapter => {
         const chapterNum = chapter.chapterNumber ?? 0;
         const chapterNumStr = String(chapterNum);
         
@@ -255,48 +254,69 @@ export function RightContent({
         return false;
       });
       
-      const sortedFiltered = [...filteredChapters].sort((a, b) => {
-        const aNum = a.chapterNumber || 0;
-        const bNum = b.chapterNumber || 0;
+      // При поиске: сначала точные совпадения, потом частичные
+      return [...result].sort((a, b) => {
+        const aNum = a.chapterNumber ?? 0;
+        const bNum = b.chapterNumber ?? 0;
+        
+        // Точное совпадение с числовым запросом
+        const aExact = !isNaN(queryNumber) && aNum === queryNumber;
+        const bExact = !isNaN(queryNumber) && bNum === queryNumber;
+        
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+        
+        // Затем сортировка по порядку
         return sortOrder === "desc" ? bNum - aNum : aNum - bNum;
       });
-      
-      setDisplayedChapters(sortedFiltered);
-      setVisibleChapters(sortedFiltered);
-      setLoadedChaptersCount(sortedFiltered.length);
-    } else {
-      const sortedChapters = [...chapters].sort((a, b) => {
-        const aNum = a.chapterNumber || 0;
-        const bNum = b.chapterNumber || 0;
-        return sortOrder === "desc" ? bNum - aNum : aNum - bNum;
-      });
-      setDisplayedChapters(sortedChapters);
-      setLoadedChaptersCount(20);
     }
+    
+    return [...result].sort((a, b) => {
+      const aNum = a.chapterNumber || 0;
+      const bNum = b.chapterNumber || 0;
+      return sortOrder === "desc" ? bNum - aNum : aNum - bNum;
+    });
   }, [chapters, searchQuery, sortOrder]);
 
-  useEffect(() => {
-    setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));
-  }, [displayedChapters, loadedChaptersCount]);
+  // Видимые главы для виртуализации
+  const visibleChapters = useMemo(() => {
+    return searchQuery ? displayedChapters : displayedChapters.slice(0, loadedChaptersCount);
+  }, [displayedChapters, loadedChaptersCount, searchQuery]);
 
+  // Ref для хранения актуальных значений (избегаем устаревших замыканий)
+  const scrollStateRef = useRef({ loadedChaptersCount, displayedChaptersLength: displayedChapters.length });
+  scrollStateRef.current = { loadedChaptersCount, displayedChaptersLength: displayedChapters.length };
+  
+  // Throttled scroll handler для подгрузки глав
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
-    if (!searchQuery) {
-      setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));
-    }
-  }, [searchQuery, displayedChapters, loadedChaptersCount]);
+    const handleScroll = () => {
+      if (scrollTimeoutRef.current) return;
+      
+      scrollTimeoutRef.current = setTimeout(() => {
+        scrollTimeoutRef.current = null;
+        const { loadedChaptersCount: loaded, displayedChaptersLength: total } = scrollStateRef.current;
+        
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+          if (loaded < total) {
+            setLoadedChaptersCount(prev => Math.min(prev + 20, total));
+          }
+        }
+      }, 100);
+    };
 
-  const handleScroll = useCallback(() => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
-      if (loadedChaptersCount < displayedChapters.length) {
-        setLoadedChaptersCount(prev => Math.min(prev + 10, displayedChapters.length));
-      }
-    }
-  }, [loadedChaptersCount, displayedChapters.length]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
 
+  // Сброс loadedChaptersCount при смене сортировки или поиска
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+    setLoadedChaptersCount(20);
+  }, [sortOrder, chapters]);
 
   // const scrollToTop = () => {
   //   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -632,7 +652,7 @@ export function RightContent({
                 </div>
               )}
               
-              {visibleChapters.length === 0 && searchQuery && (
+              {visibleChapters.length === 0 && searchQuery && !chaptersLoading && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Search className="w-16 h-16 text-[var(--muted-foreground)]/30 mb-4" />
                   <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Глава не найдена</h3>
@@ -645,6 +665,13 @@ export function RightContent({
                   >
                     Сбросить поиск
                   </button>
+                </div>
+              )}
+              
+              {visibleChapters.length === 0 && searchQuery && chaptersLoading && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-12 h-12 border-3 border-[var(--primary)]/20 border-t-[var(--primary)] rounded-full animate-spin mb-4" />
+                  <p className="text-sm text-[var(--muted-foreground)]">Загрузка глав...</p>
                 </div>
               )}
               

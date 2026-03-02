@@ -9,6 +9,8 @@ export {
   type EyeComfortMode,
   type FitMode,
   type ReadingDirection,
+  type ImageQualityMode,
+  type UseReaderSettingsReturn,
 } from './useReaderSettings';
 export { useRefreshButton } from './useRefreshButton';
 export { 

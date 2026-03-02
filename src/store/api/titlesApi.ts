@@ -568,6 +568,7 @@ export const titlesApi = createApi({
           description: string;
           isAdult: boolean;
           ratingCount?: number;
+          slug?: string;
         }[]
       >,
       { limit?: number; includeAdult?: boolean }

@@ -31,6 +31,70 @@ import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED } from "./hooks";
 import PageThumbnails from "./PageThumbnails";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
+import type { ImageQualityMode } from "./hooks";
+
+interface ImageQualitySelectorProps {
+  imageQuality: ImageQualityMode;
+  setImageQuality: (quality: ImageQualityMode) => void;
+}
+
+function ImageQualitySelector({ imageQuality, setImageQuality }: ImageQualitySelectorProps) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Качество изображений</span>
+        <span className="text-sm font-medium text-[var(--foreground)]">
+          {imageQuality === "low" ? "НИЗКОЕ" : imageQuality === "medium" ? "СРЕДНЕЕ" : imageQuality === "high" ? "ВЫСОКОЕ" : "АВТО"}
+        </span>
+      </div>
+      <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+        <button
+          onClick={() => setImageQuality("low")}
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+            imageQuality === "low"
+              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+              : "text-[var(--muted-foreground)]"
+          }`}
+        >
+          60%
+        </button>
+        <button
+          onClick={() => setImageQuality("medium")}
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+            imageQuality === "medium"
+              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+              : "text-[var(--muted-foreground)]"
+          }`}
+        >
+          75%
+        </button>
+        <button
+          onClick={() => setImageQuality("high")}
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+            imageQuality === "high"
+              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+              : "text-[var(--muted-foreground)]"
+          }`}
+        >
+          90%
+        </button>
+        <button
+          onClick={() => setImageQuality("auto")}
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+            imageQuality === "auto"
+              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+              : "text-[var(--muted-foreground)]"
+          }`}
+        >
+          Авто
+        </button>
+      </div>
+      <p className="text-[10px] text-[var(--muted-foreground)]">
+        Низкое качество быстрее загружается на медленном интернете
+      </p>
+    </div>
+  );
+}
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -134,6 +198,8 @@ export default function ReaderControls({
     setShowHints,
     showProgress,
     setShowProgress,
+    imageQuality,
+    setImageQuality,
     resetToDefaults,
   } = useReaderSettingsContext();
 
@@ -559,6 +625,9 @@ export default function ReaderControls({
                 />
               </div>
 
+              {/* Качество изображений */}
+              <ImageQualitySelector imageQuality={imageQuality} setImageQuality={setImageQuality} />
+
               {/* Скорость автопрокрутки */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -852,6 +921,9 @@ export default function ReaderControls({
                   className="w-full h-1.5 bg-gradient-to-r from-[var(--muted)] via-[var(--primary)] to-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
                 />
               </div>
+
+              {/* Качество изображений */}
+              <ImageQualitySelector imageQuality={imageQuality} setImageQuality={setImageQuality} />
 
               {/* Скорость автопрокрутки */}
               <div className="space-y-3">

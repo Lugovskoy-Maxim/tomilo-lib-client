@@ -2,10 +2,10 @@
 
 import { UserProfile } from "@/types/user";
 import { 
-  Trophy, BookOpen, Bookmark, Users, Clock, Crown, Shield, 
+  Trophy, BookOpen, Bookmark, Users, Clock, Crown,
   ChevronRight, ChevronUp, Sparkles
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 
 interface ProfileAchievementsProps {
   userProfile: UserProfile;
@@ -140,7 +140,7 @@ function generateAchievements(userProfile: UserProfile): AchievementWithLevels[]
   });
 }
 
-function AchievementCard({ achievement, expanded, onToggle }: { 
+const AchievementCard = memo(function AchievementCard({ achievement, expanded, onToggle }: { 
   achievement: AchievementWithLevels; 
   expanded: boolean;
   onToggle: () => void;
@@ -296,15 +296,32 @@ function AchievementCard({ achievement, expanded, onToggle }: {
       )}
     </div>
   );
-}
+});
 
 export default function ProfileAchievements({ userProfile, compact = false }: ProfileAchievementsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const achievements = generateAchievements(userProfile);
+  
+  const achievements = useMemo(
+    () => generateAchievements(userProfile),
+    [
+      userProfile.readingHistory,
+      userProfile.bookmarks?.length,
+      userProfile.level,
+      userProfile.createdAt,
+      userProfile.linkedProviders?.length,
+      userProfile.emailVerified,
+    ]
+  );
 
-  const totalLevels = achievements.reduce((sum, a) => sum + a.maxLevel, 0);
-  const unlockedLevels = achievements.reduce((sum, a) => sum + a.currentLevel, 0);
-  const overallPercent = Math.round((unlockedLevels / totalLevels) * 100);
+  const { totalLevels, unlockedLevels, overallPercent } = useMemo(() => {
+    const total = achievements.reduce((sum, a) => sum + a.maxLevel, 0);
+    const unlocked = achievements.reduce((sum, a) => sum + a.currentLevel, 0);
+    return {
+      totalLevels: total,
+      unlockedLevels: unlocked,
+      overallPercent: Math.round((unlocked / total) * 100),
+    };
+  }, [achievements]);
 
   const displayedAchievements = compact ? achievements.slice(0, 3) : achievements;
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Collection } from "@/types/collection";
 import { formatChapterRanges } from "@/lib/format-chapter-ranges";
 
@@ -70,6 +70,7 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
   const isOptionsObject = 'visibleSections' in options || 'includeAdult' in options;
   const visibleSections = isOptionsObject ? (options as StaticDataOptions).visibleSections ?? {} : options as StaticDataVisibleSections;
   const includeAdult = isOptionsObject ? (options as StaticDataOptions).includeAdult ?? false : false;
+  
   const [collections, setCollections] = useState({
     data: [] as Collection[],
     loading: true,
@@ -84,57 +85,75 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
 
   const loadCollections = visibleSections.collections ?? false;
   const loadLatestUpdates = visibleSections.latestUpdates ?? false;
+  
+  // Ref для предотвращения повторных загрузок коллекций
+  const collectionsLoadedRef = useRef(false);
+  // Ref для отслеживания последнего значения includeAdult при загрузке updates
+  const lastIncludeAdultRef = useRef<boolean | null>(null);
+
+  // Мемоизированная функция форматирования коллекций
+  const formatCollections = useCallback((collectionsData: ApiCollection[]): Collection[] => {
+    return collectionsData.map((collection: ApiCollection) => {
+      const id = String((collection.id || collection._id) ?? "");
+      const raw = (collection as Record<string, unknown>).titles;
+      const titles = Array.isArray(raw) ? (raw as string[]) : [];
+      const titlesCount =
+        Number((collection as Record<string, unknown>).titlesCount) ||
+        Number((collection as Record<string, unknown>).titles_count) ||
+        titles.length;
+      return {
+        id,
+        cover:
+          (collection.cover as string) ??
+          (collection.coverImage as string) ??
+          (collection.image as string) ??
+          "",
+        name: collection.name ?? "",
+        description: undefined,
+        titles,
+        titlesCount,
+        comments: [],
+        views: Number(collection.views) || 0,
+        createdAt: (collection.createdAt as string) ?? "",
+        updatedAt: (collection.updatedAt as string) ?? "",
+      };
+    });
+  }, []);
 
   useEffect(() => {
-    if (!loadCollections) return;
-    // Загрузка коллекций с API
+    // Предотвращаем повторную загрузку коллекций (они не зависят от includeAdult)
+    if (!loadCollections || collectionsLoadedRef.current) return;
+    
+    let cancelled = false;
+    const controller = new AbortController();
+    
     const fetchCollections = async () => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
         const response = await fetch(
           `${baseUrl}/collections?page=1&limit=10&sortBy=createdAt&sortOrder=desc`,
+          { signal: controller.signal }
         );
 
         if (!response.ok)
           throw new Error(`Failed to fetch collections: ${response.status} ${response.statusText}`);
+        if (cancelled) return;
 
         const result = await response.json();
+        if (cancelled) return;
+        
         const raw = result.data?.collections ?? result.data?.data ?? result.data;
         const collectionsData = Array.isArray(raw) ? raw : [];
+        const formattedCollections = formatCollections(collectionsData);
 
-        // Преобразуем данные в формат Collection для CollectionCard
-        const formattedCollections: Collection[] = collectionsData.map((collection: ApiCollection) => {
-          const id = String((collection.id || collection._id) ?? "");
-          const raw = (collection as Record<string, unknown>).titles;
-          const titles = Array.isArray(raw) ? (raw as string[]) : [];
-          const titlesCount =
-            Number((collection as Record<string, unknown>).titlesCount) ||
-            Number((collection as Record<string, unknown>).titles_count) ||
-            titles.length;
-          return {
-            id,
-            cover:
-              (collection.cover as string) ??
-              (collection.coverImage as string) ??
-              (collection.image as string) ??
-              "",
-            name: collection.name ?? "",
-            description: undefined,
-            titles,
-            titlesCount,
-            comments: [],
-            views: Number(collection.views) || 0,
-            createdAt: (collection.createdAt as string) ?? "",
-            updatedAt: (collection.updatedAt as string) ?? "",
-          };
-        });
-
+        collectionsLoadedRef.current = true;
         setCollections({
           data: formattedCollections,
           loading: false,
           error: null,
         });
-      } catch {
+      } catch (err) {
+        if (cancelled || (err instanceof Error && err.name === "AbortError")) return;
         setCollections({
           data: [],
           loading: false,
@@ -144,14 +163,28 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
     };
 
     fetchCollections();
-  }, [loadCollections]);
+    
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [loadCollections, formatCollections]);
 
   useEffect(() => {
+    // Пропускаем если секция не видима или значение includeAdult не изменилось
     if (!loadLatestUpdates) return;
+    if (lastIncludeAdultRef.current === includeAdult && latestUpdates.data.length > 0) return;
+    
+    lastIncludeAdultRef.current = includeAdult;
     let cancelled = false;
     const controller = new AbortController();
     
     const fetchLatestUpdates = async () => {
+      // Показываем loading только при первой загрузке
+      if (latestUpdates.data.length === 0) {
+        setLatestUpdates(prev => ({ ...prev, loading: true }));
+      }
+      
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
         const params = new URLSearchParams({ limit: "16" });
@@ -201,7 +234,7 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
       cancelled = true;
       controller.abort();
     };
-  }, [loadLatestUpdates, includeAdult]);
+  }, [loadLatestUpdates, includeAdult, latestUpdates.data.length]);
 
   return { collections, latestUpdates };
 };
