@@ -10,6 +10,8 @@ interface OptimizedImageProps {
   fill?: boolean;
   quality?: number;
   priority?: boolean;
+  /** Низкий приоритет загрузки — изображение будет загружаться с задержкой */
+  lowPriority?: boolean;
   /** Показывать изображение только когда true (для последовательного отображения по порядку) */
   visible?: boolean;
   onLoad?: () => void;
@@ -31,6 +33,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   height,
   fill = false,
   priority = false,
+  lowPriority = false,
   visible = true,
   onLoad,
   onError,
@@ -103,7 +106,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       setIsLoading(true);
       observerRef.current?.disconnect();
       observerRef.current = null;
-    }, 1200);
+    }, lowPriority ? 3000 : 1200);
+
+    // Для низкоприоритетных изображений используем меньший rootMargin
+    // чтобы они начинали грузиться ближе к viewport
+    const rootMarginValue = lowPriority ? "300px 0px" : "800px 0px";
 
     observerRef.current?.disconnect();
     observerRef.current = new IntersectionObserver(
@@ -117,7 +124,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         });
       },
       {
-        rootMargin: "250px 0px",
+        rootMargin: rootMarginValue,
         threshold: 0.01,
       },
     );
@@ -129,7 +136,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       observerRef.current?.disconnect();
       observerRef.current = null;
     };
-  }, [priority, shouldLoad]);
+  }, [priority, shouldLoad, lowPriority]);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -312,7 +319,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         onError={handleError}
         loading={priority ? "eager" : "lazy"}
         decoding="async"
-        fetchPriority={priority ? "high" : "low"}
+        fetchPriority={priority ? "high" : lowPriority ? "low" : "auto"}
         style={imageStyle}
         onDragStart={onDragStart}
         draggable={draggable}
