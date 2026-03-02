@@ -14,6 +14,16 @@ import { ipApi } from "./api/ipApi";
 import { shopApi } from "./api/shopApi";
 import { announcementsApi } from "./api/announcementsApi";
 import { leaderboardApi } from "./api/leaderboardApi";
+import { genresApi } from "./api/genresApi";
+import { achievementsApi } from "./api/achievementsApi";
+import { siteSettingsApi } from "./api/siteSettingsApi";
+import { auditLogsApi } from "./api/auditLogsApi";
+import { charactersApi } from "./api/charactersApi";
+import { translatorsApi } from "./api/translatorsApi";
+import { subscriptionsApi } from "./api/subscriptionsApi";
+import { searchApi } from "./api/searchApi";
+import { adminApi } from "./api/adminApi";
+import { promocodesApi } from "./api/promocodesApi";
 import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
 import collectionsReducer from "./slices/collectionsSlice";
@@ -54,6 +64,16 @@ export const store = configureStore({
     [shopApi.reducerPath]: shopApi.reducer,
     [announcementsApi.reducerPath]: announcementsApi.reducer,
     [leaderboardApi.reducerPath]: leaderboardApi.reducer,
+    [genresApi.reducerPath]: genresApi.reducer,
+    [achievementsApi.reducerPath]: achievementsApi.reducer,
+    [siteSettingsApi.reducerPath]: siteSettingsApi.reducer,
+    [auditLogsApi.reducerPath]: auditLogsApi.reducer,
+    [charactersApi.reducerPath]: charactersApi.reducer,
+    [translatorsApi.reducerPath]: translatorsApi.reducer,
+    [subscriptionsApi.reducerPath]: subscriptionsApi.reducer,
+    [searchApi.reducerPath]: searchApi.reducer,
+    [adminApi.reducerPath]: adminApi.reducer,
+    [promocodesApi.reducerPath]: promocodesApi.reducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
@@ -72,6 +92,16 @@ export const store = configureStore({
       shopApi.middleware,
       announcementsApi.middleware,
       leaderboardApi.middleware,
+      genresApi.middleware,
+      achievementsApi.middleware,
+      siteSettingsApi.middleware,
+      auditLogsApi.middleware,
+      charactersApi.middleware,
+      translatorsApi.middleware,
+      subscriptionsApi.middleware,
+      searchApi.middleware,
+      adminApi.middleware,
+      promocodesApi.middleware,
     ),
 });
 

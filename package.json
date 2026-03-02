@@ -8,6 +8,7 @@
     "build-no-lint": "next build --no-lint",
     "start": "next start",
     "lint": "eslint",
+    "analyze": "ANALYZE=true next build",
     "bot:chapters": "node scripts/telegram-chapters-bot.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^15.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

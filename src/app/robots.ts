@@ -12,6 +12,12 @@ const allow = [
   "/top/",
   "/updates",
   "/updates/",
+  "/leaders",
+  "/leaders/",
+  "/news",
+  "/news/",
+  "/faq",
+  "/faq/",
   "/about",
   "/about/",
   "/contact",
@@ -24,6 +30,8 @@ const allow = [
   "/privacy-policy/",
   "/rss",
   "/rss/",
+  "/user",
+  "/user/",
 ];
 
 const disallow = [
@@ -49,6 +57,8 @@ const disallow = [
   "/reset-password/",
   "/rate-limit",
   "/rate-limit/",
+  "/verify-email",
+  "/verify-email/",
 ];
 
 export default function robots(): MetadataRoute.Robots {
@@ -58,6 +68,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow,
         disallow,
+        crawlDelay: 1,
       },
       {
         userAgent: "Googlebot",
@@ -65,19 +76,55 @@ export default function robots(): MetadataRoute.Robots {
         disallow,
       },
       {
+        userAgent: "Googlebot-Image",
+        allow: ["/"],
+        disallow: ["/api/", "/admin/"],
+      },
+      {
         userAgent: "Yandex",
         allow,
         disallow,
+        crawlDelay: 2,
       },
       {
-        userAgent: "Yandexbot",
+        userAgent: "YandexBot",
         allow,
         disallow,
+        crawlDelay: 2,
+      },
+      {
+        userAgent: "YandexImages",
+        allow: ["/"],
+        disallow: ["/api/", "/admin/"],
       },
       {
         userAgent: "Bingbot",
         allow,
         disallow,
+        crawlDelay: 1,
+      },
+      {
+        userAgent: "Mail.RU_Bot",
+        allow,
+        disallow,
+        crawlDelay: 2,
+      },
+      {
+        userAgent: "Applebot",
+        allow,
+        disallow,
+      },
+      {
+        userAgent: "facebookexternalhit",
+        allow: ["/"],
+      },
+      {
+        userAgent: "Twitterbot",
+        allow: ["/"],
+      },
+      {
+        userAgent: "TelegramBot",
+        allow: ["/"],
       },
     ],
     host: BASE_URL,

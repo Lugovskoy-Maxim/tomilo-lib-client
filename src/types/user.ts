@@ -137,6 +137,10 @@ export interface UserProfile {
   showAchievements?: boolean;
   /** Показывать ли любимых персонажей */
   showFavoriteCharacters?: boolean;
+  /** Показывать ли историю чтения */
+  showReadingHistory?: boolean;
+  /** Показывать ли закладки */
+  showBookmarks?: boolean;
 }
 
 /** Типы достижений */

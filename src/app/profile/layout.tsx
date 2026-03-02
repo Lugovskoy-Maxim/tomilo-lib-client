@@ -10,7 +10,6 @@ import { Footer, Header } from "@/widgets";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { UserProfile } from "@/types/user";
 import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";
-import { ProfileNav } from "@/shared/profile-tabs/ProfileNav";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
 import { getEquippedBackgroundUrl, getDecorationImageUrl } from "@/api/shop";
 import ProfileEditForm from "@/shared/profile/ProfileEditForm";
@@ -123,11 +122,6 @@ export default function ProfileLayout(_: { children: React.ReactNode }) {
               <div className="flex-1 min-w-0 w-full">
                 <ProfileTabs userProfile={userProfile} />
               </div>
-              
-              {/* Правая колонка — навигация (только на xl экранах) */}
-              <aside className="hidden xl:block xl:w-56 xl:shrink-0 xl:sticky xl:top-4">
-                <ProfileNav />
-              </aside>
             </div>
           </div>
         </div>

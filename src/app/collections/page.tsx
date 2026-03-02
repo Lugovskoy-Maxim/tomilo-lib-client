@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pageTitle } from "@/lib/page-title";
+import { Suspense } from "react";
 import { CollectionsPage } from "@/widgets";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
@@ -14,6 +14,15 @@ interface CollectionsPageProps {
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+
+const collectionsBreadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Главная", item: baseUrl },
+    { "@type": "ListItem", position: 2, name: "Коллекции", item: `${baseUrl}/collections` },
+  ],
+};
 
 export async function generateMetadata({ searchParams }: CollectionsPageProps): Promise<Metadata> {
   const params = await searchParams;
@@ -38,24 +47,16 @@ export async function generateMetadata({ searchParams }: CollectionsPageProps): 
   });
 }
 
-// Основной серверный компонент страницы коллекций
-export default async function CollectionsPageRoute({ searchParams }: CollectionsPageProps) {
-  const resolvedSearchParams = await searchParams;
-  const initialFilters = getInitialFilters(resolvedSearchParams);
-
-  pageTitle.setTitlePage(
-    initialFilters.search
-      ? `Поиск коллекций: ${initialFilters.search}`
-      : "Просмотрите все доступные коллекции тайтлов - Tomilo-lib.ru",
+export default function CollectionsPageRoute() {
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionsBreadcrumbJsonLd) }}
+      />
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" /></div>}>
+        <CollectionsPage />
+      </Suspense>
+    </>
   );
-
-  return <CollectionsPage />;
-}
-
-// Утилита для получения начальных фильтров из URL параметров
-function getInitialFilters(params: Awaited<CollectionsPageProps["searchParams"]>) {
-  const search = params.search || "";
-  const sortBy = (params.sortBy || "createdAt") as "name" | "views" | "createdAt";
-  const sortOrder = (params.sortOrder || "desc") as "asc" | "desc";
-  return { search, sortBy, sortOrder };
 }

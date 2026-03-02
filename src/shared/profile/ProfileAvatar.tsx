@@ -20,6 +20,8 @@ const sizeClasses = {
   lg: "w-36 h-36 text-4xl",
 };
 
+const DEFAULT_AVATAR = "/logo/ring_logo.png";
+
 /** URL декорации «аватар» из профиля (при populate объект с imageUrl или _id). */
 function getAvatarDecorationUrls(equipped: UserProfile["equippedDecorations"]): { primary: string | null; fallback: string | null } {
   if (!equipped?.avatar) return { primary: null, fallback: null };
@@ -53,11 +55,6 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   const { frameUrl: resolvedFrameUrl, avatarDecorationUrl: resolvedAvatarUrl } = useResolvedEquippedDecorations();
   const isCurrentUser = user && (userProfile._id === user._id || userProfile._id === user.id);
 
-  const displayName =
-    userProfile.username && userProfile.username.length > 0
-      ? userProfile.username.charAt(0).toUpperCase()
-      : "?";
-
   const sizeClass = sizeClasses[size];
   const pixelSize = size === "sm" ? 96 : 144;
   const frameUrl = isCurrentUser ? resolvedFrameUrl : getEquippedFrameUrl(userProfile.equippedDecorations);
@@ -70,30 +67,25 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
     ? { primary: resolvedAvatarUrl, fallback: null }
     : getAvatarDecorationUrls(userProfile.equippedDecorations);
   
-  const mainImageUrl = decorationUrls.primary ?? baseAvatarPrimary;
-  const fallbackImageUrl = decorationUrls.fallback ?? baseAvatarFallback;
+  const mainImageUrl = decorationUrls.primary ?? baseAvatarPrimary ?? DEFAULT_AVATAR;
+  const fallbackImageUrl = decorationUrls.fallback ?? baseAvatarFallback ?? DEFAULT_AVATAR;
 
-  const avatarInner = mainImageUrl ? (
+  const avatarInner = (
     <OptimizedImage
       src={mainImageUrl}
-      fallbackSrc={fallbackImageUrl && fallbackImageUrl !== mainImageUrl ? fallbackImageUrl : undefined}
+      fallbackSrc={fallbackImageUrl && fallbackImageUrl !== mainImageUrl ? fallbackImageUrl : DEFAULT_AVATAR}
       alt={userProfile.username || "User avatar"}
       className="w-full h-full object-cover rounded-full"
       height={pixelSize}
       width={pixelSize}
       priority={true}
     />
-  ) : (
-    <span className="drop-shadow-lg">{displayName}</span>
   );
 
-  const hasImage = Boolean(mainImageUrl);
   const avatarDecorationUrl = decorationUrls.primary;
   const hasDecoration = Boolean(frameUrl || avatarDecorationUrl);
   const wrapperClass = `relative ${sizeClass} aspect-square shrink-0 rounded-full overflow-hidden shadow-2xl glow-avatar transition-transform duration-300 group-hover:scale-105 ${
     hasDecoration ? "" : "border-4 border-[var(--background)]"
-  } ${
-    hasImage ? "" : "bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] flex items-center justify-center text-white font-bold"
   }`;
 
   return (

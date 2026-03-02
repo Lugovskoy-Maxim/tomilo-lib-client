@@ -1,7 +1,7 @@
 "use client";
 
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { ReaderChapter as Chapter } from "@/shared/reader/types";
 
 interface ContinuousScrollViewProps {
@@ -19,6 +19,11 @@ interface ContinuousScrollViewProps {
   loadingPrev?: boolean;
   loadingNext?: boolean;
 }
+
+// Количество приоритетных изображений в текущей главе
+const PRIORITY_IMAGES_COUNT = 5;
+// Количество изображений для предзагрузки из следующей главы
+const PRELOAD_NEXT_CHAPTER_IMAGES = 3;
 
 export default function ContinuousScrollView({
   chapters,
@@ -39,22 +44,42 @@ export default function ContinuousScrollView({
   );
   const observerRef = useRef<IntersectionObserver | null>(null);
   const imageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  // Последовательное отображение: показываем картинку только когда все предыдущие загружены
-  const [loadedIndices, setLoadedIndices] = useState<Set<number>>(new Set());
 
   // Calculate cumulative images up to each chapter
-  const cumulativeImages: number[] = [];
-  let totalImages = 0;
-  chapters.forEach(ch => {
-    cumulativeImages.push(totalImages);
-    totalImages += ch.images.length;
-  });
+  const cumulativeImages = useMemo(() => {
+    const result: number[] = [];
+    let total = 0;
+    chapters.forEach(ch => {
+      result.push(total);
+      total += ch.images.length;
+    });
+    return result;
+  }, [chapters]);
 
-  // Сброс порядка загрузки только при смене главы (переход по другой главе), не при подгрузке соседних
-  const firstChapterId = chapters[0]?._id ?? "";
-  useEffect(() => {
-    setLoadedIndices(new Set());
-  }, [firstChapterId]);
+  // Определяем текущую видимую главу для приоритизации загрузки
+  const currentVisibleChapterIdx = useMemo(() => {
+    return chapters.findIndex(ch => ch._id === visibleChapterId);
+  }, [chapters, visibleChapterId]);
+
+  // Функция для определения приоритета загрузки изображения
+  const getImagePriority = (chapterIdx: number, imageIdx: number): boolean => {
+    // Если это текущая глава — первые N изображений с высоким приоритетом
+    if (chapterIdx === currentVisibleChapterIdx) {
+      return imageIdx < PRIORITY_IMAGES_COUNT;
+    }
+    // Следующая глава — только первые несколько изображений для предзагрузки
+    if (chapterIdx === currentVisibleChapterIdx + 1) {
+      return imageIdx < PRELOAD_NEXT_CHAPTER_IMAGES;
+    }
+    // Все остальные главы — без приоритета, lazy load
+    return false;
+  };
+
+  // Функция для определения низкого приоритета (главы далеко от текущей)
+  const isLowPriority = (chapterIdx: number): boolean => {
+    // Изображения из глав, которые дальше чем +1 от текущей, грузятся с низким приоритетом
+    return chapterIdx > currentVisibleChapterIdx + 1 || chapterIdx < currentVisibleChapterIdx;
+  };
 
   // Scroll to initial position
   useEffect(() => {
@@ -144,9 +169,6 @@ export default function ContinuousScrollView({
         {chapters.map((chapter, chapterIdx) =>
           chapter.images.map((image, imageIdx) => {
             const globalIndex = cumulativeImages[chapterIdx] + imageIdx;
-            const visible =
-              globalIndex === 0 ||
-              Array.from({ length: globalIndex }, (_, i) => i).every(i => loadedIndices.has(i));
             return (
               <div key={`${chapter._id}-${imageIdx}`} className="flex justify-center">
                 {!imageLoadErrors.has(globalIndex) ? (
@@ -166,13 +188,12 @@ export default function ContinuousScrollView({
                         imageWidth === "fit" ? "100%" : imageWidth === "original" ? "auto" : "100%",
                       height: "auto",
                     }}
-                    visible={visible}
                     onLoad={() => {
-                      setLoadedIndices(prev => new Set(prev).add(globalIndex));
                       if (globalIndex === 0) onImageLoad?.();
                     }}
                     onError={() => onImageError(globalIndex)}
-                    priority={globalIndex < 3}
+                    priority={getImagePriority(chapterIdx, imageIdx)}
+                    lowPriority={isLowPriority(chapterIdx)}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center w-full h-64 bg-[var(--card)] rounded-lg border border-[var(--border)]">

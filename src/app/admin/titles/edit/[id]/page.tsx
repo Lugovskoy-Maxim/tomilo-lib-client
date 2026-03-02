@@ -35,8 +35,8 @@ import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { UpdateTitleDto } from "@/types/title";
 
 import { useToast } from "@/hooks/useToast";
-// import Image from "next/image";
 import { CoverUploadSection } from "@/shared/admin/CoverUploadSection";
+import { CharactersManager } from "@/shared/admin/CharactersManager";
 import { normalizeGenres } from "@/lib/genre-normalizer";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
@@ -532,14 +532,10 @@ export default function TitleEditorPage() {
                 onCoverUpdate={newCover => setFormData(prev => ({ ...prev, coverImage: newCover }))}
                 onSlugGenerate={handleSlugGenerate}
               />
-              {/* <TextareaField
-                label="Описание *"
-                value={formData.description}
-                onChange={handleInputChange("description")}
-                placeholder="Описание тайтла..."
-                rows={8}
-                required
-              /> */}
+
+            {/* Управление персонажами */}
+            <CharactersManager titleId={titleId} />
+
             <div className="flex items-center justify-between gap-3">
               <Link href={`/titles/${formData.slug}`} className="px-4 py-2 rounded border">
                 Открыть страницу тайтла

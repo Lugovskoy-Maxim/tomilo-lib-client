@@ -104,6 +104,8 @@ export interface Chapter {
   translator?: string;
   proofreader?: string;
   qualityCheck?: string;
+  translatorTeamId?: string;
+  translatorTeamName?: string;
   status: ChapterStatus;
   createdAt: string;
   updatedAt: string;

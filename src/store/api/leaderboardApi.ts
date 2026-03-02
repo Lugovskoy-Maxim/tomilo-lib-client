@@ -3,7 +3,8 @@ import { ApiResponse } from "@/types/api";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
-export type LeaderboardCategory = "level" | "readingTime" | "ratings" | "comments" | "streak";
+export type LeaderboardCategory = "level" | "readingTime" | "ratings" | "comments" | "streak" | "chaptersRead";
+export type LeaderboardPeriod = "all" | "month";
 
 export interface LeaderboardUserEquippedDecorations {
   avatar?: string | null;
@@ -32,12 +33,15 @@ export interface LeaderboardUser {
   completedTitlesCount?: number;
   createdAt?: string;
   equippedDecorations?: LeaderboardUserEquippedDecorations | null;
+  /** Показывать ли статистику в публичном профиле (если false — пользователь скрыт из лидеров) */
+  showStats?: boolean;
 }
 
 export interface LeaderboardResponse {
   users: LeaderboardUser[];
   total: number;
   category: LeaderboardCategory;
+  period?: LeaderboardPeriod;
 }
 
 export const leaderboardApi = createApi({
@@ -59,11 +63,11 @@ export const leaderboardApi = createApi({
   endpoints: builder => ({
     getLeaderboard: builder.query<
       ApiResponse<LeaderboardResponse>,
-      { category: LeaderboardCategory; limit?: number; page?: number }
+      { category: LeaderboardCategory; period?: LeaderboardPeriod; limit?: number; page?: number }
     >({
-      query: ({ category, limit = 50, page = 1 }) => ({
+      query: ({ category, period = "all", limit = 50, page = 1 }) => ({
         url: "/users/leaderboard",
-        params: { category, limit, page },
+        params: { category, period, limit, page },
       }),
       providesTags: ["Leaderboard"],
     }),
@@ -117,11 +121,28 @@ export const leaderboardApi = createApi({
       }),
       providesTags: ["Leaderboard"],
     }),
+    getUserLeaderboardPositions: builder.query<
+      ApiResponse<{
+        positions: {
+          category: LeaderboardCategory;
+          position: number;
+          value: number;
+        }[];
+        inTop10Categories: LeaderboardCategory[];
+      }>,
+      void
+    >({
+      query: () => ({
+        url: "/users/leaderboard/my-positions",
+      }),
+      providesTags: ["Leaderboard"],
+    }),
   }),
 });
 
 export const {
   useGetLeaderboardQuery,
+  useGetUserLeaderboardPositionsQuery,
   useGetLeaderboardByLevelQuery,
   useGetLeaderboardByReadingTimeQuery,
   useGetLeaderboardByRatingsQuery,

@@ -198,20 +198,34 @@ export default function BookmarkCard({
             {title.genres?.slice(0, 2).join(", ") || "Жанры не указаны"}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]">
-          <span>{translateTitleStatus(title.status)}</span>
-          {chaptersRead != null && chaptersRead > 0 && title.totalChapters != null ? (
-            <span>
-              прочитано{" "}
-              <span className="font-semibold text-[var(--chart-1)]">
-                {chaptersRead} / {title.totalChapters}
-              </span>{" "}
-              глав
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]">
+            <span className="px-1.5 py-0.5 rounded bg-[var(--secondary)]/80 text-[10px] font-medium">
+              {translateTitleStatus(title.status)}
             </span>
-          ) : (
-            <span>
-              <span className="font-semibold text-[var(--primary)]">{title.totalChapters}</span> глав
-            </span>
+            {chaptersRead != null && chaptersRead > 0 && title.totalChapters != null ? (
+              <span className="font-medium">
+                <span className="text-[var(--chart-1)]">{chaptersRead}</span>
+                <span className="text-[var(--muted-foreground)]"> / {title.totalChapters}</span>
+                <span className="text-[var(--muted-foreground)] ml-1">глав</span>
+              </span>
+            ) : (
+              <span>
+                <span className="font-semibold text-[var(--primary)]">{title.totalChapters}</span> глав
+              </span>
+            )}
+          </div>
+          {chaptersRead != null && chaptersRead > 0 && totalChapters > 0 && (
+            <div className="w-full h-1.5 rounded-full bg-[var(--secondary)] overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-300 ${
+                  isFullyRead 
+                    ? "bg-gradient-to-r from-amber-500 to-yellow-400" 
+                    : "bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)]"
+                }`}
+                style={{ width: `${Math.min(100, (chaptersRead / totalChapters) * 100)}%` }}
+              />
+            </div>
           )}
         </div>
       </div>

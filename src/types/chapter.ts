@@ -16,7 +16,10 @@ export interface ReaderChapter {
   _id: string;
   number: number;
   title: string;
-  date: string;
+  date?: string;
   views: number;
   images: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  teamId?: string;
 }

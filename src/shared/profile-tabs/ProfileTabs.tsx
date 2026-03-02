@@ -11,10 +11,8 @@ import {
   type ProfileTab,
   tabMeta,
   PROFILE_TABS,
-  tabGroups,
   isValidProfileTab,
 } from "./profileTabConfig";
-import { ProfileNav } from "./ProfileNav";
 
 // Компоненты обзора
 import ProfileAdditionalInfo from "@/shared/profile/ProfileAdditionalInfo";
@@ -34,6 +32,7 @@ import ProfilePrivacySettings from "@/shared/profile/ProfilePrivacySettings";
 import ProfileSecuritySettings from "@/shared/profile/ProfileSecuritySettings";
 import ProfileDisplaySettings from "@/shared/profile/ProfileDisplaySettings";
 import ProfileInventory from "@/shared/profile/ProfileInventory";
+import SettingsNavigation from "@/shared/profile/SettingsNavigation";
 
 export type { ProfileTab } from "./profileTabConfig";
 export { PROFILE_TABS };
@@ -46,9 +45,15 @@ interface ProfileTabsProps {
   breadcrumbPrefix?: BreadcrumbItem[] | null;
   /** Скрыть вкладки (например, "settings" при просмотре чужого профиля в админке) */
   hideTabs?: ProfileTab[];
+  /** Публичный просмотр чужого профиля - скрывает приватные компоненты */
+  isPublicView?: boolean;
+  /** Закладки скрыты настройками приватности */
+  isBookmarksRestricted?: boolean;
+  /** История чтения скрыта настройками приватности */
+  isHistoryRestricted?: boolean;
 }
 
-export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: ProfileTabsProps) {
+export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicView = false, isBookmarksRestricted = false, isHistoryRestricted = false }: ProfileTabsProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -56,6 +61,11 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasDraggedRef = useRef(false);
 
   const tabFromUrl = searchParams.get("tab");
   
@@ -63,24 +73,23 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
     ? PROFILE_TABS.filter(t => !hideTabs.includes(t))
     : PROFILE_TABS;
 
-  const checkScroll = () => {
+  useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
-  };
 
-  useEffect(() => {
+    const checkScroll = () => {
+      setCanScrollLeft(el.scrollLeft > 0);
+      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+    };
+
     checkScroll();
-    const el = scrollRef.current;
-    if (el) {
-      el.addEventListener("scroll", checkScroll);
-      window.addEventListener("resize", checkScroll);
-      return () => {
-        el.removeEventListener("scroll", checkScroll);
-        window.removeEventListener("resize", checkScroll);
-      };
-    }
+    el.addEventListener("scroll", checkScroll, { passive: true });
+    window.addEventListener("resize", checkScroll, { passive: true });
+    
+    return () => {
+      el.removeEventListener("scroll", checkScroll);
+      window.removeEventListener("resize", checkScroll);
+    };
   }, []);
 
   const scroll = (direction: "left" | "right") => {
@@ -88,6 +97,45 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
     if (!el) return;
     const scrollAmount = 150;
     el.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+    el.style.cursor = "grabbing";
+    el.style.userSelect = "none";
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 5) {
+      hasDraggedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleMouseUp = () => {
+    const el = scrollRef.current;
+    if (el) {
+      el.style.cursor = "grab";
+      el.style.userSelect = "";
+    }
+    isDraggingRef.current = false;
+  };
+
+  const handleMouseLeave = () => {
+    if (isDraggingRef.current) {
+      handleMouseUp();
+    }
   };
   let activeTab: ProfileTab = isValidProfileTab(tabFromUrl) ? tabFromUrl : "overview";
   if (hideTabs?.length && hideTabs.includes(activeTab)) {
@@ -133,8 +181,8 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
 
   return (
     <div className="w-full min-w-0">
-      {/* Мобильная горизонтальная навигация — только до xl */}
-      <div className="xl:hidden mb-4">
+      {/* Горизонтальная навигация */}
+      <div className="mb-4">
         <div className="relative">
           {/* Стрелка влево */}
           {canScrollLeft && (
@@ -151,8 +199,12 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
           {/* Скроллируемые вкладки */}
           <div 
             ref={scrollRef}
-            className="flex gap-1 overflow-x-auto scrollbar-hide px-1 py-1 -mx-1"
+            className="flex gap-1 overflow-x-auto scrollbar-hide px-1 py-1 -mx-1 cursor-grab select-none"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
           >
             {visibleTabs.map(tabId => {
               const meta = tabMeta[tabId];
@@ -162,7 +214,11 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
                 <button
                   key={tabId}
                   type="button"
-                  onClick={() => setActiveTab(tabId)}
+                  onClick={() => {
+                    if (!hasDraggedRef.current) {
+                      setActiveTab(tabId);
+                    }
+                  }}
                   className={`flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                     isActive
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
@@ -224,7 +280,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
           {/* О себе */}
           {activeTab === "overview" && (
             <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
-              <ProfileAdditionalInfo userProfile={userProfile} />
+              <ProfileAdditionalInfo userProfile={userProfile} isPublicView={isPublicView} />
               <ProfileContent
                 userProfile={userProfile}
                 allBookmarksHref={`${pathname}?tab=bookmarks`}
@@ -233,6 +289,9 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
                 onShowHistory={() => setActiveTab("history")}
                 onShowAchievements={() => setActiveTab("achievements")}
                 onShowStats={() => setActiveTab("stats")}
+                isPublicView={isPublicView}
+                hiddenBookmarksMessage={isBookmarksRestricted ? "Пользователь скрыл свои закладки в настройках приватности." : undefined}
+                hiddenHistoryMessage={isHistoryRestricted ? "Пользователь скрыл свою историю чтения в настройках приватности." : undefined}
               />
             </div>
           )}
@@ -240,14 +299,14 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
           {/* Статистика */}
           {activeTab === "stats" && (
             <div className="animate-fade-in-up">
-              <ProfileStats userProfile={userProfile} showDetailed />
+              <ProfileStats userProfile={userProfile} showDetailed isPublicView={isPublicView} />
             </div>
           )}
 
           {/* Достижения */}
           {activeTab === "achievements" && (
             <div className="animate-fade-in-up">
-              <ProfileAchievements userProfile={userProfile} />
+              <ProfileAchievements userProfile={userProfile} isPublicView={isPublicView} />
             </div>
           )}
 
@@ -261,23 +320,55 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
           {/* Закладки */}
           {activeTab === "bookmarks" && (
             <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
-              <BookmarksSection
-                bookmarks={userProfile.bookmarks}
-                readingHistory={userProfile.readingHistory}
-                showAll={true}
-                showSectionHeader={false}
-              />
+              {isBookmarksRestricted ? (
+                <div className="flex-1 flex items-center justify-center text-center py-12">
+                  <div className="max-w-sm">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
+                      <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <p className="text-[var(--foreground)] font-medium mb-1">Закладки скрыты</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      Пользователь ограничил доступ к своим закладкам в настройках приватности.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <BookmarksSection
+                  bookmarks={userProfile.bookmarks}
+                  readingHistory={userProfile.readingHistory}
+                  showAll={true}
+                  showSectionHeader={false}
+                />
+              )}
             </div>
           )}
 
           {/* История */}
           {activeTab === "history" && (
             <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
-              <ReadingHistorySection
-                readingHistory={userProfile.readingHistory}
-                showAll={true}
-                showSectionHeader={false}
-              />
+              {isHistoryRestricted ? (
+                <div className="flex-1 flex items-center justify-center text-center py-12">
+                  <div className="max-w-sm">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
+                      <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <p className="text-[var(--foreground)] font-medium mb-1">История чтения скрыта</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      Пользователь ограничил доступ к истории чтения в настройках приватности.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <ReadingHistorySection
+                  readingHistory={userProfile.readingHistory}
+                  showAll={true}
+                  showSectionHeader={false}
+                />
+              )}
             </div>
           )}
 
@@ -314,13 +405,24 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs }: Profile
 
           {/* Настройки */}
           {activeTab === "settings" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in-up">
-              <ProfileNotificationsSettings userProfile={userProfile} />
-              <ProfileDisplaySettings userProfile={userProfile} />
-              <ProfileReadingSettings userProfile={userProfile} />
-              <ProfilePrivacySettings userProfile={userProfile} />
-              <div className="lg:col-span-2">
-                <ProfileSecuritySettings userProfile={userProfile} />
+            <div className="animate-fade-in-up">
+              <SettingsNavigation />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div id="settings-notifications">
+                  <ProfileNotificationsSettings userProfile={userProfile} />
+                </div>
+                <div id="settings-display">
+                  <ProfileDisplaySettings userProfile={userProfile} />
+                </div>
+                <div id="settings-reading">
+                  <ProfileReadingSettings userProfile={userProfile} />
+                </div>
+                <div id="settings-privacy">
+                  <ProfilePrivacySettings userProfile={userProfile} />
+                </div>
+                <div id="settings-security" className="lg:col-span-2">
+                  <ProfileSecuritySettings userProfile={userProfile} />
+                </div>
               </div>
             </div>
           )}

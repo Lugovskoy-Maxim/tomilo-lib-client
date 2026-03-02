@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   useGetReportsQuery,
   useUpdateReportStatusMutation,
@@ -18,13 +18,77 @@ import {
   LayoutList,
   Clock3,
   MessageSquareReply,
+  CheckSquare,
+  Square,
+  X,
+  Download,
+  FileText,
+  RefreshCw,
+  User,
+  ExternalLink,
+  Calendar,
+  Eye,
+  Filter,
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { ReportEntityInfo } from "./ReportEntityInfo";
-import { AdminModal } from "./ui/AdminModal";
+import { AdminModal, ConfirmModal } from "./ui/AdminModal";
+import Image from "next/image";
+import { getCoverUrls } from "@/lib/asset-url";
+
+const DEFAULT_AVATAR = "/logo/ring_logo.png";
+
+function isValidAvatarUrl(avatar: string | undefined): boolean {
+  if (!avatar) return false;
+  if (avatar.includes("undefined") || avatar.includes("null")) return false;
+  return true;
+}
+
+function isStaticAsset(path: string): boolean {
+  return path.startsWith("/logo/") || path.startsWith("/images/") || path.startsWith("/icons/");
+}
+
+function getUserAvatar(report: Report): string {
+  if (!report.userId) return DEFAULT_AVATAR;
+  const avatar = report.userId.avatar;
+  return isValidAvatarUrl(avatar) ? avatar! : DEFAULT_AVATAR;
+}
+
+function normalizeAvatarUrl(url: string): string {
+  if (isStaticAsset(url)) return url;
+  return getCoverUrls(url, "").primary;
+}
+
+const RESPONSE_TEMPLATES = [
+  { label: "Исправлено", text: "Спасибо за обращение! Проблема была исправлена." },
+  { label: "Проверено", text: "Спасибо за сообщение. Мы проверили указанную информацию." },
+  { label: "Опечатка исправлена", text: "Опечатка исправлена. Благодарим за внимательность!" },
+  { label: "Дубликат", text: "Эта проблема уже была решена ранее. Спасибо за обращение." },
+  { label: "Не воспроизводится", text: "К сожалению, нам не удалось воспроизвести описанную проблему. Если она повторится, пожалуйста, сообщите нам." },
+  { label: "Отклонено", text: "После рассмотрения мы решили отклонить данное обращение." },
+];
 
 type ReportsViewMode = "list" | "cards";
 type ReportsSortMode = "newest" | "oldest" | "open-first";
+type EntityTypeFilter = "all" | "title" | "chapter";
+
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return "только что";
+  if (minutes < 60) return `${minutes} мин назад`;
+  if (hours < 24) return `${hours} ч назад`;
+  if (days === 1) return "вчера";
+  if (days < 7) return `${days} дн назад`;
+  
+  return date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+}
 
 const reportTypeLabels = {
   [ReportType.ERROR]: "Ошибка",
@@ -61,6 +125,16 @@ export function ReportsSection() {
   const [responseModalResolveTo, setResponseModalResolveTo] = useState<boolean | null>(null);
   const [responseModalText, setResponseModalText] = useState("");
   const [isResponseSubmitting, setIsResponseSubmitting] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkResolveOpen, setBulkResolveOpen] = useState(false);
+  const [isBulkResolving, setIsBulkResolving] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [entityTypeFilter, setEntityTypeFilter] = useState<EntityTypeFilter>("all");
+  const [detailReport, setDetailReport] = useState<Report | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const { data, error, isLoading, refetch } = useGetReportsQuery({
     page,
@@ -82,6 +156,11 @@ export function ReportsSection() {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     const filtered = reports.filter(report => {
+      // Entity type filter
+      if (entityTypeFilter !== "all" && report.entityType !== entityTypeFilter) {
+        return false;
+      }
+      
       if (!normalizedSearch) return true;
       const haystack = [
         report.content,
@@ -108,7 +187,7 @@ export function ReportsSection() {
       }
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [reports, searchTerm, sortMode]);
+  }, [reports, searchTerm, sortMode, entityTypeFilter]);
 
   const stats = useMemo(
     () => ({
@@ -195,6 +274,111 @@ export function ReportsSection() {
       toast.error(`Не удалось удалить жалобу: ${getErrorMessage(e)}`);
     }
   };
+
+  const handleSelectReport = useCallback((id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    const unresolvedIds = processedReports.filter(r => !r.isResolved).map(r => r._id);
+    if (selectedIds.length === unresolvedIds.length && unresolvedIds.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(unresolvedIds);
+    }
+  }, [selectedIds.length, processedReports]);
+
+  const handleBulkResolve = async () => {
+    if (selectedIds.length === 0) return;
+    setIsBulkResolving(true);
+    try {
+      const results = await Promise.allSettled(
+        selectedIds.map(id => updateReportStatus({ id, data: { isResolved: true, resolutionMessage: "Массово закрыто администратором" } }).unwrap())
+      );
+      const failed = results.filter(r => r.status === "rejected").length;
+      const success = results.length - failed;
+      if (failed === 0) {
+        toast.success(`Закрыто ${success} жалоб`);
+      } else {
+        toast.error(`Закрыто: ${success}, ошибок: ${failed}`);
+      }
+      setSelectedIds([]);
+      setBulkResolveOpen(false);
+      refetch();
+    } catch {
+      toast.error("Ошибка при массовом закрытии");
+    } finally {
+      setIsBulkResolving(false);
+    }
+  };
+
+  const handleUseTemplate = (text: string) => {
+    setResponseModalText(text);
+    setShowTemplates(false);
+  };
+
+  const handleExportCSV = useCallback(() => {
+    const headers = ["ID", "Тип", "Контент", "Пользователь", "Статус", "Дата создания", "Ответ"];
+    const rows = processedReports.map(r => [
+      r._id,
+      reportTypeLabels[r.reportType] || r.reportType,
+      `"${(r.content || "").replace(/"/g, '""')}"`,
+      r.userId?.username || "Аноним",
+      r.isResolved ? "Решена" : "Открыта",
+      new Date(r.createdAt).toLocaleDateString("ru-RU"),
+      `"${(getReportResponse(r) || "").replace(/"/g, '""')}"`,
+    ]);
+    const csv = [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `reports_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [processedReports]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  }, [refetch]);
+
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.length === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      const results = await Promise.allSettled(
+        selectedIds.map(id => deleteReport(id).unwrap())
+      );
+      const failed = results.filter(r => r.status === "rejected").length;
+      const success = results.length - failed;
+      if (failed === 0) {
+        toast.success(`Удалено ${success} жалоб`);
+      } else {
+        toast.error(`Удалено: ${success}, ошибок: ${failed}`);
+      }
+      setSelectedIds([]);
+      setBulkDeleteOpen(false);
+      refetch();
+    } catch {
+      toast.error("Ошибка при массовом удалении");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }, [selectedIds, deleteReport, toast, refetch]);
+
+  const handleViewUserProfile = useCallback((userId: string) => {
+    window.open(`/user/${userId}`, "_blank");
+  }, []);
+
+  const openDetailModal = useCallback((report: Report) => {
+    setDetailReport(report);
+  }, []);
+
+  const closeDetailModal = useCallback(() => {
+    setDetailReport(null);
+  }, []);
 
   if (isLoading) {
     return (
@@ -292,10 +476,69 @@ export function ReportsSection() {
           </button>
         </div>
 
-        <Button onClick={refetch} variant="outline" size="sm" className="whitespace-nowrap">
-          Обновить
-        </Button>
+        <select
+          value={entityTypeFilter}
+          onChange={e => setEntityTypeFilter(e.target.value as EntityTypeFilter)}
+          className="admin-input"
+        >
+          <option value="all">Все источники</option>
+          <option value="title">Тайтлы</option>
+          <option value="chapter">Главы</option>
+        </select>
+
+        <button
+          onClick={handleExportCSV}
+          className="p-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+          title="Экспорт CSV"
+        >
+          <Download className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="p-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors disabled:opacity-50"
+          title="Обновить"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+        </button>
       </div>
+
+      {/* Bulk actions */}
+      {selectedIds.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 p-3 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/30">
+          <span className="text-sm font-medium text-[var(--primary)]">
+            Выбрано: {selectedIds.length}
+          </span>
+          <button
+            onClick={handleSelectAll}
+            className="text-xs sm:text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            {selectedIds.length === processedReports.filter(r => !r.isResolved).length ? "Снять все" : "Выбрать все открытые"}
+          </button>
+          <div className="flex-1" />
+          <button
+            onClick={() => setBulkResolveOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm text-green-600 hover:bg-green-500/10 rounded-lg transition-colors"
+          >
+            <CheckCircle className="w-4 h-4" />
+            <span className="hidden sm:inline">Закрыть</span>
+          </button>
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Удалить</span>
+          </button>
+          <button
+            onClick={() => setSelectedIds([])}
+            className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {processedReports.length === 0 ? (
         <div className="text-center py-12">
@@ -310,16 +553,36 @@ export function ReportsSection() {
           {processedReports.map(report => (
             <article
               key={report._id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-4"
+              className={`rounded-xl border p-4 ${
+                report.isResolved
+                  ? "border-[var(--border)] bg-[var(--background)]/70 opacity-70"
+                  : selectedIds.includes(report._id)
+                    ? "border-[var(--primary)]/50 bg-[var(--primary)]/5"
+                    : "border-[var(--border)] bg-[var(--background)]/70"
+              }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType]}`}
-                  >
-                    {reportTypeLabels[report.reportType]}
-                  </span>
-                  <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">{report._id}</p>
+                <div className="flex items-start gap-2">
+                  {!report.isResolved && (
+                    <button
+                      onClick={() => handleSelectReport(report._id)}
+                      className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex-shrink-0 mt-0.5"
+                    >
+                      {selectedIds.includes(report._id) ? (
+                        <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
+                      ) : (
+                        <Square className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
+                  <div>
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType]}`}
+                    >
+                      {reportTypeLabels[report.reportType]}
+                    </span>
+                    <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">{report._id}</p>
+                  </div>
                 </div>
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-[var(--admin-radius)] text-xs ${
@@ -352,12 +615,30 @@ export function ReportsSection() {
                 </div>
               )}
 
-              <div className="mt-3 text-xs text-[var(--muted-foreground)]">
-                <div>Пользователь: {report.userId?.username || "Аноним"}</div>
-                <div className="mt-1 inline-flex items-center gap-1">
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[var(--muted-foreground)]">
+                <button
+                  onClick={() => report.userId && handleViewUserProfile(report.userId._id)}
+                  disabled={!report.userId}
+                  className="inline-flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors disabled:opacity-50"
+                >
+                  <Image
+                    src={normalizeAvatarUrl(getUserAvatar(report))}
+                    alt=""
+                    width={16}
+                    height={16}
+                    unoptimized
+                    className="w-4 h-4 rounded-full object-cover bg-[var(--secondary)]"
+                  />
+                  {report.userId?.username || "Аноним"}
+                  {report.userId && <ExternalLink className="w-2.5 h-2.5 opacity-50" />}
+                </button>
+                <span className="inline-flex items-center gap-1">
                   <Clock3 className="w-3.5 h-3.5" />
-                  {new Date(report.createdAt).toLocaleString("ru-RU")}
-                </div>
+                  {formatTimeAgo(report.createdAt)}
+                </span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--secondary)]">
+                  {report.entityType === "title" ? "Тайтл" : "Глава"}
+                </span>
               </div>
 
               <div className="mt-2 text-sm">
@@ -368,11 +649,18 @@ export function ReportsSection() {
                 />
               </div>
 
-              <div className="mt-3 flex justify-end gap-2">
+              <div className="mt-3 flex justify-end gap-1">
+                <button
+                  onClick={() => openDetailModal(report)}
+                  className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
+                  title="Подробнее"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => openResponseModal(report, report.isResolved)}
                   disabled={isStatusUpdating}
-                  className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
+                  className="p-2 text-[var(--muted-foreground)] hover:text-blue-500 hover:bg-blue-500/10 rounded-[var(--admin-radius)] transition-colors"
                   title={getReportResponse(report) ? "Изменить ответ" : "Ответить"}
                 >
                   <MessageSquareReply className="w-4 h-4" />
@@ -380,7 +668,11 @@ export function ReportsSection() {
                 <button
                   onClick={() => handleStatusChange(report._id, !report.isResolved)}
                   disabled={isStatusUpdating}
-                  className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
+                  className={`p-2 rounded-[var(--admin-radius)] transition-colors ${
+                    report.isResolved 
+                      ? "text-yellow-500 hover:bg-yellow-500/10" 
+                      : "text-green-500 hover:bg-green-500/10"
+                  }`}
                   title={report.isResolved ? "Открыть" : "Закрыть"}
                 >
                   {report.isResolved ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
@@ -402,6 +694,18 @@ export function ReportsSection() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--secondary)]">
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs w-10">
+                  <button
+                    onClick={handleSelectAll}
+                    className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  >
+                    {selectedIds.length === processedReports.filter(r => !r.isResolved).length && processedReports.filter(r => !r.isResolved).length > 0 ? (
+                      <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
+                </th>
                 <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Тип</th>
                 <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Описание</th>
                 <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Пользователь</th>
@@ -412,7 +716,32 @@ export function ReportsSection() {
             </thead>
             <tbody>
               {processedReports.map(report => (
-                <tr key={report._id} className="border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors">
+                <tr
+                  key={report._id}
+                  className={`border-b border-[var(--border)] hover:bg-[var(--accent)]/50 transition-colors ${
+                    report.isResolved
+                      ? "opacity-70"
+                      : selectedIds.includes(report._id)
+                        ? "bg-[var(--primary)]/5"
+                        : ""
+                  }`}
+                >
+                  <td className="py-2.5 px-3">
+                    {!report.isResolved ? (
+                      <button
+                        onClick={() => handleSelectReport(report._id)}
+                        className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                      >
+                        {selectedIds.includes(report._id) ? (
+                          <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
+                        ) : (
+                          <Square className="w-4 h-4" />
+                        )}
+                      </button>
+                    ) : (
+                      <span className="w-6 h-6 block" />
+                    )}
+                  </td>
                   <td className="py-2.5 px-3">
                     <span
                       className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType]}`}
@@ -429,7 +758,17 @@ export function ReportsSection() {
                     )}
                   </td>
                   <td className="py-2.5 px-3">
-                    <span className="font-medium text-sm">{report.userId?.username || "Аноним"}</span>
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={normalizeAvatarUrl(getUserAvatar(report))}
+                        alt=""
+                        width={24}
+                        height={24}
+                        unoptimized
+                        className="w-6 h-6 rounded-full object-cover bg-[var(--secondary)]"
+                      />
+                      <span className="font-medium text-sm">{report.userId?.username || "Аноним"}</span>
+                    </div>
                   </td>
                   <td className="py-2.5 px-3">
                     {report.isResolved ? (
@@ -547,6 +886,32 @@ export function ReportsSection() {
         <p className="text-sm text-[var(--muted-foreground)] mb-2">
           Текст сохранится в отчёте. Для жалоб он будет отправлен инициатору. Ответ можно изменить позже.
         </p>
+
+        <div className="mb-3">
+          <button
+            type="button"
+            onClick={() => setShowTemplates(!showTemplates)}
+            className="flex items-center gap-1.5 text-sm text-[var(--primary)] hover:underline"
+          >
+            <FileText className="w-4 h-4" />
+            {showTemplates ? "Скрыть шаблоны" : "Использовать шаблон"}
+          </button>
+          {showTemplates && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {RESPONSE_TEMPLATES.map(template => (
+                <button
+                  key={template.label}
+                  type="button"
+                  onClick={() => handleUseTemplate(template.text)}
+                  className="px-3 py-1.5 text-xs rounded-lg border border-[var(--border)] bg-[var(--secondary)] hover:bg-[var(--accent)] transition-colors"
+                >
+                  {template.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <textarea
           value={responseModalText}
           onChange={e => setResponseModalText(e.target.value)}
@@ -559,6 +924,184 @@ export function ReportsSection() {
         <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
           {responseModalText.length} / 2000
         </p>
+      </AdminModal>
+
+      <ConfirmModal
+        isOpen={bulkResolveOpen}
+        onClose={() => setBulkResolveOpen(false)}
+        onConfirm={handleBulkResolve}
+        title="Массовое закрытие жалоб"
+        message={`Вы уверены, что хотите закрыть ${selectedIds.length} жалоб? Они будут отмечены как решённые.`}
+        confirmText={isBulkResolving ? "Закрытие..." : "Закрыть"}
+        confirmVariant="primary"
+        isLoading={isBulkResolving}
+      />
+
+      <ConfirmModal
+        isOpen={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        onConfirm={handleBulkDelete}
+        title="Массовое удаление жалоб"
+        message={`Вы уверены, что хотите удалить ${selectedIds.length} жалоб? Это действие нельзя отменить.`}
+        confirmText={isBulkDeleting ? "Удаление..." : "Удалить"}
+        confirmVariant="danger"
+        isLoading={isBulkDeleting}
+      />
+
+      {/* Report Detail Modal */}
+      <AdminModal
+        isOpen={!!detailReport}
+        onClose={closeDetailModal}
+        title="Детали жалобы"
+        size="lg"
+      >
+        {detailReport && (
+          <div className="space-y-4">
+            {/* Status and Type */}
+            <div className="flex items-center gap-3">
+              <span
+                className={`inline-block px-3 py-1 rounded-full text-sm font-medium text-white ${reportTypeColors[detailReport.reportType]}`}
+              >
+                {reportTypeLabels[detailReport.reportType]}
+              </span>
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  detailReport.isResolved
+                    ? "bg-[var(--chart-2)]/15 text-[var(--chart-2)]"
+                    : "bg-[var(--chart-5)]/15 text-[var(--chart-5)]"
+                }`}
+              >
+                {detailReport.isResolved ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-1.5" />
+                    Решена
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="w-4 h-4 mr-1.5" />
+                    Открыта
+                  </>
+                )}
+              </span>
+            </div>
+
+            {/* User info */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--secondary)]/50">
+              <Image
+                src={normalizeAvatarUrl(getUserAvatar(detailReport))}
+                alt=""
+                width={40}
+                height={40}
+                unoptimized
+                className="w-10 h-10 rounded-full object-cover bg-[var(--secondary)]"
+              />
+              <div className="flex-1 min-w-0">
+                <span className="font-medium text-[var(--foreground)]">
+                  {detailReport.userId?.username || "Аноним"}
+                </span>
+                {detailReport.userId?.email && (
+                  <p className="text-xs text-[var(--muted-foreground)]">{detailReport.userId.email}</p>
+                )}
+              </div>
+              {detailReport.userId && (
+                <button
+                  onClick={() => handleViewUserProfile(detailReport.userId._id)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-sm hover:bg-[var(--primary)]/20 transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Профиль
+                </button>
+              )}
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
+                <p className="text-xs text-[var(--muted-foreground)]">Создана</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">{new Date(detailReport.createdAt).toLocaleDateString("ru-RU")}</p>
+              </div>
+              <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
+                <p className="text-xs text-[var(--muted-foreground)]">Источник</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">{detailReport.entityType === "title" ? "Тайтл" : "Глава"}</p>
+              </div>
+              <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
+                <p className="text-xs text-[var(--muted-foreground)]">ID жалобы</p>
+                <p className="text-[10px] font-mono text-[var(--foreground)] truncate">{detailReport._id}</p>
+              </div>
+              <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
+                <p className="text-xs text-[var(--muted-foreground)]">Entity ID</p>
+                <p className="text-[10px] font-mono text-[var(--foreground)] truncate">{detailReport.entityId}</p>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="rounded-lg border border-[var(--border)] p-4">
+              <p className="text-xs text-[var(--muted-foreground)] mb-2">Содержание жалобы</p>
+              <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">{detailReport.content}</p>
+            </div>
+
+            {/* Admin response */}
+            {getReportResponse(detailReport) && (
+              <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
+                <p className="text-xs text-green-600 mb-2">Ответ администратора</p>
+                <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">{getReportResponse(detailReport)}</p>
+                {detailReport.resolvedAt && (
+                  <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+                    Закрыта: {new Date(detailReport.resolvedAt).toLocaleString("ru-RU")}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Entity link */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--secondary)]/50">
+              <span className="text-sm text-[var(--muted-foreground)]">Источник:</span>
+              <ReportEntityInfo
+                entityType={detailReport.entityType}
+                entityId={detailReport.entityId}
+                titleId={detailReport.titleId}
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)]">
+              <button
+                onClick={() => {
+                  openResponseModal(detailReport, detailReport.isResolved);
+                  closeDetailModal();
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-colors"
+              >
+                <MessageSquareReply className="w-4 h-4" />
+                {getReportResponse(detailReport) ? "Изменить ответ" : "Ответить"}
+              </button>
+              <button
+                onClick={() => {
+                  handleStatusChange(detailReport._id, !detailReport.isResolved);
+                  closeDetailModal();
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  detailReport.isResolved
+                    ? "bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20"
+                    : "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                }`}
+              >
+                {detailReport.isResolved ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                {detailReport.isResolved ? "Переоткрыть" : "Закрыть"}
+              </button>
+              <button
+                onClick={() => {
+                  handleDelete(detailReport._id);
+                  closeDetailModal();
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Удалить
+              </button>
+            </div>
+          </div>
+        )}
       </AdminModal>
     </div>
   );

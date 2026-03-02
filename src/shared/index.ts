@@ -44,6 +44,7 @@ export { default as Input } from "./ui/input";
 export { default as Modal } from "./modal/modal";
 export { default as LoginModal } from "./modal/LoginModal";
 export { default as RegisterModal } from "./modal/RegisterModal";
+export { default as Tooltip } from "./ui/Tooltip";
 
 // Profile
 export { default as ProfileHeader } from "./profile/ProfileHeader";
@@ -57,6 +58,13 @@ export { default as ProfileBanner } from "./profile/ProfileBanner";
 export { default as ProfileContent } from "./profile/ProfileContent";
 export { default as ProfileAvatar } from "./profile/ProfileAvatar";
 export { default as ProfileNav } from "./profile/ProfileNav";
+export { default as ContinueReading } from "./profile/ContinueReading";
+export { default as ProfileQuickActions } from "./profile/ProfileQuickActions";
+export { default as DailyBonus } from "./profile/DailyBonus";
+export { default as NextRankProgress } from "./profile/NextRankProgress";
+export { default as ProfileWelcome } from "./profile/ProfileWelcome";
+export { default as SettingsNavigation } from "./profile/SettingsNavigation";
+export { default as ProfileLeaderboardBadges } from "./profile/ProfileLeaderboardBadges";
 
 // Utilities
 export { default as PeriodFilter } from "./period-filter/PeriodFilter";

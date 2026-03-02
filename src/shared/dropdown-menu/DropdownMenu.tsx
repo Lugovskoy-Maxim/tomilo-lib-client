@@ -12,14 +12,36 @@ import {
   Eye,
   ShoppingBag,
   Palette,
-  Star,
   Zap,
+  Trophy,
+  Crown,
+  Clock,
+  Star,
+  MessageSquare,
+  Flame,
+  BookOpen,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { UserAvatar } from "..";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import type { EquippedDecorations } from "@/types/user";
+import type { LeaderboardCategory } from "@/store/api/leaderboardApi";
 import { levelToRank, getLevelProgress } from "@/lib/rank-utils";
+
+interface LeaderboardPosition {
+  category: LeaderboardCategory;
+  position: number;
+  label: string;
+}
+
+const CATEGORY_ICONS: Record<LeaderboardCategory, typeof Trophy> = {
+  level: Crown,
+  readingTime: Clock,
+  ratings: Star,
+  comments: MessageSquare,
+  streak: Flame,
+  chaptersRead: BookOpen,
+};
 
 interface UserDropdownProps {
   isOpen: boolean;
@@ -46,6 +68,8 @@ interface UserDropdownProps {
   frameUrl?: string | null;
   /** URL декорации «аватар» (персонаж) */
   avatarDecorationUrl?: string | null;
+  /** Позиции пользователя в топ-10 лидерборда */
+  leaderboardPositions?: LeaderboardPosition[];
 }
 
 const THEME_LABELS: Record<string, string> = {
@@ -55,9 +79,9 @@ const THEME_LABELS: Record<string, string> = {
 };
 
 const itemClass =
-  "w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none";
+  "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none";
 
-export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl, avatarDecorationUrl }: UserDropdownProps) {
+export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl, avatarDecorationUrl, leaderboardPositions = [] }: UserDropdownProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [contentReady, setContentReady] = useState(false);
@@ -114,9 +138,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
   const balance = user?.balance ?? 0;
 
   const rankInfo = levelToRank(level);
-  const { progressPercent, currentLevelExp, nextLevelExp } = getLevelProgress(level, experience);
-  const expInCurrentLevel = experience - currentLevelExp;
-  const expNeeded = nextLevelExp - currentLevelExp;
+  const { progressPercent } = getLevelProgress(level, experience);
 
   const themeLabel =
     mounted && theme
@@ -169,19 +191,19 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
       onClick={(e) => e.stopPropagation()}
     >
       {/* Карточка профиля */}
-      <div className="p-4 rounded-t-xl border-b border-[var(--border)]/40 bg-[var(--card)]/50">
+      <div className="p-3 rounded-t-xl border-b border-[var(--border)]/40 bg-[var(--card)]/50">
         <Link
           ref={firstFocusableRef}
           href="/profile"
           onClick={onClose}
           role="menuitem"
-          className="flex items-center gap-3 transition-colors cursor-pointer rounded-lg p-2 -m-2 hover:bg-[var(--accent)]/60 focus:bg-[var(--accent)]/60 outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
+          className="flex items-center gap-2.5 transition-colors cursor-pointer rounded-lg p-1.5 -m-1.5 hover:bg-[var(--accent)]/60 focus:bg-[var(--accent)]/60 outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
         >
-          <div className="shrink-0 rounded-full ring-2 ring-[var(--border)]/60" style={{ width: 52, height: 52 }}>
+          <div className="shrink-0 rounded-full ring-2 ring-[var(--border)]/60" style={{ width: 44, height: 44 }}>
             <UserAvatar
               avatarUrl={user?.avatar}
               username={displayName}
-              size={52}
+              size={44}
               className="rounded-full w-full h-full"
               frameUrl={frameUrl ?? undefined}
               avatarDecorationUrl={avatarDecorationUrl ?? undefined}
@@ -191,73 +213,42 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
             <h3 className="font-semibold text-[var(--foreground)] truncate text-sm">
               {displayName}
             </h3>
-            <p className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">
+            <p className="text-xs text-[var(--muted-foreground)] truncate">
               {rankInfo.name}
             </p>
           </div>
-          <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+          <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
         </Link>
 
-        {/* Уровень и прогресс */}
-        <div className="mt-3 pt-3 border-t border-[var(--border)]/30">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[var(--primary)]/20 to-[var(--primary)]/10 border border-[var(--primary)]/20">
-                <Zap className="w-3.5 h-3.5 text-[var(--primary)]" aria-hidden />
-                <span className="text-sm font-bold text-[var(--primary)]">{level}</span>
-                <span className="text-xs text-[var(--primary)]/70">ур.</span>
-              </span>
-              <div className="flex items-center gap-0.5" title={`${rankInfo.stars} из 9 звёзд`}>
-                {Array.from({ length: 9 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-3 h-3 transition-colors ${
-                      i < rankInfo.stars
-                        ? "text-amber-400 fill-amber-400"
-                        : "text-[var(--border)] fill-transparent"
-                    }`}
-                    aria-hidden
-                  />
-                ))}
-              </div>
-            </div>
-            <span className="flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
-              <CoinIcon className="w-3.5 h-3.5 text-amber-500" aria-hidden />
-              <span className="font-semibold tabular-nums">{balance.toLocaleString("ru-RU")}</span>
+        {/* Уровень и баланс */}
+        <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-[var(--border)]/30">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--primary)]/10 text-xs text-[var(--primary)] font-medium">
+              <Zap className="w-3 h-3" aria-hidden />
+              {level} ур.
             </span>
-          </div>
-
-          {/* Прогресс-бар */}
-          <div className="relative">
-            <div className="h-2 bg-[var(--border)]/40 rounded-full overflow-hidden">
+            <div className="w-16 h-1.5 bg-[var(--border)]/40 rounded-full overflow-hidden" title={`${Math.round(progressPercent)}% до след. уровня`}>
               <div
-                className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/70 rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-[var(--primary)] rounded-full"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <div className="flex justify-between mt-1.5">
-              <span className="text-[10px] text-[var(--muted-foreground)] tabular-nums">
-                {expInCurrentLevel.toLocaleString("ru-RU")} / {expNeeded.toLocaleString("ru-RU")} XP
-              </span>
-              <span className="text-[10px] text-[var(--muted-foreground)] tabular-nums">
-                {Math.round(progressPercent)}%
-              </span>
-            </div>
           </div>
+          <span className="flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
+            <CoinIcon className="w-3.5 h-3.5 text-amber-500" aria-hidden />
+            <span className="font-medium tabular-nums">{balance.toLocaleString("ru-RU")}</span>
+          </span>
         </div>
       </div>
 
-      <div className="dropdown-divider" aria-hidden />
-
-      <div className="py-2 px-2 min-w-0 overflow-x-hidden" role="group" aria-label="Навигация">
-        <div className="dropdown-section-title">Быстрые действия</div>
-        <Link href="/profile" onClick={onClose} role="menuitem" className={itemClass}>
+      <div className="py-1.5 px-2 min-w-0 overflow-x-hidden" role="group" aria-label="Навигация">
+        <Link href="/profile?tab=settings" onClick={onClose} role="menuitem" className={itemClass}>
           <Settings className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
           <span className="min-w-0 truncate">Настройки</span>
         </Link>
         <Link href="/tomilo-shop" onClick={onClose} role="menuitem" className={itemClass}>
           <ShoppingBag className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
-          <span className="min-w-0 truncate">Магазин украшений</span>
+          <span className="min-w-0 truncate">Магазин</span>
         </Link>
         <Link href="/profile?tab=history" onClick={onClose} role="menuitem" className={itemClass}>
           <History className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
@@ -267,29 +258,54 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
           <Bookmark className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
           <span className="min-w-0 truncate">Закладки</span>
         </Link>
-      </div>
-
-      <div className="dropdown-divider" aria-hidden />
-
-      <div className="py-2 px-2" role="group" aria-label="Параметры">
-        <div className="dropdown-section-title">Оформление и контент</div>
+        {leaderboardPositions.length > 0 && (
+          <Link
+            href="/leaders"
+            onClick={onClose}
+            role="menuitem"
+            className="w-full flex flex-col gap-1.5 px-3 py-2 text-sm rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none"
+          >
+            <div className="flex items-center gap-2.5">
+              <Trophy className="w-4 h-4 text-amber-500 shrink-0" aria-hidden />
+              <span className="text-[var(--foreground)]">Вы в Топ-10</span>
+            </div>
+            <div className="flex flex-wrap gap-1 pl-6">
+              {leaderboardPositions.slice(0, 4).map(({ category, position, label }) => {
+                const Icon = CATEGORY_ICONS[category];
+                return (
+                  <span
+                    key={category}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                    title={label}
+                  >
+                    <Icon className="w-2.5 h-2.5" aria-hidden />
+                    #{position}
+                  </span>
+                );
+              })}
+              {leaderboardPositions.length > 4 && (
+                <span className="text-[10px] text-[var(--muted-foreground)] px-1">
+                  +{leaderboardPositions.length - 4}
+                </span>
+              )}
+            </div>
+          </Link>
+        )}
         <button
           type="button"
           role="menuitemcheckbox"
           aria-checked={isAdult}
-          className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm rounded-lg min-w-0 overflow-hidden transition-colors cursor-pointer outline-none ${
-            isAdult
-              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
-              : "text-[var(--foreground)] border border-transparent " + itemClass
+          className={`${itemClass} justify-between ${
+            isAdult ? "text-emerald-700 dark:text-emerald-400" : ""
           }`}
           onClick={handleToggleAdult}
         >
-          <span className="flex items-center gap-3 min-w-0 flex-1">
+          <span className="flex items-center gap-2.5 min-w-0">
             <Eye className="w-4 h-4 shrink-0" aria-hidden />
-            <span className="truncate">18+ контент</span>
+            <span className="truncate">18+</span>
           </span>
           <span
-            className={`text-xs px-2.5 py-0.5 rounded-full font-medium shrink-0 ${
+            className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
               isAdult ? "bg-emerald-500/25 text-emerald-700 dark:text-emerald-300" : "bg-[var(--border)]/60 text-[var(--muted-foreground)]"
             }`}
           >
@@ -303,17 +319,15 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
           onClick={handleThemeClick}
         >
           <Palette className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
-          <span className="min-w-0 truncate">
-            Тема <span className="text-[var(--muted-foreground)]">({themeLabel})</span>
-          </span>
+          <span className="min-w-0 truncate">Тема</span>
+          <span className="ml-auto text-xs text-[var(--muted-foreground)]">{themeLabel}</span>
         </button>
-
         {isAdmin && (
           <Link
             href="/admin"
             onClick={onClose}
             role="menuitem"
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--chart-1)] hover:bg-[var(--chart-1)]/10 rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--chart-1)]/50"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--chart-1)] hover:bg-[var(--chart-1)]/10 rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--chart-1)]/50"
           >
             <Shield className="w-4 h-4 shrink-0" aria-hidden />
             <span>Админ-панель</span>
@@ -323,11 +337,11 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
 
       <div className="dropdown-divider" aria-hidden />
 
-      <div className="p-2">
+      <div className="p-1.5">
         <button
           type="button"
           role="menuitem"
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer outline-none hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 focus-visible:bg-red-500/10 focus-visible:text-red-600 dark:focus-visible:text-red-400 focus-visible:ring-2 focus-visible:ring-red-500/30"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer outline-none hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 focus-visible:bg-red-500/10 focus-visible:text-red-600 dark:focus-visible:text-red-400 focus-visible:ring-2 focus-visible:ring-red-500/30"
           onClick={handleLogout}
         >
           <LogOut className="w-4 h-4 shrink-0" aria-hidden />

@@ -46,6 +46,11 @@ export function useBookmark({ titleId }: UseBookmarkOptions): UseBookmarkReturn 
 
       if (result.success) {
         setIsBookmarked(!isBookmarked);
+        
+        // Haptic feedback для мобильных устройств
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate(isBookmarked ? 30 : [30, 50, 30]);
+        }
       } else {
         toast.error(`Ошибка при работе с закладками: ${result.error}`);
       }

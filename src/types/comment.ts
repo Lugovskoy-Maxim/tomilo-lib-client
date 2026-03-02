@@ -81,7 +81,8 @@ export interface CreateCommentDto {
 }
 
 export interface UpdateCommentDto {
-  content: string;
+  content?: string;
+  isVisible?: boolean;
 }
 
 /** Тело запроса POST /comments/:id/reactions */

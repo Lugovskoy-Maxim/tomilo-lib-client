@@ -13,7 +13,6 @@ import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { Loader2, BookOpen, AlertCircle, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useGetProfileQuery } from "@/store/api/authApi";
 
 const CATALOG_CACHE_KEY = "titles-catalog-state";
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 минут
@@ -73,9 +72,8 @@ export default function TitlesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const { isAuthenticated, user } = useAuth();
-  const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
-  const includeAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult ?? false;
+  const { user } = useAuth();
+  const includeAdult = user?.displaySettings?.isAdult ?? false;
 
   const [appliedFilters, setAppliedFilters] = useState<Filters>(() =>
     parseFiltersFromSearchParams(searchParams)
@@ -144,7 +142,7 @@ export default function TitlesContent() {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
       setDebouncedSearch(appliedFilters.search);
-    }, 1000);
+    }, 350);
     return () => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };

@@ -1,7 +1,8 @@
 import { UserProfile, NotificationPreferences } from "@/types/user";
-import { Bell } from "lucide-react";
+import { Bell, HelpCircle } from "lucide-react";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
+import Tooltip from "@/shared/ui/Tooltip";
 
 interface ProfileNotificationsSettingsProps {
   userProfile: UserProfile;
@@ -43,18 +44,43 @@ export default function ProfileNotificationsSettings({
 
   return (
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
-      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-        <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-          <Bell className="w-5 h-5 text-[var(--primary)]" />
+      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+            <Bell className="w-5 h-5 text-[var(--primary)]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">
+              Уведомления
+            </h2>
+            <p className="text-[var(--muted-foreground)] text-xs">
+              Настройте, о чём получать уведомления
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-sm font-bold text-[var(--foreground)]">
-            Уведомления
-          </h2>
-          <p className="text-[var(--muted-foreground)] text-xs">
-            Настройте, о чём получать уведомления
-          </p>
-        </div>
+        <Tooltip
+          content={
+            <div className="space-y-2 max-w-[280px]">
+              <p className="font-medium">О уведомлениях</p>
+              <p>Управляйте тем, какие уведомления вы хотите получать:</p>
+              <ul className="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
+                <li><strong>Новые главы</strong> — уведомления о выходе глав в тайтлах из ваших закладок</li>
+                <li><strong>Комментарии</strong> — ответы на ваши комментарии и упоминания</li>
+                <li><strong>Рекомендации</strong> — персональные подборки тайтлов</li>
+              </ul>
+              <p className="text-[var(--muted-foreground)] text-[10px]">Системные уведомления о безопасности отключить нельзя.</p>
+            </div>
+          }
+          position="left"
+          trigger="click"
+        >
+          <button
+            type="button"
+            className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+        </Tooltip>
       </div>
 
       <div className="space-y-3">

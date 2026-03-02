@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/useToast";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import { Bookmark } from "lucide-react";
 import type { BookmarkCategory } from "@/types/user";
+import { useGetBookmarkStatusQuery } from "@/store/api/authApi";
 
 const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
   reading: "Читаю",
@@ -33,22 +34,45 @@ export function BookmarkButton({
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
   const toast = useToast();
   const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
+  const [currentCategory, setCurrentCategory] = useState<BookmarkCategory | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  // Запрос статуса закладки с сервера (лёгкий эндпоинт)
+  const { data: bookmarkStatusData } = useGetBookmarkStatusQuery(titleId, {
+    skip: !isAuthenticated || !titleId,
+  });
+
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  // Приоритет: данные с сервера, затем из профиля пользователя
   useEffect(() => {
-    if (isClient && user?.bookmarks) {
-      const inList = normalizeBookmarks(user.bookmarks).some(e => e.titleId === titleId);
-      setIsBookmarked(initialBookmarked || inList);
+    if (!isClient) return;
+
+    // Приоритет 1: данные из нового эндпоинта
+    if (bookmarkStatusData?.data) {
+      setIsBookmarked(bookmarkStatusData.data.isBookmarked);
+      setCurrentCategory(bookmarkStatusData.data.category);
+      return;
     }
-  }, [isClient, initialBookmarked, user?.bookmarks, titleId]);
+
+    // Приоритет 2: данные из профиля (fallback)
+    if (user?.bookmarks) {
+      const entry = normalizeBookmarks(user.bookmarks).find(e => e.titleId === titleId);
+      if (entry) {
+        setIsBookmarked(true);
+        setCurrentCategory(entry.category);
+      } else {
+        setIsBookmarked(initialBookmarked);
+        setCurrentCategory(null);
+      }
+    }
+  }, [isClient, initialBookmarked, user?.bookmarks, titleId, bookmarkStatusData]);
 
   useEffect(() => {
     if (!categoryOpen) return;
@@ -98,8 +122,17 @@ export function BookmarkButton({
   };
 
   const displayIsBookmarked = isClient ? isBookmarked : initialBookmarked;
-  const displayTitle = displayIsBookmarked ? "Удалить из закладок" : "Добавить в закладки";
+  const displayTitle = displayIsBookmarked 
+    ? currentCategory 
+      ? `${CATEGORY_LABELS[currentCategory]} — удалить` 
+      : "Удалить из закладок" 
+    : "Добавить в закладки";
   const displayFill = displayIsBookmarked ? "currentColor" : "none";
+  const displayLabel = displayIsBookmarked && currentCategory 
+    ? CATEGORY_LABELS[currentCategory] 
+    : displayIsBookmarked 
+      ? "В закладках" 
+      : "В закладки";
   const baseButtonClass =
     "flex items-center justify-center gap-2 cursor-pointer rounded-xl border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--chart-1)]/40";
 
@@ -123,7 +156,7 @@ export function BookmarkButton({
           ) : (
             <Bookmark className="w-4 h-4" fill={displayFill} />
           )}
-          <p className="hidden lg:block">{displayTitle}</p>
+          <p className="hidden lg:block">{displayLabel}</p>
         </button>
       ) : (
         <>
@@ -156,7 +189,7 @@ export function BookmarkButton({
           {categoryOpen && !isLoading && (
             <div
               ref={dropdownRef}
-              className="absolute left-0 top-full mt-1 z-layer-sheet py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
+              className="absolute right-0 lg:left-0 lg:right-auto top-full mt-1 z-layer-sheet py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
             >
               <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
                 Добавить в категорию

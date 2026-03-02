@@ -2,8 +2,9 @@
 import { NotificationButton, UserDropdown, ThemeToggle } from "@/shared";
 import { UserAvatar } from "@/shared";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
+import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions";
 import { useState, useRef, useEffect } from "react";
-import { LogInIcon } from "lucide-react";
+import { LogInIcon, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface UserDropdownUser {
@@ -35,6 +36,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
 
   const { user, isAuthenticated, logout, isLoading } = useAuth();
   const { frameUrl, avatarDecorationUrl } = useResolvedEquippedDecorations();
+  const { bestPosition, positions, hasTop10 } = useUserLeaderboardPositions();
 
   useEffect(() => {
     setIsMounted(true);
@@ -123,7 +125,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
           >
             <button
               type="button"
-              className="flex items-center justify-center min-h-[40px] min-w-[40px] p-1 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer overflow-hidden"
+              className="relative flex items-center justify-center min-h-[40px] min-w-[40px] p-1 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer overflow-visible"
               onClick={() => setDropdownOpen(!dropdownOpen)}
               aria-label="Открыть меню пользователя"
             >
@@ -135,6 +137,15 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
                 frameUrl={frameUrl ?? undefined}
                 avatarDecorationUrl={avatarDecorationUrl ?? undefined}
               />
+              {hasTop10 && bestPosition && (
+                <span
+                  className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-white shadow-sm border border-amber-300/50 animate-pulse"
+                  title={`Топ ${bestPosition.position} — ${bestPosition.label}`}
+                >
+                  <Trophy className="w-2.5 h-2.5 mr-0.5" />
+                  {bestPosition.position}
+                </span>
+              )}
             </button>
 
             <UserDropdown
@@ -144,6 +155,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
               user={getUserForDropdown()}
               frameUrl={frameUrl ?? undefined}
               avatarDecorationUrl={avatarDecorationUrl ?? undefined}
+              leaderboardPositions={positions}
             />
           </div>
         )}

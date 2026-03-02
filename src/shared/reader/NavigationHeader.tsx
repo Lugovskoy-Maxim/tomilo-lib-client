@@ -22,10 +22,10 @@ interface NavigationHeaderProps {
 export default function NavigationHeader({
   title,
   chapter,
-  // currentImageIndex,
+  currentImageIndex,
   showControls,
   // onImageIndexChange,
-  // imagesCount,
+  imagesCount,
   onReportError,
   onChapterMenuOpen,
   onPrevChapter,
@@ -33,6 +33,8 @@ export default function NavigationHeader({
   canGoPrev = false,
   canGoNext = false,
 }: NavigationHeaderProps) {
+  const progressPercent = Math.max(0, Math.min(100, Math.round(((currentImageIndex + 1) / Math.max(imagesCount, 1)) * 100)));
+  
   return (
     <div
       className={`fixed top-0 left-0 right-0 bg-[var(--background)]/95 backdrop-blur-md border-b border-[var(--border)] z-50 transition-transform duration-300 ${
@@ -70,7 +72,9 @@ export default function NavigationHeader({
                   <span className="hidden sm:inline">Глава </span>
                   <span className="sm:hidden">Гл. </span>
                   {chapter.number}
-                  {chapter.title && (
+                  {chapter.title && 
+                   chapter.title !== String(chapter.number) &&
+                   !chapter.title.toLowerCase().match(/^глава\s*\d+$/) && (
                     <span className="hidden sm:inline"> — {chapter.title}</span>
                   )}
                 </div>
@@ -108,6 +112,17 @@ export default function NavigationHeader({
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
+            </div>
+          </div>
+
+          {/* Мобильный индикатор прогресса */}
+          <div className="flex sm:hidden items-center gap-2 px-2 py-1 bg-[var(--secondary)] rounded-lg border border-[var(--border)]">
+            <span className="text-xs font-medium text-[var(--foreground)]">{progressPercent}%</span>
+            <div className="w-12 h-1.5 bg-[var(--muted)] rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
           </div>
 

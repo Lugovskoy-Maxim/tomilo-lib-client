@@ -54,4 +54,18 @@ const nextConfig: NextConfig = {
     ],
   },
 };
-export default nextConfig;
+
+// Bundle analyzer — подключается только когда ANALYZE=true и модуль установлен
+let finalConfig = nextConfig;
+
+if (process.env.ANALYZE === "true") {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const bundleAnalyzer = require("@next/bundle-analyzer");
+    finalConfig = bundleAnalyzer({ enabled: true })(nextConfig);
+  } catch {
+    console.warn("⚠️  @next/bundle-analyzer not installed. Run: npm install -D @next/bundle-analyzer");
+  }
+}
+
+export default finalConfig;

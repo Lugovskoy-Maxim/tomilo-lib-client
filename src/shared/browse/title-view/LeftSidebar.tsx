@@ -8,6 +8,7 @@ import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useAuth } from "@/hooks/useAuth";
 import { getCoverUrls } from "@/lib/asset-url";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
+import { TitleAutoParsingManager } from "./TitleAutoParsingManager";
 
 interface LeftSidebarProps {
   titleData: Title;
@@ -118,14 +119,20 @@ export function LeftSidebar({
           </button>
         </div>
         {isAdmin && (
-          <button
-            onClick={() => router.push(`/admin/titles/edit/${titleData._id}`)}
-            className={actionButtonClass}
-            aria-label="Редактировать"
-          >
-            <Edit className="w-4 h-4 shrink-0" />
-            <span>Редактировать</span>
-          </button>
+          <>
+            <button
+              onClick={() => router.push(`/admin/titles/edit/${titleData._id}`)}
+              className={actionButtonClass}
+              aria-label="Редактировать"
+            >
+              <Edit className="w-4 h-4 shrink-0" />
+              <span>Редактировать</span>
+            </button>
+            <TitleAutoParsingManager
+              titleId={titleData._id as string}
+              titleName={titleData.name}
+            />
+          </>
         )}
       </div>
     </div>

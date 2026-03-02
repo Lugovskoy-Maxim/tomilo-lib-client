@@ -14,13 +14,87 @@ import {
   List,
   Download,
   Wifi,
+  Sun,
+  Contrast,
+  Eye,
+  RotateCcw,
+  Grid3X3,
+  Timer,
+  Infinity,
+  Percent,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { ReportModal } from "@/shared/report/ReportModal";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
-import { useAutoScroll, useBookmark, useReaderSettings, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED } from "./hooks";
+import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED } from "./hooks";
+import PageThumbnails from "./PageThumbnails";
+import { useGetCommentsQuery } from "@/store/api/commentsApi";
+import type { ImageQualityMode } from "./hooks";
+
+interface ImageQualitySelectorProps {
+  imageQuality: ImageQualityMode;
+  setImageQuality: (quality: ImageQualityMode) => void;
+}
+
+function ImageQualitySelector({ imageQuality, setImageQuality }: ImageQualitySelectorProps) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Качество изображений</span>
+        <span className="text-sm font-medium text-[var(--foreground)]">
+          {imageQuality === "low" ? "НИЗКОЕ" : imageQuality === "medium" ? "СРЕДНЕЕ" : imageQuality === "high" ? "ВЫСОКОЕ" : "АВТО"}
+        </span>
+      </div>
+      <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+        <button
+          onClick={() => setImageQuality("low")}
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+            imageQuality === "low"
+              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+              : "text-[var(--muted-foreground)]"
+          }`}
+        >
+          60%
+        </button>
+        <button
+          onClick={() => setImageQuality("medium")}
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+            imageQuality === "medium"
+              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+              : "text-[var(--muted-foreground)]"
+          }`}
+        >
+          75%
+        </button>
+        <button
+          onClick={() => setImageQuality("high")}
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+            imageQuality === "high"
+              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+              : "text-[var(--muted-foreground)]"
+          }`}
+        >
+          90%
+        </button>
+        <button
+          onClick={() => setImageQuality("auto")}
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+            imageQuality === "auto"
+              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+              : "text-[var(--muted-foreground)]"
+          }`}
+        >
+          Авто
+        </button>
+      </div>
+      <p className="text-[10px] text-[var(--muted-foreground)]">
+        Низкое качество быстрее загружается на медленном интернете
+      </p>
+    </div>
+  );
+}
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -46,6 +120,7 @@ interface ReaderControlsProps {
   onPreloadChange?: (value: boolean) => void;
   preloadProgress?: number;
   onJumpToPage?: (page: number) => void;
+  chapterImages?: string[];
 }
 
 export default function ReaderControls({
@@ -72,6 +147,7 @@ export default function ReaderControls({
   onPreloadChange,
   preloadProgress = 0,
   onJumpToPage,
+  chapterImages = [],
 }: ReaderControlsProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -79,6 +155,8 @@ export default function ReaderControls({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isJumpPopoverOpen, setIsJumpPopoverOpen] = useState(false);
+  const [isPageGridOpen, setIsPageGridOpen] = useState(false);
+  const [readingTime, setReadingTime] = useState(0);
 
   // Custom hooks
   const {
@@ -102,7 +180,28 @@ export default function ReaderControls({
     setReadChaptersInRow,
     readingMode,
     setReadingMode,
-  } = useReaderSettings();
+    pageGap,
+    setPageGap,
+    brightness,
+    setBrightness,
+    contrast,
+    setContrast,
+    eyeComfortMode,
+    setEyeComfortMode,
+    fitMode,
+    setFitMode,
+    infiniteScroll,
+    setInfiniteScroll,
+    showTimer,
+    setShowTimer,
+    showHints,
+    setShowHints,
+    showProgress,
+    setShowProgress,
+    imageQuality,
+    setImageQuality,
+    resetToDefaults,
+  } = useReaderSettingsContext();
 
   const {
     isPressing,
@@ -113,6 +212,54 @@ export default function ReaderControls({
     handleSimpleClick,
   } = useRefreshButton();
 
+  // Получаем количество комментариев
+  const { data: commentsData } = useGetCommentsQuery({
+    entityType: CommentEntityType.CHAPTER,
+    entityId: currentChapter._id,
+    page: 1,
+    limit: 1,
+  });
+  const commentsCount = commentsData?.data?.total || 0;
+
+  // Настройка продолжения чтения
+  const [instantContinue, setInstantContinueState] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("reader-instant-continue") === "true";
+  });
+
+  const toggleInstantContinue = useCallback(() => {
+    setInstantContinueState(prev => {
+      const newValue = !prev;
+      localStorage.setItem("reader-instant-continue", newValue.toString());
+      return newValue;
+    });
+  }, []);
+
+  // Таймер чтения
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(Date.now());
+  
+  useEffect(() => {
+    // Сбрасываем таймер при смене главы
+    setReadingTime(0);
+    startTimeRef.current = Date.now();
+    
+    timerRef.current = setInterval(() => {
+      setReadingTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+    
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [currentChapter._id]);
+
+  const formatReadingTime = useCallback((seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  }, []);
 
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const desktopJumpPopoverRef = useRef<HTMLDivElement>(null);
@@ -225,446 +372,602 @@ export default function ReaderControls({
 
   return (
     <>
-      {/* Панель настроек */}
+      {/* Панель настроек — новый дизайн */}
       {isSettingsOpen && (
         <div ref={settingsPanelRef} className="fixed inset-0 z-[70]">
+          {/* Оверлей */}
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsSettingsOpen(false)}
+          />
+          
           {/* Десктопная панель */}
-          <div
-            className="absolute inset-y-0 right-0 w-[360px] lg:w-[380px] bg-[var(--card)]/95 backdrop-blur-md border-l border-[var(--border)] shadow-2xl sm:block hidden transform transition-transform duration-300 ease-in-out rounded-l-3xl overflow-hidden"
-            style={{ transform: "translateX(0)" }}
-          >
-            <div className="p-4 border-b border-[var(--border)] bg-[var(--background)]/50">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-base text-[var(--foreground)] flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-[var(--primary)]" />
-                  Настройки
-                </h3>
+          <div className="absolute inset-y-0 right-0 w-[400px] lg:w-[420px] bg-[var(--card)] border-l border-[var(--border)] shadow-2xl sm:flex hidden flex-col animate-in slide-in-from-right duration-300">
+            {/* Заголовок */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
+              <span className="font-semibold text-base">Настройки читалки</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={resetToDefaults}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] rounded-lg transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Сбросить
+                </button>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
-                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-                  title="Закрыть"
+                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                  <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
                 </button>
               </div>
             </div>
-            <div className="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-73px)]">
-              {/* Ширина изображения */}
-              {onImageWidthChange && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <label className="block text-xs font-medium mb-2">
-                    Ширина картинки: {imageWidth}px
-                  </label>
-                  <input
-                    type="range"
-                    min="768"
-                    max="1440"
-                    step="64"
-                    value={imageWidth}
-                    onChange={e => onImageWidthChange(Number(e.target.value))}
-                    className="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <div className="flex justify-between text-[11px] text-[var(--muted-foreground)] mt-1.5">
-                    <span>768px</span>
-                    <span>1440px</span>
-                  </div>
-                </div>
-              )}
 
-              {/* Скорость автоскролла */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Скорость автоскролла</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["slow", "medium", "fast"] as const).map(speed => (
-                    <button
-                      key={speed}
-                      onClick={() => setAutoScrollSpeed(speed)}
-                      className={`px-2 py-2 text-xs rounded-lg transition-colors ${
-                        autoScrollSpeed === speed
-                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                          : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
-                      }`}
-                    >
-                      {speed === "slow" ? "Медленно" : speed === "medium" ? "Средне" : "Быстро"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Режим чтения</label>
-                <div className="grid grid-cols-2 gap-2">
+            {/* Контент */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+              
+              {/* Режим чтения */}
+              <div className="space-y-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Режим чтения</span>
+                <div className="flex bg-[var(--secondary)] rounded-xl p-1">
                   <button
                     onClick={() => setReadingMode("feed")}
-                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
                       readingMode === "feed"
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    Лента
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-4 h-3 border border-current rounded-sm flex flex-col justify-center gap-0.5 px-0.5">
+                        <div className="h-0.5 bg-current rounded-full" />
+                      </div>
+                    </div>
                   </button>
                   <button
                     onClick={() => setReadingMode("paged")}
-                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
                       readingMode === "paged"
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    Постранично
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex gap-0.5">
+                        <div className="w-2 h-3 border border-current rounded-sm" />
+                        <div className="w-2 h-3 border border-current rounded-sm opacity-50" />
+                      </div>
+                    </div>
                   </button>
                 </div>
               </div>
 
+              {/* Переключатели */}
+              <div className="space-y-1">
+                {/* Все главы подряд */}
+                <button
+                  onClick={() => setInfiniteScroll(!infiniteScroll)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Infinity className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Все главы подряд</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${infiniteScroll ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${infiniteScroll ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+
+                {/* Полноэкранный режим (автоскрытие меню) */}
+                <button
+                  onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg className="w-5 h-5 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    <span className="text-sm">Полноэкранный режим</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${hideBottomMenuSetting ? "bg-[var(--muted)]" : "bg-[var(--primary)]"}`}>
+                    {hideBottomMenuSetting ? (
+                      <div className="absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-sm flex items-center justify-center">
+                        <X className="w-3 h-3 text-[var(--muted-foreground)]" />
+                      </div>
+                    ) : (
+                      <div className="absolute top-1 right-1 w-5 h-5 bg-white rounded-full shadow-sm flex items-center justify-center">
+                        <svg className="w-3 h-3 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                {/* Нумерация страниц */}
+                <button
+                  onClick={() => setShowPageCounter(!showPageCounter)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <List className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Нумерация страниц</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showPageCounter ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showPageCounter ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+
+                {/* Показывать прогресс */}
+                <button
+                  onClick={() => setShowProgress(!showProgress)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Percent className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Показывать прогресс</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showProgress ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showProgress ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+
+                {/* Таймер чтения */}
+                <button
+                  onClick={() => setShowTimer(!showTimer)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Timer className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Время чтения</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showTimer ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showTimer ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+              </div>
+
               {/* Тема */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Тема</label>
+              <div className="space-y-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Тема</span>
                 <ThemeToggleGroup />
               </div>
 
-              {/* Переключатель счетчика страниц */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showPageCounter}
-                    onChange={() => setShowPageCounter(!showPageCounter)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                      showPageCounter ? "bg-[var(--primary)]" : ""
+              {/* Вмещать изображения */}
+              <div className="space-y-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Вмещать изображения</span>
+                <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+                  <button
+                    onClick={() => setFitMode("width")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      fitMode === "width"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        showPageCounter ? "transform translate-x-5" : ""
-                      }`}
-                    ></div>
-                  </div>
-                  <span className="ml-3 text-sm">Счетчик страниц</span>
-                </label>
-              </div>
-
-              {/* Переключатель скрытия нижнего меню */}
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hideBottomMenuSetting}
-                    onChange={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                      hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
+                    По ширине
+                  </button>
+                  <button
+                    onClick={() => setFitMode("height")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      fitMode === "height"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        hideBottomMenuSetting ? "transform translate-x-5" : ""
-                      }`}
-                    ></div>
-                  </div>
-                  <span className="ml-3 text-sm">Автоскрытие меню</span>
-                </label>
+                    По высоте
+                  </button>
+                </div>
               </div>
 
-              {/* Чтение глав подряд (отключено) */}
-              {READ_CHAPTERS_IN_ROW_ENABLED && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={readChaptersInRow}
-                      onChange={() => setReadChaptersInRow(!readChaptersInRow)}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                        readChaptersInRow ? "bg-[var(--primary)]" : ""
+              {/* Показать меню */}
+              {onHideBottomMenuChange && (
+                <div className="space-y-3">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Показать меню</span>
+                  <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+                    <button
+                      onClick={() => onHideBottomMenuChange(false)}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        !hideBottomMenuSetting
+                          ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                          : "text-[var(--muted-foreground)]"
                       }`}
                     >
-                      <div
-                        className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                          readChaptersInRow ? "transform translate-x-5" : ""
-                        }`}
-                      ></div>
-                    </div>
-                    <span className="ml-3 text-sm">Главы подряд</span>
-                  </label>
-                  <p className="text-[11px] text-[var(--muted-foreground)] mt-2 ml-0 leading-relaxed">
-                    При прокрутке до конца или начала подгружается следующая/предыдущая глава, адрес обновляется.
-                  </p>
+                      Скроллом
+                    </button>
+                    <button
+                      onClick={() => onHideBottomMenuChange(true)}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        hideBottomMenuSetting
+                          ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                          : "text-[var(--muted-foreground)]"
+                      }`}
+                    >
+                      Только кликом
+                    </button>
+                  </div>
                 </div>
               )}
 
-              {/* Переключатель предзагрузки всех изображений */}
+              {/* Ширина контейнера */}
+              {onImageWidthChange && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Ширина контейнера</span>
+                    <span className="text-sm font-medium text-[var(--primary)]">{imageWidth} PX</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="320"
+                    max="1440"
+                    step="20"
+                    value={imageWidth}
+                    onChange={e => onImageWidthChange(Number(e.target.value))}
+                    className="w-full h-1.5 bg-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                  />
+                </div>
+              )}
+
+              {/* Яркость изображений */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Яркость изображений</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">{brightness}</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="5"
+                  value={brightness}
+                  onChange={e => setBrightness(Number(e.target.value))}
+                  className="w-full h-1.5 bg-gradient-to-r from-[var(--muted)] via-[var(--primary)] to-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                />
+              </div>
+
+              {/* Качество изображений */}
+              <ImageQualitySelector imageQuality={imageQuality} setImageQuality={setImageQuality} />
+
+              {/* Скорость автопрокрутки */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Скорость автопрокрутки</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">
+                    {autoScrollSpeed === "slow" ? "МЕДЛЕННО" : autoScrollSpeed === "medium" ? "СРЕДНЕ" : "БЫСТРО"}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="1"
+                  value={autoScrollSpeed === "slow" ? 0 : autoScrollSpeed === "medium" ? 1 : 2}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setAutoScrollSpeed(val === 0 ? "slow" : val === 1 ? "medium" : "fast");
+                  }}
+                  className="w-full h-1.5 bg-gradient-to-r from-[var(--muted)] via-[var(--primary)] to-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                />
+              </div>
+
+              {/* Предзагрузка */}
               {onPreloadChange && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <div className="flex items-start gap-2.5 mb-2">
-                    <div className={`p-2 rounded-lg ${preloadAllImages ? 'bg-[var(--primary)]/10' : 'bg-[var(--muted)]'}`}>
-                      {preloadAllImages ? (
-                        <Download className="w-4 h-4 text-[var(--primary)]" />
-                      ) : (
-                        <Wifi className="w-4 h-4 text-[var(--muted-foreground)]" />
+                <button
+                  onClick={() => onPreloadChange(!preloadAllImages)}
+                  className="w-full flex items-center justify-between py-3.5 border-t border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Download className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <div className="text-left">
+                      <span className="text-sm block">Предзагрузка главы</span>
+                      {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
+                        <span className="text-xs text-[var(--muted-foreground)]">{preloadProgress}% загружено</span>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={preloadAllImages}
-                          onChange={() => onPreloadChange(!preloadAllImages)}
-                          className="sr-only"
-                        />
-                        <div
-                          className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                            preloadAllImages ? "bg-[var(--primary)]" : ""
-                          }`}
-                        >
-                          <div
-                            className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                              preloadAllImages ? "transform translate-x-5" : ""
-                            }`}
-                          ></div>
-                        </div>
-                        <span className="ml-3 text-sm font-medium">Предзагружать главу</span>
-                      </label>
-                      <p className="text-[11px] text-[var(--muted-foreground)] mt-1.5 leading-relaxed">
-                        Для нестабильного интернета. Загружает все страницы сразу, но требует больше трафика.
-                      </p>
-                    </div>
                   </div>
-                  
-                  {/* Прогресс предзагрузки */}
-                  {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
-                    <div className="mt-3 pt-3 border-t border-[var(--border)]">
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="text-[var(--muted-foreground)]">Загрузка главы...</span>
-                        <span className="font-medium text-[var(--primary)]">{preloadProgress}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-[var(--muted)] rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
-                          style={{ width: `${preloadProgress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {preloadAllImages && preloadProgress === 100 && (
-                    <div className="mt-3 pt-3 border-t border-[var(--border)] flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>Глава полностью загружена</span>
-                    </div>
-                  )}
-                </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${preloadAllImages ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${preloadAllImages ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
               )}
             </div>
           </div>
 
           {/* Мобильная панель */}
-          <div
-            className="sm:hidden fixed inset-x-0 bottom-0 top-16 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] shadow-2xl z-[70] overflow-y-auto rounded-t-3xl"
-          >
-            <div className="p-4 border-b border-[var(--border)] sticky top-0 bg-[var(--background)]/70 backdrop-blur-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-base text-[var(--foreground)] flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-[var(--primary)]" />
-                  Настройки
-                </h3>
+          <div className="sm:hidden fixed inset-x-0 bottom-0 max-h-[90vh] bg-[var(--card)] border-t border-[var(--border)] shadow-2xl z-[70] overflow-hidden rounded-t-3xl animate-in slide-in-from-bottom duration-300 flex flex-col">
+            {/* Ручка */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-[var(--muted-foreground)]/30 rounded-full" />
+            </div>
+
+            {/* Заголовок */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
+              <span className="font-semibold text-base">Настройки читалки</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={resetToDefaults}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] rounded-lg transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Сбросить
+                </button>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
-                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-                  title="Закрыть"
+                  className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                  <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
                 </button>
               </div>
             </div>
 
-            <div className="p-4 space-y-3 pb-6">
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Скорость автоскролла</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["slow", "medium", "fast"] as const).map(speed => (
-                    <button
-                      key={speed}
-                      onClick={() => setAutoScrollSpeed(speed)}
-                      className={`px-2 py-2 text-xs rounded-lg transition-colors ${
-                        autoScrollSpeed === speed
-                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                          : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
-                      }`}
-                    >
-                      {speed === "slow" ? "Медленно" : speed === "medium" ? "Средне" : "Быстро"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Режим чтения</label>
-                <div className="grid grid-cols-2 gap-2">
+            {/* Контент */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+              
+              {/* Режим чтения */}
+              <div className="space-y-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Режим чтения</span>
+                <div className="flex bg-[var(--secondary)] rounded-xl p-1">
                   <button
                     onClick={() => setReadingMode("feed")}
-                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
                       readingMode === "feed"
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    Лента
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-4 h-3 border border-current rounded-sm flex flex-col justify-center gap-0.5 px-0.5">
+                        <div className="h-0.5 bg-current rounded-full" />
+                      </div>
+                    </div>
                   </button>
                   <button
                     onClick={() => setReadingMode("paged")}
-                    className={`px-2 py-2 text-xs rounded-lg transition-colors ${
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
                       readingMode === "paged"
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--secondary)] hover:bg-[var(--accent)]"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    Постранично
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex gap-0.5">
+                        <div className="w-2 h-3 border border-current rounded-sm" />
+                        <div className="w-2 h-3 border border-current rounded-sm opacity-50" />
+                      </div>
+                    </div>
                   </button>
                 </div>
               </div>
 
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="block text-xs font-medium mb-2">Тема</label>
+              {/* Переключатели */}
+              <div className="space-y-1">
+                {/* Все главы подряд */}
+                <button
+                  onClick={() => setInfiniteScroll(!infiniteScroll)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Infinity className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Все главы подряд</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${infiniteScroll ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${infiniteScroll ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+
+                {/* Полноэкранный режим (автоскрытие меню) */}
+                <button
+                  onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg className="w-5 h-5 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    <span className="text-sm">Полноэкранный режим</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${hideBottomMenuSetting ? "bg-[var(--muted)]" : "bg-[var(--primary)]"}`}>
+                    {hideBottomMenuSetting ? (
+                      <div className="absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-sm flex items-center justify-center">
+                        <X className="w-3 h-3 text-[var(--muted-foreground)]" />
+                      </div>
+                    ) : (
+                      <div className="absolute top-1 right-1 w-5 h-5 bg-white rounded-full shadow-sm flex items-center justify-center">
+                        <svg className="w-3 h-3 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                {/* Нумерация страниц */}
+                <button
+                  onClick={() => setShowPageCounter(!showPageCounter)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <List className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Нумерация страниц</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showPageCounter ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showPageCounter ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+
+                {/* Показывать прогресс */}
+                <button
+                  onClick={() => setShowProgress(!showProgress)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Percent className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Показывать прогресс</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showProgress ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showProgress ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+
+                {/* Таймер чтения */}
+                <button
+                  onClick={() => setShowTimer(!showTimer)}
+                  className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Timer className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <span className="text-sm">Время чтения</span>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${showTimer ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showTimer ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+              </div>
+
+              {/* Тема */}
+              <div className="space-y-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Тема</span>
                 <ThemeToggleGroup />
               </div>
 
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showPageCounter}
-                    onChange={() => setShowPageCounter(!showPageCounter)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                      showPageCounter ? "bg-[var(--primary)]" : ""
+              {/* Вмещать изображения */}
+              <div className="space-y-3">
+                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Вмещать изображения</span>
+                <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+                  <button
+                    onClick={() => setFitMode("width")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      fitMode === "width"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        showPageCounter ? "transform translate-x-5" : ""
-                      }`}
-                    ></div>
-                  </div>
-                  <span className="ml-3 text-sm">Счетчик страниц</span>
-                </label>
-              </div>
-
-              <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hideBottomMenuSetting}
-                    onChange={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                      hideBottomMenuSetting ? "bg-[var(--primary)]" : ""
+                    По ширине
+                  </button>
+                  <button
+                    onClick={() => setFitMode("height")}
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      fitMode === "height"
+                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                        : "text-[var(--muted-foreground)]"
                     }`}
                   >
-                    <div
-                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                        hideBottomMenuSetting ? "transform translate-x-5" : ""
-                      }`}
-                    ></div>
-                  </div>
-                  <span className="ml-3 text-sm">Автоскрытие меню</span>
-                </label>
+                    По высоте
+                  </button>
+                </div>
               </div>
 
-              {READ_CHAPTERS_IN_ROW_ENABLED && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={readChaptersInRow}
-                      onChange={() => setReadChaptersInRow(!readChaptersInRow)}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                        readChaptersInRow ? "bg-[var(--primary)]" : ""
+              {/* Показать меню */}
+              {onHideBottomMenuChange && (
+                <div className="space-y-3">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Показать меню</span>
+                  <div className="flex bg-[var(--secondary)] rounded-xl p-1">
+                    <button
+                      onClick={() => onHideBottomMenuChange(false)}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        !hideBottomMenuSetting
+                          ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                          : "text-[var(--muted-foreground)]"
                       }`}
                     >
-                      <div
-                        className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                          readChaptersInRow ? "transform translate-x-5" : ""
-                        }`}
-                      ></div>
-                    </div>
-                    <span className="ml-3 text-sm">Главы подряд</span>
-                  </label>
-                  <p className="text-[11px] text-[var(--muted-foreground)] mt-2">При прокрутке подгружается следующая/предыдущая глава.</p>
+                      Скроллом
+                    </button>
+                    <button
+                      onClick={() => onHideBottomMenuChange(true)}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        hideBottomMenuSetting
+                          ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                          : "text-[var(--muted-foreground)]"
+                      }`}
+                    >
+                      Только кликом
+                    </button>
+                  </div>
                 </div>
               )}
 
-              {/* Переключатель предзагрузки - мобильная версия */}
-              {onPreloadChange && (
-                <div className="bg-[var(--background)]/50 rounded-xl p-3 border border-[var(--border)]">
-                  <div className="flex items-start gap-2.5 mb-2">
-                    <div className={`p-2 rounded-lg ${preloadAllImages ? 'bg-[var(--primary)]/10' : 'bg-[var(--muted)]'}`}>
-                      {preloadAllImages ? (
-                        <Download className="w-4 h-4 text-[var(--primary)]" />
-                      ) : (
-                        <Wifi className="w-4 h-4 text-[var(--muted-foreground)]" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={preloadAllImages}
-                          onChange={() => onPreloadChange(!preloadAllImages)}
-                          className="sr-only"
-                        />
-                        <div
-                          className={`relative w-11 h-6 bg-[var(--muted)] rounded-full transition-colors ${
-                            preloadAllImages ? "bg-[var(--primary)]" : ""
-                          }`}
-                        >
-                          <div
-                            className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                              preloadAllImages ? "transform translate-x-5" : ""
-                            }`}
-                          ></div>
-                        </div>
-                        <span className="ml-3 text-sm font-medium">Предзагружать главу</span>
-                      </label>
-                      <p className="text-[11px] text-[var(--muted-foreground)] mt-1.5 leading-relaxed">
-                        Для нестабильного интернета. Загружает все страницы сразу.
-                      </p>
-                    </div>
+              {/* Ширина контейнера */}
+              {onImageWidthChange && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Ширина контейнера</span>
+                    <span className="text-sm font-medium text-[var(--primary)]">{imageWidth} PX</span>
                   </div>
-                  
-                  {/* Прогресс предзагрузки - мобильная версия */}
-                  {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
-                    <div className="mt-3 pt-3 border-t border-[var(--border)]">
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="text-[var(--muted-foreground)]">Загрузка...</span>
-                        <span className="font-medium text-[var(--primary)]">{preloadProgress}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-[var(--muted)] rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
-                          style={{ width: `${preloadProgress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  <input
+                    type="range"
+                    min="320"
+                    max="1440"
+                    step="20"
+                    value={imageWidth}
+                    onChange={e => onImageWidthChange(Number(e.target.value))}
+                    className="w-full h-1.5 bg-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                  />
                 </div>
               )}
+
+              {/* Яркость изображений */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Яркость изображений</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">{brightness}</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="5"
+                  value={brightness}
+                  onChange={e => setBrightness(Number(e.target.value))}
+                  className="w-full h-1.5 bg-gradient-to-r from-[var(--muted)] via-[var(--primary)] to-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                />
+              </div>
+
+              {/* Качество изображений */}
+              <ImageQualitySelector imageQuality={imageQuality} setImageQuality={setImageQuality} />
+
+              {/* Скорость автопрокрутки */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Скорость автопрокрутки</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">
+                    {autoScrollSpeed === "slow" ? "МЕДЛЕННО" : autoScrollSpeed === "medium" ? "СРЕДНЕ" : "БЫСТРО"}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="1"
+                  value={autoScrollSpeed === "slow" ? 0 : autoScrollSpeed === "medium" ? 1 : 2}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setAutoScrollSpeed(val === 0 ? "slow" : val === 1 ? "medium" : "fast");
+                  }}
+                  className="w-full h-1.5 bg-gradient-to-r from-[var(--muted)] via-[var(--primary)] to-[var(--primary)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
+                />
+              </div>
+
+              {/* Предзагрузка */}
+              {onPreloadChange && (
+                <button
+                  onClick={() => onPreloadChange(!preloadAllImages)}
+                  className="w-full flex items-center justify-between py-3.5 border-t border-[var(--border)]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Download className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    <div className="text-left">
+                      <span className="text-sm block">Предзагрузка главы</span>
+                      {preloadAllImages && preloadProgress > 0 && preloadProgress < 100 && (
+                        <span className="text-xs text-[var(--muted-foreground)]">{preloadProgress}% загружено</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className={`w-12 h-7 rounded-full transition-colors relative ${preloadAllImages ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}>
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${preloadAllImages ? "translate-x-6" : "translate-x-1"}`} />
+                  </div>
+                </button>
+              )}
+
             </div>
           </div>
         </div>
@@ -672,16 +975,32 @@ export default function ReaderControls({
 
       {/* Боковое меню (десктоп) */}
       <div className="hidden sm:flex fixed right-4 top-1/2 -translate-y-1/2 z-40 flex-col gap-3">
-        {/* Счётчик страниц */}
+        {/* Счётчик страниц с улучшенным визуальным feedback */}
         <div className="w-full flex justify-center">
           <div className="relative" ref={desktopJumpPopoverRef}>
             <button
               type="button"
               onClick={handleCounterClick}
-              className="text-[var(--muted-foreground)] text-sm border border-[var(--border)] bg-[var(--card)]/95 rounded-2xl shadow-lg px-3 py-1.5 font-medium backdrop-blur-sm hover:bg-[var(--accent)] transition-colors"
+              className="group relative overflow-hidden text-sm border border-[var(--border)] bg-[var(--card)]/95 rounded-2xl shadow-lg px-4 py-2 font-medium backdrop-blur-sm hover:bg-[var(--accent)] transition-all duration-300 hover:scale-105 hover:shadow-xl"
               title={onJumpToPage ? "Нажмите для перехода к странице" : "Счётчик страниц"}
             >
-              {currentPage} / {chapterImageLength} ({chapterProgressPercent}%)
+              {/* Progress background */}
+              {showProgress && (
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/20 to-[var(--accent)]/20 transition-all duration-500"
+                  style={{ width: `${chapterProgressPercent}%` }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-2">
+                <span className="text-[var(--primary)] font-bold">{currentPage}</span>
+                <span className="text-[var(--muted-foreground)]">/</span>
+                <span className="text-[var(--foreground)]">{chapterImageLength}</span>
+                {showProgress && (
+                  <span className="text-xs text-[var(--muted-foreground)] ml-1 px-1.5 py-0.5 bg-[var(--secondary)] rounded-full">
+                    {chapterProgressPercent}%
+                  </span>
+                )}
+              </span>
             </button>
             {isJumpPopoverOpen && onJumpToPage && (
               <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 z-[80] w-[240px] p-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl">
@@ -709,6 +1028,16 @@ export default function ReaderControls({
             )}
           </div>
         </div>
+
+        {/* Таймер чтения */}
+        {showTimer && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--card)]/90 border border-[var(--border)] rounded-full shadow-md backdrop-blur-sm">
+            <Timer className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+            <span className="text-xs font-medium tabular-nums text-[var(--foreground)]">
+              {formatReadingTime(readingTime)}
+            </span>
+          </div>
+        )}
 
         {/* Основные кнопки управления */}
         <div className="flex flex-col items-center gap-2 bg-[var(--card)]/95 border border-[var(--border)] rounded-2xl p-3 shadow-lg backdrop-blur-sm">
@@ -771,7 +1100,23 @@ export default function ReaderControls({
             title="Комментарии"
           >
             <MessageCircle className={`w-5 h-5 ${isCommentsOpen ? "text-[var(--primary)]" : ""}`} />
+            {commentsCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-[var(--primary)] text-white text-[10px] font-bold rounded-full shadow-sm">
+                {commentsCount > 99 ? "99+" : commentsCount}
+              </span>
+            )}
           </button>
+
+          {/* Кнопка сетки страниц */}
+          {chapterImages.length > 0 && onJumpToPage && (
+            <button
+              onClick={() => setIsPageGridOpen(true)}
+              className="p-3 min-h-[44px] min-w-[44px] flex items-center justify-center relative bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95"
+              title="Сетка страниц"
+            >
+              <Grid3X3 className="w-5 h-5" />
+            </button>
+          )}
 
           {/* Кнопка обновления страницы с удержанием */}
           <div className="relative">
@@ -806,7 +1151,7 @@ export default function ReaderControls({
         </div>
       </div>
 
-      {/* Мобильный счётчик */}
+      {/* Мобильный счётчик с улучшенным дизайном */}
       <div
         className={`sm:hidden fixed z-[45] transition-all duration-300 ease-in-out ${
           isMenuHidden ? 'bottom-16 right-2 xs:right-4 opacity-100' : 'bottom-16 left-0 right-0 opacity-100'
@@ -818,10 +1163,28 @@ export default function ReaderControls({
               <button
                 type="button"
                 onClick={handleCounterClick}
-                className={`text-[var(--primary)] text-xs xs:text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-lg xs:rounded-xl px-2 xs:px-3 py-1 xs:py-1.5 shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-[var(--accent)] ${isMenuHidden ? 'scale-90' : 'scale-100'}`}
+                className={`group relative overflow-hidden text-xs xs:text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-xl xs:rounded-2xl px-3 xs:px-4 py-1.5 xs:py-2 shadow-lg backdrop-blur-sm transition-all duration-300 active:scale-95 ${isMenuHidden ? 'scale-90' : 'scale-100'}`}
                 title={onJumpToPage ? "Нажмите для перехода к странице" : "Счётчик страниц"}
               >
-                {currentPage} / {chapterImageLength} ({chapterProgressPercent}%)
+                {/* Mini progress bar */}
+                {showProgress && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--muted)]">
+                    <div 
+                      className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] transition-all duration-300"
+                      style={{ width: `${chapterProgressPercent}%` }}
+                    />
+                  </div>
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <span className="text-[var(--primary)] font-bold">{currentPage}</span>
+                  <span className="text-[var(--muted-foreground)] text-xs">/</span>
+                  <span className="text-[var(--foreground)]">{chapterImageLength}</span>
+                  {showProgress && (
+                    <span className="text-[10px] xs:text-xs text-[var(--muted-foreground)] ml-0.5">
+                      ({chapterProgressPercent}%)
+                    </span>
+                  )}
+                </span>
               </button>
               {isJumpPopoverOpen && onJumpToPage && (
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-[80] w-[220px] p-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl">
@@ -945,12 +1308,17 @@ export default function ReaderControls({
           {/* Кнопка комментариев */}
           <button
             onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-            className={`shrink-0 min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+            className={`relative shrink-0 min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
               isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
             }`}
             title="Комментарии"
           >
             <MessageCircle className="w-4 h-4 xs:w-5 xs:h-5" />
+            {commentsCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center px-1 bg-[var(--primary)] text-white text-[9px] font-bold rounded-full shadow-sm">
+                {commentsCount > 99 ? "99+" : commentsCount}
+              </span>
+            )}
           </button>
 
           {/* Кнопка обновления страницы с удержанием */}
@@ -1058,7 +1426,11 @@ export default function ReaderControls({
                       <div className={`font-medium truncate ${
                         chapter._id === currentChapter._id ? "text-[var(--primary)]" : "text-[var(--foreground)]"
                       }`}>
-                        {chapter.title || `Глава ${chapter.number}`}
+                        {chapter.title && 
+                         chapter.title !== String(chapter.number) && 
+                         !chapter.title.toLowerCase().match(/^глава\s*\d+$/)
+                          ? chapter.title 
+                          : `Глава ${chapter.number}`}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-0.5">
                         <span>{chapter.date ? new Date(chapter.date).toLocaleDateString('ru-RU') : ''}</span>
@@ -1110,26 +1482,40 @@ export default function ReaderControls({
         <>
           {/* Overlay для закрытия панели комментариев */}
           <div
-            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm sm:hidden"
+            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
             onClick={() => setIsCommentsOpen(false)}
           />
 
           {/* Боковая панель комментариев (десктоп) */}
-          <div className="hidden sm:block fixed right-20 top-1/2 -translate-y-1/2 w-[420px] max-h-[85vh] bg-[var(--card)]/95 backdrop-blur-md border border-[var(--border)] rounded-3xl shadow-2xl z-[60] overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--background)]/50">
-              <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
-                <MessageCircle className="w-6 h-6 text-[var(--primary)]" />
-                Комментарии к главе
-              </h3>
-              <button
-                onClick={() => setIsCommentsOpen(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                title="Закрыть"
-              >
-                <X className="w-6 h-6 text-[var(--muted-foreground)]" />
-              </button>
+          <div className="hidden sm:block fixed right-20 top-1/2 -translate-y-1/2 w-[440px] max-h-[85vh] bg-[var(--card)] backdrop-blur-xl border border-[var(--border)]/50 rounded-3xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300">
+            {/* Header с градиентом */}
+            <div className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/10 via-transparent to-[var(--primary)]/5" />
+              <div className="relative flex items-center justify-between p-5 border-b border-[var(--border)]/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-base text-[var(--foreground)]">
+                      Комментарии
+                    </h3>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      Глава {currentChapter.number}
+                      {commentsCount > 0 && ` • ${commentsCount} ${commentsCount === 1 ? 'комментарий' : commentsCount < 5 ? 'комментария' : 'комментариев'}`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsCommentsOpen(false)}
+                  className="p-2.5 hover:bg-[var(--secondary)] rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                  title="Закрыть"
+                >
+                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </button>
+              </div>
             </div>
-            <div className="overflow-y-auto max-h-[calc(85vh-80px)] p-5">
+            <div className="overflow-y-auto max-h-[calc(85vh-90px)] p-5">
               <CommentsSection
                 entityType={CommentEntityType.CHAPTER}
                 entityId={currentChapter._id}
@@ -1138,19 +1524,38 @@ export default function ReaderControls({
           </div>
 
           {/* Мобильная панель комментариев */}
-          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl">
-            <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--background)]/50 backdrop-blur-sm">
-              <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
-                <MessageCircle className="w-6 h-6 text-[var(--primary)]" />
-                Комментарии к главе
-              </h3>
-              <button
-                onClick={() => setIsCommentsOpen(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                title="Закрыть"
-              >
-                <X className="w-6 h-6 text-[var(--muted-foreground)]" />
-              </button>
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)] backdrop-blur-xl border-t border-[var(--border)]/50 shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl animate-in fade-in slide-in-from-bottom-4 duration-300">
+            {/* Drag indicator */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-[var(--muted-foreground)]/30" />
+            </div>
+            
+            {/* Header с градиентом */}
+            <div className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/10 via-transparent to-[var(--primary)]/5" />
+              <div className="relative flex items-center justify-between px-5 py-4 border-b border-[var(--border)]/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-base text-[var(--foreground)]">
+                      Комментарии
+                    </h3>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      Глава {currentChapter.number}
+                      {commentsCount > 0 && ` • ${commentsCount}`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsCommentsOpen(false)}
+                  className="p-2.5 hover:bg-[var(--secondary)] rounded-xl transition-all duration-200 active:scale-95"
+                  title="Закрыть"
+                >
+                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
+                </button>
+              </div>
             </div>
             <div className="overflow-y-auto flex-1 p-5">
               <CommentsSection
@@ -1173,6 +1578,18 @@ export default function ReaderControls({
         }`}
         titleId={titleId}
       />
+
+      {/* Сетка страниц */}
+      {chapterImages.length > 0 && onJumpToPage && (
+        <PageThumbnails
+          images={chapterImages}
+          currentPage={currentPage}
+          onPageSelect={onJumpToPage}
+          chapterNumber={currentChapter.number}
+          isOpen={isPageGridOpen}
+          onClose={() => setIsPageGridOpen(false)}
+        />
+      )}
     </>
   );
 }

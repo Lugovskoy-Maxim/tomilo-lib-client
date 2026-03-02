@@ -3,8 +3,9 @@
 import { UserProfile } from "@/types/user";
 import { ProfileAvatar, EditAvatarButton } from "@/shared";
 import RankStarsOverlay from "./RankStarsOverlay";
+import ProfileLeaderboardBadges from "./ProfileLeaderboardBadges";
 import { Button } from "@/shared/ui/button";
-import { Pencil, Sparkles, Shield, Calendar1, Play } from "lucide-react";
+import { Pencil, Sparkles, Shield, Calendar1, Play, Coins, Flame, Heart } from "lucide-react";
 import { getRankColor, getRankDisplay, getLevelProgress, levelToRank } from "@/lib/rank-utils";
 import { useProgressNotification } from "@/contexts/ProgressNotificationContext";
 
@@ -13,12 +14,20 @@ interface ProfileSidebarProps {
   onEdit?: () => void;
   onAvatarUpdate?: (newAvatarUrl: string) => void;
   isOwnProfile?: boolean;
+  /** Публичный просмотр (чужой профиль) — скрывает приватные данные */
+  isPublicView?: boolean;
 }
 
-export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, isOwnProfile = false }: ProfileSidebarProps) {
+export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, isOwnProfile = false, isPublicView = false }: ProfileSidebarProps) {
   const { showLevelUp, showAchievement, showExpGain } = useProgressNotification();
   const level = userProfile.level ?? 0;
+  
+  // Определяем, что показывать в публичном просмотре
+  const showBalance = !isPublicView || isOwnProfile;
+  const showStreak = !isPublicView || isOwnProfile || userProfile.showStats !== false;
   const experience = userProfile.experience ?? 0;
+  const balance = userProfile.balance ?? 0;
+  const currentStreak = userProfile.currentStreak ?? 0;
   const { progressPercent: expProgress, nextLevelExp } = getLevelProgress(level, experience);
   const isAdmin = userProfile.role === "admin";
   const joinedDate = userProfile.createdAt ? new Date(userProfile.createdAt) : null;
@@ -77,6 +86,31 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
               {isAdmin ? "Администратор" : "Культиватор"}
             </span>
           </div>
+          {userProfile.bio && (
+            <div className="mt-4 relative group">
+              <div 
+                className="absolute inset-0 rounded-2xl opacity-50 blur-xl transition-opacity duration-500 group-hover:opacity-70"
+                style={{ background: `linear-gradient(135deg, ${rankColor}15 0%, transparent 50%, ${rankColor}10 100%)` }}
+              />
+              <div className="relative overflow-hidden rounded-2xl bg-[var(--card)]/60 border border-[var(--border)]/50 backdrop-blur-md shadow-lg">
+                <div 
+                  className="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
+                  style={{ background: `linear-gradient(to bottom, ${rankColor}, ${rankColor}50)` }}
+                />
+                <div className="px-4 py-3 pl-5">
+                  <svg className="absolute top-2 left-3 w-3 h-3 opacity-30" style={{ color: rankColor }} fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                  </svg>
+                  <p className="text-xs sm:text-sm text-[var(--foreground)]/90 leading-relaxed italic line-clamp-3 pl-3">
+                    {userProfile.bio}
+                  </p>
+                  <svg className="absolute bottom-2 right-3 w-3 h-3 opacity-30 rotate-180" style={{ color: rankColor }} fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {onEdit && (
@@ -90,6 +124,40 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
             <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 shrink-0 transition-transform group-hover:rotate-12" />
             <span className="truncate">Редактировать профиль</span>
           </Button>
+        )}
+
+        {/* Баланс и серия - скрываем при публичном просмотре */}
+        {(showBalance || showStreak) && (
+          <div className={`grid gap-2 mb-4 ${showBalance && showStreak ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {showBalance && (
+              <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <Coins className="w-4 h-4 text-yellow-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-yellow-500 tabular-nums">{balance.toLocaleString()}</p>
+                  <p className="text-[9px] text-[var(--muted-foreground)]">Монеты</p>
+                </div>
+              </div>
+            )}
+            {showStreak && (
+              <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <Flame className="w-4 h-4 text-orange-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-orange-500 tabular-nums">{currentStreak}</p>
+                  <p className="text-[9px] text-[var(--muted-foreground)]">
+                    {currentStreak === 1 ? "день" : currentStreak < 5 ? "дня" : "дней"}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Любимый жанр */}
+        {userProfile.favoriteGenre && (
+          <div className="flex items-center justify-center gap-2 text-xs text-[var(--muted-foreground)] mb-2 py-2 px-3 rounded-lg bg-pink-500/10 border border-pink-500/20">
+            <Heart className="w-3.5 h-3.5 shrink-0 text-pink-500" />
+            <span className="text-pink-500 font-medium truncate">{userProfile.favoriteGenre}</span>
+          </div>
         )}
 
         {/* Дата регистрации */}
@@ -143,6 +211,11 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Топ-10 лидерборда */}
+        <div className="mt-4">
+          <ProfileLeaderboardBadges userId={userProfile._id} />
         </div>
 
         {/* Демо-кнопка для тестирования уведомлений (только в dev-режиме) */}

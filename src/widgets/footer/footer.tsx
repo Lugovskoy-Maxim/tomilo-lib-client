@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Sparkles,
   Crown,
+  HelpCircle,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
@@ -27,6 +28,7 @@ import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
 
 const FOOTER_NAV = [
   { href: "/about", label: "О нас" },
+  { href: "/faq", label: "Частые вопросы" },
   { href: "/contact", label: "Контакты" },
   { href: "/terms-of-use", label: "Пользовательское соглашение" },
   { href: "/privacy-policy", label: "Политика конфиденциальности" },
@@ -41,6 +43,7 @@ const MOBILE_MENU_SECTIONS = [
     title: "Информация",
     items: [
       { href: "/about", label: "О проекте", icon: Info },
+      { href: "/faq", label: "Частые вопросы", icon: HelpCircle },
       { href: "/leaders", label: "Лидеры", icon: Crown },
       { href: "/contact", label: "Связаться с нами", icon: Mail },
       { href: "/updates", label: "Новые главы", icon: Rss, badge: "NEW" },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, memo } from "react";
 import Link from "next/link";
 import type { BookmarkEntry, BookmarkCategory } from "@/types/user";
 import type { ReadingHistoryEntry } from "@/types/store";
@@ -52,25 +52,26 @@ interface CarouselBookmarkItem {
   slug?: string;
 }
 
-function LibraryCardItem({
+const LibraryCardItem = memo(function LibraryCardItem({
   entry,
   chaptersRead,
 }: {
   entry: BookmarkEntry;
   chaptersRead?: number;
 }) {
-  const hasTitle = Boolean(entry.title?.name);
+  const hasPopulatedTitle = Boolean(entry.title?.name && entry.title?.coverImage);
+  
   const { data: fetchedTitle } = useGetTitleByIdQuery(
-    { id: entry.titleId || "null" },
-    { skip: !entry.titleId || hasTitle },
+    { id: entry.titleId },
+    { skip: hasPopulatedTitle || !entry.titleId },
   );
 
-  const title = fetchedTitle ?? entry.title;
+  const title = hasPopulatedTitle ? entry.title : (fetchedTitle ?? entry.title);
   const name = title?.name ?? `Манга #${entry.titleId.slice(-6)}`;
-  const coverImage = title?.coverImage ?? entry.title?.coverImage;
-  const slug = title?.slug ?? entry.title?.slug;
-  const type = (title as { type?: string })?.type ?? (entry.title as { type?: string })?.type ?? "manga";
-  const totalChapters = title?.totalChapters ?? entry.title?.totalChapters ?? 0;
+  const coverImage = title?.coverImage;
+  const slug = title?.slug;
+  const type = (title as { type?: string })?.type ?? "manga";
+  const totalChapters = title?.totalChapters ?? 0;
 
   return (
     <BookmarkLibraryCard
@@ -84,7 +85,7 @@ function LibraryCardItem({
       totalChapters={totalChapters}
     />
   );
-}
+});
 
 /** Обёртка карточки закладки для карусели: передаёт data в LibraryCardItem, маркирует клик для Carousel */
 function BookmarkCarouselCard({ data }: { data: CarouselBookmarkItem }) {

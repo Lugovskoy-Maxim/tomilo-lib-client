@@ -18,17 +18,24 @@ import {
   Home,
   MessageCircle,
   List,
+  ChevronsUp,
+  ChevronsDown,
+  Search,
 } from "lucide-react";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useUpdateRatingMutation } from "@/store/api/titlesApi";
-import { useGetReadingHistoryReadIdsQuery } from "@/store/api/authApi";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useUpdateRatingMutation, useGetTitleStatsQuery, useGetMyTitleRatingQuery } from "@/store/api/titlesApi";
+import { useGetReadingHistoryReadIdsQuery, useGetTitleProgressQuery } from "@/store/api/authApi";
+import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getChapterPath } from "@/lib/title-paths";
 import { useAuth } from "@/hooks/useAuth";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { GenresList } from "./GenresList";
+import { CharactersSection } from "./CharactersSection";
+import { TranslatorsSection } from "./TranslatorsSection";
+import { SimilarTitles } from "./SimilarTitles";
 
 interface RightContentProps {
   titleData: Title;
@@ -37,9 +44,7 @@ interface RightContentProps {
   isDescriptionExpanded: boolean;
   onDescriptionToggle: () => void;
   chapters: Chapter[];
-  hasMoreChapters: boolean;
   chaptersLoading: boolean;
-  onLoadMoreChapters: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   sortOrder: "desc" | "asc";
@@ -47,7 +52,6 @@ interface RightContentProps {
   titleId: string;
   user: User | null;
   onAgeVerificationRequired?: () => void;
-  basePath?: string;
   slug?: string;
 }
 
@@ -58,6 +62,7 @@ export function RightContent({
   isDescriptionExpanded,
   onDescriptionToggle,
   chapters,
+  chaptersLoading,
   searchQuery,
   onSearchChange,
   sortOrder,
@@ -71,34 +76,11 @@ export function RightContent({
   const [updateRating] = useUpdateRatingMutation();
   const descriptionRef = useRef<HTMLDivElement>(null);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
-  const [displayedChapters, setDisplayedChapters] = useState<Chapter[]>([]);
-  const [visibleChapters, setVisibleChapters] = useState<Chapter[]>([]);
   const [loadedChaptersCount, setLoadedChaptersCount] = useState(20);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
 
-  // Текущая оценка: приоритет — с сервера (ratings по userId), иначе localStorage
-  useEffect(() => {
-    if (!titleData?._id) return;
-    const ratings = titleData.ratings;
-    if (user?._id && Array.isArray(ratings)) {
-      const entry = ratings.find(
-        (r): r is TitleRatingEntry => typeof r === "object" && r !== null && "userId" in r && r.userId === user._id,
-      );
-      if (entry) {
-        setPendingRating(entry.rating);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(`title-rating-${titleData._id}`, String(entry.rating));
-        }
-        return;
-      }
-    }
-    if (typeof window !== "undefined") {
-      const savedRating = localStorage.getItem(`title-rating-${titleData._id}`);
-      if (savedRating) setPendingRating(parseInt(savedRating, 10));
-    }
-  }, [titleData?._id, titleData?.ratings, user?._id]);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [hoveredChapterId, setHoveredChapterId] = useState<string | null>(null);
   const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
@@ -140,6 +122,63 @@ export function RightContent({
     skip: !user || !titleId,
   });
   const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
+
+  // Статистика тайтла (расширенные данные о просмотрах и закладках)
+  const { data: titleStatsData } = useGetTitleStatsQuery(titleId, {
+    skip: !titleId,
+  });
+
+  // Рейтинг текущего пользователя для тайтла
+  const { data: myRatingData } = useGetMyTitleRatingQuery(titleId, {
+    skip: !user || !titleId,
+  });
+
+  // Текущая оценка: приоритет — с сервера через новый эндпоинт my-rating, затем ratings по userId, иначе localStorage
+  useEffect(() => {
+    if (!titleData?._id) return;
+    
+    // Приоритет 1: данные из нового эндпоинта my-rating
+    if (myRatingData?.data?.hasRated && myRatingData.data.rating !== null) {
+      setPendingRating(myRatingData.data.rating);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`title-rating-${titleData._id}`, String(myRatingData.data.rating));
+      }
+      return;
+    }
+    
+    // Приоритет 2: поиск в массиве ratings (fallback для старого формата)
+    const ratings = titleData.ratings;
+    if (user?._id && Array.isArray(ratings)) {
+      const entry = ratings.find(
+        (r): r is TitleRatingEntry => typeof r === "object" && r !== null && "userId" in r && r.userId === user._id,
+      );
+      if (entry) {
+        setPendingRating(entry.rating);
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`title-rating-${titleData._id}`, String(entry.rating));
+        }
+        return;
+      }
+    }
+    
+    // Приоритет 3: localStorage
+    if (typeof window !== "undefined") {
+      const savedRating = localStorage.getItem(`title-rating-${titleData._id}`);
+      if (savedRating) setPendingRating(parseInt(savedRating, 10));
+    }
+  }, [titleData?._id, titleData?.ratings, user?._id, myRatingData]);
+
+  // Прогресс чтения с сервера
+  const { data: titleProgressData } = useGetTitleProgressQuery(titleId, {
+    skip: !user || !titleId,
+  });
+
+  // Получаем количество комментариев для отображения в табах
+  const { data: commentsData } = useGetCommentsQuery(
+    { entityType: CommentEntityType.TITLE, entityId: titleId, page: 1, limit: 1 },
+    { skip: !titleId }
+  );
+  const commentsCount = commentsData?.data?.total ?? null;
 
   // Функция для проверки, прочитана ли глава (приоритет: read-ids API, затем полная история по тайтлу)
   const isChapterRead = useCallback(
@@ -221,55 +260,92 @@ export function RightContent({
     }
   }, [titleData?.description]);
 
-  useEffect(() => {
+  // Фильтрация и сортировка глав через useMemo (без лишних state и effect)
+  const displayedChapters = useMemo(() => {
+    let result = chapters;
+    
     if (searchQuery) {
-      const filteredChapters = chapters.filter(chapter => {
-        const chapterNumberMatch = chapter.name.match(/(?:Глава\s+)?(\d+)/i);
-        const chapterNumber = chapterNumberMatch ? chapterNumberMatch[1] : null;
-        return chapterNumber === searchQuery.trim();
+      const query = searchQuery.trim().toLowerCase();
+      const queryNumber = parseFloat(query);
+      
+      result = chapters.filter(chapter => {
+        const chapterNum = chapter.chapterNumber ?? 0;
+        const chapterNumStr = String(chapterNum);
+        
+        if (!isNaN(queryNumber)) {
+          if (chapterNum === queryNumber) return true;
+          if (chapterNumStr.startsWith(query)) return true;
+        }
+        
+        const chapterTitle = (chapter.title || chapter.name || "").toLowerCase();
+        if (chapterTitle.includes(query)) return true;
+        
+        return false;
       });
-      setDisplayedChapters(filteredChapters);
-      setVisibleChapters(filteredChapters);
-      setLoadedChaptersCount(filteredChapters.length);
-    } else {
-      setDisplayedChapters(prev => {
-        const newChapters = chapters.filter(
-          chapter => !prev.some(prevChapter => prevChapter._id === chapter._id),
-        );
-        // Sort chapters by chapterNumber based on sortOrder
-        const sortedChapters = [...prev, ...newChapters].sort((a, b) => {
-          const aNum = a.chapterNumber || 0;
-          const bNum = b.chapterNumber || 0;
-          return sortOrder === "desc" ? bNum - aNum : aNum - bNum;
-        });
-        return sortedChapters;
+      
+      // При поиске: сначала точные совпадения, потом частичные
+      return [...result].sort((a, b) => {
+        const aNum = a.chapterNumber ?? 0;
+        const bNum = b.chapterNumber ?? 0;
+        
+        // Точное совпадение с числовым запросом
+        const aExact = !isNaN(queryNumber) && aNum === queryNumber;
+        const bExact = !isNaN(queryNumber) && bNum === queryNumber;
+        
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+        
+        // Затем сортировка по порядку
+        return sortOrder === "desc" ? bNum - aNum : aNum - bNum;
       });
-      setLoadedChaptersCount(20);
     }
+    
+    return [...result].sort((a, b) => {
+      const aNum = a.chapterNumber || 0;
+      const bNum = b.chapterNumber || 0;
+      return sortOrder === "desc" ? bNum - aNum : aNum - bNum;
+    });
   }, [chapters, searchQuery, sortOrder]);
 
-  useEffect(() => {
-    setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));
-  }, [displayedChapters, loadedChaptersCount]);
+  // Видимые главы для виртуализации
+  const visibleChapters = useMemo(() => {
+    return searchQuery ? displayedChapters : displayedChapters.slice(0, loadedChaptersCount);
+  }, [displayedChapters, loadedChaptersCount, searchQuery]);
 
+  // Ref для хранения актуальных значений (избегаем устаревших замыканий)
+  const scrollStateRef = useRef({ loadedChaptersCount, displayedChaptersLength: displayedChapters.length });
+  scrollStateRef.current = { loadedChaptersCount, displayedChaptersLength: displayedChapters.length };
+  
+  // Throttled scroll handler для подгрузки глав
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
-    if (!searchQuery) {
-      setVisibleChapters(displayedChapters.slice(0, loadedChaptersCount));
-    }
-  }, [searchQuery, displayedChapters, loadedChaptersCount]);
+    const handleScroll = () => {
+      if (scrollTimeoutRef.current) return;
+      
+      scrollTimeoutRef.current = setTimeout(() => {
+        scrollTimeoutRef.current = null;
+        const { loadedChaptersCount: loaded, displayedChaptersLength: total } = scrollStateRef.current;
+        
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+          if (loaded < total) {
+            setLoadedChaptersCount(prev => Math.min(prev + 20, total));
+          }
+        }
+      }, 100);
+    };
 
-  const handleScroll = useCallback(() => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
-      if (loadedChaptersCount < displayedChapters.length) {
-        setLoadedChaptersCount(prev => Math.min(prev + 10, displayedChapters.length));
-      }
-    }
-  }, [loadedChaptersCount, displayedChapters.length]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
 
+  // Сброс loadedChaptersCount при смене сортировки или поиска
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+    setLoadedChaptersCount(20);
+  }, [sortOrder, chapters]);
 
   // const scrollToTop = () => {
   //   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -312,7 +388,22 @@ export function RightContent({
                 <Calendar className="w-4 h-4 text-[var(--primary)]" />
                 <span className="text-sm">Последнее обновление:</span>
                 <span className="font-medium text-[var(--foreground)]">
-                  {titleData?.updatedAt ? timeAgo(titleData.updatedAt) : "неизвестно"}
+                  {(() => {
+                    // Находим дату последней добавленной главы
+                    const lastChapterDate = chapters.length > 0
+                      ? chapters.reduce((latest, ch) => {
+                          const chDate = new Date(ch.createdAt).getTime();
+                          return chDate > latest ? chDate : latest;
+                        }, 0)
+                      : null;
+                    
+                    if (lastChapterDate) {
+                      return timeAgo(new Date(lastChapterDate).toISOString());
+                    }
+                    
+                    // Fallback на createdAt тайтла если глав нет
+                    return titleData?.createdAt ? timeAgo(titleData.createdAt) : "неизвестно";
+                  })()}
                 </span>
               </div>
             </div>
@@ -387,20 +478,55 @@ export function RightContent({
                 <span className="text-xs uppercase tracking-wider font-medium">Статистика</span>
               </div>
               
+              {/* Основная статистика */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center p-3 bg-[var(--background)]/60 rounded-xl">
                   <div className="text-2xl font-bold text-[var(--primary)] mb-1">
-                    {titleData?.views?.toLocaleString() || 0}
+                    {(titleStatsData?.data?.views ?? titleData?.views ?? 0).toLocaleString()}
                   </div>
                   <div className="text-xs text-[var(--muted-foreground)]">Просмотров</div>
                 </div>
                 <div className="text-center p-3 bg-[var(--background)]/60 rounded-xl">
                   <div className="text-2xl font-bold text-[var(--primary)] mb-1">
-                    {totalRatings.toLocaleString()}
+                    {(titleStatsData?.data?.totalRatings ?? totalRatings).toLocaleString()}
                   </div>
                   <div className="text-xs text-[var(--muted-foreground)]">Оценок</div>
                 </div>
               </div>
+
+              {/* Расширенная статистика просмотров */}
+              {titleStatsData?.data && (
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="text-center p-2 bg-[var(--background)]/40 rounded-lg">
+                    <div className="text-sm font-semibold text-[var(--foreground)]">
+                      {titleStatsData.data.dayViews?.toLocaleString() || 0}
+                    </div>
+                    <div className="text-[10px] text-[var(--muted-foreground)]">За день</div>
+                  </div>
+                  <div className="text-center p-2 bg-[var(--background)]/40 rounded-lg">
+                    <div className="text-sm font-semibold text-[var(--foreground)]">
+                      {titleStatsData.data.weekViews?.toLocaleString() || 0}
+                    </div>
+                    <div className="text-[10px] text-[var(--muted-foreground)]">За неделю</div>
+                  </div>
+                  <div className="text-center p-2 bg-[var(--background)]/40 rounded-lg">
+                    <div className="text-sm font-semibold text-[var(--foreground)]">
+                      {titleStatsData.data.monthViews?.toLocaleString() || 0}
+                    </div>
+                    <div className="text-[10px] text-[var(--muted-foreground)]">За месяц</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Количество закладок */}
+              {titleStatsData?.data?.bookmarksCount !== undefined && titleStatsData.data.bookmarksCount > 0 && (
+                <div className="flex items-center justify-between p-2 bg-[var(--background)]/40 rounded-lg mb-4">
+                  <span className="text-xs text-[var(--muted-foreground)]">В закладках у читателей</span>
+                  <span className="text-sm font-semibold text-[var(--primary)]">
+                    {titleStatsData.data.bookmarksCount.toLocaleString()}
+                  </span>
+                </div>
+              )}
 
               {totalRatings > 0 && ratingStats.length > 0 && (
                 <div className="space-y-2">
@@ -434,6 +560,19 @@ export function RightContent({
                 </div>
               )}
             </div>
+
+            {/* Секция персонажей */}
+            <CharactersSection titleId={titleId} />
+
+            {/* Секция команды перевода */}
+            <TranslatorsSection titleId={titleId} />
+
+            {/* Похожие тайтлы */}
+            <SimilarTitles 
+              titleId={titleId} 
+              genres={titleData.genres} 
+              currentTitleSlug={slug}
+            />
           </div>
         );
 
@@ -473,8 +612,42 @@ export function RightContent({
           );
         }
 
+        // Используем данные прогресса с сервера, если доступны, иначе считаем локально
+        const serverProgress = titleProgressData?.data;
+        const totalChaptersCount = serverProgress?.totalChapters ?? chapters.length;
+        const readChaptersCount = serverProgress?.chaptersRead ?? chapters.filter(ch => isChapterRead(ch._id || "")).length;
+        const progressPercent = serverProgress?.progressPercent ?? (totalChaptersCount > 0 ? Math.round((readChaptersCount / totalChaptersCount) * 100) : 0);
+        const hasReadingProgress = user && readChaptersCount > 0;
+
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {/* Индикатор прогресса чтения */}
+            {hasReadingProgress && (
+              <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCheck className="w-4 h-4 text-[var(--primary)]" />
+                    <span className="text-sm font-medium text-[var(--foreground)]">Прогресс чтения</span>
+                  </div>
+                  <span className="text-sm text-[var(--muted-foreground)]">
+                    {readChaptersCount} из {totalChaptersCount} глав
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-[var(--background)]/70 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/60 rounded-full transition-all duration-500"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5 text-xs text-[var(--muted-foreground)]">
+                  <span>{progressPercent}% прочитано</span>
+                  {progressPercent === 100 && (
+                    <span className="text-green-500 font-medium">Завершено!</span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Панель поиска и сортировки */}
             <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-3 border border-[var(--border)]/50">
               <div className="flex w-full flex-col sm:flex-row gap-3">
@@ -484,29 +657,105 @@ export function RightContent({
                     placeholder="Поиск по номеру главы..."
                     value={searchQuery}
                     onChange={e => onSearchChange(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--background)]/80 border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] transition-all"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[var(--background)]/80 border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] transition-all"
                   />
-                  <Eye className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+                  {searchQuery && (
+                    <button
+                      onClick={() => onSearchChange("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+                      aria-label="Очистить поиск"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
-                <button
-                  onClick={() => onSortChange(sortOrder === "desc" ? "asc" : "desc")}
-                  className="px-4 py-2.5 bg-[var(--background)]/80 border border-[var(--border)] rounded-xl text-[var(--foreground)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap group"
-                >
-                  <ArrowUpDown
-                    className={`w-4 h-4 transition-transform duration-300 text-[var(--primary)] ${
-                      sortOrder === "desc" ? "rotate-0" : "rotate-180"
-                    }`}
-                  />
-                  <span className="text-sm">{sortOrder === "desc" ? "Сначала новые" : "Сначала старые"}</span>
-                </button>
+                <div className="flex gap-2">
+                  {/* Кнопки быстрой навигации */}
+                  {totalChaptersCount > 10 && (
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          const firstChapter = sortOrder === "desc" 
+                            ? chapters[chapters.length - 1] 
+                            : chapters[0];
+                          if (firstChapter) {
+                            onSearchChange(String(firstChapter.chapterNumber || 1));
+                          }
+                        }}
+                        className="p-2.5 bg-[var(--background)]/80 border border-[var(--border)] rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 hover:text-[var(--primary)] transition-all"
+                        title="К первой главе"
+                      >
+                        <ChevronsUp className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          const lastChapter = sortOrder === "desc" 
+                            ? chapters[0] 
+                            : chapters[chapters.length - 1];
+                          if (lastChapter) {
+                            onSearchChange(String(lastChapter.chapterNumber || chapters.length));
+                          }
+                        }}
+                        className="p-2.5 bg-[var(--background)]/80 border border-[var(--border)] rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 hover:text-[var(--primary)] transition-all"
+                        title="К последней главе"
+                      >
+                        <ChevronsDown className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => onSortChange(sortOrder === "desc" ? "asc" : "desc")}
+                    className="px-4 py-2.5 bg-[var(--background)]/80 border border-[var(--border)] rounded-xl text-[var(--foreground)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap group"
+                  >
+                    <ArrowUpDown
+                      className={`w-4 h-4 transition-transform duration-300 text-[var(--primary)] ${
+                        sortOrder === "desc" ? "rotate-0" : "rotate-180"
+                      }`}
+                    />
+                    <span className="text-sm hidden sm:inline">{sortOrder === "desc" ? "Сначала новые" : "Сначала старые"}</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* <AdBlock /> */}
-
             {/* Список глав */}
             <div className="space-y-2">
+              {visibleChapters.length === 0 && !searchQuery && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <BookOpen className="w-16 h-16 text-[var(--muted-foreground)]/30 mb-4" />
+                  <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Глав пока нет</h3>
+                  <p className="text-sm text-[var(--muted-foreground)] max-w-xs">
+                    Главы ещё не добавлены. Подпишитесь на тайтл, чтобы получить уведомление о новых главах.
+                  </p>
+                </div>
+              )}
+              
+              {visibleChapters.length === 0 && searchQuery && !chaptersLoading && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Search className="w-16 h-16 text-[var(--muted-foreground)]/30 mb-4" />
+                  <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Глава не найдена</h3>
+                  <p className="text-sm text-[var(--muted-foreground)] mb-4">
+                    По запросу &ldquo;{searchQuery}&rdquo; ничего не найдено
+                  </p>
+                  <button
+                    onClick={() => onSearchChange("")}
+                    className="px-4 py-2 text-sm font-medium text-[var(--primary)] bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 rounded-xl transition-colors"
+                  >
+                    Сбросить поиск
+                  </button>
+                </div>
+              )}
+              
+              {visibleChapters.length === 0 && searchQuery && chaptersLoading && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-12 h-12 border-3 border-[var(--primary)]/20 border-t-[var(--primary)] rounded-full animate-spin mb-4" />
+                  <p className="text-sm text-[var(--muted-foreground)]">Загрузка глав...</p>
+                </div>
+              )}
+              
               {visibleChapters.map((chapter, index) => {
                 const read = isChapterRead(chapter._id || "");
                 const isRemoving = removingChapterId === chapter._id;
@@ -783,11 +1032,29 @@ export function RightContent({
                                       ? "Отлично"
                                       : "Шедевр!"
                             : pendingRating
-                              ? "Изменить оценку?"
+                              ? "Нажмите, чтобы изменить"
                               : "Выберите оценку"}
                         </span>
                         <span className="text-[var(--foreground)]/40">Шедевр</span>
                       </div>
+
+                      {/* Кнопка сброса оценки */}
+                      {pendingRating && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPendingRating(null);
+                            setIsRatingOpen(false);
+                            if (typeof window !== "undefined" && titleData?._id) {
+                              localStorage.removeItem(`title-rating-${titleData._id}`);
+                            }
+                          }}
+                          className="w-full mt-3 py-2 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/50 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <X className="w-3 h-3" />
+                          Убрать мою оценку
+                        </button>
+                      )}
                     </div>
                   </>
                 )}
@@ -828,9 +1095,9 @@ export function RightContent({
         {isDescriptionOverflowing && (
           <button
             onClick={onDescriptionToggle}
-            className="flex items-center gap-1.5 text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors mt-3 group"
+            className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2 mt-3 rounded-xl text-sm font-medium text-[var(--primary)] bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 border border-[var(--primary)]/20 hover:border-[var(--primary)]/30 transition-all group"
           >
-            <span>{isDescriptionExpanded ? "Свернуть" : "Развернуть описание"}</span>
+            <span>{isDescriptionExpanded ? "Свернуть описание" : "Читать полностью"}</span>
             <ChevronDown 
               className={`w-4 h-4 transition-transform duration-300 ${
                 isDescriptionExpanded ? "rotate-180" : "group-hover:translate-y-0.5"
@@ -839,8 +1106,8 @@ export function RightContent({
           </button>
         )}
 
-        {/* Улучшенные вкладки с иконками */}
-        <div className="bg-[var(--secondary)]/80 backdrop-blur-md rounded-2xl p-1.5 relative border border-[var(--border)]">
+        {/* Улучшенные вкладки с иконками - sticky на десктопе */}
+        <div className="sticky top-20 z-30 bg-[var(--secondary)]/95 backdrop-blur-xl rounded-2xl p-1.5 border border-[var(--border)] shadow-sm">
           <div className="flex gap-1">
             {[
               { 
@@ -853,13 +1120,13 @@ export function RightContent({
                 key: "chapters" as const,
                 label: "Главы",
                 icon: List,
-                count: titleData?.chapters?.length || 0,
+                count: titleData?.totalChapters || chapters.length || 0,
               },
               { 
                 key: "comments" as const, 
                 label: "Комментарии", 
                 icon: MessageCircle,
-                count: null 
+                count: commentsCount
               },
             ].map(tab => {
               const Icon = tab.icon;

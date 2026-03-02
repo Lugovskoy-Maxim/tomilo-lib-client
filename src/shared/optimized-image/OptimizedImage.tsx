@@ -1,5 +1,6 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import Image from "next/image";
 
 interface OptimizedImageProps {
   src: string;
@@ -10,6 +11,8 @@ interface OptimizedImageProps {
   fill?: boolean;
   quality?: number;
   priority?: boolean;
+  /** Низкий приоритет загрузки — изображение будет загружаться с задержкой */
+  lowPriority?: boolean;
   /** Показывать изображение только когда true (для последовательного отображения по порядку) */
   visible?: boolean;
   onLoad?: () => void;
@@ -21,7 +24,13 @@ interface OptimizedImageProps {
   fallbackSrc?: string;
   /** Изображение-заглушка при ошибке загрузки всех источников */
   errorSrc?: string;
+  /** Размеры для responsive images (для fill mode) */
+  sizes?: string;
+  /** Использовать нативный img вместо next/image (для внешних изображений без настроенных доменов) */
+  unoptimized?: boolean;
 }
+
+const DEFAULT_SIZES = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
@@ -30,7 +39,9 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   width,
   height,
   fill = false,
+  quality = 85,
   priority = false,
+  lowPriority = false,
   visible = true,
   onLoad,
   onError,
@@ -40,182 +51,99 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   hidePlaceholder = false,
   fallbackSrc,
   errorSrc,
+  sizes,
+  unoptimized = false,
 }) => {
-  const imgRef = useRef<HTMLImageElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [shouldLoad, setShouldLoad] = useState(priority);
-  const [isLoading, setIsLoading] = useState(priority);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [useFallback, setUseFallback] = useState(false);
-  const [fallbackFailed, setFallbackFailed] = useState(false);
-  const [useErrorSrc, setUseErrorSrc] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [hasError, setHasError] = useState(false);
+  const [triedFallback, setTriedFallback] = useState(false);
+  const [triedErrorSrc, setTriedErrorSrc] = useState(false);
 
-  // Сбрасываем состояние при смене src
+  // Сброс состояния при смене основного src
   useEffect(() => {
-    setUseFallback(false);
-    setFallbackFailed(false);
-    setUseErrorSrc(false);
-    setError(null);
-    setShouldLoad(priority);
-    setIsLoading(priority);
-    
-    // Проверяем, не загружено ли изображение уже (из кеша)
-    if (priority && imgRef.current) {
-      const img = imgRef.current;
-      if (img.complete && img.naturalWidth > 0) {
-        setIsLoaded(true);
-        setIsLoading(false);
-        return;
-      }
-    }
+    setCurrentSrc(src);
     setIsLoaded(false);
+    setHasError(false);
+    setTriedFallback(false);
+    setTriedErrorSrc(false);
+    setShouldLoad(priority);
   }, [src, priority]);
 
-  // Ленивая загрузка: начинаем запрос только около viewport
+  // Ленивая загрузка с IntersectionObserver для lowPriority изображений
   useEffect(() => {
-    if (priority || shouldLoad) return;
-    const element = imgRef.current;
-    if (!element) {
-      // Fallback: если ref ещё не готов, не блокируем загрузку.
-      setShouldLoad(true);
-      setIsLoading(true);
-      return;
-    }
+    if (priority || shouldLoad || !containerRef.current) return;
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
       setShouldLoad(true);
-      setIsLoading(true);
       return;
     }
 
-    // Fail-safe: если observer по какой-то причине не сработал, не держим изображение в вечной загрузке.
+    const rootMarginValue = lowPriority ? "300px 0px" : "800px 0px";
     const forceLoadTimeout = window.setTimeout(() => {
       setShouldLoad(true);
-      setIsLoading(true);
-      observerRef.current?.disconnect();
-      observerRef.current = null;
-    }, 1200);
+    }, lowPriority ? 3000 : 1200);
 
-    observerRef.current?.disconnect();
-    observerRef.current = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return;
-          setShouldLoad(true);
-          setIsLoading(true);
-          observerRef.current?.disconnect();
-          observerRef.current = null;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShouldLoad(true);
+            observer.disconnect();
+          }
         });
       },
-      {
-        rootMargin: "250px 0px",
-        threshold: 0.01,
-      },
+      { rootMargin: rootMarginValue, threshold: 0.01 }
     );
 
-    observerRef.current.observe(element);
+    observer.observe(containerRef.current);
 
     return () => {
       window.clearTimeout(forceLoadTimeout);
-      observerRef.current?.disconnect();
-      observerRef.current = null;
+      observer.disconnect();
     };
-  }, [priority, shouldLoad]);
+  }, [priority, shouldLoad, lowPriority]);
 
-  const handleLoad = () => {
-    setIsLoading(false);
+  const handleLoad = useCallback(() => {
     setIsLoaded(true);
-    if (onLoad) onLoad();
-  };
+    onLoad?.();
+  }, [onLoad]);
 
-  const handleError = () => {
-    // Пробуем fallback если ещё не пробовали
-    if (!useFallback && fallbackSrc && fallbackSrc !== src) {
-      setUseFallback(true);
-      setIsLoading(true);
-      setIsLoaded(false);
+  const handleError = useCallback(() => {
+    // Пробуем fallback
+    if (!triedFallback && fallbackSrc && fallbackSrc !== src) {
+      setCurrentSrc(fallbackSrc);
+      setTriedFallback(true);
       return;
     }
-    // Пробуем errorSrc если fallback не сработал
-    if (!useErrorSrc && errorSrc && errorSrc !== src && errorSrc !== fallbackSrc) {
-      setFallbackFailed(true);
-      setUseErrorSrc(true);
-      setIsLoading(true);
-      setIsLoaded(false);
+    // Пробуем errorSrc
+    if (!triedErrorSrc && errorSrc && errorSrc !== src && errorSrc !== fallbackSrc) {
+      setCurrentSrc(errorSrc);
+      setTriedErrorSrc(true);
       return;
     }
-    setIsLoading(false);
-    setFallbackFailed(true);
-    if (onError) onError();
-  };
+    // Все источники провалились
+    setHasError(true);
+    onError?.();
+  }, [src, fallbackSrc, errorSrc, triedFallback, triedErrorSrc, onError]);
 
-  // Определяем реальный src (errorSrc -> fallback -> src)
-  const actualSrc = useErrorSrc && errorSrc 
-    ? errorSrc 
-    : useFallback && fallbackSrc 
-      ? fallbackSrc 
-      : src;
+  // Placeholder во время загрузки
+  const renderPlaceholder = () => {
+    if (hidePlaceholder || (width && width <= 60)) return null;
 
-  // Определяем классы для изображения
-  const imageClasses = [
-    className,
-    isLoading ? "loading" : "",
-    isLoaded ? "loaded" : "",
-    error ? "error" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  // Placeholder для изображения во время загрузки
-  const getPlaceholder = () => {
-    // Для маленьких изображений (аватаров) не показываем спиннер
-    if (hidePlaceholder || (width && width <= 60)) {
-      return null;
-    }
-    
-    // Для fill mode используем абсолютное позиционирование
     const placeholderStyle: React.CSSProperties = fill
-      ? {
-          position: "absolute",
-          inset: 0,
-          backgroundColor: "var(--muted)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: "var(--radius)",
-        }
+      ? { position: "absolute", inset: 0 }
       : width && height
-        ? {
-            width: "100%",
-            aspectRatio: width / height,
-            backgroundColor: "var(--muted)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "var(--radius)",
-          }
-        : {
-            width: "100%",
-            paddingBottom: "137.5%",
-            backgroundColor: "var(--muted)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "var(--radius)",
-          };
+        ? { width: "100%", aspectRatio: width / height }
+        : { width: "100%", paddingBottom: "137.5%" };
 
     return (
-      <div className="image-placeholder" style={placeholderStyle}>
-        <div
-          style={{
-            border: "2px solid var(--muted)",
-            borderTop: "2px solid var(--primary)",
-            borderRadius: "50%",
-            width: "20px",
-            height: "20px",
-            animation: "spin 1s linear infinite",
-          }}
-        />
+      <div
+        className="image-placeholder bg-[var(--muted)] flex items-center justify-center rounded-[var(--radius)]"
+        style={placeholderStyle}
+      >
+        <div className="w-5 h-5 border-2 border-[var(--muted)] border-t-[var(--primary)] rounded-full animate-spin" />
       </div>
     );
   };
@@ -223,104 +151,81 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // Отображение ошибки
   const renderError = () => {
     const errorStyle: React.CSSProperties = fill
-      ? {
-          position: "absolute",
-          inset: 0,
-          backgroundColor: "var(--destructive)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--destructive-foreground)",
-          border: "1px solid var(--destructive)",
-          borderRadius: "var(--radius)",
-          fontSize: "14px",
-          fontWeight: 500,
-        }
-      : {
-          width: "100%",
-          aspectRatio: width && height ? width / height : 160 / 220,
-          backgroundColor: "var(--destructive)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--destructive-foreground)",
-          border: "1px solid var(--destructive)",
-          borderRadius: "var(--radius)",
-          fontSize: "14px",
-          fontWeight: 500,
-        };
+      ? { position: "absolute", inset: 0 }
+      : { width: "100%", aspectRatio: width && height ? width / height : 160 / 220 };
 
     return (
-      <div className="image-error" style={errorStyle}>
+      <div
+        className="image-error bg-[var(--destructive)] text-[var(--destructive-foreground)] flex items-center justify-center rounded-[var(--radius)] border border-[var(--destructive)] text-sm font-medium"
+        style={errorStyle}
+      >
         Ошибка
       </div>
     );
   };
 
-  // Показываем ошибку только если все источники (src, fallback, errorSrc) провалились
-  const allSourcesFailed = fallbackFailed && !useErrorSrc && !errorSrc;
-  if (error && allSourcesFailed) {
-    return renderError();
-  }
+  if (hasError) return renderError();
 
-  // Определяем стиль отображения: показываем только когда загружено и разрешено (visible — для порядка по индексу)
   const showImage = isLoaded && visible;
-  const imageStyle: React.CSSProperties = fill
-    ? {
-        display: "block",
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        opacity: showImage ? 1 : 0,
-        transition: "opacity 200ms ease-out",
-        ...style,
-      }
-    : {
-        display: "block",
-        width: width ? `${width}px` : "100%",
-        height: height ? `${height}px` : "auto",
-        opacity: showImage ? 1 : 0,
-        transition: "opacity 200ms ease-out",
-        ...style,
-      };
+  
+  // В dev-режиме next/image optimization может вызывать timeout при обращении к удалённым серверам.
+  // Используем unoptimized для всех http/https URL чтобы избежать проблем.
+  // Next.js Image Optimization лучше работает в production с правильно настроенным CDN.
+  const isRemoteUrl = currentSrc?.startsWith("http");
+  const shouldUnoptimize = unoptimized || isRemoteUrl;
+
+  // Общие стили для изображения
+  const imageClassName = `${className} ${isLoaded ? "loaded" : ""} transition-opacity duration-200 ${showImage ? "opacity-100" : "opacity-0"}`;
+
+  // Обработчик dragStart для Image компонента
+  const handleDragStart = (e: React.SyntheticEvent) => {
+    if (onDragStart) {
+      onDragStart(e as unknown as React.DragEvent);
+    }
+  };
 
   return (
-    <>
-      {/* Placeholder во время загрузки */}
-      {!isLoaded && getPlaceholder()}
+    <div ref={containerRef} className={fill ? "relative w-full h-full" : undefined} style={!fill ? style : undefined}>
+      {/* Placeholder */}
+      {!isLoaded && renderPlaceholder()}
 
       {/* Основное изображение */}
-      <img
-        ref={imgRef}
-        src={shouldLoad ? actualSrc : undefined}
-        alt={alt}
-        className={imageClasses}
-        width={fill ? undefined : width}
-        height={fill ? undefined : height}
-        onLoad={handleLoad}
-        onError={handleError}
-        loading={priority ? "eager" : "lazy"}
-        decoding="async"
-        fetchPriority={priority ? "high" : "low"}
-        style={imageStyle}
-        onDragStart={onDragStart}
-        draggable={draggable}
-      />
-
-      {/* Глобальные стили для анимации спиннера */}
-      <style jsx global>{`
-        @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
-    </>
+      {shouldLoad && currentSrc && (
+        fill ? (
+          <Image
+            src={currentSrc}
+            alt={alt}
+            fill
+            sizes={sizes || DEFAULT_SIZES}
+            quality={quality}
+            priority={priority}
+            className={`${imageClassName} object-cover`}
+            style={style}
+            onLoad={handleLoad}
+            onError={handleError}
+            draggable={draggable}
+            onDragStart={handleDragStart}
+            unoptimized={shouldUnoptimize}
+          />
+        ) : (
+          <Image
+            src={currentSrc}
+            alt={alt}
+            width={width || 160}
+            height={height || 220}
+            quality={quality}
+            priority={priority}
+            className={imageClassName}
+            style={style}
+            onLoad={handleLoad}
+            onError={handleError}
+            draggable={draggable}
+            onDragStart={handleDragStart}
+            unoptimized={shouldUnoptimize}
+          />
+        )
+      )}
+    </div>
   );
 };
 

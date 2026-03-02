@@ -31,10 +31,79 @@ export const metadata: Metadata = {
     default: "Tomilo-lib.ru — Манга, манхва и маньхуа читать онлайн бесплатно",
     template: "%s",
   },
+  description:
+    "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, удобный ридер, закладки и история чтения. Регулярные обновления, каталог по жанрам.",
+  keywords: [
+    "манга",
+    "манхва",
+    "маньхуа",
+    "читать онлайн",
+    "бесплатно",
+    "комиксы",
+    "тайтлы",
+    "каталог манги",
+    "новые главы",
+    "ридер",
+    "японские комиксы",
+    "корейские комиксы",
+    "китайские комиксы",
+  ],
+  authors: [{ name: "Tomilo-lib", url: siteUrl }],
+  creator: "Tomilo-lib",
+  publisher: "Tomilo-lib.ru",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
+  verification: {
+    yandex: "8f2bae575aa86202",
+  },
+  alternates: {
+    canonical: siteUrl,
+    types: {
+      "application/rss+xml": `${siteUrl}/rss`,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    url: siteUrl,
+    siteName: "Tomilo-lib.ru",
+    title: "Tomilo-lib.ru — Манга, манхва и маньхуа читать онлайн бесплатно",
+    description:
+      "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, удобный ридер, регулярные обновления.",
+    images: [
+      {
+        url: `${siteUrl}/logo/og-default.png`,
+        width: 1200,
+        height: 630,
+        alt: "Tomilo-lib — манга, манхва, маньхуа онлайн",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tomilo-lib.ru — Манга, манхва и маньхуа читать онлайн бесплатно",
+    description:
+      "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, удобный ридер.",
+    site: "@tomilo_lib",
+    creator: "@tomilo_lib",
+    images: [`${siteUrl}/logo/og-default.png`],
+  },
+  category: "entertainment",
+  classification: "Manga Reader",
 };
 
 const exo_2 = localFont({
@@ -133,8 +202,18 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="msapplication-navbutton-color" content="#000000" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Tomilo-lib" />
 
-        <meta name="yandex-verification" content="8f2bae575aa86202" />
+        {/* Дополнительные мета-теги для SEO */}
+        <meta name="google" content="notranslate" />
+        <meta name="rating" content="general" />
+        <meta name="revisit-after" content="1 days" />
+        <meta name="language" content="Russian" />
+        <meta name="geo.region" content="RU" />
+        <meta name="geo.placename" content="Russia" />
+        <meta name="distribution" content="global" />
+        <meta name="coverage" content="Worldwide" />
 
         {/* Глобальная структурированная разметка для поисковиков (Google, Yandex, Bing) */}
         <script
@@ -147,6 +226,7 @@ export default function RootLayout({
                   "@type": "Organization",
                   "@id": `${siteUrl}/#organization`,
                   name: "Tomilo-lib.ru",
+                  alternateName: "Tomilo-lib",
                   url: siteUrl,
                   logo: {
                     "@type": "ImageObject",
@@ -154,26 +234,66 @@ export default function RootLayout({
                     width: 200,
                     height: 60,
                   },
+                  image: `${siteUrl}/logo/og-default.png`,
                   description:
                     "Читайте мангу, манхву и маньхуа онлайн бесплатно. Каталог тайтлов, удобный ридер, закладки и история чтения.",
+                  sameAs: [
+                    "https://t.me/tomilolib",
+                    "https://t.me/TomiloDev",
+                  ],
+                  contactPoint: {
+                    "@type": "ContactPoint",
+                    email: "support@tomilo-lib.ru",
+                    contactType: "customer support",
+                    availableLanguage: "Russian",
+                  },
                 },
                 {
                   "@type": "WebSite",
                   "@id": `${siteUrl}/#website`,
                   url: siteUrl,
                   name: "Tomilo-lib.ru — Манга, манхва и маньхуа онлайн",
+                  alternateName: "Томило Либ",
                   description:
                     "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, регулярные обновления.",
                   publisher: { "@id": `${siteUrl}/#organization` },
                   inLanguage: "ru-RU",
-                  potentialAction: {
-                    "@type": "SearchAction",
-                    target: {
-                      "@type": "EntryPoint",
-                      urlTemplate: `${siteUrl}/titles?search={search_term_string}`,
+                  potentialAction: [
+                    {
+                      "@type": "SearchAction",
+                      target: {
+                        "@type": "EntryPoint",
+                        urlTemplate: `${siteUrl}/titles?search={search_term_string}`,
+                      },
+                      "query-input": "required name=search_term_string",
                     },
-                    "query-input": "required name=search_term_string",
+                    {
+                      "@type": "ReadAction",
+                      target: `${siteUrl}/titles`,
+                    },
+                  ],
+                },
+                {
+                  "@type": "WebApplication",
+                  "@id": `${siteUrl}/#webapp`,
+                  name: "Tomilo-lib",
+                  url: siteUrl,
+                  applicationCategory: "EntertainmentApplication",
+                  operatingSystem: "Web",
+                  browserRequirements: "Requires JavaScript",
+                  offers: {
+                    "@type": "Offer",
+                    price: "0",
+                    priceCurrency: "RUB",
                   },
+                  featureList: [
+                    "Чтение манги онлайн",
+                    "Каталог по жанрам",
+                    "Закладки и история",
+                    "Ежедневные обновления",
+                    "Темная и светлая тема",
+                    "Адаптивный дизайн",
+                  ],
                 },
               ],
             }),

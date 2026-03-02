@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useMemo, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
@@ -8,7 +8,6 @@ import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
 import { useGetProfileQuery, useGetReadingHistoryQuery } from "@/store/api/authApi";
 import { ReadingHistoryEntry } from "@/types/store";
 
-// Преобразование User из API в UserProfile
 function transformUserToProfile(user: User): UserProfile | null {
   if (!user) return null;
 
@@ -29,23 +28,37 @@ function transformUserToProfile(user: User): UserProfile | null {
     birthDate: user.birthDate,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
-    // Privacy and display settings
+    currentStreak: user.currentStreak,
+    longestStreak: user.longestStreak,
+    lastStreakDate: user.lastStreakDate,
     privacy: user.privacy,
     displaySettings: user.displaySettings,
     linkedProviders: getLinkedProvidersFromUser(user),
-    // Надетые декорации (аватар, рамка, фон) — API может вернуть equippedDecorations или equipped_decorations
     equippedDecorations: (user as User & { equippedDecorations?: UserProfile["equippedDecorations"] }).equippedDecorations ??
       (user as unknown as Record<string, unknown>).equipped_decorations as UserProfile["equippedDecorations"],
     ownedDecorations: (user as User & { ownedDecorations?: UserProfile["ownedDecorations"] }).ownedDecorations,
+    // Кастомизация профиля
+    bio: user.bio,
+    favoriteGenre: user.favoriteGenre,
+    socialLinks: user.socialLinks,
+    showStats: user.showStats,
+    showAchievements: user.showAchievements,
+    showFavoriteCharacters: user.showFavoriteCharacters,
+    showReadingHistory: user.showReadingHistory,
+    showBookmarks: user.showBookmarks,
+    // Статистика
+    titlesReadCount: user.titlesReadCount,
+    commentsCount: user.commentsCount,
+    likesReceivedCount: user.likesReceivedCount,
+    readingTimeMinutes: user.readingTimeMinutes,
+    completedTitlesCount: user.completedTitlesCount,
   };
 }
 
-// Transform reading history to ensure chapterId is string while preserving titleId object
 function transformReadingHistory(history: ReadingHistoryEntry[] | unknown): ReadingHistoryEntry[] {
   if (!Array.isArray(history)) return [];
   return history.map((item: ReadingHistoryEntry) => ({
     ...item,
-    // Keep titleId as is (can be string or object), but ensure it's consistent
     titleId: item.titleId,
     chapters: Array.isArray(item.chapters)
       ? item.chapters.map(chap => ({
@@ -63,54 +76,47 @@ function transformReadingHistory(history: ReadingHistoryEntry[] | unknown): Read
 
 export function useProfile() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const prevTitleRef = useRef<string | null>(null);
 
-  // Получаем профиль пользователя напрямую из API
-  const { data: profileData, isLoading: profileLoading } = useGetProfileQuery();
+  const { data: profileData, isLoading: profileLoading } = useGetProfileQuery(undefined, {
+    skip: !isAuthenticated && !authLoading,
+  });
 
-  // Получаем историю чтения в полном формате (все главы по каждому тайтлу) для секции «История чтения»
   const { data: readingHistoryData, isLoading: readingHistoryLoading } =
-    useGetReadingHistoryQuery({ limit: 200, light: false });
+    useGetReadingHistoryQuery({ limit: 200, light: false }, {
+      skip: !isAuthenticated && !authLoading,
+    });
 
-  // Обновление userProfile при получении данных из API
-  useEffect(() => {
-    if (profileData?.success && profileData.data) {
-      const profile = transformUserToProfile(profileData.data);
-      // Если есть данные из API истории чтения, используем их с преобразованием
-      if (profile && readingHistoryData?.success && readingHistoryData.data) {
-        profile.readingHistory = transformReadingHistory(readingHistoryData.data);
-      }
-      setUserProfile(profile);
-    } else if (!isAuthenticated) {
-      setUserProfile(null);
+  const userProfile = useMemo(() => {
+    if (!profileData?.success || !profileData.data) {
+      return null;
     }
-  }, [profileData, readingHistoryData, isAuthenticated]);
+    
+    const profile = transformUserToProfile(profileData.data);
+    if (profile && readingHistoryData?.success && readingHistoryData.data) {
+      profile.readingHistory = transformReadingHistory(readingHistoryData.data);
+    }
+    return profile;
+  }, [profileData, readingHistoryData]);
 
-  // Обработчик обновления аватара
-  const handleAvatarUpdate = (newAvatarUrl: string) => {
-    setUserProfile(prev => (prev ? { ...prev, avatar: newAvatarUrl } : null));
-    // Здесь можно добавить логику для обновления аватара на сервере
-  };
-
-  // Устанавливаем заголовок страницы
-  useEffect(() => {
+  const handleAvatarUpdate = useCallback((newAvatarUrl: string) => {
     if (userProfile) {
-      pageTitle.setTitlePage(`Профиль ${userProfile.username}`);
-    } else {
-      pageTitle.setTitlePage("Профиль пользователя");
+      userProfile.avatar = newAvatarUrl;
     }
   }, [userProfile]);
 
-  // Показываем загрузку, пока запросы идут или пока данные уже пришли, но ещё не синхронизированы в userProfile (useEffect выполняется после рендера)
-  const isSyncingProfile =
-    isAuthenticated &&
-    Boolean(profileData?.success && profileData?.data) &&
-    userProfile === null;
-  const isLoading =
-    profileLoading ||
-    readingHistoryLoading ||
-    authLoading ||
-    isSyncingProfile;
+  useEffect(() => {
+    const newTitle = userProfile 
+      ? `Профиль ${userProfile.username}` 
+      : "Профиль пользователя";
+    
+    if (prevTitleRef.current !== newTitle) {
+      prevTitleRef.current = newTitle;
+      pageTitle.setTitlePage(newTitle);
+    }
+  }, [userProfile?.username]);
+
+  const isLoading = profileLoading || readingHistoryLoading || authLoading;
 
   return {
     userProfile,

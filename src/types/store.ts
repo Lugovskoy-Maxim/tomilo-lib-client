@@ -2,7 +2,7 @@
 
 // Типы для истории чтения
 export interface ReadingHistoryChapter {
-  chapterId: string;
+  chapterId: string | { _id: string };
   chapterNumber: number;
   chapterTitle: string | null;
   readAt: string;
@@ -13,7 +13,9 @@ export interface ReadingHistoryEntry {
     | string
     | {
         _id: string;
-        name: string;
+        name?: string;
+        title?: string;
+        slug?: string;
         coverImage?: string;
         type?: string;
         chapters?: { chapterNumber: number }[];

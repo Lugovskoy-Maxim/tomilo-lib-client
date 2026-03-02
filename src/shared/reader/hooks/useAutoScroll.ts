@@ -24,10 +24,13 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
   const isAutoScrollingRef = useRef(isAutoScrolling);
   const [autoScrollSpeed, setAutoScrollSpeedState] = useState<AutoScrollSpeed>("medium");
   const autoScrollSpeedRef = useRef(autoScrollSpeed);
-  const autoScrollRafRef = useRef<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopAutoScrollRef = useRef<(() => void) | null>(null);
+  
+  // Sub-pixel accumulator for smooth scrolling
+  const accumulatedRef = useRef(0);
+  const lastAppliedRef = useRef(0);
 
-  // Sync refs with state
   useEffect(() => {
     isAutoScrollingRef.current = isAutoScrolling;
   }, [isAutoScrolling]);
@@ -36,20 +39,16 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
     autoScrollSpeedRef.current = autoScrollSpeed;
   }, [autoScrollSpeed]);
 
-  // Load saved speed from localStorage
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
-    const savedAutoScrollSpeed = localStorage.getItem("reader-auto-scroll-speed");
-    if (savedAutoScrollSpeed && ["slow", "medium", "fast"].includes(savedAutoScrollSpeed)) {
-      setAutoScrollSpeedState(savedAutoScrollSpeed as AutoScrollSpeed);
+    const saved = localStorage.getItem("reader-auto-scroll-speed");
+    if (saved && ["slow", "medium", "fast"].includes(saved)) {
+      setAutoScrollSpeedState(saved as AutoScrollSpeed);
     }
   }, []);
 
-  // Save speed to localStorage
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
     localStorage.setItem("reader-auto-scroll-speed", autoScrollSpeed);
   }, [autoScrollSpeed]);
 
@@ -58,15 +57,13 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
   }, []);
 
   const stopAutoScroll = useCallback(() => {
-    if (autoScrollRafRef.current) {
-      cancelAnimationFrame(autoScrollRafRef.current);
-      autoScrollRafRef.current = null;
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
-    
     setIsAutoScrolling(false);
   }, []);
 
-  // Store stopAutoScroll in ref to avoid circular dependency
   useEffect(() => {
     stopAutoScrollRef.current = stopAutoScroll;
   }, [stopAutoScroll]);
@@ -75,39 +72,51 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
     if (isAutoScrollingRef.current) return;
     setIsAutoScrolling(true);
 
-    const speedMap = { slow: 0.8, medium: 2.5, fast: 5 }; // pixels per frame at 60fps
-    const targetSpeed = speedMap[autoScrollSpeedRef.current];
+    // Pixels per second for each speed
+    const speedMap = { slow: 30, medium: 80, fast: 160 };
+    
+    // Use 60fps interval for consistent timing
+    const INTERVAL_MS = 16.67; // ~60fps
+    
+    // Initialize accumulator with current scroll position
+    accumulatedRef.current = window.scrollY;
+    lastAppliedRef.current = window.scrollY;
 
-    let lastTime = performance.now();
-
-    const animate = (currentTime: number) => {
-      if (!isAutoScrollingRef.current) return;
-
-      const deltaTime = currentTime - lastTime;
-      lastTime = currentTime;
-
-      // Calculate scroll amount based on time for consistent speed
-      const scrollAmount = (targetSpeed * deltaTime) / 16; // normalize to ~60fps
-      
-      // Use scrollBy for better mobile compatibility
-      window.scrollBy({
-        top: scrollAmount,
-        behavior: 'auto'
-      });
-
-      // Check if reached end
-      const maxScroll = (typeof document !== 'undefined' ? document.documentElement.scrollHeight : 0) - window.innerHeight;
-      const currentScroll = window.scrollY + window.innerHeight;
-      
-      if (currentScroll >= maxScroll - 10) {
+    intervalRef.current = setInterval(() => {
+      if (!isAutoScrollingRef.current) {
         stopAutoScrollRef.current?.();
         return;
       }
 
-      autoScrollRafRef.current = requestAnimationFrame(animate);
-    };
+      const pxPerSecond = speedMap[autoScrollSpeedRef.current];
+      const pxPerFrame = pxPerSecond * (INTERVAL_MS / 1000);
+      
+      // Check if user manually scrolled
+      const currentY = window.scrollY;
+      if (Math.abs(currentY - lastAppliedRef.current) > 2) {
+        // User scrolled - update accumulator to match
+        accumulatedRef.current = currentY;
+        lastAppliedRef.current = currentY;
+      }
+      
+      // Accumulate sub-pixel movement
+      accumulatedRef.current += pxPerFrame;
+      
+      // Check end
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (accumulatedRef.current >= maxScroll) {
+        window.scrollTo(0, maxScroll);
+        stopAutoScrollRef.current?.();
+        return;
+      }
 
-    autoScrollRafRef.current = requestAnimationFrame(animate);
+      // Only apply when we have a new whole pixel to scroll
+      const newY = Math.floor(accumulatedRef.current);
+      if (newY > lastAppliedRef.current) {
+        window.scrollTo(0, newY);
+        lastAppliedRef.current = newY;
+      }
+    }, INTERVAL_MS);
   }, []);
 
   const toggleAutoScroll = useCallback(() => {
@@ -115,31 +124,51 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
       stopAutoScroll();
     } else {
       startAutoScroll();
-      if (onAutoScrollStart) {
-        onAutoScrollStart();
-      }
+      onAutoScrollStart?.();
     }
   }, [isAutoScrolling, startAutoScroll, stopAutoScroll, onAutoScrollStart]);
 
-  // Handle visibility change (when app is minimized/maximized)
+  // Stop on visibility change
   useEffect(() => {
-    const handleVisibilityChange = () => {
+    const handler = () => {
       if (document.hidden && isAutoScrollingRef.current) {
         stopAutoScrollRef.current?.();
       }
     };
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, []);
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+  // Stop on user interaction
+  useEffect(() => {
+    const stop = () => isAutoScrollingRef.current && stopAutoScrollRef.current?.();
+    
+    let touchY = 0;
+    const onTouchStart = (e: TouchEvent) => { touchY = e.touches[0].clientY; };
+    const onTouchMove = (e: TouchEvent) => {
+      if (isAutoScrollingRef.current && Math.abs(e.touches[0].clientY - touchY) > 10) stop();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key)) stop();
+    };
+
+    window.addEventListener('wheel', stop, { passive: true });
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
     
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('wheel', stop);
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
     };
   }, []);
 
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
-    return () => {
-      if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current);
+    return () => { 
+      if (intervalRef.current) clearInterval(intervalRef.current); 
     };
   }, []);
 
