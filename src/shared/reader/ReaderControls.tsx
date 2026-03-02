@@ -265,6 +265,54 @@ export default function ReaderControls({
   const desktopJumpPopoverRef = useRef<HTMLDivElement>(null);
   const mobileJumpPopoverRef = useRef<HTMLDivElement>(null);
 
+  // Swipe-to-dismiss for mobile panels
+  const mobileSettingsPanelRef = useRef<HTMLDivElement>(null);
+  const mobileCommentsPanelRef = useRef<HTMLDivElement>(null);
+  const [settingsDragY, setSettingsDragY] = useState(0);
+  const [commentsDragY, setCommentsDragY] = useState(0);
+  const settingsDragStartY = useRef<number | null>(null);
+  const commentsDragStartY = useRef<number | null>(null);
+
+  const handleSettingsTouchStart = useCallback((e: React.TouchEvent) => {
+    settingsDragStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleSettingsTouchMove = useCallback((e: React.TouchEvent) => {
+    if (settingsDragStartY.current === null) return;
+    const delta = e.touches[0].clientY - settingsDragStartY.current;
+    if (delta > 0) {
+      setSettingsDragY(delta);
+    }
+  }, []);
+
+  const handleSettingsTouchEnd = useCallback(() => {
+    if (settingsDragY > 100) {
+      setIsSettingsOpen(false);
+    }
+    setSettingsDragY(0);
+    settingsDragStartY.current = null;
+  }, [settingsDragY]);
+
+  const handleCommentsTouchStart = useCallback((e: React.TouchEvent) => {
+    commentsDragStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleCommentsTouchMove = useCallback((e: React.TouchEvent) => {
+    if (commentsDragStartY.current === null) return;
+    const delta = e.touches[0].clientY - commentsDragStartY.current;
+    if (delta > 0) {
+      setCommentsDragY(delta);
+    }
+  }, []);
+
+  const handleCommentsTouchEnd = useCallback(() => {
+    if (commentsDragY > 100) {
+      setIsCommentsOpen(false);
+    }
+    setCommentsDragY(0);
+    commentsDragStartY.current = null;
+  }, [commentsDragY]);
+
   // Закрытие панели настроек при клике вне её
   const handleSettingsClickOutside = useCallback(
     (event: MouseEvent) => {
@@ -674,9 +722,16 @@ export default function ReaderControls({
           </div>
 
           {/* Мобильная панель */}
-          <div className="sm:hidden fixed inset-x-0 bottom-0 max-h-[90vh] bg-[var(--card)] border-t border-[var(--border)] shadow-2xl z-[70] overflow-hidden rounded-t-3xl animate-in slide-in-from-bottom duration-300 flex flex-col">
-            {/* Ручка */}
-            <div className="flex justify-center pt-3 pb-1">
+          <div 
+            ref={mobileSettingsPanelRef}
+            className="sm:hidden fixed inset-x-0 bottom-0 max-h-[90vh] bg-[var(--card)] border-t border-[var(--border)] shadow-2xl z-[70] overflow-hidden rounded-t-3xl animate-in slide-in-from-bottom duration-300 flex flex-col"
+            style={{ transform: `translateY(${settingsDragY}px)`, opacity: 1 - settingsDragY / 300 }}
+            onTouchStart={handleSettingsTouchStart}
+            onTouchMove={handleSettingsTouchMove}
+            onTouchEnd={handleSettingsTouchEnd}
+          >
+            {/* Ручка для свайпа */}
+            <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
               <div className="w-10 h-1 bg-[var(--muted-foreground)]/30 rounded-full" />
             </div>
 
@@ -695,7 +750,7 @@ export default function ReaderControls({
                   onClick={() => setIsSettingsOpen(false)}
                   className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors"
                 >
-                  <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
+                  <X className="w-5 h-5 text-[var(--muted-foreground)]" />
                 </button>
               </div>
             </div>
@@ -1524,9 +1579,16 @@ export default function ReaderControls({
           </div>
 
           {/* Мобильная панель комментариев */}
-          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)] backdrop-blur-xl border-t border-[var(--border)]/50 shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl animate-in fade-in slide-in-from-bottom-4 duration-300">
-            {/* Drag indicator */}
-            <div className="flex justify-center pt-3 pb-1">
+          <div 
+            ref={mobileCommentsPanelRef}
+            className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)] backdrop-blur-xl border-t border-[var(--border)]/50 shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl animate-in fade-in slide-in-from-bottom-4 duration-300"
+            style={{ transform: `translateY(${commentsDragY}px)`, opacity: 1 - commentsDragY / 300 }}
+            onTouchStart={handleCommentsTouchStart}
+            onTouchMove={handleCommentsTouchMove}
+            onTouchEnd={handleCommentsTouchEnd}
+          >
+            {/* Drag indicator для свайпа */}
+            <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
               <div className="w-10 h-1 rounded-full bg-[var(--muted-foreground)]/30" />
             </div>
             

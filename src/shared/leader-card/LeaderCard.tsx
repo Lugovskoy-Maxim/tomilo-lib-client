@@ -260,7 +260,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
       }}
     >
       {rank === 1 && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-30 group-hover:opacity-0 transition-opacity duration-300">
+        <div className={`absolute inset-0 pointer-events-none overflow-hidden z-30 transition-opacity duration-300 ${showCard ? "group-hover:opacity-0" : ""}`}>
           <div className="absolute top-0 left-1/4 w-1 h-8 bg-yellow-400/40 blur-sm animate-pulse" style={{ animationDelay: "0ms" }} />
           <div className="absolute top-2 right-1/3 w-1 h-6 bg-yellow-400/30 blur-sm animate-pulse" style={{ animationDelay: "200ms" }} />
           <div className="absolute top-4 left-1/2 w-1.5 h-10 bg-yellow-400/50 blur-sm animate-pulse" style={{ animationDelay: "400ms" }} />
@@ -288,7 +288,8 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         className={`
           absolute -top-1 -right-1 ${badgeSize} rounded-xl flex items-center justify-center
           ${styles.bg} ${styles.text} shadow-lg z-20 border-2 border-white/20
-          group-hover:opacity-0 transition-opacity duration-300
+          transition-opacity duration-300
+          ${showCard ? "group-hover:opacity-0" : ""}
           ${rank === 1 ? "animate-bounce" : ""}
         `}
         style={rank === 1 ? { animationDuration: "2s" } : undefined}
@@ -297,12 +298,12 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
       </div>
 
       {isCurrentUser && (
-        <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium group-hover:opacity-0 transition-opacity duration-300">
+        <div className={`absolute top-2 left-2 z-20 px-2 py-1 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium transition-opacity duration-300 ${showCard ? "group-hover:opacity-0" : ""}`}>
           Вы
         </div>
       )}
 
-      <div className="relative z-10 mb-4 group-hover:opacity-0 transition-opacity duration-300">
+      <div className={`relative z-10 mb-4 transition-opacity duration-300 ${showCard ? "group-hover:opacity-0" : ""}`}>
         <div className="relative">
           <img
             src={avatarUrl}
@@ -332,7 +333,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         </div>
       </div>
 
-      <div className="relative z-10 w-full px-3 py-3 rounded-b-xl bg-gradient-to-t from-black/70 via-black/50 to-transparent group-hover:opacity-0 transition-opacity duration-300">
+      <div className={`relative z-10 w-full px-3 py-3 rounded-b-xl bg-gradient-to-t from-black/70 via-black/50 to-transparent transition-opacity duration-300 ${showCard ? "group-hover:opacity-0" : ""}`}>
         <div className="flex items-center justify-center gap-2 mb-2">
           <p className={`font-bold text-white truncate max-w-[150px] drop-shadow-md ${rank === 1 ? "text-xl" : "text-lg"}`}>
             {user.username}
@@ -366,6 +367,14 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
           </p>
         )}
       </div>
+
+      {showCard && (
+        <div className="absolute bottom-0 left-0 right-0 z-20 px-3 py-3 rounded-b-xl bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <p className={`font-bold text-white text-center truncate drop-shadow-md ${rank === 1 ? "text-xl" : "text-lg"}`}>
+            {user.username}
+          </p>
+        </div>
+      )}
     </Link>
   );
 }
