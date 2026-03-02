@@ -460,7 +460,7 @@ export function CommentsSection() {
   }
 
   return (
-    <div className="space-y-4 rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
+    <div className="flex-1 flex flex-col space-y-4 rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatBox label="Всего на сервере" value={serverStats?.total ?? "—"} />
         <StatBox label="После фильтров" value={stats.total} />
@@ -597,9 +597,9 @@ export function CommentsSection() {
       )}
 
       {processedComments.length === 0 ? (
-        <div className="text-center py-10 text-[var(--muted-foreground)]">Комментарии не найдены</div>
+        <div className="flex-1 flex items-center justify-center text-[var(--muted-foreground)]">Комментарии не найдены</div>
       ) : viewMode === "cards" ? (
-        <div className="grid gap-3">
+        <div className="flex-1 grid gap-3 content-start">
           {processedComments.map(comment => (
             <article
               key={comment._id}
@@ -766,7 +766,7 @@ export function CommentsSection() {
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+        <div className="flex-1 overflow-x-auto rounded-xl border border-[var(--border)]">
           <table className="w-full text-sm">
             <thead className="bg-[var(--secondary)]/60">
               <tr>

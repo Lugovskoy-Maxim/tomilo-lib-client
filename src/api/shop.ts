@@ -25,7 +25,9 @@ function getDecorationUrlFromValue(raw: string | object | null | undefined): str
   if (typeof raw === "object") {
     const o = raw as Record<string, unknown>;
     const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
-    if (imageUrl) return getDecorationImageUrl(imageUrl) || imageUrl;
+    if (imageUrl) {
+      return imageUrl.startsWith("http") ? imageUrl : getDecorationImageUrl(imageUrl) || imageUrl;
+    }
   }
   return null;
 }

@@ -24,7 +24,7 @@ import { AuditLogsSection } from "@/shared/admin/AuditLogsSection";
 import { Header } from "@/widgets";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useEffect, useState } from "react";
-import { Settings, Home } from "lucide-react";
+import { Home } from "lucide-react";
 import Link from "next/link";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -154,47 +154,37 @@ export default function AdminPageClient() {
 
   return (
     <AuthGuard requiredRole="admin">
-      <div className="flex flex-col min-h-screen bg-[var(--background)]">
+      <div className="flex flex-col h-screen overflow-hidden bg-[var(--background)]">
         <Header />
 
-        <div className="flex flex-1">
+        <div className="flex flex-1 min-h-0">
           <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           <main className="flex-1 flex flex-col overflow-hidden min-w-0">
-            <header className="flex-shrink-0 bg-[var(--card)] border-b border-[var(--border)] px-4 sm:px-6 py-4 lg:py-5">
-              <Breadcrumbs
-                items={[
-                  { name: "Главная", href: "/" },
-                  { name: "Админка", href: "/admin", isCurrent: true },
-                ]}
-                className="mb-3"
-              />
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-[var(--primary)]/10 rounded-xl">
-                    <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--primary)]" />
-                  </div>
-                  <div>
-                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[var(--foreground)]">
-                      {getSectionTitle()}
-                    </h1>
-                    <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-                      Управление контентом и системой
-                    </p>
-                  </div>
+            <header className="flex-shrink-0 bg-[var(--card)] border-b border-[var(--border)] px-4 sm:px-6 py-2 sm:py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Breadcrumbs
+                    items={[
+                      { name: "Главная", href: "/" },
+                      { name: "Админка", href: "/admin" },
+                      { name: getSectionTitle(), isCurrent: true },
+                    ]}
+                    className="text-sm"
+                  />
                 </div>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] border border-[var(--border)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] border border-[var(--border)] transition-colors flex-shrink-0"
                 >
-                  <Home className="w-4 h-4" />
-                  На сайт
+                  <Home className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">На сайт</span>
                 </Link>
               </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto admin-content-scroll">
-              <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-6">
+            <div className="flex-1 overflow-y-auto admin-content-scroll flex flex-col">
+              <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-6 flex-1 flex flex-col">
                 {renderTabContent()}
               </div>
             </div>
