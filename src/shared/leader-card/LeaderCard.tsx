@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Crown, Medal, Award, Clock, Star, TrendingUp, Flame } from "lucide-react";
 import { LeaderboardUser, LeaderboardCategory } from "@/store/api/leaderboardApi";
@@ -21,8 +21,9 @@ interface LeaderCardProps {
 }
 
 function normalizeAvatarUrl(avatarUrl: string): string {
-  if (!avatarUrl) return "";
-  return getCoverUrls(avatarUrl, "").primary;
+  if (!avatarUrl) return DEFAULT_AVATAR;
+  const normalized = getCoverUrls(avatarUrl, "").primary;
+  return normalized || DEFAULT_AVATAR;
 }
 
 function isValidUrl(value: string): boolean {
@@ -523,7 +524,7 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   );
 }
 
-const LeaderCard = memo(function LeaderCard({ 
+export default function LeaderCard({ 
   user, 
   rank, 
   category, 
@@ -555,6 +556,4 @@ const LeaderCard = memo(function LeaderCard({
       animationDelay={animationDelay}
     />
   );
-});
-
-export default LeaderCard;
+}

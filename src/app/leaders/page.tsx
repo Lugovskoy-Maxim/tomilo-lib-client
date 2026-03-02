@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { Crown, TrendingUp, Clock, Star, Users, Shield, Flame, Search, RefreshCw, ChevronUp } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Crown, TrendingUp, Clock, Star, Users, Flame, Search, RefreshCw, ChevronUp } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
 import { LoadingSkeleton, ErrorState } from "@/shared";
@@ -181,13 +181,10 @@ export default function LeadersPage() {
   const mounted = useMounted();
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>("level");
-  const [showAdmins, setShowAdmins] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
-
-  const isAdmin = user?.role === "admin";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -207,20 +204,16 @@ export default function LeadersPage() {
     error: leaderboardError,
   } = useGetLeaderboardQuery({ category: activeCategory, limit: 50 });
 
-  const hasLeaderboardData = Boolean(leaderboardData?.data?.users?.length);
-
   const {
     data: homepageUsersData,
     isLoading: homepageLoading,
   } = useGetHomepageActiveUsersQuery({
     limit: 100,
-    days: 365,
+    days: 9999,
     sortBy: "level",
     sortOrder: "desc",
     requireAvatar: false,
     format: "extended",
-  }, {
-    skip: hasLeaderboardData,
   });
 
   const { data: allDecorations = [] } = useGetDecorationsQuery();
@@ -243,19 +236,6 @@ export default function LeadersPage() {
   });
 
   const leaderboardUsers = useMemo<LeaderboardUser[]>(() => {
-    const shouldFilterAdmins = !showAdmins;
-
-    if (leaderboardData?.data?.users && leaderboardData.data.users.length > 0) {
-      const filtered = shouldFilterAdmins
-        ? leaderboardData.data.users.filter(u => u.role !== "admin" && u.role !== "moderator")
-        : leaderboardData.data.users;
-      
-      return filtered.slice(0, 50).map(u => ({
-        ...u,
-        equippedDecorations: resolveEquippedDecorations(u.equippedDecorations, decorationsMap),
-      }));
-    }
-
     const homepageUsers = (() => {
       const payload = homepageUsersData?.data;
       if (!payload) return [];
@@ -264,17 +244,33 @@ export default function LeadersPage() {
       return [];
     })();
 
-    const mergedUsers = homepageUsers
-      .filter((u): u is TransformableUser => shouldFilterAdmins ? (u.role !== "admin" && u.role !== "moderator") : true);
+    const leaderboardUsersData = leaderboardData?.data?.users ?? [];
+
+    const allUsersMap = new Map<string, TransformableUser>();
+    
+    for (const u of homepageUsers) {
+      allUsersMap.set(u._id, u as TransformableUser);
+    }
+
+    for (const u of leaderboardUsersData) {
+      if (!allUsersMap.has(u._id)) {
+        allUsersMap.set(u._id, u as TransformableUser);
+      } else {
+        const existing = allUsersMap.get(u._id)!;
+        allUsersMap.set(u._id, { ...existing, ...u } as TransformableUser);
+      }
+    }
+
+    const mergedUsers = Array.from(allUsersMap.values());
 
     if (mergedUsers.length > 0) {
       return transformUsersToLeaderboard(mergedUsers, activeCategory, decorationsMap).slice(0, 50);
     }
 
     return [];
-  }, [leaderboardData, homepageUsersData, activeCategory, showAdmins, decorationsMap]);
+  }, [leaderboardData, homepageUsersData, activeCategory, decorationsMap]);
 
-  const isLoading = leaderboardLoading || (!hasLeaderboardData && homepageLoading);
+  const isLoading = leaderboardLoading || homepageLoading;
   const hasError = leaderboardError && leaderboardUsers.length === 0;
 
   const activeCategoryConfig = CATEGORIES.find(c => c.id === activeCategory);
@@ -394,24 +390,6 @@ export default function LeadersPage() {
                 </button>
               )}
             </div>
-
-            {isAdmin && (
-              <button
-                onClick={() => setShowAdmins(!showAdmins)}
-                className={`
-                  flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
-                  border-2 whitespace-nowrap
-                  ${showAdmins
-                    ? "bg-amber-500/20 border-amber-500 text-amber-600 dark:text-amber-400"
-                    : "bg-[var(--secondary)] border-[var(--border)] text-[var(--muted-foreground)] hover:border-amber-500/50"
-                  }
-                `}
-              >
-                <Shield className="w-4 h-4" />
-                <span className="hidden sm:inline">{showAdmins ? "Скрыть админов" : "Показать админов"}</span>
-                <span className="sm:hidden">Админы</span>
-              </button>
-            )}
           </div>
 
           {user && currentUserRank && currentUserData && !searchQuery && (

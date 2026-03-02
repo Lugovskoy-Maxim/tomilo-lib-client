@@ -20,6 +20,8 @@ const sizeClasses = {
   lg: "w-36 h-36 text-4xl",
 };
 
+const DEFAULT_AVATAR = "/logo/ring_logo.png";
+
 /** URL декорации «аватар» из профиля (при populate объект с imageUrl или _id). */
 function getAvatarDecorationUrls(equipped: UserProfile["equippedDecorations"]): { primary: string | null; fallback: string | null } {
   if (!equipped?.avatar) return { primary: null, fallback: null };
@@ -70,21 +72,19 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
     ? { primary: resolvedAvatarUrl, fallback: null }
     : getAvatarDecorationUrls(userProfile.equippedDecorations);
   
-  const mainImageUrl = decorationUrls.primary ?? baseAvatarPrimary;
-  const fallbackImageUrl = decorationUrls.fallback ?? baseAvatarFallback;
+  const mainImageUrl = decorationUrls.primary ?? baseAvatarPrimary ?? DEFAULT_AVATAR;
+  const fallbackImageUrl = decorationUrls.fallback ?? baseAvatarFallback ?? DEFAULT_AVATAR;
 
-  const avatarInner = mainImageUrl ? (
+  const avatarInner = (
     <OptimizedImage
       src={mainImageUrl}
-      fallbackSrc={fallbackImageUrl && fallbackImageUrl !== mainImageUrl ? fallbackImageUrl : undefined}
+      fallbackSrc={fallbackImageUrl && fallbackImageUrl !== mainImageUrl ? fallbackImageUrl : DEFAULT_AVATAR}
       alt={userProfile.username || "User avatar"}
       className="w-full h-full object-cover rounded-full"
       height={pixelSize}
       width={pixelSize}
       priority={true}
     />
-  ) : (
-    <span className="drop-shadow-lg">{displayName}</span>
   );
 
   const hasImage = Boolean(mainImageUrl);
