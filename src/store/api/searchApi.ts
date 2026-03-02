@@ -10,6 +10,9 @@ export interface AutocompleteResult {
   slug: string;
   cover: string;
   type: TitleType | string;
+  releaseYear?: number;
+  averageRating?: number;
+  totalChapters?: number;
 }
 
 /** Параметры запроса автодополнения */
@@ -32,13 +35,38 @@ export const searchApi = createApi({
       AutocompleteParams
     >({
       query: ({ q, limit = 10, includeAdult }) => ({
-        url: "/search/autocomplete",
+        url: "/titles",
         params: {
-          q,
+          search: q,
           limit,
           includeAdult: includeAdult || undefined,
         },
       }),
+      transformResponse: (response: ApiResponseDto<{ titles: Array<{
+        _id: string;
+        name: string;
+        slug: string;
+        coverImage?: string;
+        type: TitleType | string;
+        releaseYear?: number;
+        averageRating?: number;
+        totalChapters?: number;
+      }> }>) => {
+        const titles = response.data?.titles || [];
+        return {
+          ...response,
+          data: titles.map(t => ({
+            id: t._id,
+            title: t.name,
+            slug: t.slug,
+            cover: t.coverImage || "",
+            type: t.type,
+            releaseYear: t.releaseYear,
+            averageRating: t.averageRating,
+            totalChapters: t.totalChapters,
+          })),
+        };
+      },
       providesTags: [SEARCH_TAG],
     }),
   }),

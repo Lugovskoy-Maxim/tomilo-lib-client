@@ -28,6 +28,9 @@ export function useSearch() {
       title: item.title,
       cover: item.cover,
       type: item.type,
+      releaseYear: item.releaseYear,
+      rating: item.averageRating,
+      totalChapters: item.totalChapters,
     }));
   }, [autocompleteData]);
 
