@@ -1,11 +1,12 @@
 "use client";
-import { Settings, Bell, Eye, Star } from "lucide-react";
+import { Settings, Bell, Eye, Star, HelpCircle } from "lucide-react";
 import { Footer, Header } from "@/widgets";
-import { BackButton, ThemeToggle } from "@/shared";
+import { BackButton, ThemeToggle, Tooltip } from "@/shared";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import { useGetProfileQuery } from "@/store/api/authApi";
+import Link from "next/link";
 
 export default function SettingsPage() {
   const { data: profileData } = useGetProfileQuery();
@@ -64,11 +65,30 @@ export default function SettingsPage() {
           <div className="space-y-2 mb-2">
             {/* Внешний вид */}
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-2">
-              <div className="flex items-center gap-3 mb-4">
-                <Star className="w-5 h-5 text-[var(--primary)]" />
-                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
-                  Внешний вид
-                </h2>
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <Star className="w-5 h-5 text-[var(--primary)]" />
+                  <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
+                    Внешний вид
+                  </h2>
+                </div>
+                <Tooltip
+                  content={
+                    <div className="space-y-2 max-w-[260px]">
+                      <p className="font-medium">Тема оформления</p>
+                      <p>Выберите светлую, тёмную или системную тему. Системная тема автоматически переключается в зависимости от настроек вашего устройства.</p>
+                    </div>
+                  }
+                  position="left"
+                  trigger="click"
+                >
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                  </button>
+                </Tooltip>
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -83,9 +103,29 @@ export default function SettingsPage() {
 
             {/* Контент */}
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-2">
-              <div className="flex items-center gap-3 mb-4">
-                <Eye className="w-5 h-5 text-[var(--primary)]" />
-                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Контент</h2>
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <Eye className="w-5 h-5 text-[var(--primary)]" />
+                  <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">Контент</h2>
+                </div>
+                <Tooltip
+                  content={
+                    <div className="space-y-2 max-w-[260px]">
+                      <p className="font-medium">Контент 18+</p>
+                      <p>При включении в каталоге и поиске будут отображаться тайтлы с возрастным ограничением 18+.</p>
+                      <p className="text-[var(--muted-foreground)]">Эта настройка не влияет на уже добавленные закладки.</p>
+                    </div>
+                  }
+                  position="left"
+                  trigger="click"
+                >
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                  </button>
+                </Tooltip>
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -113,11 +153,33 @@ export default function SettingsPage() {
 
             {/* Уведомления */}
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-2">
-              <div className="flex items-center gap-3 mb-4">
-                <Bell className="w-5 h-5 text-[var(--primary)]" />
-                <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
-                  Уведомления
-                </h2>
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-[var(--primary)]" />
+                  <h2 className="text-lg font-semibold text-[var(--muted-foreground)]">
+                    Уведомления
+                  </h2>
+                </div>
+                <Tooltip
+                  content={
+                    <div className="space-y-2 max-w-[260px]">
+                      <p className="font-medium">Уведомления</p>
+                      <p>Управляйте уведомлениями о новых главах и комментариях. Подробные настройки доступны в профиле.</p>
+                      <Link href="/faq#notifications" className="text-[var(--primary)] hover:underline block mt-2">
+                        Подробнее в FAQ →
+                      </Link>
+                    </div>
+                  }
+                  position="left"
+                  trigger="click"
+                >
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                  </button>
+                </Tooltip>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -159,6 +221,27 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Ссылка на FAQ */}
+          <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 mt-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <HelpCircle className="w-5 h-5 text-[var(--primary)]" />
+                <div>
+                  <span className="text-sm font-medium text-[var(--foreground)]">Остались вопросы?</span>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    Загляните в раздел частых вопросов
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/faq"
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
+              >
+                Перейти в FAQ
+              </Link>
             </div>
           </div>
 

@@ -236,11 +236,14 @@ export default function LeadersPage() {
   const {
     data: leaderboardData,
     isLoading: leaderboardLoading,
+    isFetching: leaderboardFetching,
     error: leaderboardError,
   } = useGetLeaderboardQuery({ 
     category: activeCategory, 
     period: supportsPeriod ? activePeriod : "all",
     limit: 50 
+  }, {
+    refetchOnMountOrArgChange: true,
   });
 
   const {
@@ -309,7 +312,7 @@ export default function LeadersPage() {
     return [];
   }, [leaderboardData, homepageUsersData, activeCategory, decorationsMap]);
 
-  const isLoading = leaderboardLoading || homepageLoading;
+  const isLoading = leaderboardLoading || leaderboardFetching || homepageLoading;
   const hasError = leaderboardError && leaderboardUsers.length === 0;
 
   const activeCategoryConfig = CATEGORIES.find(c => c.id === activeCategory);

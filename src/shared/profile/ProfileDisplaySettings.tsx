@@ -3,7 +3,8 @@ import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import ProfileThemeSettings from "./ProfileThemeSettings";
 import ProfileFontSettings from "./ProfileFontSettings";
-import { Monitor, Sparkles } from "lucide-react";
+import { Monitor, Sparkles, HelpCircle } from "lucide-react";
+import Tooltip from "@/shared/ui/Tooltip";
 
 interface ProfileDisplaySettingsProps {
   userProfile: UserProfile;
@@ -42,18 +43,38 @@ export default function ProfileDisplaySettings({ userProfile }: ProfileDisplaySe
       <ProfileFontSettings />
 
       <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
-        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-          <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-            <Monitor className="w-5 h-5 text-[var(--primary)]" />
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+              <Monitor className="w-5 h-5 text-[var(--primary)]" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-[var(--foreground)]">
+                Контент
+              </h2>
+              <p className="text-[var(--muted-foreground)] text-xs">
+                Отображение тайтлов 18+
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">
-              Контент
-            </h2>
-            <p className="text-[var(--muted-foreground)] text-xs">
-              Отображение тайтлов 18+
-            </p>
-          </div>
+          <Tooltip
+            content={
+              <div className="space-y-2 max-w-[280px]">
+                <p className="font-medium">Контент для взрослых</p>
+                <p>При включении этой опции в каталоге и поиске будут отображаться тайтлы с возрастным рейтингом 18+.</p>
+                <p className="text-[var(--muted-foreground)]">Эта настройка не влияет на контент, который вы уже добавили в закладки.</p>
+              </div>
+            }
+            position="left"
+            trigger="click"
+          >
+            <button
+              type="button"
+              className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </button>
+          </Tooltip>
         </div>
 
         <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">

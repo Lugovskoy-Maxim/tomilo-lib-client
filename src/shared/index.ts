@@ -44,6 +44,7 @@ export { default as Input } from "./ui/input";
 export { default as Modal } from "./modal/modal";
 export { default as LoginModal } from "./modal/LoginModal";
 export { default as RegisterModal } from "./modal/RegisterModal";
+export { default as Tooltip } from "./ui/Tooltip";
 
 // Profile
 export { default as ProfileHeader } from "./profile/ProfileHeader";

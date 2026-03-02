@@ -1,10 +1,11 @@
 import { UserProfile } from "@/types/user";
-import { Lock, Shield } from "lucide-react";
+import { Lock, Shield, HelpCircle } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import { useState } from "react";
 import { useChangePasswordMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
+import Tooltip from "@/shared/ui/Tooltip";
 
 interface ProfileSecuritySettingsProps {
   userProfile: UserProfile;
@@ -47,18 +48,38 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
 
   return (
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
-      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-        <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-          <Shield className="w-5 h-5 text-[var(--primary)]" />
+      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+            <Shield className="w-5 h-5 text-[var(--primary)]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">
+              Безопасность
+            </h2>
+            <p className="text-[var(--muted-foreground)] text-xs">
+              Смена пароля аккаунта
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-sm font-bold text-[var(--foreground)]">
-            Безопасность
-          </h2>
-          <p className="text-[var(--muted-foreground)] text-xs">
-            Смена пароля аккаунта
-          </p>
-        </div>
+        <Tooltip
+          content={
+            <div className="space-y-2 max-w-[280px]">
+              <p className="font-medium">Смена пароля</p>
+              <p>Для смены пароля введите текущий пароль и новый пароль дважды.</p>
+              <p className="text-[var(--muted-foreground)]">Рекомендуем использовать пароль длиной не менее 8 символов, содержащий буквы, цифры и специальные символы.</p>
+            </div>
+          }
+          position="left"
+          trigger="click"
+        >
+          <button
+            type="button"
+            className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+        </Tooltip>
       </div>
 
       <form onSubmit={handleChangePassword} className="space-y-4">

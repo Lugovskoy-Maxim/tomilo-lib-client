@@ -44,6 +44,8 @@ function transformUserToProfile(user: User): UserProfile | null {
     showStats: user.showStats,
     showAchievements: user.showAchievements,
     showFavoriteCharacters: user.showFavoriteCharacters,
+    showReadingHistory: user.showReadingHistory,
+    showBookmarks: user.showBookmarks,
     // Статистика
     titlesReadCount: user.titlesReadCount,
     commentsCount: user.commentsCount,

@@ -24,10 +24,16 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
     readingHistoryVisibility: "private",
   };
 
-  const showStats = userProfile.showStats ?? true;
-  const showAchievements = userProfile.showAchievements ?? true;
-  const showReadingHistory = userProfile.showReadingHistory ?? true;
-  const showBookmarks = userProfile.showBookmarks ?? true;
+  // Локальное состояние для оптимистичного обновления переключателей
+  const [localShowStats, setLocalShowStats] = useState<boolean | null>(null);
+  const [localShowAchievements, setLocalShowAchievements] = useState<boolean | null>(null);
+  const [localShowReadingHistory, setLocalShowReadingHistory] = useState<boolean | null>(null);
+  const [localShowBookmarks, setLocalShowBookmarks] = useState<boolean | null>(null);
+
+  const showStats = localShowStats ?? userProfile.showStats ?? true;
+  const showAchievements = localShowAchievements ?? userProfile.showAchievements ?? true;
+  const showReadingHistory = localShowReadingHistory ?? userProfile.showReadingHistory ?? true;
+  const showBookmarks = localShowBookmarks ?? userProfile.showBookmarks ?? true;
 
   const handlePrivacySettingChange = async (setting: keyof UserPrivacy, value: string) => {
     if (isLoading) return;
@@ -47,12 +53,24 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
 
   const handleToggleSetting = async (setting: "showStats" | "showAchievements" | "showReadingHistory" | "showBookmarks", value: boolean) => {
     if (isLoading) return;
+    
+    // Оптимистичное обновление — сразу меняем UI
+    const setters = {
+      showStats: setLocalShowStats,
+      showAchievements: setLocalShowAchievements,
+      showReadingHistory: setLocalShowReadingHistory,
+      showBookmarks: setLocalShowBookmarks,
+    };
+    setters[setting](value);
+    
     try {
       await updateProfile({
         [setting]: value,
       }).unwrap();
       toast.success("Настройки обновлены");
     } catch (error) {
+      // Откат при ошибке
+      setters[setting](null);
       console.error("Ошибка при сохранении настроек:", error);
       toast.error("Не удалось сохранить настройки");
     }
