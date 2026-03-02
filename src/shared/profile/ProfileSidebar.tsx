@@ -3,6 +3,7 @@
 import { UserProfile } from "@/types/user";
 import { ProfileAvatar, EditAvatarButton } from "@/shared";
 import RankStarsOverlay from "./RankStarsOverlay";
+import ProfileLeaderboardBadges from "./ProfileLeaderboardBadges";
 import { Button } from "@/shared/ui/button";
 import { Pencil, Sparkles, Shield, Calendar1, Play, Coins, Flame, Heart } from "lucide-react";
 import { getRankColor, getRankDisplay, getLevelProgress, levelToRank } from "@/lib/rank-utils";
@@ -13,11 +14,17 @@ interface ProfileSidebarProps {
   onEdit?: () => void;
   onAvatarUpdate?: (newAvatarUrl: string) => void;
   isOwnProfile?: boolean;
+  /** Публичный просмотр (чужой профиль) — скрывает приватные данные */
+  isPublicView?: boolean;
 }
 
-export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, isOwnProfile = false }: ProfileSidebarProps) {
+export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, isOwnProfile = false, isPublicView = false }: ProfileSidebarProps) {
   const { showLevelUp, showAchievement, showExpGain } = useProgressNotification();
   const level = userProfile.level ?? 0;
+  
+  // Определяем, что показывать в публичном просмотре
+  const showBalance = !isPublicView || isOwnProfile;
+  const showStreak = !isPublicView || isOwnProfile || userProfile.showStats !== false;
   const experience = userProfile.experience ?? 0;
   const balance = userProfile.balance ?? 0;
   const currentStreak = userProfile.currentStreak ?? 0;
@@ -119,25 +126,31 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
           </Button>
         )}
 
-        {/* Баланс и серия */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-            <Coins className="w-4 h-4 text-yellow-500 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-yellow-500 tabular-nums">{balance.toLocaleString()}</p>
-              <p className="text-[9px] text-[var(--muted-foreground)]">Монеты</p>
-            </div>
+        {/* Баланс и серия - скрываем при публичном просмотре */}
+        {(showBalance || showStreak) && (
+          <div className={`grid gap-2 mb-4 ${showBalance && showStreak ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {showBalance && (
+              <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <Coins className="w-4 h-4 text-yellow-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-yellow-500 tabular-nums">{balance.toLocaleString()}</p>
+                  <p className="text-[9px] text-[var(--muted-foreground)]">Монеты</p>
+                </div>
+              </div>
+            )}
+            {showStreak && (
+              <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <Flame className="w-4 h-4 text-orange-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-orange-500 tabular-nums">{currentStreak}</p>
+                  <p className="text-[9px] text-[var(--muted-foreground)]">
+                    {currentStreak === 1 ? "день" : currentStreak < 5 ? "дня" : "дней"}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
-            <Flame className="w-4 h-4 text-orange-500 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-orange-500 tabular-nums">{currentStreak}</p>
-              <p className="text-[9px] text-[var(--muted-foreground)]">
-                {currentStreak === 1 ? "день" : currentStreak < 5 ? "дня" : "дней"}
-              </p>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Любимый жанр */}
         {userProfile.favoriteGenre && (
@@ -198,6 +211,11 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Топ-10 лидерборда */}
+        <div className="mt-4">
+          <ProfileLeaderboardBadges userId={userProfile._id} />
         </div>
 
         {/* Демо-кнопка для тестирования уведомлений (только в dev-режиме) */}

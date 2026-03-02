@@ -63,6 +63,7 @@ export { default as DailyBonus } from "./profile/DailyBonus";
 export { default as NextRankProgress } from "./profile/NextRankProgress";
 export { default as ProfileWelcome } from "./profile/ProfileWelcome";
 export { default as SettingsNavigation } from "./profile/SettingsNavigation";
+export { default as ProfileLeaderboardBadges } from "./profile/ProfileLeaderboardBadges";
 
 // Utilities
 export { default as PeriodFilter } from "./period-filter/PeriodFilter";

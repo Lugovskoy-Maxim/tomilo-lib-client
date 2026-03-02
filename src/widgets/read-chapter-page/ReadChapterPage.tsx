@@ -15,6 +15,9 @@ import { levelToRank } from "@/lib/rank-utils";
 import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
 import { useIncrementChapterViewsMutation, useLazyGetChapterByIdQuery } from "@/store/api/chaptersApi";
+import { useGetLeaderboardQuery } from "@/store/api/leaderboardApi";
+import { getCoverUrls } from "@/lib/asset-url";
+import Link from "next/link";
 import { useReaderSettingsContext, ReaderSettingsProvider } from "@/shared/reader/hooks/useReaderSettings";
 import { getImageUrls } from "@/lib/asset-url";
 
@@ -100,6 +103,11 @@ function ReadChapterPageContent({
   const [fetchChapterById] = useLazyGetChapterByIdQuery();
 
   const [incrementChapterViews] = useIncrementChapterViewsMutation();
+
+  const { data: leaderboardData } = useGetLeaderboardQuery({ 
+    category: "chaptersRead", 
+    limit: 3 
+  });
 
   const titleId = title._id;
   const chapterId = chapter._id;
@@ -230,8 +238,6 @@ function ReadChapterPageContent({
     infiniteScrollObserverRef.current.observe(node);
   }, [infiniteScroll, isPagedMode, isLoadingNextChapter, loadedChapters, chapters, fetchChapterById, isAuthenticated, addToReadingHistory, titleId]);
   
-  // Рассчитываем время чтения на основе реальной высоты контента
-  // Функция для расчёта времени чтения по количеству страниц
   const calculateReadingTime = useCallback((imagesCount: number, contentHeight?: number) => {
     const pixelsPerSecond = 120;
     
@@ -1043,7 +1049,6 @@ function ReadChapterPageContent({
     ? (loadedChapters.find(c => c._id === visibleChapterId) ?? chapter)
     : chapter;
 
-  // Рассчитываем время чтения для текущей (видимой) главы
   const estimatedReadingTime = useMemo(() => {
     if (!effectiveChapter) return 1;
     return calculateReadingTime(effectiveChapter.images.length, totalContentHeight);
@@ -2129,23 +2134,54 @@ function ReadChapterPageContent({
         </div>
       )}
 
-      {/* Estimated Reading Time Indicator (показывается в начале главы) */}
-      {currentPage <= 2 && !isChaptersInRowMode && (
-        <div className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-[45] animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="flex items-center gap-2 px-4 py-2 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg text-sm text-[var(--muted-foreground)]">
-            <Clock className="w-4 h-4" />
-            <span>
-              {estimatedReadingTime < 1 
-                ? "< 1 мин." 
-                : estimatedReadingTime === 1 
-                  ? "~1 мин." 
-                  : `~${estimatedReadingTime} мин.`
-              }
+      {/* Chapters Leaders Mini-leaderboard (показывается в начале главы) */}
+      {currentPage <= 2 && !isChaptersInRowMode && leaderboardData?.data?.users && leaderboardData.data.users.length > 0 && (
+        <Link 
+          href="/leaders?category=chaptersRead"
+          className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-[45] animate-in fade-in slide-in-from-bottom-2 duration-500"
+        >
+          <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg text-sm text-[var(--muted-foreground)] hover:border-[var(--primary)]/50 transition-colors cursor-pointer">
+            <span className="text-xs font-medium">Топ читателей</span>
+            <div className="flex items-center -space-x-2">
+              {leaderboardData.data.users.slice(0, 3).map((user, index) => {
+                const avatarUrl = user.avatar 
+                  ? getCoverUrls(user.avatar, "").primary 
+                  : "/logo/ring_logo.png";
+                return (
+                  <div 
+                    key={user._id} 
+                    className="relative"
+                    style={{ zIndex: 3 - index }}
+                  >
+                    <Image
+                      src={avatarUrl}
+                      alt={user.username}
+                      width={24}
+                      height={24}
+                      className="rounded-full border-2 border-[var(--card)] object-cover"
+                    />
+                    {index === 0 && (
+                      <div className="absolute -top-1 -right-1 text-[8px]">👑</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <span className="text-xs opacity-75">
+              {leaderboardData.data.users[0]?.chaptersRead ?? 0} глав
             </span>
             <span className="text-xs opacity-60">•</span>
-            <span className="text-xs">{effectiveChapter?.images.length ?? chapter.images.length} стр.</span>
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              <span className="text-xs">
+                {estimatedReadingTime < 1 
+                  ? "< 1 мин" 
+                  : `~${estimatedReadingTime} мин`
+                }
+              </span>
+            </div>
           </div>
-        </div>
+        </Link>
       )}
     </div>
   );

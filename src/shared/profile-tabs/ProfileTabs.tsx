@@ -280,7 +280,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
           {/* О себе */}
           {activeTab === "overview" && (
             <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
-              <ProfileAdditionalInfo userProfile={userProfile} />
+              <ProfileAdditionalInfo userProfile={userProfile} isPublicView={isPublicView} />
               <ProfileContent
                 userProfile={userProfile}
                 allBookmarksHref={`${pathname}?tab=bookmarks`}
@@ -290,6 +290,8 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                 onShowAchievements={() => setActiveTab("achievements")}
                 onShowStats={() => setActiveTab("stats")}
                 isPublicView={isPublicView}
+                hiddenBookmarksMessage={isBookmarksRestricted ? "Пользователь скрыл свои закладки в настройках приватности." : undefined}
+                hiddenHistoryMessage={isHistoryRestricted ? "Пользователь скрыл свою историю чтения в настройках приватности." : undefined}
               />
             </div>
           )}
@@ -297,14 +299,14 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
           {/* Статистика */}
           {activeTab === "stats" && (
             <div className="animate-fade-in-up">
-              <ProfileStats userProfile={userProfile} showDetailed />
+              <ProfileStats userProfile={userProfile} showDetailed isPublicView={isPublicView} />
             </div>
           )}
 
           {/* Достижения */}
           {activeTab === "achievements" && (
             <div className="animate-fade-in-up">
-              <ProfileAchievements userProfile={userProfile} />
+              <ProfileAchievements userProfile={userProfile} isPublicView={isPublicView} />
             </div>
           )}
 

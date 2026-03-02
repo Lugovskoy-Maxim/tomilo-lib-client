@@ -62,8 +62,8 @@ export default function ProfileContent({
         </div>
       )}
 
-      {/* Achievements preview */}
-      {showAchievementsPreview && (
+      {/* Achievements preview - скрываем если пользователь отключил показ достижений */}
+      {showAchievementsPreview && !(isPublicView && userProfile.showAchievements === false) && (
         <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 p-4 sm:p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -81,7 +81,7 @@ export default function ProfileContent({
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
-          <ProfileAchievements userProfile={userProfile} compact />
+          <ProfileAchievements userProfile={userProfile} compact isPublicView={isPublicView} />
         </div>
       )}
 

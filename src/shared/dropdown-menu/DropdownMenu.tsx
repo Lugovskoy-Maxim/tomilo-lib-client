@@ -14,12 +14,34 @@ import {
   Palette,
   Star,
   Zap,
+  Trophy,
+  Crown,
+  Clock,
+  MessageSquare,
+  Flame,
+  BookOpen,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { UserAvatar } from "..";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import type { EquippedDecorations } from "@/types/user";
+import type { LeaderboardCategory } from "@/store/api/leaderboardApi";
 import { levelToRank, getLevelProgress } from "@/lib/rank-utils";
+
+interface LeaderboardPosition {
+  category: LeaderboardCategory;
+  position: number;
+  label: string;
+}
+
+const CATEGORY_ICONS: Record<LeaderboardCategory, typeof Trophy> = {
+  level: Crown,
+  readingTime: Clock,
+  ratings: Star,
+  comments: MessageSquare,
+  streak: Flame,
+  chaptersRead: BookOpen,
+};
 
 interface UserDropdownProps {
   isOpen: boolean;
@@ -46,6 +68,8 @@ interface UserDropdownProps {
   frameUrl?: string | null;
   /** URL декорации «аватар» (персонаж) */
   avatarDecorationUrl?: string | null;
+  /** Позиции пользователя в топ-10 лидерборда */
+  leaderboardPositions?: LeaderboardPosition[];
 }
 
 const THEME_LABELS: Record<string, string> = {
@@ -57,7 +81,7 @@ const THEME_LABELS: Record<string, string> = {
 const itemClass =
   "w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none";
 
-export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl, avatarDecorationUrl }: UserDropdownProps) {
+export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl, avatarDecorationUrl, leaderboardPositions = [] }: UserDropdownProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [contentReady, setContentReady] = useState(false);
@@ -246,6 +270,40 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
           </div>
         </div>
       </div>
+
+      {leaderboardPositions.length > 0 && (
+        <>
+          <div className="dropdown-divider" aria-hidden />
+          <div className="py-2 px-2" role="group" aria-label="Лидерборд">
+            <div className="dropdown-section-title flex items-center gap-2">
+              <Trophy className="w-3.5 h-3.5 text-amber-500" />
+              Вы в Топ-10
+            </div>
+            <Link
+              href="/leaders"
+              onClick={onClose}
+              className="block"
+            >
+              <div className="flex flex-wrap gap-1.5 mt-2 px-2">
+                {leaderboardPositions.map(({ category, position, label }) => {
+                  const Icon = CATEGORY_ICONS[category];
+                  return (
+                    <span
+                      key={category}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-amber-500/15 to-amber-400/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 hover:from-amber-500/25 hover:to-amber-400/20 transition-colors cursor-pointer"
+                      title={`${label}: место ${position}`}
+                    >
+                      <Icon className="w-3.5 h-3.5" aria-hidden />
+                      <span className="font-bold text-amber-600 dark:text-amber-400">#{position}</span>
+                      <span className="text-amber-600/80 dark:text-amber-300/80">{label}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </Link>
+          </div>
+        </>
+      )}
 
       <div className="dropdown-divider" aria-hidden />
 

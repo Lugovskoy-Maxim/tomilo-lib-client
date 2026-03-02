@@ -24,9 +24,11 @@ const YANDEX_CLIENT_ID = "ffd24e1c16544069bc7a1e8c66316f37";
 
 interface ProfileAdditionalInfoProps {
   userProfile: UserProfile;
+  /** Публичный просмотр (чужой профиль) — скрывает приватные данные */
+  isPublicView?: boolean;
 }
 
-export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditionalInfoProps) {
+export default function ProfileAdditionalInfo({ userProfile, isPublicView = false }: ProfileAdditionalInfoProps) {
   const toast = useToast();
   const { user: currentUser, login: authLogin, refetchProfile } = useAuth();
   const [linkVk, { isLoading: isLinkingVk }] = useLinkVkMutation();
@@ -303,6 +305,7 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
       </div>
 
       <div className="space-y-2">
+        {/* Дата регистрации - публичная */}
         <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--primary)]" />
@@ -313,16 +316,20 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           </span>
         </div>
 
-        <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--chart-1)]" />
-            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Последний вход</span>
+        {/* Последний вход - только для своего профиля */}
+        {!isPublicView && (
+          <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--chart-1)]" />
+              <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Последний вход</span>
+            </div>
+            <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] text-right truncate">
+              {userProfile.updatedAt ? formatLastLogin(userProfile.updatedAt) : "—"}
+            </span>
           </div>
-          <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] text-right truncate">
-            {userProfile.updatedAt ? formatLastLogin(userProfile.updatedAt) : "—"}
-          </span>
-        </div>
+        )}
 
+        {/* Статус - публичный */}
         <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--chart-2)]" />
@@ -333,15 +340,18 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           </span>
         </div>
 
-        <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--chart-3)]" />
-            <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Email подтверждён</span>
+        {/* Email подтверждён - только для своего профиля */}
+        {!isPublicView && (
+          <div className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--chart-3)]" />
+              <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Email подтверждён</span>
+            </div>
+            <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] text-right truncate">
+              {userProfile.emailVerified === true ? "Да" : "Нет"}
+            </span>
           </div>
-          <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] text-right truncate">
-            {userProfile.emailVerified === true ? "Да" : "Нет"}
-          </span>
-        </div>
+        )}
 
         {/* Ссылки на соцсети пользователя */}
         {userProfile.socialLinks && (userProfile.socialLinks.telegram || userProfile.socialLinks.discord || userProfile.socialLinks.vk) && (
@@ -399,59 +409,64 @@ export default function ProfileAdditionalInfo({ userProfile }: ProfileAdditional
           </>
         )}
 
-        <div className="mt-4 mb-2 px-0.5">
-          <p className="text-xs font-medium text-[var(--muted-foreground)]">Соцсети и авторизации</p>
-          {Array.isArray(userProfile.linkedProviders) && userProfile.linkedProviders.length > 0 && (
-            <p className="text-xs text-[var(--chart-2)] mt-0.5">
-              Подключено:{" "}
-              {[
-                ...(userProfile.linkedProviders?.some(p => p?.toLowerCase() === "yandex") ? ["Яндекс.ID"] : []),
-                ...(userProfile.linkedProviders?.some(p => p?.toLowerCase() === "vk" || p?.toLowerCase() === "vk_id") ? ["VK ID"] : []),
-              ].join(", ")}
-            </p>
-          )}
-        </div>
-        {(
-          [
-            { id: "yandex" as const, label: "Яндекс.ID", color: "text-[#FC3F1D]" },
-            { id: "vk" as const, label: "VK ID", color: "text-[#0077FF]" },
-          ] as const
-        ).map(({ id, label, color }) => {
-          const linked =
-            Array.isArray(userProfile.linkedProviders) &&
-            userProfile.linkedProviders.some(p => p?.toLowerCase() === id || (id === "vk" && p?.toLowerCase() === "vk_id"));
-          return (
-            <div
-              key={id}
-              className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0"
-            >
-              <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-                <Share2 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${color}`} />
-                <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">{label}</span>
-              </div>
-              <div className="flex items-center gap-2 min-w-0">
-                {linked ? (
-                  <span className="text-xs sm:text-sm font-medium text-[var(--chart-2)] truncate">
-                    Подключено
-                  </span>
-                ) : isOwnProfile ? (
-                  <button
-                    type="button"
-                    onClick={id === "vk" ? redirectToVkLink : openYandexLinkPopup}
-                    disabled={isLinking}
-                    className="text-xs sm:text-sm font-medium text-[var(--chart-1)] hover:underline truncate disabled:opacity-50"
-                  >
-                    Подключить
-                  </button>
-                ) : (
-                  <span className="text-xs sm:text-sm font-medium text-[var(--muted-foreground)] truncate">
-                    Не подключено
-                  </span>
-                )}
-              </div>
+        {/* Соцсети и авторизации - только для своего профиля */}
+        {!isPublicView && (
+          <>
+            <div className="mt-4 mb-2 px-0.5">
+              <p className="text-xs font-medium text-[var(--muted-foreground)]">Соцсети и авторизации</p>
+              {Array.isArray(userProfile.linkedProviders) && userProfile.linkedProviders.length > 0 && (
+                <p className="text-xs text-[var(--chart-2)] mt-0.5">
+                  Подключено:{" "}
+                  {[
+                    ...(userProfile.linkedProviders?.some(p => p?.toLowerCase() === "yandex") ? ["Яндекс.ID"] : []),
+                    ...(userProfile.linkedProviders?.some(p => p?.toLowerCase() === "vk" || p?.toLowerCase() === "vk_id") ? ["VK ID"] : []),
+                  ].join(", ")}
+                </p>
+              )}
             </div>
-          );
-        })}
+            {(
+              [
+                { id: "yandex" as const, label: "Яндекс.ID", color: "text-[#FC3F1D]" },
+                { id: "vk" as const, label: "VK ID", color: "text-[#0077FF]" },
+              ] as const
+            ).map(({ id, label, color }) => {
+              const linked =
+                Array.isArray(userProfile.linkedProviders) &&
+                userProfile.linkedProviders.some(p => p?.toLowerCase() === id || (id === "vk" && p?.toLowerCase() === "vk_id"));
+              return (
+                <div
+                  key={id}
+                  className="flex items-center justify-between gap-2 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/50 min-w-0"
+                >
+                  <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                    <Share2 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${color}`} />
+                    <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">{label}</span>
+                  </div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {linked ? (
+                      <span className="text-xs sm:text-sm font-medium text-[var(--chart-2)] truncate">
+                        Подключено
+                      </span>
+                    ) : isOwnProfile ? (
+                      <button
+                        type="button"
+                        onClick={id === "vk" ? redirectToVkLink : openYandexLinkPopup}
+                        disabled={isLinking}
+                        className="text-xs sm:text-sm font-medium text-[var(--chart-1)] hover:underline truncate disabled:opacity-50"
+                      >
+                        Подключить
+                      </button>
+                    ) : (
+                      <span className="text-xs sm:text-sm font-medium text-[var(--muted-foreground)] truncate">
+                        Не подключено
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
       </div>
 
       <LinkConflictModal

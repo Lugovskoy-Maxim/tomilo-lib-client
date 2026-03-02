@@ -3,7 +3,7 @@ import { ApiResponse } from "@/types/api";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
-export type LeaderboardCategory = "level" | "readingTime" | "ratings" | "comments" | "streak";
+export type LeaderboardCategory = "level" | "readingTime" | "ratings" | "comments" | "streak" | "chaptersRead";
 export type LeaderboardPeriod = "all" | "month";
 
 export interface LeaderboardUserEquippedDecorations {
@@ -33,6 +33,8 @@ export interface LeaderboardUser {
   completedTitlesCount?: number;
   createdAt?: string;
   equippedDecorations?: LeaderboardUserEquippedDecorations | null;
+  /** Показывать ли статистику в публичном профиле (если false — пользователь скрыт из лидеров) */
+  showStats?: boolean;
 }
 
 export interface LeaderboardResponse {
@@ -119,11 +121,28 @@ export const leaderboardApi = createApi({
       }),
       providesTags: ["Leaderboard"],
     }),
+    getUserLeaderboardPositions: builder.query<
+      ApiResponse<{
+        positions: {
+          category: LeaderboardCategory;
+          position: number;
+          value: number;
+        }[];
+        inTop10Categories: LeaderboardCategory[];
+      }>,
+      void
+    >({
+      query: () => ({
+        url: "/users/leaderboard/my-positions",
+      }),
+      providesTags: ["Leaderboard"],
+    }),
   }),
 });
 
 export const {
   useGetLeaderboardQuery,
+  useGetUserLeaderboardPositionsQuery,
   useGetLeaderboardByLevelQuery,
   useGetLeaderboardByReadingTimeQuery,
   useGetLeaderboardByRatingsQuery,

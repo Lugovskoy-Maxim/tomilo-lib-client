@@ -89,6 +89,8 @@ export interface StoredUser {
   showStats?: boolean;
   showAchievements?: boolean;
   showFavoriteCharacters?: boolean;
+  showReadingHistory?: boolean;
+  showBookmarks?: boolean;
 }
 
 export interface AuthResponse {

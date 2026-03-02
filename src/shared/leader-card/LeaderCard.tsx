@@ -103,6 +103,10 @@ function getCategoryValue(user: LeaderboardUser, category: LeaderboardCategory):
   switch (category) {
     case "level":
       return `Уровень ${user.level ?? 0}`;
+    case "chaptersRead":
+      const chapters = user.chaptersRead ?? 0;
+      const readingTime = formatReadingTime(user.readingTimeMinutes ?? user.readingTime ?? chapters * 2);
+      return `${chapters} глав · ${readingTime}`;
     case "readingTime":
       return formatReadingTime(user.readingTimeMinutes ?? user.readingTime ?? (user.chaptersRead ?? 0) * 2);
     case "ratings":
@@ -121,6 +125,8 @@ function getCategoryValue(user: LeaderboardUser, category: LeaderboardCategory):
 function getCategoryIcon(category: LeaderboardCategory) {
   switch (category) {
     case "level":
+      return TrendingUp;
+    case "chaptersRead":
       return TrendingUp;
     case "readingTime":
       return Clock;

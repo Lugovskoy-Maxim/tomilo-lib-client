@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Crown, TrendingUp, Clock, Star, Users, Flame, Search, RefreshCw, ChevronUp, Shield, Eye, EyeOff, Calendar, MessageSquare } from "lucide-react";
+import { Crown, TrendingUp, Star, Users, Flame, Search, RefreshCw, ChevronUp, Shield, Eye, EyeOff, Calendar, MessageSquare } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
 import { LoadingSkeleton, ErrorState } from "@/shared";
@@ -36,11 +36,11 @@ const CATEGORIES: CategoryConfig[] = [
     description: "Топ пользователей по уровню и опыту",
   },
   {
-    id: "readingTime",
-    label: "По времени чтения",
-    shortLabel: "Чтение",
-    icon: Clock,
-    description: "Самые активные читатели",
+    id: "chaptersRead",
+    label: "По главам",
+    shortLabel: "Главы",
+    icon: Users,
+    description: "Больше всего прочитанных глав",
   },
   {
     id: "ratings",
@@ -105,6 +105,8 @@ interface TransformableUser {
   commentsCount?: number;
   likesReceivedCount?: number;
   ratingsCount?: number;
+  chaptersRead?: number;
+  showStats?: boolean;
 }
 
 function resolveDecorationValue(
@@ -149,11 +151,16 @@ function transformUsersToLeaderboard(
   category: LeaderboardCategory,
   decorationsMap: Map<string, string>
 ): LeaderboardUser[] {
-  const mappedUsers = users.map(user => {
-    const chaptersRead = user.readingHistory?.reduce(
+  // Фильтруем пользователей, которые скрыли свою статистику
+  const visibleUsers = users.filter(user => user.showStats !== false);
+  
+  const mappedUsers = visibleUsers.map(user => {
+    const chaptersReadFromHistory = user.readingHistory?.reduce(
       (total, item) => total + (item.chapters?.length || 0),
       0
     ) ?? 0;
+    
+    const chaptersRead = user.chaptersRead ?? chaptersReadFromHistory;
 
     return {
       _id: user._id,
@@ -174,6 +181,7 @@ function transformUsersToLeaderboard(
       completedTitlesCount: user.completedTitlesCount ?? 0,
       likesReceivedCount: user.likesReceivedCount ?? 0,
       equippedDecorations: resolveEquippedDecorations(user.equippedDecorations, decorationsMap),
+      showStats: user.showStats,
     };
   });
 
@@ -181,6 +189,8 @@ function transformUsersToLeaderboard(
     switch (category) {
       case "level":
         return (b.level ?? 0) - (a.level ?? 0) || (b.experience ?? 0) - (a.experience ?? 0);
+      case "chaptersRead":
+        return (b.chaptersRead ?? 0) - (a.chaptersRead ?? 0);
       case "readingTime":
         return (b.readingTime ?? 0) - (a.readingTime ?? 0);
       case "ratings":
@@ -609,10 +619,20 @@ export default function LeadersPage() {
   );
 }
 
+function formatReadingTimeDisplay(minutes: number): string {
+  if (minutes < 60) return `${minutes} мин`;
+  if (minutes < 1440) return `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
+  return `${Math.floor(minutes / 1440)} д ${Math.floor((minutes % 1440) / 60)} ч`;
+}
+
 function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCategory): string {
   switch (category) {
     case "level":
       return `Уровень ${user.level ?? 0}`;
+    case "chaptersRead":
+      const chapters = user.chaptersRead ?? 0;
+      const readingMinutes = user.readingTimeMinutes ?? user.readingTime ?? chapters * 2;
+      return `${chapters} глав · ${formatReadingTimeDisplay(readingMinutes)}`;
     case "readingTime":
       const minutes = user.readingTimeMinutes ?? user.readingTime ?? 0;
       if (minutes < 60) return `${minutes} мин`;

@@ -65,6 +65,8 @@ function transformUserToProfile(user: User): UserProfile {
     showStats: u.showStats,
     showAchievements: u.showAchievements,
     showFavoriteCharacters: u.showFavoriteCharacters,
+    showReadingHistory: u.showReadingHistory,
+    showBookmarks: u.showBookmarks,
     // Статистика
     currentStreak: u.currentStreak,
     longestStreak: u.longestStreak,
@@ -102,11 +104,9 @@ export default function UserProfileLayout() {
   );
   const privacy = userProfile?.privacy;
   const isProfileRestricted = Boolean(privacy && privacy.profileVisibility !== "public");
-  const isBookmarksRestricted = Boolean(!isOwnProfile && privacy && privacy.profileVisibility !== "public");
-  const isReadingHistoryRestricted = Boolean(
-    !isOwnProfile && privacy && privacy.readingHistoryVisibility !== "public",
-  );
-  const hasPrivacyNotice = isProfileRestricted || isReadingHistoryRestricted;
+  const isBookmarksRestricted = Boolean(!isOwnProfile && userProfile?.showBookmarks === false);
+  const isReadingHistoryRestricted = Boolean(!isOwnProfile && userProfile?.showReadingHistory === false);
+  const hasPrivacyNotice = isProfileRestricted || isBookmarksRestricted || isReadingHistoryRestricted;
 
   useSEO(seoConfigs.profile(userProfile?.username));
 
@@ -193,7 +193,7 @@ export default function UserProfileLayout() {
               <div className="relative z-10 p-4 sm:p-6 flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:items-start" role="article" aria-label={`Профиль пользователя ${userProfile.username}`}>
                 {/* Левая колонка — карточка профиля */}
                 <aside className="lg:w-72 lg:shrink-0 lg:sticky lg:top-4">
-                  <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} />
+                  <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} isPublicView={!isOwnProfile} />
                 </aside>
                 
                 {/* Центральная часть — контент с вкладками */}
