@@ -325,7 +325,7 @@ export function ShopSection({ type }: ShopSectionProps) {
       refetchDecorations();
     } catch (err) {
       const e = err as { data?: unknown; error?: unknown; status?: unknown };
-      const data = e?.data as any;
+      const data = e?.data as { errors?: Array<string | { message?: string }>; message?: string } | undefined;
       const firstError =
         Array.isArray(data?.errors) && data.errors.length > 0
           ? (typeof data.errors[0] === "string" ? data.errors[0] : data.errors[0]?.message)

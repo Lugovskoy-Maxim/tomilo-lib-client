@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { getImageUrls } from "@/lib/asset-url";
+import type { EquippedDecorations } from "@/types/user";
 import ProfileHeaderPreview from "@/shared/profile/ProfileHeaderPreview";
 
 export interface DecorationCardProps {
@@ -508,7 +509,7 @@ export function DecorationCard({
   const rarityStyle = RARITY_STYLES[rarity];
   const soldOut = decoration.isSoldOut ?? (decoration.stock !== undefined && decoration.stock <= 0);
   const showStock = decoration.stock !== undefined;
-  const userFrameUrl = getEquippedFrameUrl((user?.equippedDecorations as any) ?? null);
+  const userFrameUrl = getEquippedFrameUrl((user?.equippedDecorations ?? null) as EquippedDecorations | null);
 
   const handlePurchase = async () => {
     if (soldOut) {

@@ -207,7 +207,7 @@ export function ShopManagementSection() {
       }
     } catch (e) {
       const err = e as { data?: unknown; error?: unknown; status?: unknown };
-      const data = err?.data as any;
+      const data = err?.data as { errors?: Array<string | { message?: string }>; message?: string } | undefined;
       const firstError =
         Array.isArray(data?.errors) && data.errors.length > 0
           ? (typeof data.errors[0] === "string" ? data.errors[0] : data.errors[0]?.message)
