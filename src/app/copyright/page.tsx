@@ -1,7 +1,8 @@
 import { Mail, FileText, Clock, Shield, Languages } from "lucide-react";
 import { Footer, Header } from "@/widgets";
 import content from "@/constants/copyright";
-import { BackButton, Breadcrumbs } from "@/shared";
+import BackButton from "@/shared/back-button/BackButton";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { Metadata } from "next";
 
 interface CopyrightPageProps {

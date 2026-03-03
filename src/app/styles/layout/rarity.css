@@ -1,0 +1,259 @@
+/* --- DECORATION RARITY EFFECTS --- */
+@keyframes shimmer-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.animate-shimmer {
+  animation: shimmer-sweep 3s ease-in-out infinite;
+}
+
+/* --- LEGENDARY --- */
+@keyframes rarity-glow-legendary {
+  0%, 100% { 
+    box-shadow: 
+      0 0 20px rgba(251, 191, 36, 0.6),
+      0 0 40px rgba(251, 191, 36, 0.4),
+      0 0 60px rgba(245, 158, 11, 0.3),
+      0 0 80px rgba(217, 119, 6, 0.2),
+      inset 0 0 20px rgba(251, 191, 36, 0.1);
+  }
+  50% { 
+    box-shadow: 
+      0 0 30px rgba(251, 191, 36, 0.8),
+      0 0 60px rgba(251, 191, 36, 0.5),
+      0 0 90px rgba(245, 158, 11, 0.4),
+      0 0 120px rgba(217, 119, 6, 0.3),
+      inset 0 0 30px rgba(251, 191, 36, 0.15);
+  }
+}
+
+/* Fire particle rising animation */
+@keyframes fire-particle {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-60px) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Fire flicker effect */
+@keyframes fire-flicker {
+  0%, 100% {
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.8;
+  }
+  25% {
+    transform: scaleY(1.1) scaleX(0.95);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleY(0.95) scaleX(1.05);
+    opacity: 0.9;
+  }
+  75% {
+    transform: scaleY(1.05) scaleX(0.98);
+    opacity: 1;
+  }
+}
+
+/* Golden sparkle effect */
+@keyframes golden-sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
+}
+
+/* Golden shine sweep */
+@keyframes golden-shine {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(200%) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+.rarity-legendary {
+  animation: rarity-glow-legendary 2s ease-in-out infinite;
+}
+
+.fire-particle {
+  animation: fire-particle 1.5s ease-out infinite;
+}
+
+.fire-flicker {
+  animation: fire-flicker 0.5s ease-in-out infinite;
+}
+
+.golden-sparkle {
+  animation: golden-sparkle 2s ease-in-out infinite;
+}
+
+.golden-shine {
+  animation: golden-shine 3s ease-in-out infinite;
+}
+
+/* --- EPIC --- */
+@keyframes rarity-glow-epic {
+  0%, 100% { 
+    box-shadow: 
+      0 0 15px rgba(168, 85, 247, 0.5),
+      0 0 30px rgba(168, 85, 247, 0.3),
+      0 0 45px rgba(139, 92, 246, 0.2);
+  }
+  50% { 
+    box-shadow: 
+      0 0 25px rgba(168, 85, 247, 0.7),
+      0 0 50px rgba(168, 85, 247, 0.4),
+      0 0 75px rgba(139, 92, 246, 0.3);
+  }
+}
+
+/* Star twinkle effect */
+@keyframes star-twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    filter: blur(1px);
+  }
+}
+
+/* Magic orbit animation */
+@keyframes magic-orbit {
+  0% {
+    transform: rotate(0deg) translateX(30px) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) translateX(30px) rotate(-360deg);
+    opacity: 0.6;
+  }
+}
+
+/* Purple shimmer */
+@keyframes purple-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.rarity-epic {
+  animation: rarity-glow-epic 2.5s ease-in-out infinite;
+}
+
+.star-twinkle {
+  animation: star-twinkle 1.5s ease-in-out infinite;
+}
+
+.magic-orbit {
+  animation: magic-orbit 4s linear infinite;
+}
+
+.purple-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(168, 85, 247, 0.3) 25%,
+    rgba(139, 92, 246, 0.5) 50%,
+    rgba(168, 85, 247, 0.3) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: purple-shimmer 2s ease-in-out infinite;
+}
+
+/* --- RARE --- */
+@keyframes rarity-glow-rare {
+  0%, 100% { 
+    box-shadow: 
+      0 0 12px rgba(59, 130, 246, 0.4),
+      0 0 24px rgba(59, 130, 246, 0.2),
+      0 0 36px rgba(96, 165, 250, 0.1);
+  }
+  50% { 
+    box-shadow: 
+      0 0 20px rgba(59, 130, 246, 0.6),
+      0 0 40px rgba(59, 130, 246, 0.3),
+      0 0 60px rgba(96, 165, 250, 0.2);
+  }
+}
+
+/* Ice crystal shimmer */
+@keyframes ice-shimmer {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+/* Floating ice particle */
+@keyframes ice-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-10px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+.rarity-rare {
+  animation: rarity-glow-rare 3s ease-in-out infinite;
+}
+
+.ice-shimmer {
+  animation: ice-shimmer 2s ease-in-out infinite;
+}
+
+.ice-float {
+  animation: ice-float 3s ease-in-out infinite;
+}
+
+/* Двойной ползунок года в фильтрах: Firefox */
+.year-range-input::-moz-range-track {
+  background: transparent;
+}
+.year-range-input::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  border: 2px solid var(--primary);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+  cursor: pointer;
+}
+.year-range-input::-moz-focus-outer {
+  border: 0;
+}

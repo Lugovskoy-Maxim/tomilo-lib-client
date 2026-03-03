@@ -1,7 +1,9 @@
 "use client";
 import { Settings, Bell, Eye, Star, HelpCircle } from "lucide-react";
 import { Footer, Header } from "@/widgets";
-import { BackButton, ThemeToggle, Tooltip } from "@/shared";
+import BackButton from "@/shared/back-button/BackButton";
+import ThemeToggle from "@/shared/theme-toggle/ThemeToggle";
+import Tooltip from "@/shared/ui/Tooltip";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";

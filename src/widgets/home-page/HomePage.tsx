@@ -3,15 +3,13 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight } from "lucide-react";
 
-import {
-  CollectionCard,
-  LazySection,
-  ReadingCard,
-  SectionLoadError,
-  TrendingCard,
-  UnderratedCard,
-  FeaturedTitleBlock,
-} from "@/shared";
+import CollectionCard from "@/shared/collection-card/CollectionCard";
+import LazySection from "@/shared/lazy-section/LazySection";
+import ReadingCard from "@/shared/reading-card/ReadingCard";
+import SectionLoadError from "@/shared/error-state/SectionLoadError";
+import TrendingCard from "@/shared/trending-card/TrendingCard";
+import UnderratedCard from "@/shared/underrated-card/UnderratedCard";
+import FeaturedTitleBlock from "@/shared/featured-title/FeaturedTitleBlock";
 import { 
   GenresQuickAccess, 
   TelegramSection, 
@@ -31,6 +29,8 @@ import { FeaturedTitleSkeleton } from "@/shared/skeleton/FeaturedTitleSkeleton";
 import Recommendations from "@/shared/recommendations/Recommendations";
 import LinesBackground from "@/shared/lines-background/LinesBackground";
 import NewsBlock from "@/widgets/home-page/NewsBlock";
+import { AgeVerificationModal } from "@/shared/modal/AgeVerificationModal";
+import { AgeVerificationProvider } from "@/contexts/AgeVerificationContext";
 
 type VisibleSections = HomeVisibleSections &
   StaticDataVisibleSections &
@@ -81,14 +81,35 @@ const DataCarousel = memo(function DataCarousel({
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const [visibleSections, setVisibleSections] = useState<VisibleSections>({});
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [pendingAgeAction, setPendingAgeAction] = useState<(() => void) | null>(null);
 
   const handleSectionVisible = useCallback((sectionId: string) => {
     setVisibleSections(prev => ({ ...prev, [sectionId]: true }));
   }, []);
 
+  const requestAgeVerification = useCallback((action: () => void) => {
+    setPendingAgeAction(() => action);
+    setShowAgeModal(true);
+  }, []);
+
+  const handleAgeConfirm = useCallback(() => {
+    setShowAgeModal(false);
+    setPendingAgeAction(prev => {
+      if (prev) queueMicrotask(prev);
+      return null;
+    });
+  }, []);
+
+  const handleAgeCancel = useCallback(() => {
+    setShowAgeModal(false);
+    setPendingAgeAction(null);
+  }, []);
+
   // useAuth уже вызывает useGetProfileQuery внутри себя — не дублируем запрос
   const { isAuthenticated, user } = useAuth();
-  const includeAdult = user?.displaySettings?.isAdult ?? false;
+  // Гости видят 18+; авторизованные — по настройке (по умолчанию показываем)
+  const includeAdult = !user ? true : (user.displaySettings?.isAdult !== false);
 
   const {
     popularTitles,
@@ -181,7 +202,7 @@ export default function HomePage() {
   }
 
   return (
-    <>
+    <AgeVerificationProvider requestAgeVerification={requestAgeVerification}>
       <LinesBackground />
       <Header />
       <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full">
@@ -423,6 +444,11 @@ export default function HomePage() {
         </LazySection>
       </main>
       <Footer />
-    </>
+      <AgeVerificationModal
+        isOpen={showAgeModal}
+        onConfirm={handleAgeConfirm}
+        onCancel={handleAgeCancel}
+      />
+    </AgeVerificationProvider>
   );
 }

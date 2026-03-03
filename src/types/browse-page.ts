@@ -21,6 +21,10 @@ export interface Filters {
   status: string[];
   ageLimits: number[];
   releaseYears: number[];
+  /** Диапазон годов: от (включительно). Приоритет над releaseYears при запросе. */
+  releaseYearFrom?: number;
+  /** Диапазон годов: до (включительно). */
+  releaseYearTo?: number;
   tags: string[];
   sortBy: SortBy;
   sortOrder: SortOrder;

@@ -9,6 +9,7 @@ import { getTitlePath } from "@/lib/title-paths";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
+import { useAgeVerification } from "@/contexts/AgeVerificationContext";
 import { getCoverUrls } from "@/lib/asset-url";
 
 // Helper function for formatting views
@@ -45,9 +46,11 @@ interface CardItemProps {
  */
 const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps) => {
   const { user } = useAuth();
-  const [showAgeModal, setShowAgeModal] = useState(false);
+  const requestAgeVerification = useAgeVerification();
   const [isAgeVerified, setIsAgeVerified] = useState(false);
+  const [showAgeModal, setShowAgeModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
   useEffect(() => {
     setIsAgeVerified(checkAgeVerification(user || null));
   }, [user]);
@@ -57,21 +60,15 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
     return getCoverUrls(url, "");
   };
 
-  // Функция для выполнения действия с карточкой
   const performCardAction = () => {
-    // Используем router для навигации
     window.location.href = getTitlePath(item);
   };
 
-  // Обработка подтверждения возраста
   const handleAgeConfirm = () => {
     setIsAgeVerified(true);
     setShowAgeModal(false);
-
-    // Выполняем отложенное действие после подтверждения возраста
-    if (pendingAction) {
-      pendingAction();
-    }
+    pendingAction?.();
+    setPendingAction(null);
   };
 
   const handleAgeCancel = () => {
@@ -79,20 +76,19 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
     setPendingAction(null);
   };
 
-  // Основной обработчик клика
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Если контент для взрослых и возраст не подтвержден
     if (item.isAdult && !isAgeVerified) {
-      // Сохраняем функцию, которую нужно выполнить после подтверждения
-      setPendingAction(() => performCardAction);
-      setShowAgeModal(true);
+      if (requestAgeVerification) {
+        requestAgeVerification(performCardAction);
+      } else {
+        setPendingAction(() => performCardAction);
+        setShowAgeModal(true);
+      }
       return;
     }
-
-    // Если возраст подтвержден или контент не для взрослых, выполняем действие сразу
     performCardAction();
   };
 
@@ -174,11 +170,13 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
         </div>
       </div>
 
-      <AgeVerificationModal
-        isOpen={showAgeModal}
-        onConfirm={handleAgeConfirm}
-        onCancel={handleAgeCancel}
-      />
+      {!requestAgeVerification && (
+        <AgeVerificationModal
+          isOpen={showAgeModal}
+          onConfirm={handleAgeConfirm}
+          onCancel={handleAgeCancel}
+        />
+      )}
     </>
   );
 };

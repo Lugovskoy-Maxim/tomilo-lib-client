@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, CheckCircle2 } from "lucide-react";
-import { BackButton } from "@/shared";
+import BackButton from "@/shared/back-button/BackButton";
 import { useToast } from "@/hooks/useToast";
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";

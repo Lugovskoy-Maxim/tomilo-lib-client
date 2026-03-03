@@ -2,7 +2,8 @@
 import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Library, RefreshCw } from "lucide-react";
-import { Pagination, CollectionCard } from "@/shared";
+import Pagination from "@/shared/browse/pagination";
+import CollectionCard from "@/shared/collection-card/CollectionCard";
 import { useGetCollectionsQuery } from "@/store/api/collectionsApi";
 import { CollectionsQuery, Collection } from "@/types/collection";
 

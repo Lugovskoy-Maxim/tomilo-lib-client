@@ -30,7 +30,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
-import { LoginModal, RegisterModal } from "@/shared";
+import LoginModal from "@/shared/modal/LoginModal";
+import RegisterModal from "@/shared/modal/RegisterModal";
 
 import { translateTitleType, translateTitleStatus } from "@/lib/title-type-translations";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";

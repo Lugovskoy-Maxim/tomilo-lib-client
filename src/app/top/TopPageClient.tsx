@@ -3,7 +3,10 @@ import { useMemo } from "react";
 import { Trophy } from "lucide-react";
 
 import { Carousel, Footer, Header } from "@/widgets";
-import { TopTitleCard, PeriodFilter, LoadingSkeleton, ErrorState } from "@/shared";
+import TopTitleCard from "@/shared/top-title-card/TopTitleCard";
+import PeriodFilter from "@/shared/period-filter/PeriodFilter";
+import LoadingSkeleton from "@/shared/skeleton/skeleton";
+import ErrorState from "@/shared/profile/ProfileError";
 import {
   useGetTopTitlesDayQuery,
   useGetTopTitlesWeekQuery,
@@ -18,9 +21,10 @@ import { useGetProfileQuery } from "@/store/api/authApi";
 export default function TopPageClient() {
   const mounted = useMounted();
   const { activePeriod, setActivePeriod, periodLabels } = usePeriodFilter();
-  const { isAuthenticated, user } = useAuth();
-  const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
-  const includeAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult ?? false;
+  const { user } = useAuth();
+  const { data: profileData } = useGetProfileQuery(undefined, { skip: !user });
+  const displayAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult;
+  const includeAdult = !user ? true : (displayAdult !== false);
 
   const {
     data: topTitlesDayData,

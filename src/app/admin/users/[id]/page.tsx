@@ -16,7 +16,7 @@ import {
   type UserBan,
   type BalanceTransaction,
 } from "@/store/api/usersApi";
-import { LoadingState } from "@/shared";
+import LoadingState from "@/shared/profile/ProfileLoading";
 import ErrorState from "@/shared/error-state/ErrorState";
 import { Footer, Header } from "@/widgets";
 import { useSEO } from "@/hooks/useSEO";

@@ -11,7 +11,7 @@ import { normalizeBookmarks } from "@/lib/bookmarks";
 import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
 import { isMongoObjectId } from "@/lib/isMongoObjectId";
 import { Footer, Header } from "@/widgets";
-import { LoadingState } from "@/shared";
+import LoadingState from "@/shared/profile/ProfileLoading";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
 import { getEquippedBackgroundUrl, getDecorationImageUrl } from "@/api/shop";
 import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";
@@ -150,73 +150,64 @@ export default function UserProfileLayout() {
     <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
       <Header />
       <div
-        className="relative min-h-[50vh] sm:min-h-[55vh] flex flex-1 flex-col bg-[var(--background)] pt-12 sm:pt-36 bg-no-repeat bg-top"
+        className="relative min-h-[45vh] sm:min-h-[50vh] flex flex-1 flex-col bg-[var(--background)] pt-28 sm:pt-52 bg-no-repeat bg-top"
         style={{
           backgroundImage: `url(${getProfileBgUrl()})`,
           backgroundSize: "100% auto",
-          backgroundRepeat: "no-repeat",
           backgroundPosition: "top center",
         }}
       >
         <div
           className="absolute inset-0 pointer-events-none z-0"
-          style={{
-            background: "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)",
-          }}
+          style={{ background: "linear-gradient(to bottom, transparent 0%, var(--background) 70%)" }}
           aria-hidden
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 from-0% via-transparent via-[35%] to-transparent to-[72%] pointer-events-none z-0" aria-hidden />
         <div className="relative z-10 flex flex-1 flex-col min-h-0">
-          <div className="w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 py-4 sm:py-6 max-w-7xl min-w-0 overflow-x-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
+          <div className="w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-5xl min-w-0 overflow-x-hidden">
+            <div className="pt-2 pb-4 flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="group flex items-center gap-1.5 sm:gap-2 px-2 py-2 min-[360px]:px-3 sm:px-4 sm:py-2.5 bg-[var(--card)]/90 backdrop-blur-sm text-[var(--foreground)] rounded-xl hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)] transition-all duration-300 font-medium border border-[var(--border)] hover:border-[var(--primary)] shadow-sm hover:shadow-md"
+                className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-sm text-[var(--foreground)] bg-[var(--card)]/90 hover:bg-[var(--accent)] border border-[var(--border)] transition-colors"
                 aria-label="Назад"
               >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-0.5" />
-                <span className="text-sm">Назад</span>
+                <ArrowLeft className="w-4 h-4" />
+                Назад
               </button>
               {currentUser && (
                 <Link
                   href="/profile"
-                  className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl font-medium text-sm text-[var(--muted-foreground)] bg-[var(--secondary)]/60 border border-[var(--border)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-[var(--foreground)] bg-[var(--card)]/90 hover:bg-[var(--accent)] border border-[var(--border)] transition-colors"
                 >
-                  <UserIcon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                  <span className="hidden sm:inline">Мой профиль</span>
+                  <UserIcon className="w-4 h-4 shrink-0" />
+                  Мой профиль
                 </Link>
               )}
             </div>
-            <div className="relative rounded-2xl bg-[var(--background)]/55 backdrop-blur-md border border-[var(--border)]/50 shadow-xl shadow-black/5 min-h-[40vh] overflow-hidden">
-              <div className="absolute inset-x-0 top-0 h-16 pointer-events-none z-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)', opacity: 0.55 }} aria-hidden />
-              <div className="relative z-10 p-4 sm:p-6 flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:items-start" role="article" aria-label={`Профиль пользователя ${userProfile.username}`}>
-                {/* Левая колонка — карточка профиля */}
-                <aside className="lg:w-72 lg:shrink-0 lg:sticky lg:top-4">
-                  <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} isPublicView={!isOwnProfile} />
-                </aside>
-                
-                {/* Центральная часть — контент с вкладками */}
-                <div className="flex-1 min-w-0">
-                  {hasPrivacyNotice && (
-                    <div className="mb-4 sm:mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[var(--foreground)]">
-                      <p className="font-medium">Часть данных пользователя скрыта настройками приватности.</p>
-                      <p className="text-[var(--muted-foreground)] mt-1">
-                        Некоторые разделы могут быть недоступны.
-                      </p>
-                    </div>
-                  )}
-                  <ProfileTabs 
-                    userProfile={userProfile} 
-                    hideTabs={["settings", "inventory", "exchanges"]}
-                    isPublicView
-                    isBookmarksRestricted={isBookmarksRestricted}
-                    isHistoryRestricted={isReadingHistoryRestricted}
-                    breadcrumbPrefix={[
-                      { name: "Главная", href: "/" },
-                      { name: userProfile.username, href: `/user/${userParam}` },
-                    ]}
-                  />
+            <div className="pb-6 sm:pb-8 -mt-2">
+              <div className="rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-sm min-h-[40vh] overflow-hidden">
+                <div className="p-4 sm:p-6 flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:items-start" role="article" aria-label={`Профиль пользователя ${userProfile.username}`}>
+                  <aside className="lg:w-64 lg:shrink-0 lg:sticky lg:top-4">
+                    <ProfileSidebar userProfile={userProfile} isOwnProfile={isOwnProfile} isPublicView={!isOwnProfile} />
+                  </aside>
+                  <div className="flex-1 min-w-0">
+                    {hasPrivacyNotice && (
+                      <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-[var(--foreground)]">
+                        <p className="font-medium">Часть данных скрыта настройками приватности.</p>
+                      </div>
+                    )}
+                    <ProfileTabs
+                      userProfile={userProfile}
+                      hideTabs={["settings", "inventory", "exchanges"]}
+                      isPublicView
+                      isBookmarksRestricted={isBookmarksRestricted}
+                      isHistoryRestricted={isReadingHistoryRestricted}
+                      breadcrumbPrefix={[
+                        { name: "Главная", href: "/" },
+                        { name: userProfile.username, href: `/user/${userParam}` },
+                      ]}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

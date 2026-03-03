@@ -1,0 +1,114 @@
+
+/* Lightweight unified hover for cards */
+.card-hover-soft {
+  position: relative;
+  isolation: isolate;
+  --card-tilt-x: 0deg;
+  --card-tilt-y: 0deg;
+  --card-tilt-scale: 1;
+  transform: perspective(900px) rotateX(var(--card-tilt-x)) rotateY(var(--card-tilt-y))
+    scale(var(--card-tilt-scale));
+  transform-style: preserve-3d;
+  transition:
+    transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.2s ease,
+    box-shadow 0.25s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+  will-change: transform;
+}
+
+.card-hover-soft:hover {
+  --card-tilt-scale: 1.04;
+  border-color: transparent;
+  box-shadow: 0 12px 24px rgb(0 0 0 / 0.1), 0 4px 8px rgb(0 0 0 / 0.06);
+  z-index: 6;
+}
+
+[data-theme="dark"] .card-hover-soft:hover {
+  box-shadow: 
+    0 14px 28px rgb(0 0 0 / 0.4),
+    0 6px 12px rgb(0 0 0 / 0.25),
+    0 0 20px color-mix(in oklch, var(--primary) 15%, transparent);
+}
+
+/* Focus ring for card links/clickable wrappers (accessibility) */
+.card-focus-ring:focus-visible .card-hover-soft {
+  box-shadow: 0 12px 24px rgb(0 0 0 / 0.1), 0 0 0 1px var(--primary);
+}
+[data-theme="dark"] .card-focus-ring:focus-visible .card-hover-soft {
+  box-shadow: 0 14px 28px rgb(0 0 0 / 0.35), 0 0 0 1px var(--primary);
+}
+
+.card-hover-soft::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  z-index: 3;
+  --card-border-angle: 0deg;
+  background: conic-gradient(
+    from var(--card-border-angle),
+    color-mix(in oklch, var(--primary) 90%, transparent),
+    color-mix(in oklch, var(--primary) 40%, transparent),
+    color-mix(in oklch, var(--primary) 90%, transparent)
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.card-hover-soft > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card-hover-soft:hover::before {
+  opacity: 1;
+  animation: card-border-spin 2.4s linear infinite;
+}
+
+@property --card-border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes card-border-spin {
+  from {
+    --card-border-angle: 0deg;
+  }
+  to {
+    --card-border-angle: 360deg;
+  }
+}
+
+.card-media-hover {
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.group:hover .card-media-hover {
+  transform: scale(1.05);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .card-hover-soft {
+    --card-tilt-x: 0deg !important;
+    --card-tilt-y: 0deg !important;
+    --card-tilt-scale: 1 !important;
+    transform: none !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .card-hover-soft::before {
+    opacity: 0 !important;
+    animation: none !important;
+  }
+}
+

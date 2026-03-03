@@ -1,0 +1,199 @@
+/* --- CONTENT PAGES --- */
+.content-page {
+  min-height: 100%;
+  background: linear-gradient(to bottom right, var(--background), var(--secondary));
+}
+.content-page-inner {
+  width: 100%;
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2rem 1rem 5rem;
+}
+@media (min-width: 640px) {
+  .content-page-inner { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .content-page-hero h1 { font-size: 2.25rem; }
+  .content-card { padding: 2rem; border-radius: 1.25rem; }
+}
+@media (min-width: 1024px) {
+  .content-page-inner { padding-top: 3rem; padding-bottom: 2rem; }
+}
+.content-page-hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+.content-page-hero h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+.content-page-hero p {
+  font-size: 1.0625rem;
+  color: var(--muted-foreground);
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+.content-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+[data-theme="dark"] .content-card {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2);
+}
+.content-card:hover {
+  border-color: color-mix(in oklch, var(--border) 80%, var(--primary));
+}
+.content-card h2,
+.content-card h3 {
+  color: var(--foreground);
+  font-weight: 600;
+}
+.content-card-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.content-card-section-title svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.content-card-body {
+  color: var(--muted-foreground);
+  line-height: 1.65;
+}
+.content-card-body ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.content-card-body li + li {
+  margin-top: 0.35rem;
+}
+.content-link-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.content-link-primary,
+.content-link-outline,
+.btn-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+.content-link-primary {
+  background: var(--accent);
+  color: var(--chart-1);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.content-link-primary:hover {
+  background: color-mix(in oklch, var(--accent) 90%, var(--primary));
+  color: var(--primary);
+}
+.content-link-outline {
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.content-link-outline:hover {
+  background: var(--accent);
+  border-color: var(--border);
+}
+.btn-lang {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.btn-lang:hover {
+  background: var(--accent);
+  border-color: color-mix(in oklch, var(--border) 80%, var(--primary));
+}
+.info-alert {
+  background: color-mix(in oklch, var(--chart-3) 12%, transparent);
+  border: 1px solid color-mix(in oklch, var(--chart-3) 40%, transparent);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+}
+.info-alert h3 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.75rem;
+}
+.info-alert ul {
+  list-style: none;
+  padding-left: 0;
+}
+.info-alert li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.info-alert li svg {
+  color: var(--chart-3);
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+.content-contact-email {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
+  background: var(--accent);
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+}
+.content-contact-email a {
+  color: var(--chart-1);
+  font-weight: 500;
+  text-decoration: none;
+}
+.content-contact-email a:hover {
+  text-decoration: underline;
+}
+
+/* Modern button styles */
+.btn-modern {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-modern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--chart-1-rgb), 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-modern:hover::before {
+  opacity: 1;
+}
+
+.btn-modern:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+}
+

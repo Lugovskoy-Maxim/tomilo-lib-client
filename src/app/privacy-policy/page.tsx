@@ -1,6 +1,7 @@
 import { Shield, Database, Target, Cookie, Share2, Clock, Lock, UserCheck, Users, FileEdit, Mail, Languages } from "lucide-react";
 import { Footer, Header } from "@/widgets";
-import { BackButton, Breadcrumbs } from "@/shared";
+import BackButton from "@/shared/back-button/BackButton";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import privacyPolicy from "@/constants/privacy-policy";
 import { Metadata } from "next";
 

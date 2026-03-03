@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { Star, TrendingUp } from "lucide-react";
-import { CarouselCard } from "@/shared";
+import CarouselCard from "@/shared/popular-card/PopularCard";
 import { Carousel } from "@/widgets";
 import { getTitlePath } from "@/lib/title-paths";
 import { useGetRecommendedTitlesQuery } from "@/store/api/titlesApi";
@@ -21,9 +21,10 @@ export default function Recommendations({
 }: RecommendationsProps) {
   const [shouldFetch, setShouldFetch] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated, user } = useAuth();
-  const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
-  const includeAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult ?? false;
+  const { user } = useAuth();
+  const { data: profileData } = useGetProfileQuery(undefined, { skip: !user });
+  const displayAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult;
+  const includeAdult = !user ? true : (displayAdult !== false);
 
   useEffect(() => {
     if (!sectionRef.current) return;

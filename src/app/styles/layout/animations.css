@@ -1,0 +1,155 @@
+/* --- UTILITY ANIMATIONS --- */
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out forwards;
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.2s ease-out forwards;
+}
+
+/* Modal overlay and content animations */
+@keyframes modal-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
+
+@keyframes modal-content-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modal-content-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+}
+
+.modal-backdrop {
+  animation: modal-backdrop-in 0.2s ease-out forwards;
+}
+.modal-backdrop.modal-closing {
+  animation: modal-backdrop-out 0.15s ease-in forwards;
+}
+.modal-content {
+  animation: modal-content-in 0.25s ease-out forwards;
+}
+.modal-content.modal-closing {
+  animation: modal-content-out 0.2s ease-in forwards;
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .hover-lift:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Glow effect on hover */
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.3);
+}
+/* --- TITLES ANIMATIONS --- */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Custom scrollbar for filter sidebar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 3px;
+  opacity: 0.3;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  opacity: 0.5;
+}
+
+/* --- GRID ITEM ANIMATIONS (TitleGrid) --- */
+.grid-item-animate {
+  animation: fadeInUp 0.4s ease-out forwards;
+  animation-delay: var(--grid-delay, 0);
+  opacity: 0;
+}
+.grid-item-delay-0 { --grid-delay: 0ms; }
+.grid-item-delay-1 { --grid-delay: 50ms; }
+.grid-item-delay-2 { --grid-delay: 100ms; }
+.grid-item-delay-3 { --grid-delay: 150ms; }
+.grid-item-delay-4 { --grid-delay: 200ms; }
+.grid-item-delay-5 { --grid-delay: 250ms; }
+.grid-item-delay-6 { --grid-delay: 300ms; }
+.grid-item-delay-7 { --grid-delay: 350ms; }
+.grid-item-delay-8 { --grid-delay: 400ms; }
+.grid-item-delay-9 { --grid-delay: 450ms; }
+.grid-item-delay-10 { --grid-delay: 500ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-item-animate {
+    animation: none;
+    opacity: 1;
+  }
+}
+

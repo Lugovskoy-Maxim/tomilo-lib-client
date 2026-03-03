@@ -11,6 +11,7 @@ interface ActiveFilterChipsProps {
   onRemoveStatus: (status: string) => void;
   onRemoveAgeLimit: (ageLimit: number) => void;
   onRemoveReleaseYear: (year: number) => void;
+  onRemoveReleaseYearRange?: () => void;
   onRemoveTag: (tag: string) => void;
   filterLabels?: {
     genres?: Record<string, string>;
@@ -25,6 +26,7 @@ export default function ActiveFilterChips({
   onRemoveStatus,
   onRemoveAgeLimit,
   onRemoveReleaseYear,
+  onRemoveReleaseYearRange,
   onRemoveTag,
 }: ActiveFilterChipsProps) {
   const hasActiveFilters =
@@ -33,70 +35,93 @@ export default function ActiveFilterChips({
     filters.status.length > 0 ||
     filters.ageLimits.length > 0 ||
     filters.releaseYears.length > 0 ||
+    filters.releaseYearFrom != null ||
+    filters.releaseYearTo != null ||
     filters.tags.length > 0;
 
   if (!hasActiveFilters) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5">
       {filters.genres.map(genre => (
         <button
           key={genre}
+          type="button"
           onClick={() => onRemoveGenre(genre)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/15 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/25 transition-colors border border-[var(--primary)]/30"
+          className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-md text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors"
         >
           {genre}
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3 h-3" />
         </button>
       ))}
       {filters.types.map(type => (
         <button
           key={type}
+          type="button"
           onClick={() => onRemoveType(type)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/15 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/25 transition-colors border border-[var(--primary)]/30"
+          className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-md text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors"
         >
           {translateTitleType(type)}
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3 h-3" />
         </button>
       ))}
       {filters.status.map(status => (
         <button
           key={status}
+          type="button"
           onClick={() => onRemoveStatus(status)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/15 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/25 transition-colors border border-[var(--primary)]/30"
+          className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-md text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors"
         >
           {translateTitleStatus(status)}
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3 h-3" />
         </button>
       ))}
       {filters.ageLimits.map(ageLimit => (
         <button
           key={ageLimit}
+          type="button"
           onClick={() => onRemoveAgeLimit(ageLimit)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/15 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/25 transition-colors border border-[var(--primary)]/30"
+          className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-md text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors"
         >
           {ageLimit === 0 ? "Для всех" : `${ageLimit}+`}
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3 h-3" />
         </button>
       ))}
+      {(filters.releaseYearFrom != null || filters.releaseYearTo != null) &&
+        onRemoveReleaseYearRange && (
+          <button
+            type="button"
+            onClick={onRemoveReleaseYearRange}
+            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-md text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors"
+          >
+            {filters.releaseYearFrom != null && filters.releaseYearTo != null
+              ? `${filters.releaseYearFrom} – ${filters.releaseYearTo}`
+              : filters.releaseYearFrom != null
+                ? `с ${filters.releaseYearFrom}`
+                : `до ${filters.releaseYearTo}`}
+            <X className="w-3 h-3" />
+          </button>
+        )}
       {filters.releaseYears.map(year => (
         <button
           key={year}
+          type="button"
           onClick={() => onRemoveReleaseYear(year)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/15 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/25 transition-colors border border-[var(--primary)]/30"
+          className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-md text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors"
         >
           {year}
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3 h-3" />
         </button>
       ))}
       {filters.tags.map(tag => (
         <button
           key={tag}
+          type="button"
           onClick={() => onRemoveTag(tag)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/15 text-[var(--primary)] rounded-lg text-sm font-medium hover:bg-[var(--primary)]/25 transition-colors border border-[var(--primary)]/30"
+          className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-md text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors"
         >
           {tag}
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3 h-3" />
         </button>
       ))}
     </div>

@@ -1,0 +1,100 @@
+/* --- DROPDOWN --- */
+
+.dropdown-modern,
+.dropdown-list {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.dropdown-modern {
+  transform-origin: var(--dropdown-origin, top right);
+}
+
+[data-theme="dark"] .dropdown-modern,
+[data-theme="dark"] .dropdown-list {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .dropdown-modern {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+/* Пункт меню: простой hover и фокус, без лишней анимации */
+.dropdown-item-modern {
+  position: relative;
+  outline: none;
+  border-radius: 0.5rem;
+  border: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dropdown-item-modern:hover {
+  background: var(--accent);
+}
+
+.dropdown-item-modern:hover svg {
+  color: var(--foreground);
+}
+
+.dropdown-item-modern:active {
+  background: var(--muted);
+}
+
+.dropdown-item-modern:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* Заголовок секции */
+.dropdown-section-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  padding: 0.375rem 0.75rem 0.25rem;
+  margin-top: 0.125rem;
+}
+
+.dropdown-section-title:first-child {
+  margin-top: 0;
+  padding-top: 0.5rem;
+}
+
+/* Разделитель */
+.dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.25rem 0.5rem;
+}
+
+.dropdown-list-item {
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-list-item:hover {
+  background: var(--accent);
+}
+
+/* Стрелка-указатель на триггер (опционально) */
+.dropdown-arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  border: 1px solid var(--border);
+  transform: rotate(45deg);
+  z-index: -1;
+}
+
+.dropdown-arrow--top-right {
+  top: -6px;
+  right: 16px;
+  border-bottom: none;
+  border-left: none;
+}
+

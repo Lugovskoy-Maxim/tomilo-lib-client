@@ -66,7 +66,14 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
 
   return (
     <Modal isOpen={isOpen} onClose={onCancel} title="Возрастное ограничение 18+">
-      <div className="space-y-3 sm:space-y-5">
+      <div
+        className="space-y-3 sm:space-y-5"
+        onClick={e => e.stopPropagation()}
+        onMouseDown={e => e.stopPropagation()}
+        onTouchStart={e => e.stopPropagation()}
+        onTouchEnd={e => e.stopPropagation()}
+        onTouchMove={e => e.stopPropagation()}
+      >
         {/* Заголовок с иконкой */}
         <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg sm:rounded-xl">
           <div className="flex-shrink-0 w-8 h-8 sm:w-12 sm:h-12 bg-amber-500/20 rounded-full flex items-center justify-center">
@@ -99,8 +106,15 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
         {/* Разделитель */}
         <div className="h-px bg-[var(--border)]" />
 
-        {/* Чекбокс */}
-        <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-[var(--accent)]/5 border border-[var(--border)] hover:bg-[var(--accent)]/10 transition-colors">
+        {/* Чекбокс — останавливаем всплытие, чтобы touch/click не уходили в карусель на главной и не мешали поставить галочку */}
+        <div
+          className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-[var(--accent)]/5 border border-[var(--border)] hover:bg-[var(--accent)]/10 transition-colors"
+          onClick={e => e.stopPropagation()}
+          onMouseDown={e => e.stopPropagation()}
+          onTouchStart={e => e.stopPropagation()}
+          onTouchEnd={e => e.stopPropagation()}
+          onTouchMove={e => e.stopPropagation()}
+        >
           <input
             type="checkbox"
             id="age-confirm"
@@ -121,14 +135,15 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
         {/* Кнопки */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-1 sm:pt-2">
           <button
+            type="button"
             onClick={handleConfirm}
             disabled={!isChecked || !isButtonEnabled}
             className="relative flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl font-medium transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base overflow-hidden"
           >
-            {/* Фоновое заполнение прогресса */}
+            {/* Фоновое заполнение прогресса — pointer-events: none, чтобы клик всегда доходил до кнопки */}
             {isChecked && !isButtonEnabled && (
               <div 
-                className="absolute inset-0 bg-[var(--chart-1)] transition-all duration-1000 ease-linear"
+                className="absolute inset-0 bg-[var(--chart-1)] transition-all duration-1000 ease-linear pointer-events-none"
                 style={{ 
                   width: `${((3 - countdown) / 3) * 100}%`,
                   opacity: 0.3 + ((3 - countdown) / 3) * 0.7
@@ -136,7 +151,7 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
               />
             )}
             {/* Основной фон кнопки */}
-            <div className={`absolute inset-0 ${isButtonEnabled ? 'bg-[var(--chart-1)]' : 'bg-[var(--chart-1)]/30'} transition-colors duration-300`} />
+            <div className={`absolute inset-0 pointer-events-none ${isButtonEnabled ? 'bg-[var(--chart-1)]' : 'bg-[var(--chart-1)]/30'} transition-colors duration-300`} />
             {/* Контент кнопки */}
             <span className="relative z-10 flex items-center gap-2 text-[var(--primary-foreground)]">
               {isButtonEnabled ? (
@@ -153,6 +168,7 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
             </span>
           </button>
           <button
+            type="button"
             onClick={onCancel}
             className="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-[var(--background)] text-[var(--primary)] rounded-lg sm:rounded-xl font-medium hover:bg-[var(--accent)]/30 transition-all border border-[var(--border)] text-sm sm:text-base"
           >

@@ -8,7 +8,7 @@ import {
   useGetCollectionByIdQuery,
   useIncrementCollectionViewsMutation,
 } from "@/store/api/collectionsApi";
-import { LoadingSkeleton } from "@/shared";
+import LoadingSkeleton from "@/shared/skeleton/skeleton";
 import { Title } from "@/types/title";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { ArrowLeft, Eye, FolderX, Star } from "lucide-react";

@@ -118,6 +118,7 @@ function ReadChapterPageContent({
   const [, setIsFullscreen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  // По умолчанию мобильное нижнее меню показывается (false = не скрывать)
   const [hideBottomMenuSetting, setHideBottomMenuSetting] = useState(false);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
 

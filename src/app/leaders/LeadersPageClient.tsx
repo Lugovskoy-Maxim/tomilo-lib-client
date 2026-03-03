@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Crown, TrendingUp, Star, Users, Flame, Search, RefreshCw, ChevronUp, Shield, Eye, EyeOff, Calendar, MessageSquare } from "lucide-react";
+import { TrendingUp, Star, Users, Flame, Search, ChevronUp, Eye, EyeOff, Calendar, MessageSquare } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
-import { LoadingSkeleton, ErrorState } from "@/shared";
+import LoadingSkeleton from "@/shared/skeleton/skeleton";
+import ErrorState from "@/shared/profile/ProfileError";
 import LeaderCard from "@/shared/leader-card/LeaderCard";
 import {
   useGetLeaderboardQuery,
@@ -261,7 +262,6 @@ export default function LeadersPageClient() {
   const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>("level");
   const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("month");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showAdmins, setShowAdmins] = useState(true);
   const listRef = useRef<HTMLDivElement>(null);
@@ -405,43 +405,34 @@ export default function LeadersPageClient() {
   return (
     <>
       <Header />
-      <main className="flex flex-col items-center justify-center gap-6 py-6">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2 flex items-center justify-center gap-3">
-            <Crown className="w-8 h-8 text-yellow-500 animate-pulse" />
-            Таблица лидеров
-          </h1>
-          <p className="text-[var(--muted-foreground)]">
-            {activeCategoryConfig?.description ?? "Лучшие пользователи сообщества"}
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-2 text-xs text-[var(--muted-foreground)]">
-            <RefreshCw className="w-3 h-3" />
-            <span>Обновляется каждый час</span>
-          </div>
-        </div>
+      <main className="min-h-screen flex flex-col py-6 sm:py-8">
+        <div className="w-full max-w-2xl mx-auto px-4 space-y-4">
+          <header>
+            <h1 className="text-xl font-semibold text-[var(--foreground)]">Лидеры</h1>
+            <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
+              {activeCategoryConfig?.description ?? "Рейтинг активных читателей"}
+            </p>
+          </header>
 
-        <div className="w-full max-w-4xl mx-auto px-4">
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
+          <div
+            className="flex flex-wrap gap-1.5 p-1 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)] w-full sm:w-fit"
+            role="tablist"
+            aria-label="Категории рейтинга"
+          >
             {CATEGORIES.map(category => {
               const Icon = category.icon;
               const isActive = activeCategory === category.id;
-
               return (
                 <button
                   key={category.id}
-                  onClick={() => {
-                    setActiveCategory(category.id);
-                    setSearchQuery("");
-                  }}
-                  className={`
-                    flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200
-                    ${isActive
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg scale-105"
-                      : "bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--secondary)]/80 hover:scale-[1.02]"
-                    }
-                  `}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => { setActiveCategory(category.id); setSearchQuery(""); }}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    isActive ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
                   <span className="hidden sm:inline">{category.label}</span>
                   <span className="sm:hidden">{category.shortLabel}</span>
                 </button>
@@ -450,103 +441,76 @@ export default function LeadersPageClient() {
           </div>
 
           {supportsPeriod && (
-            <div className="flex justify-center gap-2 mb-4">
-              <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[var(--secondary)] border border-[var(--border)]">
-                <Calendar className="w-4 h-4 ml-2 text-[var(--muted-foreground)]" />
+            <div className="flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5 text-[var(--muted-foreground)] shrink-0" />
+              <div className="flex gap-0.5">
                 {PERIODS.map(period => (
                   <button
                     key={period.id}
                     onClick={() => setActivePeriod(period.id)}
-                    className={`
-                      px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200
-                      ${activePeriod === period.id
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                        : "text-[var(--foreground)] hover:bg-[var(--muted)]"
-                      }
-                    `}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                      activePeriod === period.id
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    }`}
                   >
-                    <span className="hidden sm:inline">{period.label}</span>
-                    <span className="sm:hidden">{period.shortLabel}</span>
+                    {period.shortLabel}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
-            <div className={`
-              relative w-full sm:w-80 transition-all duration-200
-              ${isSearchFocused ? "sm:w-96" : ""}
-            `}>
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)] pointer-events-none" />
               <input
-                type="text"
+                type="search"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
-                placeholder="Поиск пользователя..."
-                className="
-                  w-full pl-10 pr-4 py-2.5 rounded-xl border-2 text-sm
-                  bg-[var(--secondary)] border-[var(--border)] text-[var(--foreground)]
-                  placeholder:text-[var(--muted-foreground)]
-                  focus:border-[var(--primary)] focus:outline-none
-                  transition-all duration-200
-                "
+                placeholder="Поиск по нику"
+                className="w-full pl-8 pr-8 py-2 rounded-lg text-sm bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                aria-label="Поиск пользователя"
               />
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  aria-label="Очистить поиск"
                 >
                   ×
                 </button>
               )}
             </div>
-
             <button
+              type="button"
               onClick={() => setShowAdmins(!showAdmins)}
-              className={`
-                flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200
-                border-2
-                ${showAdmins
-                  ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
-                  : "bg-[var(--secondary)] text-[var(--foreground)] border-[var(--border)] hover:border-[var(--primary)]/50"
-                }
-              `}
+              className={`shrink-0 p-2 rounded-lg border border-[var(--border)] transition-colors ${
+                showAdmins ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              }`}
               title={showAdmins ? "Скрыть админов" : "Показать админов"}
+              aria-pressed={!showAdmins}
             >
-              <Shield className="w-4 h-4" />
               {showAdmins ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              <span className="hidden sm:inline">{showAdmins ? "Скрыть админов" : "Показать админов"}</span>
             </button>
           </div>
 
           {user && currentUserRank && currentUserData && !searchQuery && (
-            <div className="mb-6 p-4 rounded-2xl border-2 border-[var(--primary)]/30 bg-[var(--primary)]/5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm bg-[var(--primary)] text-[var(--primary-foreground)]">
-                    #{currentUserRank}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-[var(--foreground)]">Ваша позиция</p>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                      {currentUserRank <= 10 ? "🎉 Вы в топ-10!" : currentUserRank <= 50 ? "👍 Вы в топ-50!" : "Продолжайте в том же духе!"}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-[var(--foreground)]">
-                    {getCategoryDisplayValue(currentUserData, activeCategory)}
-                  </p>
-                </div>
+            <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]">
+              <span className="w-7 h-7 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center text-xs font-semibold shrink-0">
+                #{currentUserRank}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-[var(--foreground)] truncate">
+                  Вы · {getCategoryDisplayValue(currentUserData, activeCategory)}
+                </p>
               </div>
             </div>
           )}
         </div>
 
-        <div ref={listRef} className="w-full max-w-4xl mx-auto px-4">
+        <div ref={listRef} className="w-full max-w-2xl mx-auto px-4 mt-6">
           {isLoading ? (
             <LeaderboardSkeleton />
           ) : hasError ? (
@@ -642,16 +606,12 @@ export default function LeadersPageClient() {
 
         {showScrollTop && (
           <button
+            type="button"
             onClick={scrollToTop}
-            className="
-              fixed bottom-6 right-6 z-50 p-3 rounded-full
-              bg-[var(--primary)] text-[var(--primary-foreground)]
-              shadow-lg hover:shadow-xl transition-all duration-200
-              hover:scale-110 animate-fade-in
-            "
+            className="fixed bottom-5 right-5 z-50 p-2.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md hover:shadow-lg transition-shadow"
             aria-label="Наверх"
           >
-            <ChevronUp className="w-5 h-5" />
+            <ChevronUp className="w-4 h-4" />
           </button>
         )}
       </main>
@@ -694,36 +654,32 @@ function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCat
 
 function LeaderboardSkeleton() {
   return (
-    <div className="space-y-6 animate-pulse">
+    <div className="space-y-4 animate-pulse">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[0, 1, 2].map(i => (
           <div
             key={i}
-            className={`
-              rounded-2xl border-2 border-[var(--border)] bg-[var(--card)] p-6
-              ${i === 0 ? "md:order-2" : i === 1 ? "md:order-1 md:mt-4" : "md:order-3 md:mt-4"}
-            `}
+            className={`rounded-2xl border border-[var(--border)] bg-[var(--card)] aspect-[9/16] ${i === 0 ? "md:order-2" : i === 1 ? "md:order-1 md:mt-6 md:scale-90" : "md:order-3 md:mt-6 md:scale-90"}`}
           >
-            <div className="flex flex-col items-center">
-              <div className={`w-${i === 0 ? "24" : "20"} h-${i === 0 ? "24" : "20"} rounded-full bg-[var(--muted)]`} />
-              <div className="w-32 h-5 bg-[var(--muted)] rounded mt-4" />
-              <div className="w-24 h-4 bg-[var(--muted)] rounded mt-2" />
-              <div className="w-28 h-8 bg-[var(--muted)] rounded-xl mt-4" />
+            <div className="flex flex-col items-center justify-end h-full pb-4">
+              <div className={`rounded-full bg-[var(--muted)] ${i === 0 ? "w-24 h-24" : "w-20 h-20"} mb-3`} />
+              <div className="w-28 h-4 bg-[var(--muted)] rounded mb-2" />
+              <div className="w-20 h-3 bg-[var(--muted)] rounded mb-3" />
+              <div className="w-24 h-8 bg-[var(--muted)] rounded-lg" />
             </div>
           </div>
         ))}
       </div>
-      
       <div className="space-y-2">
-        {[4, 5, 6, 7, 8].map(i => (
-          <div key={i} className="flex items-center gap-4 rounded-xl border-2 border-[var(--border)] bg-[var(--card)] p-4">
-            <div className="w-10 h-10 rounded-lg bg-[var(--muted)]" />
-            <div className="w-12 h-12 rounded-full bg-[var(--muted)]" />
-            <div className="flex-1">
-              <div className="w-32 h-4 bg-[var(--muted)] rounded" />
-              <div className="w-20 h-3 bg-[var(--muted)] rounded mt-2" />
+        {[0, 1, 2, 3, 4].map(i => (
+          <div key={i} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
+            <div className="w-9 h-9 rounded-lg bg-[var(--muted)] shrink-0" />
+            <div className="w-10 h-10 rounded-full bg-[var(--muted)] shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="w-24 h-4 bg-[var(--muted)] rounded" />
+              <div className="w-16 h-3 bg-[var(--muted)] rounded mt-1.5" />
             </div>
-            <div className="w-24 h-8 bg-[var(--muted)] rounded-lg" />
+            <div className="w-20 h-7 bg-[var(--muted)] rounded-lg shrink-0" />
           </div>
         ))}
       </div>

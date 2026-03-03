@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import {
-  Clock,
   MailOpen,
   Mail,
   Trash2,
@@ -25,6 +24,7 @@ import { Notification } from "@/types/notifications";
 import { getTitlePath, getChapterPath } from "@/lib/title-paths";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { getCoverUrls } from "@/lib/asset-url";
+import { formatNotificationTime } from "@/lib/date-utils";
 
 interface NotificationCardProps {
   notification: Notification;
@@ -334,13 +334,13 @@ export default function NotificationCard({
   return (
     <div
       className={`
-        relative w-full rounded-2xl border transition-all duration-200
+        relative w-full rounded-xl border transition-all duration-150
         ${notification.isRead
           ? "bg-[var(--card)] border-[var(--border)]"
-          : "bg-[var(--card)] border-[var(--primary)]/25 bg-gradient-to-r from-[var(--primary)]/[0.06] to-transparent"
+          : "bg-[var(--card)] border-[var(--primary)]/20"
         }
         ${isSelected ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]" : ""}
-        hover:shadow-md hover:border-[var(--primary)]/20
+        hover:border-[var(--border)] hover:bg-[var(--accent)]/30
       `}
       onClick={handleClick}
       role="button"
@@ -354,15 +354,15 @@ export default function NotificationCard({
     >
       {!notification.isRead && (
         <div
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-full bg-[var(--primary)] opacity-80"
+          className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full bg-[var(--primary)]"
           aria-hidden
         />
       )}
 
-      <div className="flex items-stretch min-h-[100px]">
+      <div className="flex items-stretch min-h-[88px] gap-0">
         {selectionMode && (
           <div
-            className="flex items-center pl-4 pr-2 border-r border-[var(--border)]"
+            className="flex items-center pl-3 pr-2"
             onClick={e => e.stopPropagation()}
           >
             <input
@@ -374,8 +374,8 @@ export default function NotificationCard({
           </div>
         )}
 
-        <div className="flex-shrink-0 p-3 pl-4">
-          <div className="relative w-16 h-[5.5rem] rounded-xl overflow-hidden bg-[var(--muted)] shadow-sm ring-1 ring-[var(--border)]">
+        <div className="flex-shrink-0 p-2.5 pl-3">
+          <div className="relative w-12 h-16 rounded-lg overflow-hidden bg-[var(--muted)]">
             <OptimizedImage
               src={getImageUrls(coverImageUrl).primary}
               fallbackSrc={getImageUrls(coverImageUrl).fallback}
@@ -390,66 +390,55 @@ export default function NotificationCard({
           </div>
         </div>
 
-        <div className="flex-1 py-3 pr-3 min-w-0 flex flex-col justify-center">
-          <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 py-2.5 pr-2 min-w-0 flex flex-col justify-center">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span
-                  className={`inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium shrink-0 border border-current/20 ${typeInfo.bg} ${typeInfo.text}`}
+                  className={`inline-flex items-center gap-1 py-0.5 px-1.5 rounded text-[10px] font-medium shrink-0 ${typeInfo.bg} ${typeInfo.text}`}
                   title={typeInfo.label}
                 >
-                  <TypeIcon className="w-3.5 h-3.5 flex-shrink-0 opacity-90" />
-                  <span className="whitespace-nowrap">{typeInfo.label}</span>
+                  <TypeIcon className="w-3 h-3 flex-shrink-0 opacity-90" />
                 </span>
-                <h3
-                  className={`font-semibold text-sm leading-tight min-w-0 ${
-                    notification.isRead ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"
-                  }`}
-                >
-                  {notification.title}
-                </h3>
+                <span className="text-[10px] text-[var(--muted-foreground)] shrink-0">
+                  {formatNotificationTime(notification.createdAt)}
+                </span>
               </div>
+              <h3
+                className={`font-medium text-sm leading-snug mt-0.5 line-clamp-1 ${
+                  notification.isRead ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"
+                }`}
+              >
+                {notification.title}
+              </h3>
               {showEntitySubline && (resolvedEntityName || chapterDisplayName) && (
-                <p className="text-xs text-[var(--muted-foreground)] mb-1">
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5 truncate">
                   {resolvedEntityName}
-                  {chapterDisplayName && (
-                    <span className="block mt-0.5">— {chapterDisplayName}</span>
-                  )}
+                  {chapterDisplayName && ` · ${chapterDisplayName}`}
                 </p>
               )}
               <p
-                className={`text-sm line-clamp-2 leading-relaxed ${
-                  notification.isRead ? "text-[var(--muted-foreground)]/90" : "text-[var(--foreground)]/90"
+                className={`text-xs line-clamp-2 mt-0.5 leading-relaxed ${
+                  notification.isRead ? "text-[var(--muted-foreground)]/80" : "text-[var(--foreground)]/80"
                 }`}
               >
                 {displayMessage}
               </p>
               {showResolutionBlock && resolutionText && (
-                <p className="mt-2 text-xs text-[var(--muted-foreground)] line-clamp-2 pl-2 border-l-2 border-[var(--border)]">
+                <p className="mt-1 text-[10px] text-[var(--muted-foreground)] line-clamp-1 pl-2 border-l border-[var(--border)]">
                   {resolutionText}
                 </p>
               )}
-              <div className="flex items-center gap-2 mt-2 text-xs text-[var(--muted-foreground)]">
-                <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>
-                  {new Date(notification.createdAt).toLocaleString("ru-RU", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
             </div>
 
-            <div className="relative flex-shrink-0">
+            <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={e => {
                   e.stopPropagation();
                   setActionsOpen(prev => !prev);
                 }}
-                className="p-2 rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors touch-manipulation"
+                className="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors touch-manipulation"
                 aria-label="Действия"
                 aria-expanded={actionsOpen}
               >
@@ -461,40 +450,41 @@ export default function NotificationCard({
                   <div
                     className="fixed inset-0 z-10"
                     aria-hidden
-                    onClick={e => {
-                      e.stopPropagation();
-                      setActionsOpen(false);
-                    }}
+                    onClick={() => setActionsOpen(false)}
                   />
                   <div
-                    className="absolute right-0 top-full mt-1 z-20 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-lg min-w-[160px]"
+                    className="absolute right-0 top-full mt-0.5 z-20 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg min-w-[180px]"
                     onClick={e => e.stopPropagation()}
                   >
+                    <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
+                      Статус
+                    </div>
                     {notification.isRead ? (
                       <button
                         type="button"
                         onClick={handleMarkAsUnread}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)]"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] rounded-md"
                       >
-                        <Mail className="w-4 h-4" />
+                        <Mail className="w-4 h-4 flex-shrink-0 text-[var(--primary)]" />
                         Отметить непрочитанным
                       </button>
                     ) : (
                       <button
                         type="button"
                         onClick={handleMarkAsRead}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)]"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] rounded-md"
                       >
-                        <MailOpen className="w-4 h-4" />
+                        <MailOpen className="w-4 h-4 flex-shrink-0 text-[var(--primary)]" />
                         Отметить прочитанным
                       </button>
                     )}
+                    <div className="my-1 border-t border-[var(--border)]" />
                     <button
                       type="button"
                       onClick={handleRemove}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--destructive)] hover:bg-[var(--destructive)]/10"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--destructive)] hover:bg-[var(--destructive)]/10 rounded-md"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 flex-shrink-0" />
                       Удалить
                     </button>
                   </div>

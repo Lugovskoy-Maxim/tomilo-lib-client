@@ -1,7 +1,7 @@
 "use client";
 
 import { UserProfile } from "@/types/user";
-import { Sparkles, Sun, Moon, CloudSun } from "lucide-react";
+import { Sun, Moon, CloudSun } from "lucide-react";
 import { useMemo } from "react";
 import { getRankDisplay, getRankColor, levelToRank } from "@/lib/rank-utils";
 
@@ -75,36 +75,16 @@ export default function ProfileWelcome({ userProfile }: ProfileWelcomeProps) {
   const displayName = userProfile.username || "Культиватор";
   
   return (
-    <div 
-      className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 overflow-hidden"
-      style={{
-        background: `linear-gradient(135deg, ${rankColor}08 0%, transparent 50%, ${rankColor}05 100%)`,
-        borderColor: `${rankColor}30`,
-      }}
-    >
-      <div className="p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <TimeIcon 
-                className="w-5 h-5 shrink-0" 
-                style={{ color: rankColor }} 
-              />
-              <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)] truncate">
-                {greeting}, <span style={{ color: rankColor }}>{displayName}</span>!
-              </h2>
-            </div>
-            <p className="text-sm text-[var(--muted-foreground)]">
-              {quote}
-            </p>
-          </div>
-          
-          <div 
-            className="shrink-0 p-2 rounded-xl opacity-20"
-            style={{ backgroundColor: rankColor }}
-          >
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: `${rankColor}15` }}>
+          <TimeIcon className="w-4 h-4 shrink-0" style={{ color: rankColor }} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base font-semibold text-[var(--foreground)] truncate">
+            {greeting}, {displayName}!
+          </h2>
+          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">{quote}</p>
         </div>
       </div>
     </div>

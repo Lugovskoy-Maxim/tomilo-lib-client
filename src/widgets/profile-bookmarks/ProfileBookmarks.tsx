@@ -5,7 +5,7 @@ import { UserProfile } from "@/types/user";
 import type { BookmarkEntry, BookmarkCategory } from "@/types/user";
 import type { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
-import BookmarkCard from "@/shared/bookmark-card/BookmarkCard";
+import BookmarkGridCard from "@/shared/bookmark-card/BookmarkGridCard";
 import { Bookmark, ChevronUp, Search, ArrowUpDown, X } from "lucide-react";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useGetBookmarkCountsQuery } from "@/store/api/authApi";
@@ -47,24 +47,6 @@ interface BookmarksSectionProps {
   showSectionHeader?: boolean;
 }
 
-/** Минимальный объект тайтла для карточки (API может отдавать populated titleId) */
-function toCardTitle(
-  entry: BookmarkEntry,
-  fullTitle: { _id: string; name: string; coverImage?: string; slug?: string; status?: string } | null,
-): { _id: string; name: string; coverImage?: string; slug?: string; status?: string } {
-  if (fullTitle) return fullTitle;
-  if (entry.title?.name) {
-    return {
-      _id: entry.titleId,
-      name: entry.title.name,
-      coverImage: entry.title.coverImage,
-      slug: entry.title.slug,
-      status: entry.title.status,
-    };
-  }
-  return { _id: entry.titleId, name: `Манга #${entry.titleId.slice(-6)}` };
-}
-
 function BookmarkItem({
   entry,
   chaptersRead,
@@ -83,27 +65,22 @@ function BookmarkItem({
     isLoading,
     error,
   } = useGetTitleByIdQuery({ id: titleId || "null" }, { skip: !titleId || hasTitleFromApi });
-  const [isRemoving, setIsRemoving] = useState(false);
 
-  const handleRemove = () => {
-    setIsRemoving(true);
-    setTimeout(() => {
-      onRemove(titleId);
-      setIsRemoving(false);
-    }, 300);
-  };
-
-  const title = toCardTitle(entry, fetchedTitle ?? null);
+  const title = fetchedTitle ?? entry.title;
+  const name = title?.name ?? `Манга #${entry.titleId.slice(-6)}`;
+  const coverImage = title?.coverImage ?? entry.title?.coverImage;
+  const slug = title?.slug ?? entry.title?.slug;
+  const status = title?.status ?? entry.title?.status;
+  const totalChapters = title?.totalChapters ?? entry.title?.totalChapters ?? 0;
   const showError = !hasTitleFromApi && (error || (!isLoading && !fetchedTitle));
 
-  if ((isLoading && !hasTitleFromApi) || isRemoving) {
+  if (isLoading && !hasTitleFromApi) {
     return (
-      <div className="flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/40 border border-[var(--border)] animate-pulse">
-        <div className="w-20 h-28 sm:w-24 sm:h-32 rounded-lg bg-[var(--muted)] flex-shrink-0" />
-        <div className="flex-1 min-w-0 py-1 space-y-2">
+      <div className="rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] animate-pulse">
+        <div className="aspect-[2/3] w-full bg-[var(--muted)]" />
+        <div className="p-2.5 space-y-2">
           <div className="h-4 bg-[var(--muted)] rounded w-3/4" />
           <div className="h-3 bg-[var(--muted)] rounded w-1/2" />
-          <div className="h-3 bg-[var(--muted)] rounded w-1/3 mt-3" />
         </div>
       </div>
     );
@@ -111,12 +88,12 @@ function BookmarkItem({
 
   if (showError) {
     return (
-      <div className="flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/40 border border-[var(--border)]">
-        <div className="w-20 h-28 rounded-lg bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 flex items-center justify-center flex-shrink-0">
-          <Bookmark className="w-6 h-6 text-[var(--chart-1)]" />
+      <div className="rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)]">
+        <div className="aspect-[2/3] w-full bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 flex items-center justify-center">
+          <Bookmark className="w-8 h-8 text-[var(--chart-1)]" />
         </div>
-        <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <h3 className="font-medium text-[var(--muted-foreground)] text-sm">{title.name}</h3>
+        <div className="p-2.5">
+          <h3 className="font-semibold text-sm text-[var(--foreground)] line-clamp-2">{name}</h3>
           <p className="text-xs text-red-500 mt-1">Ошибка загрузки</p>
         </div>
       </div>
@@ -124,13 +101,17 @@ function BookmarkItem({
   }
 
   return (
-    <BookmarkCard
-      title={title as import("@/types/title").Title}
+    <BookmarkGridCard
+      titleId={titleId}
+      name={name}
+      coverImage={coverImage}
+      slug={slug}
+      status={status}
+      totalChapters={totalChapters}
       category={entry.category}
       chaptersRead={chaptersRead}
-      onRemove={handleRemove}
+      onRemove={onRemove}
       onCategoryChange={onCategoryChange}
-      isLoading={false}
     />
   );
 }
@@ -160,14 +141,12 @@ function BookmarkCategorySection({
   const displayList = showAll || sectionExpanded ? entries : visible;
 
   return (
-    <section className="space-y-3">
-      <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
-        <span className="text-[var(--primary)]">{label}</span>
-        <span className="text-xs font-normal text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-0.5 rounded-full">
-          {count}
-        </span>
+    <section className="space-y-2.5">
+      <h3 className="text-xs font-semibold text-[var(--foreground)] flex items-center gap-1.5">
+        <span>{label}</span>
+        <span className="text-[var(--muted-foreground)] tabular-nums">{count}</span>
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
         {displayList.map(entry => (
           <BookmarkItem
             key={entry.titleId}
@@ -307,38 +286,20 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
 
   if (!currentBookmarks || currentBookmarks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-10 px-4 min-h-[280px]">
-        <div className="relative mb-5">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--primary)]/20 to-[var(--chart-1)]/20 flex items-center justify-center border border-[var(--primary)]/30 shadow-lg shadow-[var(--primary)]/10">
-            <Bookmark className="h-10 w-10 text-[var(--primary)]" />
-          </div>
-          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[var(--chart-2)] flex items-center justify-center text-white text-xs font-bold shadow-md">
-            0
-          </div>
+      <div className="flex flex-col items-center justify-center py-10 px-4 min-h-[240px]">
+        <div className="w-12 h-12 rounded-xl bg-[var(--secondary)] flex items-center justify-center mb-3">
+          <Bookmark className="h-6 w-6 text-[var(--muted-foreground)]" />
         </div>
-        <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">Закладки пусты</h3>
-        <p className="text-sm text-[var(--muted-foreground)] text-center max-w-sm mb-5">
-          Добавляйте тайтлы в закладки со страницы произведения, чтобы не потерять интересные истории
+        <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1">Закладки пусты</h3>
+        <p className="text-xs text-[var(--muted-foreground)] text-center max-w-xs mb-4">
+          Добавляйте тайтлы со страницы произведения
         </p>
-        <div className="flex flex-wrap gap-2 justify-center">
-          <a
-            href="/catalog"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity shadow-md"
-          >
-            <Bookmark className="w-4 h-4" />
-            Перейти в каталог
-          </a>
-        </div>
-        <div className="mt-6 grid grid-cols-5 gap-2 opacity-30">
-          {CATEGORY_ORDER.map(cat => (
-            <div key={cat} className="flex flex-col items-center gap-1 text-center">
-              <div className="w-8 h-8 rounded-lg bg-[var(--secondary)] flex items-center justify-center">
-                <Bookmark className="w-4 h-4 text-[var(--muted-foreground)]" />
-              </div>
-              <span className="text-[10px] text-[var(--muted-foreground)]">{CATEGORY_LABELS[cat]}</span>
-            </div>
-          ))}
-        </div>
+        <a
+          href="/catalog"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity"
+        >
+          В каталог
+        </a>
       </div>
     );
   }
@@ -348,57 +309,52 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
   const noResults = hasFilters && sortedBookmarks.length === 0;
 
   return (
-    <div className="space-y-5 min-h-[280px] flex flex-col">
+    <div className="space-y-4 min-h-0 flex flex-col">
       {showSectionHeader && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
-              <Bookmark className="h-4 w-4 text-[var(--primary)]" />
-              <span>Закладки</span>
-              <span className="text-xs font-normal text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-0.5 rounded-full">
+              <Bookmark className="h-4 w-4 text-[var(--primary)] shrink-0" />
+              Закладки
+              <span className="text-xs font-normal text-[var(--muted-foreground)] tabular-nums">
                 {serverCounts?.total ?? currentBookmarks.length}
               </span>
             </h2>
           </div>
 
-          {/* Поиск и сортировка */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+            <div className="relative flex-1 min-w-[160px] max-w-xs">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)]" />
               <input
                 type="text"
-                placeholder="Поиск по названию..."
+                placeholder="Поиск..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[var(--primary)]/50 transition-colors"
+                className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[var(--primary)]/50 transition-colors"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-3 h-3" />
                 </button>
               )}
             </div>
-
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowSortMenu(prev => !prev)}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
               >
-                <ArrowUpDown className="w-4 h-4 text-[var(--muted-foreground)]" />
-                <span className="hidden sm:inline">{SORT_LABELS[sortBy]}</span>
+                <ArrowUpDown className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+                {SORT_LABELS[sortBy]}
               </button>
               {showSortMenu && (
                 <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowSortMenu(false)}
-                  />
-                  <div className="absolute right-0 top-full mt-1 z-20 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[140px]">
+                  <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
+                  <div className="absolute right-0 top-full mt-1 z-20 py-0.5 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[140px]">
                     {(Object.keys(SORT_LABELS) as SortOption[]).map(option => (
                       <button
                         key={option}
@@ -407,7 +363,7 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
                           setSortBy(option);
                           setShowSortMenu(false);
                         }}
-                        className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                        className={`w-full text-left px-2.5 py-1.5 text-xs transition-colors ${
                           sortBy === option
                             ? "bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
                             : "text-[var(--foreground)] hover:bg-[var(--accent)]"
@@ -423,29 +379,22 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
           </div>
 
           {hasFilters && (
-            <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
-              <span>
-                Найдено: <span className="font-medium text-[var(--foreground)]">{sortedBookmarks.length}</span> из {currentBookmarks.length}
-              </span>
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="text-[var(--primary)] hover:underline"
-              >
+            <p className="text-xs text-[var(--muted-foreground)]">
+              Найдено <span className="font-medium text-[var(--foreground)] tabular-nums">{sortedBookmarks.length}</span>
+              {" · "}
+              <button type="button" onClick={() => setSearchQuery("")} className="text-[var(--primary)] hover:underline">
                 Сбросить
               </button>
-            </div>
+            </p>
           )}
         </div>
       )}
 
       {noResults && (
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <Search className="w-12 h-12 text-[var(--muted-foreground)] opacity-50 mb-3" />
-          <p className="text-sm font-medium text-[var(--foreground)] mb-1">Ничего не найдено</p>
-          <p className="text-xs text-[var(--muted-foreground)]">
-            Попробуйте изменить поисковый запрос
-          </p>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <Search className="w-10 h-10 text-[var(--muted-foreground)] opacity-50 mb-2" />
+          <p className="text-sm font-medium text-[var(--foreground)]">Ничего не найдено</p>
+          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Измените запрос или сбросьте фильтр</p>
         </div>
       )}
 

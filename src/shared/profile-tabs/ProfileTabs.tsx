@@ -181,25 +181,21 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
   return (
     <div className="w-full min-w-0">
-      {/* Горизонтальная навигация */}
       <div className="mb-4">
-        <div className="relative">
-          {/* Стрелка влево */}
+        <div className="relative flex items-center">
           {canScrollLeft && (
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-[var(--background)] via-[var(--background)] to-transparent"
+              className="absolute left-0 z-10 w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)]"
               aria-label="Прокрутить влево"
             >
-              <ChevronLeft className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <ChevronLeft className="w-4 h-4 text-[var(--muted-foreground)]" />
             </button>
           )}
-          
-          {/* Скроллируемые вкладки */}
-          <div 
+          <div
             ref={scrollRef}
-            className="flex gap-1 overflow-x-auto scrollbar-hide px-1 py-1 -mx-1 cursor-grab select-none"
+            className="flex gap-1 overflow-x-auto scrollbar-hide py-1 px-1 cursor-grab select-none min-w-0"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -214,41 +210,34 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                 <button
                   key={tabId}
                   type="button"
-                  onClick={() => {
-                    if (!hasDraggedRef.current) {
-                      setActiveTab(tabId);
-                    }
-                  }}
-                  className={`flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  onClick={() => { if (!hasDraggedRef.current) setActiveTab(tabId); }}
+                  className={`flex items-center gap-1.5 shrink-0 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
                     isActive
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                      : "bg-[var(--secondary)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : "bg-[var(--secondary)]/50 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
                   <span className="whitespace-nowrap">{meta.label}</span>
                 </button>
               );
             })}
           </div>
-
-          {/* Стрелка вправо */}
           {canScrollRight && (
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center bg-gradient-to-l from-[var(--background)] via-[var(--background)] to-transparent"
+              className="absolute right-0 z-10 w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)]"
               aria-label="Прокрутить вправо"
             >
-              <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Контент: хлебные крошки + заголовок секции + тело */}
       <main className="flex-1 min-w-0 flex flex-col">
-        <header className="flex-shrink-0 mb-4 sm:mb-6">
+        <header className="flex-shrink-0 mb-4">
           <Breadcrumbs
             items={
               breadcrumbPrefix?.length
@@ -259,19 +248,15 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                     { name: sectionTitle, isCurrent: true },
                   ]
             }
-            className="mb-3"
+            className="mb-2"
           />
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="p-2.5 bg-[var(--primary)]/10 rounded-xl shrink-0">
-              <SectionIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--primary)]" />
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-[var(--primary)]/10 rounded-lg shrink-0">
+              <SectionIcon className="w-4 h-4 text-[var(--primary)]" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
-                {sectionTitle}
-              </h1>
-              <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-                {sectionDescription}
-              </p>
+              <h1 className="text-base font-semibold text-[var(--foreground)]">{sectionTitle}</h1>
+              <p className="text-xs text-[var(--muted-foreground)]">{sectionDescription}</p>
             </div>
           </div>
         </header>

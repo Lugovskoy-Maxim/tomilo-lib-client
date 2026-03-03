@@ -10,6 +10,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
+import { useAgeVerification } from "@/contexts/AgeVerificationContext";
 import { getCoverUrls } from "@/lib/asset-url";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
@@ -41,6 +42,7 @@ const formatViews = (value?: number) => {
 export default function UnderratedCard({ data, onCardClick }: UnderratedCardProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const requestAgeVerification = useAgeVerification();
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
@@ -82,8 +84,12 @@ export default function UnderratedCard({ data, onCardClick }: UnderratedCardProp
     if (isAdultContent && !isAgeVerified) {
       e.preventDefault();
       e.stopPropagation();
-      setPendingAction(() => performCardAction);
-      setShowAgeModal(true);
+      if (requestAgeVerification) {
+        requestAgeVerification(performCardAction);
+      } else {
+        setPendingAction(() => performCardAction);
+        setShowAgeModal(true);
+      }
     }
   };
 
@@ -138,11 +144,13 @@ export default function UnderratedCard({ data, onCardClick }: UnderratedCardProp
         </div>
       </div>
 
-      <AgeVerificationModal
-        isOpen={showAgeModal}
-        onConfirm={handleAgeConfirm}
-        onCancel={handleAgeCancel}
-      />
+      {!requestAgeVerification && (
+        <AgeVerificationModal
+          isOpen={showAgeModal}
+          onConfirm={handleAgeConfirm}
+          onCancel={handleAgeCancel}
+        />
+      )}
     </>
   );
 

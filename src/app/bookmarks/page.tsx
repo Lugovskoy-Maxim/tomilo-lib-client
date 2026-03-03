@@ -2,7 +2,8 @@
 
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useProfile } from "@/hooks/useProfile";
-import { ErrorState, LoadingState } from "@/shared";
+import ErrorState from "@/shared/profile/ProfileError";
+import LoadingState from "@/shared/profile/ProfileLoading";
 
 import { Footer, Header, BookmarksSection } from "@/widgets";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";

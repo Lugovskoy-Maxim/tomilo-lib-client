@@ -1,6 +1,8 @@
 "use client";
-import { NotificationButton, UserDropdown, ThemeToggle } from "@/shared";
-import { UserAvatar } from "@/shared";
+import NotificationButton from "@/shared/notification-button/NotificationButton";
+import UserDropdown from "@/shared/dropdown-menu/DropdownMenu";
+import ThemeToggle from "@/shared/theme-toggle/ThemeToggle";
+import UserAvatar from "@/shared/user/avatar";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions";
 import { useState, useRef, useEffect } from "react";

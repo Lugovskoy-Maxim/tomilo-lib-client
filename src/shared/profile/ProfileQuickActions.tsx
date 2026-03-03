@@ -70,30 +70,21 @@ interface ProfileQuickActionsProps {
 
 export default function ProfileQuickActions({ className = "" }: ProfileQuickActionsProps) {
   return (
-    <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 ${className}`}>
+    <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 ${className}`}>
       {QUICK_ACTIONS.map((action) => {
         const Icon = action.icon;
         return (
           <Link
             key={action.id}
             href={action.href}
-            className={`group relative flex flex-col items-center gap-2 p-4 rounded-xl border ${action.borderColor} ${action.bgColor} hover:scale-[1.02] hover:shadow-md transition-all duration-300 overflow-hidden`}
+            className={`flex items-center gap-2.5 p-3 rounded-lg border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--accent)] transition-colors ${action.bgColor}`}
           >
-            <div className="absolute top-0 right-0 w-20 h-20 opacity-10 pointer-events-none transform translate-x-6 -translate-y-6">
-              <Icon className="w-full h-full" />
+            <div className={`p-1.5 rounded-lg shrink-0 ${action.bgColor}`}>
+              <Icon className={`w-4 h-4 ${action.color}`} />
             </div>
-            
-            <div className={`p-2.5 rounded-xl ${action.bgColor} border ${action.borderColor} group-hover:scale-110 transition-transform duration-300`}>
-              <Icon className={`w-5 h-5 ${action.color}`} />
-            </div>
-            
-            <div className="text-center relative z-10">
-              <p className={`text-sm font-semibold ${action.color} group-hover:brightness-110 transition-all`}>
-                {action.label}
-              </p>
-              <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5 hidden sm:block">
-                {action.description}
-              </p>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[var(--foreground)] truncate">{action.label}</p>
+              <p className="text-[10px] text-[var(--muted-foreground)] truncate hidden sm:block">{action.description}</p>
             </div>
           </Link>
         );

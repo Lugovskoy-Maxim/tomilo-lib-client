@@ -48,7 +48,7 @@ const filterConfig = [
 export default function NotificationsPage() {
   const [mounted, setMounted] = useState(false);
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>("all");
-  const [showRead, setShowRead] = useState(true);
+  const [showRead, setShowRead] = useState(false);
   const [page, setPage] = useState(1);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -304,36 +304,30 @@ export default function NotificationsPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background">
-        <div className="w-full max-w-5xl mx-auto px-4 py-8">
-          {/* Header Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 border border-[var(--primary)]/20 flex items-center justify-center">
-                <Bell className="w-7 h-7 text-[var(--primary)]" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">Уведомления</h1>
-                <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
-                  {unreadCount > 0 ? (
-                    <span className="text-[var(--primary)] font-medium">{unreadCount} непрочитанных</span>
-                  ) : (
-                    "Все уведомления прочитаны"
-                  )}
-                </p>
-              </div>
+      <main className="min-h-screen bg-[var(--background)]">
+        <div className="w-full max-w-2xl mx-auto px-4 py-6 sm:py-8">
+          {/* Компактный заголовок */}
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] tracking-tight truncate">
+                Уведомления
+              </h1>
+              {unreadCount > 0 && (
+                <span className="flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full bg-[var(--primary)] text-[var(--primary-foreground)]">
+                  {unreadCount}
+                </span>
+              )}
             </div>
-            
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               {unreadCount > 0 && (
                 <Button
                   onClick={handleMarkAllAsRead}
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="gap-2 rounded-xl"
+                  className="gap-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 >
                   <CheckCheck className="w-4 h-4" />
-                  Прочитать все
+                  <span className="hidden sm:inline">Прочитать все</span>
                 </Button>
               )}
               <Button
@@ -343,107 +337,102 @@ export default function NotificationsPage() {
                   setSelectionMode(!selectionMode);
                   setSelectedIds(new Set());
                 }}
-                className={`rounded-xl ${selectionMode ? "bg-primary/10 text-primary" : ""}`}
+                className={`rounded-lg ${selectionMode ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}`}
               >
                 {selectionMode ? "Готово" : "Выбрать"}
               </Button>
             </div>
           </div>
 
-          {/* Filters Section */}
-          <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4 mb-6 shadow-sm">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              {/* Filter Tabs */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
-                {filterConfig.map(({ key, label, icon: Icon }) => {
-                  const count = typeCounts[key as keyof typeof typeCounts];
-                  const isActive = activeFilter === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setActiveFilter(key)}
-                      className={`
-                        flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
-                        transition-all duration-200 whitespace-nowrap
-                        ${isActive 
-                          ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md" 
-                          : "bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
-                        }
-                      `}
-                    >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
-                      {label}
-                      {count > 0 && (
-                        <span className={`
-                          px-1.5 py-0.5 text-xs rounded-full font-medium
-                          ${isActive ? "bg-[var(--primary-foreground)]/20" : "bg-[var(--background)]"}
-                        `}>
-                          {count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+          {/* Уровень 1: фильтры по типу */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide min-h-9 mb-4">
+            {filterConfig.map(({ key, label, icon: Icon }) => {
+              const count = typeCounts[key as keyof typeof typeCounts];
+              const isActive = activeFilter === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveFilter(key)}
+                  className={`
+                    flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
+                    transition-colors whitespace-nowrap
+                    ${isActive
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : "text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+                    }
+                  `}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0 opacity-80" />
+                  <span className="hidden min-[380px]:inline">{label}</span>
+                  {count > 0 && (
+                    <span className={`text-xs ${isActive ? "opacity-90" : "text-[var(--muted-foreground)]"}`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-              {/* Toggle Show Read */}
-              <label className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[var(--muted)]/40 cursor-pointer select-none hover:bg-[var(--muted)]/60 transition-colors">
-                <span className="text-sm text-[var(--muted-foreground)]">
-                  {showRead ? "Показывать прочитанные" : "Скрыть прочитанные"}
-                </span>
-                <div className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border border-[var(--border)] bg-[var(--input)] transition-colors focus-within:ring-2 focus-within:ring-[var(--ring)] focus-within:ring-offset-2">
-                  <input
-                    type="checkbox"
-                    checked={showRead}
-                    onChange={e => setShowRead(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <span
-                    className={`
-                      pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[var(--background)] shadow ring-0 transition
-                      ${showRead ? "translate-x-5" : "translate-x-0.5"}
-                    `}
-                  />
-                </div>
-                {showRead ? <Eye className="w-4 h-4 text-[var(--muted-foreground)]" /> : <EyeOff className="w-4 h-4 text-[var(--muted-foreground)]" />}
-              </label>
+          {/* Уровень 2: показ прочитанных / только новые */}
+          <div className="flex items-center gap-2 mb-5">
+            <span className="text-sm text-[var(--muted-foreground)] shrink-0">Показывать:</span>
+            <div className="flex items-center gap-0 rounded-lg border border-[var(--border)] bg-[var(--card)] p-0.5 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setShowRead(true)}
+                className={`
+                  flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  ${showRead
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+                  }
+                `}
+              >
+                <Eye className="w-4 h-4 flex-shrink-0" />
+                <span>Все</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRead(false)}
+                className={`
+                  flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  ${!showRead
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+                  }
+                `}
+              >
+                <EyeOff className="w-4 h-4 flex-shrink-0" />
+                <span>Только новые</span>
+              </button>
             </div>
           </div>
 
-          {/* Bulk Actions Bar */}
+          {/* Панель массовых действий */}
           {selectionMode && selectedIds.size > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-4 p-4 mb-6 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 py-3 px-4 mb-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/15 animate-in fade-in duration-150">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  className="flex items-center gap-2 text-sm font-medium text-[var(--primary)] hover:underline"
+                  className="flex items-center gap-1.5 text-sm font-medium text-[var(--primary)] hover:underline"
                 >
                   {filteredNotifications.every(n => selectedIds.has(n._id)) ? (
-                    <><Square className="w-4 h-4" /> Снять выделение</>
+                    <><Square className="w-4 h-4" /> Снять</>
                   ) : (
-                    <><CheckSquare className="w-4 h-4" /> Выбрать все</>
+                    <><CheckSquare className="w-4 h-4" /> Всё</>
                   )}
                 </button>
                 <span className="text-sm text-[var(--muted-foreground)]">
-                  Выбрано: <span className="font-medium text-[var(--foreground)]">{selectedIds.size}</span>
+                  {selectedIds.size}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedIds(new Set())}
-                  className="rounded-xl"
-                >
+                <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} className="rounded-lg h-8">
                   Отмена
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteSelected}
-                  className="gap-2 rounded-xl"
-                >
+                <Button variant="destructive" size="sm" onClick={handleDeleteSelected} className="gap-1.5 rounded-lg h-8">
                   <Trash2 className="w-4 h-4" />
                   Удалить
                 </Button>
@@ -451,29 +440,24 @@ export default function NotificationsPage() {
             </div>
           )}
 
-          {/* Notifications List */}
+          {/* Список уведомлений */}
           {isLoading ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-24 bg-muted rounded-2xl animate-pulse" />
+                <div key={i} className="h-20 sm:h-24 rounded-xl bg-[var(--muted)]/50 animate-pulse" />
               ))}
             </div>
           ) : filteredNotifications.length > 0 ? (
-            <div className="space-y-8">
-              {/* Today */}
+            <div className="space-y-6">
               {groupedNotifications.today.length > 0 && (
-                <section className="space-y-3">
-                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2 py-1">
-                    <span className="w-2 h-2 rounded-full bg-[var(--primary)]" />
+                <section className="space-y-2">
+                  <p className="text-xs font-medium text-[var(--muted-foreground)] px-1 py-0.5">
                     Сегодня
-                    <span className="text-xs font-normal text-[var(--muted-foreground)]/70">
-                      {groupedNotifications.today.length}
-                    </span>
-                  </h2>
-                  <div className="space-y-3">
+                  </p>
+                  <div className="space-y-2">
                     {groupedNotifications.today.map((notification: Notification) => (
-                      <NotificationCard 
-                        key={notification._id} 
+                      <NotificationCard
+                        key={notification._id}
                         notification={notification}
                         isSelected={selectedIds.has(notification._id)}
                         onSelect={handleSelect}
@@ -483,21 +467,15 @@ export default function NotificationsPage() {
                   </div>
                 </section>
               )}
-
-              {/* Yesterday */}
               {groupedNotifications.yesterday.length > 0 && (
-                <section className="space-y-3">
-                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2 py-1">
-                    <span className="w-2 h-2 rounded-full bg-[var(--muted-foreground)]" />
+                <section className="space-y-2">
+                  <p className="text-xs font-medium text-[var(--muted-foreground)] px-1 py-0.5">
                     Вчера
-                    <span className="text-xs font-normal text-[var(--muted-foreground)]/60">
-                      {groupedNotifications.yesterday.length}
-                    </span>
-                  </h2>
-                  <div className="space-y-3">
+                  </p>
+                  <div className="space-y-2">
                     {groupedNotifications.yesterday.map((notification: Notification) => (
-                      <NotificationCard 
-                        key={notification._id} 
+                      <NotificationCard
+                        key={notification._id}
                         notification={notification}
                         isSelected={selectedIds.has(notification._id)}
                         onSelect={handleSelect}
@@ -507,21 +485,15 @@ export default function NotificationsPage() {
                   </div>
                 </section>
               )}
-
-              {/* This Week */}
               {groupedNotifications.thisWeek.length > 0 && (
-                <section className="space-y-3">
-                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2 py-1">
-                    <span className="w-2 h-2 rounded-full bg-[var(--muted-foreground)]/50" />
+                <section className="space-y-2">
+                  <p className="text-xs font-medium text-[var(--muted-foreground)] px-1 py-0.5">
                     На этой неделе
-                    <span className="text-xs font-normal text-[var(--muted-foreground)]/60">
-                      {groupedNotifications.thisWeek.length}
-                    </span>
-                  </h2>
-                  <div className="space-y-3">
+                  </p>
+                  <div className="space-y-2">
                     {groupedNotifications.thisWeek.map((notification: Notification) => (
-                      <NotificationCard 
-                        key={notification._id} 
+                      <NotificationCard
+                        key={notification._id}
                         notification={notification}
                         isSelected={selectedIds.has(notification._id)}
                         onSelect={handleSelect}
@@ -531,21 +503,15 @@ export default function NotificationsPage() {
                   </div>
                 </section>
               )}
-
-              {/* Earlier */}
               {groupedNotifications.earlier.length > 0 && (
-                <section className="space-y-3">
-                  <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2 py-1">
-                    <span className="w-2 h-2 rounded-full bg-[var(--muted-foreground)]/30" />
+                <section className="space-y-2">
+                  <p className="text-xs font-medium text-[var(--muted-foreground)] px-1 py-0.5">
                     Ранее
-                    <span className="text-xs font-normal text-[var(--muted-foreground)]/60">
-                      {groupedNotifications.earlier.length}
-                    </span>
-                  </h2>
-                  <div className="space-y-3">
+                  </p>
+                  <div className="space-y-2">
                     {groupedNotifications.earlier.map((notification: Notification) => (
-                      <NotificationCard 
-                        key={notification._id} 
+                      <NotificationCard
+                        key={notification._id}
                         notification={notification}
                         isSelected={selectedIds.has(notification._id)}
                         onSelect={handleSelect}
@@ -556,89 +522,54 @@ export default function NotificationsPage() {
                 </section>
               )}
 
-              {/* Pagination */}
               {pagination && pagination.pages > 1 && (
-                <div className="flex items-center justify-center gap-3 pt-6">
+                <div className="flex items-center justify-center gap-2 pt-4">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1 || isFetching}
-                    className="gap-2 rounded-xl"
+                    className="h-8 w-8 p-0 rounded-lg"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    Назад
                   </Button>
-                  
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                      const pageNum = i + 1;
-                      const isActive = pageNum === page;
-                      
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => setPage(pageNum)}
-                          className={`
-                            w-9 h-9 rounded-lg text-sm font-medium transition-all
-                            ${isActive 
-                              ? "bg-primary text-primary-foreground" 
-                              : "hover:bg-muted text-[var(--muted-foreground)]"
-                            }
-                          `}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-                    {pagination.pages > 5 && (
-                      <span className="px-2 text-[var(--muted-foreground)]">...</span>
-                    )}
-                  </div>
-                  
+                  <span className="text-sm text-[var(--muted-foreground)] px-2">
+                    {page} / {pagination.pages}
+                  </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setPage(p => p + 1)}
                     disabled={!hasMorePages || isFetching}
-                    className="gap-2 rounded-xl"
+                    className="h-8 w-8 p-0 rounded-lg"
                   >
-                    Вперед
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-center py-20 px-4 animate-in fade-in duration-300">
-              <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-[var(--muted)] to-[var(--muted)]/50 border border-[var(--border)] flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <Inbox className="w-14 h-14 text-[var(--muted-foreground)]" />
+            <div className="text-center py-16 px-4">
+              <div className="w-20 h-20 rounded-2xl bg-[var(--muted)]/60 flex items-center justify-center mx-auto mb-4">
+                <Inbox className="w-10 h-10 text-[var(--muted-foreground)]" />
               </div>
-              <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">
-                {activeFilter === "all" ? "Нет уведомлений" : "Ничего не найдено"}
+              <h3 className="text-lg font-medium text-[var(--foreground)] mb-1">
+                {activeFilter === "all" ? "Пока пусто" : "Ничего не найдено"}
               </h3>
-              <p className="text-[var(--muted-foreground)] max-w-sm mx-auto mb-8 leading-relaxed">
+              <p className="text-sm text-[var(--muted-foreground)] max-w-xs mx-auto mb-6">
                 {activeFilter === "all"
-                  ? "Здесь появятся уведомления о новых главах, обновлениях тайтлов и ответах на жалобы."
-                  : `Нет уведомлений в категории «${filterConfig.find(f => f.key === activeFilter)?.label}». Попробуйте другой фильтр.`}
+                  ? "Здесь будут уведомления о новых главах и ответах."
+                  : `В категории «${filterConfig.find(f => f.key === activeFilter)?.label}» пока нет записей.`}
               </p>
-              <div className="flex flex-wrap justify-center gap-3">
+              <div className="flex flex-wrap justify-center gap-2">
                 {!showRead && notificationsData.some(n => n.isRead) && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowRead(true)}
-                    className="rounded-xl"
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setShowRead(true)} className="rounded-lg">
                     Показать прочитанные
                   </Button>
                 )}
                 {activeFilter !== "all" && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setActiveFilter("all")}
-                    className="rounded-xl"
-                  >
-                    Показать все
+                  <Button variant="outline" size="sm" onClick={() => setActiveFilter("all")} className="rounded-lg">
+                    Все уведомления
                   </Button>
                 )}
               </div>

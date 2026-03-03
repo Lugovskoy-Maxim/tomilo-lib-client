@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Megaphone, ChevronRight, ChevronLeft, Pin, Calendar } from "lucide-react";
 import { useState, useRef } from "react";
 import { useGetAnnouncementsQuery } from "@/store/api/announcementsApi";
-import { SectionLoadError } from "@/shared";
+import SectionLoadError from "@/shared/error-state/SectionLoadError";
 import { getAnnouncementImageUrls } from "@/api/config";
 import type { Announcement } from "@/types/announcement";
 

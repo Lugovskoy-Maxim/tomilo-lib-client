@@ -21,9 +21,10 @@ export default function UpdatesPage() {
   >["data"][number];
   const [accumulatedData, setAccumulatedData] = useState<UpdateItem[]>([]);
 
-  const { isAuthenticated, user } = useAuth();
-  const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
-  const includeAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult ?? false;
+  const { user } = useAuth();
+  const { data: profileData } = useGetProfileQuery(undefined, { skip: !user });
+  const displayAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult;
+  const includeAdult = !user ? true : (displayAdult !== false);
 
   const { data: latestUpdatesData, isLoading, isFetching, error } = useGetLatestUpdatesQuery(
     { page, limit: UPDATES_PAGE_SIZE, includeAdult },

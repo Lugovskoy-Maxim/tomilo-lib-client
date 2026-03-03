@@ -1,7 +1,8 @@
 "use client";
 import { Footer, Header } from "@/widgets";
 import Link from "next/link";
-import { LoginModal, RegisterModal } from "@/shared";
+import LoginModal from "@/shared/modal/LoginModal";
+import RegisterModal from "@/shared/modal/RegisterModal";
 import { useRef, useState } from "react";
 import { ApiResponseDto } from "@/types/api";
 import { AuthResponse } from "@/types/auth";

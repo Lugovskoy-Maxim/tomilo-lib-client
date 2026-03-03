@@ -1,5 +1,6 @@
 import React from "react";
-import { CarouselCard, SectionLoadError } from "@/shared";
+import CarouselCard from "@/shared/popular-card/PopularCard";
+import SectionLoadError from "@/shared/error-state/SectionLoadError";
 import { Carousel } from "@/widgets";
 import { SquareArrowOutUpRight } from "lucide-react";
 import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";

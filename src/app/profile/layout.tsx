@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useProfile } from "@/hooks/useProfile";
-import { ProfileHeader } from "@/shared";
+import ProfileHeader from "@/shared/profile/ProfileHeader";
 import Link from "next/link";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { Footer, Header } from "@/widgets";
@@ -85,42 +85,38 @@ export default function ProfileLayout(_: { children: React.ReactNode }) {
   ) : (
     <ProfileProvider value={profileContextValue}>
       <div
-        className="relative min-h-[50vh] sm:min-h-[55vh] bg-[var(--background)] pt-12 sm:pt-36 bg-no-repeat bg-top"
+        className="relative min-h-[45vh] sm:min-h-[50vh] bg-[var(--background)] pt-28 sm:pt-52 bg-no-repeat bg-top"
         style={{
           backgroundImage: `url(${getBackgroundUrl()})`,
           backgroundSize: "100% auto",
-          backgroundRepeat: "no-repeat",
           backgroundPosition: "top center",
         }}
       >
         <div
           className="absolute inset-0 pointer-events-none z-0"
           style={{
-            background: "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)",
+            background: "linear-gradient(to bottom, transparent 0%, var(--background) 70%)",
           }}
           aria-hidden
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 from-0% via-transparent via-[35%] to-transparent to-[72%] pointer-events-none z-0" aria-hidden />
-        <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 pt-4 sm:pt-6 max-w-7xl min-w-0 overflow-x-hidden">
-          <ProfileHeader />
-        </div>
-        <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 py-4 sm:py-6 max-w-7xl min-w-0 overflow-x-hidden">
-          <div className="relative rounded-2xl bg-[var(--background)]/55 backdrop-blur-md border border-[var(--border)]/50 shadow-xl shadow-black/5 min-h-[50vh] overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-16 pointer-events-none z-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)', opacity: 0.55 }} aria-hidden />
-            <div className="relative z-10 p-4 sm:p-6 flex flex-col xl:flex-row gap-6 xl:gap-8 items-stretch xl:items-start">
-              {/* Левая колонка — только карточка профиля */}
-              <aside className="xl:w-72 xl:shrink-0 xl:sticky xl:top-4">
-                <ProfileSidebar
-                  userProfile={userProfile}
-                  onEdit={() => setIsEditing(true)}
-                  onAvatarUpdate={handleAvatarUpdate}
-                  isOwnProfile
-                />
-              </aside>
-              
-              {/* Центральная часть — контент вкладок */}
-              <div className="flex-1 min-w-0 w-full">
-                <ProfileTabs userProfile={userProfile} />
+        <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-5xl min-w-0 overflow-x-hidden">
+          <div className="pt-2 pb-4">
+            <ProfileHeader />
+          </div>
+          <div className="pb-6 sm:pb-8 -mt-2">
+            <div className="rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-sm min-h-[40vh] overflow-hidden">
+              <div className="p-4 sm:p-6 flex flex-col xl:flex-row gap-6 xl:gap-8 items-stretch xl:items-start">
+                <aside className="xl:w-64 xl:shrink-0 xl:sticky xl:top-4">
+                  <ProfileSidebar
+                    userProfile={userProfile}
+                    onEdit={() => setIsEditing(true)}
+                    onAvatarUpdate={handleAvatarUpdate}
+                    isOwnProfile
+                  />
+                </aside>
+                <div className="flex-1 min-w-0 w-full">
+                  <ProfileTabs userProfile={userProfile} />
+                </div>
               </div>
             </div>
           </div>

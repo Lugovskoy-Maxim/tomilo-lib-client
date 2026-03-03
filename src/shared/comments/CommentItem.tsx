@@ -11,7 +11,7 @@ import {
 } from "@/store/api/commentsApi";
 import { Reply, Edit, Trash2, MoreVertical, BadgeCheck, SmilePlus } from "lucide-react";
 import Link from "next/link";
-import { UserAvatar } from "@/shared";
+import UserAvatar from "@/shared/user/avatar";
 import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl } from "@/api/shop";
 import type { EquippedDecorations } from "@/types/user";
 import { getCoverUrls } from "@/lib/asset-url";

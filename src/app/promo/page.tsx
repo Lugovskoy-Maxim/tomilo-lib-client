@@ -3,7 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Header, Footer } from "@/widgets";
-import { LoginModal, RegisterModal } from "@/shared";
+import LoginModal from "@/shared/modal/LoginModal";
+import RegisterModal from "@/shared/modal/RegisterModal";
 import { useRedeemPromoCodeMutation, useLazyCheckPromoCodeQuery } from "@/store/api/promocodesApi";
 import { useSEO } from "@/hooks/useSEO";
 import { useToast } from "@/hooks/useToast";
