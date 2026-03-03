@@ -150,7 +150,7 @@ export default function UserProfileLayout() {
     <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
       <Header />
       <div
-        className="relative min-h-[45vh] sm:min-h-[50vh] flex flex-1 flex-col bg-[var(--background)] pt-20 sm:pt-44 bg-no-repeat bg-top"
+        className="relative min-h-[45vh] sm:min-h-[50vh] flex flex-1 flex-col bg-[var(--background)] pt-28 sm:pt-52 bg-no-repeat bg-top"
         style={{
           backgroundImage: `url(${getProfileBgUrl()})`,
           backgroundSize: "100% auto",

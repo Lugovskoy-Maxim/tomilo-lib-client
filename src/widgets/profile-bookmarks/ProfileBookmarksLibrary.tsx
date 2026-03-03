@@ -162,16 +162,16 @@ export default function ProfileBookmarksLibrary({
 
   if (!currentBookmarks.length) {
     return (
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-3 mb-1">
           <h2 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
-            <Bookmark className="w-5 h-5 text-[var(--primary)]" />
-            Библиотека манги
-            <span className="text-sm font-normal text-[var(--muted-foreground)]">0</span>
+            <Bookmark className="w-4 h-4 text-[var(--primary)]" />
+            Закладки
+            <span className="text-xs font-normal text-[var(--muted-foreground)]">0</span>
           </h2>
         </div>
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-sm text-[var(--muted-foreground)]">
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <p className="text-sm text-[var(--muted-foreground)] max-w-xs">
             {emptyStateMessage}
           </p>
           {onShowAllBookmarks ? (
@@ -198,12 +198,13 @@ export default function ProfileBookmarksLibrary({
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 shadow-sm">
-      {/* Заголовок: Библиотека манги N + Вся манга > */}
-      <div className="flex items-center justify-between gap-4 mb-4">
-        <h2 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
+      {/* Заголовок: одна строка — Закладки N + Все тайтлы */}
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <h2 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2 min-w-0">
+          <Bookmark className="w-4 h-4 text-[var(--primary)] shrink-0" />
           Закладки
-          <span className="text-xs font-normal text-[var(--muted-foreground)]">
+          <span className="text-xs font-normal text-[var(--muted-foreground)] tabular-nums">
             {currentBookmarks.length}
           </span>
         </h2>
@@ -211,35 +212,35 @@ export default function ProfileBookmarksLibrary({
           <button
             type="button"
             onClick={onShowAllBookmarks}
-            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors shrink-0"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--accent)] transition-colors shrink-0"
           >
             Все тайтлы
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         ) : (
           <Link
             href={allBookmarksHref}
-            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors shrink-0"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--accent)] transition-colors shrink-0"
           >
             Все тайтлы
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         )}
       </div>
 
-      {/* Табы: Все, затем категории с количеством */}
-      <div className="flex flex-wrap gap-1 mb-5">
+      {/* Категории: компактные pills с горизонтальным скроллом при необходимости */}
+      <div className="flex gap-1.5 mb-4 overflow-x-auto pb-0.5 -mx-0.5 scrollbar-thin scrollbar-thumb-[var(--border)] scrollbar-track-transparent">
         <button
           type="button"
           onClick={() => setActiveCategory("all")}
-          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`shrink-0 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
             activeCategory === "all"
               ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
               : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
           }`}
         >
           Все
-          <span className="ml-1.5 opacity-80">{currentBookmarks.length}</span>
+          <span className="ml-1 opacity-90 tabular-nums">{currentBookmarks.length}</span>
         </button>
         {CATEGORY_ORDER.map(cat => {
           const count = byCategory.get(cat)?.length ?? 0;
@@ -249,14 +250,14 @@ export default function ProfileBookmarksLibrary({
               key={cat}
               type="button"
               onClick={() => setActiveCategory(cat)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`shrink-0 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 activeCategory === cat
                   ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                   : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
               }`}
             >
               {CATEGORY_LABELS[cat]}
-              <span className="ml-1.5 opacity-80">{count}</span>
+              <span className="ml-1 opacity-90 tabular-nums">{count}</span>
             </button>
           );
         })}

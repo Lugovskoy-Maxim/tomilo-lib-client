@@ -188,33 +188,29 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
 
   if (sortedSessions.length === 0) {
     return (
-      <div className="border-t border-[var(--border)] bg-[var(--secondary)]/30 px-4 py-3 text-sm text-[var(--muted-foreground)]">
+      <div className="border-t border-[var(--border)] bg-[var(--secondary)]/20 px-3 py-2 text-xs text-[var(--muted-foreground)]">
         {isLoading ? "Загрузка…" : "Нет прочитанных глав"}
       </div>
     );
   }
 
   return (
-    <div className="border-t border-[var(--border)] bg-[var(--secondary)]/30">
+    <div className="border-t border-[var(--border)] bg-[var(--secondary)]/20">
       {sortedSessions.map((session, sessionIdx) => (
         <div
           key={sessionIdx}
-          className="px-4 py-3 border-b border-[var(--border)]/50 last:border-0"
+          className="px-3 py-2 border-b border-[var(--border)]/40 last:border-0"
         >
           {session.length === 1 ? (
-            <div className="flex items-center justify-between text-sm py-1">
-              <span className="font-medium text-[var(--foreground)]">
-                Глава {session[0].chapterNumber}
-              </span>
-              <span className="text-xs text-[var(--muted-foreground)]">
-                {formatSessionTime(session)}
-              </span>
+            <div className="flex items-center justify-between text-xs gap-2">
+              <span className="font-medium text-[var(--foreground)]">Глава {session[0].chapterNumber}</span>
+              <span className="text-[11px] text-[var(--muted-foreground)] shrink-0">{formatSessionTime(session)}</span>
               <button
                 onClick={e => {
                   e.stopPropagation();
                   onRemove(titleId, session[0].chapterId);
                 }}
-                className="text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-1 rounded-lg text-xs font-medium transition-colors"
+                className="text-red-500 hover:bg-red-500/10 px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors shrink-0"
                 title="Удалить из истории"
               >
                 ×
@@ -222,37 +218,27 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[var(--foreground)]">
-                  {formatChapterRange(session)}
-                </span>
-                <span className="text-xs text-[var(--muted-foreground)]">
-                  {formatSessionTime(session)}
-                </span>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <span className="text-xs font-medium text-[var(--foreground)]">{formatChapterRange(session)}</span>
+                <span className="text-[11px] text-[var(--muted-foreground)] shrink-0">{formatSessionTime(session)}</span>
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-0.5">
                 {session.map(chapter => (
                   <div
                     key={chapter.chapterId}
-                    className="flex items-center justify-between text-xs py-1 px-2 rounded-lg hover:bg-[var(--background)]/50"
+                    className="flex items-center justify-between text-[11px] py-0.5 px-1.5 rounded hover:bg-[var(--background)]/50"
                   >
-                    <span className="text-[var(--foreground)]">
-                      Глава {chapter.chapterNumber}
-                    </span>
-                    <div className="flex items-center gap-2">
+                    <span className="text-[var(--foreground)]">Глава {chapter.chapterNumber}</span>
+                    <div className="flex items-center gap-1.5">
                       <span className="text-[var(--muted-foreground)]">
-                        {new Date(chapter.readAt).toLocaleDateString("ru-RU")},{" "}
-                        {new Date(chapter.readAt).toLocaleTimeString("ru-RU", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(chapter.readAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })}
                       </span>
                       <button
                         onClick={e => {
                           e.stopPropagation();
                           onRemove(titleId, chapter.chapterId);
                         }}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10 px-2 py-1 rounded font-medium transition-colors"
+                        className="text-red-500 hover:bg-red-500/10 px-1 rounded transition-colors"
                         title="Удалить из истории"
                       >
                         ×
@@ -342,69 +328,56 @@ const HistoryTitleCard = memo(function HistoryTitleCard({
 
   return (
     <div
-      className="rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/50 overflow-hidden transition-all duration-200 shadow-sm"
+      className="rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--border)]/80 overflow-hidden transition-colors"
     >
       <div
-        className="p-3 cursor-pointer group/card"
+        className="p-2.5 sm:p-3 cursor-pointer group/card flex items-stretch gap-2.5 sm:gap-3"
         onClick={handleCardClick}
       >
-        <div className="flex items-stretch gap-3">
-          <div className="w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-[var(--secondary)]">
-            <OptimizedImage
-              src={getImageUrls(title?.coverImage).primary}
-              fallbackSrc={getImageUrls(title?.coverImage).fallback}
-              alt={titleName || `Манга #${group.titleId}`}
-              width={96}
-              height={128}
-              className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"
-              priority={false}
-            />
-          </div>
+        <div className="w-16 h-24 sm:w-20 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-[var(--secondary)]">
+          <OptimizedImage
+            src={getImageUrls(title?.coverImage).primary}
+            fallbackSrc={getImageUrls(title?.coverImage).fallback}
+            alt={titleName || `Манга #${group.titleId}`}
+            width={80}
+            height={112}
+            className="w-full h-full object-cover group-hover/card:scale-[1.03] transition-transform duration-200"
+            priority={false}
+          />
+        </div>
 
-          <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
-            <div>
-              <h3 className="font-semibold text-[var(--foreground)] text-sm truncate mb-1">
-                {titleName || `Манга #${group.titleId}`}
-              </h3>
-              <p className="text-xs text-[var(--primary)] font-medium mb-1.5">
-                {allChaptersSorted.length > 0
-                  ? formatChapterRange(allChaptersSorted)
-                  : "—"}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                {sortedSessions[0] ? formatSessionTime(sortedSessions[0]) : "—"}
-              </span>
-              <span>
-                Прочитано глав: {group.chaptersCount ?? group.chapters.length}
-              </span>
-            </div>
+        <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
+          <div>
+            <h3 className="font-semibold text-[var(--foreground)] text-sm truncate">
+              {titleName || `Манга #${group.titleId}`}
+            </h3>
+            <p className="text-xs text-[var(--primary)] font-medium mt-0.5">
+              {allChaptersSorted.length > 0 ? formatChapterRange(allChaptersSorted) : "—"}
+            </p>
           </div>
+          <p className="text-[11px] text-[var(--muted-foreground)] mt-1 flex items-center gap-1">
+            <Clock className="w-3 h-3 shrink-0" />
+            {sortedSessions[0] ? formatSessionTime(sortedSessions[0]) : "—"}
+          </p>
+        </div>
 
-          <div className="flex flex-col justify-between items-end gap-2">
+        <div className="flex flex-col justify-center items-end gap-0.5 shrink-0">
+          <button
+            onClick={handleToggleClick}
+            className="p-1.5 rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+            title={isExpandedTitle ? "Свернуть" : "Подробнее"}
+          >
+            {isExpandedTitle ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+          {!isExpandedTitle && (
             <button
-              onClick={handleToggleClick}
-              className="p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
-              title={isExpandedTitle ? "Свернуть" : "Развернуть"}
+              onClick={handleRemoveClick}
+              className="p-1.5 rounded-md text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-500/10 transition-colors"
+              title={group.chapters.length === 1 ? "Удалить из истории" : "Удалить тайтл из истории"}
             >
-              {isExpandedTitle ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
-            {!isExpandedTitle && (
-              <button
-                onClick={handleRemoveClick}
-                className="p-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors"
-                title={group.chapters.length === 1 ? "Удалить из истории" : "Удалить все главы"}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
@@ -528,42 +501,33 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
 
   if (!readingHistory || readingHistory.length === 0 || groupedHistory.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-10 px-4 text-center min-h-[280px]">
-        <div className="relative mb-5">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/10">
-            <Clock className="h-10 w-10 text-blue-500" />
-          </div>
-          <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] flex items-center justify-center shadow-md">
-            <ChevronRight className="w-4 h-4 text-white" />
-          </div>
+      <div className="flex flex-col items-center justify-center py-8 px-4 text-center min-h-[200px]">
+        <div className="w-12 h-12 rounded-xl bg-[var(--secondary)] flex items-center justify-center mb-3">
+          <Clock className="h-6 w-6 text-[var(--muted-foreground)]" />
         </div>
-        <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">История пуста</h3>
-        <p className="text-sm text-[var(--muted-foreground)] max-w-sm mb-5">
-          Здесь будут отображаться главы, которые вы прочитаете. Начните читать любой тайтл из каталога!
+        <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1">История пуста</h3>
+        <p className="text-xs text-[var(--muted-foreground)] max-w-xs mb-4">
+          Здесь появятся прочитанные главы. Начните читать тайтл из каталога.
         </p>
         <a
           href="/catalog"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-md"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity"
         >
-          <Clock className="w-4 h-4" />
-          Начать читать
+          В каталог
+          <ChevronRight className="w-3.5 h-3.5" />
         </a>
-        <div className="mt-6 flex items-center gap-3 text-[var(--muted-foreground)] opacity-50">
-          <div className="w-12 h-16 rounded-lg bg-[var(--secondary)] animate-pulse" />
-          <div className="w-12 h-16 rounded-lg bg-[var(--secondary)] animate-pulse delay-100" />
-          <div className="w-12 h-16 rounded-lg bg-[var(--secondary)] animate-pulse delay-200" />
-        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 min-h-[280px] flex flex-col">
+    <div className="space-y-3 min-h-0 flex flex-col">
       {showSectionHeader && (
-        <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
-          <h2 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2 min-w-0">
+        <div className="flex items-center justify-between gap-3 min-w-0">
+          <h2 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2 min-w-0">
+            <Clock className="w-4 h-4 text-[var(--primary)] shrink-0" />
             История чтения
-            <span className="text-xs font-normal text-[var(--muted-foreground)] shrink-0">
+            <span className="text-xs font-normal text-[var(--muted-foreground)] tabular-nums shrink-0">
               {groupedHistory.length}
             </span>
           </h2>
@@ -572,44 +536,35 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
               <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="inline-flex items-center gap-1 px-2 py-1.5 min-[360px]:px-3 min-[360px]:py-2 rounded-lg text-xs min-[360px]:text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors"
+                title={isExpanded ? "Свернуть" : "Показать все"}
               >
-                {isExpanded ? (
-                  <>
-                    <ChevronUp className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
-                    Свернуть
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
-                    Показать все
-                  </>
-                )}
+                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </button>
             )}
             {onShowAllHistory ? (
               <button
                 type="button"
                 onClick={onShowAllHistory}
-                className="inline-flex items-center gap-1 px-2 py-1.5 min-[360px]:px-3 min-[360px]:py-2 rounded-xl text-xs min-[360px]:text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors whitespace-nowrap"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--accent)] transition-colors whitespace-nowrap"
               >
                 Вся история
-                <ChevronRight className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             ) : historyHref ? (
               <Link
                 href={historyHref}
-                className="inline-flex items-center gap-1 px-2 py-1.5 min-[360px]:px-3 min-[360px]:py-2 rounded-xl text-xs min-[360px]:text-sm font-medium bg-[var(--secondary)] hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors whitespace-nowrap"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--foreground)] bg-[var(--secondary)] hover:bg-[var(--accent)] transition-colors whitespace-nowrap"
               >
                 Вся история
-                <ChevronRight className="w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             ) : null}
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-2.5">
         {displayedTitles.map(group => (
           <HistoryTitleCard
             key={group.titleId}
@@ -623,15 +578,13 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
       </div>
 
       {hasMoreTitles && !isExpanded && (
-        <div className="text-center pt-2">
-          <button
-            type="button"
-            className="text-sm font-medium text-[var(--primary)] hover:underline"
-            onClick={() => setIsExpanded(true)}
-          >
-            Показать все {groupedHistory.length} тайтлов
-          </button>
-        </div>
+        <button
+          type="button"
+          className="text-xs font-medium text-[var(--primary)] hover:underline pt-0.5"
+          onClick={() => setIsExpanded(true)}
+        >
+          Ещё {groupedHistory.length - defaultLimit} тайтлов
+        </button>
       )}
     </div>
   );

@@ -85,7 +85,7 @@ export default function ProfileLayout(_: { children: React.ReactNode }) {
   ) : (
     <ProfileProvider value={profileContextValue}>
       <div
-        className="relative min-h-[45vh] sm:min-h-[50vh] bg-[var(--background)] pt-20 sm:pt-44 bg-no-repeat bg-top"
+        className="relative min-h-[45vh] sm:min-h-[50vh] bg-[var(--background)] pt-28 sm:pt-52 bg-no-repeat bg-top"
         style={{
           backgroundImage: `url(${getBackgroundUrl()})`,
           backgroundSize: "100% auto",

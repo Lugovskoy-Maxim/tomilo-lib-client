@@ -73,7 +73,7 @@ export default function ProfileContent({
       )}
 
       {hiddenBookmarksMessage ? (
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
           <h2 className="text-sm font-semibold text-[var(--foreground)] mb-1">Закладки</h2>
           <p className="text-xs text-[var(--muted-foreground)]">{hiddenBookmarksMessage}</p>
         </div>
@@ -88,9 +88,9 @@ export default function ProfileContent({
         />
       )}
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 min-h-[200px] flex flex-col">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 flex flex-col">
         {hiddenHistoryMessage ? (
-          <div className="flex flex-1 items-center justify-center text-center">
+          <div className="flex flex-1 items-center justify-center text-center py-6">
             <p className="text-xs text-[var(--muted-foreground)]">{hiddenHistoryMessage}</p>
           </div>
         ) : (

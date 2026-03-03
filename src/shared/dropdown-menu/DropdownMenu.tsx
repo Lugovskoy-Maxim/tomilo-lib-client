@@ -250,11 +250,11 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
           <ShoppingBag className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
           <span className="min-w-0 truncate">Магазин</span>
         </Link>
-        <Link href="/profile?tab=history" onClick={onClose} role="menuitem" className={itemClass}>
+        <Link href="/history" onClick={onClose} role="menuitem" className={itemClass}>
           <History className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
           <span className="min-w-0 truncate">История</span>
         </Link>
-        <Link href="/profile?tab=bookmarks" onClick={onClose} role="menuitem" className={itemClass}>
+        <Link href="/bookmarks" onClick={onClose} role="menuitem" className={itemClass}>
           <Bookmark className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
           <span className="min-w-0 truncate">Закладки</span>
         </Link>
