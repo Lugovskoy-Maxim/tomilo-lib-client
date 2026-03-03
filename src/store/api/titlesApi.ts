@@ -109,18 +109,22 @@ export const titlesApi = createApi({
           }
         });
 
-        // Специальная обработка ageLimits для отправки как ageLimits строка
+        // Специальная обработка ageLimits: строка с запятыми; бэкенд может ожидать ageLimit (единственное число)
         if (params.ageLimits) {
-          // Всегда отправляем как ageLimits строка с запятыми
-          if (Array.isArray(params.ageLimits)) {
-            queryParams.ageLimits = params.ageLimits.join(",");
-          } else {
-            queryParams.ageLimits = params.ageLimits;
-          }
+          const ageLimitsStr =
+            typeof params.ageLimits === "string"
+              ? params.ageLimits
+              : Array.isArray(params.ageLimits)
+                ? params.ageLimits.join(",")
+                : String(params.ageLimits);
+          queryParams.ageLimits = ageLimitsStr;
+          const first = ageLimitsStr.split(",")[0]?.trim();
+          if (first) queryParams.ageLimit = first;
         }
 
-        // Передаём includeAdult только если true (чтобы не менять поведение для неавторизованных)
-        if (!params.includeAdult) {
+        if (params.includeAdult) {
+          queryParams.includeAdult = "true";
+        } else {
           delete queryParams.includeAdult;
         }
 
@@ -344,7 +348,10 @@ export const titlesApi = createApi({
     getPopularTitles: builder.query<ApiResponseDto<PopularTitle[]>, { limit?: number; includeAdult?: boolean } | void>({
       query: (params = {}) => ({
         url: "/titles/popular",
-        params: { limit: params?.limit ?? 35, includeAdult: params?.includeAdult || undefined },
+        params: {
+          limit: params?.limit ?? 35,
+          ...(params?.includeAdult ? { includeAdult: "true" as const } : {}),
+        },
       }),
       providesTags: [TITLES_TAG],
       transformResponse: (response: ApiResponseDto<PopularTitle[]>) => response,
@@ -499,7 +506,10 @@ export const titlesApi = createApi({
     >({
       query: params => ({
         url: "/titles/random",
-        params: { limit: params.limit, includeAdult: params.includeAdult || undefined },
+        params: {
+          limit: params.limit,
+          ...(params.includeAdult ? { includeAdult: "true" as const } : {}),
+        },
       }),
       providesTags: [TITLES_TAG],
       transformResponse: (
@@ -526,7 +536,11 @@ export const titlesApi = createApi({
     >({
       query: (params = {}) => ({
         url: "/titles/titles/recent",
-        params: { limit: params?.limit ?? 18, page: params?.page ?? 1, includeAdult: params?.includeAdult || undefined },
+        params: {
+          limit: params?.limit ?? 18,
+          page: params?.page ?? 1,
+          ...(params?.includeAdult ? { includeAdult: "true" as const } : {}),
+        },
       }),
       providesTags: [TITLES_TAG],
       transformResponse: (
@@ -567,7 +581,7 @@ export const titlesApi = createApi({
     >({
       query: ({ page = 1, limit = 18, includeAdult } = {}) => ({
         url: "/titles/latest-updates",
-        params: { page, limit, includeAdult: includeAdult || undefined },
+        params: { page, limit, ...(includeAdult ? { includeAdult: "true" as const } : {}) },
       }),
       providesTags: [TITLES_TAG],
       transformResponse: (
@@ -619,7 +633,10 @@ export const titlesApi = createApi({
     >({
       query: params => ({
         url: "/titles/recommended",
-        params,
+        params: {
+          limit: params?.limit,
+          ...(params?.includeAdult ? { includeAdult: "true" as const } : {}),
+        },
       }),
       providesTags: [TITLES_TAG],
       transformResponse: (
@@ -646,7 +663,7 @@ export const titlesApi = createApi({
     >({
       query: ({ id, limit = 10, includeAdult }) => ({
         url: `/titles/${id}/similar`,
-        params: { limit, includeAdult: includeAdult || undefined },
+        params: { limit, ...(includeAdult ? { includeAdult: "true" as const } : {}) },
       }),
       providesTags: (result, error, { id }) => [{ type: TITLES_TAG, id: `similar-${id}` }],
     }),
@@ -670,7 +687,7 @@ export const titlesApi = createApi({
     >({
       query: ({ genre, page = 1, limit = 20, includeAdult }) => ({
         url: `/titles/genre/${encodeURIComponent(genre)}`,
-        params: { page, limit, includeAdult: includeAdult || undefined },
+        params: { page, limit, ...(includeAdult ? { includeAdult: "true" as const } : {}) },
       }),
       providesTags: (result, error, { genre }) => [{ type: TITLES_TAG, id: `genre-${genre}` }],
     }),

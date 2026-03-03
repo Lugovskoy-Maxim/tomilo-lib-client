@@ -75,7 +75,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     <div
       data-modal-portal
       className={backdropClass}
-      onClick={handleClose}
+      onClick={e => e.target === e.currentTarget && handleClose()}
     >
       <div
         ref={modalRef}
@@ -84,6 +84,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         aria-labelledby="modal-title"
         className={contentClass}
         onClick={e => e.stopPropagation()}
+        onMouseDown={e => e.stopPropagation()}
+        onTouchStart={e => e.stopPropagation()}
+        onTouchEnd={e => e.stopPropagation()}
+        onTouchMove={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-2 min-[360px]:gap-3 px-3 min-[360px]:px-4 sm:px-5 py-2.5 min-[360px]:py-3.5 border-b border-[var(--border)] bg-[var(--background)] flex-shrink-0">
           <h2

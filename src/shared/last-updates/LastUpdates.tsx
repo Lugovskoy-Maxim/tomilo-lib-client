@@ -10,6 +10,7 @@ import { timeAgo } from "@/lib/date-utils";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
+import { useAgeVerification } from "@/contexts/AgeVerificationContext";
 import { getCoverUrls } from "@/lib/asset-url";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
@@ -32,6 +33,7 @@ interface LatestUpdateCardProps {
 export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const requestAgeVerification = useAgeVerification();
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
 
@@ -44,15 +46,19 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   };
 
   const titlePath = getTitlePath(data);
+  const performCardAction = () => router.push(titlePath);
 
   const handleClick = (e: React.MouseEvent) => {
     if (data.isAdult && !isAgeVerified) {
       e.preventDefault();
       e.stopPropagation();
-      setShowAgeModal(true);
+      if (requestAgeVerification) {
+        requestAgeVerification(performCardAction);
+      } else {
+        setShowAgeModal(true);
+      }
       return;
     }
-    // Иначе переход по Link (не preventDefault)
   };
 
   const handleAgeConfirm = () => {
@@ -200,11 +206,13 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
         </div>
       </div>
 
-      <AgeVerificationModal
-        isOpen={showAgeModal}
-        onConfirm={handleAgeConfirm}
-        onCancel={handleAgeCancel}
-      />
+      {!requestAgeVerification && (
+        <AgeVerificationModal
+          isOpen={showAgeModal}
+          onConfirm={handleAgeConfirm}
+          onCancel={handleAgeCancel}
+        />
+      )}
     </Link>
   );
 }

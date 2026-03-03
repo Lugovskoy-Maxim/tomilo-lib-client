@@ -55,12 +55,16 @@ function buildFiltersKey(filters: Filters): string {
 }
 
 function parseFiltersFromSearchParams(params: URLSearchParams | Readonly<URLSearchParams>): Filters {
+  const ageLimitsRaw = params.get("ageLimits") ?? params.get("ageLimit");
+  const ageLimits = ageLimitsRaw
+    ? ageLimitsRaw.split(",").filter(Boolean).map(Number)
+    : [];
   return {
     search: params.get("search") || "",
     genres: params.get("genres")?.split(",").filter(Boolean) || [],
     types: params.get("types")?.split(",").filter(Boolean) || [],
     status: params.get("status")?.split(",").filter(Boolean) || [],
-    ageLimits: params.get("ageLimits")?.split(",").filter(Boolean).map(Number) || [],
+    ageLimits,
     releaseYears: params.get("releaseYears")?.split(",").filter(Boolean).map(Number) || [],
     tags: params.get("tags")?.split(",").filter(Boolean) || [],
     sortBy: (params.get("sortBy") || "averageRating") as Filters["sortBy"],
@@ -73,7 +77,7 @@ export default function TitlesContent() {
   const searchParams = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const { user } = useAuth();
-  const includeAdult = user?.displaySettings?.isAdult ?? false;
+  const includeAdult = !user ? true : (user.displaySettings?.isAdult !== false);
 
   const [appliedFilters, setAppliedFilters] = useState<Filters>(() =>
     parseFiltersFromSearchParams(searchParams)

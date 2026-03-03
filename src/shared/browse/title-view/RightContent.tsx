@@ -86,6 +86,7 @@ export function RightContent({
   const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
 
   const { removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
+  const includeAdult = !user ? true : (user.displaySettings?.isAdult !== false);
 
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
@@ -568,10 +569,11 @@ export function RightContent({
             <TranslatorsSection titleId={titleId} />
 
             {/* Похожие тайтлы */}
-            <SimilarTitles 
-              titleId={titleId} 
-              genres={titleData.genres} 
+            <SimilarTitles
+              titleId={titleId}
+              genres={titleData.genres}
               currentTitleSlug={slug}
+              includeAdult={includeAdult}
             />
           </div>
         );

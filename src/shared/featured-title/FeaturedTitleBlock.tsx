@@ -13,6 +13,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
+import { useAgeVerification } from "@/contexts/AgeVerificationContext";
 import { getCoverUrls } from "@/lib/asset-url";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
@@ -68,6 +69,7 @@ export default function FeaturedTitleBlock({
   const router = useRouter();
   const { user, addBookmark, removeBookmark, isAuthenticated } = useAuth();
   const toast = useToast();
+  const requestAgeVerification = useAgeVerification();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
@@ -215,7 +217,11 @@ export default function FeaturedTitleBlock({
     if (isAdultContent && !isAgeVerified) {
       e.preventDefault();
       e.stopPropagation();
-      setPendingAction(() => () => router.push(titlePath));
+      if (requestAgeVerification) {
+        requestAgeVerification(() => router.push(titlePath));
+        return;
+      }
+      setPendingAction(() => router.push(titlePath));
       setShowAgeModal(true);
       return;
     }
@@ -349,8 +355,12 @@ export default function FeaturedTitleBlock({
               onClick={(e) => {
                 if (isAdultContent && !isAgeVerified) {
                   e.preventDefault();
-                  setPendingAction(() => () => router.push(titlePath));
-                  setShowAgeModal(true);
+                  if (requestAgeVerification) {
+                    requestAgeVerification(() => router.push(titlePath));
+                  } else {
+                    setPendingAction(() => router.push(titlePath));
+                    setShowAgeModal(true);
+                  }
                 }
               }}
             >
@@ -485,8 +495,12 @@ export default function FeaturedTitleBlock({
               onClick={(e) => {
                 if (isAdultContent && !isAgeVerified) {
                   e.preventDefault();
-                  setPendingAction(() => () => router.push(titlePath));
-                  setShowAgeModal(true);
+                  if (requestAgeVerification) {
+                    requestAgeVerification(() => router.push(titlePath));
+                  } else {
+                    setPendingAction(() => router.push(titlePath));
+                    setShowAgeModal(true);
+                  }
                 }
               }}
             >
@@ -689,11 +703,13 @@ export default function FeaturedTitleBlock({
         )}
       </div>
 
-      <AgeVerificationModal
-        isOpen={showAgeModal}
-        onConfirm={handleAgeConfirm}
-        onCancel={handleAgeCancel}
-      />
+      {!requestAgeVerification && (
+        <AgeVerificationModal
+          isOpen={showAgeModal}
+          onConfirm={handleAgeConfirm}
+          onCancel={handleAgeCancel}
+        />
+      )}
     </section>
   );
 }
