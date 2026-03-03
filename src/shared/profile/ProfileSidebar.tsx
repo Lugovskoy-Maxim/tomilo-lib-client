@@ -41,28 +41,16 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
 
   return (
     <aside className="w-full xl:w-auto xl:shrink-0">
-      <div className="relative rounded-2xl border border-[var(--border)]/60 bg-gradient-to-b from-[var(--card)] to-[var(--card)]/80 backdrop-blur-md p-4 sm:p-5 shadow-lg sticky top-2 sm:top-4 xl:static overflow-hidden">
-        {/* Декоративный градиент на фоне */}
-        <div 
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at 50% 0%, ${rankColor} 0%, transparent 50%)`,
-          }}
-        />
-
-        {/* Аватар с улучшенным свечением */}
-        <div className="relative flex justify-center mb-5 pt-8 pb-4">
-          <div 
-            className="absolute inset-0 blur-3xl opacity-20 pointer-events-none transition-opacity duration-500"
-            style={{ background: `radial-gradient(circle, ${rankColor} 0%, transparent 70%)` }}
-          />
-          <div className="relative w-28 h-28 sm:w-32 sm:h-32">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm sticky top-2 sm:top-4 xl:static">
+        {/* Аватар */}
+        <div className="flex justify-center mb-4">
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28">
             <ProfileAvatar userProfile={userProfile} size="sm" />
             <div className="absolute inset-0 pointer-events-none">
               <RankStarsOverlay userProfile={userProfile} size={112} />
             </div>
             {onAvatarUpdate && (
-              <div className="absolute -bottom-1 -right-1 z-10">
+              <div className="absolute -bottom-0.5 -right-0.5 z-10">
                 <EditAvatarButton onAvatarUpdate={onAvatarUpdate} />
               </div>
             )}
@@ -70,48 +58,25 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
         </div>
 
         {/* Имя и роль */}
-        <div className="text-center mb-4 relative z-10">
-          <h1 className="text-base sm:text-lg font-bold text-[var(--foreground)] truncate px-1 mb-2">
+        <div className="text-center mb-3">
+          <h1 className="text-base font-semibold text-[var(--foreground)] truncate px-1">
             {userProfile.username}
           </h1>
-          <div className="flex items-center justify-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 ${
-                isAdmin
-                  ? "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-red-500 border border-red-500/30 shadow-sm shadow-red-500/10"
-                  : "bg-gradient-to-r from-[var(--primary)]/15 to-[var(--chart-1)]/15 text-[var(--primary)] border border-[var(--primary)]/30 shadow-sm shadow-[var(--primary)]/10"
-              }`}
-            >
-              {isAdmin ? <Shield className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
-              {isAdmin ? "Администратор" : "Культиватор"}
-            </span>
-          </div>
-          {userProfile.bio && (
-            <div className="mt-4 relative group">
-              <div 
-                className="absolute inset-0 rounded-2xl opacity-50 blur-xl transition-opacity duration-500 group-hover:opacity-70"
-                style={{ background: `linear-gradient(135deg, ${rankColor}15 0%, transparent 50%, ${rankColor}10 100%)` }}
-              />
-              <div className="relative overflow-hidden rounded-2xl bg-[var(--card)]/60 border border-[var(--border)]/50 backdrop-blur-md shadow-lg">
-                <div 
-                  className="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
-                  style={{ background: `linear-gradient(to bottom, ${rankColor}, ${rankColor}50)` }}
-                />
-                <div className="px-4 py-3 pl-5">
-                  <svg className="absolute top-2 left-3 w-3 h-3 opacity-30" style={{ color: rankColor }} fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-                  </svg>
-                  <p className="text-xs sm:text-sm text-[var(--foreground)]/90 leading-relaxed italic line-clamp-3 pl-3">
-                    {userProfile.bio}
-                  </p>
-                  <svg className="absolute bottom-2 right-3 w-3 h-3 opacity-30 rotate-180" style={{ color: rankColor }} fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          )}
+          <span
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium mt-1.5 ${
+              isAdmin ? "bg-red-500/15 text-red-600 dark:text-red-400" : "bg-[var(--primary)]/10 text-[var(--primary)]"
+            }`}
+          >
+            {isAdmin ? <Shield className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
+            {isAdmin ? "Админ" : "Культиватор"}
+          </span>
         </div>
+
+        {userProfile.bio && (
+          <p className="text-xs text-[var(--muted-foreground)] text-center leading-relaxed line-clamp-3 mb-3 px-1">
+            {userProfile.bio}
+          </p>
+        )}
 
         {onEdit && (
           <Button
@@ -119,102 +84,75 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
             variant="outline"
             size="sm"
             onClick={onEdit}
-            className="w-full mb-4 rounded-xl border-[var(--border)] hover:bg-[var(--accent)] hover:border-[var(--primary)]/50 text-xs sm:text-sm px-3 py-2.5 transition-all duration-300 group"
+            className="w-full mb-4 rounded-lg border-[var(--border)] hover:bg-[var(--accent)] text-xs py-2 h-8"
           >
-            <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 shrink-0 transition-transform group-hover:rotate-12" />
-            <span className="truncate">Редактировать профиль</span>
+            <Pencil className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+            Редактировать
           </Button>
         )}
 
-        {/* Баланс и серия - скрываем при публичном просмотре */}
+        {/* Баланс и серия */}
         {(showBalance || showStreak) && (
-          <div className={`grid gap-2 mb-4 ${showBalance && showStreak ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          <div className={`grid gap-1.5 mb-3 ${showBalance && showStreak ? "grid-cols-2" : "grid-cols-1"}`}>
             {showBalance && (
-              <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-                <Coins className="w-4 h-4 text-yellow-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-yellow-500 tabular-nums">{balance.toLocaleString()}</p>
-                  <p className="text-[9px] text-[var(--muted-foreground)]">Монеты</p>
-                </div>
+              <div className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-[var(--secondary)]/50">
+                <Coins className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span className="text-[11px] font-medium tabular-nums truncate">{balance.toLocaleString()}</span>
               </div>
             )}
             {showStreak && (
-              <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                <Flame className="w-4 h-4 text-orange-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-orange-500 tabular-nums">{currentStreak}</p>
-                  <p className="text-[9px] text-[var(--muted-foreground)]">
-                    {currentStreak === 1 ? "день" : currentStreak < 5 ? "дня" : "дней"}
-                  </p>
-                </div>
+              <div className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-[var(--secondary)]/50">
+                <Flame className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                <span className="text-[11px] font-medium tabular-nums">
+                  {currentStreak} {currentStreak === 1 ? "день" : currentStreak < 5 ? "дня" : "дней"}
+                </span>
               </div>
             )}
           </div>
         )}
 
-        {/* Любимый жанр */}
         {userProfile.favoriteGenre && (
-          <div className="flex items-center justify-center gap-2 text-xs text-[var(--muted-foreground)] mb-2 py-2 px-3 rounded-lg bg-pink-500/10 border border-pink-500/20">
-            <Heart className="w-3.5 h-3.5 shrink-0 text-pink-500" />
-            <span className="text-pink-500 font-medium truncate">{userProfile.favoriteGenre}</span>
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-[var(--muted-foreground)] mb-3 py-1.5 px-2 rounded-lg bg-[var(--secondary)]/40">
+            <Heart className="w-3 h-3 text-pink-500 shrink-0" />
+            <span className="truncate">{userProfile.favoriteGenre}</span>
           </div>
         )}
 
-        {/* Дата регистрации */}
-        <div className="flex items-center justify-center gap-2 text-xs text-[var(--muted-foreground)] mb-5 py-2 px-3 rounded-lg bg-[var(--secondary)]/30">
-          <Calendar1 className="w-3.5 h-3.5 shrink-0 text-[var(--chart-2)]" />
-          <span>
-            На сайте с{" "}
-            <span className={isJoinedDateVisible ? "text-[var(--foreground)] font-medium" : "text-amber-500 font-medium"}>
-              {joinedAtLabel}
-            </span>
-          </span>
+        <div className="flex items-center justify-center gap-1.5 text-[11px] text-[var(--muted-foreground)] mb-4 py-1.5 px-2 rounded-lg bg-[var(--secondary)]/40">
+          <Calendar1 className="w-3 h-3 shrink-0" />
+          На сайте с {isJoinedDateVisible ? joinedAtLabel : "—"}
         </div>
 
-        {/* Уровень и ранг - компактный вид */}
-        <div 
-          className="relative rounded-xl p-3 overflow-hidden"
-          style={{
-            background: `linear-gradient(135deg, ${rankColor}10 0%, ${rankColor}05 100%)`,
-            border: `1px solid ${rankColor}30`,
-          }}
+        {/* Уровень и прогресс */}
+        <div
+          className="rounded-lg p-2.5 border border-[var(--border)]/80"
+          style={{ background: `linear-gradient(135deg, ${rankColor}08 0%, transparent 100%)` }}
         >
-          <div className="flex items-center gap-3">
-            <div 
-              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-base shrink-0"
-              style={{ 
-                backgroundColor: `${rankColor}20`,
-                color: rankColor,
-                boxShadow: `0 0 12px ${rankColor}30`
-              }}
+          <div className="flex items-center gap-2">
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm shrink-0"
+              style={{ backgroundColor: `${rankColor}20`, color: rankColor }}
             >
               {level}
             </div>
             <div className="flex-1 min-w-0">
-              <p 
-                className="text-sm font-bold leading-tight truncate"
-                style={{ color: rankColor }}
-              >
+              <p className="text-xs font-semibold truncate" style={{ color: rankColor }}>
                 {getRankDisplay(level)}
               </p>
-              <div className="mt-1.5 h-1.5 rounded-full bg-[var(--secondary)]/80 overflow-hidden">
+              <div className="mt-1 h-1 rounded-full bg-[var(--secondary)] overflow-hidden">
                 <div
-                  className="h-full rounded-full transition-all duration-700 ease-out"
-                  style={{ 
-                    width: `${expProgress}%`,
-                    background: `linear-gradient(90deg, ${rankColor} 0%, ${rankColor}cc 100%)`,
-                  }}
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${expProgress}%`, backgroundColor: rankColor }}
                 />
               </div>
-              <p className="text-[10px] text-[var(--muted-foreground)] mt-1">
+              <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">
                 {experience.toLocaleString()} / {nextLevelExp.toLocaleString()} XP
               </p>
             </div>
           </div>
         </div>
 
-        {/* Топ-10 лидерборда */}
-        <div className="mt-4">
+        <div className="mt-3">
           <ProfileLeaderboardBadges userId={userProfile._id} />
         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { X, ChevronDown, ChevronUp } from "lucide-react";
+import { X, ChevronDown, RotateCcw, SlidersHorizontal, Search } from "lucide-react";
 import CollapsibleGenresList from "./CollapsibleGenresList";
 import { translateTitleType, translateTitleStatus } from "@/lib/title-type-translations";
 
@@ -25,32 +25,236 @@ interface FilterSidebarProps<T> {
   onClose?: () => void;
 }
 
-// Компонент секции фильтра
-const FilterSection = ({
+const chipBase =
+  "inline-flex items-center justify-center cursor-pointer rounded-lg px-3 py-2 text-sm font-medium transition-colors select-none min-w-0";
+
+function Section({
   title,
+  openDefault,
   children,
-  isOpen = true,
 }: {
   title: string;
+  openDefault?: boolean;
   children: React.ReactNode;
-  isOpen?: boolean;
-}) => {
-  const [open, setOpen] = useState(isOpen);
+}) {
+  const [open, setOpen] = useState(openDefault ?? false);
 
   return (
-    <div className="rounded-lg bg-[var(--muted)]/30 border border-[var(--border)] overflow-hidden">
+    <section className="border-b border-[var(--border)]/60 last:border-0">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full text-left px-3 py-2.5 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]/40 transition-colors"
+        className="flex w-full items-center justify-between py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 rounded-lg -mx-1 px-1"
+        aria-expanded={open}
       >
-        {title}
-        {open ? <ChevronUp className="w-4 h-4 shrink-0 opacity-60" /> : <ChevronDown className="w-4 h-4 shrink-0 opacity-60" />}
+        <span className="text-sm font-semibold text-[var(--foreground)]">{title}</span>
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-[var(--muted-foreground)] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          aria-hidden
+        />
       </button>
-      {open && <div className="px-3 pb-3 pt-0 space-y-1.5">{children}</div>}
+      {open && <div className="pb-4 pt-0">{children}</div>}
+    </section>
+  );
+}
+
+/** Общая обёртка для списков с прокруткой (теги, годы) */
+const scrollBox = "max-h-44 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--muted)]/15 p-2 custom-scrollbar";
+
+function ChipMulti({
+  label,
+  selected,
+  onToggle,
+  shrink,
+}: {
+  label: string;
+  selected: boolean;
+  onToggle: () => void;
+  shrink?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`${chipBase} ${shrink !== false ? "shrink-0" : ""} ${
+        selected
+          ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+          : "bg-[var(--muted)]/40 text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+      }`}
+      aria-pressed={selected}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Диапазон годов: два поля ввода «от» и «до» + двойной ползунок */
+function YearRangeFilter({
+  yearMin,
+  yearMax,
+  from,
+  to,
+  onChange,
+}: {
+  yearMin: number;
+  yearMax: number;
+  from: number | undefined;
+  to: number | undefined;
+  onChange: (from: number | undefined, to: number | undefined) => void;
+}) {
+  const curFrom = from ?? yearMin;
+  const curTo = to ?? yearMax;
+  const safeFrom = Math.max(yearMin, Math.min(yearMax, curFrom));
+  const safeTo = Math.max(yearMin, Math.min(yearMax, curTo));
+  const low = Math.min(safeFrom, safeTo);
+  const high = Math.max(safeFrom, safeTo);
+
+  const range = yearMax - yearMin || 1;
+  const pctFrom = ((low - yearMin) / range) * 100;
+  const pctTo = ((high - yearMin) / range) * 100;
+
+  const setFrom = (v: number) => {
+    const next = Math.max(yearMin, Math.min(yearMax, v));
+    onChange(next, high === curTo && next > curTo ? next : to);
+  };
+  const setTo = (v: number) => {
+    const next = Math.max(yearMin, Math.min(yearMax, v));
+    onChange(low === curFrom && next < curFrom ? next : from, next);
+  };
+
+  const handleFromInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const n = parseInt(e.target.value, 10);
+    if (!Number.isNaN(n)) setFrom(n);
+  };
+  const handleToInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const n = parseInt(e.target.value, 10);
+    if (!Number.isNaN(n)) setTo(n);
+  };
+
+  const clearRange = () => onChange(undefined, undefined);
+
+  const hasRange = from != null || to != null;
+
+  return (
+    <div className="space-y-3">
+      {/* Ручной ввод */}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">От</label>
+          <input
+            type="number"
+            min={yearMin}
+            max={yearMax}
+            value={from ?? ""}
+            onChange={e => (e.target.value === "" ? onChange(undefined, to) : handleFromInput(e))}
+            placeholder={String(yearMin)}
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">До</label>
+          <input
+            type="number"
+            min={yearMin}
+            max={yearMax}
+            value={to ?? ""}
+            onChange={e => (e.target.value === "" ? onChange(from, undefined) : handleToInput(e))}
+            placeholder={String(yearMax)}
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+          />
+        </div>
+      </div>
+
+      {/* Двойной ползунок: свой трек + два input range без трека */}
+      <div className="relative h-6">
+        <div
+          className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full"
+          style={{
+            background: `linear-gradient(to right, var(--muted) 0%, var(--muted) ${pctFrom}%, var(--primary) ${pctFrom}%, var(--primary) ${pctTo}%, var(--muted) ${pctTo}%, var(--muted) 100%)`,
+          }}
+          aria-hidden
+        />
+        <input
+          type="range"
+          min={yearMin}
+          max={yearMax}
+          value={low}
+          onChange={e => setFrom(Number(e.target.value))}
+          className="year-range-input absolute inset-x-0 top-1/2 h-2 w-full -translate-y-1/2 cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[var(--primary)] [&::-webkit-slider-thumb]:bg-[var(--card)] [&::-webkit-slider-thumb]:shadow"
+          aria-label="Год от"
+        />
+        <input
+          type="range"
+          min={yearMin}
+          max={yearMax}
+          value={high}
+          onChange={e => setTo(Number(e.target.value))}
+          className="year-range-input absolute inset-x-0 top-1/2 h-2 w-full -translate-y-1/2 cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[var(--primary)] [&::-webkit-slider-thumb]:bg-[var(--card)] [&::-webkit-slider-thumb]:shadow"
+          aria-label="Год до"
+        />
+      </div>
+
+      {hasRange && (
+        <button
+          type="button"
+          onClick={clearRange}
+          className="text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:underline"
+        >
+          Сбросить диапазон
+        </button>
+      )}
     </div>
   );
-};
+}
+
+/** Теги: поиск + прокручиваемый список чипов */
+function TagsFilter({
+  tags,
+  selectedTags,
+  onTagChange,
+}: {
+  tags: string[];
+  selectedTags: string[];
+  onTagChange: (tag: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(() => {
+    if (!query.trim()) return [...tags].sort((a, b) => a.localeCompare(b));
+    const q = query.trim().toLowerCase();
+    return tags.filter(t => t.toLowerCase().includes(q)).sort((a, b) => a.localeCompare(b));
+  }, [tags, query]);
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-foreground)]" aria-hidden />
+        <input
+          type="search"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Поиск тега..."
+          className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] py-2 pl-9 pr-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+          aria-label="Поиск по тегам"
+        />
+      </div>
+      <div className={scrollBox}>
+        <div className="flex flex-wrap gap-1.5">
+          {filtered.map(tag => (
+            <ChipMulti
+              key={tag}
+              label={tag}
+              selected={selectedTags.includes(tag)}
+              onToggle={() => onTagChange(tag)}
+            />
+          ))}
+        </div>
+        {filtered.length === 0 && (
+          <p className="py-4 text-center text-sm text-[var(--muted-foreground)]">Ничего не найдено</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function FilterSidebar<
   T extends {
@@ -60,6 +264,8 @@ export default function FilterSidebar<
     status: string[];
     ageLimits: number[];
     releaseYears: number[];
+    releaseYearFrom?: number;
+    releaseYearTo?: number;
     tags: string[];
     sortBy: string;
     sortOrder: string;
@@ -73,211 +279,173 @@ export default function FilterSidebar<
   isOpen = false,
   onClose,
 }: FilterSidebarProps<T>) {
-  // Считаем количество активных фильтров
-  const activeFiltersCount = useMemo(() => {
-    return filters.genres.length + 
-           filters.types.length + 
-           filters.status.length + 
-           filters.ageLimits.length + 
-           filters.releaseYears.length + 
-           filters.tags.length;
-  }, [filters]);
-  // Обработчики для фильтров
+  const activeCount = useMemo(
+    () =>
+      filters.genres.length +
+      filters.types.length +
+      filters.status.length +
+      filters.ageLimits.length +
+      (filters.releaseYearFrom != null || filters.releaseYearTo != null ? 1 : filters.releaseYears.length) +
+      filters.tags.length,
+    [filters]
+  );
+
   const handleGenreChange = (genre: string) => {
-    const newGenres = filters.genres.includes(genre)
+    const next = filters.genres.includes(genre)
       ? filters.genres.filter(g => g !== genre)
       : [...filters.genres, genre];
-
-    onFiltersChange({ ...filters, genres: newGenres });
+    onFiltersChange({ ...filters, genres: next });
   };
 
   const handleTypeChange = (type: string) => {
-    const newTypes = filters.types.includes(type)
+    const next = filters.types.includes(type)
       ? filters.types.filter(t => t !== type)
       : [...filters.types, type];
-
-    onFiltersChange({ ...filters, types: newTypes });
+    onFiltersChange({ ...filters, types: next });
   };
 
   const handleStatusChange = (status: string) => {
-    const newStatus = filters.status.includes(status)
+    const next = filters.status.includes(status)
       ? filters.status.filter(s => s !== status)
       : [...filters.status, status];
-
-    onFiltersChange({ ...filters, status: newStatus });
+    onFiltersChange({ ...filters, status: next });
   };
 
-  const handleAgeLimitChange = (ageLimit: number) => {
-    const newAgeLimits = filters.ageLimits.includes(ageLimit)
-      ? filters.ageLimits.filter(a => a !== ageLimit)
-      : [...filters.ageLimits, ageLimit];
-
-    onFiltersChange({ ...filters, ageLimits: newAgeLimits });
+  const handleAgeChange = (age: number) => {
+    const next = filters.ageLimits.includes(age)
+      ? filters.ageLimits.filter(a => a !== age)
+      : [...filters.ageLimits, age];
+    onFiltersChange({ ...filters, ageLimits: next });
   };
 
-  const handleReleaseYearChange = (year: number) => {
-    const newReleaseYears = filters.releaseYears.includes(year)
-      ? filters.releaseYears.filter(y => y !== year)
-      : [...filters.releaseYears, year];
-
-    onFiltersChange({ ...filters, releaseYears: newReleaseYears });
+  const handleYearRangeChange = (from: number | undefined, to: number | undefined) => {
+    onFiltersChange({
+      ...filters,
+      releaseYearFrom: from,
+      releaseYearTo: to,
+      releaseYears: from != null || to != null ? [] : filters.releaseYears,
+    });
   };
+
+  const yearMin = useMemo(
+    () => (filterOptions.releaseYears.length > 0 ? Math.min(...filterOptions.releaseYears) : 1990),
+    [filterOptions.releaseYears]
+  );
+  const yearMax = useMemo(
+    () =>
+      filterOptions.releaseYears.length > 0
+        ? Math.max(...filterOptions.releaseYears)
+        : new Date().getFullYear(),
+    [filterOptions.releaseYears]
+  );
 
   const handleTagChange = (tag: string) => {
-    const newTags = filters.tags.includes(tag)
+    const next = filters.tags.includes(tag)
       ? filters.tags.filter(t => t !== tag)
       : [...filters.tags, tag];
-
-    onFiltersChange({ ...filters, tags: newTags });
+    onFiltersChange({ ...filters, tags: next });
   };
 
-  // Контент фильтров
-  const filterContent = (
+  const content = (
     <>
-      <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[var(--border)]">
-        <h2 className="text-sm font-semibold text-[var(--foreground)]">Фильтры</h2>
-        {activeFiltersCount > 0 && (
+      {/* Заголовок */}
+      <div className="flex items-center justify-between gap-3 pb-4 mb-2 border-b border-[var(--border)]">
+        <div className="flex items-center gap-2 min-w-0">
+          <SlidersHorizontal className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+          <span className="text-base font-semibold text-[var(--foreground)] truncate">Фильтры</span>
+          {activeCount > 0 && (
+            <span
+              className="shrink-0 min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center rounded-full bg-[var(--primary)]/15 text-[var(--primary)] text-xs font-semibold"
+              aria-label={`Активно фильтров: ${activeCount}`}
+            >
+              {activeCount}
+            </span>
+          )}
+        </div>
+        {activeCount > 0 && (
           <button
             type="button"
             onClick={onReset}
-            className="text-xs font-medium text-[var(--primary)] hover:underline underline-offset-2 shrink-0"
+            className="shrink-0 inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50 transition-colors"
+            title="Сбросить все фильтры"
           >
-            Сбросить всё
+            <RotateCcw className="h-3.5 w-3.5" />
+            Сбросить
           </button>
         )}
       </div>
 
-      <div className="space-y-4">
-        {/* Фильтр по жанрам */}
-        <FilterSection title="Жанры" isOpen={true}>
+      {/* Секции */}
+      <div className="space-y-0">
+        <Section title="Жанры" openDefault>
           <CollapsibleGenresList
             genres={filterOptions.genres}
             selectedGenres={filters.genres}
             onGenreChange={handleGenreChange}
-            maxVisibleGenres={12}
+            maxVisibleGenres={14}
           />
-        </FilterSection>
+        </Section>
 
-        {/* Фильтр по типам */}
-        <FilterSection title="Тип" isOpen={false}>
-          <div className="flex flex-wrap gap-2">
+        <Section title="Тип">
+          <div className="grid grid-cols-2 gap-2">
             {filterOptions.types.map(type => (
-              <label
+              <ChipMulti
                 key={type}
-                className={`inline-flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filters.types.includes(type)
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                    : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={filters.types.includes(type)}
-                  onChange={() => handleTypeChange(type)}
-                  className="sr-only"
-                />
-                {translateTitleType(type)}
-              </label>
+                label={translateTitleType(type)}
+                selected={filters.types.includes(type)}
+                onToggle={() => handleTypeChange(type)}
+                shrink={false}
+              />
             ))}
           </div>
-        </FilterSection>
+        </Section>
 
-        {/* Фильтр по статусу */}
-        <FilterSection title="Статус" isOpen={false}>
-          <div className="flex flex-wrap gap-2">
+        <Section title="Статус">
+          <div className="grid grid-cols-2 gap-2">
             {filterOptions.status.map(status => (
-              <label
+              <ChipMulti
                 key={status}
-                className={`inline-flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filters.status.includes(status)
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                    : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={filters.status.includes(status)}
-                  onChange={() => handleStatusChange(status)}
-                  className="sr-only"
-                />
-                {translateTitleStatus(status)}
-              </label>
+                label={translateTitleStatus(status)}
+                selected={filters.status.includes(status)}
+                onToggle={() => handleStatusChange(status)}
+                shrink={false}
+              />
             ))}
           </div>
-        </FilterSection>
+        </Section>
 
-        {/* Фильтр по возрастным ограничениям */}
-        <FilterSection title="Возраст" isOpen={false}>
-          <div className="flex flex-wrap gap-2">
-            {filterOptions.ageLimits.map(ageLimit => (
-              <label
-                key={ageLimit}
-                className={`inline-flex items-center cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filters.ageLimits.includes(ageLimit)
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                    : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={filters.ageLimits.includes(ageLimit)}
-                  onChange={() => handleAgeLimitChange(ageLimit)}
-                  className="sr-only"
-                />
-                {ageLimit === 0 ? "Для всех" : `${ageLimit}+`}
-              </label>
+        <Section title="Возраст">
+          <div className="grid grid-cols-4 gap-2">
+            {filterOptions.ageLimits.map(age => (
+              <ChipMulti
+                key={age}
+                label={age === 0 ? "0+" : `${age}+`}
+                selected={filters.ageLimits.includes(age)}
+                onToggle={() => handleAgeChange(age)}
+                shrink={false}
+              />
             ))}
           </div>
-        </FilterSection>
+        </Section>
 
-        {/* Фильтр по годам выпуска */}
-        <FilterSection title="Год" isOpen={false}>
-          <div className="flex flex-wrap gap-2">
-            {filterOptions.releaseYears.map(year => (
-              <label
-                key={year}
-                className={`inline-flex items-center cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filters.releaseYears.includes(year)
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                    : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={filters.releaseYears.includes(year)}
-                  onChange={() => handleReleaseYearChange(year)}
-                  className="sr-only"
-                />
-                {year}
-              </label>
-            ))}
-          </div>
-        </FilterSection>
+        <Section title="Год выхода">
+          <YearRangeFilter
+            yearMin={yearMin}
+            yearMax={yearMax}
+            from={filters.releaseYearFrom}
+            to={filters.releaseYearTo}
+            onChange={handleYearRangeChange}
+          />
+        </Section>
 
-        {/* Фильтр по тегам */}
         {filterOptions.tags.length > 0 && (
-          <FilterSection title="Теги" isOpen={false}>
-            <div className="flex flex-wrap gap-2">
-              {filterOptions.tags.map(tag => (
-                <label
-                  key={tag}
-                  className={`inline-flex items-center cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filters.tags.includes(tag)
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.tags.includes(tag)}
-                    onChange={() => handleTagChange(tag)}
-                    className="sr-only"
-                  />
-                  {tag}
-                </label>
-              ))}
-            </div>
-          </FilterSection>
+          <Section title="Теги">
+            <TagsFilter
+              tags={filterOptions.tags}
+              selectedTags={filters.tags}
+              onTagChange={handleTagChange}
+            />
+          </Section>
         )}
       </div>
     </>
@@ -286,47 +454,51 @@ export default function FilterSidebar<
   if (isMobile) {
     return (
       <>
-        {/* Затемнение */}
         {isOpen && (
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden cursor-pointer transition-opacity duration-300"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] lg:hidden"
             onClick={onClose}
+            onKeyDown={e => e.key === "Escape" && onClose?.()}
+            role="button"
+            tabIndex={-1}
+            aria-label="Закрыть панель"
           />
         )}
-
-        {/* Шторка */}
-        <div
+        <aside
           className={`
-          fixed top-0 right-0 h-full w-80 bg-[var(--card)] border-l border-[var(--border)] 
-          z-50 lg:hidden transform transition-transform duration-300 ease-out shadow-2xl
-          ${isOpen ? "translate-x-0" : "translate-x-full"}
-        `}
+            fixed top-0 right-0 z-50 flex h-full w-[min(100vw-2rem,320px)] flex-col
+            bg-[var(--card)] shadow-2xl ring-1 ring-[var(--border)]
+            transition-transform duration-300 ease-out lg:hidden
+            ${isOpen ? "translate-x-0" : "translate-x-full"}
+          `}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Фильтры каталога"
         >
-          <div className="p-5 h-full overflow-y-auto">
-            {/* Заголовок мобильной шторки */}
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-[var(--border)]">
-              <h2 className="text-base font-semibold text-[var(--foreground)]">Фильтры</h2>
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors"
-                aria-label="Закрыть"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {filterContent}
+          <div className="flex shrink-0 items-center justify-end border-b border-[var(--border)] px-3 py-2 bg-[var(--card)]">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+              aria-label="Закрыть"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-        </div>
+          <div className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">{content}</div>
+        </aside>
       </>
     );
   }
 
-  // Десктоп: боковая панель
   return (
-    <div className="sticky top-20 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-sm overflow-hidden">
-      <div className="p-4 max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar">{filterContent}</div>
-    </div>
+    <aside
+      className="sticky top-20 flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[0_1px_3px_var(--border)] overflow-hidden"
+      aria-label="Фильтры каталога"
+    >
+      <div className="max-h-[calc(100vh-6rem)] overflow-y-auto px-4 py-4 custom-scrollbar">
+        {content}
+      </div>
+    </aside>
   );
 }

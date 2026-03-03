@@ -48,6 +48,8 @@ function buildFiltersKey(filters: Filters): string {
     [...filters.status].sort().join(","),
     [...filters.ageLimits].sort().join(","),
     [...filters.releaseYears].sort().join(","),
+    filters.releaseYearFrom ?? "",
+    filters.releaseYearTo ?? "",
     [...filters.tags].sort().join(","),
     filters.sortBy,
     filters.sortOrder,
@@ -59,6 +61,16 @@ function parseFiltersFromSearchParams(params: URLSearchParams | Readonly<URLSear
   const ageLimits = ageLimitsRaw
     ? ageLimitsRaw.split(",").filter(Boolean).map(Number)
     : [];
+  const releaseYearFromRaw = params.get("releaseYearFrom");
+  const releaseYearToRaw = params.get("releaseYearTo");
+  const releaseYearFrom =
+    releaseYearFromRaw !== null && releaseYearFromRaw !== ""
+      ? Number(releaseYearFromRaw)
+      : undefined;
+  const releaseYearTo =
+    releaseYearToRaw !== null && releaseYearToRaw !== ""
+      ? Number(releaseYearToRaw)
+      : undefined;
   return {
     search: params.get("search") || "",
     genres: params.get("genres")?.split(",").filter(Boolean) || [],
@@ -66,6 +78,8 @@ function parseFiltersFromSearchParams(params: URLSearchParams | Readonly<URLSear
     status: params.get("status")?.split(",").filter(Boolean) || [],
     ageLimits,
     releaseYears: params.get("releaseYears")?.split(",").filter(Boolean).map(Number) || [],
+    releaseYearFrom: Number.isNaN(releaseYearFrom) ? undefined : releaseYearFrom,
+    releaseYearTo: Number.isNaN(releaseYearTo) ? undefined : releaseYearTo,
     tags: params.get("tags")?.split(",").filter(Boolean) || [],
     sortBy: (params.get("sortBy") || "averageRating") as Filters["sortBy"],
     sortOrder: (params.get("sortOrder") || "desc") as Filters["sortOrder"],
@@ -187,7 +201,11 @@ export default function TitlesContent() {
       genres: appliedFilters.genres[0] || undefined,
       types: appliedFilters.types[0] || undefined,
       status: appliedFilters.status[0] || undefined,
-      releaseYear: appliedFilters.releaseYears[0] || undefined,
+      releaseYear:
+        appliedFilters.releaseYearFrom ??
+        appliedFilters.releaseYearTo ??
+        appliedFilters.releaseYears[0] ??
+        undefined,
       ageLimits:
         appliedFilters.ageLimits.length > 0
           ? appliedFilters.ageLimits.toString()
@@ -347,6 +365,8 @@ export default function TitlesContent() {
     if (filters.status.length > 0) params.set("status", filters.status.join(","));
     if (filters.ageLimits.length > 0) params.set("ageLimits", filters.ageLimits.join(","));
     if (filters.releaseYears.length > 0) params.set("releaseYears", filters.releaseYears.join(","));
+    if (filters.releaseYearFrom != null) params.set("releaseYearFrom", String(filters.releaseYearFrom));
+    if (filters.releaseYearTo != null) params.set("releaseYearTo", String(filters.releaseYearTo));
     if (filters.tags.length > 0) params.set("tags", filters.tags.join(","));
     if (filters.sortBy !== "averageRating") params.set("sortBy", filters.sortBy);
     if (filters.sortOrder !== "desc") params.set("sortOrder", filters.sortOrder);
@@ -442,7 +462,9 @@ export default function TitlesContent() {
               appliedFilters.status.length +
               appliedFilters.genres.length +
               appliedFilters.ageLimits.length +
-              appliedFilters.releaseYears.length +
+              (appliedFilters.releaseYearFrom != null || appliedFilters.releaseYearTo != null
+                ? 1
+                : appliedFilters.releaseYears.length) +
               appliedFilters.tags.length
             }
           />
@@ -455,6 +477,13 @@ export default function TitlesContent() {
             onRemoveStatus={s => removeFilter("status", s)}
             onRemoveAgeLimit={a => removeFilter("ageLimit", a)}
             onRemoveReleaseYear={y => removeFilter("releaseYear", y)}
+            onRemoveReleaseYearRange={() =>
+              handleFiltersChange({
+                ...appliedFilters,
+                releaseYearFrom: undefined,
+                releaseYearTo: undefined,
+              })
+            }
             onRemoveTag={t => removeFilter("tag", t)}
           />
         </header>

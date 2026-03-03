@@ -11,6 +11,7 @@ interface ActiveFilterChipsProps {
   onRemoveStatus: (status: string) => void;
   onRemoveAgeLimit: (ageLimit: number) => void;
   onRemoveReleaseYear: (year: number) => void;
+  onRemoveReleaseYearRange?: () => void;
   onRemoveTag: (tag: string) => void;
   filterLabels?: {
     genres?: Record<string, string>;
@@ -25,6 +26,7 @@ export default function ActiveFilterChips({
   onRemoveStatus,
   onRemoveAgeLimit,
   onRemoveReleaseYear,
+  onRemoveReleaseYearRange,
   onRemoveTag,
 }: ActiveFilterChipsProps) {
   const hasActiveFilters =
@@ -33,6 +35,8 @@ export default function ActiveFilterChips({
     filters.status.length > 0 ||
     filters.ageLimits.length > 0 ||
     filters.releaseYears.length > 0 ||
+    filters.releaseYearFrom != null ||
+    filters.releaseYearTo != null ||
     filters.tags.length > 0;
 
   if (!hasActiveFilters) return null;
@@ -83,6 +87,21 @@ export default function ActiveFilterChips({
           <X className="w-3 h-3" />
         </button>
       ))}
+      {(filters.releaseYearFrom != null || filters.releaseYearTo != null) &&
+        onRemoveReleaseYearRange && (
+          <button
+            type="button"
+            onClick={onRemoveReleaseYearRange}
+            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-md text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors"
+          >
+            {filters.releaseYearFrom != null && filters.releaseYearTo != null
+              ? `${filters.releaseYearFrom} – ${filters.releaseYearTo}`
+              : filters.releaseYearFrom != null
+                ? `с ${filters.releaseYearFrom}`
+                : `до ${filters.releaseYearTo}`}
+            <X className="w-3 h-3" />
+          </button>
+        )}
       {filters.releaseYears.map(year => (
         <button
           key={year}

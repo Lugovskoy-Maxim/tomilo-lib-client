@@ -261,7 +261,6 @@ export default function LeadersPageClient() {
   const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>("level");
   const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("month");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showAdmins, setShowAdmins] = useState(true);
   const listRef = useRef<HTMLDivElement>(null);
@@ -405,98 +404,78 @@ export default function LeadersPageClient() {
   return (
     <>
       <Header />
-      <main className="min-h-screen flex flex-col items-center py-6 sm:py-8">
-        <div className="w-full max-w-2xl mx-auto px-4 mb-6">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--foreground)] tracking-tight">
-            Лидеры
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            {activeCategoryConfig?.description ?? "Рейтинг активных читателей"}
-          </p>
-          <p className="mt-0.5 text-xs text-[var(--muted-foreground)]/80">
-            Обновляется каждый час
-          </p>
-        </div>
-
+      <main className="min-h-screen flex flex-col py-6 sm:py-8">
         <div className="w-full max-w-2xl mx-auto px-4 space-y-4">
-          {/* Категории — сегментированный контроль */}
-          <div className="flex flex-col gap-3">
-            <div
-              className="inline-flex p-1 rounded-xl bg-[var(--muted)] border border-[var(--border)] w-fit"
-              role="tablist"
-              aria-label="Категории рейтинга"
-            >
-              {CATEGORIES.map(category => {
-                const Icon = category.icon;
-                const isActive = activeCategory === category.id;
-                return (
-                  <button
-                    key={category.id}
-                    role="tab"
-                    aria-selected={isActive}
-                    onClick={() => {
-                      setActiveCategory(category.id);
-                      setSearchQuery("");
-                    }}
-                    className={`
-                      flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                      ${isActive
-                        ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]"
-                        : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                      }
-                    `}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span className="hidden sm:inline">{category.label}</span>
-                    <span className="sm:hidden">{category.shortLabel}</span>
-                  </button>
-                );
-              })}
-            </div>
+          <header>
+            <h1 className="text-xl font-semibold text-[var(--foreground)]">Лидеры</h1>
+            <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
+              {activeCategoryConfig?.description ?? "Рейтинг активных читателей"}
+            </p>
+          </header>
 
-            {supportsPeriod && (
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
-                <div className="flex p-0.5 rounded-lg bg-[var(--muted)] border border-[var(--border)] w-fit">
-                  {PERIODS.map(period => (
-                    <button
-                      key={period.id}
-                      onClick={() => setActivePeriod(period.id)}
-                      className={`
-                        px-3 py-1.5 rounded-md text-sm font-medium transition-colors
-                        ${activePeriod === period.id
-                          ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]"
-                          : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                        }
-                      `}
-                    >
-                      {period.shortLabel}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+          <div
+            className="flex flex-wrap gap-1.5 p-1 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)] w-full sm:w-fit"
+            role="tablist"
+            aria-label="Категории рейтинга"
+          >
+            {CATEGORIES.map(category => {
+              const Icon = category.icon;
+              const isActive = activeCategory === category.id;
+              return (
+                <button
+                  key={category.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => { setActiveCategory(category.id); setSearchQuery(""); }}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    isActive ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline">{category.label}</span>
+                  <span className="sm:hidden">{category.shortLabel}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Поиск и фильтр в одной строке */}
+          {supportsPeriod && (
+            <div className="flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5 text-[var(--muted-foreground)] shrink-0" />
+              <div className="flex gap-0.5">
+                {PERIODS.map(period => (
+                  <button
+                    key={period.id}
+                    onClick={() => setActivePeriod(period.id)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                      activePeriod === period.id
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    }`}
+                  >
+                    {period.shortLabel}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             <div className="relative flex-1 min-w-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)] pointer-events-none" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
                 placeholder="Поиск по нику"
-                className="w-full pl-9 pr-8 py-2 rounded-lg text-sm bg-[var(--secondary)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] transition-colors"
+                className="w-full pl-8 pr-8 py-2 rounded-lg text-sm bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                 aria-label="Поиск пользователя"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   aria-label="Очистить поиск"
                 >
                   ×
@@ -506,39 +485,31 @@ export default function LeadersPageClient() {
             <button
               type="button"
               onClick={() => setShowAdmins(!showAdmins)}
-              className={`
-                shrink-0 p-2.5 rounded-lg border transition-colors
-                ${showAdmins
-                  ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
-                  : "bg-[var(--secondary)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--muted)]"
-                }
-              `}
-              title={showAdmins ? "Скрыть админов и модераторов" : "Показать админов"}
+              className={`shrink-0 p-2 rounded-lg border border-[var(--border)] transition-colors ${
+                showAdmins ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              }`}
+              title={showAdmins ? "Скрыть админов" : "Показать админов"}
               aria-pressed={!showAdmins}
             >
               {showAdmins ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
 
-          {/* Компактный блок «Ваша позиция» */}
           {user && currentUserRank && currentUserData && !searchQuery && (
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20">
-              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-semibold shrink-0">
+            <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]">
+              <span className="w-7 h-7 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center text-xs font-semibold shrink-0">
                 #{currentUserRank}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-[var(--foreground)] truncate">
+                <p className="text-xs font-medium text-[var(--foreground)] truncate">
                   Вы · {getCategoryDisplayValue(currentUserData, activeCategory)}
-                </p>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  {currentUserRank <= 10 ? "Топ-10" : currentUserRank <= 50 ? "Топ-50" : "В рейтинге"}
                 </p>
               </div>
             </div>
           )}
         </div>
 
-        <div ref={listRef} className="w-full max-w-2xl mx-auto px-4 mt-4">
+        <div ref={listRef} className="w-full max-w-2xl mx-auto px-4 mt-6">
           {isLoading ? (
             <LeaderboardSkeleton />
           ) : hasError ? (
@@ -634,16 +605,12 @@ export default function LeadersPageClient() {
 
         {showScrollTop && (
           <button
+            type="button"
             onClick={scrollToTop}
-            className="
-              fixed bottom-6 right-6 z-50 p-3 rounded-full
-              bg-[var(--primary)] text-[var(--primary-foreground)]
-              shadow-lg hover:shadow-xl transition-all duration-200
-              hover:scale-110 animate-fade-in
-            "
+            className="fixed bottom-5 right-5 z-50 p-2.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md hover:shadow-lg transition-shadow"
             aria-label="Наверх"
           >
-            <ChevronUp className="w-5 h-5" />
+            <ChevronUp className="w-4 h-4" />
           </button>
         )}
       </main>

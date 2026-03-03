@@ -41,43 +41,30 @@ export default function ProfileContent({
   isPublicView = false,
 }: ProfileContentProps) {
   return (
-    <div className="flex flex-col gap-4 sm:gap-6 items-stretch max-w-4xl min-w-0">
-      {/* Welcome - приветствие (только для своего профиля) */}
+    <div className="flex flex-col gap-4 items-stretch max-w-4xl min-w-0">
       {!isPublicView && <ProfileWelcome userProfile={userProfile} />}
-
-      {/* Quick Actions - быстрые действия (только для своего профиля) */}
       {!isPublicView && <ProfileQuickActions />}
-
-      {/* Continue Reading - продолжить чтение (только для своего профиля) */}
       {!isPublicView && <ContinueReading userProfile={userProfile} />}
-
-      {/* Progress & Bonus Grid (только для своего профиля) */}
       {!isPublicView && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Next Rank Progress - прогресс до следующего ранга */}
           <NextRankProgress userProfile={userProfile} onShowStats={onShowStats} />
-
-          {/* Daily Bonus - ежедневный бонус */}
           <DailyBonus userProfile={userProfile} />
         </div>
       )}
 
-      {/* Achievements preview - скрываем если пользователь отключил показ достижений */}
       {showAchievementsPreview && !(isPublicView && userProfile.showAchievements === false) && (
-        <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 p-4 sm:p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-amber-500/20">
-                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
-              </div>
-              <h3 className="text-sm font-semibold text-[var(--foreground)]">Достижения</h3>
-            </div>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-amber-500" />
+              Достижения
+            </h3>
             <button
               type="button"
               onClick={onShowAchievements}
-              className="text-xs text-[var(--primary)] hover:underline flex items-center gap-1"
+              className="text-xs text-[var(--primary)] hover:underline flex items-center gap-0.5"
             >
-              Все достижения
+              Все
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -85,11 +72,10 @@ export default function ProfileContent({
         </div>
       )}
 
-      {/* Bookmarks */}
       {hiddenBookmarksMessage ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
-          <h2 className="text-sm font-bold text-[var(--foreground)] mb-2">Закладки</h2>
-          <p className="text-sm text-[var(--muted-foreground)]">{hiddenBookmarksMessage}</p>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+          <h2 className="text-sm font-semibold text-[var(--foreground)] mb-1">Закладки</h2>
+          <p className="text-xs text-[var(--muted-foreground)]">{hiddenBookmarksMessage}</p>
         </div>
       ) : (
         <ProfileBookmarksLibrary
@@ -102,11 +88,10 @@ export default function ProfileContent({
         />
       )}
 
-      {/* Reading history */}
-      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-6 shadow-sm min-h-[240px] sm:min-h-[280px] flex flex-col">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 min-h-[200px] flex flex-col">
         {hiddenHistoryMessage ? (
-          <div className="flex flex-1 items-center justify-center text-center px-2">
-            <p className="text-sm text-[var(--muted-foreground)]">{hiddenHistoryMessage}</p>
+          <div className="flex flex-1 items-center justify-center text-center">
+            <p className="text-xs text-[var(--muted-foreground)]">{hiddenHistoryMessage}</p>
           </div>
         ) : (
           <ReadingHistorySection
