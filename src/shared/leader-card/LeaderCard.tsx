@@ -481,7 +481,7 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
             src={frameUrl}
             alt=""
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
-            style={{ width: 44 * 1.6, height: 44 * 1.6, maxWidth: "none", maxHeight: "none" }}
+            style={{ width: 44 * 1.2, height: 44 * 1.2, maxWidth: "none", maxHeight: "none" }}
             onError={() => setFrameError(true)}
             aria-hidden
           />

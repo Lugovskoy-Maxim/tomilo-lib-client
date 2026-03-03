@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { BookmarkEntry, BookmarkCategory } from "@/types/user";
 import type { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
-import BookmarkLibraryCard from "@/shared/bookmark-card/BookmarkLibraryCard";
+import BookmarkGridCard from "@/shared/bookmark-card/BookmarkGridCard";
 import { Bookmark, ChevronRight } from "lucide-react";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { Carousel } from "@/widgets";
@@ -59,8 +59,7 @@ const LibraryCardItem = memo(function LibraryCardItem({
   entry: BookmarkEntry;
   chaptersRead?: number;
 }) {
-  const hasPopulatedTitle = Boolean(entry.title?.name && entry.title?.coverImage);
-  
+  const hasPopulatedTitle = Boolean(entry.title?.name);
   const { data: fetchedTitle } = useGetTitleByIdQuery(
     { id: entry.titleId },
     { skip: hasPopulatedTitle || !entry.titleId },
@@ -68,21 +67,21 @@ const LibraryCardItem = memo(function LibraryCardItem({
 
   const title = hasPopulatedTitle ? entry.title : (fetchedTitle ?? entry.title);
   const name = title?.name ?? `Манга #${entry.titleId.slice(-6)}`;
-  const coverImage = title?.coverImage;
-  const slug = title?.slug;
-  const type = (title as { type?: string })?.type ?? "manga";
-  const totalChapters = title?.totalChapters ?? 0;
+  const coverImage = title?.coverImage ?? entry.title?.coverImage;
+  const slug = title?.slug ?? entry.title?.slug;
+  const status = title?.status ?? entry.title?.status;
+  const totalChapters = title?.totalChapters ?? entry.title?.totalChapters ?? 0;
 
   return (
-    <BookmarkLibraryCard
+    <BookmarkGridCard
       titleId={entry.titleId}
       name={name}
       coverImage={coverImage}
       slug={slug}
-      type={type}
+      status={status}
+      totalChapters={totalChapters}
       category={entry.category}
       chaptersRead={chaptersRead}
-      totalChapters={totalChapters}
     />
   );
 });

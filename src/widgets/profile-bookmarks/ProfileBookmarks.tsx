@@ -5,7 +5,7 @@ import { UserProfile } from "@/types/user";
 import type { BookmarkEntry, BookmarkCategory } from "@/types/user";
 import type { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
-import BookmarkCard from "@/shared/bookmark-card/BookmarkCard";
+import BookmarkGridCard from "@/shared/bookmark-card/BookmarkGridCard";
 import { Bookmark, ChevronUp, Search, ArrowUpDown, X } from "lucide-react";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useGetBookmarkCountsQuery } from "@/store/api/authApi";
@@ -47,24 +47,6 @@ interface BookmarksSectionProps {
   showSectionHeader?: boolean;
 }
 
-/** Минимальный объект тайтла для карточки (API может отдавать populated titleId) */
-function toCardTitle(
-  entry: BookmarkEntry,
-  fullTitle: { _id: string; name: string; coverImage?: string; slug?: string; status?: string } | null,
-): { _id: string; name: string; coverImage?: string; slug?: string; status?: string } {
-  if (fullTitle) return fullTitle;
-  if (entry.title?.name) {
-    return {
-      _id: entry.titleId,
-      name: entry.title.name,
-      coverImage: entry.title.coverImage,
-      slug: entry.title.slug,
-      status: entry.title.status,
-    };
-  }
-  return { _id: entry.titleId, name: `Манга #${entry.titleId.slice(-6)}` };
-}
-
 function BookmarkItem({
   entry,
   chaptersRead,
@@ -83,27 +65,22 @@ function BookmarkItem({
     isLoading,
     error,
   } = useGetTitleByIdQuery({ id: titleId || "null" }, { skip: !titleId || hasTitleFromApi });
-  const [isRemoving, setIsRemoving] = useState(false);
 
-  const handleRemove = () => {
-    setIsRemoving(true);
-    setTimeout(() => {
-      onRemove(titleId);
-      setIsRemoving(false);
-    }, 300);
-  };
-
-  const title = toCardTitle(entry, fetchedTitle ?? null);
+  const title = fetchedTitle ?? entry.title;
+  const name = title?.name ?? `Манга #${entry.titleId.slice(-6)}`;
+  const coverImage = title?.coverImage ?? entry.title?.coverImage;
+  const slug = title?.slug ?? entry.title?.slug;
+  const status = title?.status ?? entry.title?.status;
+  const totalChapters = title?.totalChapters ?? entry.title?.totalChapters ?? 0;
   const showError = !hasTitleFromApi && (error || (!isLoading && !fetchedTitle));
 
-  if ((isLoading && !hasTitleFromApi) || isRemoving) {
+  if (isLoading && !hasTitleFromApi) {
     return (
-      <div className="flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/40 border border-[var(--border)] animate-pulse">
-        <div className="w-20 h-28 sm:w-24 sm:h-32 rounded-lg bg-[var(--muted)] flex-shrink-0" />
-        <div className="flex-1 min-w-0 py-1 space-y-2">
+      <div className="rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] animate-pulse">
+        <div className="aspect-[2/3] w-full bg-[var(--muted)]" />
+        <div className="p-2.5 space-y-2">
           <div className="h-4 bg-[var(--muted)] rounded w-3/4" />
           <div className="h-3 bg-[var(--muted)] rounded w-1/2" />
-          <div className="h-3 bg-[var(--muted)] rounded w-1/3 mt-3" />
         </div>
       </div>
     );
@@ -111,12 +88,12 @@ function BookmarkItem({
 
   if (showError) {
     return (
-      <div className="flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/40 border border-[var(--border)]">
-        <div className="w-20 h-28 rounded-lg bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 flex items-center justify-center flex-shrink-0">
-          <Bookmark className="w-6 h-6 text-[var(--chart-1)]" />
+      <div className="rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)]">
+        <div className="aspect-[2/3] w-full bg-gradient-to-br from-[var(--chart-1)]/20 to-[var(--primary)]/20 flex items-center justify-center">
+          <Bookmark className="w-8 h-8 text-[var(--chart-1)]" />
         </div>
-        <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <h3 className="font-medium text-[var(--muted-foreground)] text-sm">{title.name}</h3>
+        <div className="p-2.5">
+          <h3 className="font-semibold text-sm text-[var(--foreground)] line-clamp-2">{name}</h3>
           <p className="text-xs text-red-500 mt-1">Ошибка загрузки</p>
         </div>
       </div>
@@ -124,13 +101,17 @@ function BookmarkItem({
   }
 
   return (
-    <BookmarkCard
-      title={title as import("@/types/title").Title}
+    <BookmarkGridCard
+      titleId={titleId}
+      name={name}
+      coverImage={coverImage}
+      slug={slug}
+      status={status}
+      totalChapters={totalChapters}
       category={entry.category}
       chaptersRead={chaptersRead}
-      onRemove={handleRemove}
+      onRemove={onRemove}
       onCategoryChange={onCategoryChange}
-      isLoading={false}
     />
   );
 }
@@ -165,7 +146,7 @@ function BookmarkCategorySection({
         <span>{label}</span>
         <span className="text-[var(--muted-foreground)] tabular-nums">{count}</span>
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
         {displayList.map(entry => (
           <BookmarkItem
             key={entry.titleId}
