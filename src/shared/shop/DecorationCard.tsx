@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ShoppingBag, Check, Sparkles, ImageIcon, Coins, PackageX, X, Gift } from "lucide-react";
+import { ShoppingBag, Check, Sparkles, ImageIcon, Coins, PackageX, X, Gift, Crown } from "lucide-react";
 import Image from "next/image";
 import {
   Decoration,
@@ -156,59 +156,32 @@ function DecorationPreviewModal({
 
   const renderPreviewProfile = () => {
     if (displayType === "card") {
-      const rows = [
-        { rank: 1, name: username, level: Math.max(1, userLevel), isYou: true },
-        { rank: 2, name: "Aiko", level: Math.max(1, userLevel + 1), isYou: false },
-        { rank: 3, name: "Rin", level: Math.max(1, userLevel - 1), isYou: false },
-      ];
-
       return (
-        <div className="flex flex-col gap-3">
-          <div className="space-y-2">
-            {rows.map((r) => (
-              <div
-                key={r.rank}
-                className={`relative overflow-hidden rounded-xl border-2 bg-[var(--card)] ${
-                  r.isYou ? "border-[var(--primary)]/40" : "border-[var(--border)]"
-                }`}
-              >
-                <div
-                  className="absolute inset-0 opacity-50"
-                  style={{
-                    backgroundImage: `url(${imageSrc})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)] via-[var(--background)]/85 to-transparent" />
+        <div
+          className="relative flex flex-col items-center justify-end rounded-2xl border-2 border-[var(--border)] overflow-hidden bg-[var(--card)]"
+          style={{ aspectRatio: "9 / 16", maxWidth: "160px" }}
+        >
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-30"
+            style={{ backgroundImage: `url(${imageSrc})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
 
-                <div className="relative z-10 flex items-center gap-3 p-3">
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs bg-[var(--secondary)] border border-[var(--border)] text-[var(--foreground)]">
-                    #{r.rank}
-                  </div>
+          <div className="absolute top-2 right-2 w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-yellow-400 to-amber-500 text-yellow-950 shadow z-10 border border-white/20">
+            <Crown className="w-5 h-5" />
+          </div>
 
-                  <div className="relative w-9 h-9 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--muted)] shrink-0">
-                    <Image src={resolvedUserAvatar} alt={r.name} fill unoptimized className="object-cover rounded-full" />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-xs text-[var(--foreground)] truncate">{r.name}</span>
-                      {r.isYou && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] border border-[var(--primary)]/25 font-semibold">
-                          Вы
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-[11px] text-[var(--muted-foreground)]">Уровень {r.level}</div>
-                  </div>
-
-                  <div className="shrink-0 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-[11px] font-semibold text-[var(--foreground)]">
-                    {r.level}
-                  </div>
-                </div>
+          <div className="relative z-10 mb-4 flex flex-col items-center">
+            <div className="relative">
+              <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] shadow-md bg-[var(--secondary)]">
+                <Image src={resolvedUserAvatar} alt={username} fill unoptimized className="object-cover rounded-full" />
               </div>
-            ))}
+            </div>
+          </div>
+
+          <div className="relative z-10 w-full px-3 py-3 rounded-b-2xl bg-gradient-to-t from-black/75 to-transparent">
+            <p className="font-semibold text-white text-sm truncate text-center">{username}</p>
+            <p className="text-xs text-white/80 mt-1 text-center">Уровень {Math.max(1, userLevel)}</p>
           </div>
         </div>
       );
@@ -726,8 +699,9 @@ export function DecorationCard({
     />
   ) : null;
 
-  /* Карточка для аватаров и рамок: круг + инфо (увеличенный размер для читаемости) */
+  /* Карточка для аватаров: круг + инфо. Рамки: квадрат без обрезки (прозрачные по краям). */
   if (isAvatar || isFrame) {
+    const isCircleCrop = isAvatar;
     return (
       <>
         {previewModal}
@@ -735,13 +709,15 @@ export function DecorationCard({
           onClick={handleCardClick}
           className={`group/card relative w-full max-w-[200px] sm:max-w-[220px] lg:max-w-[240px] min-w-0 aspect-[3/4] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col min-w-0 cursor-pointer ${rarityStyle.border}`}
         >
-        {/* Картинка сверху */}
+        {/* Картинка сверху: аватар — круг, рамка — квадрат без обрезки */}
         <div className="flex-1 min-h-0 flex items-center justify-center p-2.5 sm:p-3">
           <div className="relative w-full max-w-[80%] sm:max-w-[85%] aspect-square">
-            <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
+            {isCircleCrop && (
+              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
+            )}
             <div
-              className="relative w-full h-full overflow-hidden border-2 border-[var(--background)] shadow-lg glow-avatar"
-              style={{ borderRadius: "50%" }}
+              className={`relative w-full h-full border-2 border-[var(--background)] shadow-lg bg-[var(--muted)] ${isCircleCrop ? "overflow-hidden" : ""}`}
+              style={isCircleCrop ? { borderRadius: "50%" } : undefined}
             >
               {isImageLoading && hasImage && (
                 <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
@@ -754,8 +730,8 @@ export function DecorationCard({
                   alt={decoration.name}
                   fill
                   unoptimized
-                  className={`object-cover rounded-full ${isImageLoading ? "opacity-0" : "opacity-100"}`}
-                  style={{ borderRadius: "50%" }}
+                  className={`${isCircleCrop ? "object-cover rounded-full" : "object-contain"} ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+                  style={isCircleCrop ? { borderRadius: "50%" } : undefined}
                   onLoad={() => setIsImageLoading(false)}
                   onError={handleImageError}
                 />

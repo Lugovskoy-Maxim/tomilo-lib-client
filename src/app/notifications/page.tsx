@@ -48,7 +48,7 @@ const filterConfig = [
 export default function NotificationsPage() {
   const [mounted, setMounted] = useState(false);
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>("all");
-  const [showRead, setShowRead] = useState(true);
+  const [showRead, setShowRead] = useState(false);
   const [page, setPage] = useState(1);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -344,38 +344,40 @@ export default function NotificationsPage() {
             </div>
           </div>
 
-          {/* Фильтры — одна строка, без тяжёлой карточки */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-5">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide min-h-9">
-              {filterConfig.map(({ key, label, icon: Icon }) => {
-                const count = typeCounts[key as keyof typeof typeCounts];
-                const isActive = activeFilter === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setActiveFilter(key)}
-                    className={`
-                      flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
-                      transition-colors whitespace-nowrap
-                      ${isActive
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
-                      }
-                    `}
-                  >
-                    <Icon className="w-4 h-4 flex-shrink-0 opacity-80" />
-                    <span className="hidden min-[380px]:inline">{label}</span>
-                    {count > 0 && (
-                      <span className={`text-xs ${isActive ? "opacity-90" : "text-[var(--muted-foreground)]"}`}>
-                        {count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Сегментированный переключатель: два явных варианта */}
-            <div className="flex items-center gap-0 sm:ml-auto rounded-lg border border-[var(--border)] bg-[var(--card)] p-0.5 shadow-sm">
+          {/* Уровень 1: фильтры по типу */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide min-h-9 mb-4">
+            {filterConfig.map(({ key, label, icon: Icon }) => {
+              const count = typeCounts[key as keyof typeof typeCounts];
+              const isActive = activeFilter === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveFilter(key)}
+                  className={`
+                    flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
+                    transition-colors whitespace-nowrap
+                    ${isActive
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : "text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+                    }
+                  `}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0 opacity-80" />
+                  <span className="hidden min-[380px]:inline">{label}</span>
+                  {count > 0 && (
+                    <span className={`text-xs ${isActive ? "opacity-90" : "text-[var(--muted-foreground)]"}`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Уровень 2: показ прочитанных / только новые */}
+          <div className="flex items-center gap-2 mb-5">
+            <span className="text-sm text-[var(--muted-foreground)] shrink-0">Показывать:</span>
+            <div className="flex items-center gap-0 rounded-lg border border-[var(--border)] bg-[var(--card)] p-0.5 shadow-sm">
               <button
                 type="button"
                 onClick={() => setShowRead(true)}

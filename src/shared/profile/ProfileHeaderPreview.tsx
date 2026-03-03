@@ -92,7 +92,7 @@ export default function ProfileHeaderPreview({
         </div>
 
         <div className="absolute left-4 sm:left-6 bottom-0 z-30 translate-y-1/2">
-          <div className={`relative ring-4 ring-[var(--background)] rounded-2xl shadow-lg bg-[var(--background)] ${avatarPadClass}`}>
+          <div className={`relative ring-4 ring-[var(--background)] rounded-2xl shadow-lg bg-[var(--background)] ${avatarPadClass} flex items-center justify-center min-w-[72px] min-h-[72px]`}>
             <AvatarWithFramePreview avatarUrl={avatarUrl} frameUrl={frameUrl} size={avatarSize} />
           </div>
         </div>
