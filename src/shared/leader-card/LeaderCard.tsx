@@ -428,8 +428,8 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
               alt=""
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
               style={{ 
-                width: avatarPixels * 1.8, 
-                height: avatarPixels * 1.8,
+                width: avatarPixels * 1.2, 
+                height: avatarPixels * 1.2,
                 maxWidth: "none",
                 maxHeight: "none",
               }}
@@ -584,8 +584,8 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
             alt=""
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
             style={{ 
-              width: 48 * 1.8, 
-              height: 48 * 1.8,
+              width: 48 * 1.75, 
+              height: 48 * 1.75,
               maxWidth: "none",
               maxHeight: "none",
             }}

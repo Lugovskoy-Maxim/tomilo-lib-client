@@ -71,15 +71,15 @@ export default function UserAvatar({
 
   if (frameSrc) {
     return (
-      <div className="relative overflow-visible" style={{ width: size, height: size, borderRadius: "50%" }}>
-        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "50%" }}>{content}</div>
+      <div className="relative overflow-visible" style={{ width: size, height: size }}>
+        <div className="absolute inset-0 overflow-hidden rounded-full" style={{ borderRadius: "50%" }}>{content}</div>
         <OptimizedImage
           src={frameSrc}
           fallbackSrc={frameFallback !== frameSrc ? frameFallback : undefined}
           alt=""
-          width={size * 1.75}
-          height={size * 1.75}
-          className="absolute left-1/2 top-1/2 w-[calc(100%+3rem)] h-[calc(100%+3rem)] -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none object-contain z-10 scale-125"
+          width={size * 1.2}
+          height={size * 1.2}
+          className="absolute left-1/2 top-1/2 w-[calc(100%+3rem)] h-[calc(100%+3rem)] -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10 scale-125"
           aria-hidden="true"
           hidePlaceholder={true}
         />
@@ -89,11 +89,11 @@ export default function UserAvatar({
 
   return (
     <div
-      className="relative shrink-0 overflow-hidden"
+      className="relative shrink-0 overflow-hidden rounded-full"
       style={{ width: size, height: size, borderRadius: "50%" }}
     >
       <div
-        className="absolute inset-0 overflow-hidden [&_img]:!object-cover"
+        className="absolute inset-0 overflow-hidden [&_img]:!object-cover rounded-full"
         style={{ borderRadius: "50%" }}
       >
         {content}
