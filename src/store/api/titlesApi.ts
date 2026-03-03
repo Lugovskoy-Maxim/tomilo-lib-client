@@ -90,7 +90,7 @@ export const titlesApi = createApi({
         status?: string;
         releaseYear?: number;
 
-        ageLimits?: string; // Используем множественное число для соответствия типам
+        ageLimits?: string | string[] | number; // строка, массив (join) или число
         sortBy?: string;
         sortOrder?: "asc" | "desc";
         page?: number;

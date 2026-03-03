@@ -1,0 +1,25 @@
+/* RGB variables for rgba() opacity support — must load after :root theme tokens */
+
+:root {
+  --background-rgb: 255, 255, 255;
+  --foreground-rgb: 26, 26, 26;
+  --primary-rgb: 52, 52, 52;
+  --secondary-rgb: 247, 247, 247;
+  --border-rgb: 235, 235, 235;
+  --muted-rgb: 247, 247, 247;
+  --chart-1-rgb: 165, 90, 40;
+  --chart-2-rgb: 50, 140, 130;
+  --card-rgb: 255, 255, 255;
+}
+
+[data-theme="dark"] {
+  --background-rgb: 18, 18, 24;
+  --foreground-rgb: 250, 250, 250;
+  --primary-rgb: 235, 235, 235;
+  --secondary-rgb: 24, 24, 30;
+  --border-rgb: 255, 255, 255;
+  --muted-rgb: 24, 24, 30;
+  --chart-1-rgb: 75, 105, 195;
+  --chart-2-rgb: 60, 180, 160;
+  --card-rgb: 30, 30, 35;
+}
