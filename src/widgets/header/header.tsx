@@ -8,6 +8,9 @@ import { Navigation, UserBar } from "@/widgets";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
+import { useRedeemPromoCodeMutation } from "@/store/api/promocodesApi";
+import type { PromoCodeReward } from "@/types/promocode";
 import { ApiResponseDto } from "@/types/api";
 import { AuthResponse } from "@/types/auth";
 import {
@@ -31,6 +34,7 @@ import {
   BookOpen,
   Crown,
   Ticket,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -42,6 +46,21 @@ const HEADER_DROPDOWN_ITEMS = [
   { href: "/terms-of-use", label: "Условия использования", icon: FileText },
   { href: "/privacy-policy", label: "Политика конфиденциальности", icon: Lock },
 ];
+
+function formatPromoRewardsText(rewards: PromoCodeReward[] | undefined, newBalance: number | undefined): string {
+  const parts: string[] = [];
+  if (rewards?.length) {
+    for (const r of rewards) {
+      if (r.type === "balance") parts.push(`${r.amount ?? 0} монет`);
+      else if (r.type === "premium") parts.push(`${r.amount ?? 0} дней премиума`);
+      else if (r.type === "decoration") parts.push(r.displayName ?? "Декорация");
+    }
+  }
+  if (newBalance !== undefined && newBalance !== null && !parts.some(p => p.includes("монет"))) {
+    parts.push(`Баланс: ${newBalance} монет`);
+  }
+  return parts.length ? parts.join(", ") : "";
+}
 
 export default function Header() {
   const pathname = usePathname();
@@ -56,7 +75,10 @@ export default function Header() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const mobileMenuCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+  const [promoCode, setPromoCode] = useState("");
+  const [redeemPromoCode, { isLoading: isRedeemingPromo }] = useRedeemPromoCodeMutation();
+  const toast = useToast();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -132,6 +154,37 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   const closeDropdown = () => setIsDropdownOpen(false);
+
+  const handleRedeemPromo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = promoCode.trim().toUpperCase();
+    if (!code) return;
+    if (!isAuthenticated) {
+      toast.error("Войдите в аккаунт для активации промокода");
+      setLoginModalOpen(true);
+      return;
+    }
+    try {
+      const result = await redeemPromoCode({ code }).unwrap();
+      if (result.success) {
+        const rewardsText = formatPromoRewardsText(result.rewards, result.newBalance);
+        const message = rewardsText
+          ? `Промокод активирован! Получено: ${rewardsText}`
+          : (result.message ?? "Промокод активирован");
+        toast.success(message);
+        setPromoCode("");
+        closeDropdown();
+      } else {
+        toast.error(result.message ?? "Промокод недействителен");
+      }
+    } catch (err) {
+      const msg =
+        err && typeof err === "object" && "data" in err
+          ? String((err as { data?: { message?: string } }).data?.message ?? "Ошибка активации")
+          : "Ошибка активации";
+      toast.error(msg);
+    }
+  };
 
   // Закрытие dropdown по Escape
   useEffect(() => {
@@ -232,8 +285,31 @@ export default function Header() {
                 <div
                   role="menu"
                   aria-label="Дополнительные ссылки"
-                  className="absolute right-0 top-full mt-2 w-52 dropdown-modern animate-fade-in-scale z-50 py-1"
+                  className="absolute right-0 top-full mt-2 w-56 dropdown-modern animate-fade-in-scale z-50 py-1"
+                  onClick={e => e.stopPropagation()}
                 >
+                  <form onSubmit={handleRedeemPromo} className="p-2 border-b border-[var(--border)]">
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                        placeholder="Промокод"
+                        className="flex-1 min-w-0 px-2.5 py-1.5 text-sm rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] uppercase"
+                        disabled={isRedeemingPromo}
+                        aria-label="Введите промокод"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!promoCode.trim() || isRedeemingPromo}
+                        className="shrink-0 px-2.5 py-1.5 text-sm font-medium rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1"
+                        aria-label="Активировать промокод"
+                      >
+                        {isRedeemingPromo ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden /> : <Ticket className="w-4 h-4" aria-hidden />}
+                        <span className="hidden sm:inline">OK</span>
+                      </button>
+                    </div>
+                  </form>
                   {HEADER_DROPDOWN_ITEMS.map(({ href, label, icon: Icon }) => (
                     <Link
                       key={href}

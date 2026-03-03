@@ -230,10 +230,18 @@ export function ShopManagementSection() {
       setDeleteTarget(null);
       refetch();
     } catch (e) {
-      const msg = e && typeof e === "object" && "data" in e
-        ? String((e as { data?: { message?: string } }).data?.message ?? "Ошибка удаления")
-        : "Ошибка удаления";
-      toast.error(msg);
+      const err = e as { status?: number; data?: { message?: string } };
+      if (err?.status === 404) {
+        toast.info("Украшение уже удалено или не найдено");
+        setDeleteTarget(null);
+        refetch();
+      } else {
+        const msg =
+          err && typeof err === "object" && "data" in err
+            ? String(err.data?.message ?? "Ошибка удаления")
+            : "Ошибка удаления";
+        toast.error(msg);
+      }
     } finally {
       setDeleteLoading(false);
     }

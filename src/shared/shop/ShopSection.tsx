@@ -346,12 +346,19 @@ export function ShopSection({ type }: ShopSectionProps) {
       toast.success("Украшение удалено");
       setDeleteTarget(null);
       refetchDecorations();
-    } catch (err) {
-      const msg =
-        err && typeof err === "object" && "data" in err
-          ? String((err as { data?: { message?: string } }).data?.message ?? "Ошибка удаления")
-          : "Ошибка удаления";
-      toast.error(msg);
+    } catch (e) {
+      const err = e as { status?: number; data?: { message?: string } };
+      if (err?.status === 404) {
+        toast.info("Украшение уже удалено или не найдено");
+        setDeleteTarget(null);
+        refetchDecorations();
+      } else {
+        const msg =
+          err && typeof err === "object" && "data" in err
+            ? String(err.data?.message ?? "Ошибка удаления")
+            : "Ошибка удаления";
+        toast.error(msg);
+      }
     } finally {
       setDeleteLoading(false);
     }
