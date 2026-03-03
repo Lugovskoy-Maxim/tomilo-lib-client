@@ -277,12 +277,12 @@ export const promocodesApi = createApi({
         method: "POST",
         body: { code },
       }),
-      transformResponse: (response: unknown) => {
+      transformResponse: (response: unknown): RedeemPromoCodeResult => {
         const r = response as Record<string, unknown>;
         const rewards = collectRewardsFromResponse(r);
-        const newBalance =
-          (r.newBalance as number | undefined) ??
-          (r.data && typeof r.data === "object" && (r.data as Record<string, unknown>).newBalance as number | undefined);
+        const dataObj = r.data && typeof r.data === "object" ? (r.data as Record<string, unknown>) : null;
+        const newBalance: number | undefined =
+          typeof r.newBalance === "number" ? r.newBalance : typeof dataObj?.newBalance === "number" ? dataObj.newBalance : undefined;
         return {
           success: (r.success as boolean) ?? true,
           message: (r.message as string) ?? "Промокод активирован",
