@@ -228,23 +228,20 @@ export default function Header() {
                 <div
                   role="menu"
                   aria-label="Дополнительные ссылки"
-                  className="absolute right-0 top-full mt-2 w-56 dropdown-modern animate-fade-in-scale z-50"
+                  className="absolute right-0 top-full mt-2 w-52 dropdown-modern animate-fade-in-scale z-50 py-1"
                 >
-                  <div className="dropdown-section-title">Информация</div>
-                  <div className="py-2 px-2">
-                    {HEADER_DROPDOWN_ITEMS.map(({ href, label, icon: Icon }) => (
-                      <Link
-                        key={href}
-                        href={href}
-                        onClick={closeDropdown}
-                        role="menuitem"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground)] dropdown-item-modern rounded-lg w-full"
-                      >
-                        <Icon className="w-4 h-4 text-[var(--chart-1)] flex-shrink-0" aria-hidden />
-                        {label}
-                      </Link>
-                    ))}
-                  </div>
+                  {HEADER_DROPDOWN_ITEMS.map(({ href, label, icon: Icon }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={closeDropdown}
+                      role="menuitem"
+                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] dropdown-item-modern w-full mx-1"
+                    >
+                      <Icon className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0" aria-hidden />
+                      {label}
+                    </Link>
+                  ))}
                 </div>
               </>
             )}

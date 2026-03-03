@@ -187,19 +187,19 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
       ref={panelRef}
       role="menu"
       aria-label="Меню пользователя"
-      className="absolute top-full right-0 mt-3 w-80 max-w-[calc(100vw-1rem)] min-w-0 overflow-x-hidden dropdown-modern animate-fade-in-scale z-layer-modal"
+      className="absolute top-full right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] min-w-0 overflow-x-hidden dropdown-modern animate-fade-in-scale z-layer-modal"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Карточка профиля */}
-      <div className="p-4 rounded-t-xl border-b border-[var(--border)]/40 bg-[var(--card)]/50">
+      <div className="p-3 border-b border-[var(--border)] bg-[var(--background)]/50">
         <Link
           ref={firstFocusableRef}
           href="/profile"
           onClick={onClose}
           role="menuitem"
-          className="flex items-center gap-3 transition-colors cursor-pointer rounded-lg p-2 -m-2 hover:bg-[var(--accent)]/60 focus:bg-[var(--accent)]/60 outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
+          className="flex items-center gap-3 transition-colors cursor-pointer rounded-lg p-2 -m-2 hover:bg-[var(--accent)] focus:bg-[var(--accent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
         >
-          <div className="shrink-0 rounded-full ring-2 ring-[var(--border)]/60" style={{ width: 53, height: 53 }}>
+          <div className="shrink-0 rounded-full ring-1 ring-[var(--border)]" style={{ width: 48, height: 48 }}>
             <UserAvatar
               avatarUrl={user?.avatar}
               username={displayName}
