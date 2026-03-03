@@ -62,6 +62,13 @@ const RARITY_STYLES: Record<
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
 
+const PREVIEW_LABELS: Record<"avatar" | "frame" | "background" | "card", string> = {
+  avatar: "Как будет в профиле",
+  frame: "Как будет в профиле",
+  background: "Шапка профиля",
+  card: "В таблице лидеров",
+};
+
 interface DecorationPreviewModalProps {
   decoration: Decoration;
   imageSrc: string;
@@ -116,40 +123,38 @@ function DecorationPreviewModal({
     return primary || DEFAULT_AVATAR;
   }, [userAvatar]);
 
-  const renderPreviewProfile = () => {
-    const showDecorationOnAvatar = displayType === "avatar" || displayType === "frame";
-
-    const Avatar = ({ size }: { size: number }) => (
-      <div className="relative shrink-0" style={{ width: size, height: size }}>
-        <div
-          className="relative overflow-hidden border-2 border-[var(--background)] shadow-lg rounded-full"
-          style={{ width: size, height: size }}
-        >
-          <Image
-            src={showDecorationOnAvatar && displayType === "avatar" ? imageSrc : resolvedUserAvatar}
-            alt={username}
-            fill
-            unoptimized
-            className="object-cover rounded-full"
-          />
-        </div>
-        {displayType === "frame" && (
-          <img
-            src={imageSrc}
-            alt=""
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
-            style={{
-              width: size * 1.8,
-              height: size * 1.8,
-              maxWidth: "none",
-              maxHeight: "none",
-            }}
-            aria-hidden
-          />
-        )}
+  const AvatarWithOptionalFrame = ({ size }: { size: number }) => (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <div
+        className="relative overflow-hidden border-2 border-[var(--background)] shadow-lg rounded-full bg-[var(--muted)]"
+        style={{ width: size, height: size }}
+      >
+        <Image
+          src={displayType === "avatar" ? imageSrc : resolvedUserAvatar}
+          alt={username}
+          fill
+          unoptimized
+          className="object-cover rounded-full"
+        />
       </div>
-    );
+      {displayType === "frame" && (
+        <img
+          src={imageSrc}
+          alt=""
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
+          style={{
+            width: size * 1.2,
+            height: size * 1.2,
+            maxWidth: "none",
+            maxHeight: "none",
+          }}
+          aria-hidden
+        />
+      )}
+    </div>
+  );
 
+  const renderPreviewProfile = () => {
     if (displayType === "card") {
       const rows = [
         { rank: 1, name: username, level: Math.max(1, userLevel), isYou: true },
@@ -159,11 +164,6 @@ function DecorationPreviewModal({
 
       return (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div className="font-semibold text-sm text-[var(--foreground)]">Таблица лидеров</div>
-            <div className="text-xs text-[var(--muted-foreground)]">Уровень</div>
-          </div>
-
           <div className="space-y-2">
             {rows.map((r) => (
               <div
@@ -173,38 +173,38 @@ function DecorationPreviewModal({
                 }`}
               >
                 <div
-                  className="absolute inset-0 opacity-40"
+                  className="absolute inset-0 opacity-50"
                   style={{
                     backgroundImage: `url(${imageSrc})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)] via-[var(--background)]/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)] via-[var(--background)]/85 to-transparent" />
 
                 <div className="relative z-10 flex items-center gap-3 p-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm bg-[var(--secondary)] border border-[var(--border)] text-[var(--foreground)]">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs bg-[var(--secondary)] border border-[var(--border)] text-[var(--foreground)]">
                     #{r.rank}
                   </div>
 
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--muted)] shrink-0">
+                  <div className="relative w-9 h-9 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--muted)] shrink-0">
                     <Image src={resolvedUserAvatar} alt={r.name} fill unoptimized className="object-cover rounded-full" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-[var(--foreground)] truncate">{r.name}</span>
+                      <span className="font-semibold text-xs text-[var(--foreground)] truncate">{r.name}</span>
                       {r.isYou && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] border border-[var(--primary)]/25 font-semibold">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] border border-[var(--primary)]/25 font-semibold">
                           Вы
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-[var(--muted-foreground)]">Уровень {r.level}</div>
+                    <div className="text-[11px] text-[var(--muted-foreground)]">Уровень {r.level}</div>
                   </div>
 
-                  <div className="shrink-0 px-3 py-2 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-semibold text-[var(--foreground)]">
-                    Уровень {r.level}
+                  <div className="shrink-0 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-[11px] font-semibold text-[var(--foreground)]">
+                    {r.level}
                   </div>
                 </div>
               </div>
@@ -216,71 +216,148 @@ function DecorationPreviewModal({
 
     if (displayType === "background") {
       return (
-        <div className="flex flex-col gap-3">
-          <div className="font-semibold text-sm text-[var(--foreground)]">Профиль пользователя</div>
-
-          <div className="rounded-2xl overflow-hidden border border-[var(--border)] bg-[var(--card)]">
-            <ProfileHeaderPreview
-              compact
-              username={username}
-              level={userLevel}
-              avatarUrl={showDecorationOnAvatar && displayType === "avatar" ? imageSrc : resolvedUserAvatar}
-              frameUrl={userFrameUrl}
-              backgroundUrl={imageSrc}
-            />
-          </div>
+        <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card)]">
+          <ProfileHeaderPreview
+            compact
+            username={username}
+            level={userLevel}
+            avatarUrl={resolvedUserAvatar}
+            frameUrl={userFrameUrl}
+            backgroundUrl={imageSrc}
+          />
         </div>
       );
     }
 
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <Avatar size={56} />
-
+          <AvatarWithOptionalFrame size={56} />
           <div className="flex flex-col min-w-0">
             <span className="font-semibold text-sm text-[var(--foreground)] truncate">{username}</span>
             <span className="inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
               <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold">
                 {userLevel}
               </span>
-              <span>Уровень</span>
+              Уровень
             </span>
           </div>
         </div>
-
-        <div className="mt-2 p-3 rounded-xl bg-[var(--muted)] border border-[var(--border)]">
+        <div className="p-3 rounded-xl bg-[var(--muted)]/80 border border-[var(--border)]">
+          <p className="text-[11px] text-[var(--muted-foreground)] mb-2">Как в комментариях</p>
           <div className="flex items-center gap-2">
-            <div className="relative overflow-hidden border border-[var(--border)] shadow rounded-full shrink-0" style={{ width: 32, height: 32 }}>
+            <AvatarWithOptionalFrame size={32} />
+            <div className="flex-1 min-w-0">
+              <span className="text-xs font-medium text-[var(--foreground)] truncate block">{username}</span>
+              <span className="text-[10px] text-[var(--muted-foreground)]">Текст комментария...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderMainImage = () => {
+    if (displayType === "frame") {
+      return (
+        <div className="relative flex items-center justify-center">
+          <div className="relative w-40 h-40 sm:w-48 sm:h-48">
+            <div className="absolute inset-0 overflow-hidden rounded-full border-2 border-[var(--background)] shadow-xl bg-[var(--muted)]">
               <Image
-                src={showDecorationOnAvatar && displayType === "avatar" ? imageSrc : resolvedUserAvatar}
-                alt={username}
+                src={resolvedUserAvatar}
+                alt=""
                 fill
                 unoptimized
                 className="object-cover rounded-full"
               />
             </div>
-            {displayType === "frame" && (
-              <img
-                src={imageSrc}
-                alt=""
-                className="absolute left-4 top-3 pointer-events-none object-contain z-10"
-                style={{
-                  width: 32 * 1.8,
-                  height: 32 * 1.8,
-                  maxWidth: "none",
-                  maxHeight: "none",
-                  transform: "translate(-50%, -50%) translate(16px, 16px)",
-                }}
-                aria-hidden
-              />
+            <img
+              src={imageSrc}
+              alt=""
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10 w-[120%] h-[120%] max-w-none max-h-none"
+              onLoad={() => setIsImageLoading(false)}
+              aria-hidden
+            />
+            {isImageLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]/80 rounded-full">
+                <span className="w-6 h-6 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+              </div>
             )}
-            <div className="flex-1 min-w-0">
-              <span className="text-xs font-medium text-[var(--foreground)] truncate block">{username}</span>
-              <span className="text-[10px] text-[var(--muted-foreground)]">У меня новое украшение!</span>
-            </div>
           </div>
+          <span className={`absolute -top-1 -right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
+            {rarityStyle.label}
+          </span>
         </div>
+      );
+    }
+
+    if (displayType === "background") {
+      return (
+        <div className="relative w-full rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)] aspect-[21/9] sm:aspect-video">
+          {isImageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
+              <span className="w-6 h-6 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+            </div>
+          )}
+          <Image
+            src={imageSrc}
+            alt={decoration.name}
+            fill
+            unoptimized
+            className={`object-cover object-center ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+            onLoad={() => setIsImageLoading(false)}
+          />
+          <span className={`absolute top-2 right-2 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
+            {rarityStyle.label}
+          </span>
+        </div>
+      );
+    }
+
+    if (displayType === "card") {
+      return (
+        <div className="relative w-full max-w-[200px] mx-auto rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)] aspect-[3/4]">
+          {isImageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
+              <span className="w-6 h-6 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+            </div>
+          )}
+          <Image
+            src={imageSrc}
+            alt={decoration.name}
+            fill
+            unoptimized
+            className={`object-cover object-center ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+            onLoad={() => setIsImageLoading(false)}
+          />
+          <span className={`absolute top-2 right-2 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
+            {rarityStyle.label}
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative">
+        <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 blur-sm" />
+        <div className="relative w-40 h-40 sm:w-48 sm:h-48 overflow-hidden border-4 border-[var(--background)] shadow-xl rounded-full bg-[var(--muted)]">
+          {isImageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
+              <span className="w-6 h-6 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+            </div>
+          )}
+          <Image
+            src={imageSrc}
+            alt={decoration.name}
+            fill
+            unoptimized
+            className={`object-cover rounded-full ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+            onLoad={() => setIsImageLoading(false)}
+          />
+        </div>
+        <span className={`absolute -top-1 -right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
+          {rarityStyle.label}
+        </span>
       </div>
     );
   };
@@ -311,44 +388,24 @@ function DecorationPreviewModal({
         <div className="p-4 sm:p-6">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex-1 flex flex-col items-center md:items-start gap-4">
-              <div className="relative">
-                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 blur-sm" />
-                <div
-                  className="relative w-40 h-40 sm:w-48 sm:h-48 overflow-hidden border-4 border-[var(--background)] shadow-xl rounded-full bg-[var(--muted)]"
-                >
-                  {isImageLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
-                      <span className="w-6 h-6 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
-                    </div>
-                  )}
-                  <Image
-                    src={imageSrc}
-                    alt={decoration.name}
-                    fill
-                    unoptimized
-                    className={`object-cover rounded-full ${isImageLoading ? "opacity-0" : "opacity-100"}`}
-                    onLoad={() => setIsImageLoading(false)}
-                  />
-                </div>
-                <span
-                  className={`absolute -top-1 -right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}
-                >
-                  {rarityStyle.label}
-                </span>
+              <div className="flex justify-center w-full md:block">
+                {renderMainImage()}
               </div>
 
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2">
-                {isGif && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)]">
-                    GIF-Аватар
-                  </span>
-                )}
-                {decoration.bonus && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 text-xs font-medium text-amber-700 dark:text-amber-300">
-                    + <Coins className="w-3 h-3" /> {decoration.bonus}
-                  </span>
-                )}
-              </div>
+              {(displayType === "avatar" && (isGif || decoration.bonus)) && (
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                  {isGif && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)]">
+                      GIF-Аватар
+                    </span>
+                  )}
+                  {decoration.bonus && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 text-xs font-medium text-amber-700 dark:text-amber-300">
+                      + <Coins className="w-3 h-3" /> {decoration.bonus}
+                    </span>
+                  )}
+                </div>
+              )}
 
               <div className="text-center md:text-left mt-2">
                 <h3 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{decoration.name}</h3>
@@ -460,9 +517,9 @@ function DecorationPreviewModal({
               </div>
             </div>
 
-            <div className="flex-1 flex flex-col">
-              <div className="text-sm font-medium text-[var(--muted-foreground)] mb-3">Предпросмотр</div>
-              <div className="flex-1 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="text-sm font-medium text-[var(--muted-foreground)] mb-3">{PREVIEW_LABELS[displayType]}</div>
+              <div className="flex-1 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] min-h-0">
                 {renderPreviewProfile()}
               </div>
             </div>

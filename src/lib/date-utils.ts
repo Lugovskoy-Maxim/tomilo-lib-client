@@ -39,3 +39,29 @@ export const timeAgo = (dateString: string): string => {
     return `${diffInYears} г назад`;
   }
 };
+
+/** Для уведомлений: недавние — относительное время, старые — короткая дата */
+export function formatNotificationTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInHours = diffInMs / (1000 * 60 * 60);
+
+  if (diffInHours < 24) {
+    return timeAgo(dateString);
+  }
+  const isToday = date.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+  if (isToday) {
+    return date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  }
+  if (isYesterday) {
+    return "вчера, " + date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  }
+  if (diffInHours < 7 * 24) {
+    return date.toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "short" });
+  }
+  return date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+}

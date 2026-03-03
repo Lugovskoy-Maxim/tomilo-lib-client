@@ -69,17 +69,16 @@ const MAX_DECORATION_FILE_SIZE = 20 * 1024 * 1024;
 
 function ShopSectionSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-3 lg:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden animate-pulse"
+          className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden animate-pulse"
         >
-          <div className="aspect-[9/16] bg-[var(--muted)]" />
-          <div className="p-4 space-y-3">
-            <div className="h-4 bg-[var(--muted)] rounded-lg w-3/4" />
-            <div className="h-3 bg-[var(--muted)] rounded w-1/2" />
-            <div className="h-10 bg-[var(--muted)] rounded-xl w-full" />
+          <div className="aspect-[3/4] bg-[var(--muted)]" />
+          <div className="p-3 space-y-2">
+            <div className="h-3.5 bg-[var(--muted)] rounded w-4/5" />
+            <div className="h-9 bg-[var(--muted)] rounded-lg w-full" />
           </div>
         </div>
       ))}
@@ -588,12 +587,6 @@ export function ShopSection({ type }: ShopSectionProps) {
     }
   };
 
-  const typeTitles: Record<typeof type, string> = {
-    avatar: "Аватары",
-    frame: "Рамки для аватара",
-    background: "Фоны",
-    card: "Карточки",
-  };
   const typeDescriptions: Record<typeof type, string> = {
     avatar: "Украсьте профиль стильными аватарами",
     frame: "Рамки вокруг аватара в профиле",
@@ -603,13 +596,7 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   if (decorationsLoading) {
     return (
-      <div>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-[var(--foreground)] mb-1">
-            {typeTitles[type]}
-          </h2>
-          <p className="text-sm text-[var(--muted-foreground)]">{typeDescriptions[type]}</p>
-        </div>
+      <div id="shop-section" role="tabpanel" aria-labelledby={`shop-tab-${type}`}>
         <ShopSectionSkeleton />
       </div>
     );
@@ -617,51 +604,41 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   if (decorationsError) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 max-w-md w-full text-center shadow-sm">
-          <div className="w-12 h-12 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center mx-auto mb-4">
-            <RefreshCw className="w-6 h-6 text-[var(--destructive)]" />
-          </div>
-          <p className="text-[var(--foreground)] font-medium mb-2">Ошибка при загрузке товаров</p>
-          {decorationsErrorText && (
-            <p className="text-sm text-[var(--muted-foreground)]">{decorationsErrorText}</p>
-          )}
-          <button
-            onClick={() => refetchDecorations()}
-            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Попробовать снова
-          </button>
-        </div>
+      <div id="shop-section" role="tabpanel" aria-labelledby={`shop-tab-${type}`} className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+        <p className="text-[var(--foreground)] font-medium mb-1">Не удалось загрузить товары</p>
+        {decorationsErrorText && (
+          <p className="text-sm text-[var(--muted-foreground)] mb-4 max-w-sm text-center">{decorationsErrorText}</p>
+        )}
+        <button
+          onClick={() => refetchDecorations()}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Повторить
+        </button>
+        {adminModals}
       </div>
     );
   }
 
   if (decorations.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 max-w-sm w-full text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[var(--muted)] flex items-center justify-center mx-auto mb-4">
-            <PackageOpen className="w-7 h-7 text-[var(--muted-foreground)]" />
-          </div>
-          <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
-            Нет товаров в этой категории
-          </h3>
-          <p className="text-sm text-[var(--muted-foreground)]">
-            Попробуйте другую вкладку или загляните позже
-          </p>
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={openCreate}
-              className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity"
-            >
-              <Plus className="w-4 h-4" />
-              Добавить украшение
-            </button>
-          )}
+      <div id="shop-section" role="tabpanel" aria-labelledby={`shop-tab-${type}`} className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+        <div className="w-12 h-12 rounded-xl bg-[var(--muted)] flex items-center justify-center mb-3">
+          <PackageOpen className="w-6 h-6 text-[var(--muted-foreground)]" aria-hidden />
         </div>
+        <p className="text-[var(--foreground)] font-medium mb-1">В этой категории пока пусто</p>
+        <p className="text-sm text-[var(--muted-foreground)] mb-4">Выберите другую вкладку или зайдите позже</p>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={openCreate}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            <Plus className="w-4 h-4" />
+            Добавить
+          </button>
+        )}
         {adminModals}
       </div>
     );
@@ -669,30 +646,22 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   return (
     <div id="shop-section" role="tabpanel" aria-labelledby={`shop-tab-${type}`}>
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-1">
-              {typeTitles[type]}
-            </h2>
-            <p className="text-sm text-[var(--muted-foreground)]">{typeDescriptions[type]}</p>
-          </div>
-
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={openCreate}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity self-start"
-            >
-              <Plus className="w-4 h-4" />
-              Добавить
-            </button>
-          )}
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <p className="text-sm text-[var(--muted-foreground)]">{typeDescriptions[type]}</p>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={openCreate}
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            Добавить
+          </button>
+        )}
       </div>
 
       <div
-        className={`grid gap-3 sm:gap-3 lg:gap-4 ${
+        className={`grid gap-3 sm:gap-4 ${
           type === "avatar" || type === "frame" || type === "card"
             ? type === "card"
               ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-items-center"
@@ -745,11 +714,9 @@ export function ShopSection({ type }: ShopSectionProps) {
       </div>
 
       {!isAuthenticated && (
-        <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--secondary)]/50 p-4 text-center">
-          <p className="text-sm text-[var(--muted-foreground)]">
-            Войдите в аккаунт, чтобы покупать и использовать украшения
-          </p>
-        </div>
+        <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
+          Войдите в аккаунт, чтобы покупать и надевать украшения
+        </p>
       )}
       {adminModals}
     </div>
