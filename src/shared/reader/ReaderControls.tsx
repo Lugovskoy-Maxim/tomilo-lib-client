@@ -506,7 +506,7 @@ export default function ReaderControls({
                   </div>
                 </button>
 
-                {/* Полноэкранный режим (автоскрытие меню) */}
+                {/* Скрывать нижнее меню */}
                 <button
                   onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
                   className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
@@ -515,7 +515,7 @@ export default function ReaderControls({
                     <svg className="w-5 h-5 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
-                    <span className="text-sm">Полноэкранный режим</span>
+                    <span className="text-sm">Скрывать нижнее меню</span>
                   </div>
                   <div className={`w-12 h-7 rounded-full transition-colors relative ${hideBottomMenuSetting ? "bg-[var(--muted)]" : "bg-[var(--primary)]"}`}>
                     {hideBottomMenuSetting ? (
@@ -608,10 +608,10 @@ export default function ReaderControls({
                 </div>
               </div>
 
-              {/* Показать меню */}
+              {/* Нижнее меню */}
               {onHideBottomMenuChange && (
                 <div className="space-y-3">
-                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Показать меню</span>
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Нижнее меню</span>
                   <div className="flex bg-[var(--secondary)] rounded-xl p-1">
                     <button
                       onClick={() => onHideBottomMenuChange(false)}
@@ -810,7 +810,7 @@ export default function ReaderControls({
                   </div>
                 </button>
 
-                {/* Полноэкранный режим (автоскрытие меню) */}
+                {/* Скрывать нижнее меню */}
                 <button
                   onClick={() => onHideBottomMenuChange?.(!hideBottomMenuSetting)}
                   className="w-full flex items-center justify-between py-3.5 border-b border-[var(--border)]/50"
@@ -819,7 +819,7 @@ export default function ReaderControls({
                     <svg className="w-5 h-5 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
-                    <span className="text-sm">Полноэкранный режим</span>
+                    <span className="text-sm">Скрывать нижнее меню</span>
                   </div>
                   <div className={`w-12 h-7 rounded-full transition-colors relative ${hideBottomMenuSetting ? "bg-[var(--muted)]" : "bg-[var(--primary)]"}`}>
                     {hideBottomMenuSetting ? (
@@ -912,10 +912,10 @@ export default function ReaderControls({
                 </div>
               </div>
 
-              {/* Показать меню */}
+              {/* Нижнее меню */}
               {onHideBottomMenuChange && (
                 <div className="space-y-3">
-                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Показать меню</span>
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Нижнее меню</span>
                   <div className="flex bg-[var(--secondary)] rounded-xl p-1">
                     <button
                       onClick={() => onHideBottomMenuChange(false)}
