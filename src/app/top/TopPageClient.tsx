@@ -3,7 +3,10 @@ import { useMemo } from "react";
 import { Trophy } from "lucide-react";
 
 import { Carousel, Footer, Header } from "@/widgets";
-import { TopTitleCard, PeriodFilter, LoadingSkeleton, ErrorState } from "@/shared";
+import TopTitleCard from "@/shared/top-title-card/TopTitleCard";
+import PeriodFilter from "@/shared/period-filter/PeriodFilter";
+import LoadingSkeleton from "@/shared/skeleton/skeleton";
+import ErrorState from "@/shared/profile/ProfileError";
 import {
   useGetTopTitlesDayQuery,
   useGetTopTitlesWeekQuery,

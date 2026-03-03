@@ -3,15 +3,13 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight } from "lucide-react";
 
-import {
-  CollectionCard,
-  LazySection,
-  ReadingCard,
-  SectionLoadError,
-  TrendingCard,
-  UnderratedCard,
-  FeaturedTitleBlock,
-} from "@/shared";
+import CollectionCard from "@/shared/collection-card/CollectionCard";
+import LazySection from "@/shared/lazy-section/LazySection";
+import ReadingCard from "@/shared/reading-card/ReadingCard";
+import SectionLoadError from "@/shared/error-state/SectionLoadError";
+import TrendingCard from "@/shared/trending-card/TrendingCard";
+import UnderratedCard from "@/shared/underrated-card/UnderratedCard";
+import FeaturedTitleBlock from "@/shared/featured-title/FeaturedTitleBlock";
 import { 
   GenresQuickAccess, 
   TelegramSection, 

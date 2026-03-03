@@ -1,0 +1,22 @@
+/* Layout styles — собран из модулей (reader, profile, cards, mobile-sheet, rarity и др.) */
+@import "./reader.css";
+@import "./profile.css";
+@import "./header.css";
+@import "./mobile-menu.css";
+@import "./content.css";
+@import "./footer.css";
+@import "./mobile-footer.css";
+@import "./mobile-sheet.css";
+@import "./search.css";
+@import "./userbar.css";
+@import "./dropdown.css";
+@import "./animations.css";
+@import "./cards.css";
+@import "./reader-mobile.css";
+@import "./responsive.css";
+@import "./title-loading.css";
+@import "./carousel.css";
+@import "./rich-text-editor.css";
+@import "./announcement.css";
+@import "./auth-modals.css";
+@import "./rarity.css";

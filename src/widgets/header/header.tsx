@@ -1,5 +1,9 @@
 "use client";
-import { Logo, Search, ErrorBoundary, LoginModal, RegisterModal } from "@/shared";
+import Logo from "@/shared/logo/logo";
+import Search from "@/shared/search/Search";
+import ErrorBoundary from "@/shared/error-boundary/ErrorBoundary";
+import LoginModal from "@/shared/modal/LoginModal";
+import RegisterModal from "@/shared/modal/RegisterModal";
 import { Navigation, UserBar } from "@/widgets";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";

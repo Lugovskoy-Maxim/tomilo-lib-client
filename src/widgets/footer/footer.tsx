@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { Logo } from "@/shared";
+import Logo from "@/shared/logo/logo";
 import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
 
 const FOOTER_NAV = [

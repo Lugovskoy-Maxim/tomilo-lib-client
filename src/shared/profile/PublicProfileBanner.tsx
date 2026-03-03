@@ -1,7 +1,8 @@
 "use client";
 
 import { UserProfile } from "@/types/user";
-import { ProfileAvatar, UserInfo } from "@/shared";
+import ProfileAvatar from "@/shared/profile/ProfileAvatar";
+import UserInfo from "@/shared/profile/ProfileInfo";
 import { getEquippedBackgroundUrl } from "@/api/shop";
 import RankStarsOverlay from "./RankStarsOverlay";
 import ProfileStats from "./ProfileStats";

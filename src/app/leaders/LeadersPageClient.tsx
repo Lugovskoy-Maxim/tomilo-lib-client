@@ -4,7 +4,8 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { TrendingUp, Star, Users, Flame, Search, ChevronUp, Eye, EyeOff, Calendar, MessageSquare } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
-import { LoadingSkeleton, ErrorState } from "@/shared";
+import LoadingSkeleton from "@/shared/skeleton/skeleton";
+import ErrorState from "@/shared/profile/ProfileError";
 import LeaderCard from "@/shared/leader-card/LeaderCard";
 import {
   useGetLeaderboardQuery,

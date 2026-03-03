@@ -1,0 +1,66 @@
+/* --- USERBAR --- */
+
+/* Gradient login button */
+.btn-login-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
+  border: none;
+  color: var(--primary-foreground);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-login-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-login-gradient:hover::before {
+  opacity: 1;
+}
+
+.btn-login-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.35);
+}
+
+/* Avatar with animated ring */
+.avatar-modern {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.avatar-modern::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    var(--primary),
+    var(--chart-1),
+    var(--chart-2),
+    var(--primary)
+  );
+  animation: avatar-ring-spin 3s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.avatar-modern:hover::before {
+  opacity: 1;
+}
+
+.avatar-modern:hover {
+  transform: scale(1.05);
+}
+
+@keyframes avatar-ring-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+

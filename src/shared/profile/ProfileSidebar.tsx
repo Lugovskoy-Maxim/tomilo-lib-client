@@ -1,7 +1,8 @@
 "use client";
 
 import { UserProfile } from "@/types/user";
-import { ProfileAvatar, EditAvatarButton } from "@/shared";
+import ProfileAvatar from "@/shared/profile/ProfileAvatar";
+import EditAvatarButton from "@/shared/profile/ProfileEditAvatarButton";
 import RankStarsOverlay from "./RankStarsOverlay";
 import ProfileLeaderboardBadges from "./ProfileLeaderboardBadges";
 import { Button } from "@/shared/ui/button";

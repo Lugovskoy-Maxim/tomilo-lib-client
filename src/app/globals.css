@@ -240,7 +240,6 @@ html.font-rubik body {
   display: none; /* Chrome, Safari and Opera */
 }
 
-/* Модули (админка, профиль, хедер, футер, контент, мобильное меню и т.д.) */
+/* Модули (профиль, хедер, футер, контент, мобильное меню и т.д.). admin.css подключается в app/admin/layout.tsx */
 @import "./styles/variables-rgb.css";
-@import "./styles/admin.css";
-@import "./styles/layout.css";
+@import "./styles/layout/index.css";

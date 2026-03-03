@@ -17,7 +17,7 @@ import {
   Send,
 } from "lucide-react";
 import { Header, Footer } from "@/widgets";
-import { Breadcrumbs } from "@/shared";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 
 interface FAQItem {
   question: string;

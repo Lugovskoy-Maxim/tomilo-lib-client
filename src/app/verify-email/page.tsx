@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import { BackButton } from "@/shared";
+import BackButton from "@/shared/back-button/BackButton";
 import { Footer, Header } from "@/widgets";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";

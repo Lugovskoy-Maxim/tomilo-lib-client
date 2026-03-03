@@ -11,7 +11,7 @@ import { normalizeBookmarks } from "@/lib/bookmarks";
 import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
 import { isMongoObjectId } from "@/lib/isMongoObjectId";
 import { Footer, Header } from "@/widgets";
-import { LoadingState } from "@/shared";
+import LoadingState from "@/shared/profile/ProfileLoading";
 import ProfileSidebar from "@/shared/profile/ProfileSidebar";
 import { getEquippedBackgroundUrl, getDecorationImageUrl } from "@/api/shop";
 import ProfileTabs from "@/shared/profile-tabs/ProfileTabs";

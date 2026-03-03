@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { Star, TrendingUp } from "lucide-react";
-import { CarouselCard } from "@/shared";
+import CarouselCard from "@/shared/popular-card/PopularCard";
 import { Carousel } from "@/widgets";
 import { getTitlePath } from "@/lib/title-paths";
 import { useGetRecommendedTitlesQuery } from "@/store/api/titlesApi";

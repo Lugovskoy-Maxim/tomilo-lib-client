@@ -1,0 +1,21 @@
+
+/* Smooth scroll optimizations for auto-scroll feature */
+.reader-scroll-container {
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto;
+}
+
+.reader-scroll-container * {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.reader-image-container {
+  will-change: transform;
+  transform: translateZ(0);
+  contain: layout style paint;
+  position: relative;
+  overflow: hidden;
+}
+

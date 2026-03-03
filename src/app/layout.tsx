@@ -7,7 +7,9 @@ import { FontProvider } from "@/contexts/FontContext";
 import { ProgressNotificationProvider } from "@/contexts/ProgressNotificationContext";
 
 import Script from "next/script";
-import { CookieConsent, TelegramJoinNotification, ToastContainer } from "@/shared";
+import CookieConsent from "@/shared/cookie-consent/CookieConsent";
+import TelegramJoinNotification from "@/shared/telegram-join-notification/TelegramJoinNotification";
+import ToastContainer from "@/shared/ui/Toast";
 import ProgressNotificationContainer from "@/shared/ui/ProgressNotificationContainer";
 import type { Metadata, Viewport } from "next";
 import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";

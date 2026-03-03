@@ -1,0 +1,245 @@
+/* --- FOOTER --- */
+
+.footer-glass {
+  background: rgba(var(--background-rgb), 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(var(--border-rgb), 0.5);
+}
+
+[data-theme="dark"] .footer-glass {
+  background: rgba(8, 8, 12, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* --- Nav link modern --- */
+.nav-link-modern {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.3s ease;
+}
+
+.nav-link-modern__icon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+}
+
+.nav-link-modern__text {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-link-modern__glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.nav-link-modern:hover {
+  color: var(--foreground);
+  border-color: var(--primary);
+  box-shadow: 0 0 20px -5px var(--primary);
+}
+
+.nav-link-modern:hover .nav-link-modern__glow {
+  opacity: 0.1;
+}
+
+.nav-link-modern:hover .nav-link-modern__icon {
+  transform: scale(1.15) rotate(-5deg);
+  color: var(--primary);
+}
+
+.nav-link-modern:active {
+  transform: scale(0.97);
+}
+
+.nav-link-modern--active {
+  color: var(--foreground);
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0.05) 100%);
+}
+
+.nav-link-modern--active .nav-link-modern__icon {
+  color: var(--primary);
+}
+
+/* --- Footer link --- */
+.footer-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0;
+  transition: color 0.25s ease;
+}
+
+.footer-link::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--chart-1) 100%);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.footer-link::after {
+  content: '→';
+  position: absolute;
+  right: -1.25rem;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  color: var(--primary);
+  font-size: 0.875rem;
+}
+
+.footer-link:hover {
+  color: var(--primary);
+  padding-right: 1.5rem;
+}
+
+.footer-link:hover::before {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.footer-link:hover::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.footer-link:focus-visible {
+  outline: none;
+  color: var(--primary);
+}
+
+.footer-link:focus-visible::before {
+  transform: scaleX(1);
+}
+
+/* Gradient divider */
+.gradient-divider {
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--border) 20%, 
+    var(--primary) 50%, 
+    var(--border) 80%, 
+    transparent 100%
+  );
+  opacity: 0.5;
+}
+
+/* Footer contact links */
+.footer-contact-link {
+  position: relative;
+  color: var(--chart-1);
+  padding: 0.375rem 0.75rem;
+  margin: -0.375rem -0.75rem;
+  border-radius: 0.5rem;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.3s ease;
+}
+
+.footer-contact-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
+  opacity: 0;
+  border-radius: inherit;
+  transition: opacity 0.25s ease;
+  z-index: -1;
+}
+
+.footer-contact-link:hover {
+  color: var(--foreground);
+  box-shadow: 0 4px 15px -3px rgba(var(--primary-rgb), 0.3);
+}
+
+.footer-contact-link:hover::before {
+  opacity: 0.15;
+}
+
+.footer-contact-link:hover svg:first-child {
+  animation: icon-bounce 0.5s ease;
+}
+
+@keyframes icon-bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+.footer-contact-link:focus-visible {
+  color: var(--foreground);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+}
+
+.footer-contact-link:focus-visible::before {
+  opacity: 0.15;
+}
+
+/* Footer credit link (разработчик) */
+.footer-credit-link {
+  transition: color 0.2s ease;
+}
+.footer-credit-link:hover {
+  color: var(--chart-1);
+}
+
+/* Desktop footer: заголовки секций */
+.footer-section-title {
+  letter-spacing: 0.08em;
+}
+
+/* Desktop footer: кнопка «Наверх» */
+.footer-back-to-top {
+  animation: footer-back-to-top-in 0.25s ease-out;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.footer-back-to-top:hover {
+  transform: translateY(-2px);
+}
+.footer-back-to-top:active {
+  transform: translateY(0);
+}
+@keyframes footer-back-to-top-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Footer version badge */
+.footer-version {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.12), rgba(var(--primary-rgb), 0.06));
+  border: 1px solid rgba(var(--border-rgb), 0.6);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.75rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* Отступ снизу на мобильных, чтобы контент не перекрывался фиксированной панелью */
+@media (max-width: 1023px) {
+  .mobile-footer-spacer {
+    padding-bottom: var(--mobile-footer-bar-height);
+  }
+}
+

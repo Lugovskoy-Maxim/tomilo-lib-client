@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MobileFilterButton, SortAndSearch, TitleGrid, FilterSidebar } from "@/shared";
+import MobileFilterButton from "@/shared/browse/MobileFilterButton";
+import SortAndSearch from "@/shared/browse/SortAndSearch";
+import TitleGrid from "@/shared/browse/TitlesGrid";
+import FilterSidebar from "@/shared/browse/FilterSidebar";
 import ActiveFilterChips from "@/shared/browse/ActiveFilterChips";
 import FilterQuickBar from "@/shared/browse/FilterQuickBar";
 import { GridSkeleton } from "@/shared/skeleton/GridSkeleton";

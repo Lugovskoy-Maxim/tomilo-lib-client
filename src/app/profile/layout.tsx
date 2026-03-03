@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useProfile } from "@/hooks/useProfile";
-import { ProfileHeader } from "@/shared";
+import ProfileHeader from "@/shared/profile/ProfileHeader";
 import Link from "next/link";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { Footer, Header } from "@/widgets";

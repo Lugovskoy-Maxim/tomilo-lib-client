@@ -1,6 +1,7 @@
 import { Shield, Users, Book, Mail, Languages } from "lucide-react";
 import { Footer, Header } from "@/widgets";
-import { BackButton, Breadcrumbs } from "@/shared";
+import BackButton from "@/shared/back-button/BackButton";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import termsOfUse from "@/constants/terms-of-use";
 import { Metadata } from "next";
 

@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Mail, Send } from "lucide-react";
 import { Header, Footer } from "@/widgets";
-import { Breadcrumbs } from "@/shared";
+import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 
