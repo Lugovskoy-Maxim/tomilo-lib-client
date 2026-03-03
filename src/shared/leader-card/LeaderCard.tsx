@@ -302,10 +302,6 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
   const showCard = cardUrl && !cardError;
   const showFrame = frameUrl && !frameError;
   const hasRarityEffect = Boolean(cardRarity && cardRarity !== "common");
-  const rarityAnimationClass = cardRarity === "legendary" ? "rarity-legendary" 
-    : cardRarity === "epic" ? "rarity-epic" 
-    : cardRarity === "rare" ? "rarity-rare" 
-    : "";
 
   useEffect(() => {
     if (showAnimation) {
@@ -320,10 +316,9 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
     <Link
       href={`/user/${user._id}`}
       className={`
-        relative flex flex-col items-center justify-end text-center rounded-2xl border-2
-        transition-all duration-300 hover:scale-[1.03]
+        relative flex flex-col items-center justify-end text-center rounded-2xl border
+        transition-all duration-200 hover:shadow-lg
         bg-[var(--card)] ${hasRarityEffect ? rarityStyles.borderClass : styles.cardBorder} 
-        ${hasRarityEffect ? rarityAnimationClass : styles.glow}
         overflow-hidden group
         ${isCurrentUser ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]" : ""}
         ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4") : ""}
@@ -333,87 +328,39 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         ...(showAnimation ? { transitionDelay: `${animationDelay}ms` } : {})
       }}
     >
-      {/* Rarity glow effect overlay */}
       {hasRarityEffect && (
-        <div className={`absolute inset-0 pointer-events-none z-0 bg-gradient-to-b ${rarityStyles.gradientClass} ${rarityStyles.animationClass}`} />
+        <div className={`absolute inset-0 pointer-events-none z-0 bg-gradient-to-b opacity-30 ${rarityStyles.gradientClass}`} />
       )}
-      
-      {/* Legendary sparkle effects */}
-      {cardRarity === "legendary" && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-30">
-          <div className="absolute top-[10%] left-[20%] w-1 h-1 bg-amber-300 rounded-full animate-ping" style={{ animationDuration: "1.5s" }} />
-          <div className="absolute top-[30%] right-[15%] w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping" style={{ animationDuration: "2s", animationDelay: "0.5s" }} />
-          <div className="absolute top-[50%] left-[10%] w-1 h-1 bg-orange-300 rounded-full animate-ping" style={{ animationDuration: "1.8s", animationDelay: "1s" }} />
-          <div className="absolute top-[70%] right-[25%] w-1 h-1 bg-amber-400 rounded-full animate-ping" style={{ animationDuration: "2.2s", animationDelay: "0.3s" }} />
-        </div>
-      )}
-      
-      {/* Epic shimmer effect */}
-      {cardRarity === "epic" && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-30">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent animate-shimmer" 
-               style={{ 
-                 backgroundSize: "200% 100%",
-                 animation: "shimmer 3s ease-in-out infinite"
-               }} 
-          />
-        </div>
-      )}
-      
-      {rank === 1 && !hasRarityEffect && (
-        <div className={`absolute inset-0 pointer-events-none overflow-hidden z-30 transition-opacity duration-300 ${showCard ? "group-hover:opacity-0" : ""}`}>
-          <div className="absolute top-0 left-1/4 w-1 h-8 bg-yellow-400/40 blur-sm animate-pulse" style={{ animationDelay: "0ms" }} />
-          <div className="absolute top-2 right-1/3 w-1 h-6 bg-yellow-400/30 blur-sm animate-pulse" style={{ animationDelay: "200ms" }} />
-          <div className="absolute top-4 left-1/2 w-1.5 h-10 bg-yellow-400/50 blur-sm animate-pulse" style={{ animationDelay: "400ms" }} />
-          <div className="absolute top-1 right-1/4 w-1 h-7 bg-amber-400/40 blur-sm animate-pulse" style={{ animationDelay: "600ms" }} />
-        </div>
-      )}
-      
+
       {showCard ? (
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-100 transition-opacity duration-300"
+          className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-200"
           style={{ backgroundImage: `url(${cardUrl})` }}
         >
-          <img 
-            src={cardUrl} 
-            alt="" 
-            className="hidden" 
-            onError={() => setCardError(true)}
-          />
+          <img src={cardUrl} alt="" className="hidden" onError={() => setCardError(true)} />
         </div>
       ) : (
-        <div className={`absolute inset-0 bg-gradient-to-b ${hasRarityEffect ? rarityStyles.gradientClass : styles.gradient} pointer-events-none`} />
+        <div className={`absolute inset-0 bg-gradient-to-b ${hasRarityEffect ? rarityStyles.gradientClass : styles.gradient} pointer-events-none opacity-90`} />
       )}
 
       <div
-        className={`
-          absolute -top-1 -right-1 ${badgeSize} rounded-xl flex items-center justify-center
-          ${styles.bg} ${styles.text} shadow-lg z-20 border-2 border-white/20
-          transition-opacity duration-300
-          ${showCard ? "group-hover:opacity-0" : ""}
-          ${rank === 1 ? "animate-bounce" : ""}
-        `}
-        style={rank === 1 ? { animationDuration: "2s" } : undefined}
+        className={`absolute top-2 right-2 ${badgeSize} rounded-lg flex items-center justify-center ${styles.bg} ${styles.text} shadow z-20 border border-white/20`}
       >
         <RankIcon className={iconSize} />
       </div>
 
       {isCurrentUser && (
-        <div className={`absolute top-2 left-2 z-20 px-2 py-1 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium transition-opacity duration-300 ${showCard ? "group-hover:opacity-0" : ""}`}>
+        <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium">
           Вы
         </div>
       )}
 
-      <div className={`relative z-10 mb-4 transition-opacity duration-300 ${showCard ? "group-hover:opacity-0" : ""}`}>
+      <div className="relative z-10 mb-4">
         <div className="relative">
           <img
             src={avatarUrl}
             alt={user.username}
-            className={`
-              ${avatarSize} rounded-full object-cover border-4 ${styles.cardBorder}
-              shadow-xl group-hover:shadow-2xl transition-shadow bg-[var(--secondary)]
-              ${rank === 1 ? "ring-4 ring-yellow-400/30" : ""}
-            `}
+            className={`${avatarSize} rounded-full object-cover border-2 ${styles.cardBorder} shadow-md bg-[var(--secondary)]`}
             onError={() => {
               if (avatarDecorationUrl && !avatarDecorationError) {
                 setAvatarDecorationError(true);
@@ -427,12 +374,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
               src={frameUrl}
               alt=""
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
-              style={{ 
-                width: avatarPixels * 1.2, 
-                height: avatarPixels * 1.2,
-                maxWidth: "none",
-                maxHeight: "none",
-              }}
+              style={{ width: avatarPixels * 1.2, height: avatarPixels * 1.2, maxWidth: "none", maxHeight: "none" }}
               onError={() => setFrameError(true)}
               aria-hidden
             />
@@ -440,82 +382,52 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         </div>
       </div>
 
-      <div className={`relative z-10 w-full px-3 py-3 rounded-b-xl bg-gradient-to-t from-black/70 via-black/50 to-transparent transition-opacity duration-300 ${showCard ? "group-hover:opacity-0" : ""}`}>
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <p className={`font-bold text-white truncate max-w-[150px] drop-shadow-md ${rank === 1 ? "text-xl" : "text-lg"}`}>
-            {user.username}
-          </p>
-          {user.role && user.role !== "user" && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 text-white capitalize font-medium">
-              {user.role}
-            </span>
-          )}
-        </div>
-
-        <div className="flex justify-center mb-3">
-          <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-white/20 text-white border border-white/30">
-            {getRankDisplay(level).split("  ")[0]}
+      <div className="relative z-10 w-full px-3 py-3 rounded-b-2xl bg-gradient-to-t from-black/75 to-transparent">
+        <p className={`font-semibold text-white truncate max-w-[140px] mx-auto ${rank === 1 ? "text-lg" : "text-base"}`}>
+          {user.username}
+        </p>
+        {user.role && user.role !== "user" && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/20 text-white/90 capitalize mt-0.5 inline-block">
+            {user.role}
           </span>
+        )}
+        <p className="text-xs text-white/80 mt-1.5">
+          {getRankDisplay(level).split("  ")[0]}
+        </p>
+        <div className={`flex items-center justify-center gap-1.5 mt-2.5 px-3 py-2 rounded-lg ${styles.bg} ${styles.text}`}>
+          <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
+          <span className="font-semibold text-sm">{getCategoryValue(user, category)}</span>
         </div>
-
-        <div className={`
-          flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
-          ${styles.bg} ${styles.text}
-        `}>
-          <CategoryIcon className="w-4 h-4" />
-          <span className="font-bold text-sm">
-            {getCategoryValue(user, category)}
-          </span>
-        </div>
-
         {secondaryValue && (
-          <p className="mt-2 text-xs text-white/70">
-            {secondaryValue}
-          </p>
+          <p className="mt-1.5 text-[11px] text-white/70">{secondaryValue}</p>
         )}
       </div>
-
-      {showCard && (
-        <div className="absolute bottom-0 left-0 right-0 z-20 px-3 py-3 rounded-b-xl bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <p className={`font-bold text-white text-center truncate drop-shadow-md ${rank === 1 ? "text-xl" : "text-lg"}`}>
-            {user.username}
-          </p>
-        </div>
-      )}
     </Link>
   );
 }
 
 function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, animationDelay = 0 }: Omit<LeaderCardProps, "variant">) {
-  const [isHovered, setIsHovered] = useState(false);
   const [frameError, setFrameError] = useState(false);
-  const [cardError, setCardError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [avatarDecorationError, setAvatarDecorationError] = useState(false);
   const [isVisible, setIsVisible] = useState(!showAnimation);
-  
+
   const CategoryIcon = getCategoryIcon(category);
   const avatarDecorationUrl = getAvatarDecorationUrl(user.equippedDecorations);
   const baseAvatarUrl = user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR;
-  const avatarUrl = avatarError 
-    ? DEFAULT_AVATAR 
+  const avatarUrl = avatarError
+    ? DEFAULT_AVATAR
     : (avatarDecorationUrl && !avatarDecorationError ? avatarDecorationUrl : baseAvatarUrl);
   const level = user.level ?? 0;
   const frameUrl = getFrameUrl(user.equippedDecorations);
-  const cardUrl = getCardUrl(user.equippedDecorations);
   const secondaryValue = getSecondaryValue(user, category);
-  
+
   const cardRarity = user.equippedDecorations?.cardRarity;
   const frameRarity = user.equippedDecorations?.frameRarity;
   const rarityStyles = getRarityStyles(cardRarity || frameRarity);
-  const hasRarityEffect = Boolean((cardRarity || frameRarity) && (cardRarity !== "common" && frameRarity !== "common"));
-  const rarityAnimationClass = cardRarity === "legendary" || frameRarity === "legendary" ? "rarity-legendary" 
-    : cardRarity === "epic" || frameRarity === "epic" ? "rarity-epic" 
-    : cardRarity === "rare" || frameRarity === "rare" ? "rarity-rare" 
-    : "";
+  const hasRarityEffect = Boolean((cardRarity || frameRarity) && cardRarity !== "common" && frameRarity !== "common");
 
   const showFrame = frameUrl && !frameError;
-  const showCard = cardUrl && !cardError;
 
   useEffect(() => {
     if (showAnimation) {
@@ -532,33 +444,25 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
     <Link
       href={`/user/${user._id}`}
       className={`
-        relative flex items-center gap-4 rounded-xl border-2 p-4 transition-all duration-200
-        hover:scale-[1.01]
-        bg-[var(--card)] ${hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"} 
-        ${hasRarityEffect ? rarityAnimationClass : "hover:shadow-md hover:border-[var(--primary)]/50"}
-        ${isCurrentUser ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)] border-[var(--primary)]/30" : ""}
+        relative flex items-center gap-3 rounded-xl border p-3 sm:p-4 transition-all duration-200
+        bg-[var(--card)] hover:bg-[var(--muted)]/50 hover:border-[var(--border)]
+        ${hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}
+        ${isCurrentUser ? "ring-2 ring-[var(--primary)]/50 ring-offset-2 ring-offset-[var(--background)]" : ""}
         ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2") : ""}
         overflow-hidden
       `}
       style={showAnimation ? { transitionDelay: `${animationDelay}ms` } : undefined}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Rarity background gradient for DefaultCard */}
       {hasRarityEffect && (
-        <div className={`absolute inset-0 pointer-events-none bg-gradient-to-r ${rarityStyles.gradientClass} opacity-30`} />
+        <div className={`absolute inset-0 pointer-events-none bg-gradient-to-r ${rarityStyles.gradientClass} opacity-20`} />
       )}
-      
-      <div className={`
-        flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm
-        border-2 relative z-10
-        ${hasRarityEffect 
-          ? `${rarityStyles.badgeClass} border-transparent`
-          : isTopTen 
-            ? "bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]" 
-            : "bg-[var(--muted)] border-[var(--border)] text-[var(--foreground)]"
-        }
-      `}>
+
+      <div
+        className={`
+          flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold relative z-10
+          ${hasRarityEffect ? rarityStyles.badgeClass : isTopTen ? "bg-[var(--primary)]/15 text-[var(--primary)]" : "bg-[var(--muted)] text-[var(--muted-foreground)]"}
+        `}
+      >
         #{rank}
       </div>
 
@@ -566,16 +470,10 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
         <img
           src={avatarUrl}
           alt={user.username}
-          className={`
-            w-12 h-12 rounded-full object-cover border-2 bg-[var(--secondary)]
-            ${isCurrentUser ? "border-[var(--primary)]" : hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}
-          `}
+          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border bg-[var(--secondary)] ${isCurrentUser ? "border-[var(--primary)]" : hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}`}
           onError={() => {
-            if (avatarDecorationUrl && !avatarDecorationError) {
-              setAvatarDecorationError(true);
-            } else {
-              setAvatarError(true);
-            }
+            if (avatarDecorationUrl && !avatarDecorationError) setAvatarDecorationError(true);
+            else setAvatarError(true);
           }}
         />
         {showFrame && (
@@ -583,82 +481,32 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
             src={frameUrl}
             alt=""
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
-            style={{ 
-              width: 48 * 1.75, 
-              height: 48 * 1.75,
-              maxWidth: "none",
-              maxHeight: "none",
-            }}
+            style={{ width: 44 * 1.6, height: 44 * 1.6, maxWidth: "none", maxHeight: "none" }}
             onError={() => setFrameError(true)}
             aria-hidden
           />
         )}
         {isCurrentUser && (
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold flex items-center justify-center border-2 border-[var(--background)]">
+          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[9px] font-bold flex items-center justify-center border-2 border-[var(--background)]">
             Я
           </div>
         )}
       </div>
 
       <div className="flex-1 min-w-0 relative z-10">
-        <div className="flex items-center gap-2">
-          <p className={`font-semibold truncate ${isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
-            {user.username}
-          </p>
-          {user.role && user.role !== "user" && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] font-medium capitalize">
-              {user.role}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs px-2 py-1 rounded-full font-medium bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)]">
-            {getRankDisplay(level).split("  ")[0]}
-          </span>
-          {secondaryValue && (
-            <span className="text-xs text-[var(--muted-foreground)] hidden sm:inline">
-              {secondaryValue}
-            </span>
-          )}
-        </div>
+        <p className={`font-medium truncate text-sm ${isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
+          {user.username}
+        </p>
+        <p className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">
+          {getRankDisplay(level).split("  ")[0]}
+          {secondaryValue && <span className="hidden sm:inline"> · {secondaryValue}</span>}
+        </p>
       </div>
 
-      <div className={`
-        flex items-center gap-2 text-right px-3 py-2 rounded-lg relative z-10
-        ${hasRarityEffect
-          ? `${rarityStyles.badgeClass}`
-          : isTopTen 
-            ? "bg-gradient-to-r from-[var(--primary)]/10 to-[var(--primary)]/5 border border-[var(--primary)]/20" 
-            : "bg-[var(--secondary)]"
-        }
-      `}>
-        <CategoryIcon className={`w-4 h-4 ${hasRarityEffect ? "" : isTopTen ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`} />
-        <span className={`font-bold whitespace-nowrap ${hasRarityEffect ? "" : isTopTen ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
-          {getCategoryValue(user, category)}
-        </span>
+      <div className={`flex items-center gap-1.5 shrink-0 px-2.5 py-1.5 rounded-lg text-right relative z-10 ${hasRarityEffect ? rarityStyles.badgeClass : "bg-[var(--muted)]"}`}>
+        <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
+        <span className="font-semibold text-sm whitespace-nowrap">{getCategoryValue(user, category)}</span>
       </div>
-
-      {showCard && isHovered && (
-        <div 
-          className="
-            absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(100%+8px)]
-            w-32 h-44 rounded-xl overflow-hidden shadow-2xl border-2 border-[var(--border)]
-            z-50 animate-fade-in pointer-events-none
-            hidden md:block
-          "
-        >
-          <img
-            src={cardUrl}
-            alt={`Карточка ${user.username}`}
-            className="w-full h-full object-cover"
-            onError={() => setCardError(true)}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-          <div className="absolute bottom-2 left-2 right-2 text-white text-xs font-medium truncate">
-            {user.username}
-          </div>
-        </div>
-      )}
     </Link>
   );
 }
