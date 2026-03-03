@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { X, Check, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
+import { X, ChevronDown, ChevronUp } from "lucide-react";
 import CollapsibleGenresList from "./CollapsibleGenresList";
 import { translateTitleType, translateTitleStatus } from "@/lib/title-type-translations";
 
@@ -38,15 +38,16 @@ const FilterSection = ({
   const [open, setOpen] = useState(isOpen);
 
   return (
-    <div className="border-b border-[var(--border)] pb-4">
+    <div className="rounded-lg bg-[var(--muted)]/30 border border-[var(--border)] overflow-hidden">
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full text-left font-medium text-[var(--muted-foreground)] mb-2 cursor-pointer"
+        className="flex items-center justify-between w-full text-left px-3 py-2.5 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]/40 transition-colors"
       >
         {title}
-        {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        {open ? <ChevronUp className="w-4 h-4 shrink-0 opacity-60" /> : <ChevronDown className="w-4 h-4 shrink-0 opacity-60" />}
       </button>
-      {open && <div className="space-y-2">{children}</div>}
+      {open && <div className="px-3 pb-3 pt-0 space-y-1.5">{children}</div>}
     </div>
   );
 };
@@ -133,22 +134,17 @@ export default function FilterSidebar<
   // Контент фильтров
   const filterContent = (
     <>
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--border)]">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-[var(--primary)]" />
-          <h2 className="font-semibold text-[var(--foreground)]">Фильтры</h2>
-          {activeFiltersCount > 0 && (
-            <span className="px-2 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-medium rounded-full">
-              {activeFiltersCount}
-            </span>
-          )}
-        </div>
-        <button
-          onClick={onReset}
-          className="text-sm text-[var(--chart-1)] hover:text-[var(--primary)] transition-colors cursor-pointer font-medium hover:underline underline-offset-2"
-        >
-          Сбросить все
-        </button>
+      <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[var(--border)]">
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">Фильтры</h2>
+        {activeFiltersCount > 0 && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="text-xs font-medium text-[var(--primary)] hover:underline underline-offset-2 shrink-0"
+          >
+            Сбросить всё
+          </button>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -164,42 +160,23 @@ export default function FilterSidebar<
 
         {/* Фильтр по типам */}
         <FilterSection title="Тип" isOpen={false}>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-wrap gap-2">
             {filterOptions.types.map(type => (
-              <label 
-                key={type} 
-                className={`flex items-center gap-2 cursor-pointer p-2 rounded-lg transition-all duration-200 ${
-                  filters.types.includes(type) 
-                    ? "bg-[var(--primary)]/10 border border-[var(--primary)]/30" 
-                    : "hover:bg-[var(--accent)] border border-transparent"
+              <label
+                key={type}
+                className={`inline-flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filters.types.includes(type)
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                    : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 }`}
               >
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={filters.types.includes(type)}
-                    onChange={() => handleTypeChange(type)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-4 h-4 border rounded flex items-center justify-center transition-all duration-200 ${
-                      filters.types.includes(type)
-                        ? "bg-[var(--primary)] border-[var(--primary)]"
-                        : "border-[var(--border)] bg-[var(--background)]"
-                    }`}
-                  >
-                    {filters.types.includes(type) && (
-                      <Check className="w-3 h-3 text-white" />
-                    )}
-                  </div>
-                </div>
-                <span className={`text-sm font-medium transition-colors ${
-                  filters.types.includes(type) 
-                    ? "text-[var(--primary)]" 
-                    : "text-[var(--muted-foreground)]"
-                }`}>
-                  {translateTitleType(type)}
-                </span>
+                <input
+                  type="checkbox"
+                  checked={filters.types.includes(type)}
+                  onChange={() => handleTypeChange(type)}
+                  className="sr-only"
+                />
+                {translateTitleType(type)}
               </label>
             ))}
           </div>
@@ -207,143 +184,99 @@ export default function FilterSidebar<
 
         {/* Фильтр по статусу */}
         <FilterSection title="Статус" isOpen={false}>
-          <div className="space-y-1">
+          <div className="flex flex-wrap gap-2">
             {filterOptions.status.map(status => (
-              <label 
-                key={status} 
-                className={`flex items-center gap-3 cursor-pointer p-2 rounded-lg transition-all duration-200 ${
-                  filters.status.includes(status) 
-                    ? "bg-[var(--primary)]/10" 
-                    : "hover:bg-[var(--accent)]"
+              <label
+                key={status}
+                className={`inline-flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filters.status.includes(status)
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                    : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 }`}
               >
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={filters.status.includes(status)}
-                    onChange={() => handleStatusChange(status)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-4 h-4 border rounded flex items-center justify-center transition-all duration-200 ${
-                      filters.status.includes(status)
-                        ? "bg-[var(--primary)] border-[var(--primary)]"
-                        : "border-[var(--border)] bg-[var(--background)]"
-                    }`}
-                  >
-                    {filters.status.includes(status) && (
-                      <Check className="w-3 h-3 text-white" />
-                    )}
-                  </div>
-                </div>
-                <span className={`text-sm font-medium transition-colors ${
-                  filters.status.includes(status) 
-                    ? "text-[var(--primary)]" 
-                    : "text-[var(--muted-foreground)]"
-                }`}>
-                  {translateTitleStatus(status)}
-                </span>
+                <input
+                  type="checkbox"
+                  checked={filters.status.includes(status)}
+                  onChange={() => handleStatusChange(status)}
+                  className="sr-only"
+                />
+                {translateTitleStatus(status)}
               </label>
             ))}
           </div>
         </FilterSection>
 
         {/* Фильтр по возрастным ограничениям */}
-        <FilterSection title="Возрастные ограничения" isOpen={false}>
+        <FilterSection title="Возраст" isOpen={false}>
           <div className="flex flex-wrap gap-2">
             {filterOptions.ageLimits.map(ageLimit => (
-              <label 
-                key={ageLimit} 
-                className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg transition-all duration-200 border ${
-                  filters.ageLimits.includes(ageLimit) 
-                    ? "bg-[var(--primary)]/10 border-[var(--primary)]/30" 
-                    : "bg-[var(--background)] border-[var(--border)] hover:border-[var(--primary)]/30"
+              <label
+                key={ageLimit}
+                className={`inline-flex items-center cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filters.ageLimits.includes(ageLimit)
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                    : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 }`}
               >
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={filters.ageLimits.includes(ageLimit)}
-                    onChange={() => handleAgeLimitChange(ageLimit)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-4 h-4 border rounded flex items-center justify-center transition-all duration-200 ${
-                      filters.ageLimits.includes(ageLimit)
-                        ? "bg-[var(--primary)] border-[var(--primary)]"
-                        : "border-[var(--border)] bg-[var(--background)]"
-                    }`}
-                  >
-                    {filters.ageLimits.includes(ageLimit) && (
-                      <Check className="w-3 h-3 text-white" />
-                    )}
-                  </div>
-                </div>
-                <span className={`text-sm font-medium ${
-                  ageLimit === 18 ? "text-red-500" : ""
-                }`}>
-                  {ageLimit === 0 ? "Для всех" : `${ageLimit}+`}
-                </span>
+                <input
+                  type="checkbox"
+                  checked={filters.ageLimits.includes(ageLimit)}
+                  onChange={() => handleAgeLimitChange(ageLimit)}
+                  className="sr-only"
+                />
+                {ageLimit === 0 ? "Для всех" : `${ageLimit}+`}
               </label>
             ))}
           </div>
         </FilterSection>
 
         {/* Фильтр по годам выпуска */}
-        <FilterSection title="Годы выпуска" isOpen={false}>
-          {filterOptions.releaseYears.map(year => (
-            <label key={year} className="flex items-center gap-2 cursor-pointer">
-              <div className="relative">
+        <FilterSection title="Год" isOpen={false}>
+          <div className="flex flex-wrap gap-2">
+            {filterOptions.releaseYears.map(year => (
+              <label
+                key={year}
+                className={`inline-flex items-center cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filters.releaseYears.includes(year)
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                    : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={filters.releaseYears.includes(year)}
                   onChange={() => handleReleaseYearChange(year)}
                   className="sr-only"
                 />
-                <div
-                  className={`w-4 h-4 border rounded flex items-center justify-center ${
-                    filters.releaseYears.includes(year)
-                      ? "bg-[var(--primary)] border-[var(--primary)]"
-                      : "border-[var(--border)] bg-[var(--background)]"
-                  }`}
-                >
-                  {filters.releaseYears.includes(year) && (
-                    <Check className="w-3 h-3 text-[var(--muted-foreground)]" />
-                  )}
-                </div>
-              </div>
-              <span className="text-sm text-[var(--muted-foreground)]">{year}</span>
-            </label>
-          ))}
+                {year}
+              </label>
+            ))}
+          </div>
         </FilterSection>
 
         {/* Фильтр по тегам */}
         {filterOptions.tags.length > 0 && (
           <FilterSection title="Теги" isOpen={false}>
-            {filterOptions.tags.map(tag => (
-              <label key={tag} className="flex items-center gap-2 cursor-pointer">
-                <div className="relative">
+            <div className="flex flex-wrap gap-2">
+              {filterOptions.tags.map(tag => (
+                <label
+                  key={tag}
+                  className={`inline-flex items-center cursor-pointer px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    filters.tags.includes(tag)
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : "bg-[var(--background)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
+                >
                   <input
                     type="checkbox"
                     checked={filters.tags.includes(tag)}
                     onChange={() => handleTagChange(tag)}
                     className="sr-only"
                   />
-                  <div
-                    className={`w-4 h-4 border rounded flex items-center justify-center ${
-                      filters.tags.includes(tag)
-                        ? "bg-[var(--primary)] border-[var(--primary)]"
-                        : "border-[var(--border)] bg-[var(--background)]"
-                    }`}
-                  >
-                    {filters.tags.includes(tag) && (
-                      <Check className="w-3 h-3 text-[var(--muted-foreground)]" />
-                    )}
-                  </div>
-                </div>
-                <span className="text-sm text-[var(--muted-foreground)]">{tag}</span>
-              </label>
-            ))}
+                  {tag}
+                </label>
+              ))}
+            </div>
           </FilterSection>
         )}
       </div>
@@ -371,19 +304,13 @@ export default function FilterSidebar<
         >
           <div className="p-5 h-full overflow-y-auto">
             {/* Заголовок мобильной шторки */}
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--border)]">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-[var(--primary)]" />
-                <h2 className="text-lg font-semibold text-[var(--foreground)]">Фильтры</h2>
-                {activeFiltersCount > 0 && (
-                  <span className="px-2 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-medium rounded-full">
-                    {activeFiltersCount}
-                  </span>
-                )}
-              </div>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-[var(--border)]">
+              <h2 className="text-base font-semibold text-[var(--foreground)]">Фильтры</h2>
               <button
+                type="button"
                 onClick={onClose}
-                className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors cursor-pointer"
+                className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors"
+                aria-label="Закрыть"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -396,10 +323,10 @@ export default function FilterSidebar<
     );
   }
 
-  // Десктоп версия с фиксированной высотой
+  // Десктоп: боковая панель
   return (
-    <div className="sticky top-20 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-lg shadow-black/5 overflow-hidden">
-      <div className="p-5 max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar">{filterContent}</div>
+    <div className="sticky top-20 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-sm overflow-hidden">
+      <div className="p-4 max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar">{filterContent}</div>
     </div>
   );
 }

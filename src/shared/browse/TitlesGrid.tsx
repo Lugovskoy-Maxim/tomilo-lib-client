@@ -56,19 +56,18 @@ const GridItem = memo(function GridItem({ title, index, onCardClick }: GridItemP
 
 const EmptyState = memo(function EmptyState({ onResetFilters }: { onResetFilters: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="p-4 bg-[var(--muted)]/30 rounded-full mb-4">
-        <SearchX className="w-12 h-12 text-[var(--muted-foreground)]" />
-      </div>
-      <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">Ничего не найдено</h3>
-      <p className="text-[var(--muted-foreground)] text-center max-w-md mb-6">
-        По вашему запросу не найдено тайтлов. Попробуйте изменить фильтры или поисковый запрос.
+    <div className="flex flex-col items-center justify-center py-14 px-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+      <SearchX className="w-10 h-10 text-[var(--muted-foreground)] mb-3" />
+      <h3 className="text-lg font-medium text-[var(--foreground)] mb-1">Ничего не найдено</h3>
+      <p className="text-sm text-[var(--muted-foreground)] text-center max-w-xs mb-5">
+        Измените фильтры или поисковый запрос.
       </p>
       <button
+        type="button"
         onClick={onResetFilters}
-        className="group flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-xl hover:bg-[var(--primary)]/90 transition-all duration-300 hover:shadow-lg hover:shadow-[var(--primary)]/20 font-medium"
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:opacity-90 transition-opacity"
       >
-        <RotateCcw className="w-4 h-4 group-hover:-rotate-180 transition-transform duration-500" />
+        <RotateCcw className="w-4 h-4" />
         Сбросить фильтры
       </button>
     </div>
@@ -81,7 +80,7 @@ function TitleGrid({ titles, onCardClick, isEmpty, onResetFilters }: TitleGridPr
   }
 
   return (
-    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mb-8">
+    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
       {titles.map((title, index) => (
         <GridItem
           key={title.id}

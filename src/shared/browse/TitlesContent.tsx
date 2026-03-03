@@ -11,7 +11,7 @@ import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titl
 import { Title } from "@/types/title";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
-import { Loader2, BookOpen, AlertCircle, ChevronDown } from "lucide-react";
+import { Loader2, AlertCircle, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const CATALOG_CACHE_KEY = "titles-catalog-state";
@@ -400,35 +400,35 @@ export default function TitlesContent() {
   const canShowLoadMoreAction = loadMorePage < totalPages || isLoadingMore;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 pt-3 sm:pt-4">
+    <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
       {/* Основной контент */}
-      <div className="lg:w-3/4 space-y-4 sm:space-y-5">
-        {/* Заголовок + поиск + быстрые фильтры */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur p-4 sm:p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-3">
-                <BookOpen className="w-6 h-6 text-[var(--primary)]" />
-                <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-[var(--foreground)] to-[var(--muted-foreground)] bg-clip-text text-transparent">
-                  Каталог тайтлов
-                </h1>
-              </div>
-              <p className="text-[var(--muted-foreground)] text-sm pl-1">
-                Найдено <span className="font-semibold text-[var(--primary)]">{totalTitles}</span> тайтлов
-              </p>
-            </div>
+      <div className="lg:w-3/4 min-w-0 space-y-5">
+        {/* Верхняя панель: заголовок + поиск + действия */}
+        <header className="space-y-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h1 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)]">
+              Каталог
+            </h1>
+            <span className="text-sm text-[var(--muted-foreground)]">
+              {totalTitles} {totalTitles === 1 ? "тайтл" : totalTitles < 5 ? "тайтла" : "тайтлов"}
+            </span>
+          </div>
 
-            <div className="flex flex-wrap gap-2 items-center">
-              <MobileFilterButton onClick={() => setIsMobileFilterOpen(true)} />
+          {/* Поиск и сортировка в одной строке */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 min-w-0">
               <SortAndSearch
                 filters={appliedFilters}
                 onFiltersChange={handleFiltersChange}
                 isSearching={isLoading && debouncedSearch !== appliedFilters.search}
               />
             </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <MobileFilterButton onClick={() => setIsMobileFilterOpen(true)} />
+            </div>
           </div>
 
-          {/* Быстрые фильтры (тип, статус) */}
+          {/* Быстрые фильтры: тип и статус */}
           <FilterQuickBar
             filters={appliedFilters}
             onFiltersChange={handleFiltersChange}
@@ -447,68 +447,57 @@ export default function TitlesContent() {
             }
           />
 
-          {/* Активные фильтры — чипы для быстрого снятия */}
-          <div className="mt-3 -mb-1">
-            <ActiveFilterChips
-              filters={appliedFilters}
-              onRemoveGenre={g => removeFilter("genre", g)}
-              onRemoveType={t => removeFilter("type", t)}
-              onRemoveStatus={s => removeFilter("status", s)}
-              onRemoveAgeLimit={a => removeFilter("ageLimit", a)}
-              onRemoveReleaseYear={y => removeFilter("releaseYear", y)}
-              onRemoveTag={t => removeFilter("tag", t)}
-            />
-          </div>
-        </div>
+          {/* Активные фильтры — чипы */}
+          <ActiveFilterChips
+            filters={appliedFilters}
+            onRemoveGenre={g => removeFilter("genre", g)}
+            onRemoveType={t => removeFilter("type", t)}
+            onRemoveStatus={s => removeFilter("status", s)}
+            onRemoveAgeLimit={a => removeFilter("ageLimit", a)}
+            onRemoveReleaseYear={y => removeFilter("releaseYear", y)}
+            onRemoveTag={t => removeFilter("tag", t)}
+          />
+        </header>
 
         {/* Контейнер списка */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur p-3 sm:p-4 lg:p-5 shadow-sm min-h-[320px]">
-          {/* Состояние загрузки */}
+        <section className="min-h-[280px]">
           {isCatalogLoading && allTitles.length === 0 && (
-            <GridSkeleton
-              variant="catalog"
-              itemCount={limit}
-            />
+            <GridSkeleton variant="catalog" itemCount={limit} />
           )}
 
-          {/* Состояние ошибки */}
           {isError && (
-            <div className="flex flex-col items-center justify-center py-20 px-4">
-              <div className="p-4 bg-red-500/10 rounded-full mb-4">
-                <AlertCircle className="w-12 h-12 text-red-500" />
-              </div>
-              <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">Ошибка загрузки</h3>
-              <p className="text-[var(--muted-foreground)] text-center max-w-md mb-6">
-                {error && typeof error === 'object' && 'data' in error
-                  ? (error.data as { message?: string })?.message || "Не удалось загрузить тайтлы. Попробуйте позже."
-                  : "Не удалось загрузить тайтлы. Попробуйте позже."}
+            <div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+              <AlertCircle className="w-10 h-10 text-[var(--destructive)] mb-3" />
+              <h3 className="text-lg font-medium text-[var(--foreground)] mb-1">Ошибка загрузки</h3>
+              <p className="text-sm text-[var(--muted-foreground)] text-center max-w-sm mb-5">
+                {error && typeof error === "object" && "data" in error
+                  ? (error.data as { message?: string })?.message ||
+                    "Не удалось загрузить каталог. Попробуйте позже."
+                  : "Не удалось загрузить каталог. Попробуйте позже."}
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-all duration-300 hover:shadow-lg hover:shadow-[var(--primary)]/20"
+                className="px-4 py-2 text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:opacity-90 transition-opacity"
               >
-                Обновить страницу
+                Обновить
               </button>
             </div>
           )}
 
-          {/* Сетка тайтлов */}
           {!isError && allTitles.length > 0 && (
-            <div className="content-reveal relative">
+            <div className="relative">
               <TitleGrid
                 titles={allTitles}
                 onCardClick={handleCardClick}
-                isEmpty={allTitles.length === 0}
+                isEmpty={false}
                 onResetFilters={resetFilters}
               />
               {showUpdatingOverlay && (
                 <div className="absolute inset-x-0 top-0 z-10 flex justify-center pointer-events-none">
-                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur px-3 py-1.5 shadow-sm">
-                    <Loader2 className="w-4 h-4 text-[var(--primary)] animate-spin" />
-                    <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-                      Обновляем список...
-                    </span>
-                  </div>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[var(--card)] border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--muted-foreground)] shadow-sm">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Обновляем...
+                  </span>
                 </div>
               )}
             </div>
@@ -516,40 +505,32 @@ export default function TitlesContent() {
 
           {!isCatalogLoading && !isError && allTitles.length === 0 && (
             <TitleGrid
-              titles={allTitles}
+              titles={[]}
               onCardClick={handleCardClick}
-              isEmpty={true}
+              isEmpty
               onResetFilters={resetFilters}
             />
           )}
-        </div>
+        </section>
 
-        {/* Load more button */}
+        {/* Загрузить ещё */}
         {canShowLoadMoreAction && !isError && (
-          <div className="flex justify-center my-10">
+          <div className="flex justify-center pt-2 pb-4">
             <button
               onClick={loadMoreTitles}
               disabled={isLoadingMore || isFilteringOrSearchingLoading}
-              className={`group relative px-8 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-[var(--primary-foreground)] rounded-xl font-medium shadow-lg shadow-[var(--primary)]/20 overflow-hidden transition-all duration-300 ${
-                isLoadingMore || isFilteringOrSearchingLoading
-                  ? "opacity-90 cursor-not-allowed"
-                  : "hover:shadow-xl hover:shadow-[var(--primary)]/30 hover:-translate-y-0.5 active:translate-y-0"
-              }`}
+              className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)] hover:border-[var(--primary)]/30 disabled:opacity-60 disabled:pointer-events-none transition-colors"
             >
-              <span className="relative z-10 flex items-center gap-2">
-                {isLoadingMore
-                  ? "Идет загрузка..."
-                  : isFilteringOrSearchingLoading
-                    ? "Обновляем список..."
-                    : "Загрузить ещё"}
-                {isLoadingMore || isFilteringOrSearchingLoading ? (
+              {isLoadingMore || isFilteringOrSearchingLoading ? (
+                <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-300" />
-                )}
-              </span>
-              {!isLoadingMore && !isFilteringOrSearchingLoading && (
-                <div className="absolute inset-0 bg-gradient-to-r from-[var(--chart-1)] to-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  Загрузка...
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4" />
+                  Загрузить ещё
+                </>
               )}
             </button>
           </div>
@@ -557,7 +538,7 @@ export default function TitlesContent() {
       </div>
 
       {/* Боковая панель с фильтрами (десктоп) */}
-      <div className="hidden lg:block lg:w-1/4">
+      <aside className="hidden lg:block lg:w-1/4 shrink-0">
         <FilterSidebar
           filters={appliedFilters}
           onFiltersChange={handleFiltersChange}
@@ -572,7 +553,7 @@ export default function TitlesContent() {
           }}
           onReset={resetFilters}
         />
-      </div>
+      </aside>
 
       {/* Мобильный фильтр (шторка) */}
       <FilterSidebar
@@ -588,7 +569,7 @@ export default function TitlesContent() {
           sortByOptions: originalFilterOptions?.data?.sortByOptions || [],
         }}
         onReset={resetFilters}
-        isMobile={true}
+        isMobile
         isOpen={isMobileFilterOpen}
         onClose={() => setIsMobileFilterOpen(false)}
       />

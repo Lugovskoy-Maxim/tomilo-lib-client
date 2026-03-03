@@ -37,38 +37,23 @@ export default function FilterQuickBar({
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl mb-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-[var(--muted-foreground)]" />
-          <span className="text-sm font-medium text-[var(--foreground)]">Быстрые фильтры</span>
-          {activeCount > 0 && (
-            <span className="px-2 py-0.5 bg-[var(--primary)]/15 text-[var(--primary)] text-xs font-medium rounded-full">
-              {activeCount}
-            </span>
-          )}
-        </div>
-        <button
-          onClick={onOpenFullFilters}
-          className="text-sm font-medium text-[var(--primary)] hover:text-[var(--chart-1)] transition-colors lg:hidden"
-        >
-          Все фильтры
-        </button>
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+      <div className="flex flex-col gap-4 sm:gap-5">
         {/* Тип */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-[var(--muted-foreground)] shrink-0">Тип:</span>
+        <div>
+          <p className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider mb-2">
+            Тип
+          </p>
           <div className="flex flex-wrap gap-2">
             {filterOptions.types.map(type => (
               <button
                 key={type}
+                type="button"
                 onClick={() => handleTypeToggle(type)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filters.types.includes(type)
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                    : "bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                    : "bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
                 }`}
               >
                 {translateTitleType(type)}
@@ -79,17 +64,20 @@ export default function FilterQuickBar({
 
         {/* Статус */}
         {filterOptions.status.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 sm:border-l sm:border-[var(--border)] sm:pl-4">
-            <span className="text-xs font-medium text-[var(--muted-foreground)] shrink-0">Статус:</span>
+          <div>
+            <p className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider mb-2">
+              Статус
+            </p>
             <div className="flex flex-wrap gap-2">
               {filterOptions.status.map(status => (
                 <button
                   key={status}
+                  type="button"
                   onClick={() => handleStatusToggle(status)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     filters.status.includes(status)
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                      : "bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
                   }`}
                 >
                   {translateTitleStatus(status)}
@@ -98,6 +86,23 @@ export default function FilterQuickBar({
             </div>
           </div>
         )}
+
+        {/* Счётчик при выбранных фильтрах; ссылка «Все фильтры» на мобильных */}
+        <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
+          {activeCount > 0 ? (
+            <span className="text-xs text-[var(--muted-foreground)]">Активно: {activeCount}</span>
+          ) : (
+            <span />
+          )}
+          <button
+            type="button"
+            onClick={onOpenFullFilters}
+            className="lg:hidden inline-flex items-center gap-2 text-sm font-medium text-[var(--primary)] hover:underline underline-offset-2"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            Все фильтры
+          </button>
+        </div>
       </div>
     </div>
   );
