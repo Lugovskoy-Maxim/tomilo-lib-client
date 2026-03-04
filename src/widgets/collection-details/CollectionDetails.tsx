@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Header, Footer } from "@/widgets";
 import { useSEO } from "@/hooks/useSEO";
@@ -96,9 +97,9 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
         <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4">
           <LoadingSkeleton className="h-8 w-64 mb-4" />
           <LoadingSkeleton className="h-32 w-full mb-6" />
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <LoadingSkeleton key={i} className="h-48 w-full" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <LoadingSkeleton key={i} className="aspect-[2/3] w-full rounded-xl" />
             ))}
           </div>
         </div>
@@ -139,9 +140,9 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
   }
 
   return (
-    <main className="flex flex-col h-full min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] mb-10">
+    <main className="flex flex-col min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
       <Header />
-      <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4">
+      <div className="max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
         <Breadcrumbs
           items={[
             { name: "Главная", href: "/" },
@@ -151,9 +152,9 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
         />
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 py-4">
+      <div className="max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 pb-10">
         {/* Карточка-хедер коллекции */}
-        <div className="mb-8 rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)] shadow-xl ring-1 ring-white/5">
+        <div className="mb-6 sm:mb-8 rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)] shadow-sm">
           <div className="flex flex-col lg:flex-row gap-0">
             <div className="flex-1 min-w-0 p-5 sm:p-6 lg:p-8 flex flex-col justify-center">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--foreground)] mb-2 break-words">
@@ -193,108 +194,121 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
           </div>
         </div>
 
-        {/* Сетка тайтлов */}
-        <div className="pb-6 grid gap-4 sm:gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5">
+        {/* Сетка тайтлов — карточки каталога */}
+        <div className="pb-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
           {collection.titles?.map((title: Title) => {
             const isContentHidden = shouldHideContent(title);
+            const titlePath = getTitlePath({ id: title._id, slug: title.slug });
 
-            return (
-              <div
-                key={title._id}
-                onClick={() =>
-                  !isContentHidden && router.push(getTitlePath({ id: title._id, slug: title.slug }))
-                }
-                className={`bg-[var(--card)] max-h-[580px] overflow-hidden rounded-2xl border border-[var(--border)] p-2 sm:p-3 card-hover-soft cursor-pointer group relative ${
-                  isContentHidden ? "cursor-not-allowed opacity-75" : ""
-                }`}
-              >
-                {/* Views */}
-                <div className="absolute flex gap-1 top-2 left-2 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-xl border border-white/20 shadow-lg">
-                  <Eye className="w-3.5 h-3.5" />
-                  {title.views?.toFixed(0) || 0}
-                </div>
-
-                {/* Rating */}
-                <div className="absolute gap-1 flex top-2 right-2 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-xl border border-white/20 shadow-lg">
-                  <Star className="w-3.5 h-3.5" />
-                  {title.averageRating?.toFixed(1) || 0}
-                </div>
-
-                <div className="aspect-[3/4] mb-2 sm:mb-3 overflow-hidden rounded-xl relative">
+            const cardInner = (
+              <>
+                <div className="relative overflow-hidden rounded-xl bg-[var(--muted)]/30 aspect-[2/3] flex-shrink-0">
                   <OptimizedImage
                     src={normalizeImageUrls(title?.coverImage || "").primary}
                     fallbackSrc={normalizeImageUrls(title?.coverImage || "").fallback}
                     alt={title.name}
                     fill
-                    className={`object-cover card-media-hover ${
+                    className={`object-cover transition-transform duration-300 group-hover:scale-[1.03] ${
                       isContentHidden ? "blur-md" : ""
                     }`}
                   />
+                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 p-2 bg-gradient-to-t from-black/80 to-transparent text-white text-[10px] sm:text-xs font-medium">
+                    <span className="flex items-center gap-1 truncate min-w-0">
+                      <Eye className="w-3 h-3 flex-shrink-0" />
+                      {title.views?.toLocaleString() ?? 0}
+                    </span>
+                    <span className="flex items-center gap-1 flex-shrink-0">
+                      <Star className="w-3 h-3" />
+                      {(title.averageRating ?? 0).toFixed(1)}
+                    </span>
+                  </div>
                   {isContentHidden && (
-                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center">
-                      <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
-                        <span>18+</span>
-                      </div>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                      <span className="bg-red-500/90 text-white text-xs font-bold px-2.5 py-1 rounded-lg border border-red-400">
+                        18+
+                      </span>
                     </div>
                   )}
                 </div>
-
-                <h3
-                  className={`font-semibold text-[var(--foreground)] truncate text-sm sm:text-base group-hover:text-[var(--primary)] transition-colors ${
-                    isContentHidden ? "blur-sm" : ""
-                  }`}
-                >
-                  {title.name}
-                </h3>
-
-                <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-1 flex-wrap">
-                  {title.releaseYear && (
-                    <span className="bg-[var(--secondary)] px-2 py-0.5 rounded-lg">
-                      {title.releaseYear}
-                    </span>
-                  )}
-                  {title.type && (
-                    <span className="bg-[var(--secondary)] px-2 py-0.5 rounded-lg">
-                      {translateTitleType(String(title.type))}
-                    </span>
-                  )}
-                </div>
-
-                {title.description && (
-                  <p
-                    className={`text-xs sm:text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2 hidden sm:block ${
+                <div className="flex flex-col min-w-0 p-2 sm:p-2.5 flex-1">
+                  <h3
+                    className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-[var(--primary)] transition-colors ${
                       isContentHidden ? "blur-sm" : ""
                     }`}
+                    title={title.name}
                   >
-                    {title.description.length > 100
-                      ? `${title.description.substring(0, 100)}...`
-                      : title.description}
-                  </p>
-                )}
+                    {title.name}
+                  </h3>
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    {title.releaseYear != null && (
+                      <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--secondary)]/80 px-1.5 py-0.5 rounded-md">
+                        {title.releaseYear}
+                      </span>
+                    )}
+                    {title.type && (
+                      <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--secondary)]/80 px-1.5 py-0.5 rounded-md">
+                        {translateTitleType(String(title.type))}
+                      </span>
+                    )}
+                  </div>
+                  {title.description && (
+                    <p
+                      className={`text-xs text-[var(--muted-foreground)] mt-1.5 line-clamp-2 leading-snug hidden sm:block ${
+                        isContentHidden ? "blur-sm" : ""
+                      }`}
+                    >
+                      {title.description.length > 120
+                        ? `${title.description.slice(0, 120)}…`
+                        : title.description}
+                    </p>
+                  )}
+                </div>
+              </>
+            );
 
-                {isContentHidden && (
-                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-2xl">
-                    <div className="bg-[var(--card)] p-4 rounded-2xl text-center max-w-xs border border-[var(--border)] shadow-xl">
-                      <p className="text-sm font-medium text-[var(--muted-foreground)] mb-3">
-                        Для просмотра этого контента необходимо подтвердить возраст 18+
+            if (isContentHidden) {
+              return (
+                <div
+                  key={title._id}
+                  className="flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-not-allowed relative"
+                >
+                  {cardInner}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl z-10">
+                    <div className="bg-[var(--card)] p-4 rounded-xl text-center max-w-[240px] border border-[var(--border)] shadow-xl mx-2">
+                      <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mb-3">
+                        Подтвердите возраст 18+ для просмотра
                       </p>
                       <button
-                        onClick={() => setShowAgeModal(true)}
-                        className="px-4 py-2 bg-[var(--primary)] text-primary-foreground text-sm rounded-xl hover:opacity-90 transition-opacity font-medium"
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowAgeModal(true);
+                        }}
+                        className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] text-sm rounded-lg font-medium hover:opacity-90 transition-opacity"
                       >
-                        Подтвердить возраст
+                        Подтвердить
                       </button>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              );
+            }
+
+            return (
+              <Link
+                key={title._id}
+                href={titlePath}
+                className="flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
+              >
+                {cardInner}
+              </Link>
             );
           })}
         </div>
 
         {(!collection.titles || collection.titles.length === 0) && (
-          <div className="text-center py-16 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
-            <p className="text-[var(--muted-foreground)]">В этой коллекции пока нет тайтлов.</p>
+          <div className="text-center py-14 sm:py-16 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
+            <p className="text-[var(--muted-foreground)] text-sm sm:text-base">В этой коллекции пока нет тайтлов.</p>
           </div>
         )}
       </div>

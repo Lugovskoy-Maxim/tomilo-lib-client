@@ -179,7 +179,7 @@ export default async function ChapterPage({
           </div>
         }
       >
-        <ServerChapterPage params={params} />
+        <ServerChapterPage params={resolved} />
       </Suspense>
     </>
   );

@@ -6,6 +6,7 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { FontProvider } from "@/contexts/FontContext";
 import { ProgressNotificationProvider } from "@/contexts/ProgressNotificationContext";
 
+import { Suspense } from "react";
 import Script from "next/script";
 import CookieConsent from "@/shared/cookie-consent/CookieConsent";
 import TelegramJoinNotification from "@/shared/telegram-join-notification/TelegramJoinNotification";
@@ -217,7 +218,100 @@ export default function RootLayout({
         <meta name="distribution" content="global" />
         <meta name="coverage" content="Worldwide" />
 
-        {/* Глобальная структурированная разметка для поисковиков (Google, Yandex, Bing) */}
+        <Script
+          src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js"
+          strategy="afterInteractive"
+        />
+        <Script id="yandex-metrika-counter" strategy="beforeInteractive">
+          {`
+            (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=105475213', 'ym');
+
+    ym(105475213, 'init', {ssr:true, webvisor:true, clickmap:true, accurateTrackBounce:true, trackLinks:true});
+          `}
+        </Script>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-95QGC7HGHE"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-95QGC7HGHE');
+          `}
+        </Script>
+        <noscript>
+          <div>
+            <img
+              src="https://mc.yandex.ru/watch/105475213"
+              style={{ position: "absolute", left: -9999 }}
+              alt=""
+            />
+          </div>
+        </noscript>
+      </head>
+      <body
+        className={`${exo_2.variable} ${geistMono.variable} ${comfortaa.variable} ${nunito.variable} ${rubik.variable} antialiased w-full justify-center items-center`}
+      >
+        <ToastProvider>
+          <ProgressNotificationProvider>
+          <Providers>
+            <ThemeProvider>
+              <FontProvider>
+                <Suspense fallback={null}>
+                  <CardTiltEffect />
+                </Suspense>
+              <div className="mobile-footer-spacer">
+                {children}
+              </div>
+              {/* Уведомления внизу экрана: cookie внизу, Telegram выше; не перекрывают друг друга */}
+              <div className="fixed bottom-4 left-0 right-0 z-50 flex flex-col-reverse items-center gap-3 px-4 pointer-events-none">
+                <div className="pointer-events-auto w-full max-w-md mx-auto">
+                  <CookieConsent />
+                </div>
+                <div className="pointer-events-auto w-full max-w-md mx-auto">
+                  <TelegramJoinNotification />
+                </div>
+              </div>
+              {/* Обработчик сообщений от окна авторизации (Яндекс, VK) */}
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    window.addEventListener('message', function(event) {
+                      if (event.origin !== window.location.origin) return;
+                      if (event.data.type === 'YANDEX_LOGIN_SUCCESS' || event.data.type === 'VK_LOGIN_SUCCESS') {
+                        // Обновляем localStorage с токеном
+                        localStorage.setItem('tomilo_lib_token', event.data.token);
+                        // Закрываем модальные окна логина и регистрации если они открыты
+                        const loginModal = document.getElementById('login-modal');
+                        const registerModal = document.getElementById('register-modal');
+                        if (loginModal) loginModal.style.display = 'none';
+                        if (registerModal) registerModal.style.display = 'none';
+                        // Перезагружаем страницу для обновления состояния авторизации
+                        window.location.reload();
+                      } else if (event.data.type === 'YANDEX_LOGIN_ERROR') {
+                        // Обрабатываем ошибку авторизации
+                        console.error('Ошибка авторизации через Яндекс:', event.data.error);
+                        // Здесь можно добавить отображение ошибки пользователю
+                      }
+                    });
+                  `,
+                }}
+              />
+            </FontProvider>
+            </ThemeProvider>
+          </Providers>
+          <ToastContainer />
+          <ProgressNotificationContainer />
+          </ProgressNotificationProvider>
+        </ToastProvider>
+        {/* JSON-LD в конце body — избегаем hydration mismatch (скрипты из head могли смещаться) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -301,98 +395,6 @@ export default function RootLayout({
             }),
           }}
         />
-
-        <Script
-          src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js"
-          strategy="afterInteractive"
-        />
-        <Script id="yandex-metrika-counter" strategy="beforeInteractive">
-          {`
-            (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=105475213', 'ym');
-
-    ym(105475213, 'init', {ssr:true, webvisor:true, clickmap:true, accurateTrackBounce:true, trackLinks:true});
-          `}
-        </Script>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-95QGC7HGHE"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-95QGC7HGHE');
-          `}
-        </Script>
-        <noscript>
-          <div>
-            <img
-              src="https://mc.yandex.ru/watch/105475213"
-              style={{ position: "absolute", left: -9999 }}
-              alt=""
-            />
-          </div>
-        </noscript>
-      </head>
-      <body
-        className={`${exo_2.variable} ${geistMono.variable} ${comfortaa.variable} ${nunito.variable} ${rubik.variable} antialiased w-full justify-center items-center`}
-      >
-        <ToastProvider>
-          <ProgressNotificationProvider>
-          <Providers>
-            <ThemeProvider>
-              <FontProvider>
-                <CardTiltEffect />
-              <div className="mobile-footer-spacer">
-                {children}
-              </div>
-              {/* Уведомления внизу экрана: cookie внизу, Telegram выше; не перекрывают друг друга */}
-              <div className="fixed bottom-4 left-0 right-0 z-50 flex flex-col-reverse items-center gap-3 px-4 pointer-events-none">
-                <div className="pointer-events-auto w-full max-w-md mx-auto">
-                  <CookieConsent />
-                </div>
-                <div className="pointer-events-auto w-full max-w-md mx-auto">
-                  <TelegramJoinNotification />
-                </div>
-              </div>
-              {/* Обработчик сообщений от окна авторизации (Яндекс, VK) */}
-              <script
-                dangerouslySetInnerHTML={{
-                  __html: `
-                    window.addEventListener('message', function(event) {
-                      if (event.origin !== window.location.origin) return;
-                      if (event.data.type === 'YANDEX_LOGIN_SUCCESS' || event.data.type === 'VK_LOGIN_SUCCESS') {
-                        // Обновляем localStorage с токеном
-                        localStorage.setItem('tomilo_lib_token', event.data.token);
-                        // Закрываем модальные окна логина и регистрации если они открыты
-                        const loginModal = document.getElementById('login-modal');
-                        const registerModal = document.getElementById('register-modal');
-                        if (loginModal) loginModal.style.display = 'none';
-                        if (registerModal) registerModal.style.display = 'none';
-                        // Перезагружаем страницу для обновления состояния авторизации
-                        window.location.reload();
-                      } else if (event.data.type === 'YANDEX_LOGIN_ERROR') {
-                        // Обрабатываем ошибку авторизации
-                        console.error('Ошибка авторизации через Яндекс:', event.data.error);
-                        // Здесь можно добавить отображение ошибки пользователю
-                      }
-                    });
-                  `,
-                }}
-              />
-            </FontProvider>
-            </ThemeProvider>
-          </Providers>
-          <ToastContainer />
-          <ProgressNotificationContainer />
-          </ProgressNotificationProvider>
-        </ToastProvider>
       </body>
     </html>
   );

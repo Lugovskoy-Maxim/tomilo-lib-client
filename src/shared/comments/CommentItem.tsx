@@ -181,10 +181,10 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                       href={profileHref}
                       className="hover:text-[var(--primary)] transition-colors focus:outline-none focus:underline"
                     >
-                      {userData?.username || "Аноним"}
+                      {userData?.username || "Удаленный пользователь"}
                     </Link>
                   ) : (
-                    <span>{userData?.username || "Аноним"}</span>
+                    <span>{userData?.username || "Удаленный пользователь"}</span>
                   )}
                   {isAdmin && (
                     <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" aria-label="Админ" />

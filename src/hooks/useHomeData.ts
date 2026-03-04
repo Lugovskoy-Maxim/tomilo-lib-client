@@ -228,6 +228,7 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     error: randomTitlesError,
   } = useGetRandomTitlesQuery({ limit: 10, includeAdult }, { ...popularCacheOptions, skip: skipRandom });
 
+  // В тренде: поиск по weekViews — эндпоинт отдаёт просмотры за неделю для бейджа «+N»
   const {
     data: trendingTitlesData,
     isLoading: trendingTitlesLoading,
@@ -362,16 +363,16 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     [recentTitlesData]
   );
 
-  // Мемоизированное преобразование трендовых тайтлов
+  // Мемоизированное преобразование трендовых (поиск по weekViews — есть weekViews для бейджа «+N»)
   const trendingTitles = useMemo(() =>
-    trendingTitlesData?.data?.data?.map(item => ({
+    trendingTitlesData?.data?.data?.map((item: any) => ({
       id: item._id,
-      slug: (item as any).slug,
+      slug: item.slug,
       title: item.name,
       image: item.coverImage || "",
       description: item.description,
       views: item.views || 0,
-      weekViews: (item as any).weekViews ?? 0,
+      weekViews: item.weekViews ?? 0,
       type: item.type || "Неуказан",
       year: item.releaseYear || new Date().getFullYear(),
       rating: item.averageRating || item.rating || 0,

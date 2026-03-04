@@ -173,9 +173,6 @@ export function ShopManagementSection() {
         refetch();
       } else {
         if (imageFile) {
-          // #region agent log
-          fetch('http://127.0.0.1:7250/ingest/c0a453a6-7d03-4b94-b375-b950753b7f4a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'545edb'},body:JSON.stringify({sessionId:'545edb',location:'ShopManagementSection.tsx:handleSubmit',message:'before createDecorationWithImage',data:{imageFileName:imageFile?.name,imageFileSize:imageFile?.size,imageFileType:imageFile?.type},timestamp:Date.now(),hypothesisId:'H1-H2'})}).catch(()=>{});
-          // #endregion
           await createDecorationWithImage({
             file: imageFile,
             type: form.type,

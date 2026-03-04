@@ -28,11 +28,6 @@ export const baseQueryWithReauth: BaseQueryFn = async (
     "getDecorationsByType",
   ]);
 
-  // #region agent log
-  if (typeof args === "object" && args !== null && "body" in args && args.body instanceof FormData) {
-    fetch('http://127.0.0.1:7250/ingest/c0a453a6-7d03-4b94-b375-b950753b7f4a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'545edb'},body:JSON.stringify({sessionId:'545edb',location:'baseQueryWithReauth.ts',message:'body is FormData before baseQuery',data:{url:(args as { url?: string }).url},timestamp:Date.now(),hypothesisId:'H3-H5'})}).catch(()=>{});
-  }
-  // #endregion
   const baseQuery = fetchBaseQuery({
     baseUrl: API_BASE,
     credentials: "include",

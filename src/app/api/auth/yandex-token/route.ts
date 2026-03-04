@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+
+/** Лимит: 30 обменов токена с одного IP за 15 минут */
+const AUTH_RATE_LIMIT = { max: 30, windowSec: 15 * 60 };
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const { allowed, retryAfterSec } = checkRateLimit(`auth-yandex-token:${ip}`, AUTH_RATE_LIMIT);
+  if (!allowed) {
+    return NextResponse.json(
+      { success: false, message: "Слишком много попыток. Попробуйте позже." },
+      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+    );
+  }
   try {
     const { access_token } = await request.json();
 

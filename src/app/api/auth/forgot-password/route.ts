@@ -1,27 +1,50 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+/** Лимит: 5 запросов с одного IP за 15 минут (защита от перебора email) */
+const AUTH_RATE_LIMIT = { max: 5, windowSec: 15 * 60 };
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const { allowed, retryAfterSec } = checkRateLimit(`auth-forgot-password:${ip}`, AUTH_RATE_LIMIT);
+  if (!allowed) {
+    return NextResponse.json(
+      { success: false, message: "Слишком много попыток. Попробуйте позже." },
+      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+    );
+  }
   try {
     const { email } = await request.json();
 
-    if (!email) {
+    if (!email?.trim()) {
       return NextResponse.json(
         { success: false, message: "Email не предоставлен" },
         { status: 400 },
       );
     }
 
-    // Здесь должна быть логика отправки письма для сброса пароля
-    // В реальной реализации здесь должен быть вызов почтового модуля
-
-    console.log(`Отправка письма для сброса пароля на email: ${email}`);
-
+    const base = API_BASE.replace(/\/$/, "");
+    const res = await fetch(`${base}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim() }),
+      cache: "no-store",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, message: (data as { message?: string }).message || "Ошибка отправки письма" },
+        { status: res.status >= 400 ? res.status : 500 },
+      );
+    }
     return NextResponse.json({
       success: true,
       message: "Письмо для сброса пароля отправлено",
+      ...(typeof data === "object" && data !== null ? data : {}),
     });
   } catch (error) {
-    console.error("Ошибка отправки письма для сброса пароля:", error);
     return NextResponse.json(
       { success: false, message: "Ошибка отправки письма для сброса пароля" },
       { status: 500 },

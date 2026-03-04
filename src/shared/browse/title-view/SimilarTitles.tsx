@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useMemo, memo } from "react";
 import Link from "next/link";
 import { Shuffle, Star, ChevronDown, BookOpen } from "lucide-react";
 import { useGetSimilarTitlesQuery, SimilarTitle as SimilarTitleType } from "@/store/api/titlesApi";
-import { normalizeAssetUrl } from "@/lib/asset-url";
+import { getCoverUrls } from "@/lib/asset-url";
 import { translateTitleType } from "@/lib/title-type-translations";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface SimilarTitlesProps {
   titleId: string;
@@ -20,28 +20,35 @@ interface SimilarTitle extends SimilarTitleType {
   ratingCount?: number;
 }
 
-function TitleCard({ title }: { title: SimilarTitle }) {
+const TitleCard = memo(function TitleCard({ title }: { title: SimilarTitle }) {
   const [imageError, setImageError] = useState(false);
   const titlePath = `/titles/${title.slug || title.id}`;
+  const { primary: imageSrc, fallback: imageFallback } = useMemo(
+    () => getCoverUrls(title.cover, ""),
+    [title.cover]
+  );
+  const showImage = title.cover && !imageError;
 
   return (
     <Link
       href={titlePath}
       className="group"
     >
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-2 bg-[var(--secondary)]/50">
-        {title.cover && !imageError ? (
-          <Image
-            src={normalizeAssetUrl(title.cover)}
+      <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-2 bg-[var(--muted)]/30">
+        {showImage ? (
+          <OptimizedImage
+            src={imageSrc}
+            fallbackSrc={imageFallback}
             alt={title.title}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 200px"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={() => setImageError(true)}
+            className="object-cover transition-opacity duration-200 group-hover:scale-[1.03] transition-transform"
+            hidePlaceholder
             unoptimized
+            onError={() => setImageError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center">
             <BookOpen className="w-12 h-12 text-[var(--muted-foreground)]" />
           </div>
         )}
@@ -71,14 +78,13 @@ function TitleCard({ title }: { title: SimilarTitle }) {
       <span className="text-xs text-[var(--muted-foreground)]">{translateTitleType(title.type)}</span>
     </Link>
   );
-}
+});
 
 export function SimilarTitles({ titleId, genres, currentTitleSlug, includeAdult = false }: SimilarTitlesProps) {
-  const { data, isLoading, error, refetch } = useGetSimilarTitlesQuery({ 
-    id: titleId, 
-    limit: 12, 
-    includeAdult 
-  });
+  const { data, isLoading, error, refetch } = useGetSimilarTitlesQuery(
+    { id: titleId, limit: 12, includeAdult },
+    { refetchOnMountOrArgChange: false, refetchOnFocus: false }
+  );
   const [showAll, setShowAll] = useState(false);
 
   if (isLoading) {

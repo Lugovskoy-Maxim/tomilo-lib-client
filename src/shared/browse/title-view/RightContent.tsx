@@ -31,6 +31,7 @@ import { useGetReadingHistoryReadIdsQuery, useGetTitleProgressQuery } from "@/st
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getChapterPath } from "@/lib/title-paths";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { useAuth } from "@/hooks/useAuth";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { GenresList } from "./GenresList";
@@ -1094,7 +1095,7 @@ export function RightContent({
               !isDescriptionExpanded ? "line-clamp-4 max-h-[6.5rem]" : "max-h-none"
             } transition-all duration-500 ease-in-out overflow-hidden`}
             dangerouslySetInnerHTML={{
-              __html: titleData?.description || "",
+              __html: sanitizeHtml(titleData?.description || ""),
             }}
           />
           {/* Градиент для эффекта затухания при свернутом состоянии */}
@@ -1118,8 +1119,8 @@ export function RightContent({
           </button>
         )}
 
-        {/* Улучшенные вкладки с иконками - sticky на десктопе */}
-        <div className="sticky top-20 z-30 bg-[var(--secondary)]/95 backdrop-blur-xl rounded-2xl p-1.5 border border-[var(--border)] shadow-sm">
+        {/* Вкладки: Главная, Главы, Комментарии */}
+        <div className="bg-[var(--secondary)]/95 backdrop-blur-xl rounded-2xl p-1.5 border border-[var(--border)] shadow-sm">
           <div className="flex gap-1">
             {[
               { 

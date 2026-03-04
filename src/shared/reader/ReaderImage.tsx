@@ -47,6 +47,7 @@ function ReaderImageComponent({
 }: ReaderImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
@@ -54,12 +55,14 @@ function ReaderImageComponent({
   }, [chapterId, imageIndex, onLoad]);
 
   const handleError = useCallback(() => {
+    setHasError(true);
     onError(chapterId, imageIndex, src);
   }, [chapterId, imageIndex, src, onError]);
 
   const handleRetry = useCallback(() => {
     setHasError(false);
     setIsLoaded(false);
+    setRetryCount((c) => c + 1);
   }, []);
 
   const handleClick = useCallback(() => {
@@ -144,12 +147,13 @@ function ReaderImageComponent({
         )}
 
         <Image
+          key={`${chapterId}-${imageIndex}-retry-${retryCount}`}
           loader={imageLoader}
           src={src}
           alt={alt}
           width={isMobile ? 800 : imageWidth}
           height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-          className={`${imageFitClass} shadow-lg sm:shadow-2xl transition-opacity duration-300 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+          className={`${imageFitClass} shadow-lg sm:shadow-2xl ${isLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
           quality={quality}
           loading={loading}
           onLoad={handleLoad}

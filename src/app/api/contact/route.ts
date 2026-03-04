@@ -12,6 +12,14 @@ const SUBJECT_LABELS: Record<string, string> = {
 /** Лимит: 5 отправок формы с одного IP за 15 минут (защита от спама/DDoS) */
 const CONTACT_RATE_LIMIT = { max: 5, windowSec: 15 * 60 };
 
+const MAX_NAME_LENGTH = 200;
+const MAX_MESSAGE_LENGTH = 10_000;
+
+/** Упрощённая проверка формата email */
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) && value.length <= 320;
+}
+
 export async function POST(request: Request) {
   const ip = getClientIp(request);
   const { allowed, retryAfterSec } = checkRateLimit(`contact:${ip}`, CONTACT_RATE_LIMIT);
@@ -60,8 +68,30 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { success: false, message: "Некорректный формат email" },
+        { status: 400 },
+      );
+    }
+
+    const nameTrimmed = name.trim();
+    const messageTrimmed = message.trim();
+    if (nameTrimmed.length > MAX_NAME_LENGTH) {
+      return NextResponse.json(
+        { success: false, message: `Имя не должно превышать ${MAX_NAME_LENGTH} символов` },
+        { status: 400 },
+      );
+    }
+    if (messageTrimmed.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        { success: false, message: `Сообщение не должно превышать ${MAX_MESSAGE_LENGTH} символов` },
+        { status: 400 },
+      );
+    }
+
     const subjectLabel = SUBJECT_LABELS[subject] || subject;
-    const payload = { name: name.trim(), email: email.trim(), subject: subjectLabel, message: message.trim() };
+    const payload = { name: nameTrimmed, email: email.trim(), subject: subjectLabel, message: messageTrimmed };
 
     // Опционально: отправить на бэкенд, если задан endpoint
     const backendUrl = process.env.CONTACT_API_URL || process.env.NEXT_PUBLIC_API_URL;

@@ -4,7 +4,7 @@ import { SearchResult as SearchResultType } from "@/types/search";
 import Link from "next/link";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
-import { Star, SearchX, AlertCircle, BookOpen } from "lucide-react";
+import { Star, SearchX, AlertCircle, BookOpen, History, X } from "lucide-react";
 import { getCoverUrls } from "@/lib/asset-url";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
@@ -13,6 +13,10 @@ interface SearchResultsProps {
   isLoading: boolean;
   error: string | null;
   searchTerm: string;
+  recentSearches?: string[];
+  onRecentSelect?: (query: string) => void;
+  onRecentRemove?: (query: string) => void;
+  onResultClick?: () => void;
 }
 
 function HighlightMatch({ text, query }: { text: string; query: string }) {
@@ -33,7 +37,7 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
 
 function SkeletonCard() {
   return (
-    <div className="flex items-start gap-3 px-3 py-3 rounded-xl animate-pulse">
+    <div className="flex items-start gap-3 px-4 py-3 mx-2 rounded-xl animate-pulse bg-[var(--muted)]/30">
       <div className="w-12 h-16 rounded-lg bg-[var(--muted)]/60 shrink-0" />
       <div className="flex-1 min-w-0 space-y-2">
         <div className="h-4 w-3/4 rounded bg-[var(--muted)]/60" />
@@ -50,11 +54,7 @@ function SkeletonCard() {
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className="search-results-panel w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--popover)]"
-      role="region"
-      aria-label="Результаты поиска"
-    >
+    <div className="w-full" role="region" aria-label="Результаты поиска">
       {children}
     </div>
   );
@@ -65,20 +65,71 @@ export default function SearchResults({
   isLoading,
   error,
   searchTerm,
+  recentSearches = [],
+  onRecentSelect,
+  onRecentRemove,
+  onResultClick,
 }: SearchResultsProps) {
   const normalizedSearchTerm = searchTerm.trim();
 
-  if (!normalizedSearchTerm) return null;
+  if (!normalizedSearchTerm) {
+    if (recentSearches.length > 0 && onRecentSelect) {
+      return (
+        <Container>
+          <div className="search-results-section-title">
+            <History className="w-4 h-4 shrink-0" />
+            <span>Недавние запросы</span>
+          </div>
+          <div className="px-2 py-2 pb-4 flex flex-wrap gap-2">
+            {recentSearches.map((query) => (
+              <span
+                key={query}
+                className="inline-flex items-center gap-1.5 pl-3 pr-1 py-2 rounded-full bg-[var(--secondary)] border border-[var(--border)] text-sm font-medium text-[var(--foreground)]"
+              >
+                <button
+                  type="button"
+                  onClick={() => onRecentSelect?.(query)}
+                  className="truncate max-w-[180px] text-left hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:rounded-full"
+                >
+                  {query}
+                </button>
+                {onRecentRemove && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRecentRemove(query);
+                    }}
+                    className="shrink-0 p-1 rounded-full text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                    aria-label={`Удалить «${query}» из истории`}
+                  >
+                    <X className="w-4 h-4" strokeWidth={2} />
+                  </button>
+                )}
+              </span>
+            ))}
+          </div>
+        </Container>
+      );
+    }
+    return (
+      <Container>
+        <div className="py-12 px-6 text-center">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Введите название или автора
+          </p>
+        </div>
+      </Container>
+    );
+  }
 
   if (isLoading) {
     return (
       <Container>
-        <div className="p-3 border-b border-[var(--border)]/50">
-          <p className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-            Поиск...
-          </p>
+        <div className="search-results-section-title">
+          <span>Поиск...</span>
         </div>
-        <div className="p-2 max-h-80 overflow-hidden flex flex-col gap-0.5">
+        <div className="p-2 pb-4 flex flex-col gap-1">
           {[1, 2, 3, 4].map((i) => (
             <SkeletonCard key={i} />
           ))}
@@ -91,14 +142,14 @@ export default function SearchResults({
     return (
       <Container>
         <div
-          className="flex flex-col items-center justify-center gap-3 py-8 px-4 text-center"
+          className="flex flex-col items-center justify-center gap-4 py-12 px-6 text-center"
           role="alert"
         >
-          <div className="p-3 rounded-full bg-[var(--destructive)]/10 text-[var(--destructive)]">
-            <AlertCircle className="w-6 h-6" />
+          <div className="p-4 rounded-2xl bg-[var(--destructive)]/10 text-[var(--destructive)]">
+            <AlertCircle className="w-8 h-8" strokeWidth={2} />
           </div>
           <p className="text-sm font-medium text-[var(--foreground)]">{error}</p>
-          <p className="text-xs text-[var(--muted-foreground)]">
+          <p className="text-xs text-[var(--muted-foreground)] max-w-[260px]">
             Проверьте соединение и попробуйте снова
           </p>
         </div>
@@ -109,14 +160,14 @@ export default function SearchResults({
   if (!Array.isArray(results) || (results.length === 0 && normalizedSearchTerm)) {
     return (
       <Container>
-        <div className="flex flex-col items-center justify-center gap-3 py-8 px-4 text-center">
-          <div className="p-3 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)]">
-            <SearchX className="w-6 h-6" />
+        <div className="flex flex-col items-center justify-center gap-4 py-12 px-6 text-center">
+          <div className="p-4 rounded-2xl bg-[var(--muted)] text-[var(--muted-foreground)]">
+            <SearchX className="w-8 h-8" strokeWidth={2} />
           </div>
           <p className="text-sm font-medium text-[var(--foreground)]">
             По запросу «{normalizedSearchTerm}» ничего не найдено
           </p>
-          <p className="text-xs text-[var(--muted-foreground)]">
+          <p className="text-xs text-[var(--muted-foreground)] max-w-[260px]">
             Попробуйте другое название или ключевые слова
           </p>
         </div>
@@ -126,21 +177,17 @@ export default function SearchResults({
 
   return (
     <Container>
-      <div className="px-3 py-2.5 border-b border-[var(--border)]/50 flex items-center gap-2">
-        <BookOpen className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
-        <span className="text-xs font-medium text-[var(--muted-foreground)]">
-          Найдено: {results.length}
-        </span>
+      <div className="search-results-section-title">
+        <BookOpen className="w-4 h-4 shrink-0" />
+        <span>Найдено: {results.length}</span>
       </div>
-      <div
-        className="max-h-80 overflow-y-auto overscroll-contain p-2 flex flex-col gap-0.5 custom-scrollbar"
-        data-testid="search-results"
-      >
+      <div className="py-1 pb-4" data-testid="search-results">
         {results.map((result) => (
           <Link
             key={result.id}
             href={getTitlePath(result)}
-            className="search-result-card flex items-start gap-3 px-3 py-3 rounded-xl transition-all duration-200 hover:bg-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--popover)]"
+            onClick={onResultClick}
+            className="search-result-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--popover)]"
             role="option"
           >
             {result.cover ? (

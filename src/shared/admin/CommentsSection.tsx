@@ -75,7 +75,7 @@ function isStaticAsset(path: string): boolean {
 }
 
 function getUserAvatar(comment: Comment): string {
-  if (typeof comment.userId === "string") return DEFAULT_AVATAR;
+  if (typeof comment.userId === "string" || comment.userId == null) return DEFAULT_AVATAR;
   const avatar = comment.userId.avatar;
   return isValidAvatarUrl(avatar) ? avatar! : DEFAULT_AVATAR;
 }
@@ -258,7 +258,7 @@ export function CommentsSection() {
       
       if (!normalizedSearch) return true;
 
-      const author = typeof comment.userId === "string" ? "" : comment.userId.username;
+      const author = typeof comment.userId === "string" ? "" : (comment.userId?.username ?? "");
       const haystack = [comment.content, author, comment.entityId].join(" ").toLowerCase();
       return haystack.includes(normalizedSearch);
     });
@@ -361,7 +361,7 @@ export function CommentsSection() {
     const headers = ["ID", "Автор", "Комментарий", "Тип", "Лайки", "Дизлайки", "Скрыт", "Дата"];
     const rows = processedComments.map(c => [
       c._id,
-      typeof c.userId !== "string" ? c.userId.username : "Пользователь",
+      typeof c.userId !== "string" ? (c.userId?.username ?? "Пользователь") : "Пользователь",
       c.content.substring(0, 100),
       c.entityType,
       c.likes || 0,
@@ -634,7 +634,7 @@ export function CommentsSection() {
                       unoptimized
                       className="w-10 h-10 rounded-full object-cover bg-[var(--secondary)]"
                     />
-                    {typeof comment.userId !== "string" && comment.userId.role === "admin" && (
+                    {typeof comment.userId !== "string" && comment.userId?.role === "admin" && (
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center" title="Админ">
                         <span className="text-[8px] text-white font-bold">A</span>
                       </div>
@@ -644,11 +644,11 @@ export function CommentsSection() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
-                        onClick={() => typeof comment.userId !== "string" && handleViewUserProfile(comment.userId._id)}
+                        onClick={() => typeof comment.userId !== "string" && comment.userId?._id && handleViewUserProfile(comment.userId._id)}
                         className="font-medium text-[var(--foreground)] hover:text-[var(--primary)] transition-colors flex items-center gap-1.5"
                         disabled={typeof comment.userId === "string"}
                       >
-                        {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
+                        {typeof comment.userId !== "string" ? (comment.userId?.username ?? "Пользователь") : "Пользователь"}
                         <ExternalLink className="w-3 h-3 opacity-50" />
                       </button>
                       {!comment.isVisible && (
@@ -742,7 +742,7 @@ export function CommentsSection() {
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <p className="text-sm font-medium text-[var(--foreground)] flex items-center gap-1.5">
                           <User className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-                          {typeof reply.userId !== "string" ? reply.userId.username : "Пользователь"}
+                          {typeof reply.userId !== "string" ? (reply.userId?.username ?? "Пользователь") : "Пользователь"}
                         </p>
                         <Button
                           variant="ghost"
@@ -821,7 +821,7 @@ export function CommentsSection() {
                   </td>
                   <td className="px-3 py-2">
                     <span className="flex items-center gap-1.5">
-                      {typeof comment.userId !== "string" ? comment.userId.username : "Пользователь"}
+                      {typeof comment.userId !== "string" ? (comment.userId?.username ?? "Пользователь") : "Пользователь"}
                       {!comment.isVisible && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600">скрыт</span>
                       )}
@@ -938,9 +938,9 @@ export function CommentsSection() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-[var(--foreground)]">
-                    {typeof detailComment.userId !== "string" ? detailComment.userId.username : "Пользователь"}
+                    {typeof detailComment.userId !== "string" ? (detailComment.userId?.username ?? "Пользователь") : "Пользователь"}
                   </span>
-                  {typeof detailComment.userId !== "string" && detailComment.userId.role && (
+                  {typeof detailComment.userId !== "string" && detailComment.userId?.role && (
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                       detailComment.userId.role === "admin" ? "bg-red-500/20 text-red-600" :
                       detailComment.userId.role === "moderator" ? "bg-blue-500/20 text-blue-600" :
@@ -954,7 +954,7 @@ export function CommentsSection() {
               </div>
               {typeof detailComment.userId !== "string" && (
                 <button
-                  onClick={() => handleViewUserProfile(detailComment.userId as unknown as string)}
+                  onClick={() => detailComment.userId && typeof detailComment.userId !== "string" && detailComment.userId._id && handleViewUserProfile(detailComment.userId._id)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-sm hover:bg-[var(--primary)]/20 transition-colors"
                 >
                   <UserCircle className="w-4 h-4" />

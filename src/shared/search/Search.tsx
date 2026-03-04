@@ -3,21 +3,46 @@
 import { useSearch } from "../../hooks/useSearch";
 import { SearchIcon, XIcon } from "lucide-react";
 import SearchResults from "./SearchResult";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 
-export default function Search() {
+interface SearchProps {
+  /** Только панель (без триггера): для мобильного хедера — открытие по кнопке снаружи */
+  trigger?: "default" | "none";
+  /** Управление открытием извне (обязательно при trigger="none") */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Показать кнопку «Закрыть» в шапке панели (удобно на мобильном) */
+  showCloseInPanel?: boolean;
+}
+
+export default function Search({
+  trigger = "default",
+  open: controlledOpen = false,
+  onOpenChange,
+  showCloseInPanel = false,
+}: SearchProps) {
   const {
     searchTerm,
     searchResults,
     isLoading,
     error,
+    recentSearches,
     handleSearchChange,
     performSearch,
     clearSearch,
+    applyRecentSearch,
+    removeRecentSearch,
+    saveCurrentQuery,
   } = useSearch();
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLButtonElement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const isPanelOnly = trigger === "none";
+  const isOpen = isPanelOnly ? controlledOpen : internalOpen;
+  const setOpen = isPanelOnly && onOpenChange ? onOpenChange : setInternalOpen;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleSearchChange(e.target.value);
@@ -32,98 +57,153 @@ export default function Search() {
         break;
       case "Escape":
         e.preventDefault();
-        clearSearch();
-        inputRef.current?.blur();
+        if (isPanelOnly && onOpenChange) {
+          onOpenChange(false);
+        } else {
+          clearSearch();
+          inputRef.current?.blur();
+          setInternalOpen(false);
+        }
         break;
     }
   };
 
-  // Закрытие выпадающего списка по клику снаружи
+  // Фокус в поле при открытии в режиме «только панель»
+  useEffect(() => {
+    if (isPanelOnly && isOpen) {
+      const t = setTimeout(() => inputRef.current?.focus(), 80);
+      return () => clearTimeout(t);
+    }
+  }, [isPanelOnly, isOpen]);
+
+  // Закрытие по клику снаружи
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const listbox = document.getElementById("search-results-listbox");
+      const insideTrigger = !isPanelOnly && containerRef.current?.contains(target);
+      const insidePanel = listbox?.contains(target);
+      if (insideTrigger || insidePanel) return;
+      if (isPanelOnly && onOpenChange) {
+        onOpenChange(false);
+      } else {
         inputRef.current?.blur();
+        setInternalOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isPanelOnly, onOpenChange]);
 
-  const showPanel = searchTerm.trim().length > 0;
+  const showPanel = isOpen || (!isPanelOnly && (isFocused || searchTerm.trim().length > 0));
+
+  const openSearch = () => {
+    setInternalOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const closePanel = () => {
+    if (isPanelOnly && onOpenChange) onOpenChange(false);
+    else setInternalOpen(false);
+  };
 
   return (
-    <div
-      ref={containerRef}
-      className="search-container relative w-full max-w-lg transition-all duration-300 ease-out focus-within:max-w-xl"
-      role="combobox"
-      aria-expanded={showPanel}
-      aria-haspopup="listbox"
-      aria-controls="search-results-listbox"
-    >
-      <div className="relative flex items-center">
-        <div
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-[var(--muted-foreground)] transition-colors duration-200 group-focus-within:text-[var(--primary)]"
-          aria-hidden
+    <>
+      {trigger !== "none" && (
+        <button
+          ref={containerRef as React.RefObject<HTMLButtonElement>}
+          type="button"
+          onClick={openSearch}
+          className="search-container w-full min-w-0 flex items-center gap-2 px-4 py-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] text-left text-[var(--muted-foreground)] hover:border-[var(--border)]/80 hover:bg-[var(--card)]/90 transition-colors"
+          role="combobox"
+          aria-expanded={showPanel}
+          aria-haspopup="listbox"
+          aria-controls="search-results-listbox"
         >
-          <SearchIcon className="w-5 h-5" strokeWidth={2} />
-        </div>
-
-        <input
-          ref={inputRef}
-          type="text"
-          id="search-input"
-          name="search"
-          placeholder="Название, автор..."
-          className="search-input w-full pl-12 pr-12 py-3.5 text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/80 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm transition-all duration-200 focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 focus:shadow-md hover:border-[var(--border)]/80"
-          value={searchTerm}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck={false}
-          aria-label="Поиск по каталогу"
-          aria-autocomplete="list"
-          aria-activedescendant={undefined}
-        />
-
-        {isLoading && (
+          <SearchIcon className="w-5 h-5 shrink-0" strokeWidth={2} />
+          <span className="truncate">Название, автор...</span>
+        </button>
+      )}
+      {showPanel && (
+        <>
           <div
-            className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center text-[var(--primary)]"
+            className="search-overlay-backdrop"
             aria-hidden
+            onClick={() => closePanel()}
+          />
+          <div
+            id="search-results-listbox"
+            role="listbox"
+            className="search-overlay-panel"
           >
-            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <div className="search-overlay-header">
+              <div className="search-overlay-input-wrap">
+                <SearchIcon className="w-5 h-5 search-overlay-icon" strokeWidth={2} aria-hidden />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  id="search-input"
+                  name="search"
+                  placeholder="Название, автор..."
+                  className="search-overlay-input"
+                  value={searchTerm}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => !isPanelOnly && setTimeout(() => setIsFocused(false), 150)}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  aria-label="Поиск по каталогу"
+                  aria-autocomplete="list"
+                  aria-activedescendant={undefined}
+                />
+                <span className="search-overlay-actions">
+                  {isLoading && (
+                    <div className="w-5 h-5 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" aria-hidden />
+                  )}
+                  {!isLoading && searchTerm && (
+                    <button
+                      type="button"
+                      onClick={clearSearch}
+                      className="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]"
+                      aria-label="Очистить поиск"
+                    >
+                      <XIcon className="w-5 h-5" strokeWidth={2} />
+                    </button>
+                  )}
+                </span>
+              </div>
+              {showCloseInPanel && (
+                <button
+                  type="button"
+                  onClick={closePanel}
+                  className="search-overlay-close"
+                  aria-label="Закрыть поиск"
+                >
+                  <XIcon className="w-5 h-5" strokeWidth={2} />
+                </button>
+              )}
+            </div>
+            <div className="search-overlay-body custom-scrollbar">
+              <SearchResults
+                results={searchResults}
+                isLoading={isLoading}
+                error={error}
+                searchTerm={searchTerm}
+                recentSearches={recentSearches}
+                onRecentSelect={applyRecentSearch}
+                onRecentRemove={removeRecentSearch}
+                onResultClick={() => {
+                  saveCurrentQuery();
+                  if (isPanelOnly && onOpenChange) onOpenChange(false);
+                }}
+              />
+            </div>
           </div>
-        )}
-
-        {!isLoading && searchTerm && (
-          <button
-            type="button"
-            onClick={clearSearch}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-[var(--muted-foreground)] transition-colors duration-200 hover:text-[var(--foreground)] hover:bg-[var(--secondary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)]"
-            aria-label="Очистить поиск"
-          >
-            <XIcon className="w-5 h-5" strokeWidth={2} />
-          </button>
-        )}
-      </div>
-
-      <div
-        id="search-results-listbox"
-        role="listbox"
-        className="absolute top-full left-1/2 -translate-x-1/2 w-[min(100vw-2rem,28rem)] mt-2 z-50"
-      >
-        {showPanel && (
-          <div className="animate-slide-down">
-            <SearchResults
-              results={searchResults}
-              isLoading={isLoading}
-              error={error}
-              searchTerm={searchTerm}
-            />
-          </div>
-        )}
-      </div>
-    </div>
+        </>
+      )}
+    </>
   );
 }

@@ -31,7 +31,8 @@ export default function PageThumbnails({
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const progressPercent = useMemo(() => {
-    return Math.round((currentPage / images.length) * 100);
+    const total = Math.max(images.length, 1);
+    return Math.round((currentPage / total) * 100);
   }, [currentPage, images.length]);
 
   useEffect(() => {
@@ -51,14 +52,17 @@ export default function PageThumbnails({
     }, 50);
   }, [isOpen, currentPage, images.length]);
 
+  const imagesLengthRef = useRef(images.length);
+  imagesLengthRef.current = images.length;
+
   useEffect(() => {
     if (!isOpen || !loadMoreRef.current) return;
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && displayedCount < images.length) {
-          setDisplayedCount(prev => Math.min(images.length, prev + ITEMS_PER_PAGE));
-        }
+        if (!entries[0]?.isIntersecting) return;
+        const total = imagesLengthRef.current;
+        setDisplayedCount(prev => (prev < total ? Math.min(total, prev + ITEMS_PER_PAGE) : prev));
       },
       { threshold: 0.1 }
     );
@@ -68,7 +72,7 @@ export default function PageThumbnails({
     return () => {
       observerRef.current?.disconnect();
     };
-  }, [isOpen, displayedCount, images.length]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -98,7 +102,7 @@ export default function PageThumbnails({
   const getThumbUrl = useCallback((src: string) => {
     const { primary } = getImageUrls(src);
     const separator = primary.includes("?") ? "&" : "?";
-    return `${primary}${separator}w=150&q=30`;
+    return `${primary}${separator}w=150&q=50`;
   }, []);
 
   if (!isOpen) return null;
@@ -106,12 +110,13 @@ export default function PageThumbnails({
   const displayedImages = images.slice(0, displayedCount);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
-      <div 
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Сетка страниц главы">
+      <div
         className="absolute inset-0 bg-black/80"
         onClick={onClose}
+        aria-hidden
       />
-      
+
       <div className="relative w-full max-w-3xl max-h-[90vh] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Шапка */}
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-[var(--border)]">
@@ -131,8 +136,10 @@ export default function PageThumbnails({
               {currentPage}/{images.length}
             </span>
             <button
+              type="button"
               onClick={onClose}
               className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors"
+              aria-label="Закрыть сетку страниц"
             >
               <X className="w-5 h-5" />
             </button>

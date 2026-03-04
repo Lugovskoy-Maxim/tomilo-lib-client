@@ -129,7 +129,7 @@ function ReadChapterPageContent({
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [imageWidth, setImageWidth] = useState(1200);
+  const [imageWidth, setImageWidth] = useState(768);
   const [isPositionRestored, setIsPositionRestored] = useState(false);
 
   const [savedReadingPage, setSavedReadingPage] = useState<number | null>(null);
@@ -232,6 +232,8 @@ function ReadChapterPageContent({
   const loadingChapterIdsRef = useRef<Set<string>>(new Set());
   // Последовательное отображение картинок в режиме «главы подряд»: показываем только когда все предыдущие в главе загружены
   const [loadedImagesByChapter, setLoadedImagesByChapter] = useState<Record<string, Set<number>>>({});
+  // Ref: загруженные картинки (chapterId-imageIndex), чтобы при ре-рендере не мигали уже загруженные
+  const loadedImagesRef = useRef<Set<string>>(new Set());
 
   // Синхронизируем loadedChapters при смене главы (напр. по URL)
   useEffect(() => {
@@ -240,6 +242,7 @@ function ReadChapterPageContent({
     setLastLoadedIndex(currentChapterIndex);
     setVisibleChapterId(chapter._id);
     setLoadedImagesByChapter({});
+    loadedImagesRef.current = new Set();
     const newSet = new Set([chapter._id]);
     setLoadedChapterIds(newSet);
     loadedChapterIdsRef.current = newSet;
@@ -579,9 +582,12 @@ function ReadChapterPageContent({
     }
   };
 
-  // Unified scroll handler using ref to avoid stale closures
+  // Unified scroll handler: логика появления/скрытия хедера
   const lastScrollYRef = useRef(0);
-  
+  const SCROLL_TOP_ZONE = 120; // в начале страницы хедер всегда виден
+  const SCROLL_DOWN_THRESHOLD = 50; // скрыть хедер только после прокрутки вниз на N px
+  const SCROLL_UP_THRESHOLD = 25; // показать хедер при прокрутке вверх на N px
+
   useEffect(() => {
     let ticking = false;
     let animationFrameId: number | null = null;
@@ -589,17 +595,27 @@ function ReadChapterPageContent({
     const handleScroll = () => {
       if (ticking) return;
       ticking = true;
-      
+
       animationFrameId = requestAnimationFrame(() => {
         const currentScrollY = window.scrollY;
         const prevScrollY = lastScrollYRef.current;
+        const delta = currentScrollY - prevScrollY;
 
-        if (currentScrollY > prevScrollY && currentScrollY > 100) {
+        // В начале страницы хедер всегда показываем
+        if (currentScrollY <= SCROLL_TOP_ZONE) {
+          setIsHeaderVisible(true);
+          if (hideBottomMenuSetting) {
+            showMenuAndResetTimeout();
+          }
+          setForceStopAutoScroll(false);
+        } else if (delta > SCROLL_DOWN_THRESHOLD) {
+          // Прокрутка вниз — скрыть хедер
           setIsHeaderVisible(false);
           if (hideBottomMenuSetting) {
             setIsMenuCollapsed(true);
           }
-        } else if (currentScrollY < prevScrollY) {
+        } else if (delta < -SCROLL_UP_THRESHOLD) {
+          // Прокрутка вверх — показать хедер
           setIsHeaderVisible(true);
           if (hideBottomMenuSetting) {
             showMenuAndResetTimeout();
@@ -779,47 +795,78 @@ function ReadChapterPageContent({
     return () => clearTimeout(timeoutId);
   }, [isPagedMode, isPositionRestored, loadedImagesByChapter]);
 
-  // Предзагрузка всех изображений при включенной настройке
+  // Предзагрузка всех изображений при включенной настройке (с отменой при размонтировании/смене главы)
+  const preloadImagesRef = useRef<HTMLImageElement[]>([]);
   useEffect(() => {
     if (!preloadAllImages || !chapter.images.length || !isPositionRestored) return;
 
+    let cancelled = false;
     let loadedCount = 0;
     const totalImages = chapter.images.length;
 
     const updateProgress = () => {
+      if (cancelled) return;
       loadedCount++;
       setPreloadProgress(Math.round((loadedCount / totalImages) * 100));
     };
 
-    // Предзагружаем все изображения
+    const images: HTMLImageElement[] = [];
     chapter.images.forEach((src) => {
       const img = new window.Image();
       img.onload = updateProgress;
       img.onerror = updateProgress;
       img.src = getImageUrl(src);
+      images.push(img);
     });
+    preloadImagesRef.current = images;
 
-    // Устанавливаем высокий приоритет для всех страниц
     const priorities = new Map<number, "low" | "medium" | "high">();
     chapter.images.forEach((_, index) => {
       priorities.set(index + 1, "high");
     });
     setImageLoadPriority(priorities);
+
+    return () => {
+      cancelled = true;
+      images.forEach((img) => {
+        img.onload = null;
+        img.onerror = null;
+        img.src = "";
+      });
+      preloadImagesRef.current = [];
+    };
   }, [preloadAllImages, chapter.images, isPositionRestored, getImageUrl]);
 
-  // Создание дебаунс-функции для сохранения позиции
+  // Актуальная страница для синхронного сохранения при закрытии/уходе
+  const currentPageRef = useRef(currentPage);
+  currentPageRef.current = currentPage;
+
+  // Создание дебаунс-функции для сохранения позиции + сохранение при beforeunload и размонтировании
   const debouncedSavePositionRef = useRef<ReturnType<typeof createDebouncedSave> | null>(null);
-  
+
   useEffect(() => {
     debouncedSavePositionRef.current = createDebouncedSave((page: number) => {
       saveReadingPosition(titleId, chapterId, page);
     }, 1000);
-    
+
+    const saveNow = () => {
+      const page = currentPageRef.current;
+      if (page > 1) saveReadingPosition(titleId, chapterId, page);
+    };
+
+    const handleBeforeUnload = () => {
+      saveNow();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      saveNow();
       debouncedSavePositionRef.current = null;
     };
   }, [titleId, chapterId]);
-  
+
   const debouncedSavePosition = useCallback((page: number) => {
     debouncedSavePositionRef.current?.(page);
   }, []);
@@ -1027,6 +1074,7 @@ function ReadChapterPageContent({
           delete next[chapterId];
           return next;
         });
+        loadedImagesRef.current = new Set([...loadedImagesRef.current].filter(k => !k.startsWith(`${chapterId}-`)));
         setLoadedChapterIds(prev => {
           const next = new Set(prev);
           next.delete(chapterId);
@@ -1107,6 +1155,16 @@ function ReadChapterPageContent({
       <ChapterErrorState
         title="Глава не найдена"
         message="Попробуйте обновить страницу или выбрать другую главу"
+        slug={slug}
+      />
+    );
+  }
+
+  if (!chapter.images?.length) {
+    return (
+      <ChapterErrorState
+        title="Нет страниц"
+        message="В этой главе пока нет изображений. Попробуйте другую главу или обновите страницу позже."
         slug={slug}
       />
     );
@@ -1239,7 +1297,7 @@ function ReadChapterPageContent({
 
       {/* Основной контент */}
       <main
-        className={`pt-20 sm:pt-16 ${isMenuCollapsed ? "pb-0" : "pb-16"} reader-scroll-container`}
+        className={`pt-20 sm:pt-24 ${isMenuCollapsed ? "pb-0" : "pb-16"} reader-scroll-container`}
         onClick={handleMobileTap}
       >
         <div className="container mx-auto">
@@ -1279,8 +1337,9 @@ function ReadChapterPageContent({
                     const isError = imageLoadErrors.has(errorKey);
                     const imageUrl = getImageUrlWithFallback(src, ch._id, imageIndex);
                     const useFallback = imageFallbacks.has(errorKey);
+                    const imageLoadKey = `${ch._id}-${imageIndex}`;
                     const loadedInChapter = loadedImagesByChapter[ch._id] ?? new Set<number>();
-                    const isImageLoaded = loadedInChapter.has(imageIndex);
+                    const isImageLoaded = loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
                     
                     return (
                       <div 
@@ -1325,15 +1384,16 @@ function ReadChapterPageContent({
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in ${isImageLoaded ? 'opacity-100' : 'opacity-0 transition-opacity duration-300'}`}
                               quality={imageQuality}
                               loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
-                              onLoad={() =>
+                              onLoad={() => {
+                                loadedImagesRef.current.add(imageLoadKey);
                                 setLoadedImagesByChapter(prev => ({
                                   ...prev,
                                   [ch._id]: new Set(prev[ch._id] ?? []).add(imageIndex),
-                                }))
-                              }
+                                }));
+                              }}
                               onError={() => handleImageError(ch._id, imageIndex, src)}
                               priority={imageIndex < (isMobile ? 3 : 1)}
                               onClick={() => handleImageDoubleTap(imageUrl, `Глава ${ch.number}, Страница ${imageIndex + 1}`)}
@@ -1424,8 +1484,9 @@ function ReadChapterPageContent({
                   const isError = imageLoadErrors.has(errorKey);
                   const imageUrl = getImageUrlWithFallback(src, displayChapter._id, imageIndex);
                   const useFallback = imageFallbacks.has(errorKey);
+                  const imageLoadKey = `${displayChapter._id}-${imageIndex}`;
                   const loadedInChapter = loadedImagesByChapter[displayChapter._id] ?? new Set<number>();
-                  const isImageLoaded = loadedInChapter.has(imageIndex);
+                  const isImageLoaded = loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
 
                   return (
                     <div 
@@ -1473,15 +1534,16 @@ function ReadChapterPageContent({
                               alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in ${isImageLoaded ? 'opacity-100' : 'opacity-0 transition-opacity duration-300'}`}
                               quality={imageQuality}
                               loading="eager"
-                              onLoad={() =>
+                              onLoad={() => {
+                                loadedImagesRef.current.add(imageLoadKey);
                                 setLoadedImagesByChapter(prev => ({
                                   ...prev,
                                   [displayChapter._id]: new Set(prev[displayChapter._id] ?? []).add(imageIndex),
-                                }))
-                              }
+                                }));
+                              }}
                               onError={() => handleImageError(displayChapter._id, imageIndex, src)}
                               priority
                             />
@@ -1579,8 +1641,9 @@ function ReadChapterPageContent({
                 const isError = imageLoadErrors.has(errorKey);
                 const imageUrl = getImageUrlWithFallback(src, displayChapter._id, imageIndex);
                 const useFallback = imageFallbacks.has(errorKey);
+                const imageLoadKey = `${displayChapter._id}-${imageIndex}`;
                 const loadedInChapter = loadedImagesByChapter[displayChapter._id] ?? new Set<number>();
-                const isImageLoaded = loadedInChapter.has(imageIndex);
+                const isImageLoaded = loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
 
                 return (
                   <div 
@@ -1627,7 +1690,7 @@ function ReadChapterPageContent({
                           alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
                           width={isMobile ? 800 : imageWidth}
                           height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                          className={`${imageFitClass} shadow-lg sm:shadow-2xl transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                          className={`${imageFitClass} shadow-lg sm:shadow-2xl ${isImageLoaded ? 'opacity-100' : 'opacity-0 transition-opacity duration-300'}`}
                           quality={
                             imageLoadPriority.size > 0
                               ? (() => {
@@ -1654,12 +1717,13 @@ function ReadChapterPageContent({
                                 ? "eager"
                                 : "lazy"
                           }
-                          onLoad={() =>
+                          onLoad={() => {
+                            loadedImagesRef.current.add(imageLoadKey);
                             setLoadedImagesByChapter(prev => ({
                               ...prev,
                               [displayChapter._id]: new Set(prev[displayChapter._id] ?? []).add(imageIndex),
-                            }))
-                          }
+                            }));
+                          }}
                           onError={() => handleImageError(displayChapter._id, imageIndex, src)}
                           priority={
                             imageLoadPriority.size > 0
@@ -1858,12 +1922,13 @@ function ReadChapterPageContent({
                         const isError = imageLoadErrors.has(errorKey);
                         const imageUrl = getImageUrlWithFallback(src, loadedChapter._id, imageIndex);
                         const useFallback = imageFallbacks.has(errorKey);
+                        const imageLoadKey = `${loadedChapter._id}-${imageIndex}`;
                         const loadedInChapter = loadedImagesByChapter[loadedChapter._id] ?? new Set<number>();
-                        const isImageLoaded = loadedInChapter.has(imageIndex);
+                        const isImageLoaded = loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
                         const visible =
                           imageIndex === 0 ||
                           Array.from({ length: imageIndex }, (_, i) => i).every(i =>
-                            loadedInChapter.has(i),
+                            loadedImagesRef.current.has(`${loadedChapter._id}-${i}`) || loadedInChapter.has(i),
                           );
 
                         return (
@@ -1916,15 +1981,16 @@ function ReadChapterPageContent({
                                   alt={`Глава ${loadedChapter.number}, Страница ${imageIndex + 1}`}
                                   width={isMobile ? 800 : imageWidth}
                                   height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                                  className={`${imageFitClass} shadow-lg sm:shadow-2xl ${!isImageLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                                  className={`${imageFitClass} shadow-lg sm:shadow-2xl ${isImageLoaded ? 'opacity-100' : 'opacity-0 transition-opacity duration-300'}`}
                                   quality={imageQuality}
                                   loading="lazy"
-                                  onLoad={() =>
+                                  onLoad={() => {
+                                    loadedImagesRef.current.add(imageLoadKey);
                                     setLoadedImagesByChapter(prev => ({
                                       ...prev,
                                       [loadedChapter._id]: new Set(prev[loadedChapter._id] ?? []).add(imageIndex),
-                                    }))
-                                  }
+                                    }));
+                                  }}
                                   onError={() => handleImageError(loadedChapter._id, imageIndex, src)}
                                 />
                               ) : (
