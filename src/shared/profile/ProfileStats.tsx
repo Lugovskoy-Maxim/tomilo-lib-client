@@ -517,20 +517,20 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
 
       {/* How to earn XP & Coins */}
       {showDetailed && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0 items-stretch">
           {/* How to earn XP */}
-          <div className="rounded-xl p-5 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-amber-500/20">
+          <div className="flex flex-col rounded-xl p-5 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 min-w-0 overflow-hidden">
+            <div className="flex items-center gap-3 mb-4 shrink-0">
+              <div className="p-2 rounded-lg bg-amber-500/20 shrink-0">
                 <Zap className="w-5 h-5 text-amber-500" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-sm font-semibold text-[var(--foreground)]">Как получить опыт</h3>
                 <p className="text-xs text-[var(--muted-foreground)]">Способы повышения уровня</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 min-w-0 flex-1 content-start">
               {[
                 { action: "Чтение новой главы", xp: "+10 XP", icon: BookOpen, color: "text-blue-500" },
                 { action: "Ежедневный вход", xp: "+5 XP", icon: Calendar, color: "text-green-500" },
@@ -543,30 +543,30 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
                 { action: "Достижение (эпическое)", xp: "+100 XP", icon: Trophy, color: "text-purple-500" },
                 { action: "Достижение (легендарное)", xp: "+250 XP", icon: Trophy, color: "text-amber-500" },
               ].map((item) => (
-                <div key={item.action} className="flex items-center justify-between p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30">
-                  <div className="flex items-center gap-2">
-                    <item.icon className={`w-4 h-4 ${item.color}`} />
-                    <span className="text-xs text-[var(--foreground)]">{item.action}</span>
+                <div key={item.action} className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <item.icon className={`w-4 h-4 shrink-0 ${item.color}`} />
+                    <span className="text-xs text-[var(--foreground)] min-w-0 truncate" title={item.action}>{item.action}</span>
                   </div>
-                  <span className="text-xs font-bold text-amber-500">{item.xp}</span>
+                  <span className="text-xs font-bold text-amber-500 shrink-0 tabular-nums">{item.xp}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* How to earn Coins */}
-          <div className="rounded-xl p-5 bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border border-yellow-500/20">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-yellow-500/20">
+          <div className="flex flex-col rounded-xl p-5 bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border border-yellow-500/20 min-w-0 overflow-hidden">
+            <div className="flex items-center gap-3 mb-4 shrink-0">
+              <div className="p-2 rounded-lg bg-yellow-500/20 shrink-0">
                 <Coins className="w-5 h-5 text-yellow-500" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-sm font-semibold text-[var(--foreground)]">Как получить монеты</h3>
                 <p className="text-xs text-[var(--muted-foreground)]">Валюта для магазина</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2 min-w-0 flex-1 content-start">
               {[
                 { action: "Повышение уровня", coins: "+10", icon: TrendingUp, color: "text-green-500" },
                 { action: "Ежедневный бонус", coins: "+1-5", icon: Gift, color: "text-pink-500" },
@@ -575,12 +575,12 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
                 { action: "Серия 21 день", coins: "+15", icon: Flame, color: "text-red-500" },
                 { action: "Серия 30 дней", coins: "+25", icon: Flame, color: "text-red-500" },
               ].map((item) => (
-                <div key={item.action} className="flex items-center justify-between p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30">
-                  <div className="flex items-center gap-2">
-                    <item.icon className={`w-4 h-4 ${item.color}`} />
-                    <span className="text-xs text-[var(--foreground)]">{item.action}</span>
+                <div key={item.action} className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <item.icon className={`w-4 h-4 shrink-0 ${item.color}`} />
+                    <span className="text-xs text-[var(--foreground)] min-w-0 truncate" title={item.action}>{item.action}</span>
                   </div>
-                  <span className="text-xs font-bold text-yellow-500">{item.coins}</span>
+                  <span className="text-xs font-bold text-yellow-500 shrink-0 tabular-nums">{item.coins}</span>
                 </div>
               ))}
             </div>

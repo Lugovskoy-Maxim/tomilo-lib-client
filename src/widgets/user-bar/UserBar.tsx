@@ -6,7 +6,7 @@ import UserAvatar from "@/shared/user/avatar";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions";
 import { useState, useRef, useEffect } from "react";
-import { LogInIcon, Trophy } from "lucide-react";
+import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface UserDropdownUser {
@@ -127,7 +127,12 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
           >
             <button
               type="button"
-              className="relative flex items-center justify-center min-h-[40px] min-w-[40px] p-1 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer overflow-visible"
+              title={hasTop10 && bestPosition ? `Топ ${bestPosition.position} — ${bestPosition.label}` : undefined}
+              className={`relative flex items-center justify-center min-h-[40px] min-w-[40px] p-1 rounded-xl bg-[var(--card)] border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer overflow-visible ${
+                hasTop10
+                  ? "border-amber-400/60 shadow-[0_0_14px_rgba(245,158,11,0.45),0_0_28px_rgba(251,191,36,0.25)] hover:shadow-[0_0_18px_rgba(245,158,11,0.55),0_0_32px_rgba(251,191,36,0.3)]"
+                  : "border-[var(--border)] hover:bg-[var(--accent)]"
+              }`}
               onClick={() => setDropdownOpen(!dropdownOpen)}
               aria-label="Открыть меню пользователя"
             >
@@ -139,15 +144,6 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
                 frameUrl={frameUrl ?? undefined}
                 avatarDecorationUrl={avatarDecorationUrl ?? undefined}
               />
-              {hasTop10 && bestPosition && (
-                <span
-                  className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-white shadow-sm border border-amber-300/50 animate-pulse"
-                  title={`Топ ${bestPosition.position} — ${bestPosition.label}`}
-                >
-                  <Trophy className="w-2.5 h-2.5 mr-0.5" />
-                  {bestPosition.position}
-                </span>
-              )}
             </button>
 
             <UserDropdown

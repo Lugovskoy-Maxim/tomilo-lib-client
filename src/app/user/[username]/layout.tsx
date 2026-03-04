@@ -163,7 +163,7 @@ export default function UserProfileLayout() {
           aria-hidden
         />
         <div className="relative z-10 flex flex-1 flex-col min-h-0">
-          <div className="w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-5xl min-w-0 overflow-x-hidden">
+          <div className="w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-7xl min-w-0 overflow-x-hidden">
             <div className="pt-2 pb-4 flex items-center justify-between gap-3">
               <button
                 type="button"
