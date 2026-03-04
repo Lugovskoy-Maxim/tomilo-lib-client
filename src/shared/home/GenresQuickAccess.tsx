@@ -36,7 +36,7 @@ function GenreChip({ name, icon: Icon, color, href }: GenreItemProps) {
       href={href}
       className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--card)]/60 backdrop-blur-sm border border-[var(--border)] hover:bg-[var(--accent)] hover:border-[var(--border-hover)] transition-all duration-200 group"
     >
-      <Icon className={`w-4 h-4 ${color} group-hover:scale-110 transition-transform`} />
+      <Icon size={16} className={`shrink-0 ${color} group-hover:scale-110 transition-transform`} strokeWidth={2} />
       <span className="text-sm font-medium text-[var(--foreground)] whitespace-nowrap">
         {name}
       </span>

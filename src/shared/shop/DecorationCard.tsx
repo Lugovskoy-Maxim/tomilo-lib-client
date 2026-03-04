@@ -11,6 +11,7 @@ import {
   normalizeRarity,
 } from "@/api/shop";
 import { useAuth } from "@/hooks/useAuth";
+import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 import { useToast } from "@/hooks/useToast";
 import { getImageUrls } from "@/lib/asset-url";
 import type { EquippedDecorations } from "@/types/user";
@@ -81,6 +82,8 @@ interface DecorationPreviewModalProps {
   showStock: boolean;
   hidePurchase: boolean;
   userAvatar: string | null;
+  /** URL активной декорации аватара (персонаж) — приоритет над userAvatar */
+  userAvatarDecorationUrl: string | null;
   userFrameUrl: string | null;
   username: string;
   userLevel: number;
@@ -103,6 +106,7 @@ function DecorationPreviewModal({
   showStock,
   hidePurchase,
   userAvatar,
+  userAvatarDecorationUrl,
   userFrameUrl,
   username,
   userLevel,
@@ -114,15 +118,17 @@ function DecorationPreviewModal({
 }: DecorationPreviewModalProps) {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const isGif = imageSrc?.toLowerCase().includes(".gif");
-  const discountedPrice = decoration.subscriptionPrice ?? Math.floor(decoration.price * 0.9);
-  const hasDiscount = discountedPrice < decoration.price;
 
   const resolvedUserAvatar = useMemo(() => {
-    if (!userAvatar) return DEFAULT_AVATAR;
-    const { primary } = getImageUrls(userAvatar);
+    const effectiveUrl = userAvatarDecorationUrl ?? userAvatar;
+    if (!effectiveUrl) return DEFAULT_AVATAR;
+    const { primary } = getImageUrls(effectiveUrl);
     return primary || DEFAULT_AVATAR;
-  }, [userAvatar]);
+  }, [userAvatarDecorationUrl, userAvatar]);
 
+  const frameToShow = userFrameUrl ?? (displayType === "frame" ? imageSrc : null);
+  /** В превью аватара показываем ту декорацию, которую смотрят (imageSrc); в остальных — текущий вид пользователя (resolvedUserAvatar). */
+  const avatarSrcInPreview = displayType === "avatar" ? imageSrc : resolvedUserAvatar;
   const AvatarWithOptionalFrame = ({ size }: { size: number }) => (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <div
@@ -130,24 +136,18 @@ function DecorationPreviewModal({
         style={{ width: size, height: size }}
       >
         <Image
-          src={displayType === "avatar" ? imageSrc : resolvedUserAvatar}
+          src={avatarSrcInPreview}
           alt={username}
           fill
           unoptimized
           className="object-cover rounded-full"
         />
       </div>
-      {displayType === "frame" && (
+      {frameToShow && (
         <img
-          src={imageSrc}
+          src={frameToShow}
           alt=""
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
-          style={{
-            width: size * 1.2,
-            height: size * 1.2,
-            maxWidth: "none",
-            maxHeight: "none",
-          }}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10 w-[120%] h-[120%] max-w-none max-h-none"
           aria-hidden
         />
       )}
@@ -257,7 +257,7 @@ function DecorationPreviewModal({
               </div>
             )}
           </div>
-          <span className={`absolute -top-1 -right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
+          <span className={`absolute top-1 right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border whitespace-nowrap ${rarityStyle.badge}`}>
             {rarityStyle.label}
           </span>
         </div>
@@ -311,9 +311,9 @@ function DecorationPreviewModal({
     }
 
     return (
-      <div className="relative">
-        <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 blur-sm" />
-        <div className="relative w-40 h-40 sm:w-48 sm:h-48 overflow-hidden border-4 border-[var(--background)] shadow-xl rounded-full bg-[var(--muted)]">
+      <div className="relative w-40 h-40 sm:w-48 sm:h-48 shrink-0">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 blur-sm scale-[1.05]" aria-hidden />
+        <div className="relative w-full h-full overflow-hidden border-4 border-[var(--background)] shadow-xl rounded-full bg-[var(--muted)]">
           {isImageLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
               <span className="w-6 h-6 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
@@ -328,7 +328,7 @@ function DecorationPreviewModal({
             onLoad={() => setIsImageLoading(false)}
           />
         </div>
-        <span className={`absolute -top-1 -right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
+        <span className={`absolute top-1 right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border whitespace-nowrap ${rarityStyle.badge}`}>
           {rarityStyle.label}
         </span>
       </div>
@@ -388,24 +388,9 @@ function DecorationPreviewModal({
               </div>
 
               {!isOwned && !hidePurchase && (
-                <div className="flex flex-col gap-1 mt-2">
-                  <div className="flex items-center gap-2">
-                    <Coins className="w-5 h-5 text-amber-500" />
-                    <span className="text-xl font-bold text-[var(--foreground)]">{decoration.price}</span>
-                  </div>
-                  {hasDiscount && (
-                    <div className="flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
-                      <Coins className="w-3.5 h-3.5 text-amber-500/60" />
-                      <span>{discountedPrice} с подпиской.</span>
-                      <button
-                        type="button"
-                        className="text-[var(--primary)] hover:underline text-sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Подписаться
-                      </button>
-                    </div>
-                  )}
+                <div className="flex items-center gap-2 mt-2">
+                  <Coins className="w-5 h-5 text-amber-500" />
+                  <span className="text-xl font-bold text-[var(--foreground)]">{decoration.price}</span>
                 </div>
               )}
 
@@ -539,7 +524,18 @@ export function DecorationCard({
   const rarityStyle = RARITY_STYLES[rarity];
   const soldOut = decoration.isSoldOut ?? (decoration.stock !== undefined && decoration.stock <= 0);
   const showStock = decoration.stock !== undefined;
+  const { avatarDecorationUrl } = useResolvedEquippedDecorations();
   const userFrameUrl = getEquippedFrameUrl((user?.equippedDecorations ?? null) as EquippedDecorations | null);
+  /** Буква для превью аватара в карточках рамок: первая буква ника или T для гостя */
+  const avatarPreviewLetter =
+    (user?.username?.trim()[0]?.toUpperCase()) || "T";
+  /** URL аватара для превью в карточках рамок: активная декорация аватара или фото профиля */
+  const userAvatarPreviewUrl = useMemo(() => {
+    const url = avatarDecorationUrl ?? user?.avatar;
+    if (!url || typeof url !== "string") return null;
+    const { primary } = getImageUrls(url);
+    return primary || null;
+  }, [avatarDecorationUrl, user?.avatar]);
 
   const handlePurchase = async () => {
     if (soldOut) {
@@ -688,6 +684,7 @@ export function DecorationCard({
       showStock={showStock}
       hidePurchase={hidePurchase}
       userAvatar={user?.avatar ?? null}
+      userAvatarDecorationUrl={avatarDecorationUrl ?? null}
       userFrameUrl={userFrameUrl}
       username={user?.username ?? "Пользователь"}
       userLevel={user?.level ?? 1}
@@ -707,11 +704,11 @@ export function DecorationCard({
         {previewModal}
         <article
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-[200px] sm:max-w-[220px] lg:max-w-[240px] min-w-0 aspect-[3/4] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col min-w-0 cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col cursor-pointer ${rarityStyle.border}`}
         >
-        {/* Картинка сверху: аватар — круг, рамка — квадрат без обрезки */}
-        <div className="flex-1 min-h-0 flex items-center justify-center p-2.5 sm:p-3">
-          <div className="relative w-full max-w-[80%] sm:max-w-[85%] aspect-square">
+        {/* Картинка сверху: для аватаров — квадрат, для рамок — соотношение 1:1.2. */}
+        <div className={`w-full flex-shrink-0 flex items-center justify-center p-1 sm:p-1.5 ${isCircleCrop ? "aspect-square" : "aspect-[1/1.2]"}`}>
+          <div className={`relative w-full max-w-[92%] ${isCircleCrop ? "aspect-square" : "aspect-[1/1.2]"}`}>
             {isCircleCrop && (
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
             )}
@@ -719,6 +716,29 @@ export function DecorationCard({
               className={`relative w-full h-full border-2 border-[var(--background)] shadow-lg bg-[var(--muted)] ${isCircleCrop ? "overflow-hidden" : ""}`}
               style={isCircleCrop ? { borderRadius: "50%" } : undefined}
             >
+              {/* Для рамок: пропорции как в превью — аватар 100%, рамка 120% → круг аватара ~83% области */}
+              {!isCircleCrop && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div
+                    className="relative w-[83%] aspect-square rounded-full overflow-hidden border-2 border-[var(--background)] shadow-inner bg-[var(--primary)] flex items-center justify-center text-white font-semibold"
+                    aria-hidden
+                  >
+                    {userAvatarPreviewUrl ? (
+                      <Image
+                        src={userAvatarPreviewUrl}
+                        alt=""
+                        fill
+                        unoptimized
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="text-2xl sm:text-3xl select-none">
+                        {avatarPreviewLetter}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
               {isImageLoading && hasImage && (
                 <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
                   <span className="w-5 h-5 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
@@ -742,7 +762,7 @@ export function DecorationCard({
               )}
             </div>
             <span
-              className={`absolute -top-0.5 -right-0.5 inline-flex px-2 py-1 rounded-md text-[10px] sm:text-xs font-semibold border ${rarityStyle.badge}`}
+              className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex px-2 py-1 rounded-md text-[10px] sm:text-xs font-semibold border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${rarityStyle.badge}`}
             >
               {rarityStyle.label}
             </span>
@@ -766,28 +786,28 @@ export function DecorationCard({
         </div>
 
         {/* Название и действие снизу */}
-        <div className="flex-shrink-0 p-2.5 sm:p-3 pt-0 flex flex-col gap-1.5 sm:gap-2">
-          <h3 className="font-semibold text-sm sm:text-base leading-snug line-clamp-2 text-center min-h-[2.25em] text-[var(--foreground)]" title={decoration.name}>
+        <div className="flex-shrink-0 px-2 py-1.5 sm:px-2.5 sm:py-2 pt-0 flex flex-col gap-1 sm:gap-1.5">
+          <h3 className="font-semibold text-xs sm:text-sm leading-snug line-clamp-2 text-center min-h-[2em] text-[var(--foreground)]" title={decoration.name}>
             {decoration.name}
           </h3>
           {showStock && (
-            <p className="text-xs sm:text-sm text-[var(--muted-foreground)] text-center">
+            <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] text-center">
               {decoration.stock! <= 0 ? "Нет в наличии" : decoration.stock! <= 3 ? "Осталось мало" : `Осталось: ${decoration.stock}`}
             </p>
           )}
-          <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap min-h-[2.25rem]">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap min-h-[2rem]">
             {!hidePurchase && !isOwned ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs sm:text-sm font-medium text-[var(--foreground)]">
-                <Coins className="w-4 h-4 text-amber-500" />
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
+                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
                 {decoration.price}
               </span>
             ) : !hidePurchase && isOwned ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium invisible" aria-hidden>
-                <Coins className="w-4 h-4 text-amber-500" />
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] sm:text-xs font-medium invisible" aria-hidden>
+                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
                 {decoration.price}
               </span>
             ) : null}
-            {renderAction(true, "medium")}
+            {renderAction(true, "small")}
           </div>
         </div>
       </article>
@@ -825,10 +845,12 @@ export function DecorationCard({
         </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+      <span
+        className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${badgeCl} ${rarityStyle.badge}`}
+      >
+        {rarityStyle.label}
+      </span>
       <div className={`absolute top-2 left-2 right-2 flex flex-wrap items-center ${largeBadges ? "gap-2" : "gap-1.5"}`}>
-        <span className={`inline-flex items-center border ${badgeCl} ${rarityStyle.badge}`}>
-          {rarityStyle.label}
-        </span>
         {isEquipped && (
           <span className={`inline-flex items-center gap-1 ${badgeCl} bg-emerald-500/90 text-white`}>
             <Sparkles className={`${iconCl} fill-current`} />
@@ -935,10 +957,10 @@ export function DecorationCard({
         {previewModal}
         <article 
           onClick={handleCardClick}
-          className={`group/card relative w-full self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full min-w-0 self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
         >
         {/* Область изображения — горизонтальный баннер (ширина > высота) */}
-        <div className="relative w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] shrink-0">
+        <div className="relative w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] shrink-0 min-w-0">
           {isImageLoading && hasImage && (
             <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
               <span className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
@@ -970,12 +992,14 @@ export function DecorationCard({
               {decoration.stock! <= 0 ? "Нет в наличии" : decoration.stock! <= 3 ? "Осталось мало" : `Осталось: ${decoration.stock}`}
             </span>
           )}
+          <span
+            className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${rarityStyle.badge}`}
+          >
+            {rarityStyle.label}
+          </span>
           <div className="absolute top-2 left-2 right-2 flex flex-wrap items-center gap-1.5">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
-              {rarityStyle.label}
-            </span>
             {isEquipped && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/90 text-white text-[10px] font-semibold">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/90 text-white text-[10px] font-semibold whitespace-nowrap">
                 <Sparkles className="w-3 h-3 fill-current" />
                 Надето
               </span>
@@ -1036,7 +1060,7 @@ export function DecorationCard({
         {previewModal}
         <article 
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-[240px] sm:max-w-[260px] lg:max-w-[280px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
         >
         {renderImageBlock("relative aspect-[3/4]", true)}
         {renderContentBlock(true, "large")}
@@ -1051,7 +1075,7 @@ export function DecorationCard({
       {previewModal}
       <article 
         onClick={handleCardClick}
-        className={`group/card relative w-full max-w-[280px] rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+        className={`group/card relative w-full max-w-full sm:max-w-[200px] lg:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
       >
         {renderImageBlock("relative aspect-[9/16]")}
         {renderContentBlock()}

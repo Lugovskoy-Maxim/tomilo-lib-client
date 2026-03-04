@@ -73,6 +73,20 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     });
   }, [chaptersData?.chapters]);
 
+  // Временная проверка: пришли ли рейтинг и реакции в списке глав (откройте консоль браузера F12)
+  useEffect(() => {
+    if (!chaptersData?.chapters?.length || process.env.NODE_ENV !== "development") return;
+    const ch = chaptersData.chapters[0];
+    console.log("[chapters] Рейтинг в ответе API?", {
+      averageRating: ch.averageRating,
+      ratingCount: ch.ratingCount,
+      ratingSum: ch.ratingSum,
+      userRating: ch.userRating,
+      reactions: ch.reactions,
+      hasRating: ch.averageRating != null || (ch.ratingCount ?? 0) > 0,
+    });
+  }, [chaptersData?.chapters]);
+
   // Главы для ReadButton: asc (для корректного определения первой/следующей главы)
   const chaptersForReadButton = useMemo(() => {
     const chapters = chaptersData?.chapters || [];
@@ -104,6 +118,11 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     params.set("tab", activeTab);
     router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
   }, [activeTab, pathname, router, searchParams]);
+
+  // При открытии/возврате на страницу тайтла — скролл вверх (иначе после читалки лента остаётся внизу позже нужно найти баг)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Состояние для раскрытого описания
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -306,7 +325,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
             </div>
 
             <div className="w-full min-w-0 lg:flex-1">
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md shadow-sm p-5 sm:p-6 lg:p-8">
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md shadow-sm p-4 sm:p-5 lg:p-6">
                 <RightContent
                 titleData={titleData}
                 activeTab={activeTab}

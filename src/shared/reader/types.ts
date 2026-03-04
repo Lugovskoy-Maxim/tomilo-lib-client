@@ -1,5 +1,7 @@
 // Типы для ридера
 
+import type { ChapterReactionCount } from "@/types/chapter";
+
 export interface ReaderTitle {
   _id: string;
   title: string;
@@ -21,6 +23,14 @@ export interface ReaderTitle {
   alternativeTitles: string[];
 }
 
+/** Рейтинг главы из API (шкала 1–10), опционально в ответе главы */
+export interface ReaderChapterRating {
+  averageRating?: number;
+  ratingSum?: number;
+  ratingCount?: number;
+  userRating?: number | null;
+}
+
 export interface ReaderChapter {
   _id: string;
   number: number;
@@ -31,4 +41,10 @@ export interface ReaderChapter {
   date?: string;
   views: number;
   teamId?: string;
+  /** Рейтинг и реакции из основной информации о главе (по спецификации API) */
+  averageRating?: number;
+  ratingSum?: number;
+  ratingCount?: number;
+  userRating?: number | null;
+  reactions?: ChapterReactionCount[];
 }

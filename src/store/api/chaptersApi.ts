@@ -2,6 +2,12 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { ApiResponseDto } from "@/types/api";
 import { Chapter, ChaptersResponse, CreateChapterDto, UpdateChapterDto } from "@/types/title";
+import {
+  ChapterRatingResponse,
+  ChapterReactionsCountResponse,
+  SetChapterRatingDto,
+  ToggleChapterReactionDto,
+} from "@/types/chapter";
 import { titlesApi } from "./titlesApi";
 
 const CHAPTERS_TAG = "Chapters";
@@ -203,6 +209,68 @@ export const chaptersApi = createApi({
       }),
       invalidatesTags: [CHAPTERS_TAG],
     }),
+
+    // ——— Рейтинг и реакции глав ———
+
+    // Список разрешённых эмодзи для реакций глав
+    getChapterReactionEmojis: builder.query<ApiResponseDto<string[]>, void>({
+      query: () => "/chapters/reactions/emojis",
+    }),
+
+    // Рейтинг главы (при JWT в ответе добавляется userRating)
+    getChapterRating: builder.query<ChapterRatingResponse, string>({
+      query: chapterId => `/chapters/${chapterId}/rating`,
+      transformResponse: (response: ApiResponseDto<ChapterRatingResponse>) =>
+        response?.data ?? (response as unknown as ChapterRatingResponse),
+      providesTags: (result, error, chapterId) => [
+        { type: CHAPTERS_TAG, id: chapterId },
+        { type: CHAPTERS_TAG, id: `rating-${chapterId}` },
+      ],
+    }),
+
+    // Поставить или изменить оценку главы (1–5)
+    setChapterRating: builder.mutation<
+      ApiResponseDto<ChapterRatingResponse>,
+      { chapterId: string; body: SetChapterRatingDto }
+    >({
+      query: ({ chapterId, body }) => ({
+        url: `/chapters/${chapterId}/rating`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (result, error, { chapterId }) => [
+        { type: CHAPTERS_TAG, id: chapterId },
+        { type: CHAPTERS_TAG, id: `rating-${chapterId}` },
+      ],
+    }),
+
+    // Сводка по реакциям главы (эмодзи и счётчики)
+    getChapterReactionsCount: builder.query<
+      ApiResponseDto<ChapterReactionsCountResponse>,
+      string
+    >({
+      query: chapterId => `/chapters/${chapterId}/reactions/count`,
+      providesTags: (result, error, chapterId) => [
+        { type: CHAPTERS_TAG, id: chapterId },
+        { type: CHAPTERS_TAG, id: `reactions-${chapterId}` },
+      ],
+    }),
+
+    // Переключить реакцию на главе (повторный запрос с тем же emoji снимает)
+    toggleChapterReaction: builder.mutation<
+      ApiResponseDto<unknown>,
+      { chapterId: string; body: ToggleChapterReactionDto }
+    >({
+      query: ({ chapterId, body }) => ({
+        url: `/chapters/${chapterId}/reactions`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (result, error, { chapterId }) => [
+        { type: CHAPTERS_TAG, id: chapterId },
+        { type: CHAPTERS_TAG, id: `reactions-${chapterId}` },
+      ],
+    }),
   }),
 });
 
@@ -219,4 +287,9 @@ export const {
   useGetChapterByNumberQuery,
   useIncrementChapterViewsMutation,
   useCleanupOrphanedChaptersMutation,
+  useGetChapterReactionEmojisQuery,
+  useGetChapterRatingQuery,
+  useSetChapterRatingMutation,
+  useGetChapterReactionsCountQuery,
+  useToggleChapterReactionMutation,
 } = chaptersApi;

@@ -29,6 +29,21 @@ export default function NavigationFooter({
           chapterId={currentChapter._id}
           titleId={title._id}
           onLoginRequired={onLoginRequired}
+          initialRating={
+            currentChapter.averageRating != null ||
+            currentChapter.ratingCount != null ||
+            currentChapter.userRating != null
+              ? {
+                  averageRating: currentChapter.averageRating,
+                  ratingSum: currentChapter.ratingSum,
+                  ratingCount: currentChapter.ratingCount,
+                  userRating: currentChapter.userRating,
+                }
+              : undefined
+          }
+          initialReactions={
+            currentChapter.reactions?.length ? currentChapter.reactions : undefined
+          }
         />
 
         {/* Информация о переводчике */}

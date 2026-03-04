@@ -53,6 +53,7 @@ const RARITY_OPTIONS: { value: DecorationRarity; label: string }[] = [
   { value: "legendary", label: "Легендарная" },
 ];
 
+
 const emptyAdminForm = {
   name: "",
   description: "",
@@ -69,14 +70,14 @@ const MAX_DECORATION_FILE_SIZE = 20 * 1024 * 1024;
 
 function ShopSectionSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-2 md:gap-3 min-w-0">
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden animate-pulse"
+          className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden animate-pulse min-w-0"
         >
           <div className="aspect-[3/4] bg-[var(--muted)]" />
-          <div className="p-3 space-y-2">
+          <div className="p-2 sm:p-3 space-y-2">
             <div className="h-3.5 bg-[var(--muted)] rounded w-4/5" />
             <div className="h-9 bg-[var(--muted)] rounded-lg w-full" />
           </div>
@@ -184,6 +185,26 @@ export function ShopSection({ type }: ShopSectionProps) {
     }
     return { effectiveOwned: owned, effectiveEquipped: equipped };
   }, [userDecorations.owned, userDecorations.equipped, profileWithDecorations, equippedRaw]);
+
+  const [filterRarity, setFilterRarity] = useState<DecorationRarity | "all">("all");
+  const [priceFrom, setPriceFrom] = useState<string>("");
+  const [priceTo, setPriceTo] = useState<string>("");
+
+  const filteredDecorations = useMemo(() => {
+    let list = decorations;
+    if (filterRarity !== "all") {
+      list = list.filter(d => (d.rarity ?? "common") === filterRarity);
+    }
+    const from = priceFrom.trim() === "" ? null : parseInt(priceFrom, 10);
+    const to = priceTo.trim() === "" ? null : parseInt(priceTo, 10);
+    if (from !== null && !Number.isNaN(from)) {
+      list = list.filter(d => (d.price ?? 0) >= from);
+    }
+    if (to !== null && !Number.isNaN(to)) {
+      list = list.filter(d => (d.price ?? 0) <= to);
+    }
+    return list;
+  }, [decorations, filterRarity, priceFrom, priceTo]);
 
   // --- Admin: create/edit decorations right on shop page ---
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -603,7 +624,7 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   if (decorationsLoading) {
     return (
-      <div id="shop-section" role="tabpanel" aria-labelledby={`shop-tab-${type}`}>
+      <div>
         <ShopSectionSkeleton />
       </div>
     );
@@ -611,7 +632,7 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   if (decorationsError) {
     return (
-      <div id="shop-section" role="tabpanel" aria-labelledby={`shop-tab-${type}`} className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+      <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
         <p className="text-[var(--foreground)] font-medium mb-1">Не удалось загрузить товары</p>
         {decorationsErrorText && (
           <p className="text-sm text-[var(--muted-foreground)] mb-4 max-w-sm text-center">{decorationsErrorText}</p>
@@ -630,7 +651,7 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   if (decorations.length === 0) {
     return (
-      <div id="shop-section" role="tabpanel" aria-labelledby={`shop-tab-${type}`} className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+      <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
         <div className="w-12 h-12 rounded-xl bg-[var(--muted)] flex items-center justify-center mb-3">
           <PackageOpen className="w-6 h-6 text-[var(--muted-foreground)]" aria-hidden />
         </div>
@@ -652,7 +673,7 @@ export function ShopSection({ type }: ShopSectionProps) {
   }
 
   return (
-    <div id="shop-section" role="tabpanel" aria-labelledby={`shop-tab-${type}`}>
+    <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <p className="text-sm text-[var(--muted-foreground)]">{typeDescriptions[type]}</p>
         {isAdmin && (
@@ -667,17 +688,82 @@ export function ShopSection({ type }: ShopSectionProps) {
         )}
       </div>
 
+      {/* Фильтры по качеству и цене — всегда видны, на мобильных удобная вертикальная группировка и крупные поля */}
+      <div className="mb-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span className="text-xs font-medium text-[var(--muted-foreground)] w-full sm:w-auto">Качество</span>
+          <select
+            value={filterRarity}
+            onChange={e => setFilterRarity(e.target.value as DecorationRarity | "all")}
+            className="min-h-[44px] flex-1 sm:flex-none min-w-[140px] rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            aria-label="Фильтр по редкости"
+          >
+            <option value="all">Все</option>
+            {RARITY_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+          {(filterRarity !== "all" || priceFrom !== "" || priceTo !== "") && (
+            <button
+              type="button"
+              onClick={() => { setFilterRarity("all"); setPriceFrom(""); setPriceTo(""); }}
+              className="min-h-[44px] px-4 py-2.5 rounded-xl text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50 transition-colors"
+            >
+              Сбросить
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span className="text-xs font-medium text-[var(--muted-foreground)] w-full sm:w-auto">Цена, монеты</span>
+          <div className="flex flex-1 sm:flex-none items-center gap-2 min-w-0">
+            <label className="sr-only" htmlFor="shop-filter-price-from">От</label>
+            <input
+              id="shop-filter-price-from"
+              type="number"
+              min={0}
+              value={priceFrom}
+              onChange={e => setPriceFrom(e.target.value.replace(/[^0-9]/g, ""))}
+              placeholder="от"
+              className="min-h-[44px] flex-1 min-w-0 w-20 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              aria-label="Цена от"
+            />
+            <span className="text-[var(--muted-foreground)] shrink-0">—</span>
+            <label className="sr-only" htmlFor="shop-filter-price-to">До</label>
+            <input
+              id="shop-filter-price-to"
+              type="number"
+              min={0}
+              value={priceTo}
+              onChange={e => setPriceTo(e.target.value.replace(/[^0-9]/g, ""))}
+              placeholder="до"
+              className="min-h-[44px] flex-1 min-w-0 w-20 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              aria-label="Цена до"
+            />
+          </div>
+        </div>
+        {filteredDecorations.length !== decorations.length && (
+          <p className="text-xs text-[var(--muted-foreground)]">
+            Показано {filteredDecorations.length} из {decorations.length}
+          </p>
+        )}
+      </div>
+
+      {filteredDecorations.length === 0 ? (
+        <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
+          Нет украшений по выбранным фильтрам. Измените качество или цену.
+        </div>
+      ) : (
       <div
-        className={`grid gap-3 sm:gap-4 ${
+        className={`grid gap-2 sm:gap-2 md:gap-3 min-w-0 ${
           type === "avatar" || type === "frame" || type === "card"
             ? type === "card"
-              ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-items-center"
-              : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-items-center"
-            : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+              ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 justify-items-center"
+              : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 justify-items-center"
+            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
         }`}
       >
-        {decorations.map(decoration => (
-          <div key={decoration.id} className="relative group">
+        {filteredDecorations.map(decoration => (
+          <div key={decoration.id} className="relative group min-w-0 flex justify-center">
             {isAdmin && (
               <div
                 className="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
@@ -719,6 +805,7 @@ export function ShopSection({ type }: ShopSectionProps) {
           </div>
         ))}
       </div>
+      )}
 
       {!isAuthenticated && (
         <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">

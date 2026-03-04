@@ -19,6 +19,8 @@ interface LeaderCardProps {
   isCurrentUser?: boolean;
   showAnimation?: boolean;
   animationDelay?: number;
+  /** При клике открыть модалку вместо перехода по ссылке (переход остаётся в модалке по кнопке) */
+  onClick?: () => void;
 }
 
 function normalizeAvatarUrl(avatarUrl: string): string {
@@ -182,6 +184,30 @@ function getCategoryValue(user: LeaderboardUser, category: LeaderboardCategory):
   }
 }
 
+/** Короткая строка для бейджа категории на мобиле */
+function getCategoryValueShort(user: LeaderboardUser, category: LeaderboardCategory): string {
+  switch (category) {
+    case "level":
+      return `Ур. ${user.level ?? 0}`;
+    case "chaptersRead":
+      return `${user.chaptersRead ?? 0} гл.`;
+    case "readingTime": {
+      const mins = user.readingTimeMinutes ?? user.readingTime ?? (user.chaptersRead ?? 0) * 2;
+      if (mins >= 1440) return `${Math.floor(mins / 1440)}д`;
+      if (mins >= 60) return `${Math.floor(mins / 60)}ч`;
+      return `${mins} м`;
+    }
+    case "ratings":
+      return `${user.ratingsCount ?? 0} оц.`;
+    case "comments":
+      return `${user.commentsCount ?? 0} комм.`;
+    case "streak":
+      return `${user.currentStreak ?? 0} дн.`;
+    default:
+      return "";
+  }
+}
+
 function getCategoryIcon(category: LeaderboardCategory) {
   switch (category) {
     case "level":
@@ -293,11 +319,10 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
   const frameRarity = user.equippedDecorations?.frameRarity;
   const rarityStyles = getRarityStyles(cardRarity || frameRarity);
 
-  const avatarSize = rank === 1 ? "w-28 h-28" : "w-20 h-20";
-  const avatarPixels = rank === 1 ? 112 : 80;
-  const cardPadding = rank === 1 ? "p-8" : "p-5";
-  const iconSize = rank === 1 ? "w-8 h-8" : "w-6 h-6";
-  const badgeSize = rank === 1 ? "w-14 h-14" : "w-10 h-10";
+  const avatarSize = rank === 1 ? "w-12 h-12 md:w-28 md:h-28" : "w-12 h-12 md:w-20 md:h-20";
+  const cardPadding = rank === 1 ? "p-2.5 md:p-8" : "p-2 md:p-5";
+  const iconSize = rank === 1 ? "w-3 h-3 md:w-8 md:h-8" : "w-2.5 h-2.5 md:w-6 md:h-6";
+  const badgeSize = rank === 1 ? "w-5 h-5 md:w-14 md:h-14" : "w-4 h-4 md:w-10 md:h-10";
 
   const showCard = cardUrl && !cardError;
   const showFrame = frameUrl && !frameError;
@@ -343,24 +368,25 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         <div className={`absolute inset-0 bg-gradient-to-b ${hasRarityEffect ? rarityStyles.gradientClass : styles.gradient} pointer-events-none opacity-90`} />
       )}
 
+      {/* На md+ — бейдж места сверху справа; на мобиле уровень в одном блоке с результатом ниже */}
       <div
-        className={`absolute top-2 right-2 ${badgeSize} rounded-lg flex items-center justify-center ${styles.bg} ${styles.text} shadow z-20 border border-white/20`}
+        className={`hidden md:flex absolute top-2 right-2 ${badgeSize} rounded-lg items-center justify-center ${styles.bg} ${styles.text} shadow z-20 border border-white/20`}
       >
         <RankIcon className={iconSize} />
       </div>
 
       {isCurrentUser && (
-        <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium">
+        <div className="absolute top-0.5 left-0.5 md:top-2 md:left-2 z-20 px-1 py-0.5 md:px-2 md:py-1 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-[9px] md:text-xs font-medium">
           Вы
         </div>
       )}
 
-      <div className="relative z-10 mb-4">
-        <div className="relative">
+      <div className={`relative z-10 mt-2 mb-1 md:mt-0 md:mb-4 shrink-0 ${avatarSize} aspect-square`}>
+        <div className="relative w-full h-full overflow-hidden rounded-full">
           <img
             src={avatarUrl}
             alt={user.username}
-            className={`${avatarSize} rounded-full object-cover border-2 ${styles.cardBorder} shadow-md bg-[var(--secondary)]`}
+            className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 ${styles.cardBorder} shadow-md bg-[var(--secondary)]`}
             onError={() => {
               if (avatarDecorationUrl && !avatarDecorationError) {
                 setAvatarDecorationError(true);
@@ -369,44 +395,45 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
               }
             }}
           />
-          {showFrame && (
+        </div>
+        {showFrame && (
             <img
               src={frameUrl}
               alt=""
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
-              style={{ width: avatarPixels * 1.2, height: avatarPixels * 1.2, maxWidth: "none", maxHeight: "none" }}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[105%] h-[105%] md:w-[120%] md:h-[120%] pointer-events-none object-contain z-10"
+              style={{ maxWidth: "none", maxHeight: "none" }}
               onError={() => setFrameError(true)}
               aria-hidden
             />
           )}
-        </div>
       </div>
 
-      <div className="relative z-10 w-full px-3 py-3 rounded-b-2xl bg-gradient-to-t from-black/75 to-transparent">
-        <p className={`font-semibold text-white truncate max-w-[140px] mx-auto ${rank === 1 ? "text-lg" : "text-base"}`}>
+      <div className="relative z-10 w-full px-2 md:px-3 py-2 md:py-3 rounded-b-xl md:rounded-b-2xl bg-gradient-to-t from-black/90 via-black/75 to-black/40 md:from-black/75 md:via-transparent md:to-transparent">
+        <p className={`font-semibold text-white truncate max-w-[4.5rem] md:max-w-[140px] mx-auto drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${rank === 1 ? "text-xs md:text-lg" : "text-[11px] md:text-base"}`}>
           {user.username}
         </p>
         {user.role && user.role !== "user" && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/20 text-white/90 capitalize mt-0.5 inline-block">
+          <span className="text-[9px] md:text-[10px] px-1 py-0.5 md:px-1.5 md:py-0.5 rounded bg-white/20 text-white/90 capitalize mt-0.5 inline-block">
             {user.role}
           </span>
         )}
-        <p className="text-xs text-white/80 mt-1.5">
+        <p className="text-[10px] md:text-xs text-white/90 mt-1 md:mt-1.5 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] hidden md:block">
           {getRankDisplay(level).split("  ")[0]}
         </p>
-        <div className={`flex items-center justify-center gap-1.5 mt-2.5 px-3 py-2 rounded-lg ${styles.bg} ${styles.text}`}>
-          <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
-          <span className="font-semibold text-sm">{getCategoryValue(user, category)}</span>
+        <div className={`flex items-center justify-center gap-1 md:gap-1.5 mt-1.5 md:mt-2.5 px-2 py-1.5 md:px-3 md:py-2 rounded-md md:rounded-lg ${styles.bg} ${styles.text} shadow-sm`}>
+          <CategoryIcon className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
+          <span className="font-semibold text-[10px] md:text-sm md:inline hidden">{getCategoryValue(user, category)}</span>
+          <span className="font-semibold text-[10px] md:hidden">{getCategoryValueShort(user, category)} · Ур. {level}</span>
         </div>
         {secondaryValue && (
-          <p className="mt-1.5 text-[11px] text-white/70">{secondaryValue}</p>
+          <p className="mt-1 md:mt-1.5 text-[9px] md:text-[11px] text-white/80 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] hidden md:block">{secondaryValue}</p>
         )}
       </div>
     </Link>
   );
 }
 
-function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, animationDelay = 0 }: Omit<LeaderCardProps, "variant">) {
+function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, animationDelay = 0, onClick }: Omit<LeaderCardProps, "variant">) {
   const [frameError, setFrameError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [avatarDecorationError, setAvatarDecorationError] = useState(false);
@@ -440,19 +467,19 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
 
   const isTopTen = rank <= 10;
 
-  return (
-    <Link
-      href={`/user/${user._id}`}
-      className={`
-        relative flex items-center gap-3 rounded-xl border p-3 sm:p-4 transition-all duration-200
-        bg-[var(--card)] hover:bg-[var(--muted)]/50 hover:border-[var(--border)]
-        ${hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}
-        ${isCurrentUser ? "ring-2 ring-[var(--primary)]/50 ring-offset-2 ring-offset-[var(--background)]" : ""}
-        ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2") : ""}
-        overflow-hidden
-      `}
-      style={showAnimation ? { transitionDelay: `${animationDelay}ms` } : undefined}
-    >
+  const className = `
+    relative flex items-center gap-3 rounded-xl border p-3 sm:p-4 transition-all duration-200
+    bg-[var(--card)] hover:bg-[var(--muted)]/50 hover:border-[var(--border)]
+    ${hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}
+    ${isCurrentUser ? "ring-2 ring-[var(--primary)]/50 ring-offset-2 ring-offset-[var(--background)]" : ""}
+    ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2") : ""}
+    overflow-hidden
+    ${onClick ? "cursor-pointer" : ""}
+  `;
+  const style = showAnimation ? { transitionDelay: `${animationDelay}ms` } : undefined;
+
+  const content = (
+    <>
       {hasRarityEffect && (
         <div className={`absolute inset-0 pointer-events-none bg-gradient-to-r ${rarityStyles.gradientClass} opacity-20`} />
       )}
@@ -463,25 +490,27 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
           ${hasRarityEffect ? rarityStyles.badgeClass : isTopTen ? "bg-[var(--primary)]/15 text-[var(--primary)]" : "bg-[var(--muted)] text-[var(--muted-foreground)]"}
         `}
       >
-        #{rank}
+        {rank}
       </div>
 
-      <div className="flex-shrink-0 relative z-10">
-        <img
-          src={avatarUrl}
-          alt={user.username}
-          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border bg-[var(--secondary)] ${isCurrentUser ? "border-[var(--primary)]" : hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}`}
-          onError={() => {
-            if (avatarDecorationUrl && !avatarDecorationError) setAvatarDecorationError(true);
-            else setAvatarError(true);
-          }}
-        />
+      <div className="flex-shrink-0 relative z-10 w-10 h-10 sm:w-11 sm:h-11 aspect-square">
+        <div className="w-full h-full overflow-hidden rounded-full">
+          <img
+            src={avatarUrl}
+            alt={user.username}
+            className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 bg-[var(--secondary)] ${isCurrentUser ? "border-[var(--primary)]" : hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}`}
+            onError={() => {
+              if (avatarDecorationUrl && !avatarDecorationError) setAvatarDecorationError(true);
+              else setAvatarError(true);
+            }}
+          />
+        </div>
         {showFrame && (
           <img
             src={frameUrl}
             alt=""
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
-            style={{ width: 44 * 1.2, height: 44 * 1.2, maxWidth: "none", maxHeight: "none" }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[108%] h-[108%] pointer-events-none object-contain z-10"
+            style={{ maxWidth: "none", maxHeight: "none" }}
             onError={() => setFrameError(true)}
             aria-hidden
           />
@@ -494,7 +523,7 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
       </div>
 
       <div className="flex-1 min-w-0 relative z-10">
-        <p className={`font-medium truncate text-sm ${isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
+        <p className={`font-medium truncate text-sm ${isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`} title={user.username}>
           {user.username}
         </p>
         <p className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">
@@ -503,10 +532,25 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
         </p>
       </div>
 
-      <div className={`flex items-center gap-1.5 shrink-0 px-2.5 py-1.5 rounded-lg text-right relative z-10 ${hasRarityEffect ? rarityStyles.badgeClass : "bg-[var(--muted)]"}`}>
+      <div className={`flex items-center gap-1.5 shrink-0 px-2 py-1.5 sm:px-2.5 rounded-lg text-right relative z-10 ${hasRarityEffect ? rarityStyles.badgeClass : "bg-[var(--muted)]"}`}>
         <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
-        <span className="font-semibold text-sm whitespace-nowrap">{getCategoryValue(user, category)}</span>
+        <span className="font-semibold text-xs sm:text-sm whitespace-nowrap hidden sm:inline">{getCategoryValue(user, category)}</span>
+        <span className="font-semibold text-xs whitespace-nowrap sm:hidden">{getCategoryValueShort(user, category)}</span>
       </div>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <div role="button" tabIndex={0} className={className} style={style} onClick={onClick} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link href={`/user/${user._id}`} className={className} style={style}>
+      {content}
     </Link>
   );
 }
@@ -519,6 +563,7 @@ export default function LeaderCard({
   isCurrentUser = false,
   showAnimation = false,
   animationDelay = 0,
+  onClick,
 }: LeaderCardProps) {
   if (variant === "top3" || rank <= 3) {
     return (
@@ -541,6 +586,7 @@ export default function LeaderCard({
       isCurrentUser={isCurrentUser}
       showAnimation={showAnimation}
       animationDelay={animationDelay}
+      onClick={onClick}
     />
   );
 }

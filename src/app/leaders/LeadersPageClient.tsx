@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { TrendingUp, Star, Users, Flame, Search, ChevronUp, Eye, EyeOff, Calendar, MessageSquare } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { TrendingUp, Star, Users, Flame, Search, ChevronUp, Eye, EyeOff, Calendar, MessageSquare, X, User, BookOpen, Trophy, Heart } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
 import LoadingSkeleton from "@/shared/skeleton/skeleton";
@@ -17,7 +19,11 @@ import { useGetHomepageActiveUsersQuery } from "@/store/api/usersApi";
 import { useGetDecorationsQuery } from "@/store/api/shopApi";
 import { useMounted } from "@/hooks/useMounted";
 import { useAuth } from "@/hooks/useAuth";
-import { getDecorationImageUrl, type DecorationRarity } from "@/api/shop";
+import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions";
+import { getDecorationImageUrl, getEquippedAvatarDecorationUrl, getEquippedFrameUrl, getEquippedCardUrl, type DecorationRarity } from "@/api/shop";
+import { getCoverUrls } from "@/lib/asset-url";
+import { getRankDisplay } from "@/lib/rank-utils";
+import type { EquippedDecorations } from "@/types/user";
 
 type CategoryConfig = {
   id: LeaderboardCategory;
@@ -256,14 +262,86 @@ function transformUsersToLeaderboard(
   return sortedUsers;
 }
 
+const DEFAULT_AVATAR = "/logo/ring_logo.png";
+function getLeaderAvatarUrl(u: LeaderboardUser): string {
+  const deco = getEquippedAvatarDecorationUrl(u.equippedDecorations as EquippedDecorations | null);
+  if (deco) return deco;
+  const primary = getCoverUrls(u.avatar, "").primary;
+  return primary || DEFAULT_AVATAR;
+}
+function getLeaderFrameUrl(u: LeaderboardUser): string | null {
+  return getEquippedFrameUrl(u.equippedDecorations as EquippedDecorations | null);
+}
+
+const VALID_CATEGORIES: LeaderboardCategory[] = ["level", "chaptersRead", "ratings", "comments", "streak"];
+
+/** Поля статистики и профиля для слияния из обоих источников (leaderboard + homepage), чтобы карточки были полными во всех топах */
+const MERGE_STAT_KEYS: (keyof TransformableUser)[] = [
+  "avatar", "role", "level", "experience", "chaptersRead", "readingTimeMinutes",
+  "ratingsCount", "commentsCount", "currentStreak", "longestStreak", "lastStreakDate",
+  "titlesReadCount", "completedTitlesCount", "likesReceivedCount", "showStats",
+  "readingHistory", "bookmarks", "activityScore", "reputationScore",
+  "equippedDecorations", "lastActiveAt",
+];
+
+const MERGE_EXTRA_KEYS = ["readingTime"] as const;
+
+const NUMERIC_MERGE_KEYS = new Set([
+  "level", "experience", "chaptersRead", "readingTimeMinutes", "ratingsCount", "commentsCount",
+  "currentStreak", "longestStreak", "titlesReadCount", "completedTitlesCount", "likesReceivedCount",
+  "activityScore", "reputationScore",
+]);
+
+function mergeLeaderboardWithHomepage(
+  leaderboardUser: Record<string, unknown>,
+  homepageUser: Record<string, unknown> | undefined
+): TransformableUser {
+  if (!homepageUser) {
+    return leaderboardUser as unknown as TransformableUser;
+  }
+  const merged = { ...leaderboardUser } as Record<string, unknown>;
+  const keysToMerge = [...MERGE_STAT_KEYS, ...MERGE_EXTRA_KEYS];
+  for (const key of keysToMerge) {
+    const leaderVal = merged[key];
+    const homeVal = homepageUser[key];
+    const isNumeric = NUMERIC_MERGE_KEYS.has(key as keyof TransformableUser);
+    const useHome =
+      leaderVal === undefined || leaderVal === null
+        ? (homeVal !== undefined && homeVal !== null && (!isNumeric || (typeof homeVal === "number" && (homeVal as number) > 0)))
+        : (typeof leaderVal === "number" && leaderVal === 0 && typeof homeVal === "number" && (homeVal as number) > 0);
+    if (useHome && homeVal !== undefined && homeVal !== null) {
+      merged[key] = homeVal;
+    }
+  }
+  if (merged.readingTimeMinutes == null && merged.readingTime != null && typeof merged.readingTime === "number") {
+    merged.readingTimeMinutes = merged.readingTime;
+  }
+  return merged as unknown as TransformableUser;
+}
+
 export default function LeadersPageClient() {
   const mounted = useMounted();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
-  const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>("level");
+  const categoryFromUrl = searchParams.get("category");
+  const initialCategory: LeaderboardCategory =
+    categoryFromUrl && VALID_CATEGORIES.includes(categoryFromUrl as LeaderboardCategory)
+      ? (categoryFromUrl as LeaderboardCategory)
+      : "level";
+  const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>(initialCategory);
+
+  useEffect(() => {
+    if (categoryFromUrl && VALID_CATEGORIES.includes(categoryFromUrl as LeaderboardCategory)) {
+      setActiveCategory(categoryFromUrl as LeaderboardCategory);
+    }
+  }, [categoryFromUrl]);
   const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("month");
   const [searchQuery, setSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showAdmins, setShowAdmins] = useState(true);
+  const [leaderModalState, setLeaderModalState] = useState<{ user: LeaderboardUser; rank: number } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const supportsPeriod = activeCategory === "ratings" || activeCategory === "comments";
@@ -327,26 +405,20 @@ export default function LeadersPageClient() {
     })();
 
     const leaderboardUsersData = leaderboardData?.data?.users ?? [];
-
-    const allUsersMap = new Map<string, TransformableUser>();
-    
+    const homepageById = new Map<string, Record<string, unknown>>();
     for (const u of homepageUsers) {
-      allUsersMap.set(u._id, u as TransformableUser);
+      homepageById.set(u._id, u as unknown as Record<string, unknown>);
     }
 
+    const mergedUsers: TransformableUser[] = [];
     for (const u of leaderboardUsersData) {
-      if (!allUsersMap.has(u._id)) {
-        allUsersMap.set(u._id, u as TransformableUser);
-      } else {
-        const existing = allUsersMap.get(u._id)!;
-        allUsersMap.set(u._id, { ...existing, ...u } as TransformableUser);
-      }
+      const home = homepageById.get(u._id);
+      const merged = mergeLeaderboardWithHomepage(u as unknown as Record<string, unknown>, home);
+      mergedUsers.push(merged);
     }
-
-    const mergedUsers = Array.from(allUsersMap.values());
 
     if (mergedUsers.length > 0) {
-      return transformUsersToLeaderboard(mergedUsers, activeCategory, decorationsMap).slice(0, 50);
+      return transformUsersToLeaderboard(mergedUsers, activeCategory, decorationsMap);
     }
 
     return [];
@@ -427,7 +499,13 @@ export default function LeadersPageClient() {
                   key={category.id}
                   role="tab"
                   aria-selected={isActive}
-                  onClick={() => { setActiveCategory(category.id); setSearchQuery(""); }}
+                  onClick={() => {
+                    setActiveCategory(category.id);
+                    setSearchQuery("");
+                    const params = new URLSearchParams(searchParams.toString());
+                    params.set("category", category.id);
+                    router.replace(`${pathname}?${params.toString()}`);
+                  }}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
                     isActive ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   }`}
@@ -499,7 +577,7 @@ export default function LeadersPageClient() {
           {user && currentUserRank && currentUserData && !searchQuery && (
             <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]">
               <span className="w-7 h-7 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center text-xs font-semibold shrink-0">
-                #{currentUserRank}
+                {currentUserRank}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-[var(--foreground)] truncate">
@@ -518,41 +596,67 @@ export default function LeadersPageClient() {
           ) : filteredUsers.length > 0 ? (
             <div className="space-y-3">
               {!searchQuery && filteredUsers.slice(0, 3).length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="md:order-2">
-                    <LeaderCard
-                      user={filteredUsers[0]}
-                      rank={1}
-                      category={activeCategory}
-                      isCurrentUser={filteredUsers[0]._id === user?._id}
-                      showAnimation
-                      animationDelay={0}
-                    />
+                <div className="mb-6 max-w-lg mx-auto pb-2">
+                  <div className="flex items-end justify-center gap-0 sm:gap-1">
+                    {[2, 1, 3].map((rank) => {
+                      const idx = rank - 1;
+                      const u = filteredUsers[idx];
+                      if (!u) return null;
+                      const blockHeight = rank === 1 ? "h-24 sm:h-28 md:h-32" : rank === 2 ? "h-20 sm:h-24 md:h-26" : "h-16 sm:h-20 md:h-24";
+                      const avatarWrapperSize = rank === 1 ? "w-[5.5rem] sm:w-[7.7rem] md:w-[9rem]" : rank === 2 ? "w-[4.5rem] sm:w-[6rem] md:w-[7rem]" : "w-16 sm:w-20 md:w-[5.5rem]";
+                      const borderClass = rank === 1 ? "border-yellow-400" : rank === 2 ? "border-slate-400" : "border-amber-500";
+                      const StatIcon = getCategoryIcon(activeCategory);
+                      const frameUrl = getLeaderFrameUrl(u);
+                      return (
+                        <div key={u._id} className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]">
+                          <p className="text-xs sm:text-sm font-semibold text-[var(--foreground)] truncate w-full text-center mb-0.5 px-0.5 -mt-0.5" title={u.username}>
+                            {u.username}
+                          </p>
+                          <div className={`relative ${avatarWrapperSize} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}>
+                            <div className="relative w-full aspect-square max-w-full shrink-0 min-w-0 transition-transform duration-200 hover:scale-105 origin-center cursor-pointer" style={{ aspectRatio: "1 / 1" }}>
+                              <button
+                                type="button"
+                                onClick={() => setLeaderModalState({ user: u, rank })}
+                                className={`relative rounded-full border-2 ${borderClass} overflow-hidden bg-[var(--secondary)] shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 w-full h-full block aspect-square`}
+                              >
+                                <img
+                                  src={getLeaderAvatarUrl(u)}
+                                  alt={u.username}
+                                  className="w-full h-full object-cover aspect-square min-w-full min-h-full"
+                                  onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
+                                />
+                              </button>
+                              {frameUrl && (
+                                <img
+                                  src={frameUrl}
+                                  alt=""
+                                  className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] pointer-events-none object-contain z-10"
+                                  style={{ maxWidth: "none", maxHeight: "none" }}
+                                  aria-hidden
+                                />
+                              )}
+                            </div>
+                          </div>
+                          <div
+                            className={`w-full ${blockHeight} mt-0 flex flex-col rounded-t-lg overflow-hidden shadow-md border border-b-0 border-rose-600/80 bg-rose-500/90 dark:bg-rose-600/80 dark:border-rose-500/70`}
+                            style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 6px -1px rgba(0,0,0,0.2)" }}
+                          >
+                            <div className="flex-1 flex items-center justify-center min-h-0 pt-1">
+                              <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-md select-none" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
+                                {rank}
+                              </span>
+                            </div>
+                            <div className="px-1.5 pb-1.5 pt-1 flex items-center justify-center gap-1 min-h-0 bg-rose-700/50 dark:bg-rose-800/50 backdrop-blur-[1px]">
+                              <StatIcon className="w-3.5 h-3.5 shrink-0 text-white" />
+                              <span className="text-[10px] sm:text-xs font-semibold text-white truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }} title={getCategoryDisplayValue(u, activeCategory)}>
+                                {getCategoryDisplayValue(u, activeCategory)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  {filteredUsers[1] && (
-                    <div className="md:order-1 md:mt-8 md:scale-90 origin-top">
-                      <LeaderCard
-                        user={filteredUsers[1]}
-                        rank={2}
-                        category={activeCategory}
-                        isCurrentUser={filteredUsers[1]._id === user?._id}
-                        showAnimation
-                        animationDelay={100}
-                      />
-                    </div>
-                  )}
-                  {filteredUsers[2] && (
-                    <div className="md:order-3 md:mt-8 md:scale-90 origin-top">
-                      <LeaderCard
-                        user={filteredUsers[2]}
-                        rank={3}
-                        category={activeCategory}
-                        isCurrentUser={filteredUsers[2]._id === user?._id}
-                        showAnimation
-                        animationDelay={200}
-                      />
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -571,10 +675,21 @@ export default function LeadersPageClient() {
                         isCurrentUser={userData._id === user?._id}
                         showAnimation
                         animationDelay={Math.min(index * 50, 500)}
+                        onClick={() => setLeaderModalState({ user: userData, rank: actualRank })}
                       />
                     );
                   })}
                 </div>
+              )}
+
+              {leaderModalState && (
+                <PodiumUserModal
+                  user={leaderModalState.user}
+                  rank={leaderModalState.rank}
+                  category={activeCategory}
+                  isCurrentUser={leaderModalState.user._id === user?._id}
+                  onClose={() => setLeaderModalState(null)}
+                />
               )}
             </div>
           ) : searchQuery && filteredUsers.length === 0 ? (
@@ -620,6 +735,215 @@ export default function LeadersPageClient() {
   );
 }
 
+function getCategoryIcon(category: LeaderboardCategory) {
+  const config = CATEGORIES.find(c => c.id === category);
+  if (config) return config.icon;
+  return TrendingUp;
+}
+
+function getRarityGlowClass(rarity: DecorationRarity | null | undefined): string {
+  if (rarity === "legendary") return "rarity-legendary";
+  if (rarity === "epic") return "rarity-epic";
+  if (rarity === "rare") return "rarity-rare";
+  return "";
+}
+
+function PodiumUserModal({
+  user,
+  rank,
+  category,
+  isCurrentUser,
+  onClose,
+}: {
+  user: LeaderboardUser;
+  rank: number;
+  category: LeaderboardCategory;
+  isCurrentUser: boolean;
+  onClose: () => void;
+}) {
+  const [showCardOnly, setShowCardOnly] = useState(false);
+  const { positions: allPositions } = useUserLeaderboardPositions(user._id);
+  const topPositionByCategory = useMemo(() => {
+    const map = new Map<LeaderboardCategory, number>();
+    map.set(category, rank);
+    allPositions.forEach((p) => map.set(p.category, p.position));
+    return map;
+  }, [category, rank, allPositions]);
+
+  const isTop3 = rank >= 1 && rank <= 3;
+  const borderClass = isTop3
+    ? rank === 1 ? "border-yellow-400" : rank === 2 ? "border-slate-400" : "border-amber-500"
+    : "border-[var(--border)]";
+  const badgeBgClass = isTop3
+    ? rank === 1 ? "from-yellow-400/90 to-amber-500/90" : rank === 2 ? "from-slate-400/90 to-slate-500/90" : "from-amber-500/90 to-orange-600/90"
+    : "from-[var(--muted)] to-[var(--muted)]";
+  const badgeTextClass = isTop3 ? "text-white" : "text-[var(--foreground)]";
+  const level = user.level ?? 0;
+  const cardUrl = getEquippedCardUrl(user.equippedDecorations as EquippedDecorations | null);
+  const frameUrl = getLeaderFrameUrl(user);
+  const cardRarity = user.equippedDecorations?.cardRarity ?? user.equippedDecorations?.frameRarity ?? null;
+  const rarityGlowClass = getRarityGlowClass(cardRarity);
+
+  type StatItem = { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; category?: LeaderboardCategory; categories?: LeaderboardCategory[] };
+  const stats: StatItem[] = [];
+  if (user.level != null) stats.push({ icon: Trophy, label: "Уровень", value: user.level, category: "level" });
+  if (user.experience != null) stats.push({ icon: TrendingUp, label: "Опыт", value: user.experience.toLocaleString("ru") + " XP" });
+  if (user.chaptersRead != null) {
+    const chapters = user.chaptersRead ?? 0;
+    stats.push({ icon: BookOpen, label: "Глав прочитано", value: `${chapters.toLocaleString("ru")} глав`, categories: ["chaptersRead"] });
+  }
+  if (user.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: user.ratingsCount.toLocaleString("ru"), category: "ratings" });
+  if (user.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: user.commentsCount.toLocaleString("ru"), category: "comments" });
+  if (user.titlesReadCount != null) stats.push({ icon: BookOpen, label: "Тайтлов прочитано", value: user.titlesReadCount.toLocaleString("ru") });
+  if (user.completedTitlesCount != null && user.completedTitlesCount > 0) stats.push({ icon: Trophy, label: "Завершено тайтлов", value: user.completedTitlesCount.toLocaleString("ru") });
+  if (user.currentStreak != null && user.currentStreak > 0) stats.push({ icon: Flame, label: "Серия дней", value: `${user.currentStreak} ${user.currentStreak === 1 ? "день" : user.currentStreak < 5 ? "дня" : "дней"}`, category: "streak" });
+  if (user.longestStreak != null && user.longestStreak > 0) stats.push({ icon: Flame, label: "Рекорд серии", value: `${user.longestStreak} дн.`, category: "streak" });
+  if (user.likesReceivedCount != null && user.likesReceivedCount > 0) stats.push({ icon: Heart, label: "Лайков получено", value: user.likesReceivedCount.toLocaleString("ru") });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="podium-modal-title"
+    >
+      <div
+        className={`relative w-auto max-w-[calc(100vw-2rem)] rounded-2xl border shadow-xl aspect-[9/19] flex flex-col overflow-hidden bg-[var(--card)] ${rarityGlowClass} ${cardRarity && cardRarity !== "common" ? "border-2" : ""} ${cardRarity === "legendary" ? "border-amber-400/80" : cardRarity === "epic" ? "border-purple-500/70" : cardRarity === "rare" ? "border-blue-500/70" : "border-[var(--border)]"}`}
+        style={{ height: "clamp(450px, 70vh, 70vh)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {cardUrl && (
+          <div
+            className="absolute inset-0 bg-cover bg-center z-0"
+            style={{ backgroundImage: `url(${cardUrl})` }}
+            aria-hidden
+          />
+        )}
+        <header className="relative z-10 flex items-center justify-between gap-2 px-3 pt-2 pb-0.5 shrink-0 bg-transparent">
+          {!showCardOnly && (
+            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-r ${badgeBgClass} ${badgeTextClass} shadow-sm shrink-0`}>
+              <span className="text-xs font-bold">{rank}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1 ml-auto">
+            <button
+              type="button"
+              onClick={() => setShowCardOnly((v) => !v)}
+              className="p-1.5 rounded-md bg-[var(--card)]/80 backdrop-blur-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors shrink-0"
+              aria-label={showCardOnly ? "Показать всё" : "Только карточка"}
+              title={showCardOnly ? "Показать всё" : "Только карточка"}
+            >
+              {showCardOnly ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-md bg-[var(--card)]/80 backdrop-blur-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors shrink-0"
+              aria-label="Закрыть"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        {!showCardOnly && (
+        <div className="relative z-10 flex flex-col flex-1 min-h-0 overflow-y-auto">
+          <div className="flex flex-col items-center text-center pt-0 px-3 pb-2 bg-transparent shrink-0">
+            <div className="p-4 shrink-0">
+              <div className="relative w-20 h-20 shrink-0">
+                <div className="absolute inset-0 overflow-hidden rounded-full">
+                  <img
+                    src={getLeaderAvatarUrl(user)}
+                    alt=""
+                    className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 ${borderClass} shadow-md bg-[var(--secondary)]`}
+                    onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
+                  />
+                </div>
+                {frameUrl && (
+                  <img
+                    src={frameUrl}
+                    alt=""
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] pointer-events-none object-contain z-10"
+                    style={{ maxWidth: "none", maxHeight: "none" }}
+                    aria-hidden
+                  />
+                )}
+              </div>
+            </div>
+            <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold text-[var(--foreground)] truncate max-w-full px-1">
+              <span className="inline-block px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm">
+                {user.username}
+              </span>
+            </h2>
+            {user.role && user.role !== "user" && (
+              <span className="mt-0.5 text-[11px] px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] capitalize">
+                {user.role}
+              </span>
+            )}
+            <p className="mt-1 text-[11px] text-[var(--muted-foreground)]">
+              <span className="inline-block px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm">
+                {getRankDisplay(level).split("  ")[0]}
+              </span>
+            </p>
+          </div>
+
+          <div className="flex-1 min-h-0" aria-hidden />
+
+          <div className="relative z-10 px-3 pb-3 pt-2 flex flex-col gap-3 shrink-0">
+            {stats.length > 0 && (
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm px-3 py-2.5">
+                <p className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-1.5 px-0.5">
+                  Показатели
+                </p>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
+                  {stats.map(({ icon: Icon, label, value, category: statCategory, categories: statCategories }) => {
+                    const cats = statCategories ?? (statCategory ? [statCategory] : []);
+                    const positions = cats.map((c) => topPositionByCategory.get(c)).filter((p): p is number => p != null);
+                    const bestPos = positions.length > 0 ? Math.min(...positions) : null;
+                    return (
+                      <div key={label} className="flex items-start gap-1.5 min-w-0">
+                        <Icon className="w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
+                        <div className="min-w-0 text-left overflow-hidden">
+                          <p className="text-[10px] text-[var(--muted-foreground)] leading-tight truncate" title={label}>{label}</p>
+                          <p className="text-[11px] font-semibold text-[var(--foreground)] leading-tight flex flex-wrap items-center gap-x-1 gap-y-0.5">
+                            <span className="truncate max-w-full">{value}</span>
+                            {bestPos != null && (
+                              <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-medium shrink-0" title={`Топ ${bestPos}`}>
+                                <Trophy className="w-2.5 h-2.5" aria-hidden />
+                                {bestPos}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col items-center gap-1">
+              <Link
+                href={`/user/${user._id}`}
+                onClick={onClose}
+                className="flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity text-sm"
+              >
+                <User className="w-3.5 h-3.5 shrink-0" />
+                Посмотреть профиль
+              </Link>
+              {isCurrentUser && (
+                <span className="text-[11px] text-[var(--muted-foreground)]">Это вы</span>
+              )}
+            </div>
+          </div>
+        </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function formatReadingTimeDisplay(minutes: number): string {
   if (minutes < 60) return `${minutes} мин`;
   if (minutes < 1440) return `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
@@ -653,28 +977,42 @@ function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCat
 }
 
 function LeaderboardSkeleton() {
+  const podiumBlockHeight = ["h-20 sm:h-24 md:h-26", "h-24 sm:h-28 md:h-32", "h-16 sm:h-20 md:h-24"];
+  const avatarWrapperSize = [
+    "w-[4.5rem] sm:w-[6rem] md:w-[7rem]",
+    "w-[5.5rem] sm:w-[7.7rem] md:w-[9rem]",
+    "w-16 sm:w-20 md:w-[5.5rem]",
+  ];
   return (
     <div className="space-y-4 animate-pulse">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[0, 1, 2].map(i => (
-          <div
-            key={i}
-            className={`rounded-2xl border border-[var(--border)] bg-[var(--card)] aspect-[9/16] ${i === 0 ? "md:order-2" : i === 1 ? "md:order-1 md:mt-6 md:scale-90" : "md:order-3 md:mt-6 md:scale-90"}`}
-          >
-            <div className="flex flex-col items-center justify-end h-full pb-4">
-              <div className={`rounded-full bg-[var(--muted)] ${i === 0 ? "w-24 h-24" : "w-20 h-20"} mb-3`} />
-              <div className="w-28 h-4 bg-[var(--muted)] rounded mb-2" />
-              <div className="w-20 h-3 bg-[var(--muted)] rounded mb-3" />
-              <div className="w-24 h-8 bg-[var(--muted)] rounded-lg" />
+      <div className="mb-6 max-w-lg mx-auto pb-2">
+        <div className="flex items-end justify-center gap-0 sm:gap-1">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]">
+              <div className="h-3 w-16 sm:w-20 bg-[var(--muted)] rounded mb-0.5 mx-0.5" />
+              <div className={`relative ${avatarWrapperSize[i]} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}>
+                <div className="w-full aspect-square rounded-full bg-[var(--muted)] max-w-full shrink-0" />
+              </div>
+              <div
+                className={`w-full ${podiumBlockHeight[i]} mt-0 flex flex-col rounded-t-lg overflow-hidden border border-b-0 border-[var(--border)] bg-[var(--muted)]`}
+              >
+                <div className="flex-1 flex items-center justify-center min-h-0 pt-1">
+                  <div className="w-6 h-8 sm:w-8 sm:h-10 bg-[var(--secondary)] rounded" />
+                </div>
+                <div className="px-1.5 pb-1.5 pt-1 flex items-center justify-center gap-1 min-h-0">
+                  <div className="w-3.5 h-3.5 rounded bg-[var(--secondary)]" />
+                  <div className="h-3 w-12 sm:w-14 bg-[var(--secondary)] rounded" />
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       <div className="space-y-2">
-        {[0, 1, 2, 3, 4].map(i => (
-          <div key={i} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4">
             <div className="w-9 h-9 rounded-lg bg-[var(--muted)] shrink-0" />
-            <div className="w-10 h-10 rounded-full bg-[var(--muted)] shrink-0" />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[var(--muted)] shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="w-24 h-4 bg-[var(--muted)] rounded" />
               <div className="w-16 h-3 bg-[var(--muted)] rounded mt-1.5" />

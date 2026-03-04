@@ -214,15 +214,16 @@
     width: 1rem;
     height: 1rem;
   }
-  .header-user-bar button,
-  .header-user-bar a button,
+  /* Только иконки-кнопки, не пункты выпадающего меню (у них свои px-3 py-2) */
+  .header-user-bar button:not(.dropdown-item-modern),
+  .header-user-bar a button:not(.dropdown-item-modern),
   .header-user-bar button[aria-label="Открыть меню пользователя"] {
     min-width: 34px !important;
     min-height: 34px !important;
     padding: 0.25rem !important;
   }
-  .header-user-bar button svg,
-  .header-user-bar a button svg {
+  .header-user-bar button:not(.dropdown-item-modern) svg,
+  .header-user-bar a button:not(.dropdown-item-modern) svg {
     width: 1rem;
     height: 1rem;
   }

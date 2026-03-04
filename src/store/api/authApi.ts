@@ -388,10 +388,7 @@ export const authApi = createApi({
         method: "POST",
       }),
       transformResponse(response: ApiResponseDto<ReadingProgressResponse>) {
-        if (response && (response as { success?: boolean }).success === false) {
-          const r = response as { message?: string; errors?: string[] };
-          throw new Error(r.errors?.[0] ?? r.message ?? "Failed to add to reading history");
-        }
+        // Не бросаем при success: false — обрабатываем в useAuth (retry при версионном конфликте без лога в консоль)
         return response;
       },
       invalidatesTags: ["ReadingHistory", "Auth"],
@@ -410,7 +407,12 @@ export const authApi = createApi({
       transformResponse(response: ApiResponseDto<User>) {
         if (response && (response as { success?: boolean }).success === false) {
           const r = response as { message?: string; errors?: string[] };
-          throw new Error(r.errors?.[0] ?? r.message ?? "Failed to remove from reading history");
+          const raw = r.errors?.[0] ?? r.message ?? "Failed to remove from reading history";
+          const isVersionConflict =
+            /no matching document|version \d+|modifiedPaths/i.test(String(raw));
+          throw new Error(
+            isVersionConflict ? "READING_HISTORY_VERSION_CONFLICT" : raw
+          );
         }
         return response;
       },
@@ -425,7 +427,12 @@ export const authApi = createApi({
       transformResponse(response: ApiResponseDto<User>) {
         if (response && (response as { success?: boolean }).success === false) {
           const r = response as { message?: string; errors?: string[] };
-          throw new Error(r.errors?.[0] ?? r.message ?? "Failed to clear reading history");
+          const raw = r.errors?.[0] ?? r.message ?? "Failed to clear reading history";
+          const isVersionConflict =
+            /no matching document|version \d+|modifiedPaths/i.test(String(raw));
+          throw new Error(
+            isVersionConflict ? "READING_HISTORY_VERSION_CONFLICT" : raw
+          );
         }
         return response;
       },

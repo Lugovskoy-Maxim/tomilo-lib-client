@@ -50,6 +50,12 @@ export function getEquippedBackgroundUrl(equipped: EquippedDecorations | null | 
   return getDecorationUrlFromValue(equipped.background);
 }
 
+/** URL надетой карточки из equippedDecorations.card (строка или объект с imageUrl). */
+export function getEquippedCardUrl(equipped: EquippedDecorations | null | undefined): string | null {
+  if (!equipped?.card) return null;
+  return getDecorationUrlFromValue(equipped.card);
+}
+
 /**
  * Возвращает primary и fallback URL для изображения декорации.
  * Primary = S3 (если настроен), fallback = старый сервер.

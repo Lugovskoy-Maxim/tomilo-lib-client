@@ -1,4 +1,4 @@
-import { ReaderChapter } from "./chapter";
+import { ReaderChapter, type ChapterReactionCount } from "./chapter";
 
 export enum TitleStatus {
   ONGOING = "ongoing",
@@ -113,6 +113,12 @@ export interface Chapter {
   sortOrder?: number;
   // Связь с тайтлом (может быть заполнена при join-запросах)
   titleInfo?: Pick<Title, "name" | "coverImage" | "status">;
+  // Рейтинг и реакции (бэкенд может возвращать в основной информации о главе; шкала рейтинга 1–10)
+  averageRating?: number;
+  ratingSum?: number;
+  ratingCount?: number;
+  userRating?: number | null;
+  reactions?: ChapterReactionCount[];
 }
 
 // Типы для API ответов

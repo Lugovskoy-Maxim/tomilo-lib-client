@@ -12,7 +12,6 @@ import {
   Eye,
   ShoppingBag,
   Palette,
-  Zap,
   Trophy,
   Crown,
   Clock,
@@ -79,7 +78,7 @@ const THEME_LABELS: Record<string, string> = {
 };
 
 const itemClass =
-  "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none";
+  "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none m-0 border-0 bg-transparent";
 
 export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl, avatarDecorationUrl, leaderboardPositions = [] }: UserDropdownProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -213,28 +212,51 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
             <h3 className="font-semibold text-[var(--foreground)] truncate text-base">
               {displayName}
             </h3>
-            <p className="text-sm text-[var(--muted-foreground)] truncate">
-              {rankInfo.name}
-            </p>
+            <div className="flex items-center gap-2 min-w-0 mt-0.5" title={rankInfo.name}>
+              <span className="inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)] shrink-0">
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold">
+                  {level}
+                </span>
+                ур.
+              </span>
+              <div className="flex-1 min-w-0 h-1.5 rounded-full bg-[var(--border)]/40 overflow-hidden">
+                <div
+                  className="h-full bg-[var(--primary)] rounded-full transition-[width]"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
           </div>
           <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
         </Link>
 
-        {/* Уровень и баланс */}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--border)]/30">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--primary)]/10 text-xs text-[var(--primary)] font-medium">
-              <Zap className="w-3 h-3" aria-hidden />
-              {level} ур.
-            </span>
-            <div className="w-16 h-1.5 bg-[var(--border)]/40 rounded-full overflow-hidden" title={`${Math.round(progressPercent)}% до след. уровня`}>
-              <div
-                className="h-full bg-[var(--primary)] rounded-full"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
+        {/* Сначки топов и баланс */}
+        <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[var(--border)]/30">
+          <div className="flex flex-wrap items-center gap-1 min-w-0">
+            {leaderboardPositions.length > 0 ? (
+              leaderboardPositions.slice(0, 4).map(({ category, position, label }) => {
+                const Icon = CATEGORY_ICONS[category];
+                return (
+                  <Link
+                    key={category}
+                    href={`/leaders?category=${category}`}
+                    onClick={onClose}
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                    title={label}
+                  >
+                    <Icon className="w-2.5 h-2.5 shrink-0" aria-hidden />
+                    #{position}
+                  </Link>
+                );
+              })
+            ) : (
+              <span className="text-[10px] text-[var(--muted-foreground)]">—</span>
+            )}
+            {leaderboardPositions.length > 4 && (
+              <span className="text-[10px] text-[var(--muted-foreground)]">+{leaderboardPositions.length - 4}</span>
+            )}
           </div>
-          <span className="flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
+          <span className="flex items-center gap-1 text-xs text-[var(--muted-foreground)] shrink-0">
             <CoinIcon className="w-3.5 h-3.5 text-amber-500" aria-hidden />
             <span className="font-medium tabular-nums">{balance.toLocaleString("ru-RU")}</span>
           </span>
@@ -258,39 +280,6 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
           <Bookmark className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
           <span className="min-w-0 truncate">Закладки</span>
         </Link>
-        {leaderboardPositions.length > 0 && (
-          <Link
-            href="/leaders"
-            onClick={onClose}
-            role="menuitem"
-            className="w-full flex flex-col gap-1.5 px-3 py-2 text-sm rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none"
-          >
-            <div className="flex items-center gap-2.5">
-              <Trophy className="w-4 h-4 text-amber-500 shrink-0" aria-hidden />
-              <span className="text-[var(--foreground)]">Вы в Топ-10</span>
-            </div>
-            <div className="flex flex-wrap gap-1 pl-6">
-              {leaderboardPositions.slice(0, 4).map(({ category, position, label }) => {
-                const Icon = CATEGORY_ICONS[category];
-                return (
-                  <span
-                    key={category}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                    title={label}
-                  >
-                    <Icon className="w-2.5 h-2.5" aria-hidden />
-                    #{position}
-                  </span>
-                );
-              })}
-              {leaderboardPositions.length > 4 && (
-                <span className="text-[10px] text-[var(--muted-foreground)] px-1">
-                  +{leaderboardPositions.length - 4}
-                </span>
-              )}
-            </div>
-          </Link>
-        )}
         <button
           type="button"
           role="menuitemcheckbox"

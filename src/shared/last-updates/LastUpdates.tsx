@@ -97,7 +97,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
 
   const getDisplayYear = () => {
     if (typeof data.releaseYear === "number" && data.releaseYear > 0) {
-      return `${data.releaseYear} г.`;
+      return `${data.releaseYear}`;
     }
     return null;
   };
@@ -152,8 +152,8 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
 
         {/* Контент карточки: мета → заголовок → главы → бейдж */}
         <div className="flex flex-col flex-1 min-w-0 p-2.5 sm:p-3 gap-2 sm:gap-2.5">
-          {/* Верхняя строка: тип, год — время справа */}
-          <div className="flex items-center justify-between gap-2 min-h-0 flex-shrink-0">
+          {/* Верхняя строка: тип, год — время справа; при нехватке места время переносится на следующую строку */}
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-h-0">
             <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
               <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-1.5 sm:px-2 py-0.5 rounded-md font-medium shrink-0">
                 {getDisplayType()}
@@ -168,7 +168,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               )}
             </div>
             <div
-              className="flex items-center gap-1 text-[var(--muted-foreground)] text-[11px] sm:text-xs shrink-0 whitespace-nowrap"
+              className="flex items-center gap-1 text-[var(--muted-foreground)] text-[11px] sm:text-xs shrink-0 whitespace-nowrap pl-1.5 sm:pl-2"
               title={`Обновлено: ${getDisplayTime(data.timeAgo)}`}
             >
               <Clock className="w-3 h-3 flex-shrink-0" aria-hidden />

@@ -99,7 +99,7 @@ export default function ProfileLayout(_: { children: React.ReactNode }) {
           }}
           aria-hidden
         />
-        <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-5xl min-w-0 overflow-x-hidden">
+        <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-7xl min-w-0 overflow-x-hidden">
           <div className="pt-2 pb-4">
             <ProfileHeader />
           </div>

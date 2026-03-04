@@ -18,34 +18,47 @@ export default function TomiloShopPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-[var(--background)] overflow-x-hidden">
       <Header />
 
-      {/* Компактный герой + вкладки в одном блоке */}
-      <section className="border-b border-[var(--border)] bg-[var(--card)]">
-        <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 sm:px-6">
-          <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] tracking-tight mb-1">
+      {/* Компактный герой + вкладки (липкий блок для навигации) */}
+      <section className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--card)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--card)]/80">
+        <div className="max-w-6xl mx-auto px-3 py-4 sm:px-6 sm:py-8">
+          <div className="text-center mb-4 sm:mb-6 md:mb-8">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--foreground)] tracking-tight mb-1">
               Магазин украшений
             </h1>
-            <p className="text-sm text-[var(--muted-foreground)] max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-[var(--muted-foreground)] max-w-md mx-auto">
               Аватары, фоны и карточки — покупайте за монеты активности, наденьте на профиль.
             </p>
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center overflow-x-auto overflow-y-hidden -mx-1 px-1 min-h-0">
             <ShopTabs activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 sm:px-6">
-        <div className="min-h-[360px]">
-          <ShopSection type={activeTab} />
+      <div className="max-w-6xl mx-auto px-3 py-4 sm:px-6 sm:py-8">
+        <div
+          id="shop-section"
+          role="tabpanel"
+          aria-labelledby={`shop-tab-${activeTab}`}
+          className="min-h-[360px]"
+        >
+          {(["avatar", "frame", "background", "card"] as const).map((tabType) => (
+            <div
+              key={tabType}
+              className={activeTab === tabType ? "block" : "hidden"}
+              hidden={activeTab !== tabType}
+            >
+              <ShopSection type={tabType} />
+            </div>
+          ))}
         </div>
 
         {/* Как это работает — одна строка + подсказка про монеты */}
-        <footer className="mt-10 pt-6 border-t border-[var(--border)]">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 sm:gap-6 text-center sm:text-left text-sm text-[var(--muted-foreground)]">
+        <footer className="mt-6 sm:mt-10 pt-4 sm:pt-6 border-t border-[var(--border)]">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 sm:gap-6 text-center sm:text-left text-xs sm:text-sm text-[var(--muted-foreground)]">
             <span className="order-2 sm:order-1">
               Выберите товар → оплатите монетами → наденьте в профиле.
             </span>

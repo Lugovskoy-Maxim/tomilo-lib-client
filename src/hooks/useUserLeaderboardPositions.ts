@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import {
   useGetLeaderboardQuery,
   LeaderboardCategory,
+  type LeaderboardUser,
 } from "@/store/api/leaderboardApi";
 import { useAuth } from "./useAuth";
 
@@ -12,23 +13,23 @@ export interface UserLeaderboardPosition {
   label: string;
 }
 
-const CATEGORY_LABELS: Record<LeaderboardCategory, string> = {
+const ALL_CATEGORIES = [
+  "level",
+  "ratings",
+  "comments",
+  "streak",
+  "chaptersRead",
+] as const satisfies readonly LeaderboardCategory[];
+
+type QueryCategory = (typeof ALL_CATEGORIES)[number];
+
+const CATEGORY_LABELS: Record<QueryCategory, string> = {
   level: "Уровень",
-  readingTime: "Время чтения",
   ratings: "Оценки",
   comments: "Комментарии",
   streak: "Страйк",
   chaptersRead: "Главы",
 };
-
-const ALL_CATEGORIES: LeaderboardCategory[] = [
-  "level",
-  "readingTime",
-  "ratings",
-  "comments",
-  "streak",
-  "chaptersRead",
-];
 
 export function useUserLeaderboardPositions(targetUserId?: string) {
   const { user, isAuthenticated } = useAuth();
@@ -37,10 +38,6 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
 
   const levelQuery = useGetLeaderboardQuery(
     { category: "level", limit: 10 },
-    { skip: shouldSkip }
-  );
-  const readingTimeQuery = useGetLeaderboardQuery(
-    { category: "readingTime", limit: 10 },
     { skip: shouldSkip }
   );
   const ratingsQuery = useGetLeaderboardQuery(
@@ -60,9 +57,11 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     { skip: shouldSkip }
   );
 
-  const queries = {
+  const queries: Record<
+    QueryCategory,
+    ReturnType<typeof useGetLeaderboardQuery>
+  > = {
     level: levelQuery,
-    readingTime: readingTimeQuery,
     ratings: ratingsQuery,
     comments: commentsQuery,
     streak: streakQuery,
@@ -82,7 +81,7 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
       if (!users) continue;
 
       const index = users.findIndex(
-        (u) => u._id === userId
+        (u: LeaderboardUser) => u._id === userId
       );
 
       if (index !== -1 && index < 10) {

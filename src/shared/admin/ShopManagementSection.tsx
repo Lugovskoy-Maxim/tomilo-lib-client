@@ -7,7 +7,7 @@ import { getDecorationImageUrls } from "@/api/shop";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import type { DecorationType } from "@/api/shop";
 import {
-  useGetDecorationsQuery,
+  useGetAdminDecorationsQuery,
   useCreateDecorationMutation,
   useCreateDecorationWithImageMutation,
   useUpdateDecorationMutation,
@@ -62,11 +62,13 @@ export function ShopManagementSection() {
   const [deleteTarget, setDeleteTarget] = useState<Decoration | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const publicDecorationsQuery = useGetDecorationsQuery();
-  const decorations = publicDecorationsQuery.data ?? [];
-  const isLoading = publicDecorationsQuery.isLoading;
-  const error = publicDecorationsQuery.error;
-  const refetch = publicDecorationsQuery.refetch;
+  /** Запрос выполняется только при NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED=true (бэкенд должен реализовать GET /api/shop/admin/decorations). Иначе показываем пустой список без 404. */
+  const skipAdminDecorations = process.env.NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED !== "true";
+  const adminDecorationsQuery = useGetAdminDecorationsQuery(undefined, { skip: skipAdminDecorations });
+  const decorations = adminDecorationsQuery.data ?? [];
+  const isLoading = adminDecorationsQuery.isLoading;
+  const error = adminDecorationsQuery.error;
+  const refetch = adminDecorationsQuery.refetch;
   const [createDecoration, { isLoading: isCreatingJson }] = useCreateDecorationMutation();
   const [createDecorationWithImage, { isLoading: isCreatingWithImage }] =
     useCreateDecorationWithImageMutation();
@@ -250,12 +252,15 @@ export function ShopManagementSection() {
   const typeLabel = (t: DecorationType) =>
     DECORATION_TYPES.find(x => x.value === t)?.label ?? t;
 
-  if (error) {
+  // 404: backend does not have GET /api/shop/admin/decorations — show section with empty list and a note (no retry)
+  const is404 = Boolean(
+    error && typeof error === "object" && (error as { status?: number }).status === 404,
+  );
+  if (error && !is404) {
     let errMsg = "Не удалось загрузить украшения магазина.";
-    if (error && typeof error === "object") {
+    if (typeof error === "object") {
       const e = error as { status?: number; data?: { message?: string } };
-      if (e.status === 404) errMsg = "API магазина не найден (404). Возможно, модуль магазина не подключён на бэкенде.";
-      else if (e.status === 401 || e.status === 403) errMsg = "Доступ запрещён. Проверьте авторизацию.";
+      if (e.status === 401 || e.status === 403) errMsg = "Доступ запрещён. Проверьте авторизацию.";
       else if (e.data?.message) errMsg = String(e.data.message);
     }
     return (
@@ -276,6 +281,11 @@ export function ShopManagementSection() {
 
   return (
     <div className="space-y-6">
+      {is404 && (
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 px-4 py-3 text-sm text-[var(--muted-foreground)]">
+          Эндпоинт <code className="rounded bg-[var(--muted)] px-1">GET /api/shop/admin/decorations</code> не найден (404). Возможно, модуль магазина не подключён на бэкенде. Список украшений недоступен.
+        </div>
+      )}
       <AdminCard className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
@@ -341,10 +351,15 @@ export function ShopManagementSection() {
             <div className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-[var(--muted-foreground)]">
+          <div className="text-center py-12 text-[var(--muted-foreground)] space-y-2">
             {decorations.length === 0
               ? "Нет украшений. Добавьте первое."
               : "Нет украшений выбранного типа."}
+            {skipAdminDecorations && (
+              <p className="text-xs max-w-md mx-auto pt-2">
+                Чтобы загружать список с бэкенда, реализуйте GET /api/shop/admin/decorations и задайте NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED=true.
+              </p>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">

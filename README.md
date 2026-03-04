@@ -123,6 +123,16 @@ npm start
 npm run lint
 ```
 
+### Проверка эндпоинтов API
+
+Проверка доступности GET-эндпоинтов на сервере (используется `NEXT_PUBLIC_API_URL` из `.env`):
+
+```bash
+npm run check:api
+```
+
+Спецификация недостающих эндпоинтов для реализации на бэкенде: [docs/BACKEND_MISSING_ENDPOINTS.md](docs/BACKEND_MISSING_ENDPOINTS.md).
+
 ## 🤖 Telegram бот новых глав
 
 Готовый шаблон находится в `scripts/telegram-chapters-bot.mjs`.
