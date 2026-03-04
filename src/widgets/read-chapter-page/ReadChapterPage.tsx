@@ -795,47 +795,78 @@ function ReadChapterPageContent({
     return () => clearTimeout(timeoutId);
   }, [isPagedMode, isPositionRestored, loadedImagesByChapter]);
 
-  // Предзагрузка всех изображений при включенной настройке
+  // Предзагрузка всех изображений при включенной настройке (с отменой при размонтировании/смене главы)
+  const preloadImagesRef = useRef<HTMLImageElement[]>([]);
   useEffect(() => {
     if (!preloadAllImages || !chapter.images.length || !isPositionRestored) return;
 
+    let cancelled = false;
     let loadedCount = 0;
     const totalImages = chapter.images.length;
 
     const updateProgress = () => {
+      if (cancelled) return;
       loadedCount++;
       setPreloadProgress(Math.round((loadedCount / totalImages) * 100));
     };
 
-    // Предзагружаем все изображения
+    const images: HTMLImageElement[] = [];
     chapter.images.forEach((src) => {
       const img = new window.Image();
       img.onload = updateProgress;
       img.onerror = updateProgress;
       img.src = getImageUrl(src);
+      images.push(img);
     });
+    preloadImagesRef.current = images;
 
-    // Устанавливаем высокий приоритет для всех страниц
     const priorities = new Map<number, "low" | "medium" | "high">();
     chapter.images.forEach((_, index) => {
       priorities.set(index + 1, "high");
     });
     setImageLoadPriority(priorities);
+
+    return () => {
+      cancelled = true;
+      images.forEach((img) => {
+        img.onload = null;
+        img.onerror = null;
+        img.src = "";
+      });
+      preloadImagesRef.current = [];
+    };
   }, [preloadAllImages, chapter.images, isPositionRestored, getImageUrl]);
 
-  // Создание дебаунс-функции для сохранения позиции
+  // Актуальная страница для синхронного сохранения при закрытии/уходе
+  const currentPageRef = useRef(currentPage);
+  currentPageRef.current = currentPage;
+
+  // Создание дебаунс-функции для сохранения позиции + сохранение при beforeunload и размонтировании
   const debouncedSavePositionRef = useRef<ReturnType<typeof createDebouncedSave> | null>(null);
-  
+
   useEffect(() => {
     debouncedSavePositionRef.current = createDebouncedSave((page: number) => {
       saveReadingPosition(titleId, chapterId, page);
     }, 1000);
-    
+
+    const saveNow = () => {
+      const page = currentPageRef.current;
+      if (page > 1) saveReadingPosition(titleId, chapterId, page);
+    };
+
+    const handleBeforeUnload = () => {
+      saveNow();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      saveNow();
       debouncedSavePositionRef.current = null;
     };
   }, [titleId, chapterId]);
-  
+
   const debouncedSavePosition = useCallback((page: number) => {
     debouncedSavePositionRef.current?.(page);
   }, []);

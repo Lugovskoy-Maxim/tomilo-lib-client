@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo, type ReactNode } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,165 +12,18 @@ import {
   Pause,
   RefreshCw,
   List,
-  Download,
-  Wifi,
-  Sun,
-  Contrast,
-  Eye,
   RotateCcw,
   Grid3X3,
   Timer,
-  Percent,
-  BookOpen,
-  LayoutList,
 } from "lucide-react";
 import { ReaderChapter } from "@/types/chapter";
 import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { ReportModal } from "@/shared/report/ReportModal";
-import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton } from "./hooks";
 import PageThumbnails from "./PageThumbnails";
+import { ReaderSettingsPanelContent } from "./ReaderSettingsPanelContent";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
-import type { ImageQualityMode } from "./hooks";
-
-interface ImageQualitySelectorProps {
-  imageQuality: ImageQualityMode;
-  setImageQuality: (quality: ImageQualityMode) => void;
-}
-
-function ImageQualitySelector({ imageQuality, setImageQuality }: ImageQualitySelectorProps) {
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Качество изображений</span>
-        <span className="text-sm font-medium text-[var(--foreground)]">
-          {imageQuality === "low" ? "НИЗКОЕ" : imageQuality === "medium" ? "СРЕДНЕЕ" : imageQuality === "high" ? "ВЫСОКОЕ" : "АВТО"}
-        </span>
-      </div>
-      <div className="flex bg-[var(--secondary)] rounded-xl p-1">
-        <button
-          onClick={() => setImageQuality("low")}
-          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
-            imageQuality === "low"
-              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-              : "text-[var(--muted-foreground)]"
-          }`}
-        >
-          60%
-        </button>
-        <button
-          onClick={() => setImageQuality("medium")}
-          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
-            imageQuality === "medium"
-              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-              : "text-[var(--muted-foreground)]"
-          }`}
-        >
-          75%
-        </button>
-        <button
-          onClick={() => setImageQuality("high")}
-          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
-            imageQuality === "high"
-              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-              : "text-[var(--muted-foreground)]"
-          }`}
-        >
-          90%
-        </button>
-        <button
-          onClick={() => setImageQuality("auto")}
-          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
-            imageQuality === "auto"
-              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-              : "text-[var(--muted-foreground)]"
-          }`}
-        >
-          Авто
-        </button>
-      </div>
-      <p className="text-[10px] text-[var(--muted-foreground)]">
-        Низкое качество быстрее загружается на медленном интернете
-      </p>
-    </div>
-  );
-}
-
-function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="space-y-3">
-      <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2">
-        {title}
-      </h3>
-      <div className="space-y-2">{children}</div>
-    </section>
-  );
-}
-
-function SettingsRow({
-  label,
-  icon: Icon,
-  children,
-}: {
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-2.5 px-3 rounded-xl bg-[var(--secondary)]/50 hover:bg-[var(--secondary)]/70 transition-colors">
-      <div className="flex items-center gap-3 min-w-0">
-        {Icon && <Icon className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />}
-        <span className="text-sm font-medium text-[var(--foreground)]">{label}</span>
-      </div>
-      <div className="shrink-0">{children}</div>
-    </div>
-  );
-}
-
-function ToggleSwitch({ on, onClick }: { on: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      onClick={onClick}
-      className={`w-11 h-6 rounded-full transition-colors relative ${on ? "bg-[var(--primary)]" : "bg-[var(--muted)]"}`}
-    >
-      <span
-        className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${on ? "translate-x-6 left-0.5" : "translate-x-0 left-0.5"}`}
-      />
-    </button>
-  );
-}
-
-function SegmentOption<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: { value: T; label: string; icon?: React.ComponentType<{ className?: string }> }[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="flex bg-[var(--secondary)] rounded-xl p-1">
-      {options.map(({ value: v, label, icon: Icon }) => (
-        <button
-          key={v}
-          type="button"
-          onClick={() => onChange(v)}
-          className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2 ${
-            value === v ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)]"
-          }`}
-        >
-          {Icon && <Icon className="w-4 h-4" />}
-          {label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 interface ReaderControlsProps {
   currentChapter: ReaderChapter;
@@ -251,31 +104,8 @@ export default function ReaderControls({
 
   const {
     showPageCounter,
-    setShowPageCounter,
-    readChaptersInRow,
-    setReadChaptersInRow,
-    readingMode,
-    setReadingMode,
-    pageGap,
-    setPageGap,
-    brightness,
-    setBrightness,
-    contrast,
-    setContrast,
-    eyeComfortMode,
-    setEyeComfortMode,
-    fitMode,
-    setFitMode,
-    infiniteScroll,
-    setInfiniteScroll,
     showTimer,
-    setShowTimer,
-    showHints,
-    setShowHints,
     showProgress,
-    setShowProgress,
-    imageQuality,
-    setImageQuality,
     resetToDefaults,
   } = useReaderSettingsContext();
 
@@ -338,6 +168,7 @@ export default function ReaderControls({
   }, []);
 
   const settingsPanelRef = useRef<HTMLDivElement>(null);
+  const settingsTriggerRef = useRef<HTMLButtonElement>(null);
   const desktopJumpPopoverRef = useRef<HTMLDivElement>(null);
   const mobileJumpPopoverRef = useRef<HTMLDivElement>(null);
 
@@ -494,6 +325,20 @@ export default function ReaderControls({
     }
   }, [forceStopAutoScroll, isAutoScrolling, stopAutoScroll]);
 
+  // Фокус при открытии/закрытии панели настроек (a11y)
+  useEffect(() => {
+    if (isSettingsOpen && settingsPanelRef.current) {
+      const focusable = settingsPanelRef.current.querySelector<HTMLElement>(
+        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const t = setTimeout(() => focusable?.focus(), 100);
+      return () => clearTimeout(t);
+    }
+    if (!isSettingsOpen) {
+      settingsTriggerRef.current?.focus({ preventScroll: true });
+    }
+  }, [isSettingsOpen]);
+
   return (
     <>
       {/* Панель настроек — новый дизайн */}
@@ -512,176 +357,34 @@ export default function ReaderControls({
               <span className="font-semibold text-base">Настройки читалки</span>
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={resetToDefaults}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] rounded-lg transition-colors"
+                  aria-label="Сбросить настройки"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Сбросить
                 </button>
                 <button
+                  type="button"
                   onClick={() => setIsSettingsOpen(false)}
                   className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors"
+                  aria-label="Закрыть настройки"
                 >
                   <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
                 </button>
               </div>
             </div>
 
-            {/* Контент */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 pb-12 space-y-8">
-              <SettingsSection title="Чтение">
-                <div className="space-y-3">
-                  <span className="text-[11px] text-[var(--muted-foreground)]">Режим отображения</span>
-                  <div className="flex bg-[var(--secondary)] rounded-xl p-1">
-                    <button
-                      onClick={() => setReadingMode("feed")}
-                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                        readingMode === "feed" ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)]"
-                      }`}
-                    >
-                      Лента
-                    </button>
-                    <button
-                      onClick={() => setReadingMode("paged")}
-                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                        readingMode === "paged" ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)]"
-                      }`}
-                    >
-                      По страницам
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[11px] text-[var(--muted-foreground)]">Переход по главам</span>
-                  <SegmentOption
-                    options={[
-                      { value: "one" as const, label: "По одной главе", icon: BookOpen },
-                      { value: "feed" as const, label: "Лентой", icon: LayoutList },
-                    ]}
-                    value={infiniteScroll ? "feed" : "one"}
-                    onChange={v => setInfiniteScroll(v === "feed")}
-                  />
-                </div>
-              </SettingsSection>
-
-              <SettingsSection title="Экран">
-                <div className="space-y-2">
-                  <span className="text-[11px] text-[var(--muted-foreground)]">Тема</span>
-                  <ThemeToggleGroup />
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[11px] text-[var(--muted-foreground)]">Вмещать изображения</span>
-                  <SegmentOption
-                    options={[
-                      { value: "width" as const, label: "По ширине" },
-                      { value: "height" as const, label: "По высоте" },
-                    ]}
-                    value={fitMode}
-                    onChange={v => setFitMode(v)}
-                  />
-                </div>
-                {onHideBottomMenuChange && (
-                  <div className="space-y-2">
-                    <span className="text-[11px] text-[var(--muted-foreground)]">Показ нижнего меню</span>
-                    <SegmentOption
-                      options={[
-                        { value: "scroll" as const, label: "Скроллом" },
-                        { value: "click" as const, label: "Только кликом" },
-                      ]}
-                      value={hideBottomMenuSetting ? "click" : "scroll"}
-                      onChange={v => onHideBottomMenuChange(v === "click")}
-                    />
-                  </div>
-                )}
-              </SettingsSection>
-
-              <SettingsSection title="Отображение">
-                <SettingsRow label="Нумерация страниц" icon={List}>
-                  <ToggleSwitch on={showPageCounter} onClick={() => setShowPageCounter(!showPageCounter)} />
-                </SettingsRow>
-                <SettingsRow label="Прогресс главы" icon={Percent}>
-                  <ToggleSwitch on={showProgress} onClick={() => setShowProgress(!showProgress)} />
-                </SettingsRow>
-                <SettingsRow label="Время чтения" icon={Timer}>
-                  <ToggleSwitch on={showTimer} onClick={() => setShowTimer(!showTimer)} />
-                </SettingsRow>
-                {onHideBottomMenuChange && (
-                  <SettingsRow label="Скрывать нижнее меню" icon={Eye}>
-                    <ToggleSwitch on={hideBottomMenuSetting} onClick={() => onHideBottomMenuChange(!hideBottomMenuSetting)} />
-                  </SettingsRow>
-                )}
-              </SettingsSection>
-
-              <SettingsSection title="Изображения">
-                {onImageWidthChange && (
-                  <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[var(--foreground)]">Ширина контейнера</span>
-                      <span className="font-medium text-[var(--primary)]">{imageWidth} px</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="320"
-                      max="1440"
-                      step="20"
-                      value={imageWidth}
-                      onChange={e => onImageWidthChange(Number(e.target.value))}
-                      className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
-                    />
-                  </div>
-                )}
-                <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[var(--foreground)]">Яркость</span>
-                    <span className="font-medium text-[var(--primary)]">{brightness}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="50"
-                    max="150"
-                    step="5"
-                    value={brightness}
-                    onChange={e => setBrightness(Number(e.target.value))}
-                    className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
-                  />
-                </div>
-                <ImageQualitySelector imageQuality={imageQuality} setImageQuality={setImageQuality} />
-              </SettingsSection>
-
-              <SettingsSection title="Автопрокрутка">
-                <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[var(--foreground)]">Скорость</span>
-                    <span className="font-medium text-[var(--primary)]">
-                      {autoScrollSpeed === "slow" ? "Медленно" : autoScrollSpeed === "medium" ? "Средне" : "Быстро"}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="2"
-                    step="1"
-                    value={autoScrollSpeed === "slow" ? 0 : autoScrollSpeed === "medium" ? 1 : 2}
-                    onChange={e => {
-                      const val = Number(e.target.value);
-                      setAutoScrollSpeed(val === 0 ? "slow" : val === 1 ? "medium" : "fast");
-                    }}
-                    className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
-                  />
-                </div>
-              </SettingsSection>
-
-              {onPreloadChange && (
-                <SettingsSection title="Дополнительно">
-                  <SettingsRow
-                    label={preloadAllImages && preloadProgress > 0 && preloadProgress < 100 ? `Предзагрузка главы (${preloadProgress}%)` : "Предзагрузка главы"}
-                    icon={Download}
-                  >
-                    <ToggleSwitch on={preloadAllImages} onClick={() => onPreloadChange(!preloadAllImages)} />
-                  </SettingsRow>
-                </SettingsSection>
-              )}
-            </div>
+            <ReaderSettingsPanelContent
+              imageWidth={imageWidth}
+              onImageWidthChange={onImageWidthChange}
+              hideBottomMenuSetting={hideBottomMenuSetting}
+              onHideBottomMenuChange={onHideBottomMenuChange}
+              preloadAllImages={preloadAllImages}
+              onPreloadChange={onPreloadChange}
+              preloadProgress={preloadProgress}
+            />
           </div>
 
           {/* Мобильная панель */}
@@ -710,169 +413,25 @@ export default function ReaderControls({
                   Сбросить
                 </button>
                 <button
+                  type="button"
                   onClick={() => setIsSettingsOpen(false)}
                   className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors"
+                  aria-label="Закрыть настройки"
                 >
                   <X className="w-5 h-5 text-[var(--muted-foreground)]" />
                 </button>
               </div>
             </div>
 
-            {/* Контент — та же структура, что и на десктопе */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 pb-12 space-y-8">
-              <SettingsSection title="Чтение">
-                <div className="space-y-3">
-                  <span className="text-[11px] text-[var(--muted-foreground)]">Режим отображения</span>
-                  <div className="flex bg-[var(--secondary)] rounded-xl p-1">
-                    <button
-                      onClick={() => setReadingMode("feed")}
-                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                        readingMode === "feed" ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)]"
-                      }`}
-                    >
-                      Лента
-                    </button>
-                    <button
-                      onClick={() => setReadingMode("paged")}
-                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                        readingMode === "paged" ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)]"
-                      }`}
-                    >
-                      По страницам
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[11px] text-[var(--muted-foreground)]">Переход по главам</span>
-                  <SegmentOption
-                    options={[
-                      { value: "one" as const, label: "По одной главе", icon: BookOpen },
-                      { value: "feed" as const, label: "Лентой", icon: LayoutList },
-                    ]}
-                    value={infiniteScroll ? "feed" : "one"}
-                    onChange={v => setInfiniteScroll(v === "feed")}
-                  />
-                </div>
-              </SettingsSection>
-
-              <SettingsSection title="Экран">
-                <div className="space-y-2">
-                  <span className="text-[11px] text-[var(--muted-foreground)]">Тема</span>
-                  <ThemeToggleGroup />
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[11px] text-[var(--muted-foreground)]">Вмещать изображения</span>
-                  <SegmentOption
-                    options={[
-                      { value: "width" as const, label: "По ширине" },
-                      { value: "height" as const, label: "По высоте" },
-                    ]}
-                    value={fitMode}
-                    onChange={v => setFitMode(v)}
-                  />
-                </div>
-                {onHideBottomMenuChange && (
-                  <div className="space-y-2">
-                    <span className="text-[11px] text-[var(--muted-foreground)]">Показ нижнего меню</span>
-                    <SegmentOption
-                      options={[
-                        { value: "scroll" as const, label: "Скроллом" },
-                        { value: "click" as const, label: "Только кликом" },
-                      ]}
-                      value={hideBottomMenuSetting ? "click" : "scroll"}
-                      onChange={v => onHideBottomMenuChange(v === "click")}
-                    />
-                  </div>
-                )}
-              </SettingsSection>
-
-              <SettingsSection title="Отображение">
-                <SettingsRow label="Нумерация страниц" icon={List}>
-                  <ToggleSwitch on={showPageCounter} onClick={() => setShowPageCounter(!showPageCounter)} />
-                </SettingsRow>
-                <SettingsRow label="Прогресс главы" icon={Percent}>
-                  <ToggleSwitch on={showProgress} onClick={() => setShowProgress(!showProgress)} />
-                </SettingsRow>
-                <SettingsRow label="Время чтения" icon={Timer}>
-                  <ToggleSwitch on={showTimer} onClick={() => setShowTimer(!showTimer)} />
-                </SettingsRow>
-                {onHideBottomMenuChange && (
-                  <SettingsRow label="Скрывать нижнее меню" icon={Eye}>
-                    <ToggleSwitch on={hideBottomMenuSetting} onClick={() => onHideBottomMenuChange(!hideBottomMenuSetting)} />
-                  </SettingsRow>
-                )}
-              </SettingsSection>
-
-              <SettingsSection title="Изображения">
-                {onImageWidthChange && (
-                  <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[var(--foreground)]">Ширина контейнера</span>
-                      <span className="font-medium text-[var(--primary)]">{imageWidth} px</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="320"
-                      max="1440"
-                      step="20"
-                      value={imageWidth}
-                      onChange={e => onImageWidthChange(Number(e.target.value))}
-                      className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
-                    />
-                  </div>
-                )}
-                <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[var(--foreground)]">Яркость</span>
-                    <span className="font-medium text-[var(--primary)]">{brightness}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="50"
-                    max="150"
-                    step="5"
-                    value={brightness}
-                    onChange={e => setBrightness(Number(e.target.value))}
-                    className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
-                  />
-                </div>
-                <ImageQualitySelector imageQuality={imageQuality} setImageQuality={setImageQuality} />
-              </SettingsSection>
-
-              <SettingsSection title="Автопрокрутка">
-                <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[var(--foreground)]">Скорость</span>
-                    <span className="font-medium text-[var(--primary)]">
-                      {autoScrollSpeed === "slow" ? "Медленно" : autoScrollSpeed === "medium" ? "Средне" : "Быстро"}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="2"
-                    step="1"
-                    value={autoScrollSpeed === "slow" ? 0 : autoScrollSpeed === "medium" ? 1 : 2}
-                    onChange={e => {
-                      const val = Number(e.target.value);
-                      setAutoScrollSpeed(val === 0 ? "slow" : val === 1 ? "medium" : "fast");
-                    }}
-                    className="w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md"
-                  />
-                </div>
-              </SettingsSection>
-
-              {onPreloadChange && (
-                <SettingsSection title="Дополнительно">
-                  <SettingsRow
-                    label={preloadAllImages && preloadProgress > 0 && preloadProgress < 100 ? `Предзагрузка главы (${preloadProgress}%)` : "Предзагрузка главы"}
-                    icon={Download}
-                  >
-                    <ToggleSwitch on={preloadAllImages} onClick={() => onPreloadChange(!preloadAllImages)} />
-                  </SettingsRow>
-                </SettingsSection>
-              )}
-            </div>
+            <ReaderSettingsPanelContent
+              imageWidth={imageWidth}
+              onImageWidthChange={onImageWidthChange}
+              hideBottomMenuSetting={hideBottomMenuSetting}
+              onHideBottomMenuChange={onHideBottomMenuChange}
+              preloadAllImages={preloadAllImages}
+              onPreloadChange={onPreloadChange}
+              preloadProgress={preloadProgress}
+            />
           </div>
         </div>
       )}
@@ -947,22 +506,28 @@ export default function ReaderControls({
         <div className="flex flex-col items-center gap-2 bg-[var(--card)]/95 border border-[var(--border)] rounded-2xl p-3 shadow-lg backdrop-blur-sm">
           {/* Кнопка автоскролла */}
           <button
+            type="button"
             onClick={toggleAutoScroll}
             className={`p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95 ${
               isAutoScrolling ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
             }`}
             title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
+            aria-label={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
           >
             {isAutoScrolling ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
           </button>
 
           {/* Кнопка настроек */}
           <button
+            ref={settingsTriggerRef}
+            type="button"
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
             className={`p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95 ${
               isSettingsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
             }`}
             title="Настройки"
+            aria-label="Настройки читалки"
+            aria-expanded={isSettingsOpen}
           >
             <Settings className="w-5 h-5" />
           </button>
@@ -970,12 +535,14 @@ export default function ReaderControls({
           <div className="w-8 h-px bg-[var(--border)] my-1" />
 
           <button
+            type="button"
             onClick={handleBookmarkToggle}
             disabled={isBookmarkLoading}
             className={`p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95 ${
               isBookmarked ? "text-[var(--primary)]" : ""
             } ${isBookmarkLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             title={isBookmarked ? "Удалить из закладок" : "Добавить в закладки"}
+            aria-label={isBookmarked ? "Удалить из закладок" : "Добавить в закладки"}
           >
             {isBookmarkLoading ? (
               <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -999,9 +566,11 @@ export default function ReaderControls({
           </button>
 
           <button
+            type="button"
             onClick={() => setIsCommentsOpen(!isCommentsOpen)}
             className="p-3 min-h-[44px] min-w-[44px] flex items-center justify-center relative bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95"
             title="Комментарии"
+            aria-label={`Комментарии${commentsCount > 0 ? `, ${commentsCount}` : ""}`}
           >
             <MessageCircle className={`w-5 h-5 ${isCommentsOpen ? "text-[var(--primary)]" : ""}`} />
             {commentsCount > 0 && (
@@ -1014,9 +583,11 @@ export default function ReaderControls({
           {/* Кнопка сетки страниц */}
           {chapterImages.length > 0 && onJumpToPage && (
             <button
+              type="button"
               onClick={() => setIsPageGridOpen(true)}
               className="p-3 min-h-[44px] min-w-[44px] flex items-center justify-center relative bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95"
               title="Сетка страниц"
+              aria-label="Сетка страниц"
             >
               <Grid3X3 className="w-5 h-5" />
             </button>
@@ -1025,6 +596,7 @@ export default function ReaderControls({
           {/* Кнопка обновления страницы с удержанием */}
           <div className="relative">
             <button
+              type="button"
               onMouseDown={startPressing}
               onMouseUp={stopPressing}
               onMouseLeave={stopPressing}
@@ -1033,6 +605,7 @@ export default function ReaderControls({
               onClick={handleSimpleClick}
               className={`relative p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? 'scale-95' : ''}`}
               title="Удерживайте 5 секунд для обновления"
+              aria-label="Удерживайте 5 секунд для обновления страницы"
             >
               {isPressing && (
                 <div
