@@ -114,8 +114,6 @@ function DecorationPreviewModal({
 }: DecorationPreviewModalProps) {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const isGif = imageSrc?.toLowerCase().includes(".gif");
-  const discountedPrice = decoration.subscriptionPrice ?? Math.floor(decoration.price * 0.9);
-  const hasDiscount = discountedPrice < decoration.price;
 
   const resolvedUserAvatar = useMemo(() => {
     if (!userAvatar) return DEFAULT_AVATAR;
@@ -257,7 +255,7 @@ function DecorationPreviewModal({
               </div>
             )}
           </div>
-          <span className={`absolute -top-1 -right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
+          <span className={`absolute top-1 right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border whitespace-nowrap ${rarityStyle.badge}`}>
             {rarityStyle.label}
           </span>
         </div>
@@ -328,7 +326,7 @@ function DecorationPreviewModal({
             onLoad={() => setIsImageLoading(false)}
           />
         </div>
-        <span className={`absolute -top-1 -right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
+        <span className={`absolute top-1 right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border whitespace-nowrap ${rarityStyle.badge}`}>
           {rarityStyle.label}
         </span>
       </div>
@@ -388,24 +386,9 @@ function DecorationPreviewModal({
               </div>
 
               {!isOwned && !hidePurchase && (
-                <div className="flex flex-col gap-1 mt-2">
-                  <div className="flex items-center gap-2">
-                    <Coins className="w-5 h-5 text-amber-500" />
-                    <span className="text-xl font-bold text-[var(--foreground)]">{decoration.price}</span>
-                  </div>
-                  {hasDiscount && (
-                    <div className="flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
-                      <Coins className="w-3.5 h-3.5 text-amber-500/60" />
-                      <span>{discountedPrice} с подпиской.</span>
-                      <button
-                        type="button"
-                        className="text-[var(--primary)] hover:underline text-sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Подписаться
-                      </button>
-                    </div>
-                  )}
+                <div className="flex items-center gap-2 mt-2">
+                  <Coins className="w-5 h-5 text-amber-500" />
+                  <span className="text-xl font-bold text-[var(--foreground)]">{decoration.price}</span>
                 </div>
               )}
 
@@ -707,10 +690,10 @@ export function DecorationCard({
         {previewModal}
         <article
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-[200px] sm:max-w-[220px] lg:max-w-[240px] min-w-0 aspect-[3/4] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col min-w-0 cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col cursor-pointer ${rarityStyle.border}`}
         >
-        {/* Картинка сверху: аватар — круг, рамка — квадрат без обрезки */}
-        <div className="flex-1 min-h-0 flex items-center justify-center p-2.5 sm:p-3">
+        {/* Картинка сверху: область под изображение — квадрат (aspect-square), внутри круг/квадрат 80–85% — без сплющивания и без обрезки. */}
+        <div className="w-full aspect-square flex-shrink-0 flex items-center justify-center p-2 sm:p-3">
           <div className="relative w-full max-w-[80%] sm:max-w-[85%] aspect-square">
             {isCircleCrop && (
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
@@ -742,7 +725,7 @@ export function DecorationCard({
               )}
             </div>
             <span
-              className={`absolute -top-0.5 -right-0.5 inline-flex px-2 py-1 rounded-md text-[10px] sm:text-xs font-semibold border ${rarityStyle.badge}`}
+              className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex px-2 py-1 rounded-md text-[10px] sm:text-xs font-semibold border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${rarityStyle.badge}`}
             >
               {rarityStyle.label}
             </span>
@@ -825,10 +808,12 @@ export function DecorationCard({
         </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+      <span
+        className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${badgeCl} ${rarityStyle.badge}`}
+      >
+        {rarityStyle.label}
+      </span>
       <div className={`absolute top-2 left-2 right-2 flex flex-wrap items-center ${largeBadges ? "gap-2" : "gap-1.5"}`}>
-        <span className={`inline-flex items-center border ${badgeCl} ${rarityStyle.badge}`}>
-          {rarityStyle.label}
-        </span>
         {isEquipped && (
           <span className={`inline-flex items-center gap-1 ${badgeCl} bg-emerald-500/90 text-white`}>
             <Sparkles className={`${iconCl} fill-current`} />
@@ -935,10 +920,10 @@ export function DecorationCard({
         {previewModal}
         <article 
           onClick={handleCardClick}
-          className={`group/card relative w-full self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full min-w-0 self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
         >
         {/* Область изображения — горизонтальный баннер (ширина > высота) */}
-        <div className="relative w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] shrink-0">
+        <div className="relative w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] shrink-0 min-w-0">
           {isImageLoading && hasImage && (
             <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
               <span className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
@@ -970,12 +955,14 @@ export function DecorationCard({
               {decoration.stock! <= 0 ? "Нет в наличии" : decoration.stock! <= 3 ? "Осталось мало" : `Осталось: ${decoration.stock}`}
             </span>
           )}
+          <span
+            className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${rarityStyle.badge}`}
+          >
+            {rarityStyle.label}
+          </span>
           <div className="absolute top-2 left-2 right-2 flex flex-wrap items-center gap-1.5">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}>
-              {rarityStyle.label}
-            </span>
             {isEquipped && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/90 text-white text-[10px] font-semibold">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/90 text-white text-[10px] font-semibold whitespace-nowrap">
                 <Sparkles className="w-3 h-3 fill-current" />
                 Надето
               </span>
@@ -1036,7 +1023,7 @@ export function DecorationCard({
         {previewModal}
         <article 
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-[240px] sm:max-w-[260px] lg:max-w-[280px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
         >
         {renderImageBlock("relative aspect-[3/4]", true)}
         {renderContentBlock(true, "large")}
@@ -1051,7 +1038,7 @@ export function DecorationCard({
       {previewModal}
       <article 
         onClick={handleCardClick}
-        className={`group/card relative w-full max-w-[280px] rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+        className={`group/card relative w-full max-w-full sm:max-w-[200px] lg:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
       >
         {renderImageBlock("relative aspect-[9/16]")}
         {renderContentBlock()}
