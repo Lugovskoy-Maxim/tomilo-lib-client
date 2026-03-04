@@ -15,7 +15,7 @@ import { MESSAGES } from "@/constants/messages";
 
 // VK ID по API: https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/api-description
 // Запрос кода: GET id.vk.ru/authorize (response_type=code, client_id, redirect_uri, state, code_challenge, code_challenge_method=S256)
-const VK_APP_ID = 54445438;
+const VK_APP_ID = process.env.NEXT_PUBLIC_VK_APP_ID || "54445438";
 const VK_AUTH_BASE = "https://id.vk.ru";
 const VK_STORAGE_VERIFIER = "vk_code_verifier";
 const VK_STORAGE_STATE = "vk_state";
@@ -237,7 +237,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
             window.YaAuthSuggest.init(
               {
-                client_id: "ffd24e1c16544069bc7a1e8c66316f37",
+                client_id: process.env.NEXT_PUBLIC_YANDEX_CLIENT_ID || "ffd24e1c16544069bc7a1e8c66316f37",
                 response_type: "token",
                 redirect_uri: "https://tomilo-lib.ru/auth/yandex",
               },
@@ -582,8 +582,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
               } catch {
                 // sessionStorage недоступен
               }
-              const clientId = "ffd24e1c16544069bc7a1e8c66316f37";
-              const redirectUri = encodeURIComponent("https://tomilo-lib.ru/auth/yandex");
+              const clientId = process.env.NEXT_PUBLIC_YANDEX_CLIENT_ID || "ffd24e1c16544069bc7a1e8c66316f37";
+              const redirectUri = encodeURIComponent(
+                typeof window !== "undefined" ? `${window.location.origin}/auth/yandex` : "https://tomilo-lib.ru/auth/yandex",
+              );
               window.location.href = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
             }}
             className="w-full h-10 min-[360px]:h-11 sm:h-12 rounded-lg min-[360px]:rounded-xl font-medium text-sm min-[360px]:text-base border border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--muted)] hover:border-[var(--muted-foreground)]/30 transition-colors flex items-center justify-center gap-2 min-[360px]:gap-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2 focus:ring-offset-[var(--background)]"

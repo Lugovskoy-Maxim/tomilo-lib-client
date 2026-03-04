@@ -1,7 +1,7 @@
 /** Префикс state при привязке: callback определяет режим по URL. */
 export const VK_STATE_LINK_PREFIX = "link_";
 
-const VK_APP_ID = 54445438;
+const VK_APP_ID = process.env.NEXT_PUBLIC_VK_APP_ID || "54445438";
 const VK_AUTH_BASE = "https://id.vk.ru";
 
 function generateCodeVerifier(): string {

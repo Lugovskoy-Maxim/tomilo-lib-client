@@ -20,7 +20,7 @@ type PendingVkPayload = {
   device_id?: string;
   state?: string;
 };
-const YANDEX_CLIENT_ID = "ffd24e1c16544069bc7a1e8c66316f37";
+const YANDEX_CLIENT_ID = process.env.NEXT_PUBLIC_YANDEX_CLIENT_ID || "ffd24e1c16544069bc7a1e8c66316f37";
 
 interface ProfileAdditionalInfoProps {
   userProfile: UserProfile;

@@ -1,10 +1,22 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 const BACKEND_BASE = API_BASE.replace(/\/api\/?$/, "");
 
+/** Лимит: 30 обменов кода/токена с одного IP за 15 минут */
+const AUTH_RATE_LIMIT = { max: 30, windowSec: 15 * 60 };
+
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const { allowed, retryAfterSec } = checkRateLimit(`auth-vk-token:${ip}`, AUTH_RATE_LIMIT);
+  if (!allowed) {
+    return NextResponse.json(
+      { success: false, message: "Слишком много попыток. Попробуйте позже." },
+      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+    );
+  }
   try {
     const body = await request.json();
     const {

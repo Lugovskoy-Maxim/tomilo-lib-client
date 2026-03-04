@@ -164,9 +164,6 @@ export const shopApi = createApi({
       }
     >({
       query: ({ file, type, name, description, price, rarity, isAvailable, stock }) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7250/ingest/c0a453a6-7d03-4b94-b375-b950753b7f4a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'545edb'},body:JSON.stringify({sessionId:'545edb',location:'shopApi.ts:createDecorationWithImage',message:'upload args',data:{fileIsFile:file instanceof File,fileName:file?.name,fileSize:file instanceof File ? file.size : undefined,fileType:file instanceof File ? file.type : undefined},timestamp:Date.now(),hypothesisId:'H1-H3'})}).catch(()=>{});
-        // #endregion
         const formData = new FormData();
         // Backend expects "file" (multer). Use explicit filename so server recognizes the part.
         formData.append("file", file, file.name || "image");
@@ -177,9 +174,6 @@ export const shopApi = createApi({
         if (rarity !== undefined) formData.append("rarity", rarity);
         if (isAvailable !== undefined) formData.append("isAvailable", String(isAvailable));
         if (stock !== undefined) formData.append("stock", String(stock));
-        // #region agent log
-        fetch('http://127.0.0.1:7250/ingest/c0a453a6-7d03-4b94-b375-b950753b7f4a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'545edb'},body:JSON.stringify({sessionId:'545edb',location:'shopApi.ts:createDecorationWithImage:return',message:'request config',data:{bodyIsFormData:formData instanceof FormData},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-        // #endregion
         return {
           url: "/shop/admin/decorations/upload",
           method: "POST",

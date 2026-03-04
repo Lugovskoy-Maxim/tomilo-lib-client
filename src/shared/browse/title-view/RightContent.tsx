@@ -31,6 +31,7 @@ import { useGetReadingHistoryReadIdsQuery, useGetTitleProgressQuery } from "@/st
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getChapterPath } from "@/lib/title-paths";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { useAuth } from "@/hooks/useAuth";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { GenresList } from "./GenresList";
@@ -1094,7 +1095,7 @@ export function RightContent({
               !isDescriptionExpanded ? "line-clamp-4 max-h-[6.5rem]" : "max-h-none"
             } transition-all duration-500 ease-in-out overflow-hidden`}
             dangerouslySetInnerHTML={{
-              __html: titleData?.description || "",
+              __html: sanitizeHtml(titleData?.description || ""),
             }}
           />
           {/* Градиент для эффекта затухания при свернутом состоянии */}

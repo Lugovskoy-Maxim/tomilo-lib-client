@@ -7,6 +7,7 @@ import { useGetAnnouncementBySlugQuery } from "@/store/api/announcementsApi";
 import { Header, Footer } from "@/widgets";
 import { getAnnouncementImageUrls } from "@/api/config";
 import LinesBackground from "@/shared/lines-background/LinesBackground";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface NewsSlugPageClientProps {
   slug: string;
@@ -166,7 +167,7 @@ export default function NewsSlugPageClient({ slug }: NewsSlugPageClientProps) {
           {announcement.body && (
             <div
               className="announcement-body"
-              dangerouslySetInnerHTML={{ __html: announcement.body }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(announcement.body) }}
             />
           )}
 
