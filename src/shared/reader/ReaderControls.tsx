@@ -29,7 +29,7 @@ import { CommentsSection } from "@/shared/comments";
 import { CommentEntityType } from "@/types/comment";
 import { ReportModal } from "@/shared/report/ReportModal";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
-import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton, READ_CHAPTERS_IN_ROW_ENABLED } from "./hooks";
+import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton } from "./hooks";
 import PageThumbnails from "./PageThumbnails";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import type { ImageQualityMode } from "./hooks";
@@ -1120,7 +1120,7 @@ export default function ReaderControls({
       </div>
 
       {/* Мобильное нижнее меню */}
-      <div className="sm:hidden fixed bottom-2 z-[55] left-0 right-0">
+      <div className="sm:hidden fixed bottom-2 z-[55] left-0 right-0 overflow-visible">
         {/* Свернутое меню - только иконка бургер */}
         <button
           onClick={() => {
@@ -1149,15 +1149,15 @@ export default function ReaderControls({
           </svg>
         </button>
 
-        {/* Развернутое меню */}
+        {/* Развернутое меню: overflow-y-visible чтобы hover:scale не обрезался */}
         <div
-          className={`px-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden transition-all duration-500 ease-out ${
+          className={`px-2 py-2 overflow-x-auto overflow-y-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden transition-all duration-500 ease-out ${
             hideBottomMenuSetting && isMenuHidden
               ? "opacity-0 scale-90 translate-y-8 pointer-events-none"
               : "opacity-100 scale-100 translate-y-0 pointer-events-auto"
           }`}
         >
-          <div className="w-max mx-auto flex items-center gap-1.5">
+          <div className="w-max mx-auto flex items-center gap-1.5 py-0.5">
           <button
             onClick={toggleAutoScroll}
             className={`shrink-0 min-h-[38px] xs:min-h-[44px] min-w-[38px] xs:min-w-[44px] p-1.5 xs:p-2 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
@@ -1391,7 +1391,7 @@ export default function ReaderControls({
           />
 
           {/* Боковая панель комментариев (десктоп) */}
-          <div className="hidden sm:block fixed right-20 top-1/2 -translate-y-1/2 w-[440px] max-h-[85vh] bg-[var(--card)] backdrop-blur-xl border border-[var(--border)]/50 rounded-3xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="hidden sm:block fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[440px] max-h-[85vh] bg-[var(--card)] backdrop-blur-xl border border-[var(--border)]/50 rounded-3xl shadow-2xl z-[60] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
             {/* Header с градиентом */}
             <div className="relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/10 via-transparent to-[var(--primary)]/5" />

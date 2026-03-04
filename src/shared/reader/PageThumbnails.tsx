@@ -31,7 +31,8 @@ export default function PageThumbnails({
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const progressPercent = useMemo(() => {
-    return Math.round((currentPage / images.length) * 100);
+    const total = Math.max(images.length, 1);
+    return Math.round((currentPage / total) * 100);
   }, [currentPage, images.length]);
 
   useEffect(() => {
@@ -98,7 +99,7 @@ export default function PageThumbnails({
   const getThumbUrl = useCallback((src: string) => {
     const { primary } = getImageUrls(src);
     const separator = primary.includes("?") ? "&" : "?";
-    return `${primary}${separator}w=150&q=30`;
+    return `${primary}${separator}w=150&q=50`;
   }, []);
 
   if (!isOpen) return null;
