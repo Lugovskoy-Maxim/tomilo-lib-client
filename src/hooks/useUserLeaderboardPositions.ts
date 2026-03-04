@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import {
   useGetLeaderboardQuery,
   LeaderboardCategory,
+  type LeaderboardUser,
 } from "@/store/api/leaderboardApi";
 import { useAuth } from "./useAuth";
 
@@ -12,22 +13,23 @@ export interface UserLeaderboardPosition {
   label: string;
 }
 
-const CATEGORY_LABELS: Record<LeaderboardCategory, string> = {
-  level: "Уровень",
-  readingTime: "Время чтения",
-  ratings: "Оценки",
-  comments: "Комментарии",
-  streak: "Страйк",
-  chaptersRead: "Главы",
-};
-
-const ALL_CATEGORIES: LeaderboardCategory[] = [
+const ALL_CATEGORIES = [
   "level",
   "ratings",
   "comments",
   "streak",
   "chaptersRead",
-];
+] as const satisfies readonly LeaderboardCategory[];
+
+type QueryCategory = (typeof ALL_CATEGORIES)[number];
+
+const CATEGORY_LABELS: Record<QueryCategory, string> = {
+  level: "Уровень",
+  ratings: "Оценки",
+  comments: "Комментарии",
+  streak: "Страйк",
+  chaptersRead: "Главы",
+};
 
 export function useUserLeaderboardPositions(targetUserId?: string) {
   const { user, isAuthenticated } = useAuth();
@@ -55,7 +57,10 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     { skip: shouldSkip }
   );
 
-  const queries = {
+  const queries: Record<
+    QueryCategory,
+    ReturnType<typeof useGetLeaderboardQuery>
+  > = {
     level: levelQuery,
     ratings: ratingsQuery,
     comments: commentsQuery,
@@ -76,7 +81,7 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
       if (!users) continue;
 
       const index = users.findIndex(
-        (u) => u._id === userId
+        (u: LeaderboardUser) => u._id === userId
       );
 
       if (index !== -1 && index < 10) {

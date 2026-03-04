@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 import LeadersPageClient from "./LeadersPageClient";
@@ -35,7 +36,9 @@ export default function LeadersPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(leadersBreadcrumbJsonLd) }}
       />
-      <LeadersPageClient />
+      <Suspense fallback={null}>
+        <LeadersPageClient />
+      </Suspense>
     </>
   );
 }

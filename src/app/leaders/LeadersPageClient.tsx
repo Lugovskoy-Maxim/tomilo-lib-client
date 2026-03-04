@@ -297,7 +297,7 @@ function mergeLeaderboardWithHomepage(
   homepageUser: Record<string, unknown> | undefined
 ): TransformableUser {
   if (!homepageUser) {
-    return leaderboardUser as TransformableUser;
+    return leaderboardUser as unknown as TransformableUser;
   }
   const merged = { ...leaderboardUser } as Record<string, unknown>;
   const keysToMerge = [...MERGE_STAT_KEYS, ...MERGE_EXTRA_KEYS];
@@ -316,7 +316,7 @@ function mergeLeaderboardWithHomepage(
   if (merged.readingTimeMinutes == null && merged.readingTime != null && typeof merged.readingTime === "number") {
     merged.readingTimeMinutes = merged.readingTime;
   }
-  return merged as TransformableUser;
+  return merged as unknown as TransformableUser;
 }
 
 export default function LeadersPageClient() {
@@ -407,13 +407,13 @@ export default function LeadersPageClient() {
     const leaderboardUsersData = leaderboardData?.data?.users ?? [];
     const homepageById = new Map<string, Record<string, unknown>>();
     for (const u of homepageUsers) {
-      homepageById.set(u._id, u as Record<string, unknown>);
+      homepageById.set(u._id, u as unknown as Record<string, unknown>);
     }
 
     const mergedUsers: TransformableUser[] = [];
     for (const u of leaderboardUsersData) {
       const home = homepageById.get(u._id);
-      const merged = mergeLeaderboardWithHomepage(u as Record<string, unknown>, home);
+      const merged = mergeLeaderboardWithHomepage(u as unknown as Record<string, unknown>, home);
       mergedUsers.push(merged);
     }
 

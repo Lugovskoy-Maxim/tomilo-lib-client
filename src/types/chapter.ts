@@ -62,6 +62,12 @@ export interface ReaderChapter {
   createdAt?: string;
   updatedAt?: string;
   teamId?: string;
+  /** Рейтинг и реакции из основной информации о главе (по спецификации API) */
+  averageRating?: number;
+  ratingSum?: number;
+  ratingCount?: number;
+  userRating?: number | null;
+  reactions?: ChapterReactionCount[];
 }
 
 /** Тело запроса POST /chapters/:id/rating — поставить/изменить оценку 1–10 */

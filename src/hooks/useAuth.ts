@@ -424,9 +424,17 @@ export const useAuth = () => {
 
       const isAlreadyInHistory = (msg: string): boolean =>
         /already|already exists|duplicate|уже|дубликат/i.test(msg);
+      const isRefetchNotStarted = (msg: string): boolean =>
+        /cannot refetch.*has not been started/i.test(msg);
 
       const doRetry = async () => {
-        if (token) await refetchProfile();
+        if (token) {
+          try {
+            await refetchProfile();
+          } catch {
+            // Запрос профиля может быть не запущен на этой странице (RTK: "has not been started") — всё равно повторяем add
+          }
+        }
         return tryAdd();
       };
 
@@ -436,10 +444,22 @@ export const useAuth = () => {
         // Повторная попытка при версионном конфликте без лога в консоль
         if (isVersionConflict(result.error ?? "")) {
           try {
-            return await doRetry();
+            const retryResult = await doRetry();
+            if (!retryResult.success) {
+              if (!isRefetchNotStarted(retryResult.error ?? "")) {
+                console.error("Error adding to reading history (retry):", retryResult.error);
+              }
+              return {
+                success: false,
+                error: "Данные устарели. Обновите страницу и попробуйте снова.",
+              };
+            }
+            return retryResult;
           } catch (retryError: unknown) {
             const retryMessage = getErrorMessage(retryError);
-            console.error("Error adding to reading history (retry):", retryMessage);
+            if (!isRefetchNotStarted(retryMessage)) {
+              console.error("Error adding to reading history (retry):", retryMessage);
+            }
             return {
               success: false,
               error: "Данные устарели. Обновите страницу и попробуйте снова.",
@@ -453,10 +473,22 @@ export const useAuth = () => {
         if (isAlreadyInHistory(message)) return { success: true };
         if (isVersionConflict(message)) {
           try {
-            return await doRetry();
+            const retryResult = await doRetry();
+            if (!retryResult.success) {
+              if (!isRefetchNotStarted(retryResult.error ?? "")) {
+                console.error("Error adding to reading history (retry):", retryResult.error);
+              }
+              return {
+                success: false,
+                error: "Данные устарели. Обновите страницу и попробуйте снова.",
+              };
+            }
+            return retryResult;
           } catch (retryError: unknown) {
             const retryMessage = getErrorMessage(retryError);
-            console.error("Error adding to reading history (retry):", retryMessage);
+            if (!isRefetchNotStarted(retryMessage)) {
+              console.error("Error adding to reading history (retry):", retryMessage);
+            }
             return {
               success: false,
               error: "Данные устарели. Обновите страницу и попробуйте снова.",

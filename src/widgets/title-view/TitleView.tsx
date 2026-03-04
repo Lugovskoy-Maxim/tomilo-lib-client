@@ -119,6 +119,11 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
   }, [activeTab, pathname, router, searchParams]);
 
+  // При открытии/возврате на страницу тайтла — скролл вверх (иначе после читалки лента остаётся внизу позже нужно найти баг)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Состояние для раскрытого описания
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 

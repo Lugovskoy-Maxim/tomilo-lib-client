@@ -52,7 +52,7 @@ export function ChapterReactions({
 }: ChapterReactionsProps) {
   const CHAPTER_RATING_STORAGE_KEY = "chapter_user_rating";
   const CHAPTER_REACTION_STORAGE_KEY = "chapter_user_reaction";
-  const ALLOWED_EMOJIS_SET = new Set(CHAPTER_ALLOWED_REACTION_EMOJIS);
+  const ALLOWED_EMOJIS_SET = new Set<string>(CHAPTER_ALLOWED_REACTION_EMOJIS);
 
   const { isAuthenticated } = useAuth();
   const [mounted, setMounted] = useState(false);
