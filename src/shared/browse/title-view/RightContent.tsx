@@ -13,6 +13,7 @@ import {
   Eye,
   EyeOff,
   Star,
+  SmilePlus,
   X,
   CheckCircle,
   Home,
@@ -761,17 +762,46 @@ export function RightContent({
               {visibleChapters.map((chapter, index) => {
                 const read = isChapterRead(chapter._id || "");
                 const isRemoving = removingChapterId === chapter._id;
+                const hasRating =
+                  chapter.averageRating != null && (chapter.ratingCount ?? 0) > 0;
+                const totalReactions =
+                  chapter.reactions?.reduce((s, r) => s + (r.count ?? 0), 0) ?? 0;
+                const hasReactions = totalReactions > 0;
+
+                const dateStr = chapter.createdAt
+                  ? new Date(chapter.createdAt).toLocaleDateString("ru-RU", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "—";
+                const dateStrMobile = chapter.createdAt
+                  ? new Date(chapter.createdAt)
+                      .toLocaleDateString("ru-RU", {
+                        day: "numeric",
+                        month: "short",
+                        year: "2-digit",
+                      })
+                      .replace(/\s*г\.?\s*$/i, "")
+                  : "—";
+                const viewsStr = `${(chapter.views || 0).toLocaleString()} просм.`;
+                const metaPartsMobile: string[] = [dateStrMobile];
+                if (hasRating) metaPartsMobile.push(`★ ${chapter.averageRating!.toFixed(1)}`);
+                if (hasReactions) metaPartsMobile.push(`${totalReactions} реакц.`);
+                metaPartsMobile.push(viewsStr);
+                const metaLineMobile = metaPartsMobile.join(" · ");
+                const metaLineDesktop = `${dateStr} · ${viewsStr}`;
 
                 return (
                   <div
                     key={chapter._id}
                     onClick={() => router.push(getChapterPathCallback(chapter._id))}
-                    className="group flex items-center gap-3 p-3 bg-[var(--secondary)]/60 backdrop-blur-sm rounded-xl border border-[var(--border)]/40 hover:bg-[var(--secondary)]/80 hover:border-[var(--primary)]/30 hover:shadow-lg hover:shadow-[var(--primary)]/5 transition-all duration-300 cursor-pointer"
+                    className="group flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-[var(--secondary)]/50 hover:bg-[var(--secondary)]/80 rounded-lg sm:rounded-xl border border-[var(--border)]/30 hover:border-[var(--border)]/60 transition-colors cursor-pointer active:scale-[0.99]"
                     style={{ animationDelay: `${index * 30}ms` }}
                   >
-                    {/* Иконка статуса прочтения */}
+                    {/* Статус прочтения — компактно на мобиле */}
                     <div
-                      className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--background)]/50 flex-shrink-0"
+                      className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-[var(--background)]/40 flex-shrink-0"
                       onMouseEnter={() => setHoveredChapterId(chapter._id || null)}
                       onMouseLeave={() => setHoveredChapterId(null)}
                       onClick={e => {
@@ -788,69 +818,50 @@ export function RightContent({
                             handleRemoveFromHistory(chapter._id || "", e);
                           }}
                           disabled={isRemoving}
-                          className={`flex items-center justify-center transition-all duration-200 hover:scale-110 ${
+                          className={`flex items-center justify-center ${
                             isRemoving
                               ? "cursor-not-allowed text-[var(--foreground)]/30"
                               : "text-red-500 hover:text-red-600 cursor-pointer"
                           }`}
-                          title="Удалить из истории чтения"
+                          title="Удалить из истории"
                         >
                           {isRemoving ? (
-                            <div className="w-5 h-5 border-2 border-[var(--foreground)]/20 border-t-[var(--chart-1)] rounded-xl animate-spin" />
+                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[var(--foreground)]/20 border-t-[var(--chart-1)] rounded-full animate-spin" />
                           ) : (
-                            <EyeOff className="w-5 h-5" />
+                            <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
                           )}
                         </button>
                       ) : (
                         <Eye
-                          className={`w-5 h-5 transition-colors ${
-                            read 
-                              ? "text-green-500" 
-                              : "text-[var(--foreground)]/30 group-hover:text-[var(--foreground)]/50"
+                          className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${
+                            read
+                              ? "text-green-500"
+                              : "text-[var(--foreground)]/25 group-hover:text-[var(--foreground)]/40"
                           }`}
                         />
                       )}
                     </div>
 
-                    {/* Информация о главе */}
+                    {/* Название и мета — одна колонка */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors">
+                      <h3 className="font-medium sm:font-semibold text-sm sm:text-base text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors">
                         {getChapterDisplayName(chapter)}
                       </h3>
-                      {/* Мобильная версия - дата и просмотры под названием */}
-                      <div className="flex sm:hidden items-center gap-3 text-xs text-[var(--muted-foreground)] mt-0.5">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {chapter.createdAt 
-                            ? new Date(chapter.createdAt).toLocaleDateString('ru-RU', { 
-                                day: 'numeric', 
-                                month: 'short', 
-                                year: 'numeric' 
-                              }) 
-                            : "—"}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Eye className="w-3 h-3" />
-                          {(chapter.views || 0).toLocaleString()}
-                        </span>
-                      </div>
+                      <p className="text-[11px] sm:text-xs text-[var(--muted-foreground)] mt-0.5 truncate sm:mt-1">
+                        <span className="sm:hidden">{metaLineMobile}</span>
+                        <span className="hidden sm:inline">{metaLineDesktop}</span>
+                      </p>
                     </div>
 
-                    {/* Десктопная версия - дата и просмотры справа */}
-                    <div className="hidden sm:flex items-center gap-4 text-sm text-[var(--muted-foreground)] flex-shrink-0">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4 text-[var(--primary)]" />
-                        {chapter.createdAt 
-                          ? new Date(chapter.createdAt).toLocaleDateString('ru-RU', { 
-                              day: 'numeric', 
-                              month: 'short', 
-                              year: 'numeric' 
-                            }) 
-                          : "—"}
+                    {/* Десктоп: рейтинг и реакции справа отдельно для сканности */}
+                    <div className="hidden sm:flex items-center gap-3 text-[var(--muted-foreground)] flex-shrink-0">
+                      <span className="flex items-center gap-1 tabular-nums text-sm" title="Рейтинг">
+                        <Star className="w-3.5 h-3.5 text-[var(--muted-foreground)] fill-[var(--muted-foreground)] shrink-0" />
+                        {hasRating ? `${chapter.averageRating!.toFixed(1)}${(chapter.ratingCount ?? 0) > 0 ? ` (${chapter.ratingCount})` : ""}` : "—"}
                       </span>
-                      <span className="flex items-center gap-1.5">
-                        <Eye className="w-4 h-4 text-[var(--primary)]" />
-                        {(chapter.views || 0).toLocaleString()}
+                      <span className="flex items-center gap-1 tabular-nums text-sm" title="Реакции">
+                        <SmilePlus className="w-3.5 h-3.5 shrink-0" />
+                        {hasReactions ? totalReactions : "—"}
                       </span>
                     </div>
                   </div>

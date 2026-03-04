@@ -45,6 +45,11 @@ function apiChapterToReaderChapter(ch: Chapter): ReaderChapter {
     date: ch.releaseDate || "",
     views: Number(ch.views) || 0,
     images: pages.map((p: string) => getImageUrls(p).primary),
+    averageRating: ch.averageRating,
+    ratingSum: ch.ratingSum,
+    ratingCount: ch.ratingCount,
+    userRating: ch.userRating,
+    reactions: ch.reactions,
   };
 }
 
@@ -1711,6 +1716,21 @@ function ReadChapterPageContent({
               <ChapterReactions
                 chapterId={displayChapter._id}
                 titleId={titleId}
+                initialRating={
+                  displayChapter.averageRating != null ||
+                  displayChapter.ratingCount != null ||
+                  displayChapter.userRating != null
+                    ? {
+                        averageRating: displayChapter.averageRating,
+                        ratingSum: displayChapter.ratingSum,
+                        ratingCount: displayChapter.ratingCount,
+                        userRating: displayChapter.userRating,
+                      }
+                    : undefined
+                }
+                initialReactions={
+                  displayChapter.reactions?.length ? displayChapter.reactions : undefined
+                }
               />
             </div>
 
@@ -1939,6 +1959,21 @@ function ReadChapterPageContent({
                       <ChapterReactions
                         chapterId={loadedChapter._id}
                         titleId={titleId}
+                        initialRating={
+                          loadedChapter.averageRating != null ||
+                          loadedChapter.ratingCount != null ||
+                          loadedChapter.userRating != null
+                            ? {
+                                averageRating: loadedChapter.averageRating,
+                                ratingSum: loadedChapter.ratingSum,
+                                ratingCount: loadedChapter.ratingCount,
+                                userRating: loadedChapter.userRating,
+                              }
+                            : undefined
+                        }
+                        initialReactions={
+                          loadedChapter.reactions?.length ? loadedChapter.reactions : undefined
+                        }
                       />
                     </div>
 

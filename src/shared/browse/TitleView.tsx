@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useUpdateRatingMutation } from "@/store/api/titlesApi";
 import {
+  useGetChapterRatingQuery,
+  useGetChapterReactionsCountQuery,
+} from "@/store/api/chaptersApi";
+import {
   BookOpen,
   Calendar,
   ChevronDown,
@@ -19,6 +23,8 @@ import {
   ArrowUpDown,
   Play,
   Eye,
+  Star,
+  SmilePlus,
 } from "lucide-react";
 import { Title, TitleStatus, Chapter } from "@/types/title";
 import { User } from "@/types/auth";
@@ -290,6 +296,7 @@ export function ChaptersTab({
 export function ChapterItem({
   chapter,
   titleId,
+  user: _user,
 }: {
   chapter: Chapter;
   titleId: string;
@@ -298,6 +305,52 @@ export function ChapterItem({
   const { removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const hasRatingInChapter =
+    chapter.averageRating != null ||
+    (chapter.ratingCount != null && chapter.ratingCount > 0) ||
+    (chapter.ratingSum != null && (chapter.ratingCount ?? 0) > 0);
+  const hasReactionsInChapter =
+    Array.isArray(chapter.reactions) && chapter.reactions.length > 0;
+
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el || hasRatingInChapter || hasReactionsInChapter) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) setIsVisible(true);
+      },
+      { rootMargin: "100px", threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasRatingInChapter, hasReactionsInChapter]);
+
+  const { data: ratingData } = useGetChapterRatingQuery(chapter._id, {
+    skip: !chapter._id || hasRatingInChapter || !isVisible,
+  });
+  const { data: countData } = useGetChapterReactionsCountQuery(chapter._id, {
+    skip: !chapter._id || hasReactionsInChapter || !isVisible,
+  });
+
+  const rating = ratingData ?? null;
+  const averageRating =
+    chapter.averageRating ??
+    rating?.averageRating ??
+    (rating?.ratingSum != null && (rating?.ratingCount ?? 0) > 0
+      ? rating!.ratingSum! / (rating!.ratingCount ?? 1)
+      : (chapter.ratingSum != null && (chapter.ratingCount ?? 0) > 0
+          ? chapter.ratingSum! / (chapter.ratingCount ?? 1)
+          : null));
+  const ratingCount = chapter.ratingCount ?? rating?.ratingCount ?? 0;
+  const totalReactions =
+    chapter.reactions?.reduce((sum, r) => sum + (r.count ?? 0), 0) ??
+    countData?.data?.reactions?.reduce((sum, r) => sum + (r.count ?? 0), 0) ??
+    0;
+  const hasRating = averageRating != null && ratingCount > 0;
+  const hasReactions = totalReactions > 0;
 
   // Получаем историю чтения только для текущего тайтла
   const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
@@ -331,69 +384,100 @@ export function ChapterItem({
   };
 
   return (
-    <Link
-      href={`/titles/${titleId}/chapter/${chapter._id}`}
-      className="flex items-center bg-[var(--background)]/50 justify-between px-2 py-2 border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors rounded-xl"
-    >
-      <div className="flex items-center gap-3">
-        {/* Иконка статуса прочтения */}
-        <div
-          className="flex items-center w-5 h-5"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {isRead && isHovered ? (
-            <button
-              onClick={handleRemoveFromHistory}
-              disabled={isRemoving}
-              className={`flex items-center justify-center transition-colors hover:text-red-600 ${
-                isRemoving
-                  ? "cursor-not-allowed text-[var(--primary)]"
-                  : "text-red-500 cursor-pointer"
-              }`}
-              title="Удалить из истории чтения"
-            >
-              {isRemoving ? <div className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-            </button>
-          ) : (
-            <Eye
-              className={`w-5 h-5 transition-colors ${isRead ? "text-green-500" : "text-gray-400"}`}
-            />
-          )}
-        </div>
-        <div className="flex gap-1 justify-center items-center flex-wrap">
-          <div className="font-medium text-[var(--primary)] text-sm sm:text-sm truncate max-w-[150px] sm:max-w-none">
-            {getChapterDisplayName(chapter)}
+    <div ref={wrapperRef}>
+      <Link
+        href={`/titles/${titleId}/chapter/${chapter._id}`}
+        className="flex items-center bg-[var(--background)]/50 justify-between px-2 py-2 border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors rounded-xl"
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="flex items-center w-5 h-5"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {isRead && isHovered ? (
+              <button
+                onClick={handleRemoveFromHistory}
+                disabled={isRemoving}
+                className={`flex items-center justify-center transition-colors hover:text-red-600 ${
+                  isRemoving
+                    ? "cursor-not-allowed text-[var(--primary)]"
+                    : "text-red-500 cursor-pointer"
+                }`}
+                title="Удалить из истории чтения"
+              >
+                {isRemoving ? <div className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+              </button>
+            ) : (
+              <Eye
+                className={`w-5 h-5 transition-colors ${isRead ? "text-green-500" : "text-gray-400"}`}
+              />
+            )}
           </div>
-          {chapter.releaseDate && (
-            <div className="flex items-center gap-1 font-medium text-[var(--primary)] text-sm sm:text-sm">
-              <Calendar className="w-3 h-3" />
-              {new Date(chapter.releaseDate).toLocaleDateString("ru-RU")}
+          <div className="flex gap-1 justify-center items-center flex-wrap">
+            <div className="font-medium text-[var(--primary)] text-sm sm:text-sm truncate max-w-[150px] sm:max-w-none">
+              {getChapterDisplayName(chapter)}
             </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 text-sm text-[var(--primary)] flex-shrink-0">
-        <div className="hidden sm:flex items-center gap-1">
-          <span>Просмотров: {chapter.views}</span>
-        </div>
-        {/* Mobile: icon with number */}
-        <div className="sm:hidden flex items-center gap-1">
-          <Eye className="w-4 h-4" />
-          <span>{chapter.views}</span>
+            {chapter.releaseDate && (
+              <div className="flex items-center gap-1 font-medium text-[var(--primary)] text-sm sm:text-sm">
+                <Calendar className="w-3 h-3" />
+                {new Date(chapter.releaseDate).toLocaleDateString("ru-RU")}
+              </div>
+            )}
+          </div>
         </div>
 
-        <button
-          onClick={() => router.push(`/titles/${titleId}/chapter/${chapter._id}`)}
-          className="p-1.5 sm:px-4 sm:py-2 bg-[var(--chart-1)]/80 text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)]/80 transition-colors flex items-center justify-center"
-          aria-label="Читать главу"
-        >
-          <Play className="w-4 h-4 sm:hidden" />
-          <span className="hidden sm:inline text-sm">Читать</span>
-        </button>
-      </div>
-    </Link>
+        <div className="flex items-center gap-2 sm:gap-3 text-sm text-[var(--primary)] flex-shrink-0">
+          <div className="hidden sm:flex items-center gap-2 text-[var(--muted-foreground)]">
+            <span className="flex items-center gap-1" title="Рейтинг главы">
+              <Star className="w-3.5 h-3.5 text-[var(--muted-foreground)] fill-[var(--muted-foreground)]" />
+              <span className="tabular-nums min-w-[2.5rem]">
+                {hasRating ? `${averageRating!.toFixed(1)}${ratingCount > 0 ? ` (${ratingCount})` : ""}` : "—"}
+              </span>
+            </span>
+            <span className="flex items-center gap-1" title="Реакции">
+              <SmilePlus className="w-3.5 h-3.5" />
+              <span className="tabular-nums min-w-[1.25rem]">
+                {hasReactions ? totalReactions : "—"}
+              </span>
+            </span>
+          </div>
+          <div className="hidden sm:flex items-center gap-1">
+            <span>Просмотров: {chapter.views}</span>
+          </div>
+          <div className="sm:hidden flex items-center gap-2">
+            <span className="flex items-center gap-0.5 text-[var(--muted-foreground)]">
+              <Star className="w-3.5 h-3.5 fill-current" />
+              <span className="tabular-nums text-xs min-w-[1.5rem]">
+                {hasRating ? averageRating!.toFixed(1) : "—"}
+              </span>
+            </span>
+            <span className="flex items-center gap-0.5 text-[var(--muted-foreground)]">
+              <SmilePlus className="w-3.5 h-3.5" />
+              <span className="tabular-nums text-xs min-w-[1rem]">
+                {hasReactions ? totalReactions : "—"}
+              </span>
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="w-4 h-4" />
+              <span>{chapter.views}</span>
+            </span>
+          </div>
+
+          <button
+            onClick={e => {
+              e.preventDefault();
+              router.push(`/titles/${titleId}/chapter/${chapter._id}`);
+            }}
+            className="p-1.5 sm:px-4 sm:py-2 bg-[var(--chart-1)]/80 text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)] transition-colors flex items-center justify-center"
+            aria-label="Читать главу"
+          >
+            <Play className="w-4 h-4 sm:hidden" />
+            <span className="hidden sm:inline text-sm">Читать</span>
+          </button>
+        </div>
+      </Link>
+    </div>
   );
 }
 

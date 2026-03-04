@@ -73,6 +73,20 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     });
   }, [chaptersData?.chapters]);
 
+  // Временная проверка: пришли ли рейтинг и реакции в списке глав (откройте консоль браузера F12)
+  useEffect(() => {
+    if (!chaptersData?.chapters?.length || process.env.NODE_ENV !== "development") return;
+    const ch = chaptersData.chapters[0];
+    console.log("[chapters] Рейтинг в ответе API?", {
+      averageRating: ch.averageRating,
+      ratingCount: ch.ratingCount,
+      ratingSum: ch.ratingSum,
+      userRating: ch.userRating,
+      reactions: ch.reactions,
+      hasRating: ch.averageRating != null || (ch.ratingCount ?? 0) > 0,
+    });
+  }, [chaptersData?.chapters]);
+
   // Главы для ReadButton: asc (для корректного определения первой/следующей главы)
   const chaptersForReadButton = useMemo(() => {
     const chapters = chaptersData?.chapters || [];

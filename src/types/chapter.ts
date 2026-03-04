@@ -14,7 +14,11 @@ export const CHAPTER_ALLOWED_REACTION_EMOJIS = [
 export type ChapterAllowedReactionEmoji =
   (typeof CHAPTER_ALLOWED_REACTION_EMOJIS)[number];
 
-/** Одна запись рейтинга главы (один пользователь — одна оценка 1–5) */
+/** Минимальная и максимальная оценка главы (шкала 1–10) */
+export const CHAPTER_RATING_MIN = 1;
+export const CHAPTER_RATING_MAX = 10;
+
+/** Одна запись рейтинга главы (один пользователь — одна оценка 1–10) */
 export interface ChapterRatingByUser {
   userId: string;
   value: number;
@@ -60,18 +64,18 @@ export interface ReaderChapter {
   teamId?: string;
 }
 
-/** Тело запроса POST /chapters/:id/rating — поставить/изменить оценку 1–5 */
+/** Тело запроса POST /chapters/:id/rating — поставить/изменить оценку 1–10 */
 export interface SetChapterRatingDto {
   value: number;
 }
 
-/** Ответ GET /chapters/:id/rating */
+/** Ответ GET /chapters/:id/rating (шкала 1–10) */
 export interface ChapterRatingResponse {
   /** Средний рейтинг (или ratingSum/ratingCount на бэкенде) */
   averageRating?: number;
   ratingSum?: number;
   ratingCount?: number;
-  /** Оценка текущего пользователя (при переданном JWT) */
+  /** Оценка текущего пользователя (при переданном JWT), 1–10 */
   userRating?: number | null;
 }
 
@@ -80,7 +84,9 @@ export interface ToggleChapterReactionDto {
   emoji: string;
 }
 
-/** Ответ GET /chapters/:id/reactions/count */
+/** Ответ GET /chapters/:id/reactions/count (при JWT в ответе добавляется userReaction) */
 export interface ChapterReactionsCountResponse {
   reactions: ChapterReactionCount[];
+  /** Эмодзи реакции текущего пользователя, если есть */
+  userReaction?: string | null;
 }

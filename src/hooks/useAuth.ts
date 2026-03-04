@@ -371,6 +371,10 @@ export const useAuth = () => {
         return null;
       };
 
+      const isVersionConflict = (msg: string): boolean =>
+        msg === "READING_HISTORY_VERSION_CONFLICT" ||
+        /no matching document|version \d+|modifiedPaths/i.test(msg);
+
       const tryAdd = async (): Promise<{ 
         success: boolean; 
         error?: string; 
@@ -382,11 +386,13 @@ export const useAuth = () => {
         }).unwrap();
 
         if (!result.success) {
-          const errorMessage =
+          const raw =
             (result as { errors?: string[] }).errors?.[0] ||
             (result as { message?: string }).message ||
             "Ошибка при добавлении в историю чтения";
-          console.error("Error adding to reading history:", errorMessage);
+          const errorMessage = isVersionConflict(String(raw))
+            ? "READING_HISTORY_VERSION_CONFLICT"
+            : raw;
           return { success: false, error: errorMessage };
         }
 
@@ -416,28 +422,21 @@ export const useAuth = () => {
         );
       };
 
-      const isVersionConflict = (msg: string): boolean =>
-        /no matching document|version \d+|modifiedPaths/i.test(msg);
       const isAlreadyInHistory = (msg: string): boolean =>
         /already|already exists|duplicate|уже|дубликат/i.test(msg);
 
-      try {
-        return await tryAdd();
-      } catch (error: unknown) {
-        const message = getErrorMessage(error);
-        if (isAlreadyInHistory(message)) {
-          return { success: true };
-        }
-        // Log message only (not error object) to avoid Next.js digest Symbol extensibility issue
-        console.error("Error adding to reading history:", message);
+      const doRetry = async () => {
+        if (token) await refetchProfile();
+        return tryAdd();
+      };
 
-        // Retry once on backend version conflict (stale document version)
-        if (isVersionConflict(message)) {
+      try {
+        const result = await tryAdd();
+        if (result.success) return result;
+        // Повторная попытка при версионном конфликте без лога в консоль
+        if (isVersionConflict(result.error ?? "")) {
           try {
-            if (token) {
-              await refetchProfile();
-            }
-            return await tryAdd();
+            return await doRetry();
           } catch (retryError: unknown) {
             const retryMessage = getErrorMessage(retryError);
             console.error("Error adding to reading history (retry):", retryMessage);
@@ -447,7 +446,24 @@ export const useAuth = () => {
             };
           }
         }
-
+        console.error("Error adding to reading history:", result.error);
+        return result;
+      } catch (error: unknown) {
+        const message = getErrorMessage(error);
+        if (isAlreadyInHistory(message)) return { success: true };
+        if (isVersionConflict(message)) {
+          try {
+            return await doRetry();
+          } catch (retryError: unknown) {
+            const retryMessage = getErrorMessage(retryError);
+            console.error("Error adding to reading history (retry):", retryMessage);
+            return {
+              success: false,
+              error: "Данные устарели. Обновите страницу и попробуйте снова.",
+            };
+          }
+        }
+        console.error("Error adding to reading history:", message);
         return { success: false, error: message };
       }
     },

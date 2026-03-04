@@ -121,6 +121,11 @@ export default async function ServerChapterPage({
         date: ch.releaseDate || "",
         views: Number(ch.views) || 0,
         images: Array.isArray(ch.pages) ? ch.pages.map((p: string) => normalizeAssetUrl(p)) : [],
+        averageRating: ch.averageRating,
+        ratingSum: ch.ratingSum,
+        ratingCount: ch.ratingCount,
+        userRating: ch.userRating,
+        reactions: ch.reactions,
       }),
     );
 
@@ -164,6 +169,11 @@ export default async function ServerChapterPage({
         Array.isArray(chapterData.pages) && chapterData.pages.length > 0
           ? chapterData.pages.map((p: string) => normalizeAssetUrl(p))
           : listChapter.images,
+      averageRating: chapterData.averageRating,
+      ratingSum: chapterData.ratingSum,
+      ratingCount: chapterData.ratingCount,
+      userRating: chapterData.userRating,
+      reactions: chapterData.reactions,
     };
 
     return (
