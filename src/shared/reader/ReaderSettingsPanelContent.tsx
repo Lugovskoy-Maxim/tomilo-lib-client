@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { List, Percent, Timer, Eye, Download, RotateCcw } from "lucide-react";
 import { BookOpen, LayoutList } from "lucide-react";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
-import { useReaderSettingsContext } from "./hooks";
+import { useAutoScroll, useReaderSettingsContext } from "./hooks";
 import type { ImageQualityMode } from "./hooks";
 
 interface ImageQualitySelectorProps {
@@ -188,9 +188,8 @@ export function ReaderSettingsPanelContent({
     setBrightness,
     imageQuality,
     setImageQuality,
-    autoScrollSpeed,
-    setAutoScrollSpeed,
   } = useReaderSettingsContext();
+  const { autoScrollSpeed, setAutoScrollSpeed } = useAutoScroll();
 
   return (
     <div className="flex-1 overflow-y-auto px-5 py-4 pb-12 space-y-8">

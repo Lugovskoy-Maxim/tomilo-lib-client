@@ -31,6 +31,7 @@ import LinesBackground from "@/shared/lines-background/LinesBackground";
 import NewsBlock from "@/widgets/home-page/NewsBlock";
 import { AgeVerificationModal } from "@/shared/modal/AgeVerificationModal";
 import { AgeVerificationProvider } from "@/contexts/AgeVerificationContext";
+import type { Collection } from "@/types/collection";
 
 type VisibleSections = HomeVisibleSections &
   StaticDataVisibleSections &
@@ -435,7 +436,7 @@ export default function HomePage() {
             description="Здесь подобраны самые популярные коллекции, которые вы можете прочитать."
             type="collection"
             href="/collections"
-            getItemPath={(item) => `/collections/${item.id}`}
+            getItemPath={(item: Collection) => `/collections/${item.id}`}
             cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
             icon={<LibraryIcon className="w-6 h-6" />}
             showNavigation={false}
