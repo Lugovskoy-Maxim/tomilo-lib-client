@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
-import { TrendingUp, Star, Users, Flame, Search, ChevronUp, Eye, EyeOff, Calendar, MessageSquare, X, User, Clock, BookOpen, Trophy, Heart } from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { TrendingUp, Star, Users, Flame, Search, ChevronUp, Eye, EyeOff, Calendar, MessageSquare, X, User, BookOpen, Trophy, Heart } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
 import LoadingSkeleton from "@/shared/skeleton/skeleton";
@@ -272,10 +273,70 @@ function getLeaderFrameUrl(u: LeaderboardUser): string | null {
   return getEquippedFrameUrl(u.equippedDecorations as EquippedDecorations | null);
 }
 
+const VALID_CATEGORIES: LeaderboardCategory[] = ["level", "chaptersRead", "ratings", "comments", "streak"];
+
+/** Поля статистики и профиля для слияния из обоих источников (leaderboard + homepage), чтобы карточки были полными во всех топах */
+const MERGE_STAT_KEYS: (keyof TransformableUser)[] = [
+  "avatar", "role", "level", "experience", "chaptersRead", "readingTimeMinutes",
+  "ratingsCount", "commentsCount", "currentStreak", "longestStreak", "lastStreakDate",
+  "titlesReadCount", "completedTitlesCount", "likesReceivedCount", "showStats",
+  "readingHistory", "bookmarks", "activityScore", "reputationScore",
+  "equippedDecorations", "lastActiveAt",
+];
+
+const MERGE_EXTRA_KEYS = ["readingTime"] as const;
+
+const NUMERIC_MERGE_KEYS = new Set([
+  "level", "experience", "chaptersRead", "readingTimeMinutes", "ratingsCount", "commentsCount",
+  "currentStreak", "longestStreak", "titlesReadCount", "completedTitlesCount", "likesReceivedCount",
+  "activityScore", "reputationScore",
+]);
+
+function mergeLeaderboardWithHomepage(
+  leaderboardUser: Record<string, unknown>,
+  homepageUser: Record<string, unknown> | undefined
+): TransformableUser {
+  if (!homepageUser) {
+    return leaderboardUser as TransformableUser;
+  }
+  const merged = { ...leaderboardUser } as Record<string, unknown>;
+  const keysToMerge = [...MERGE_STAT_KEYS, ...MERGE_EXTRA_KEYS];
+  for (const key of keysToMerge) {
+    const leaderVal = merged[key];
+    const homeVal = homepageUser[key];
+    const isNumeric = NUMERIC_MERGE_KEYS.has(key as keyof TransformableUser);
+    const useHome =
+      leaderVal === undefined || leaderVal === null
+        ? (homeVal !== undefined && homeVal !== null && (!isNumeric || (typeof homeVal === "number" && (homeVal as number) > 0)))
+        : (typeof leaderVal === "number" && leaderVal === 0 && typeof homeVal === "number" && (homeVal as number) > 0);
+    if (useHome && homeVal !== undefined && homeVal !== null) {
+      merged[key] = homeVal;
+    }
+  }
+  if (merged.readingTimeMinutes == null && merged.readingTime != null && typeof merged.readingTime === "number") {
+    merged.readingTimeMinutes = merged.readingTime;
+  }
+  return merged as TransformableUser;
+}
+
 export default function LeadersPageClient() {
   const mounted = useMounted();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
-  const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>("level");
+  const categoryFromUrl = searchParams.get("category");
+  const initialCategory: LeaderboardCategory =
+    categoryFromUrl && VALID_CATEGORIES.includes(categoryFromUrl as LeaderboardCategory)
+      ? (categoryFromUrl as LeaderboardCategory)
+      : "level";
+  const [activeCategory, setActiveCategory] = useState<LeaderboardCategory>(initialCategory);
+
+  useEffect(() => {
+    if (categoryFromUrl && VALID_CATEGORIES.includes(categoryFromUrl as LeaderboardCategory)) {
+      setActiveCategory(categoryFromUrl as LeaderboardCategory);
+    }
+  }, [categoryFromUrl]);
   const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("month");
   const [searchQuery, setSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -344,35 +405,20 @@ export default function LeadersPageClient() {
     })();
 
     const leaderboardUsersData = leaderboardData?.data?.users ?? [];
-
-    const allUsersMap = new Map<string, TransformableUser>();
-    
+    const homepageById = new Map<string, Record<string, unknown>>();
     for (const u of homepageUsers) {
-      allUsersMap.set(u._id, u as TransformableUser);
+      homepageById.set(u._id, u as Record<string, unknown>);
     }
 
-    const numericStatsKeys = ["chaptersRead", "readingTime", "readingTimeMinutes", "ratingsCount", "commentsCount", "experience", "currentStreak", "longestStreak", "titlesReadCount", "completedTitlesCount", "likesReceivedCount"];
+    const mergedUsers: TransformableUser[] = [];
     for (const u of leaderboardUsersData) {
-      const merged = { ...u } as Record<string, unknown>;
-      if (allUsersMap.has(u._id)) {
-        const existing = allUsersMap.get(u._id) as Record<string, unknown>;
-        for (const key of Object.keys(existing)) {
-          const leaderVal = merged[key];
-          const existingVal = existing[key];
-          const useExisting =
-            leaderVal === undefined || leaderVal === null
-              ? existingVal !== undefined && existingVal !== null
-              : numericStatsKeys.includes(key) && leaderVal === 0 && typeof existingVal === "number" && existingVal > 0;
-          if (useExisting) merged[key] = existingVal;
-        }
-      }
-      allUsersMap.set(u._id, merged as TransformableUser);
+      const home = homepageById.get(u._id);
+      const merged = mergeLeaderboardWithHomepage(u as Record<string, unknown>, home);
+      mergedUsers.push(merged);
     }
-
-    const mergedUsers = Array.from(allUsersMap.values());
 
     if (mergedUsers.length > 0) {
-      return transformUsersToLeaderboard(mergedUsers, activeCategory, decorationsMap).slice(0, 50);
+      return transformUsersToLeaderboard(mergedUsers, activeCategory, decorationsMap);
     }
 
     return [];
@@ -453,7 +499,13 @@ export default function LeadersPageClient() {
                   key={category.id}
                   role="tab"
                   aria-selected={isActive}
-                  onClick={() => { setActiveCategory(category.id); setSearchQuery(""); }}
+                  onClick={() => {
+                    setActiveCategory(category.id);
+                    setSearchQuery("");
+                    const params = new URLSearchParams(searchParams.toString());
+                    params.set("category", category.id);
+                    router.replace(`${pathname}?${params.toString()}`);
+                  }}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
                     isActive ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   }`}
@@ -686,7 +738,6 @@ export default function LeadersPageClient() {
 function getCategoryIcon(category: LeaderboardCategory) {
   const config = CATEGORIES.find(c => c.id === category);
   if (config) return config.icon;
-  if (category === "readingTime") return Clock;
   return TrendingUp;
 }
 
@@ -732,12 +783,6 @@ function PodiumUserModal({
   const frameUrl = getLeaderFrameUrl(user);
   const cardRarity = user.equippedDecorations?.cardRarity ?? user.equippedDecorations?.frameRarity ?? null;
   const rarityGlowClass = getRarityGlowClass(cardRarity);
-  const readingMins = user.readingTimeMinutes ?? user.readingTime ?? 0;
-  const readingFormatted = readingMins >= 60
-    ? readingMins >= 1440
-      ? `${Math.floor(readingMins / 1440)} д ${Math.floor((readingMins % 1440) / 60)} ч`
-      : `${Math.floor(readingMins / 60)} ч`
-    : `${readingMins} мин`;
 
   type StatItem = { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; category?: LeaderboardCategory; categories?: LeaderboardCategory[] };
   const stats: StatItem[] = [];
@@ -745,9 +790,8 @@ function PodiumUserModal({
   if (user.experience != null) stats.push({ icon: TrendingUp, label: "Опыт", value: user.experience.toLocaleString("ru") + " XP" });
   if (user.chaptersRead != null) {
     const chapters = user.chaptersRead ?? 0;
-    stats.push({ icon: BookOpen, label: "Глав прочитано", value: `${chapters.toLocaleString("ru")} глав`, categories: ["chaptersRead", "readingTime"] });
+    stats.push({ icon: BookOpen, label: "Глав прочитано", value: `${chapters.toLocaleString("ru")} глав`, categories: ["chaptersRead"] });
   }
-  if (readingMins > 0) stats.push({ icon: Clock, label: "Время чтения", value: readingFormatted, category: "readingTime" });
   if (user.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: user.ratingsCount.toLocaleString("ru"), category: "ratings" });
   if (user.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: user.commentsCount.toLocaleString("ru"), category: "comments" });
   if (user.titlesReadCount != null) stats.push({ icon: BookOpen, label: "Тайтлов прочитано", value: user.titlesReadCount.toLocaleString("ru") });

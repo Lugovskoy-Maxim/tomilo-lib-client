@@ -23,7 +23,6 @@ const CATEGORY_LABELS: Record<LeaderboardCategory, string> = {
 
 const ALL_CATEGORIES: LeaderboardCategory[] = [
   "level",
-  "readingTime",
   "ratings",
   "comments",
   "streak",
@@ -37,10 +36,6 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
 
   const levelQuery = useGetLeaderboardQuery(
     { category: "level", limit: 10 },
-    { skip: shouldSkip }
-  );
-  const readingTimeQuery = useGetLeaderboardQuery(
-    { category: "readingTime", limit: 10 },
     { skip: shouldSkip }
   );
   const ratingsQuery = useGetLeaderboardQuery(
@@ -62,7 +57,6 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
 
   const queries = {
     level: levelQuery,
-    readingTime: readingTimeQuery,
     ratings: ratingsQuery,
     comments: commentsQuery,
     streak: streakQuery,

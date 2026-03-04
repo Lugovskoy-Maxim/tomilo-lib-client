@@ -237,14 +237,16 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
               leaderboardPositions.slice(0, 4).map(({ category, position, label }) => {
                 const Icon = CATEGORY_ICONS[category];
                 return (
-                  <span
+                  <Link
                     key={category}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                    href={`/leaders?category=${category}`}
+                    onClick={onClose}
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer"
                     title={label}
                   >
                     <Icon className="w-2.5 h-2.5 shrink-0" aria-hidden />
                     #{position}
-                  </span>
+                  </Link>
                 );
               })
             ) : (
