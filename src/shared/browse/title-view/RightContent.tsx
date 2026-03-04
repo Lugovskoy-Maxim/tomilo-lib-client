@@ -1119,8 +1119,8 @@ export function RightContent({
           </button>
         )}
 
-        {/* Улучшенные вкладки с иконками - sticky на десктопе */}
-        <div className="sticky top-20 z-30 bg-[var(--secondary)]/95 backdrop-blur-xl rounded-2xl p-1.5 border border-[var(--border)] shadow-sm">
+        {/* Вкладки: Главная, Главы, Комментарии */}
+        <div className="bg-[var(--secondary)]/95 backdrop-blur-xl rounded-2xl p-1.5 border border-[var(--border)] shadow-sm">
           <div className="flex gap-1">
             {[
               { 

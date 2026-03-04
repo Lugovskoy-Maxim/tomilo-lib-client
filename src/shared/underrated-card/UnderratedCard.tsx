@@ -128,12 +128,12 @@ export default function UnderratedCard({ data, onCardClick }: UnderratedCardProp
             </div>
 
             <h3
-              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-[var(--primary)] transition-colors duration-300 min-h-[2.5rem]`}
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-[var(--primary)] transition-colors duration-300 min-h-[2.5rem] pl-2`}
             >
               {data.title}
             </h3>
 
-            <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+            <div className="mt-auto pt-2 flex items-center justify-between gap-2 pl-2">
               <div className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--accent)] px-2 py-1 text-xs font-medium text-[var(--foreground)] min-w-0">
                 <Eye className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">{formatViews(data.views)}</span>

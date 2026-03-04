@@ -27,9 +27,11 @@ export interface CardProps {
 export interface PopularCardProps {
   data: CardProps;
   onCardClick?: (id: string) => void;
+  /** Левый клик не переходит по ссылке; открытие только через ПКМ → «Открыть в новой вкладке» или клик колёсиком */
+  openOnlyInNewTab?: boolean;
 }
 
-function PopularCard({ data, onCardClick }: PopularCardProps) {
+function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
@@ -70,6 +72,12 @@ function PopularCard({ data, onCardClick }: PopularCardProps) {
       onCardClick(data.id);
       return;
     }
+    // Режим «только новая вкладка»: левый клик не переходит (ПКМ и колёсико — как у обычной ссылки)
+    if (openOnlyInNewTab && e.button === 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     if (data.isAdult && !isAgeVerified) {
       e.preventDefault();
       e.stopPropagation();
@@ -77,7 +85,7 @@ function PopularCard({ data, onCardClick }: PopularCardProps) {
       setShowAgeModal(true);
       return;
     }
-  }, [onCardClick, data.id, data.isAdult, isAgeVerified, performCardAction]);
+  }, [onCardClick, data.id, data.isAdult, isAgeVerified, performCardAction, openOnlyInNewTab]);
 
   const isAdultContent = data.isAdult;
   // const isBrowsePage = pathname.startsWith("/browse");
@@ -131,11 +139,12 @@ function PopularCard({ data, onCardClick }: PopularCardProps) {
           
         </div>
 
-        {/* Content — фиксированная высота блока, чтобы все карточки были одной высоты */}
-        <div className="p-3 flex flex-col min-h-[5.5rem]">
-          {/* Title — всегда резервируем место под 2 строки */}
+        {/* Content — место под название до 3 строк, без обрезки по высоте */}
+        <div className="p-3 flex flex-col min-h-[6.5rem]">
+          {/* Title — до 3 строк, высота достаточна для длинных названий */}
           <h3
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-snug group-hover:text-[var(--primary)] transition-colors duration-300 min-h-[2.5rem] flex-1`}
+            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} font-semibold text-sm text-[var(--foreground)] leading-snug group-hover:text-[var(--primary)] transition-colors duration-300 overflow-hidden min-h-[2.5rem] max-h-[3.5rem] flex-1`}
+            style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}
           >
             {data.title}
           </h3>
@@ -175,7 +184,13 @@ function PopularCard({ data, onCardClick }: PopularCardProps) {
   }
 
   return (
-    <Link href={titlePath} className={className} onClick={handleClick} data-card-click-handler="true">
+    <Link
+      href={titlePath}
+      className={className}
+      onClick={handleClick}
+      data-card-click-handler="true"
+      {...(openOnlyInNewTab ? { "aria-label": `Открыть «${data.title}» в новой вкладке: ПКМ или клик колёсиком` } : {})}
+    >
       {cardContent}
     </Link>
   );

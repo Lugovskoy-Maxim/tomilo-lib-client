@@ -6,10 +6,9 @@ import { normalizeAssetUrl } from "@/lib/asset-url";
 export default async function ServerChapterPage({
   params,
 }: {
-  params: Promise<{ slug: string; chapterId: string }>;
+  params: { slug: string; chapterId: string };
 }) {
-  const resolvedParams = await params;
-  const { slug, chapterId } = resolvedParams;
+  const { slug, chapterId } = params;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   try {

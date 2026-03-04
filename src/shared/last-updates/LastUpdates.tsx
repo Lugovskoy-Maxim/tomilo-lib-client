@@ -176,17 +176,17 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
             </div>
           </div>
 
-          {/* Заголовок тайтла */}
+          {/* Заголовок тайтла — отступ как у бейджа */}
           <h3
-            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-5 group-hover:text-[var(--primary)] transition-colors duration-300 min-h-[2.5rem] ${
+            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-5 group-hover:text-[var(--primary)] transition-colors duration-300 min-h-[2.5rem] pl-1.5 sm:pl-2 ${
               data.isAdult && !isAgeVerified ? "blur-sm" : ""
             }`}
           >
             {data.title}
           </h3>
 
-          {/* Номера глав */}
-          <div className="flex items-center gap-1.5 min-w-0 flex-shrink-0">
+          {/* Номера глав — отступ как у бейджа */}
+          <div className="flex items-center gap-1.5 min-w-0 flex-shrink-0 pl-1.5 sm:pl-2">
             <Sparkles className="w-3 h-3 text-[var(--chart-1)] flex-shrink-0" aria-hidden />
             <span
               className="font-semibold text-xs sm:text-sm truncate min-w-0"

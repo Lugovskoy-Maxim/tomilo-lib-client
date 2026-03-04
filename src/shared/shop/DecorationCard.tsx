@@ -713,14 +713,14 @@ export function DecorationCard({
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
             )}
             <div
-              className={`relative w-full h-full border-2 border-[var(--background)] shadow-lg bg-[var(--muted)] ${isCircleCrop ? "overflow-hidden" : ""}`}
+              className={`relative w-full h-full ${isCircleCrop ? "overflow-hidden" : ""}`}
               style={isCircleCrop ? { borderRadius: "50%" } : undefined}
             >
               {/* Для рамок: пропорции как в превью — аватар 100%, рамка 120% → круг аватара ~83% области */}
               {!isCircleCrop && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div
-                    className="relative w-[83%] aspect-square rounded-full overflow-hidden border-2 border-[var(--background)] shadow-inner bg-[var(--primary)] flex items-center justify-center text-white font-semibold"
+                    className="relative w-[83%] aspect-square rounded-full overflow-hidden bg-[var(--primary)] flex items-center justify-center text-white font-semibold"
                     aria-hidden
                   >
                     {userAvatarPreviewUrl ? (

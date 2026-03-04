@@ -6,6 +6,7 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { FontProvider } from "@/contexts/FontContext";
 import { ProgressNotificationProvider } from "@/contexts/ProgressNotificationContext";
 
+import { Suspense } from "react";
 import Script from "next/script";
 import CookieConsent from "@/shared/cookie-consent/CookieConsent";
 import TelegramJoinNotification from "@/shared/telegram-join-notification/TelegramJoinNotification";
@@ -348,7 +349,9 @@ export default function RootLayout({
           <Providers>
             <ThemeProvider>
               <FontProvider>
-                <CardTiltEffect />
+                <Suspense fallback={null}>
+                  <CardTiltEffect />
+                </Suspense>
               <div className="mobile-footer-spacer">
                 {children}
               </div>

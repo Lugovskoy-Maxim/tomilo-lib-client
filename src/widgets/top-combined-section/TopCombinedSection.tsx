@@ -60,9 +60,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
     return getCoverUrls(url, "");
   };
 
-  const performCardAction = () => {
-    window.location.href = getTitlePath(item);
-  };
+  const titlePath = getTitlePath(item);
 
   const handleAgeConfirm = () => {
     setIsAgeVerified(true);
@@ -77,34 +75,25 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
   };
 
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+    if (e.button !== 0) return;
     if (item.isAdult && !isAgeVerified) {
+      e.preventDefault();
+      e.stopPropagation();
       if (requestAgeVerification) {
-        requestAgeVerification(performCardAction);
+        requestAgeVerification(() => { window.location.href = titlePath; });
       } else {
-        setPendingAction(() => performCardAction);
+        setPendingAction(() => { window.location.href = titlePath; });
         setShowAgeModal(true);
       }
-      return;
     }
-    performCardAction();
   };
 
   return (
     <>
-      <div
+      <Link
+        href={titlePath}
         className="block group cursor-pointer relative rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform"
         onClick={handleClick}
-        onKeyDown={e => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleClick(e as unknown as React.MouseEvent);
-          }
-        }}
-        tabIndex={0}
-        role="button"
       >
         <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft relative overflow-hidden max-w-full shadow-sm">
           {/* Обложка — пропорционально */}
@@ -168,7 +157,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
             
           </div>
         </div>
-      </div>
+      </Link>
 
       {!requestAgeVerification && (
         <AgeVerificationModal
