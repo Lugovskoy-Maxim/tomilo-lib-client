@@ -62,7 +62,9 @@ export function ShopManagementSection() {
   const [deleteTarget, setDeleteTarget] = useState<Decoration | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const adminDecorationsQuery = useGetAdminDecorationsQuery();
+  /** Skip when backend does not expose admin decorations API — set NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED=false to avoid the request. */
+  const skipAdminDecorations = process.env.NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED === "false";
+  const adminDecorationsQuery = useGetAdminDecorationsQuery(undefined, { skip: skipAdminDecorations });
   const decorations = adminDecorationsQuery.data ?? [];
   const isLoading = adminDecorationsQuery.isLoading;
   const error = adminDecorationsQuery.error;
@@ -242,12 +244,15 @@ export function ShopManagementSection() {
   const typeLabel = (t: DecorationType) =>
     DECORATION_TYPES.find(x => x.value === t)?.label ?? t;
 
-  if (error) {
+  // 404: backend does not have GET /api/shop/admin/decorations — show section with empty list and a note (no retry)
+  const is404 = Boolean(
+    error && typeof error === "object" && (error as { status?: number }).status === 404,
+  );
+  if (error && !is404) {
     let errMsg = "Не удалось загрузить украшения магазина.";
-    if (error && typeof error === "object") {
+    if (typeof error === "object") {
       const e = error as { status?: number; data?: { message?: string } };
-      if (e.status === 404) errMsg = "API магазина не найден (404). Возможно, модуль магазина не подключён на бэкенде.";
-      else if (e.status === 401 || e.status === 403) errMsg = "Доступ запрещён. Проверьте авторизацию.";
+      if (e.status === 401 || e.status === 403) errMsg = "Доступ запрещён. Проверьте авторизацию.";
       else if (e.data?.message) errMsg = String(e.data.message);
     }
     return (
@@ -268,6 +273,11 @@ export function ShopManagementSection() {
 
   return (
     <div className="space-y-6">
+      {is404 && (
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 px-4 py-3 text-sm text-[var(--muted-foreground)]">
+          Эндпоинт <code className="rounded bg-[var(--muted)] px-1">GET /api/shop/admin/decorations</code> не найден (404). Возможно, модуль магазина не подключён на бэкенде. Список украшений недоступен.
+        </div>
+      )}
       <AdminCard className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>

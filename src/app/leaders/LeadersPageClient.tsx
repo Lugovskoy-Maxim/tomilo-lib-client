@@ -351,13 +351,22 @@ export default function LeadersPageClient() {
       allUsersMap.set(u._id, u as TransformableUser);
     }
 
+    const numericStatsKeys = ["chaptersRead", "readingTime", "readingTimeMinutes", "ratingsCount", "commentsCount", "experience", "currentStreak", "longestStreak", "titlesReadCount", "completedTitlesCount", "likesReceivedCount"];
     for (const u of leaderboardUsersData) {
-      if (!allUsersMap.has(u._id)) {
-        allUsersMap.set(u._id, u as TransformableUser);
-      } else {
-        const existing = allUsersMap.get(u._id)!;
-        allUsersMap.set(u._id, { ...existing, ...u } as TransformableUser);
+      const merged = { ...u } as Record<string, unknown>;
+      if (allUsersMap.has(u._id)) {
+        const existing = allUsersMap.get(u._id) as Record<string, unknown>;
+        for (const key of Object.keys(existing)) {
+          const leaderVal = merged[key];
+          const existingVal = existing[key];
+          const useExisting =
+            leaderVal === undefined || leaderVal === null
+              ? existingVal !== undefined && existingVal !== null
+              : numericStatsKeys.includes(key) && leaderVal === 0 && typeof existingVal === "number" && existingVal > 0;
+          if (useExisting) merged[key] = existingVal;
+        }
       }
+      allUsersMap.set(u._id, merged as TransformableUser);
     }
 
     const mergedUsers = Array.from(allUsersMap.values());
@@ -734,11 +743,11 @@ function PodiumUserModal({
   const stats: StatItem[] = [];
   if (user.level != null) stats.push({ icon: Trophy, label: "Уровень", value: user.level, category: "level" });
   if (user.experience != null) stats.push({ icon: TrendingUp, label: "Опыт", value: user.experience.toLocaleString("ru") + " XP" });
-  if (user.chaptersRead != null || readingMins > 0) {
+  if (user.chaptersRead != null) {
     const chapters = user.chaptersRead ?? 0;
-    const combinedValue = readingMins > 0 ? `${chapters.toLocaleString("ru")} глав · ${readingFormatted}` : `${chapters.toLocaleString("ru")} глав`;
-    stats.push({ icon: BookOpen, label: "Глав прочитано · Время", value: combinedValue, categories: ["chaptersRead", "readingTime"] });
+    stats.push({ icon: BookOpen, label: "Глав прочитано", value: `${chapters.toLocaleString("ru")} глав`, categories: ["chaptersRead", "readingTime"] });
   }
+  if (readingMins > 0) stats.push({ icon: Clock, label: "Время чтения", value: readingFormatted, category: "readingTime" });
   if (user.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: user.ratingsCount.toLocaleString("ru"), category: "ratings" });
   if (user.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: user.commentsCount.toLocaleString("ru"), category: "comments" });
   if (user.titlesReadCount != null) stats.push({ icon: BookOpen, label: "Тайтлов прочитано", value: user.titlesReadCount.toLocaleString("ru") });
@@ -840,26 +849,27 @@ function PodiumUserModal({
           <div className="relative z-10 px-3 pb-3 pt-2 flex flex-col gap-3 shrink-0">
             {stats.length > 0 && (
               <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm px-3 py-2.5">
-                <p className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2 px-0.5">
+                <p className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-1.5 px-0.5">
                   Показатели
                 </p>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
                   {stats.map(({ icon: Icon, label, value, category: statCategory, categories: statCategories }) => {
                     const cats = statCategories ?? (statCategory ? [statCategory] : []);
-                    const topBadges = cats.map((c) => ({ cat: c, pos: topPositionByCategory.get(c) })).filter(({ pos }) => pos != null);
+                    const positions = cats.map((c) => topPositionByCategory.get(c)).filter((p): p is number => p != null);
+                    const bestPos = positions.length > 0 ? Math.min(...positions) : null;
                     return (
-                      <div key={label} className="flex items-start gap-2 min-w-0">
-                        <Icon className="w-3.5 h-3.5 shrink-0 text-[var(--muted-foreground)] mt-0.5" />
+                      <div key={label} className="flex items-start gap-1.5 min-w-0">
+                        <Icon className="w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
                         <div className="min-w-0 text-left overflow-hidden">
-                          <p className="text-[10px] text-[var(--muted-foreground)] truncate leading-tight">{label}</p>
-                          <p className="text-xs font-semibold text-[var(--foreground)] leading-tight flex items-center gap-1.5 flex-wrap break-words">
-                            <span className="break-all">{value}</span>
-                            {topBadges.map(({ cat, pos }) => (
-                              <span key={cat} className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-medium shrink-0" title={`Место в топе: ${pos}`}>
-                                <Trophy className="w-3 h-3" aria-hidden />
-                                {pos}
+                          <p className="text-[10px] text-[var(--muted-foreground)] leading-tight truncate" title={label}>{label}</p>
+                          <p className="text-[11px] font-semibold text-[var(--foreground)] leading-tight flex flex-wrap items-center gap-x-1 gap-y-0.5">
+                            <span className="truncate max-w-full">{value}</span>
+                            {bestPos != null && (
+                              <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-medium shrink-0" title={`Топ ${bestPos}`}>
+                                <Trophy className="w-2.5 h-2.5" aria-hidden />
+                                {bestPos}
                               </span>
-                            ))}
+                            )}
                           </p>
                         </div>
                       </div>
@@ -923,28 +933,42 @@ function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCat
 }
 
 function LeaderboardSkeleton() {
+  const podiumBlockHeight = ["h-20 sm:h-24 md:h-26", "h-24 sm:h-28 md:h-32", "h-16 sm:h-20 md:h-24"];
+  const avatarWrapperSize = [
+    "w-[4.5rem] sm:w-[6rem] md:w-[7rem]",
+    "w-[5.5rem] sm:w-[7.7rem] md:w-[9rem]",
+    "w-16 sm:w-20 md:w-[5.5rem]",
+  ];
   return (
     <div className="space-y-4 animate-pulse">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[0, 1, 2].map(i => (
-          <div
-            key={i}
-            className={`rounded-2xl border border-[var(--border)] bg-[var(--card)] aspect-[9/16] ${i === 0 ? "md:order-2" : i === 1 ? "md:order-1 md:mt-6 md:scale-90" : "md:order-3 md:mt-6 md:scale-90"}`}
-          >
-            <div className="flex flex-col items-center justify-end h-full pb-4">
-              <div className={`rounded-full bg-[var(--muted)] ${i === 0 ? "w-24 h-24" : "w-20 h-20"} mb-3`} />
-              <div className="w-28 h-4 bg-[var(--muted)] rounded mb-2" />
-              <div className="w-20 h-3 bg-[var(--muted)] rounded mb-3" />
-              <div className="w-24 h-8 bg-[var(--muted)] rounded-lg" />
+      <div className="mb-6 max-w-lg mx-auto pb-2">
+        <div className="flex items-end justify-center gap-0 sm:gap-1">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]">
+              <div className="h-3 w-16 sm:w-20 bg-[var(--muted)] rounded mb-0.5 mx-0.5" />
+              <div className={`relative ${avatarWrapperSize[i]} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}>
+                <div className="w-full aspect-square rounded-full bg-[var(--muted)] max-w-full shrink-0" />
+              </div>
+              <div
+                className={`w-full ${podiumBlockHeight[i]} mt-0 flex flex-col rounded-t-lg overflow-hidden border border-b-0 border-[var(--border)] bg-[var(--muted)]`}
+              >
+                <div className="flex-1 flex items-center justify-center min-h-0 pt-1">
+                  <div className="w-6 h-8 sm:w-8 sm:h-10 bg-[var(--secondary)] rounded" />
+                </div>
+                <div className="px-1.5 pb-1.5 pt-1 flex items-center justify-center gap-1 min-h-0">
+                  <div className="w-3.5 h-3.5 rounded bg-[var(--secondary)]" />
+                  <div className="h-3 w-12 sm:w-14 bg-[var(--secondary)] rounded" />
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       <div className="space-y-2">
-        {[0, 1, 2, 3, 4].map(i => (
-          <div key={i} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4">
             <div className="w-9 h-9 rounded-lg bg-[var(--muted)] shrink-0" />
-            <div className="w-10 h-10 rounded-full bg-[var(--muted)] shrink-0" />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[var(--muted)] shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="w-24 h-4 bg-[var(--muted)] rounded" />
               <div className="w-16 h-3 bg-[var(--muted)] rounded mt-1.5" />
