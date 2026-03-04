@@ -879,8 +879,8 @@ export function RightContent({
   return (
     <>
       <div className="space-y-6">
-        <div className="flex sm:flex-row justify-between sm:items-center gap-4 w-full">
-          <div className="flex flex-col sm:flex-row  gap-2">
+        <div className="flex sm:flex-row justify-between sm:items-start gap-4 w-full">
+          <div className="flex flex-col sm:flex-row gap-2 pt-1.5">
             <div className="flex items-center gap-2 bg-[var(--secondary)]/80 px-3 py-1.5 rounded-xl text-[var(--foreground)] border border-[var(--border)]/50">
               <Calendar className="w-4 h-4 text-[var(--primary)]" />
               <span className="font-medium">{titleData.releaseYear}</span>
@@ -905,36 +905,35 @@ export function RightContent({
             </button> */}
           </div>
 
-          <div className="flex gap-2">
-            <div className="flex flex-col items-end gap-2 px-4 py-3 rounded-2xl transition-all duration-300 min-w-[120px]">
-              {/* Отображение среднего рейтинга со звёздами */}
-              <div className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-2">
-                  Рейтинг
-                  <span className="text-xl font-bold text-[var(--primary)]">
-                    {titleData?.averageRating ? titleData.averageRating.toFixed(1) : "0.0"}
-                  </span>
-                </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between sm:justify-end gap-2 sm:gap-x-3 sm:gap-y-1 px-3 pt-1.5 pb-2 rounded-2xl transition-all duration-300 w-full sm:w-auto">
+              {/* Рейтинг и кол-во оценок */}
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-sm text-[var(--muted-foreground)] shrink-0">Рейтинг</span>
+                <span className="text-lg sm:text-xl font-bold text-[var(--primary)] tabular-nums">
+                  {titleData?.averageRating ? titleData.averageRating.toFixed(1) : "0.0"}
+                </span>
                 {totalRatings > 0 && (
-                  <span className="text-xs text-[var(--muted-foreground)]">
+                  <span className="text-xs text-[var(--muted-foreground)] shrink-0">
                     {totalRatings} {totalRatings === 1 ? "оценка" : totalRatings < 5 ? "оценки" : "оценок"}
                   </span>
                 )}
               </div>
 
-              {/* Кнопка оценки и выпадающее меню */}
-              <div className="relative">
+              {/* Кнопка оценки */}
+              <div className="relative shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsRatingOpen(v => !v)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-300 cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  title={pendingRating ? `Ваша оценка: ${pendingRating}` : "Оценить"}
+                  className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all duration-300 cursor-pointer whitespace-nowrap flex items-center gap-1 ${
                     pendingRating
                       ? "bg-[var(--primary)] text-white"
                       : "bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] hover:border-[var(--primary)]/30"
                   }`}
                 >
-                  <Star className={`w-3 h-3 ${pendingRating ? "fill-white" : ""}`} />
-                  {pendingRating ? `Ваша оценка: ${pendingRating}` : "Оценить"}
+                  <Star className={`w-3 h-3 shrink-0 ${pendingRating ? "fill-white" : ""}`} />
+                  {pendingRating ? pendingRating : "Оценить"}
                 </button>
 
                 {/* Выпадающее меню с выбором оценки */}

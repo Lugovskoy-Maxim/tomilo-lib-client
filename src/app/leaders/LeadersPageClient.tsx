@@ -18,6 +18,7 @@ import { useGetHomepageActiveUsersQuery } from "@/store/api/usersApi";
 import { useGetDecorationsQuery } from "@/store/api/shopApi";
 import { useMounted } from "@/hooks/useMounted";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions";
 import { getDecorationImageUrl, getEquippedAvatarDecorationUrl, getEquippedFrameUrl, getEquippedCardUrl, type DecorationRarity } from "@/api/shop";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
@@ -515,7 +516,7 @@ export default function LeadersPageClient() {
           {user && currentUserRank && currentUserData && !searchQuery && (
             <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]">
               <span className="w-7 h-7 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center text-xs font-semibold shrink-0">
-                #{currentUserRank}
+                {currentUserRank}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-[var(--foreground)] truncate">
@@ -534,59 +535,62 @@ export default function LeadersPageClient() {
           ) : filteredUsers.length > 0 ? (
             <div className="space-y-3">
               {!searchQuery && filteredUsers.slice(0, 3).length > 0 && (
-                <div className="mb-6">
-                  <div className="flex items-end justify-center gap-2 sm:gap-4 md:gap-6 max-w-md mx-auto">
+                <div className="mb-6 max-w-lg mx-auto pb-2">
+                  <div className="flex items-end justify-center gap-0 sm:gap-1">
                     {[2, 1, 3].map((rank) => {
                       const idx = rank - 1;
                       const u = filteredUsers[idx];
                       if (!u) return null;
-                      const stepHeight = rank === 1 ? "h-20 sm:h-24" : "h-14 sm:h-16";
-                      const avatarSize = rank === 1 ? "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" : "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16";
+                      const blockHeight = rank === 1 ? "h-24 sm:h-28 md:h-32" : rank === 2 ? "h-20 sm:h-24 md:h-26" : "h-16 sm:h-20 md:h-24";
+                      const avatarWrapperSize = rank === 1 ? "w-[5.5rem] sm:w-[7.7rem] md:w-[9rem]" : rank === 2 ? "w-[4.5rem] sm:w-[6rem] md:w-[7rem]" : "w-16 sm:w-20 md:w-[5.5rem]";
                       const borderClass = rank === 1 ? "border-yellow-400" : rank === 2 ? "border-slate-400" : "border-amber-500";
-                      const statBgClass = rank === 1 ? "bg-yellow-400/10 border-yellow-400/50" : rank === 2 ? "bg-slate-400/10 border-slate-400/50" : "bg-amber-500/10 border-amber-500/50";
                       const StatIcon = getCategoryIcon(activeCategory);
                       const frameUrl = getLeaderFrameUrl(u);
                       return (
-                        <div key={u._id} className="flex flex-col items-center flex-1 max-w-[120px]">
-                          <p className="text-xs sm:text-sm font-semibold text-[var(--foreground)] truncate w-full text-center mb-1.5 px-0.5" title={u.username}>
+                        <div key={u._id} className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]">
+                          <p className="text-xs sm:text-sm font-semibold text-[var(--foreground)] truncate w-full text-center mb-0.5 px-0.5 -mt-0.5" title={u.username}>
                             {u.username}
                           </p>
-                          <div className={`relative ${avatarSize}`}>
-                            <button
-                              type="button"
-                              onClick={() => setLeaderModalState({ user: u, rank })}
-                              className={`relative rounded-full border-2 ${borderClass} overflow-hidden bg-[var(--secondary)] shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 w-full h-full block`}
-                            >
-                              <img
-                                src={getLeaderAvatarUrl(u)}
-                                alt={u.username}
-                                className="w-full h-full object-cover"
-                                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
-                              />
-                            </button>
-                            {frameUrl && (
-                              <img
-                                src={frameUrl}
-                                alt=""
-                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] pointer-events-none object-contain z-10"
-                                style={{ maxWidth: "none", maxHeight: "none" }}
-                                aria-hidden
-                              />
-                            )}
+                          <div className={`relative ${avatarWrapperSize} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}>
+                            <div className="relative w-full aspect-square max-w-full shrink-0 min-w-0 transition-transform duration-200 hover:scale-105 origin-center cursor-pointer" style={{ aspectRatio: "1 / 1" }}>
+                              <button
+                                type="button"
+                                onClick={() => setLeaderModalState({ user: u, rank })}
+                                className={`relative rounded-full border-2 ${borderClass} overflow-hidden bg-[var(--secondary)] shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 w-full h-full block aspect-square`}
+                              >
+                                <img
+                                  src={getLeaderAvatarUrl(u)}
+                                  alt={u.username}
+                                  className="w-full h-full object-cover aspect-square min-w-full min-h-full"
+                                  onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
+                                />
+                              </button>
+                              {frameUrl && (
+                                <img
+                                  src={frameUrl}
+                                  alt=""
+                                  className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] pointer-events-none object-contain z-10"
+                                  style={{ maxWidth: "none", maxHeight: "none" }}
+                                  aria-hidden
+                                />
+                              )}
+                            </div>
                           </div>
                           <div
-                            className={`w-full ${stepHeight} mt-1 rounded-t-xl bg-gradient-to-t from-[var(--muted)] to-[var(--muted)]/80 border border-t-0 ${borderClass} flex items-center justify-center`}
+                            className={`w-full ${blockHeight} mt-0 flex flex-col rounded-t-lg overflow-hidden shadow-md border border-b-0 border-rose-600/80 bg-rose-500/90 dark:bg-rose-600/80 dark:border-rose-500/70`}
+                            style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 6px -1px rgba(0,0,0,0.2)" }}
                           >
-                            <span className="text-sm sm:text-base font-bold text-[var(--muted-foreground)]">{rank}</span>
-                          </div>
-                          <div
-                            className={`mt-2 w-full rounded-lg border px-2 py-1.5 flex items-center justify-center gap-1.5 min-h-0 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-[1.02] ${statBgClass} ${rank === 1 ? "shadow-yellow-500/20" : rank === 2 ? "shadow-slate-400/20" : "shadow-amber-500/20"}`}
-                            title={getCategoryDisplayValue(u, activeCategory)}
-                          >
-                            <StatIcon className="w-3.5 h-3.5 shrink-0 text-[var(--muted-foreground)]" />
-                            <span className="text-[10px] sm:text-xs font-medium text-[var(--foreground)] truncate">
-                              {getCategoryDisplayValue(u, activeCategory)}
-                            </span>
+                            <div className="flex-1 flex items-center justify-center min-h-0 pt-1">
+                              <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-md select-none" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
+                                {rank}
+                              </span>
+                            </div>
+                            <div className="px-1.5 pb-1.5 pt-1 flex items-center justify-center gap-1 min-h-0 bg-rose-700/50 dark:bg-rose-800/50 backdrop-blur-[1px]">
+                              <StatIcon className="w-3.5 h-3.5 shrink-0 text-white" />
+                              <span className="text-[10px] sm:text-xs font-semibold text-white truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }} title={getCategoryDisplayValue(u, activeCategory)}>
+                                {getCategoryDisplayValue(u, activeCategory)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -677,6 +681,13 @@ function getCategoryIcon(category: LeaderboardCategory) {
   return TrendingUp;
 }
 
+function getRarityGlowClass(rarity: DecorationRarity | null | undefined): string {
+  if (rarity === "legendary") return "rarity-legendary";
+  if (rarity === "epic") return "rarity-epic";
+  if (rarity === "rare") return "rarity-rare";
+  return "";
+}
+
 function PodiumUserModal({
   user,
   rank,
@@ -690,6 +701,15 @@ function PodiumUserModal({
   isCurrentUser: boolean;
   onClose: () => void;
 }) {
+  const [showCardOnly, setShowCardOnly] = useState(false);
+  const { positions: allPositions } = useUserLeaderboardPositions(user._id);
+  const topPositionByCategory = useMemo(() => {
+    const map = new Map<LeaderboardCategory, number>();
+    map.set(category, rank);
+    allPositions.forEach((p) => map.set(p.category, p.position));
+    return map;
+  }, [category, rank, allPositions]);
+
   const isTop3 = rank >= 1 && rank <= 3;
   const borderClass = isTop3
     ? rank === 1 ? "border-yellow-400" : rank === 2 ? "border-slate-400" : "border-amber-500"
@@ -701,7 +721,8 @@ function PodiumUserModal({
   const level = user.level ?? 0;
   const cardUrl = getEquippedCardUrl(user.equippedDecorations as EquippedDecorations | null);
   const frameUrl = getLeaderFrameUrl(user);
-  const CategoryIcon = getCategoryIcon(category);
+  const cardRarity = user.equippedDecorations?.cardRarity ?? user.equippedDecorations?.frameRarity ?? null;
+  const rarityGlowClass = getRarityGlowClass(cardRarity);
   const readingMins = user.readingTimeMinutes ?? user.readingTime ?? 0;
   const readingFormatted = readingMins >= 60
     ? readingMins >= 1440
@@ -709,17 +730,21 @@ function PodiumUserModal({
       : `${Math.floor(readingMins / 60)} ч`
     : `${readingMins} мин`;
 
-  const stats: { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number }[] = [];
-  if (user.level != null) stats.push({ icon: Trophy, label: "Уровень", value: user.level });
+  type StatItem = { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; category?: LeaderboardCategory; categories?: LeaderboardCategory[] };
+  const stats: StatItem[] = [];
+  if (user.level != null) stats.push({ icon: Trophy, label: "Уровень", value: user.level, category: "level" });
   if (user.experience != null) stats.push({ icon: TrendingUp, label: "Опыт", value: user.experience.toLocaleString("ru") + " XP" });
-  if (user.chaptersRead != null) stats.push({ icon: BookOpen, label: "Глав прочитано", value: user.chaptersRead.toLocaleString("ru") });
-  if (readingMins > 0) stats.push({ icon: Clock, label: "Время чтения", value: readingFormatted });
-  if (user.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: user.ratingsCount.toLocaleString("ru") });
-  if (user.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: user.commentsCount.toLocaleString("ru") });
+  if (user.chaptersRead != null || readingMins > 0) {
+    const chapters = user.chaptersRead ?? 0;
+    const combinedValue = readingMins > 0 ? `${chapters.toLocaleString("ru")} глав · ${readingFormatted}` : `${chapters.toLocaleString("ru")} глав`;
+    stats.push({ icon: BookOpen, label: "Глав прочитано · Время", value: combinedValue, categories: ["chaptersRead", "readingTime"] });
+  }
+  if (user.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: user.ratingsCount.toLocaleString("ru"), category: "ratings" });
+  if (user.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: user.commentsCount.toLocaleString("ru"), category: "comments" });
   if (user.titlesReadCount != null) stats.push({ icon: BookOpen, label: "Тайтлов прочитано", value: user.titlesReadCount.toLocaleString("ru") });
   if (user.completedTitlesCount != null && user.completedTitlesCount > 0) stats.push({ icon: Trophy, label: "Завершено тайтлов", value: user.completedTitlesCount.toLocaleString("ru") });
-  if (user.currentStreak != null && user.currentStreak > 0) stats.push({ icon: Flame, label: "Серия дней", value: `${user.currentStreak} ${user.currentStreak === 1 ? "день" : user.currentStreak < 5 ? "дня" : "дней"}` });
-  if (user.longestStreak != null && user.longestStreak > 0) stats.push({ icon: Flame, label: "Рекорд серии", value: `${user.longestStreak} дн.` });
+  if (user.currentStreak != null && user.currentStreak > 0) stats.push({ icon: Flame, label: "Серия дней", value: `${user.currentStreak} ${user.currentStreak === 1 ? "день" : user.currentStreak < 5 ? "дня" : "дней"}`, category: "streak" });
+  if (user.longestStreak != null && user.longestStreak > 0) stats.push({ icon: Flame, label: "Рекорд серии", value: `${user.longestStreak} дн.`, category: "streak" });
   if (user.likesReceivedCount != null && user.likesReceivedCount > 0) stats.push({ icon: Heart, label: "Лайков получено", value: user.likesReceivedCount.toLocaleString("ru") });
 
   return (
@@ -731,54 +756,72 @@ function PodiumUserModal({
       aria-labelledby="podium-modal-title"
     >
       <div
-        className="relative w-auto max-w-[calc(100vw-2rem)] rounded-2xl border overflow-hidden shadow-xl border-[var(--border)] bg-[var(--card)] aspect-[9/19] flex flex-col"
+        className={`relative w-auto max-w-[calc(100vw-2rem)] rounded-2xl border shadow-xl aspect-[9/19] flex flex-col overflow-hidden bg-[var(--card)] ${rarityGlowClass} ${cardRarity && cardRarity !== "common" ? "border-2" : ""} ${cardRarity === "legendary" ? "border-amber-400/80" : cardRarity === "epic" ? "border-purple-500/70" : cardRarity === "rare" ? "border-blue-500/70" : "border-[var(--border)]"}`}
         style={{ height: "clamp(450px, 70vh, 70vh)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {cardUrl && (
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-25"
+            className="absolute inset-0 bg-cover bg-center z-0"
             style={{ backgroundImage: `url(${cardUrl})` }}
             aria-hidden
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--card)]/5 via-transparent to-[var(--card)]/80 pointer-events-none" aria-hidden />
-
-        <header className="relative z-10 flex items-center justify-between px-3 pt-2 pb-0.5 shrink-0">
-          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-r ${badgeBgClass} ${badgeTextClass} shadow-sm`}>
-            <span className="text-xs font-bold">#{rank}</span>
+        <header className="relative z-10 flex items-center justify-between gap-2 px-3 pt-2 pb-0.5 shrink-0 bg-transparent">
+          {!showCardOnly && (
+            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-r ${badgeBgClass} ${badgeTextClass} shadow-sm shrink-0`}>
+              <span className="text-xs font-bold">{rank}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1 ml-auto">
+            <button
+              type="button"
+              onClick={() => setShowCardOnly((v) => !v)}
+              className="p-1.5 rounded-md bg-[var(--card)]/80 backdrop-blur-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors shrink-0"
+              aria-label={showCardOnly ? "Показать всё" : "Только карточка"}
+              title={showCardOnly ? "Показать всё" : "Только карточка"}
+            >
+              {showCardOnly ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-md bg-[var(--card)]/80 backdrop-blur-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors shrink-0"
+              aria-label="Закрыть"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-md text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-            aria-label="Закрыть"
-          >
-            <X className="w-4 h-4" />
-          </button>
         </header>
 
-        <div className="relative z-10 flex flex-col flex-1 min-h-0 overflow-y-auto px-3 pb-3">
-          <div className="flex flex-col items-center text-center pt-0">
-            <div className="relative w-20 h-20 shrink-0">
-              <img
-                src={getLeaderAvatarUrl(user)}
-                alt=""
-                className={`w-full h-full rounded-full object-cover border-2 ${borderClass} shadow-md bg-[var(--secondary)]`}
-                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
-              />
-              {frameUrl && (
-                <img
-                  src={frameUrl}
-                  alt=""
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] pointer-events-none object-contain"
-                  style={{ maxWidth: "none", maxHeight: "none" }}
-                  aria-hidden
-                />
-              )}
+        {!showCardOnly && (
+        <div className="relative z-10 flex flex-col flex-1 min-h-0 overflow-y-auto">
+          <div className="flex flex-col items-center text-center pt-0 px-3 pb-2 bg-transparent shrink-0">
+            <div className="p-4 shrink-0">
+              <div className="relative w-20 h-20 shrink-0">
+                <div className="absolute inset-0 overflow-hidden rounded-full">
+                  <img
+                    src={getLeaderAvatarUrl(user)}
+                    alt=""
+                    className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 ${borderClass} shadow-md bg-[var(--secondary)]`}
+                    onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
+                  />
+                </div>
+                {frameUrl && (
+                  <img
+                    src={frameUrl}
+                    alt=""
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] pointer-events-none object-contain z-10"
+                    style={{ maxWidth: "none", maxHeight: "none" }}
+                    aria-hidden
+                  />
+                )}
+              </div>
             </div>
             <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold text-[var(--foreground)] truncate max-w-full px-1">
-              {user.username}
+              <span className="inline-block px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm">
+                {user.username}
+              </span>
             </h2>
             {user.role && user.role !== "user" && (
               <span className="mt-0.5 text-[11px] px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] capitalize">
@@ -786,54 +829,62 @@ function PodiumUserModal({
               </span>
             )}
             <p className="mt-1 text-[11px] text-[var(--muted-foreground)]">
-              {getRankDisplay(level).split("  ")[0]}
+              <span className="inline-block px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm">
+                {getRankDisplay(level).split("  ")[0]}
+              </span>
             </p>
           </div>
 
-          <div className={`mt-3 rounded-lg bg-gradient-to-r ${badgeBgClass} px-2.5 py-2 ${badgeTextClass} shadow-sm`}>
-            <div className="flex items-center justify-center gap-1.5">
-              <CategoryIcon className="w-4 h-4 shrink-0 opacity-90" />
-              <span className="text-xs font-semibold">{getCategoryDisplayValue(user, category)}</span>
-            </div>
-            <p className="text-[10px] opacity-90 mt-0.5 text-center">В этой категории</p>
-          </div>
+          <div className="flex-1 min-h-0" aria-hidden />
 
-          {stats.length > 0 && (
-            <div className="mt-3">
-              <p className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-1.5 px-0.5">
-                Статистика
-              </p>
-              <div className="grid grid-cols-2 gap-1.5">
-                {stats.map(({ icon: Icon, label, value }) => (
-                  <div
-                    key={label}
-                    className="flex items-center gap-1.5 rounded-md bg-[var(--muted)]/50 border border-[var(--border)] px-2 py-1.5"
-                  >
-                    <Icon className="w-3.5 h-3.5 shrink-0 text-[var(--muted-foreground)]" />
-                    <div className="min-w-0 text-left">
-                      <p className="text-[10px] text-[var(--muted-foreground)] truncate leading-tight">{label}</p>
-                      <p className="text-xs font-semibold text-[var(--foreground)] truncate leading-tight">{value}</p>
-                    </div>
-                  </div>
-                ))}
+          <div className="relative z-10 px-3 pb-3 pt-2 flex flex-col gap-3 shrink-0">
+            {stats.length > 0 && (
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm px-3 py-2.5">
+                <p className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2 px-0.5">
+                  Показатели
+                </p>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+                  {stats.map(({ icon: Icon, label, value, category: statCategory, categories: statCategories }) => {
+                    const cats = statCategories ?? (statCategory ? [statCategory] : []);
+                    const topBadges = cats.map((c) => ({ cat: c, pos: topPositionByCategory.get(c) })).filter(({ pos }) => pos != null);
+                    return (
+                      <div key={label} className="flex items-start gap-2 min-w-0">
+                        <Icon className="w-3.5 h-3.5 shrink-0 text-[var(--muted-foreground)] mt-0.5" />
+                        <div className="min-w-0 text-left overflow-hidden">
+                          <p className="text-[10px] text-[var(--muted-foreground)] truncate leading-tight">{label}</p>
+                          <p className="text-xs font-semibold text-[var(--foreground)] leading-tight flex items-center gap-1.5 flex-wrap break-words">
+                            <span className="break-all">{value}</span>
+                            {topBadges.map(({ cat, pos }) => (
+                              <span key={cat} className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-medium shrink-0" title={`Место в топе: ${pos}`}>
+                                <Trophy className="w-3 h-3" aria-hidden />
+                                {pos}
+                              </span>
+                            ))}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-
-          <div className="mt-3 shrink-0 flex flex-col items-center gap-1">
-            <Link
-              href={`/user/${user._id}`}
-              onClick={onClose}
-              className="flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity text-sm"
-            >
-              <User className="w-3.5 h-3.5 shrink-0" />
-              Посмотреть профиль
-            </Link>
-            {isCurrentUser && (
-              <span className="text-[11px] text-[var(--muted-foreground)]">Это вы</span>
             )}
+
+            <div className="flex flex-col items-center gap-1">
+              <Link
+                href={`/user/${user._id}`}
+                onClick={onClose}
+                className="flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity text-sm"
+              >
+                <User className="w-3.5 h-3.5 shrink-0" />
+                Посмотреть профиль
+              </Link>
+              {isCurrentUser && (
+                <span className="text-[11px] text-[var(--muted-foreground)]">Это вы</span>
+              )}
+            </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

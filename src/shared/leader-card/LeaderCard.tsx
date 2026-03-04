@@ -381,12 +381,12 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         </div>
       )}
 
-      <div className="relative z-10 mt-2 mb-1 md:mt-0 md:mb-4">
-        <div className="relative inline-block">
+      <div className={`relative z-10 mt-2 mb-1 md:mt-0 md:mb-4 shrink-0 ${avatarSize} aspect-square`}>
+        <div className="relative w-full h-full overflow-hidden rounded-full">
           <img
             src={avatarUrl}
             alt={user.username}
-            className={`${avatarSize} rounded-full object-cover border-2 ${styles.cardBorder} shadow-md bg-[var(--secondary)]`}
+            className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 ${styles.cardBorder} shadow-md bg-[var(--secondary)]`}
             onError={() => {
               if (avatarDecorationUrl && !avatarDecorationError) {
                 setAvatarDecorationError(true);
@@ -395,7 +395,8 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
               }
             }}
           />
-          {showFrame && (
+        </div>
+        {showFrame && (
             <img
               src={frameUrl}
               alt=""
@@ -405,7 +406,6 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
               aria-hidden
             />
           )}
-        </div>
       </div>
 
       <div className="relative z-10 w-full px-2 md:px-3 py-2 md:py-3 rounded-b-xl md:rounded-b-2xl bg-gradient-to-t from-black/90 via-black/75 to-black/40 md:from-black/75 md:via-transparent md:to-transparent">
@@ -490,25 +490,27 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
           ${hasRarityEffect ? rarityStyles.badgeClass : isTopTen ? "bg-[var(--primary)]/15 text-[var(--primary)]" : "bg-[var(--muted)] text-[var(--muted-foreground)]"}
         `}
       >
-        #{rank}
+        {rank}
       </div>
 
-      <div className="flex-shrink-0 relative z-10">
-        <img
-          src={avatarUrl}
-          alt={user.username}
-          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border bg-[var(--secondary)] ${isCurrentUser ? "border-[var(--primary)]" : hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}`}
-          onError={() => {
-            if (avatarDecorationUrl && !avatarDecorationError) setAvatarDecorationError(true);
-            else setAvatarError(true);
-          }}
-        />
+      <div className="flex-shrink-0 relative z-10 w-10 h-10 sm:w-11 sm:h-11 aspect-square">
+        <div className="w-full h-full overflow-hidden rounded-full">
+          <img
+            src={avatarUrl}
+            alt={user.username}
+            className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 bg-[var(--secondary)] ${isCurrentUser ? "border-[var(--primary)]" : hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}`}
+            onError={() => {
+              if (avatarDecorationUrl && !avatarDecorationError) setAvatarDecorationError(true);
+              else setAvatarError(true);
+            }}
+          />
+        </div>
         {showFrame && (
           <img
             src={frameUrl}
             alt=""
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10"
-            style={{ width: 44 * 1.2, height: 44 * 1.2, maxWidth: "none", maxHeight: "none" }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[108%] h-[108%] pointer-events-none object-contain z-10"
+            style={{ maxWidth: "none", maxHeight: "none" }}
             onError={() => setFrameError(true)}
             aria-hidden
           />

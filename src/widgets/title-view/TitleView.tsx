@@ -306,7 +306,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
             </div>
 
             <div className="w-full min-w-0 lg:flex-1">
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md shadow-sm p-5 sm:p-6 lg:p-8">
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md shadow-sm p-4 sm:p-5 lg:p-6">
                 <RightContent
                 titleData={titleData}
                 activeTab={activeTab}

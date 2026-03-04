@@ -7,7 +7,7 @@ import { getDecorationImageUrls } from "@/api/shop";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import type { DecorationType } from "@/api/shop";
 import {
-  useGetDecorationsQuery,
+  useGetAdminDecorationsQuery,
   useCreateDecorationMutation,
   useCreateDecorationWithImageMutation,
   useUpdateDecorationMutation,
@@ -62,11 +62,11 @@ export function ShopManagementSection() {
   const [deleteTarget, setDeleteTarget] = useState<Decoration | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const publicDecorationsQuery = useGetDecorationsQuery();
-  const decorations = publicDecorationsQuery.data ?? [];
-  const isLoading = publicDecorationsQuery.isLoading;
-  const error = publicDecorationsQuery.error;
-  const refetch = publicDecorationsQuery.refetch;
+  const adminDecorationsQuery = useGetAdminDecorationsQuery();
+  const decorations = adminDecorationsQuery.data ?? [];
+  const isLoading = adminDecorationsQuery.isLoading;
+  const error = adminDecorationsQuery.error;
+  const refetch = adminDecorationsQuery.refetch;
   const [createDecoration, { isLoading: isCreatingJson }] = useCreateDecorationMutation();
   const [createDecorationWithImage, { isLoading: isCreatingWithImage }] =
     useCreateDecorationWithImageMutation();
