@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ReportModal } from "@/shared/report/ReportModal";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useIntersectionTrigger } from "@/hooks/useIntersectionTrigger";
 import { useProgressNotification } from "@/contexts/ProgressNotificationContext";
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
@@ -147,91 +148,59 @@ function ReadChapterPageContent({
   const [isLoadingNextChapter, setIsLoadingNextChapter] = useState(false);
   const loadedChapterIdsRef = useRef<Set<string>>(new Set([chapter._id]));
   const [loadedChapterIds, setLoadedChapterIds] = useState<Set<string>>(new Set([chapter._id]));
-  const infiniteScrollObserverRef = useRef<IntersectionObserver | null>(null);
   
   // Чтение глав подряд: загруженные главы (текущая + подгруженные сверху/снизу)
   const [loadedChapters, setLoadedChapters] = useState<ReaderChapter[]>(() => [chapter]);
-  
-  // Callback ref для триггера бесконечного чтения
-  const infiniteScrollTriggerRef = useCallback((node: HTMLDivElement | null) => {
-    // Очищаем предыдущий observer
-    if (infiniteScrollObserverRef.current) {
-      infiniteScrollObserverRef.current.disconnect();
-      infiniteScrollObserverRef.current = null;
-    }
-    
-    if (!node || !infiniteScroll || isPagedMode) return;
-    
-    infiniteScrollObserverRef.current = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry.isIntersecting && !isLoadingNextChapter) {
-          // Находим последнюю загруженную главу
-          const lastLoadedChapter = loadedChapters[loadedChapters.length - 1];
-          const lastChapterIndex = chapters.findIndex(ch => ch._id === lastLoadedChapter._id);
-          
-          // Проверяем есть ли следующая глава
-          if (lastChapterIndex >= 0 && lastChapterIndex < chapters.length - 1) {
-            const nextChapter = chapters[lastChapterIndex + 1];
-            
-            // Проверяем что глава ещё не загружена (используем ref для актуального значения)
-            if (!loadedChapterIdsRef.current.has(nextChapter._id)) {
-              // Добавляем ID сразу в ref для предотвращения повторной загрузки
-              loadedChapterIdsRef.current.add(nextChapter._id);
-              setIsLoadingNextChapter(true);
-              
-              fetchChapterById(nextChapter._id)
-                .unwrap()
-                .then((chapterData) => {
-                  if (chapterData && chapterData._id) {
-                    // API may return different field names
-                    const apiData = chapterData as Chapter & { 
-                      images?: string[]; 
-                      title?: string;
-                      teamId?: string;
-                      translatorTeamId?: string;
-                    };
-                    const chapterImages = apiData.images || apiData.pages || [];
-                    const chapterNumber = apiData.chapterNumber ?? 0;
-                    
-                    const mappedChapter: ReaderChapter = {
-                      _id: apiData._id,
-                      number: typeof chapterNumber === 'string' ? parseFloat(chapterNumber) : chapterNumber,
-                      title: apiData.title || apiData.name || "",
-                      images: chapterImages,
-                      views: typeof apiData.views === 'string' ? parseInt(apiData.views) : (apiData.views || 0),
-                      createdAt: apiData.createdAt,
-                      updatedAt: apiData.updatedAt,
-                      teamId: apiData.teamId || apiData.translatorTeamId,
-                    };
-                    
-                    setLoadedChapters(prev => [...prev, mappedChapter]);
-                    setLoadedChapterIds(prev => new Set([...prev, mappedChapter._id]));
-                    
-                    if (isAuthenticated) {
-                      addToReadingHistory(titleId, mappedChapter._id);
-                    }
-                  }
-                })
-                .catch(() => {
-                  // Remove from ref on error to allow retry
-                  loadedChapterIdsRef.current.delete(nextChapter._id);
-                })
-                .finally(() => {
-                  setIsLoadingNextChapter(false);
-                });
-            }
-          }
+
+  const loadNextChapterInfiniteScroll = useCallback(() => {
+    if (loadedChapters.length === 0) return;
+    const lastLoadedChapter = loadedChapters[loadedChapters.length - 1];
+    const lastChapterIndex = chapters.findIndex(ch => ch._id === lastLoadedChapter._id);
+    if (lastChapterIndex < 0 || lastChapterIndex >= chapters.length - 1) return;
+    const nextChapter = chapters[lastChapterIndex + 1];
+    if (loadedChapterIdsRef.current.has(nextChapter._id)) return;
+    loadedChapterIdsRef.current.add(nextChapter._id);
+    setIsLoadingNextChapter(true);
+    fetchChapterById(nextChapter._id)
+      .unwrap()
+      .then((chapterData) => {
+        if (chapterData && chapterData._id) {
+          const apiData = chapterData as Chapter & {
+            images?: string[];
+            title?: string;
+            teamId?: string;
+            translatorTeamId?: string;
+          };
+          const chapterImages = apiData.images || apiData.pages || [];
+          const chapterNumber = apiData.chapterNumber ?? 0;
+          const mappedChapter: ReaderChapter = {
+            _id: apiData._id,
+            number: typeof chapterNumber === "string" ? parseFloat(chapterNumber) : chapterNumber,
+            title: apiData.title || apiData.name || "",
+            images: chapterImages,
+            views: typeof apiData.views === "string" ? parseInt(apiData.views) : (apiData.views || 0),
+            createdAt: apiData.createdAt,
+            updatedAt: apiData.updatedAt,
+            teamId: apiData.teamId || apiData.translatorTeamId,
+          };
+          setLoadedChapters(prev => [...prev, mappedChapter]);
+          setLoadedChapterIds(prev => new Set([...prev, mappedChapter._id]));
+          if (isAuthenticated) addToReadingHistory(titleId, mappedChapter._id);
         }
-      },
-      {
-        rootMargin: "300px",
-        threshold: 0,
-      }
-    );
-    
-    infiniteScrollObserverRef.current.observe(node);
-  }, [infiniteScroll, isPagedMode, isLoadingNextChapter, loadedChapters, chapters, fetchChapterById, isAuthenticated, addToReadingHistory, titleId]);
+      })
+      .catch(() => {
+        loadedChapterIdsRef.current.delete(nextChapter._id);
+      })
+      .finally(() => {
+        setIsLoadingNextChapter(false);
+      });
+  }, [loadedChapters, chapters, fetchChapterById, isAuthenticated, addToReadingHistory, titleId]);
+
+  const infiniteScrollTriggerRef = useIntersectionTrigger(loadNextChapterInfiniteScroll, {
+    enabled: Boolean(infiniteScroll && !isPagedMode && !isLoadingNextChapter),
+    rootMargin: "300px",
+    threshold: 0,
+  });
   
   const calculateReadingTime = useCallback((imagesCount: number, contentHeight?: number) => {
     const pixelsPerSecond = 120;
@@ -254,6 +223,7 @@ function ReadChapterPageContent({
   const [loadingNext, setLoadingNext] = useState(false);
   const [visibleChapterId, setVisibleChapterId] = useState<string>(chapterId);
   const chapterSectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const firstChapterContainerRef = useRef<HTMLDivElement | null>(null);
   const loadingChapterIdsRef = useRef<Set<string>>(new Set());
   // Последовательное отображение картинок в режиме «главы подряд»: показываем только когда все предыдущие в главе загружены
   const [loadedImagesByChapter, setLoadedImagesByChapter] = useState<Record<string, Set<number>>>({});
@@ -703,15 +673,6 @@ function ReadChapterPageContent({
     }
   }, []);
 
-  // Очистка observer при размонтировании
-  useEffect(() => {
-    return () => {
-      if (infiniteScrollObserverRef.current) {
-        infiniteScrollObserverRef.current.disconnect();
-      }
-    };
-  }, []);
-
   // Функция восстановления позиции
   const restorePosition = useCallback((page: number) => {
     setSavedReadingPage(page);
@@ -1037,11 +998,54 @@ function ReadChapterPageContent({
     return () => observer.disconnect();
   }, [infiniteScroll, isPagedMode, loadedChapters.length, visibleChapterId, slug, titleId]);
 
+  // Размонт первой главы, когда она ушла за верх экрана; компенсируем скролл, чтобы экран не прыгал
+  useEffect(() => {
+    if (!infiniteScroll || isPagedMode || loadedChapters.length <= 1) return;
+    const el = firstChapterContainerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const rect = entry.boundingClientRect;
+        if (rect.bottom >= 0) return;
+        const target = entry.target as HTMLElement;
+        const chapterId = target.getAttribute("data-infinite-chapter");
+        if (!chapterId) return;
+        const height = target.offsetHeight;
+        setLoadedChapters(prev => {
+          if (prev.length <= 1 || prev[0]._id !== chapterId) return prev;
+          return prev.slice(1);
+        });
+        setLoadedImagesByChapter(im => {
+          const next = { ...im };
+          delete next[chapterId];
+          return next;
+        });
+        setLoadedChapterIds(prev => {
+          const next = new Set(prev);
+          next.delete(chapterId);
+          return next;
+        });
+        loadedChapterIdsRef.current.delete(chapterId);
+        requestAnimationFrame(() => window.scrollBy(0, -height));
+      },
+      { root: null, rootMargin: "0px", threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [infiniteScroll, isPagedMode, loadedChapters.length]);
+
   const loading = !chapter;
 
   // В режиме «главы подряд» или бесконечного чтения текущая для хедера/контролов — видимая глава
   const effectiveChapter = (isChaptersInRowMode || infiniteScroll)
     ? (loadedChapters.find(c => c._id === visibleChapterId) ?? chapter)
+    : chapter;
+
+  // В бесконечном чтении первый блок — первая глава из списка; при выходе из viewport она размонтируется
+  const displayChapter = (infiniteScroll && !isPagedMode && loadedChapters.length > 0)
+    ? loadedChapters[0]
     : chapter;
 
   const estimatedReadingTime = useMemo(() => {
@@ -1394,15 +1398,19 @@ function ReadChapterPageContent({
             </>
           ) : (
           <>
-          <div className="chapter-container" data-infinite-chapter={chapter._id}>
+          <div
+            ref={infiniteScroll && !isPagedMode ? firstChapterContainerRef : undefined}
+            className="chapter-container"
+            data-infinite-chapter={displayChapter._id}
+          >
             {/* Заголовок главы */}
             <div className="bg-[var(--primary)]/10 py-6 mb-8">
               <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
                 <div className="h-px bg-[var(--primary)]/30 flex-1" />
                 <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
-                  <span className="text-sm font-bold text-[var(--primary)]">Глава {chapter.number}</span>
-                  {shouldShowChapterTitle(chapter.title, chapter.number) && (
-                    <span className="text-sm text-[var(--muted-foreground)]">{chapter.title}</span>
+                  <span className="text-sm font-bold text-[var(--primary)]">Глава {displayChapter.number}</span>
+                  {shouldShowChapterTitle(displayChapter.title, displayChapter.number) && (
+                    <span className="text-sm text-[var(--muted-foreground)]">{displayChapter.title}</span>
                   )}
                 </div>
                 <div className="h-px bg-[var(--primary)]/30 flex-1" />
@@ -1414,22 +1422,22 @@ function ReadChapterPageContent({
               <>
                 <div className="py-3 sm:py-2 text-center">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--muted)]/60 text-sm text-[var(--muted-foreground)]">
-                    Страница <span className="font-semibold text-[var(--foreground)]">{currentPage}</span> / {chapter.images.length}
+                    Страница <span className="font-semibold text-[var(--foreground)]">{currentPage}</span> / {displayChapter.images.length}
                   </div>
                 </div>
-                {chapter.images[pagedImageIndex] && (() => {
+                {displayChapter.images[pagedImageIndex] && (() => {
                   const imageIndex = pagedImageIndex;
-                  const src = chapter.images[imageIndex];
-                  const errorKey = `${chapter._id}-${imageIndex}`;
+                  const src = displayChapter.images[imageIndex];
+                  const errorKey = `${displayChapter._id}-${imageIndex}`;
                   const isError = imageLoadErrors.has(errorKey);
-                  const imageUrl = getImageUrlWithFallback(src, chapter._id, imageIndex);
+                  const imageUrl = getImageUrlWithFallback(src, displayChapter._id, imageIndex);
                   const useFallback = imageFallbacks.has(errorKey);
-                  const loadedInChapter = loadedImagesByChapter[chapter._id] ?? new Set<number>();
+                  const loadedInChapter = loadedImagesByChapter[displayChapter._id] ?? new Set<number>();
                   const isImageLoaded = loadedInChapter.has(imageIndex);
 
                   return (
                     <div 
-                      key={`${chapter._id}-${imageIndex}`} 
+                      key={`${displayChapter._id}-${imageIndex}`} 
                       className="flex justify-center select-none"
                       onTouchStart={handleTouchStart}
                       onTouchEnd={handleTouchEnd}
@@ -1442,7 +1450,7 @@ function ReadChapterPageContent({
                           transition: "filter 200ms ease-out",
                           ...imageFilterStyle,
                         }}
-                        onClick={() => handleImageDoubleTap(imageUrl, `Глава ${chapter.number}, Страница ${imageIndex + 1}`)}
+                        onClick={() => handleImageDoubleTap(imageUrl, `Глава ${displayChapter.number}, Страница ${imageIndex + 1}`)}
                       >
                         {/* Skeleton loader */}
                         {!isImageLoaded && !isError && (
@@ -1467,10 +1475,10 @@ function ReadChapterPageContent({
                         {!isError ? (
                           <>
                             <Image
-                              key={`${chapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
+                              key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
                               loader={imageLoader}
                               src={imageUrl}
-                              alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
+                              alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
                               className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -1479,10 +1487,10 @@ function ReadChapterPageContent({
                               onLoad={() =>
                                 setLoadedImagesByChapter(prev => ({
                                   ...prev,
-                                  [chapter._id]: new Set(prev[chapter._id] ?? []).add(imageIndex),
+                                  [displayChapter._id]: new Set(prev[displayChapter._id] ?? []).add(imageIndex),
                                 }))
                               }
-                              onError={() => handleImageError(chapter._id, imageIndex, src)}
+                              onError={() => handleImageError(displayChapter._id, imageIndex, src)}
                               priority
                             />
                             {/* Zoom hint on first page */}
@@ -1562,8 +1570,8 @@ function ReadChapterPageContent({
                       <span className="sm:hidden">Назад</span>
                     </button>
                     <button
-                      onClick={() => setCurrentPage(prev => Math.min(chapter.images.length, prev + 1))}
-                      disabled={currentPage >= chapter.images.length}
+                      onClick={() => setCurrentPage(prev => Math.min(displayChapter.images.length, prev + 1))}
+                      disabled={currentPage >= displayChapter.images.length}
                       className="group flex cursor-pointer items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-sm font-medium min-h-[48px] touch-manipulation active:scale-95"
                     >
                       <span className="hidden sm:inline">Следующая страница</span>
@@ -1574,17 +1582,17 @@ function ReadChapterPageContent({
                 </div>
               </>
             ) : (
-              chapter.images.map((src, imageIndex) => {
-                const errorKey = `${chapter._id}-${imageIndex}`;
+              displayChapter.images.map((src, imageIndex) => {
+                const errorKey = `${displayChapter._id}-${imageIndex}`;
                 const isError = imageLoadErrors.has(errorKey);
-                const imageUrl = getImageUrlWithFallback(src, chapter._id, imageIndex);
+                const imageUrl = getImageUrlWithFallback(src, displayChapter._id, imageIndex);
                 const useFallback = imageFallbacks.has(errorKey);
-                const loadedInChapter = loadedImagesByChapter[chapter._id] ?? new Set<number>();
+                const loadedInChapter = loadedImagesByChapter[displayChapter._id] ?? new Set<number>();
                 const isImageLoaded = loadedInChapter.has(imageIndex);
 
                 return (
                   <div 
-                    key={`${chapter._id}-${imageIndex}`} 
+                    key={`${displayChapter._id}-${imageIndex}`} 
                     className="flex justify-center reader-image-container"
                     style={{ marginBottom: `${pageGap}px` }}
                   >
@@ -1621,10 +1629,10 @@ function ReadChapterPageContent({
                       
                       {!isError ? (
                         <Image
-                          key={`${chapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
+                          key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
                           loader={imageLoader}
                           src={imageUrl}
-                          alt={`Глава ${chapter.number}, Страница ${imageIndex + 1}`}
+                          alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
                           width={isMobile ? 800 : imageWidth}
                           height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
                           className={`${imageFitClass} shadow-lg sm:shadow-2xl transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -1657,10 +1665,10 @@ function ReadChapterPageContent({
                           onLoad={() =>
                             setLoadedImagesByChapter(prev => ({
                               ...prev,
-                              [chapter._id]: new Set(prev[chapter._id] ?? []).add(imageIndex),
+                              [displayChapter._id]: new Set(prev[displayChapter._id] ?? []).add(imageIndex),
                             }))
                           }
-                          onError={() => handleImageError(chapter._id, imageIndex, src)}
+                          onError={() => handleImageError(displayChapter._id, imageIndex, src)}
                           priority={
                             imageLoadPriority.size > 0
                               ? imageLoadPriority.get(imageIndex + 1) === "high"
@@ -1714,7 +1722,7 @@ function ReadChapterPageContent({
             {/* Реакции на главу */}
             <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-8">
               <ChapterReactions
-                chapterId={chapter._id}
+                chapterId={displayChapter._id}
                 titleId={titleId}
               />
             </div>
@@ -1727,7 +1735,7 @@ function ReadChapterPageContent({
             </div>
 
             {/* Секция комментариев */}
-            <ChapterCommentsSection chapterId={chapter._id} />
+            <ChapterCommentsSection chapterId={displayChapter._id} />
 
             {/* Футер главы с кнопками навигации */}
             {!infiniteScroll && (
@@ -1788,7 +1796,8 @@ function ReadChapterPageContent({
                 
                 {/* Сообщение когда больше нет глав */}
                 {!isLoadingNextChapter && (() => {
-                  const lastChapterIndex = chapters.findIndex(ch => ch._id === chapter._id);
+                  const currentId = loadedChapters[0]?._id ?? chapter._id;
+                  const lastChapterIndex = chapters.findIndex(ch => ch._id === currentId);
                   const hasMoreChapters = lastChapterIndex < chapters.length - 1;
                   
                   return !hasMoreChapters ? (
@@ -1811,7 +1820,7 @@ function ReadChapterPageContent({
             )}
           </div>
 
-          {/* Бесконечное чтение: дополнительные главы как отдельные блоки */}
+          {/* В бесконечном чтении в DOM только текущая глава — дополнительные не рендерятся */}
           {infiniteScroll && !isPagedMode && loadedChapters.length > 1 && (
             <>
               {loadedChapters.slice(1).map((loadedChapter, chapterIdx) => {
@@ -1821,7 +1830,6 @@ function ReadChapterPageContent({
                 
                 return (
                   <div key={loadedChapter._id} className="mt-0">
-                    {/* Разделитель между главами с атрибутом для отслеживания */}
                     <div 
                       className="bg-[var(--primary)]/10 py-6 mb-8"
                       data-infinite-chapter={loadedChapter._id}
@@ -1837,8 +1845,6 @@ function ReadChapterPageContent({
                         <div className="h-px bg-[var(--primary)]/30 flex-1" />
                       </div>
                     </div>
-                    
-                    {/* Изображения главы */}
                     <div className="max-w-4xl mx-auto">
                       {loadedChapter.images.map((src, imageIndex) => {
                         const errorKey = `${loadedChapter._id}-${imageIndex}`;
