@@ -1036,8 +1036,6 @@ function ReadChapterPageContent({
     return () => observer.disconnect();
   }, [infiniteScroll, isPagedMode, loadedChapters.length]);
 
-  const loading = !chapter;
-
   // В режиме «главы подряд» или бесконечного чтения текущая для хедера/контролов — видимая глава
   const effectiveChapter = (isChaptersInRowMode || infiniteScroll)
     ? (loadedChapters.find(c => c._id === visibleChapterId) ?? chapter)
@@ -1098,17 +1096,6 @@ function ReadChapterPageContent({
       setCurrentPage(chapter.images.length);
     }
   }, [isPagedMode, currentPage, chapter.images.length]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-          <p className="text-[var(--foreground)]">Загрузка главы...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!chapter) {
     return (

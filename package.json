@@ -10,6 +10,7 @@
     "lint": "eslint",
     "analyze": "ANALYZE=true next build",
     "bot:chapters": "node scripts/telegram-chapters-bot.mjs",
+    "check:api": "node scripts/check-api-endpoints.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "format:diff": "prettier --check . --diff"

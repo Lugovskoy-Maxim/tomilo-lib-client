@@ -62,8 +62,8 @@ export function ShopManagementSection() {
   const [deleteTarget, setDeleteTarget] = useState<Decoration | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  /** Skip when backend does not expose admin decorations API — set NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED=false to avoid the request. */
-  const skipAdminDecorations = process.env.NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED === "false";
+  /** Запрос выполняется только при NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED=true (бэкенд должен реализовать GET /api/shop/admin/decorations). Иначе показываем пустой список без 404. */
+  const skipAdminDecorations = process.env.NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED !== "true";
   const adminDecorationsQuery = useGetAdminDecorationsQuery(undefined, { skip: skipAdminDecorations });
   const decorations = adminDecorationsQuery.data ?? [];
   const isLoading = adminDecorationsQuery.isLoading;
@@ -343,10 +343,15 @@ export function ShopManagementSection() {
             <div className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-[var(--muted-foreground)]">
+          <div className="text-center py-12 text-[var(--muted-foreground)] space-y-2">
             {decorations.length === 0
               ? "Нет украшений. Добавьте первое."
               : "Нет украшений выбранного типа."}
+            {skipAdminDecorations && (
+              <p className="text-xs max-w-md mx-auto pt-2">
+                Чтобы загружать список с бэкенда, реализуйте GET /api/shop/admin/decorations и задайте NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED=true.
+              </p>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">

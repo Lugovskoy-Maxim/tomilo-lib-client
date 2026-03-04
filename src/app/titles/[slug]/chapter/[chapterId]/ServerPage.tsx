@@ -145,10 +145,10 @@ export default async function ServerChapterPage({
       alternativeTitles: serverTitle.altNames || [],
     };
 
-    // Find chapter by _id
-    const currentChapter = mappedChapters.find(c => c._id === chapterId);
+    // Find chapter by _id; для открытой главы подставляем страницы из chapterData (полный ответ API)
+    const listChapter = mappedChapters.find(c => c._id === chapterId);
 
-    if (!currentChapter) {
+    if (!listChapter) {
       return (
         <ChapterErrorState
           title="Глава не найдена"
@@ -157,6 +157,14 @@ export default async function ServerChapterPage({
         />
       );
     }
+
+    const currentChapter: ReadChapter = {
+      ...listChapter,
+      images:
+        Array.isArray(chapterData.pages) && chapterData.pages.length > 0
+          ? chapterData.pages.map((p: string) => normalizeAssetUrl(p))
+          : listChapter.images,
+    };
 
     return (
       <ReadChapterPage

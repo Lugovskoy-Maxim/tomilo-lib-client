@@ -1,261 +1,230 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Heart, ThumbsUp, ThumbsDown, Flame, Sparkles, Skull, Laugh, Loader2, Star } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Loader2, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { CHAPTER_ALLOWED_REACTION_EMOJIS } from "@/types/chapter";
+import {
+  useGetChapterRatingQuery,
+  useSetChapterRatingMutation,
+  useGetChapterReactionsCountQuery,
+  useToggleChapterReactionMutation,
+} from "@/store/api/chaptersApi";
+
+const EMOJI_LABELS: Record<string, string> = {
+  "👍": "Нравится",
+  "👎": "Не нравится",
+  "❤️": "Сердце",
+  "🔥": "Огонь",
+  "😂": "Смешно",
+  "😮": "Вау",
+  "😢": "Грустно",
+  "🎉": "Праздник",
+  "👏": "Аплодисменты",
+};
 
 interface ChapterReactionsProps {
   chapterId: string;
   titleId: string;
-  initialLikes?: number;
-  initialDislikes?: number;
   onLoginRequired?: () => void;
 }
 
-type ReactionType = "like" | "dislike" | "fire" | "sparkle" | "skull" | "laugh";
-
-interface ReactionConfig {
-  type: ReactionType;
-  icon: React.ElementType;
-  label: string;
-  emoji: string;
-  activeColor: string;
-  bgColor: string;
-  glowColor: string;
-}
-
-const reactions: ReactionConfig[] = [
-  { type: "like", icon: ThumbsUp, label: "Нравится", emoji: "👍", activeColor: "text-blue-400", bgColor: "bg-blue-500/15", glowColor: "shadow-blue-500/30" },
-  { type: "fire", icon: Flame, label: "Огонь", emoji: "🔥", activeColor: "text-orange-400", bgColor: "bg-orange-500/15", glowColor: "shadow-orange-500/30" },
-  { type: "sparkle", icon: Sparkles, label: "Круто", emoji: "✨", activeColor: "text-yellow-400", bgColor: "bg-yellow-500/15", glowColor: "shadow-yellow-500/30" },
-  { type: "laugh", icon: Laugh, label: "Смешно", emoji: "😂", activeColor: "text-green-400", bgColor: "bg-green-500/15", glowColor: "shadow-green-500/30" },
-  { type: "skull", icon: Skull, label: "RIP", emoji: "💀", activeColor: "text-purple-400", bgColor: "bg-purple-500/15", glowColor: "shadow-purple-500/30" },
-  { type: "dislike", icon: ThumbsDown, label: "Не нравится", emoji: "👎", activeColor: "text-red-400", bgColor: "bg-red-500/15", glowColor: "shadow-red-500/30" },
-];
-
 export function ChapterReactions({
   chapterId,
-  titleId,
-  initialLikes = 0,
-  initialDislikes = 0,
+  titleId: _titleId,
   onLoginRequired,
 }: ChapterReactionsProps) {
-  const { user, isAuthenticated } = useAuth();
-  const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(null);
-  const [reactionCounts, setReactionCounts] = useState<Record<ReactionType, number>>({
-    like: initialLikes,
-    dislike: initialDislikes,
-    fire: 0,
-    sparkle: 0,
-    skull: 0,
-    laugh: 0,
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [showAllReactions, setShowAllReactions] = useState(false);
-  const [animatingReaction, setAnimatingReaction] = useState<ReactionType | null>(null);
+  const { isAuthenticated } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [animatingEmoji, setAnimatingEmoji] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedReaction = localStorage.getItem(`chapter-reaction-${chapterId}`);
-      if (savedReaction) {
-        setSelectedReaction(savedReaction as ReactionType);
-      }
-    }
-  }, [chapterId]);
+  useEffect(() => setMounted(true), []);
 
-  const handleReaction = async (type: ReactionType) => {
+  const { data: ratingData, error: ratingError, isError: isRatingError } = useGetChapterRatingQuery(
+    chapterId,
+    { skip: !chapterId }
+  );
+  const [setRating, { isLoading: isRatingLoading }] = useSetChapterRatingMutation();
+
+  const { data: countData, error: countError, isError: isCountError } =
+    useGetChapterReactionsCountQuery(chapterId, { skip: !chapterId });
+
+  const ratingUnavailable = isRatingError && (ratingError as { status?: number })?.status === 404;
+  const reactionsUnavailable = isCountError && (countError as { status?: number })?.status === 404;
+  const apiUnavailable = ratingUnavailable && reactionsUnavailable;
+
+  const [toggleReaction, { isLoading: isReactionLoading }] =
+    useToggleChapterReactionMutation();
+
+  const rating = ratingData ?? null;
+  const averageRating = rating?.averageRating ?? (rating?.ratingSum != null && (rating?.ratingCount ?? 0) > 0
+    ? (rating.ratingSum! / (rating.ratingCount ?? 1))
+    : null);
+  const ratingCount = rating?.ratingCount ?? 0;
+  const userRating = rating?.userRating ?? null;
+  const ratingAvailable = !ratingUnavailable;
+
+  const countByEmoji = useMemo(() => {
+    const map: Record<string, number> = {};
+    countData?.data?.reactions?.forEach((r) => {
+      map[r.emoji] = r.count;
+    });
+    return map;
+  }, [countData?.data?.reactions]);
+
+  const totalReactions = useMemo(
+    () => Object.values(countByEmoji).reduce((a, b) => a + b, 0),
+    [countByEmoji]
+  );
+
+  const handleReaction = async (emoji: string) => {
     if (!isAuthenticated) {
       onLoginRequired?.();
       return;
     }
-
-    setIsLoading(true);
-    setAnimatingReaction(type);
-    
+    setAnimatingEmoji(emoji);
     try {
-      const previousReaction = selectedReaction;
-      
-      if (selectedReaction === type) {
-        setSelectedReaction(null);
-        setReactionCounts(prev => ({
-          ...prev,
-          [type]: Math.max(0, prev[type] - 1),
-        }));
-        localStorage.removeItem(`chapter-reaction-${chapterId}`);
-      } else {
-        if (previousReaction) {
-          setReactionCounts(prev => ({
-            ...prev,
-            [previousReaction]: Math.max(0, prev[previousReaction] - 1),
-          }));
-        }
-        
-        setSelectedReaction(type);
-        setReactionCounts(prev => ({
-          ...prev,
-          [type]: prev[type] + 1,
-        }));
-        localStorage.setItem(`chapter-reaction-${chapterId}`, type);
-      }
-    } catch (error) {
-      console.error("Reaction error:", error);
+      await toggleReaction({ chapterId, body: { emoji } }).unwrap();
+      setSelectedEmoji((prev) => (prev === emoji ? null : emoji));
+    } catch (e) {
+      const err = e as { status?: number };
+      if (err?.status === 404) return; // эндпоинт ещё не реализован на бэкенде
+      console.error("Reaction error:", e);
     } finally {
-      setIsLoading(false);
-      setTimeout(() => setAnimatingReaction(null), 300);
+      setAnimatingEmoji(null);
     }
   };
 
-  const totalReactions = Object.values(reactionCounts).reduce((a, b) => a + b, 0);
-  const primaryReactions = reactions.slice(0, 3);
-  const secondaryReactions = reactions.slice(3);
+  const handleRating = async (value: number) => {
+    if (!isAuthenticated) {
+      onLoginRequired?.();
+      return;
+    }
+    try {
+      await setRating({ chapterId, body: { value } }).unwrap();
+    } catch (e) {
+      const err = e as { status?: number };
+      if (err?.status === 404) return; // эндпоинт ещё не реализован на бэкенде
+      console.error("Rating error:", e);
+    }
+  };
+
+  const isLoading = isReactionLoading || isRatingLoading;
+
+  if (apiUnavailable) {
+    return (
+      <div className="rounded-xl border border-[var(--border)]/30 bg-[var(--card)]/60 px-4 py-3">
+        <p className="text-sm text-[var(--muted-foreground)]">
+          Оценка и реакции появятся после обновления сервера.
+        </p>
+      </div>
+    );
+  }
+
+  const showRatingBlock = ratingAvailable;
+  const showReactionsBlock = !reactionsUnavailable;
 
   return (
-    <div className="relative overflow-hidden">
-      {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-[var(--accent)]/5 rounded-2xl" />
-      
-      <div className="relative bg-[var(--card)]/80 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-[var(--border)]/40 shadow-lg">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/60 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
-                <Star className="w-5 h-5 text-white" fill="currentColor" />
-              </div>
-              {selectedReaction && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--card)] border-2 border-[var(--border)] flex items-center justify-center text-xs">
-                  {reactions.find(r => r.type === selectedReaction)?.emoji}
-                </div>
-              )}
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--foreground)]">Оцените главу</h3>
-              <p className="text-xs text-[var(--muted-foreground)]">Ваша реакция важна для автора</p>
-            </div>
+    <div className="rounded-xl border border-[var(--border)]/30 bg-[var(--card)]/60 px-4 py-4 sm:px-5 sm:py-4">
+      {/* Compact header: one line with label + optional total */}
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <span className="text-sm text-[var(--muted-foreground)]">Оцените главу</span>
+        {(totalReactions > 0 || ratingCount > 0) && (
+          <span className="text-xs text-[var(--muted-foreground)] tabular-nums">
+            {totalReactions + ratingCount} отзывов
+          </span>
+        )}
+      </div>
+
+      {/* Star rating — компактная строка */}
+      {showRatingBlock && (
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex gap-0.5" role="group" aria-label="Рейтинг от 1 до 5">
+            {[1, 2, 3, 4, 5].map((value) => {
+              const current = userRating ?? 0;
+              const isSelected = value <= current;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  disabled={!mounted || !isAuthenticated || isRatingLoading}
+                  onClick={() => handleRating(value)}
+                  className={`p-1 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isSelected
+                      ? "text-amber-500"
+                      : "text-[var(--muted-foreground)]/60 hover:text-amber-500/70"
+                  }`}
+                  title={`${value} из 5`}
+                >
+                  <Star
+                    className="w-5 h-5"
+                    fill={isSelected ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  />
+                </button>
+              );
+            })}
           </div>
-          
-          {totalReactions > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--accent)]/10 rounded-full border border-[var(--primary)]/20">
-              <Heart className="w-3.5 h-3.5 text-[var(--primary)]" fill="currentColor" />
-              <span className="text-sm font-bold text-[var(--primary)]">{totalReactions}</span>
-            </div>
+          {averageRating != null && ratingCount > 0 && (
+            <span className="text-xs text-[var(--muted-foreground)] tabular-nums">
+              {averageRating.toFixed(1)} · {ratingCount}
+            </span>
           )}
         </div>
+      )}
 
-        {/* Primary Reactions */}
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {primaryReactions.map(reaction => {
-            const Icon = reaction.icon;
-            const isSelected = selectedReaction === reaction.type;
-            const count = reactionCounts[reaction.type];
-            const isAnimating = animatingReaction === reaction.type;
+      {ratingUnavailable && !reactionsUnavailable && (
+        <p className="text-xs text-[var(--muted-foreground)] mb-3">Рейтинг временно недоступен.</p>
+      )}
+
+      {/* Reactions — только эмодзи + счётчик, без подписей */}
+      {showReactionsBlock && (
+        <div className="flex flex-wrap gap-1.5">
+          {CHAPTER_ALLOWED_REACTION_EMOJIS.map((emoji) => {
+            const isSelected = selectedEmoji === emoji;
+            const count = countByEmoji[emoji] ?? 0;
+            const isAnimating = animatingEmoji === emoji;
 
             return (
               <button
-                key={reaction.type}
-                onClick={() => handleReaction(reaction.type)}
+                key={emoji}
+                type="button"
+                onClick={() => handleReaction(emoji)}
                 disabled={isLoading}
-                className={`group relative flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl transition-all duration-300 active:scale-95 ${
+                title={EMOJI_LABELS[emoji] ?? emoji}
+                className={`flex items-center gap-1.5 min-w-[2.25rem] h-9 px-2 rounded-lg transition-colors active:scale-95 disabled:opacity-50 ${
                   isSelected
-                    ? `${reaction.bgColor} ${reaction.activeColor} ring-2 ring-current shadow-lg ${reaction.glowColor}`
-                    : "bg-[var(--secondary)]/80 text-[var(--muted-foreground)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] hover:shadow-md"
-                } ${isAnimating ? 'scale-110' : ''}`}
-                title={reaction.label}
+                    ? "bg-[var(--primary)]/15 text-[var(--foreground)]"
+                    : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]/80 hover:text-[var(--foreground)]"
+                } ${isAnimating ? "scale-105" : ""}`}
               >
-                {isLoading && selectedReaction === reaction.type ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                {isLoading && animatingEmoji === emoji ? (
+                  <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
                 ) : (
-                  <span className={`text-lg sm:text-xl transition-transform duration-300 ${isSelected ? "scale-110" : "group-hover:scale-110"}`}>
-                    {reaction.emoji}
-                  </span>
+                  <span className="text-base leading-none">{emoji}</span>
                 )}
-                <span className="text-sm font-medium hidden sm:inline">{reaction.label}</span>
                 {count > 0 && (
-                  <span className={`text-xs sm:text-sm font-bold px-2 py-0.5 rounded-full ${
-                    isSelected ? 'bg-white/20' : 'bg-[var(--muted)]/50'
-                  }`}>
+                  <span className="text-xs text-[var(--muted-foreground)] tabular-nums min-w-[1rem] text-right">
                     {count}
                   </span>
                 )}
               </button>
             );
           })}
-
-          {/* More button */}
-          <button
-            onClick={() => setShowAllReactions(!showAllReactions)}
-            className={`flex items-center justify-center gap-1.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-[var(--secondary)]/80 hover:bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all duration-200 active:scale-95 ${
-              showAllReactions ? "ring-2 ring-[var(--primary)]/30 bg-[var(--primary)]/5" : ""
-            }`}
-          >
-            <span className="text-sm font-medium">Ещё</span>
-            <span className="flex -space-x-1">
-              {secondaryReactions.slice(0, 3).map(r => (
-                <span key={r.type} className="text-sm">{r.emoji}</span>
-              ))}
-            </span>
-          </button>
         </div>
+      )}
 
-        {/* Secondary Reactions */}
-        {showAllReactions && (
-          <div className="mt-4 pt-4 border-t border-[var(--border)]/30 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="flex flex-wrap gap-2">
-              {secondaryReactions.map(reaction => {
-                const Icon = reaction.icon;
-                const isSelected = selectedReaction === reaction.type;
-                const count = reactionCounts[reaction.type];
-                const isAnimating = animatingReaction === reaction.type;
+      {reactionsUnavailable && ratingAvailable && (
+        <p className="text-xs text-[var(--muted-foreground)]">Реакции временно недоступны.</p>
+      )}
 
-                return (
-                  <button
-                    key={reaction.type}
-                    onClick={() => handleReaction(reaction.type)}
-                    disabled={isLoading}
-                    className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-300 active:scale-95 ${
-                      isSelected
-                        ? `${reaction.bgColor} ${reaction.activeColor} ring-2 ring-current shadow-md ${reaction.glowColor}`
-                        : "bg-[var(--secondary)]/60 text-[var(--muted-foreground)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
-                    } ${isAnimating ? 'scale-110' : ''}`}
-                    title={reaction.label}
-                  >
-                    {isLoading && selectedReaction === reaction.type ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <span className={`text-base transition-transform duration-200 ${isSelected ? "scale-110" : "group-hover:scale-110"}`}>
-                        {reaction.emoji}
-                      </span>
-                    )}
-                    <span className="text-xs font-medium">{reaction.label}</span>
-                    {count > 0 && (
-                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
-                        isSelected ? 'bg-white/20' : 'bg-[var(--muted)]/50'
-                      }`}>
-                        {count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Selected reaction indicator */}
-        {selectedReaction && (
-          <div className="mt-4 pt-3 border-t border-[var(--border)]/30">
-            <div className="flex items-center justify-center gap-2 text-xs text-[var(--muted-foreground)]">
-              <span>Ваша оценка:</span>
-              <span className="flex items-center gap-1.5 px-2 py-1 bg-[var(--secondary)] rounded-full">
-                <span>{reactions.find(r => r.type === selectedReaction)?.emoji}</span>
-                <span className="font-medium text-[var(--foreground)]">
-                  {reactions.find(r => r.type === selectedReaction)?.label}
-                </span>
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
+      {selectedEmoji && (
+        <p className="mt-3 pt-3 border-t border-[var(--border)]/20 text-xs text-[var(--muted-foreground)]">
+          Ваша реакция: {selectedEmoji} {EMOJI_LABELS[selectedEmoji] ?? selectedEmoji}
+        </p>
+      )}
     </div>
   );
 }
