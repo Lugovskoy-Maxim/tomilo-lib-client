@@ -97,7 +97,39 @@
   color: var(--primary);
 }
 
-/* Поиск в хедере — тот же стиль, что и кнопки (высота, скругление, фон, бордер) */
+/* Кнопка-триггер поиска в хедере (десктоп) — в одном стиле с иконками */
+.header-search .search-container {
+  min-height: 44px;
+  height: 44px;
+  padding: 0 1rem 0 0.875rem;
+  border-radius: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.header-search .search-container:hover {
+  border-color: var(--primary);
+  color: var(--foreground);
+  background: var(--card);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.header-search .search-container[aria-expanded="true"] {
+  border-color: var(--primary);
+  color: var(--foreground);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 18%, transparent);
+}
+.header-search .search-container:hover svg,
+.header-search .search-container[aria-expanded="true"] svg {
+  color: var(--primary);
+}
+.header-search .search-container:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+}
+
+/* Поиск в хедере — инпут (legacy) */
 .header-search .search-input-modern {
   min-height: 44px;
   height: 44px;
@@ -180,7 +212,7 @@
 }
 
 .theme-toggle-btn:hover .theme-toggle-btn__icon {
-  transform: rotate(180deg) scale(1.1);
+  transform: scale(1.1);
   color: var(--primary);
 }
 

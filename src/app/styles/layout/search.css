@@ -1,6 +1,192 @@
 /* --- SEARCH --- */
 
-/* Modern search input */
+/* Overlay: фон при открытом поиске */
+.search-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: oklch(0 0 0 / 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: search-backdrop-in 0.2s ease-out forwards;
+}
+[data-theme="dark"] .search-overlay-backdrop {
+  background: oklch(0 0 0 / 0.55);
+}
+@keyframes search-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Панель поиска: окно с полем и результатами */
+.search-overlay-panel {
+  position: fixed;
+  left: 50%;
+  top: calc(var(--header-height) + 0.75rem);
+  transform: translateX(-50%);
+  z-index: 50;
+  width: min(90vw, 42rem);
+  min-width: 320px;
+  max-height: calc(100dvh - var(--header-height) - 1.5rem);
+  display: flex;
+  flex-direction: column;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, 1rem);
+  box-shadow:
+    0 0 0 1px oklch(0 0 0 / 0.03),
+    0 4px 6px -1px oklch(0 0 0 / 0.08),
+    0 20px 40px -12px oklch(0 0 0 / 0.18);
+  overflow: hidden;
+  animation: search-panel-in 0.25s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* На мобильном не заходить под нижнюю панель навигации */
+@media (max-width: 1023px) {
+  .search-overlay-panel {
+    max-height: calc(100dvh - var(--header-height) - var(--mobile-footer-bar-height) - 0.75rem);
+  }
+}
+
+[data-theme="dark"] .search-overlay-panel {
+  box-shadow:
+    0 0 0 1px oklch(1 0 0 / 0.06),
+    0 4px 6px -1px oklch(0 0 0 / 0.3),
+    0 24px 48px -12px oklch(0 0 0 / 0.5);
+}
+@keyframes search-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* Шапка панели: поле ввода в одну линию */
+.search-overlay-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--popover);
+}
+.search-overlay-input-wrap {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-overlay-input-wrap .search-overlay-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--muted-foreground);
+}
+.search-overlay-input {
+  width: 100%;
+  padding: 0.625rem 2.25rem 0.625rem 2.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-overlay-input::placeholder {
+  color: var(--muted-foreground);
+}
+.search-overlay-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 18%, transparent);
+}
+.search-overlay-actions {
+  position: absolute;
+  right: 0.375rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.search-overlay-close {
+  flex-shrink: 0;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.search-overlay-close:hover {
+  color: var(--foreground);
+  background: var(--secondary);
+}
+.search-overlay-close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* Область результатов — скролл */
+.search-overlay-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Секции внутри результатов */
+.search-results-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  background: color-mix(in oklch, var(--muted) 40%, transparent);
+}
+.search-result-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  margin: 0 0.5rem 0.25rem;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+.search-result-card:hover {
+  background: var(--accent);
+}
+.search-result-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.search-result-card-recent {
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem 0.125rem;
+  border-radius: 0.5rem;
+}
+.search-result-card-recent:hover {
+  background: var(--accent);
+}
+
+/* Modern search input (legacy/other usages) */
 .search-input-modern {
   background: rgba(var(--secondary-rgb), 0.6);
   border: 1px solid rgba(var(--border-rgb), 0.6);
@@ -28,7 +214,7 @@
               0 4px 20px rgba(var(--primary-rgb), 0.15);
 }
 
-/* Search results dropdown */
+/* Search results dropdown (legacy) */
 .search-results-modern {
   background: rgba(var(--background-rgb), 0.98);
   backdrop-filter: blur(20px);
@@ -44,7 +230,6 @@
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
-/* Новый поиск: панель результатов и инпут в хедере */
 .search-results-panel {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }

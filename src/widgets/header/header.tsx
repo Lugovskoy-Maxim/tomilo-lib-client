@@ -257,23 +257,14 @@ export default function Header() {
         </div>
         </div>
 
-      {/* Мобильная панель поиска */}
-      {isSearchOpen && !isDesktop && (
-        <div className="lg:hidden absolute top-full left-0 right-0 header-glass border-b border-[var(--border)]/50 z-40 animate-slide-down">
-          <div className="relative flex items-center gap-2 p-3">
-            <div className="flex-1 min-w-0">
-              <Search />
-            </div>
-            <button
-              type="button"
-              onClick={toggleSearch}
-              className="header-icon-btn flex-shrink-0"
-              aria-label="Закрыть поиск"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+      {/* Мобильный поиск: только панель по кнопке в хедере */}
+      {!isDesktop && (
+        <Search
+          trigger="none"
+          open={isSearchOpen}
+          onOpenChange={setIsSearchOpen}
+          showCloseInPanel
+        />
       )}
 
       </header>

@@ -31,7 +31,7 @@ export const TopCombinedSkeleton: React.FC = () => (
                   </div>
                   <div className="h-4 bg-[var(--muted)] rounded w-[90%] shimmer" />
                   <div className="h-4 bg-[var(--muted)] rounded w-[70%] shimmer" />
-                  <div className="flex items-center justify-between mt-1.5">
+                  <div className="flex items-center justify-between mt-1.5 px-2 py-0.5">
                     <div className="flex items-center gap-1">
                       <div className="w-3.5 h-3.5 bg-[var(--muted)] rounded shimmer" />
                       <div className="h-4 bg-[var(--muted)] rounded w-12 shimmer" />

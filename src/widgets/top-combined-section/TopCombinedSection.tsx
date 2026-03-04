@@ -140,7 +140,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
             >
               {item.title}
             </h4>
-            <div className="flex items-center justify-between mt-1.5">
+            <div className="flex items-center justify-between mt-1.5 px-2 py-0.5">
               {showViews ? (
                 <span className="flex gap-1 text-xs items-center text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors duration-300">
                   <Eye className="w-3.5 h-3.5" />
@@ -149,7 +149,6 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
               ) : (
                 <div />
               )}
-              
               {showRating && (
                 <RatingBadge rating={item.rating || 0} size="sm" variant="default" />
               )}

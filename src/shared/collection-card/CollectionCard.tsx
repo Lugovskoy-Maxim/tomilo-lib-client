@@ -42,7 +42,8 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
 
   const cardClasses = `
     group relative select-none rounded-xl overflow-hidden cursor-pointer block
-    card-focus-ring focus:outline-none active:scale-[0.99] transition-transform duration-200
+    card-focus-ring focus:outline-none active:scale-[0.99]
+    transition-all duration-200 ease-out
     ${isGrid ? "w-full" : "flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36"}
   `.trim().replace(/\s+/g, " ");
 
@@ -51,7 +52,7 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
 
   return (
     <Link href={collectionLink} draggable="false" className={cardClasses}>
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] shadow-md card-hover-soft ring-1 ring-[var(--border)]/50">
+      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] shadow-sm hover:shadow-md hover:border-[var(--primary)]/30 hover:ring-2 hover:ring-[var(--primary)]/15 transition-all duration-200">
         <div className="relative w-full h-full">
           <div className="absolute inset-0 overflow-hidden">
             <OptimizedImage
@@ -59,36 +60,39 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
               fallbackSrc={imageFallback}
               alt={collectionName || "Коллекция"}
               fill
-              className="object-cover w-full h-full card-media-hover"
+              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300 ease-out"
               priority={false}
             />
           </div>
 
-          {/* Градиент для читаемости текста */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent group-hover:from-black/95 transition-opacity duration-300" />
+          {/* Градиент только снизу — картинка читается лучше */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent group-hover:from-black/90 transition-colors duration-200" />
 
-          {/* Бейдж: количество тайтлов — только здесь, без дублирования */}
-          <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10">
-            <div className="flex items-center gap-1.5 bg-[var(--card)]/90 backdrop-blur-sm text-[var(--foreground)] text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-[var(--border)] shadow-lg min-w-[2.5rem] justify-center" title={`${titlesCount} ${titlesLabel}`}>
-              <Library className="w-3.5 h-3.5 shrink-0" aria-hidden />
+          {/* Бейдж: количество тайтлов — компактный стиль */}
+          <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 z-10">
+            <span
+              className="inline-flex items-center gap-1 bg-white/95 dark:bg-black/60 backdrop-blur-sm text-[var(--foreground)] text-[11px] sm:text-xs font-semibold px-2 py-1 rounded-md border border-[var(--border)]/80 shadow-sm"
+              title={`${titlesCount} ${titlesLabel}`}
+            >
+              <Library className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 opacity-80" aria-hidden />
               <span>{titlesCount}</span>
-            </div>
+            </span>
           </div>
 
-          {/* Контент внизу */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
-            <h3 className="text-sm sm:text-base font-semibold drop-shadow-md leading-tight line-clamp-2 group-hover:text-[var(--primary)] transition-colors duration-300">
+          {/* Контент внизу — фиксированная зона с отступами как у бейджей */}
+          <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3 text-white">
+            <h3 className="text-[13px] sm:text-sm font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] leading-snug line-clamp-2 group-hover:text-[var(--primary)] transition-colors duration-200 min-h-[2.5em] flex items-end">
               {collectionName || "Без названия"}
             </h3>
             {isGrid && (
-              <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/90">
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/85">
                 <span className="flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5 shrink-0" />
+                  <Eye className="w-3.5 h-3.5 shrink-0 opacity-90" />
                   {views} просмотров
                 </span>
                 {createdAt && (
                   <span className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 shrink-0" />
+                    <Calendar className="w-3.5 h-3.5 shrink-0 opacity-90" />
                     {new Date(createdAt).toLocaleDateString("ru-RU")}
                   </span>
                 )}
