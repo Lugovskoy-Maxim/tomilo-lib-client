@@ -23,12 +23,15 @@
   border-color: var(--border);
 }
 
-/* Пункт меню: простой hover и фокус, без лишней анимации */
+/* Пункт меню: простой hover и фокус, без лишней анимации. Сброс отступов у button для единообразия со ссылками. */
 .dropdown-item-modern {
   position: relative;
+  margin: 0;
   outline: none;
   border-radius: 0.5rem;
   border: none;
+  font: inherit;
+  text-align: left;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 

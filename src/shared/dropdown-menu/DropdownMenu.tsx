@@ -79,7 +79,7 @@ const THEME_LABELS: Record<string, string> = {
 };
 
 const itemClass =
-  "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none";
+  "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none m-0 border-0 bg-transparent";
 
 export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl, avatarDecorationUrl, leaderboardPositions = [] }: UserDropdownProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();

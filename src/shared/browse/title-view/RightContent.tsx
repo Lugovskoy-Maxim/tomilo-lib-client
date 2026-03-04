@@ -906,7 +906,7 @@ export function RightContent({
           </div>
 
           <div className="flex gap-2 w-full sm:w-auto">
-            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between sm:justify-end gap-2 sm:gap-x-3 sm:gap-y-1 px-3 pt-1.5 pb-2 rounded-2xl transition-all duration-300 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center sm:justify-end gap-2 sm:gap-x-3 sm:gap-y-1 px-3 pt-1.5 pb-2 rounded-2xl transition-all duration-300 w-full sm:w-auto">
               {/* Рейтинг и кол-во оценок */}
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-sm text-[var(--muted-foreground)] shrink-0">Рейтинг</span>
