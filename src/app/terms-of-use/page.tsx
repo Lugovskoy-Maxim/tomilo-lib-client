@@ -88,6 +88,47 @@ export default async function TermsOfServicePage({ searchParams }: TermsOfUsePag
               </ul>
             </div>
 
+            <div id="userContentRequirements">
+              <h2 className="content-card-section-title">
+                {currentContent.sections.userContentRequirements.title}
+              </h2>
+              <p className="content-card-body mb-4">
+                {currentContent.sections.userContentRequirements.intro}
+              </p>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="content-card-body font-semibold mb-2">
+                    {currentContent.sections.userContentRequirements.nickname.title}
+                  </h3>
+                  <ul className="content-card-body list-disc list-inside space-y-1">
+                    {currentContent.sections.userContentRequirements.nickname.items.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="content-card-body font-semibold mb-2">
+                    {currentContent.sections.userContentRequirements.avatar.title}
+                  </h3>
+                  <ul className="content-card-body list-disc list-inside space-y-1">
+                    {currentContent.sections.userContentRequirements.avatar.items.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="content-card-body font-semibold mb-2">
+                    {currentContent.sections.userContentRequirements.comments.title}
+                  </h3>
+                  <ul className="content-card-body list-disc list-inside space-y-1">
+                    {currentContent.sections.userContentRequirements.comments.items.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             <div id="userRights">
               <h2 className="content-card-section-title">{currentContent.sections.userRights.title}</h2>
               <ul className="content-card-body list-disc list-inside space-y-1">
