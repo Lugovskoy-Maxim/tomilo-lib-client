@@ -70,7 +70,7 @@ export default function LinesBackground() {
   // }, []);
 
   return (
-    <div className="lines-background" aria-hidden suppressHydrationWarning>
+    <div className="lines-background" aria-hidden={true} suppressHydrationWarning>
       {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {items.map(({ Icon, x, y, size, duration, delay }, i) => (
           <span

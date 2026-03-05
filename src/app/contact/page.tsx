@@ -1,12 +1,14 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { Mail, Send, Clock, Code } from "lucide-react";
+import { Mail, Send, Clock, Code, FileText } from "lucide-react";
 import { Header, Footer } from "@/widgets";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import BackButton from "@/shared/back-button/BackButton";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 
 const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+const LAST_UPDATED = "Последнее обновление: 06.03.2025";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildServerSEOMetadata({
@@ -66,11 +68,15 @@ export default function ContactPage() {
         <Header />
         <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden pb-12 sm:pb-16">
         <Breadcrumbs className="mb-6" />
-        <div className="content-page-hero">
+        <div className="content-card mb-6">
+          <div className="text-sm text-[var(--muted-foreground)]">{LAST_UPDATED}</div>
+        </div>
+        <div className="content-page-hero mb-10">
           <h1>Контакты</h1>
           <p>
-            Если вы столкнулись с проблемой, хотите предложить улучшение или задать вопрос по
-            сервису, напишите нам удобным способом. Мы всегда на связи.
+            Технические проблемы, предложения по улучшению или вопросы по сервису — напишите нам
+            по почте или в Telegram. По возможности укажите ссылку на страницу и опишите шаги,
+            чтобы мы могли быстрее помочь.
           </p>
         </div>
 
@@ -134,23 +140,40 @@ export default function ContactPage() {
             <ul className="content-card-body space-y-1">
               <li>Укажите ссылку на страницу, где возникла проблема</li>
               <li>Опишите шаги, после которых появляется ошибка</li>
-              <li>Если возможно, приложите скриншот</li>
-              <li>Для вопросов по контенту укажите название тайтла</li>
-              <li>Среднее время ответа: 1-3 рабочих дня</li>
+              <li>По возможности приложите скриншот (особенно для ошибок)</li>
+              <li>Для вопросов по тайтлу или главе — название и ссылку</li>
+              <li>Мы отвечаем в течение 1–3 рабочих дней</li>
             </ul>
           </section>
 
           <section className="content-card lg:col-span-2">
             <h3 className="content-card-section-title text-base">По каким вопросам можно писать</h3>
             <ul className="content-card-body text-sm space-y-1">
-              <li>Технические проблемы и ошибки интерфейса</li>
-              <li>Предложения по новым функциям</li>
-              <li>Пожелания по улучшению навигации и профиля</li>
-              <li>Жалобы и обращения по контенту</li>
-              <li>Вопросы по правилам и пользовательскому соглашению</li>
+              <li>Технические проблемы, ошибки и сбои в работе сайта</li>
+              <li>Предложения по новым функциям и улучшению интерфейса</li>
+              <li>Вопросы по аккаунту, настройкам и правилам платформы</li>
+              <li>Жалобы на контент или поведение пользователей</li>
+              <li>Сотрудничество и реклама — только на указанные контакты</li>
             </ul>
           </section>
+
+          <section className="content-card lg:col-span-2 border-l-4 border-[var(--primary)] pl-4 py-3 bg-[var(--accent)]/20 rounded-r-lg">
+            <h3 className="content-card-section-title text-base">
+              <FileText className="w-5 h-5" />
+              Вопросы по авторским правам
+            </h3>
+            <p className="content-card-body text-sm mb-0">
+              Уведомления о нарушении авторских прав и возражения (counter-notification) принимаются
+              по процедуре DMCA. Подробные требования и контакт агента указаны на странице{" "}
+              <Link href="/dmca" className="text-[var(--chart-1)] hover:underline font-medium">
+                Авторские права (DMCA)
+              </Link>
+              .
+            </p>
+          </section>
         </div>
+
+        <BackButton />
         </div>
         <Footer />
       </main>

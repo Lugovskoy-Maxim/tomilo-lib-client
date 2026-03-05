@@ -381,9 +381,9 @@ export default function FeaturedTitleBlock({
                 hidePlaceholder
               />
               {isAdultContent && isAgeVerified && (
-                <div className="absolute top-1 right-1 z-10">
-                  <div className="bg-red-500/80 backdrop-blur-sm text-white px-1 py-0.5 rounded text-[9px] font-bold">
-                    18+
+                <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
+                  <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
+                    <span>18+</span>
                   </div>
                 </div>
               )}
@@ -521,9 +521,9 @@ export default function FeaturedTitleBlock({
                 hidePlaceholder
               />
               {isAdultContent && isAgeVerified && (
-                <div className="absolute top-2 right-2 z-10">
-                  <div className="bg-red-500/80 backdrop-blur-sm text-white px-2 py-0.5 rounded text-xs font-bold">
-                    18+
+                <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
+                  <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
+                    <span>18+</span>
                   </div>
                 </div>
               )}

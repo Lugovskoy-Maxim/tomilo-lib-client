@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ShoppingBag, Check, Sparkles, ImageIcon, Coins, PackageX, X, Gift, Crown } from "lucide-react";
+import { ShoppingBag, Check, Sparkles, ImageIcon, Coins, PackageX, X, Crown } from "lucide-react";
 import Image from "next/image";
 import {
   Decoration,
@@ -37,31 +37,56 @@ const RARITY_STYLES: Record<
     border: string;
     badge: string;
     label: string;
+    /** Градиент свечения сверху для области картинки (рамка/аватар). */
+    glowTop: string;
+    /** Класс вращающегося градиента на фоне карточки (decoration-card-glow-*) */
+    glowSpin: string;
   }
 > = {
   common: {
     border: "border-slate-400/40 shadow-[0_0_0_1px_rgba(100,116,139,0.2)]",
     badge: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-700/80 dark:text-slate-200 dark:border-slate-600",
     label: "Обычная",
+    glowTop: "from-slate-400/15 via-transparent to-transparent",
+    glowSpin: "decoration-card-glow-common",
   },
   rare: {
     border: "border-blue-400/50 shadow-[0_0_0_1px_rgba(59,130,246,0.25),0_0_12px_rgba(59,130,246,0.15)]",
     badge: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/60 dark:text-blue-200 dark:border-blue-700",
     label: "Редкая",
+    glowTop: "from-blue-400/25 via-transparent to-transparent",
+    glowSpin: "decoration-card-glow-rare",
   },
   epic: {
     border: "border-violet-400/50 shadow-[0_0_0_1px_rgba(139,92,246,0.3),0_0_16px_rgba(139,92,246,0.2)]",
     badge: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/60 dark:text-violet-200 dark:border-violet-700",
     label: "Эпическая",
+    glowTop: "from-violet-400/25 via-transparent to-transparent",
+    glowSpin: "decoration-card-glow-epic",
   },
   legendary: {
     border: "border-amber-400/60 shadow-[0_0_0_1px_rgba(245,158,11,0.35),0_0_20px_rgba(245,158,11,0.25)]",
     badge: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-600",
     label: "Легендарная",
+    glowTop: "from-amber-400/30 via-transparent to-transparent",
+    glowSpin: "decoration-card-glow-legendary",
   },
 };
 
+/** Стили бейджа редкости для карточек аватара/рамки (новый дизайн) */
+const RARITY_CARD_BADGE: Record<DecorationRarity, string> = {
+  common: "bg-slate-500/90 text-white border border-slate-400/50 shadow",
+  rare: "bg-blue-500/90 text-white border border-blue-400/50 shadow",
+  epic: "bg-violet-500/90 text-white border border-violet-400/50 shadow",
+  legendary: "bg-amber-500/90 text-amber-50 border border-amber-400/50 shadow",
+};
+
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
+
+/** Форматирует цену с пробелами (1 800). */
+function formatPrice(n: number): string {
+  return n.toLocaleString("ru-RU");
+}
 
 const PREVIEW_LABELS: Record<"avatar" | "frame" | "background" | "card", string> = {
   avatar: "Как будет в профиле",
@@ -126,7 +151,8 @@ function DecorationPreviewModal({
     return primary || DEFAULT_AVATAR;
   }, [userAvatarDecorationUrl, userAvatar]);
 
-  const frameToShow = userFrameUrl ?? (displayType === "frame" ? imageSrc : null);
+  /** В превью рамки показываем ту рамку, которую смотрят (imageSrc); в остальных — текущую надетую рамку пользователя. */
+  const frameToShow = displayType === "frame" ? imageSrc : userFrameUrl;
   /** В превью аватара показываем ту декорацию, которую смотрят (imageSrc); в остальных — текущий вид пользователя (resolvedUserAvatar). */
   const avatarSrcInPreview = displayType === "avatar" ? imageSrc : resolvedUserAvatar;
   const AvatarWithOptionalFrame = ({ size }: { size: number }) => (
@@ -388,9 +414,35 @@ function DecorationPreviewModal({
               </div>
 
               {!isOwned && !hidePurchase && (
-                <div className="flex items-center gap-2 mt-2">
-                  <Coins className="w-5 h-5 text-amber-500" />
-                  <span className="text-xl font-bold text-[var(--foreground)]">{decoration.price}</span>
+                <div className="flex flex-col gap-1 mt-2">
+                  {decoration.onlyWithSubscription && decoration.subscriptionPrice != null ? (
+                    <>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Coins className="w-5 h-5 text-amber-500 shrink-0" />
+                        <span className="text-xl font-bold text-[var(--foreground)]">{formatPrice(decoration.subscriptionPrice)}</span>
+                        {decoration.price > decoration.subscriptionPrice && (
+                          <span className="text-sm text-[var(--muted-foreground)] line-through">{formatPrice(decoration.price)}</span>
+                        )}
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 font-medium">
+                        <Crown className="w-4 h-4 shrink-0" />
+                        Только с подпиской
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Coins className="w-5 h-5 text-amber-500" />
+                        <span className="text-xl font-bold text-[var(--foreground)]">{formatPrice(decoration.price)}</span>
+                      </div>
+                      {decoration.subscriptionPrice != null && decoration.subscriptionPrice < decoration.price && (
+                        <span className="inline-flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
+                          <Crown className="w-4 h-4 shrink-0 text-blue-500" />
+                          {formatPrice(decoration.subscriptionPrice)} с подпиской
+                        </span>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
@@ -447,38 +499,70 @@ function DecorationPreviewModal({
                     Распродано
                   </div>
                 ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={onPurchase}
-                      disabled={isLoading}
-                      className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
-                    >
-                      {isLoading ? (
-                        <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          <ShoppingBag className="w-4 h-4" />
-                          Купить
-                        </>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      className="p-3 rounded-xl bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--muted)] transition-colors"
-                      title="Подарить"
-                    >
-                      <Gift className="w-4 h-4" />
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={onPurchase}
+                    disabled={isLoading}
+                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+                  >
+                    {isLoading ? (
+                      <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <ShoppingBag className="w-4 h-4" />
+                        Купить
+                      </>
+                    )}
+                  </button>
                 )}
               </div>
             </div>
 
             <div className="flex-1 flex flex-col min-w-0">
               <div className="text-sm font-medium text-[var(--muted-foreground)] mb-3">{PREVIEW_LABELS[displayType]}</div>
-              <div className="flex-1 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] min-h-0">
+              <div className="flex-1 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] min-h-0 flex flex-col gap-4">
                 {renderPreviewProfile()}
+                {/* Кнопка действия внутри блока предпросмотра */}
+                {!hidePurchase && (
+                  <div className="flex items-center justify-center gap-2 pt-2 border-t border-[var(--border)]">
+                    {!isAuthenticated ? (
+                      <p className="text-sm text-[var(--muted-foreground)]">Войдите для покупки</p>
+                    ) : isOwned ? (
+                      isEquipped ? (
+                        <button
+                          type="button"
+                          onClick={onUnequip}
+                          disabled={isLoading}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] font-medium text-sm hover:bg-[var(--muted)] disabled:opacity-50 transition-colors"
+                        >
+                          {isLoading ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <><Check className="w-4 h-4" /> Снять</>}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={onEquip}
+                          disabled={isLoading}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        >
+                          {isLoading ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <><Sparkles className="w-4 h-4" /> Надеть</>}
+                        </button>
+                      )
+                    ) : soldOut ? (
+                      <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
+                        <PackageX className="w-4 h-4" /> Распродано
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={onPurchase}
+                        disabled={isLoading}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+                      >
+                        {isLoading ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <><ShoppingBag className="w-4 h-4" /> Купить</>}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -524,6 +608,12 @@ export function DecorationCard({
   const rarityStyle = RARITY_STYLES[rarity];
   const soldOut = decoration.isSoldOut ?? (decoration.stock !== undefined && decoration.stock <= 0);
   const showStock = decoration.stock !== undefined;
+  const subscriptionPrice = decoration.subscriptionPrice;
+  const onlyWithSubscription = decoration.onlyWithSubscription === true;
+  const discountPercent =
+    subscriptionPrice != null && decoration.price > 0 && subscriptionPrice < decoration.price
+      ? Math.round((1 - subscriptionPrice / decoration.price) * 100)
+      : 0;
   const { avatarDecorationUrl } = useResolvedEquippedDecorations();
   const userFrameUrl = getEquippedFrameUrl((user?.equippedDecorations ?? null) as EquippedDecorations | null);
   /** Буква для превью аватара в карточках рамок: первая буква ника или T для гостя */
@@ -579,8 +669,27 @@ export function DecorationCard({
 
   const compactBtn = "inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium";
   const compactBtnMedium = "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium";
-  const renderAction = (compact = false, size: "small" | "medium" = "small") => {
+  /** cardView: на карточке показываем только «Распродано» (если soldOut), Купить/Надеть/Снять — только в предпросмотре */
+  const renderAction = (compact = false, size: "small" | "medium" = "small", cardView = false) => {
     if (hidePurchase && !isOwned) return null;
+    if (cardView) {
+      if (soldOut) {
+        const btnClass = compact ? (size === "medium" ? compactBtnMedium : compactBtn) : "";
+        const iconSize = size === "medium" ? "w-4 h-4" : "w-3.5 h-3.5";
+        return compact ? (
+          <span className={`${btnClass} bg-[var(--muted)] text-[var(--muted-foreground)]`}>
+            <PackageX className={iconSize} />
+            Распродано
+          </span>
+        ) : (
+          <div className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
+            <PackageX className="w-4 h-4 shrink-0" />
+            Распродано
+          </div>
+        );
+      }
+      return null;
+    }
     if (!isAuthenticated) {
       return (
         <p className="text-xs text-[var(--muted-foreground)] py-2">
@@ -696,7 +805,7 @@ export function DecorationCard({
     />
   ) : null;
 
-  /* Карточка для аватаров: круг + инфо. Рамки: квадрат без обрезки (прозрачные по краям). */
+  /* Карточка для аватаров и рамок: квадратная карточка, контент по центру, название и цена — полоска внизу. Аватар — строго 1:1 (круг). */
   if (isAvatar || isFrame) {
     const isCircleCrop = isAvatar;
     return (
@@ -704,110 +813,171 @@ export function DecorationCard({
         {previewModal}
         <article
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full min-w-[100px] sm:min-w-[140px] shrink aspect-square w-[240px] h-[241px] rounded-lg sm:rounded-xl md:rounded-2xl border-2 bg-[var(--card)] overflow-hidden cursor-pointer ${rarityStyle.border}`}
         >
-        {/* Картинка сверху: для аватаров — квадрат, для рамок — соотношение 1:1.2. */}
-        <div className={`w-full flex-shrink-0 flex items-center justify-center p-1 sm:p-1.5 ${isCircleCrop ? "aspect-square" : "aspect-[1/1.2]"}`}>
-          <div className={`relative w-full max-w-[92%] ${isCircleCrop ? "aspect-square" : "aspect-[1/1.2]"}`}>
-            {isCircleCrop && (
-              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
-            )}
-            <div
-              className={`relative w-full h-full ${isCircleCrop ? "overflow-hidden" : ""}`}
-              style={isCircleCrop ? { borderRadius: "50%" } : undefined}
-            >
-              {/* Для рамок: пропорции как в превью — аватар 100%, рамка 120% → круг аватара ~83% области */}
-              {!isCircleCrop && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div
-                    className="relative w-[83%] aspect-square rounded-full overflow-hidden bg-[var(--primary)] flex items-center justify-center text-white font-semibold"
-                    aria-hidden
-                  >
-                    {userAvatarPreviewUrl ? (
-                      <Image
-                        src={userAvatarPreviewUrl}
-                        alt=""
-                        fill
-                        unoptimized
-                        className="object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl sm:text-3xl select-none">
-                        {avatarPreviewLetter}
-                      </span>
-                    )}
+        <div className={`absolute inset-0 rounded-lg sm:rounded-xl md:rounded-2xl pointer-events-none z-0 opacity-[0.35] ${rarityStyle.glowSpin}`} aria-hidden />
+        <div className={`absolute inset-0 rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-b ${rarityStyle.glowTop} pointer-events-none z-0`} aria-hidden />
+
+        <div className="relative flex flex-col p-2 justify-center items-center">
+          <div className="flex-[0] min-h-0 flex items-center justify-center h-[180px] w-[180px]">
+            {/* Аватар: вложенный квадрат (внешний вписан, внутренний 100% — строго 1:1); рамка: 1:1.2 */}
+            {isCircleCrop ? (
+              <div className="relative w-full h-full min-w-0 min-h-0 max-w-[70%] max-h-[70%] aspect-square flex-shrink-0">
+                <div className="relative w-full h-0 pb-[100%] flex-shrink-0">
+                  <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "50%" }}>
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" style={{ borderRadius: "50%" }} />
+                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "50%" }}>
+                      {isImageLoading && hasImage && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
+                          <span className="w-5 h-5 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+                        </div>
+                      )}
+                      {hasImage ? (
+                        <Image
+                          src={imageSrc}
+                          alt={decoration.name}
+                          fill
+                          unoptimized
+                          className={`object-cover ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+                          style={{ borderRadius: "50%", objectFit: "cover" }}
+                          onLoad={() => setIsImageLoading(false)}
+                          onError={handleImageError}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)]">
+                          <ImageIcon className="w-8 h-8 text-white/80" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              )}
-              {isImageLoading && hasImage && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
-                  <span className="w-5 h-5 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+                <span className={`absolute top-0 left-1/2 -translate-x-1/2 z-10 inline-flex px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap ${RARITY_CARD_BADGE[rarity]}`}>
+                  {rarityStyle.label}
+                </span>
+                {isEquipped && (
+                  <span className="absolute -bottom-0.5 -left-0.5 inline-flex items-center rounded bg-emerald-500/90 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5">
+                    <Check className="w-2 h-2 sm:w-3 sm:h-3" />
+                  </span>
+                )}
+                {onlyWithSubscription && discountPercent > 0 && (
+                  <span className="absolute top-0.5 left-0.5 sm:top-1.5 sm:left-1.5 inline-flex items-center rounded bg-blue-500 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5 sm:px-2 shadow-sm">
+                    −{discountPercent}%
+                  </span>
+                )}
+                {soldOut && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-0.5 rounded bg-rose-500/95 text-white text-[8px] sm:text-xs font-semibold px-1 py-0.5 sm:px-2 whitespace-nowrap">
+                    <PackageX className="w-2 h-2 sm:w-3 sm:h-3" />
+                    Распродано
+                  </span>
+                )}
+                {isOwned && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-0.5 rounded bg-emerald-500/95 text-white text-[8px] sm:text-xs font-semibold px-1.5 py-0.5 whitespace-nowrap shadow-sm z-[2]">
+                    Уже куплено
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="relative w-[78%] sm:w-[82%] h-0 pb-[93.6%] sm:pb-[98.4%] flex-shrink-0">
+                <div className="absolute inset-0">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div
+                      className="relative w-[83%] aspect-square rounded-full overflow-hidden bg-[var(--primary)] flex items-center justify-center text-white font-semibold"
+                      aria-hidden
+                    >
+                      {userAvatarPreviewUrl ? (
+                        <Image src={userAvatarPreviewUrl} alt="" fill unoptimized className="object-cover" />
+                      ) : (
+                        <span className="text-lg sm:text-2xl md:text-3xl select-none">{avatarPreviewLetter}</span>
+                      )}
+                    </div>
+                  </div>
+                  {isImageLoading && hasImage && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
+                      <span className="w-5 h-5 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+                    </div>
+                  )}
+                  {hasImage ? (
+                    <Image
+                      src={imageSrc}
+                      alt={decoration.name}
+                      fill
+                      unoptimized
+                      className={`object-contain ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+                      onLoad={() => setIsImageLoading(false)}
+                      onError={handleImageError}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)]">
+                      <ImageIcon className="w-8 h-8 text-white/80" />
+                    </div>
+                  )}
                 </div>
-              )}
-              {hasImage ? (
-                <Image
-                  src={imageSrc}
-                  alt={decoration.name}
-                  fill
-                  unoptimized
-                  className={`${isCircleCrop ? "object-cover rounded-full" : "object-contain"} ${isImageLoading ? "opacity-0" : "opacity-100"}`}
-                  style={isCircleCrop ? { borderRadius: "50%" } : undefined}
-                  onLoad={() => setIsImageLoading(false)}
-                  onError={handleImageError}
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)]">
-                  <ImageIcon className="w-8 h-8 text-white/80" />
-                </div>
-              )}
-            </div>
-            <span
-              className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex px-2 py-1 rounded-md text-[10px] sm:text-xs font-semibold border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${rarityStyle.badge}`}
-            >
-              {rarityStyle.label}
-            </span>
-            {isEquipped && (
-              <span className="absolute -bottom-0.5 -left-0.5 inline-flex items-center rounded-md bg-emerald-500/90 text-white text-[10px] font-semibold px-1.5 py-0.5">
-                <Check className="w-3 h-3" />
-              </span>
-            )}
-            {soldOut && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-1 rounded-md bg-rose-500/95 text-white text-[10px] sm:text-xs font-semibold px-2 py-1 whitespace-nowrap">
-                <PackageX className="w-3 h-3" />
-                Распродано
-              </span>
-            )}
-            {isOwned && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-0.5 inline-flex items-center gap-1 rounded-md bg-emerald-500/95 text-white text-[10px] sm:text-xs font-semibold px-2 py-1 whitespace-nowrap shadow-sm">
-                Уже куплено
-              </span>
+                <span className={`absolute top-0 left-1/2 -translate-x-1/2 z-10 inline-flex px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap ${RARITY_CARD_BADGE[rarity]}`}>
+                  {rarityStyle.label}
+                </span>
+                {isEquipped && (
+                  <span className="absolute -bottom-0.5 -left-0.5 inline-flex items-center rounded bg-emerald-500/90 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5">
+                    <Check className="w-2 h-2 sm:w-3 sm:h-3" />
+                  </span>
+                )}
+                {onlyWithSubscription && discountPercent > 0 && (
+                  <span className="absolute top-0.5 left-0.5 sm:top-1.5 sm:left-1.5 inline-flex items-center rounded bg-blue-500 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5 sm:px-2 shadow-sm">
+                    −{discountPercent}%
+                  </span>
+                )}
+                {soldOut && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-0.5 rounded bg-rose-500/95 text-white text-[8px] sm:text-xs font-semibold px-1 py-0.5 sm:px-2 whitespace-nowrap">
+                    <PackageX className="w-2 h-2 sm:w-3 sm:h-3" />
+                    Распродано
+                  </span>
+                )}
+                {isOwned && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-0.5 rounded bg-emerald-500/95 text-white text-[8px] sm:text-xs font-semibold px-1.5 py-0.5 whitespace-nowrap shadow-sm z-[2]">
+                    Уже куплено
+                  </span>
+                )}
+              </div>
             )}
           </div>
-        </div>
 
-        {/* Название и действие снизу */}
-        <div className="flex-shrink-0 px-2 py-1.5 sm:px-2.5 sm:py-2 pt-0 flex flex-col gap-1 sm:gap-1.5">
-          <h3 className="font-semibold text-xs sm:text-sm leading-snug line-clamp-2 text-center min-h-[2em] text-[var(--foreground)]" title={decoration.name}>
-            {decoration.name}
-          </h3>
-          {showStock && (
-            <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] text-center">
-              {decoration.stock! <= 0 ? "Нет в наличии" : decoration.stock! <= 3 ? "Осталось мало" : `Осталось: ${decoration.stock}`}
-            </p>
-          )}
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap min-h-[2rem]">
-            {!hidePurchase && !isOwned ? (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
-                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
-                {decoration.price}
-              </span>
-            ) : !hidePurchase && isOwned ? (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] sm:text-xs font-medium invisible" aria-hidden>
-                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
-                {decoration.price}
-              </span>
-            ) : null}
-            {renderAction(true, "small")}
+          <div className="flex-shrink-0 px-1 py-1.5 sm:px-1.5 sm:py-2 flex flex-col justify-end gap-0.5">
+            <h3 className="font-semibold text-[10px] sm:text-xs leading-tight line-clamp-1 text-center text-[var(--foreground)]" title={decoration.name}>
+              {decoration.name}
+            </h3>
+            {showStock && (
+              <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
+                {decoration.stock! <= 0 ? "Нет в наличии" : decoration.stock! <= 3 ? "Осталось мало" : `Осталось: ${decoration.stock}`}
+              </p>
+            )}
+            {!hidePurchase && (
+              <div className="flex flex-col items-center gap-0.5 text-center">
+                {onlyWithSubscription && subscriptionPrice != null ? (
+                  <>
+                    <span className="inline-flex items-center gap-0.5 text-[var(--foreground)] font-semibold text-[10px] sm:text-xs">
+                      <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 shrink-0" />
+                      {formatPrice(subscriptionPrice)}
+                    </span>
+                    <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] text-blue-600 dark:text-blue-400 font-medium">
+                      <Crown className="w-2.5 h-2.5 shrink-0" />
+                      Только с подпиской
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="inline-flex items-center gap-0.5 text-[var(--foreground)] font-semibold text-[10px] sm:text-xs">
+                      <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 shrink-0" />
+                      {formatPrice(decoration.price)}
+                    </span>
+                    {subscriptionPrice != null && subscriptionPrice < decoration.price && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-[var(--muted-foreground)]">
+                        <Crown className="w-2.5 h-2.5 shrink-0" />
+                        {formatPrice(subscriptionPrice)} с подпиской
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </article>
@@ -844,7 +1014,7 @@ export function DecorationCard({
           <ImageIcon className="w-12 h-12 text-[var(--muted-foreground)]" />
         </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-transparent pointer-events-none" />
       <span
         className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${badgeCl} ${rarityStyle.badge}`}
       >
@@ -912,7 +1082,7 @@ export function DecorationCard({
               {decoration.price}
             </span>
           ) : null}
-          {renderAction(true, isLarge ? "medium" : "small")}
+          {renderAction(true, isLarge ? "medium" : "small", true)}
         </div>
       ) : !hidePurchase && !isOwned && isAuthenticated && soldOut ? (
         <div className="flex items-center justify-center gap-2 py-2 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
@@ -944,7 +1114,7 @@ export function DecorationCard({
       ) : !hidePurchase && !isOwned && !isAuthenticated ? (
         <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">Войдите для покупки</p>
       ) : (
-        renderAction()
+        renderAction(false, "small", true)
       )}
     </div>
   );
@@ -957,7 +1127,7 @@ export function DecorationCard({
         {previewModal}
         <article 
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full min-w-0 self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full min-w-[140px] sm:min-w-[160px] self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
         >
         {/* Область изображения — горизонтальный баннер (ширина > высота) */}
         <div className="relative w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] shrink-0 min-w-0">
@@ -983,7 +1153,7 @@ export function DecorationCard({
               <ImageIcon className="w-12 h-12 text-[var(--muted-foreground)]" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)]/70 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/70 via-transparent to-transparent pointer-events-none" />
           <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-sm text-[10px] font-medium text-white/90">
             Фон профиля
           </span>
@@ -1045,7 +1215,7 @@ export function DecorationCard({
                 {decoration.price}
               </span>
             ) : null}
-            {renderAction(true)}
+            {renderAction(true, "small", true)}
           </div>
         </div>
         </article>
@@ -1060,7 +1230,7 @@ export function DecorationCard({
         {previewModal}
         <article 
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
         >
         {renderImageBlock("relative aspect-[3/4]", true)}
         {renderContentBlock(true, "large")}
@@ -1075,7 +1245,7 @@ export function DecorationCard({
       {previewModal}
       <article 
         onClick={handleCardClick}
-        className={`group/card relative w-full max-w-full sm:max-w-[200px] lg:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+        className={`group/card relative w-full max-w-full sm:max-w-[200px] lg:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
       >
         {renderImageBlock("relative aspect-[9/16]")}
         {renderContentBlock()}

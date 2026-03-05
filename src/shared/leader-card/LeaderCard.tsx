@@ -529,10 +529,13 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
       </div>
 
       <div className="flex-1 min-w-0 relative z-10">
-        <p className={`font-medium truncate text-sm flex items-center gap-1 ${isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`} title={user.username}>
+        <p
+          className={`font-medium truncate text-sm flex items-center gap-1 ${isPremiumActive(user.subscriptionExpiresAt) ? "text-amber-500" : isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}
+          title={user.username}
+        >
           <span className="truncate">{user.username}</span>
           {isPremiumActive(user.subscriptionExpiresAt) && (
-            <PremiumBadge size="xs" ariaLabel="Премиум" />
+            <PremiumBadge size="xs" ariaLabel="Премиум-подписчик" />
           )}
         </p>
         <p className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">

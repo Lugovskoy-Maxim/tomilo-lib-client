@@ -12,6 +12,7 @@ import { getTitlePath } from "@/lib/title-paths";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useAgeVerification } from "@/contexts/AgeVerificationContext";
 import { getCoverUrls } from "@/lib/asset-url";
+import { formatChapterString } from "@/lib/format-chapter-ranges";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
 interface LatestUpdateCardProps {
@@ -85,7 +86,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   };
 
   const getDisplayChapter = () => {
-    if (data.chapter?.trim()) return data.chapter;
+    if (data.chapter?.trim()) return formatChapterString(data.chapter);
     if (typeof data.chapterNumber === "number" && data.chapterNumber > 0) {
       return `Глава ${data.chapterNumber}`;
     }

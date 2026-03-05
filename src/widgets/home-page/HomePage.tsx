@@ -182,11 +182,11 @@ export default function HomePage() {
   }, []);
 
   const mainClassName =
-    "flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full";
+    "flex flex-col items-center justify-start gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full";
 
   return (
     <AgeVerificationProvider requestAgeVerification={requestAgeVerification}>
-      <LinesBackground />
+      {mounted && <LinesBackground />}
       <Header />
       <main className={mainClassName}>
         {!mounted ? (

@@ -142,6 +142,8 @@ export interface Decoration {
   isSoldOut?: boolean;
   /** Цена по подписке (если есть скидка для подписчиков). */
   subscriptionPrice?: number;
+  /** Доступно только с подпиской (покупка за монеты только для подписчиков). */
+  onlyWithSubscription?: boolean;
   /** Бонусные монеты за покупку. */
   bonus?: number;
 }
@@ -173,6 +175,7 @@ function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
     stock: stock != null ? Number(stock) : undefined,
     isSoldOut: isSoldOut ?? (stock != null && Number(stock) <= 0),
     subscriptionPrice: (item.subscriptionPrice ?? item.subscription_price) as number | undefined,
+    onlyWithSubscription: (item.onlyWithSubscription ?? item.only_with_subscription) as boolean | undefined,
     bonus: (item.bonus as number | undefined) ?? undefined,
   };
 }

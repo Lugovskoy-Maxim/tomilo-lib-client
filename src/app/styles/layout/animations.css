@@ -109,7 +109,11 @@
   animation: fadeInUp 0.5s ease-out forwards;
 }
 
-/* Custom scrollbar for filter sidebar */
+/* Custom scrollbar for filter sidebar (Firefox: scrollbar-width/scrollbar-color) */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) transparent;
+}
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }

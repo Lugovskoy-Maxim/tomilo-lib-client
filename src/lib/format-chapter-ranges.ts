@@ -20,7 +20,7 @@ export function formatChapterRanges(chapterNumbers: number[]): string {
     const current = sorted[i];
     const prev = sorted[i - 1];
 
-    if (current !== undefined && current === prev + 1) {
+    if (current !== undefined && areConsecutive(prev, current)) {
       rangeEnd = current;
       continue;
     }
@@ -38,4 +38,64 @@ export function formatChapterRanges(chapterNumbers: number[]): string {
   }
 
   return ranges.join(", ");
+}
+
+const STEP_EPS = 1e-9;
+
+/** Последовательными считаем числа, если разница не больше 1 (41, 41.1, 41.2, 41.5, 42 — один диапазон), чтобы дробные главы не разрывали список. */
+function areConsecutive(a: number, b: number): boolean {
+  const step = b - a;
+  return step > 0 && step <= 1 + STEP_EPS;
+}
+
+/**
+ * Парсит строку вида "Главы 167, 166, 165, 164" или "167, 166, 165" и возвращает
+ * отформатированную строку с логичной нумерацией (по возрастанию, диапазоны).
+ * Если распарсить не удаётся — возвращает исходную строку.
+ */
+export function formatChapterString(chapterStr: string): string {
+  if (!chapterStr?.trim()) return chapterStr;
+
+  const trimmed = chapterStr.trim();
+  const prefixMatch = trimmed.match(/^Главы\s+/i);
+  const prefix = prefixMatch ? prefixMatch[0] : "";
+  const rest = prefix ? trimmed.slice(prefix.length).trim() : trimmed;
+
+  const numbers: number[] = [];
+  const parts = rest.split(/\s*,\s*/);
+  for (const p of parts) {
+    const num = parseFloat(p.replace(/\s/g, ""));
+    if (!Number.isNaN(num)) numbers.push(num);
+  }
+
+  if (numbers.length === 0) return chapterStr;
+  if (numbers.length === 1) return `${prefix}${numbers[0]}`;
+
+  const sorted = [...new Set(numbers)].sort((a, b) => a - b);
+  const ranges: string[] = [];
+  let rangeStart = sorted[0];
+  let rangeEnd = sorted[0];
+
+  for (let i = 1; i <= sorted.length; i++) {
+    const current = sorted[i];
+    const prev = sorted[i - 1];
+
+    if (current !== undefined && areConsecutive(prev, current)) {
+      rangeEnd = current;
+      continue;
+    }
+
+    if (rangeStart === rangeEnd) {
+      ranges.push(String(rangeStart));
+    } else {
+      ranges.push(`${rangeStart}-${rangeEnd}`);
+    }
+
+    if (current !== undefined) {
+      rangeStart = current;
+      rangeEnd = current;
+    }
+  }
+
+  return prefix + ranges.join(", ");
 }

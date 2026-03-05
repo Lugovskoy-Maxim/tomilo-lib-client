@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { CollectionsPage } from "@/widgets";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
@@ -47,7 +47,9 @@ export async function generateMetadata({ searchParams }: CollectionsPageProps): 
   });
 }
 
-export default function CollectionsPageRoute() {
+export default function CollectionsPageRoute({ searchParams }: CollectionsPageProps) {
+  // Next.js 15: searchParams is a Promise and must be unwrapped before any serialization
+  React.use(searchParams);
   return (
     <>
       <script
