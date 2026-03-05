@@ -262,7 +262,7 @@ export default function RootLayout({
         <ToastProvider>
           <ProgressNotificationProvider>
           <Providers>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange storageKey="theme">
               <FontProvider>
                 <div className="contents">
                   <Suspense fallback={null}>

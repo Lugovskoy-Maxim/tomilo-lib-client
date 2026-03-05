@@ -61,7 +61,8 @@
   --card-meta-size: 0.75rem;
 }
 
-[data-theme="dark"] {
+[data-theme="dark"],
+.dark {
   --background: oklch(0.13 0.008 250);
   --foreground: oklch(0.90 0.008 250);
   --card: oklch(0.16 0.01 250);

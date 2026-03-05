@@ -42,7 +42,8 @@
   box-shadow: 8px 0 24px rgba(0, 0, 0, 0.15);
   animation: mobile-menu-slide-in 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
-[data-theme="dark"] .mobile-menu-panel {
+[data-theme="dark"] .mobile-menu-panel,
+.dark .mobile-menu-panel {
   box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
 }
 .mobile-menu-panel.mobile-menu-closing {

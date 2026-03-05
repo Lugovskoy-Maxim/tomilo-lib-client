@@ -142,7 +142,8 @@
   outline-offset: 2px;
 }
 
-[data-theme="dark"] .rich-text-editor-content .tiptap blockquote {
+[data-theme="dark"] .rich-text-editor-content .tiptap blockquote,
+.dark .rich-text-editor-content .tiptap blockquote {
   border-left-color: var(--chart-1);
 }
 

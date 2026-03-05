@@ -25,7 +25,8 @@
   z-index: 6;
 }
 
-[data-theme="dark"] .card-hover-soft:hover {
+[data-theme="dark"] .card-hover-soft:hover,
+.dark .card-hover-soft:hover {
   box-shadow: 
     0 14px 28px rgb(0 0 0 / 0.4),
     0 6px 12px rgb(0 0 0 / 0.25),
@@ -36,7 +37,8 @@
 .card-focus-ring:focus-visible .card-hover-soft {
   box-shadow: 0 12px 24px rgb(0 0 0 / 0.1), 0 0 0 1px var(--primary);
 }
-[data-theme="dark"] .card-focus-ring:focus-visible .card-hover-soft {
+[data-theme="dark"] .card-focus-ring:focus-visible .card-hover-soft,
+.dark .card-focus-ring:focus-visible .card-hover-soft {
   box-shadow: 0 14px 28px rgb(0 0 0 / 0.35), 0 0 0 1px var(--primary);
 }
 

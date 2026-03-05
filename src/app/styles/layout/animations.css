@@ -79,7 +79,8 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="dark"] .hover-lift:hover {
+[data-theme="dark"] .hover-lift:hover,
+.dark .hover-lift:hover {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
