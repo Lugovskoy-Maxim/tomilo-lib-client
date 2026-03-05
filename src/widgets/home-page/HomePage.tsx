@@ -186,7 +186,7 @@ export default function HomePage() {
 
   return (
     <AgeVerificationProvider requestAgeVerification={requestAgeVerification}>
-      <LinesBackground />
+      {mounted && <LinesBackground />}
       <Header />
       <main className={mainClassName}>
         {!mounted ? (
