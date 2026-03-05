@@ -38,50 +38,37 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
   const [claimed, setClaimed] = useState(false);
   
   const currentStreak = localStreak ?? userProfile.currentStreak ?? 0;
-  const lastStreakDate = userProfile.lastStreakDate;
-  
+
   const { canClaim, nextMilestone, daysToMilestone } = useMemo(() => {
-    if (claimed) {
-      const milestone = getNextMilestone(currentStreak);
-      const daysLeft = milestone ? getDaysUntilMilestone(currentStreak, milestone.days) : 0;
-      return { canClaim: false, nextMilestone: milestone, daysToMilestone: daysLeft };
-    }
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let canClaimBonus = true;
-    if (lastStreakDate) {
-      const lastDate = new Date(lastStreakDate);
-      lastDate.setHours(0, 0, 0, 0);
-      canClaimBonus = today.getTime() > lastDate.getTime();
-    }
-    
     const milestone = getNextMilestone(currentStreak);
     const daysLeft = milestone ? getDaysUntilMilestone(currentStreak, milestone.days) : 0;
-    
     return {
-      canClaim: canClaimBonus,
+      canClaim: !claimed,
       nextMilestone: milestone,
       daysToMilestone: daysLeft,
     };
-  }, [currentStreak, lastStreakDate, claimed]);
+  }, [currentStreak, claimed]);
 
   const handleClaimBonus = async () => {
     try {
       const result = await claimDailyBonus().unwrap();
-      if (result.success && result.data) {
-        setLocalStreak(result.data.currentStreak);
+      const data = result.data;
+      if (result.success && data) {
+        setLocalStreak(data.currentStreak);
         setClaimed(true);
-        const xpGained = result.data.experienceGained ?? 5;
-        const coinsGained = result.data.coinsGained;
-        const message = coinsGained 
-          ? `+${xpGained} XP и +${coinsGained} монет!` 
-          : `+${xpGained} XP!`;
-        toast.success(`Бонус получен! ${message}`);
+        const xpGained = data.experienceGained ?? 10;
+        const coinsGained = data.coinsGained;
+        if (xpGained > 0) {
+          const message = coinsGained
+            ? `+${xpGained} XP и +${coinsGained} монет!`
+            : `+${xpGained} XP!`;
+          toast.success(`Бонус получен! ${message}`);
+        } else {
+          toast.info(data.message ?? "Бонус уже получен сегодня");
+        }
         onClaimBonus?.();
       } else {
-        toast.error(result.data?.message ?? "Не удалось получить бонус");
+        toast.error(data?.message ?? "Не удалось получить бонус");
       }
     } catch (error) {
       const err = error as { data?: { message?: string } };
@@ -129,7 +116,7 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
               <Sparkles className="w-5 h-5" />
             )}
             {isLoading ? "Получение..." : "Получить бонус"}
-            {!isLoading && <span className="text-sm opacity-80">+5 XP</span>}
+            {!isLoading && <span className="text-sm opacity-80">+10 XP</span>}
           </button>
         ) : (
           <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-500">
