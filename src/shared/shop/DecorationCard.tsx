@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { ShoppingBag, Check, Sparkles, ImageIcon, Coins, PackageX, X, Crown } from "lucide-react";
 import Image from "next/image";
 import {
@@ -117,6 +117,8 @@ interface DecorationPreviewModalProps {
   onEquip: () => void;
   onUnequip: () => void;
   displayType: "avatar" | "frame" | "background" | "card";
+  /** Позиция карточки при открытии (окно открывается на уровне карточки) */
+  anchorRect?: { top: number; left: number; width: number; height: number } | null;
 }
 
 function DecorationPreviewModal({
@@ -140,8 +142,19 @@ function DecorationPreviewModal({
   onEquip,
   onUnequip,
   displayType,
+  anchorRect,
 }: DecorationPreviewModalProps) {
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const GAP = 12;
+  const anchorStyle = anchorRect
+    ? {
+        position: "fixed" as const,
+        top: anchorRect.top + GAP,
+        left: "50%",
+        transform: "translateX(-50%)",
+        maxHeight: "calc(100vh - 24px)",
+      }
+    : undefined;
   const isGif = imageSrc?.toLowerCase().includes(".gif");
 
   const resolvedUserAvatar = useMemo(() => {
@@ -363,11 +376,12 @@ function DecorationPreviewModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-2 sm:p-4 overflow-y-auto bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 overflow-y-auto bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl mx-auto bg-[var(--background)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden mt-4 sm:mt-0 animate-in zoom-in-95 duration-200"
+        className={`relative w-full max-w-2xl mx-auto my-4 bg-[var(--background)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden animate-in zoom-in-95 duration-200 ${anchorRect ? "overflow-y-auto" : ""}`}
+        style={anchorStyle}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 border-b border-[var(--border)] bg-[var(--background)]">
@@ -589,6 +603,8 @@ export function DecorationCard({
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [useFallbackImage, setUseFallbackImage] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [anchorRect, setAnchorRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const cardRef = useRef<HTMLElement>(null);
   const { primary: imageSrcPrimary, fallback: imageSrcFallback } = useMemo(
     () => getDecorationImageUrls(decoration.imageUrl ?? ""),
     [decoration.imageUrl],
@@ -773,11 +789,14 @@ export function DecorationCard({
   const isFrame = displayType === "frame";
 
   const handleCardClick = () => {
+    const rect = cardRef.current?.getBoundingClientRect();
+    setAnchorRect(rect ?? null);
     setIsPreviewOpen(true);
   };
 
   const handleClosePreview = () => {
     setIsPreviewOpen(false);
+    setAnchorRect(null);
   };
 
   const previewModal = isPreviewOpen && imageSrc ? (
@@ -802,6 +821,7 @@ export function DecorationCard({
       onEquip={handleEquip}
       onUnequip={handleUnequip}
       displayType={displayType}
+      anchorRect={anchorRect}
     />
   ) : null;
 
@@ -812,6 +832,7 @@ export function DecorationCard({
       <>
         {previewModal}
         <article
+          ref={cardRef}
           onClick={handleCardClick}
           className={`group/card relative w-full max-w-full min-w-[100px] sm:min-w-[140px] shrink aspect-square w-[240px] h-[241px] rounded-lg sm:rounded-xl md:rounded-2xl border-2 bg-[var(--card)] overflow-hidden cursor-pointer ${rarityStyle.border}`}
         >
@@ -1125,7 +1146,8 @@ export function DecorationCard({
     return (
       <>
         {previewModal}
-        <article 
+        <article
+          ref={cardRef}
           onClick={handleCardClick}
           className={`group/card relative w-full max-w-full min-w-[140px] sm:min-w-[160px] self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
         >
@@ -1228,7 +1250,8 @@ export function DecorationCard({
     return (
       <>
         {previewModal}
-        <article 
+        <article
+          ref={cardRef}
           onClick={handleCardClick}
           className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
         >
@@ -1243,7 +1266,8 @@ export function DecorationCard({
   return (
     <>
       {previewModal}
-      <article 
+      <article
+        ref={cardRef}
         onClick={handleCardClick}
         className={`group/card relative w-full max-w-full sm:max-w-[200px] lg:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
       >
