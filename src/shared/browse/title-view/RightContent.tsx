@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from "react";
 import { useUpdateRatingMutation, useGetTitleStatsQuery, useGetMyTitleRatingQuery } from "@/store/api/titlesApi";
 import { useGetReadingHistoryReadIdsQuery, useGetTitleProgressQuery } from "@/store/api/authApi";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
@@ -82,6 +82,27 @@ export function RightContent({
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
+  const ratingAnchorRef = useRef<HTMLDivElement>(null);
+  const [ratingPopoverStyle, setRatingPopoverStyle] = useState<React.CSSProperties>({});
+
+  // Позиция поповера оценки: не выходить за левый край экрана
+  useLayoutEffect(() => {
+    if (!isRatingOpen || !ratingAnchorRef.current) {
+      setRatingPopoverStyle({});
+      return;
+    }
+    const el = ratingAnchorRef.current;
+    const rect = el.getBoundingClientRect();
+    const popoverWidth = typeof window !== "undefined" && window.innerWidth >= 640 ? 320 : 280;
+    const viewportPadding = 8;
+    const leftInAnchor = rect.width - popoverWidth;
+    const minLeft = viewportPadding - rect.left;
+    if (minLeft > leftInAnchor) {
+      setRatingPopoverStyle({ left: minLeft, right: "auto" });
+    } else {
+      setRatingPopoverStyle({});
+    }
+  }, [isRatingOpen]);
 
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [hoveredChapterId, setHoveredChapterId] = useState<string | null>(null);
@@ -930,7 +951,7 @@ export function RightContent({
               </div>
 
               {/* Кнопка оценки */}
-              <div className="relative shrink-0">
+              <div ref={ratingAnchorRef} className="relative shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsRatingOpen(v => !v)}
@@ -954,7 +975,10 @@ export function RightContent({
                       onClick={() => setIsRatingOpen(false)}
                     />
                     
-                    <div className="absolute bottom-full right-0 mb-2 flex flex-col w-[280px] sm:w-[320px] bg-[var(--card)] rounded-2xl p-4 z-50 shadow-2xl border border-[var(--border)]/30 animate-in fade-in slide-in-from-bottom-2 duration-200 backdrop-blur-xl">
+                    <div
+                      className="absolute bottom-full right-0 mb-2 flex flex-col w-[280px] sm:w-[320px] bg-[var(--card)] rounded-2xl p-4 z-50 shadow-2xl border border-[var(--border)]/30 animate-in fade-in slide-in-from-bottom-2 duration-200 backdrop-blur-xl"
+                      style={ratingPopoverStyle}
+                    >
                       {/* Заголовок с текущей оценкой */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
