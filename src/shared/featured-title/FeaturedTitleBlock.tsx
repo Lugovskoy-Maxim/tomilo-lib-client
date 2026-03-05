@@ -84,10 +84,18 @@ export default function FeaturedTitleBlock({
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const touchTargetRef = useRef<EventTarget | null>(null);
+  const bookmarkHandledByPointerRef = useRef(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
   
   const minSwipeDistance = 50;
+
+  const isInteractiveElement = (target: EventTarget | null): boolean => {
+    if (!target || !(target instanceof HTMLElement)) return false;
+    const el = target.closest("button, a, [role='button'], input, select, textarea");
+    return Boolean(el);
+  };
 
   // Depend on stable primitives so we don't re-run when `user` object reference changes (avoids infinite loop)
   const userId = user?._id ?? null;
@@ -314,12 +322,20 @@ export default function FeaturedTitleBlock({
         onTouchStart={(e) => {
           setIsPaused(true);
           setTouchEnd(null);
+          touchTargetRef.current = e.target;
           setTouchStart(e.targetTouches[0].clientX);
         }}
         onTouchMove={(e) => {
           setTouchEnd(e.targetTouches[0].clientX);
         }}
-        onTouchEnd={() => {
+        onTouchEnd={(e) => {
+          if (isInteractiveElement(touchTargetRef.current)) {
+            touchTargetRef.current = null;
+            setTouchStart(null);
+            setTouchEnd(null);
+            setTimeout(() => setIsPaused(false), 500);
+            return;
+          }
           if (!touchStart || !touchEnd) {
             setTimeout(() => setIsPaused(false), 3000);
             return;
@@ -353,10 +369,10 @@ export default function FeaturedTitleBlock({
 
         <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-3 py-4 sm:px-6 sm:py-5 md:px-8 md:py-8 gap-4 sm:gap-5 md:gap-8">
           {/* Мобильная версия: горизонтальная компоновка обложки и основной информации */}
-          <div className="flex md:hidden gap-3">
+          <div className="flex md:hidden gap-4 w-full min-w-0">
             <Link
               href={titlePath}
-              className="block relative w-32 min-w-[128px] aspect-[2/3] rounded-lg overflow-hidden shadow-xl ring-1 ring-[var(--border)] flex-shrink-0"
+              className="block relative w-28 min-w-[112px] sm:w-32 sm:min-w-[128px] aspect-[2/3] rounded-xl overflow-hidden shadow-xl ring-1 ring-[var(--border)] flex-shrink-0"
               onClick={(e) => {
                 if (isAdultContent && !isAgeVerified) {
                   e.preventDefault();
@@ -389,103 +405,90 @@ export default function FeaturedTitleBlock({
               )}
             </Link>
 
-            <div className="flex-1 min-w-0 flex flex-col">
+            <div className="flex-1 min-w-0 flex flex-col justify-between gap-2">
               {/* Бейджи: тип, год, рейтинг */}
-              <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--foreground)]">
-                  <Tag className="w-2.5 h-2.5" />
+              <div className="flex flex-wrap items-center gap-1.5 text-left text-xs">
+                <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--accent)] px-2 py-0.5 font-medium text-[var(--foreground)] shrink-0">
+                  <Tag className="w-3 h-3 shrink-0" />
                   {translateTitleType(currentItem.type)}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--foreground)]">
+                <span className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--accent)] px-2 py-0.5 font-medium text-[var(--foreground)] shrink-0">
                   {currentItem.year}
                 </span>
-                <RatingBadge rating={currentItem.rating} size="sm" variant="default" />
+                <span className="ml-auto shrink-0 inline-flex items-center">
+                  <RatingBadge rating={currentItem.rating} size="xs" variant="default" className="text-xs" />
+                </span>
               </div>
 
               {/* Заголовок */}
               <h3
-                className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-sm font-bold text-[var(--foreground)] leading-tight line-clamp-2 mb-2`}
+                className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-[15px] sm:text-base font-bold text-[var(--foreground)] leading-snug line-clamp-2 min-h-[2.5em]`}
               >
                 {currentItem.title}
               </h3>
 
               {/* Жанры - компактно */}
               {currentItem.genres && currentItem.genres.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2">
+                <div className="flex flex-wrap gap-1">
                   {currentItem.genres.slice(0, 2).map((genre, idx) => (
                     <span
                       key={idx}
-                      className="px-1.5 py-0.5 rounded bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] font-medium"
+                      className="px-1.5 py-0.5 rounded-md bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] font-medium"
                     >
                       {genre}
                     </span>
                   ))}
                   {currentItem.genres.length > 2 && (
-                    <span className="px-1.5 py-0.5 rounded bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] font-medium">
+                    <span className="px-1.5 py-0.5 rounded-md bg-[var(--accent)] text-[var(--muted-foreground)] text-[10px] font-medium">
                       +{currentItem.genres.length - 2}
                     </span>
                   )}
                 </div>
               )}
 
-              {/* Кнопки действий - мобильная версия */}
-              <div className="flex gap-2 mt-auto">
+              {/* Кнопки действий - мобильная версия (relative z-10 чтобы поверх свайпа) */}
+              <div className="relative z-10 flex gap-2 mt-1 flex-shrink-0">
                 <button
-                  onClick={handleReadClick}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-semibold shadow-lg shadow-[var(--primary)]/25 active:scale-[0.98]"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleReadClick(e as unknown as React.MouseEvent);
+                  }}
+                  className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-semibold shadow-lg shadow-[var(--primary)]/25 active:scale-[0.98] touch-manipulation"
                 >
-                  <BookOpen className="w-3.5 h-3.5" />
+                  <BookOpen className="w-4 h-4 shrink-0" />
                   Читать
-                </button>
-                <button
-                  ref={bookmarkButtonRef}
-                  onClick={handleBookmarkClick}
-                  disabled={bookmarkLoading}
-                  className={`px-3 py-2 rounded-lg text-xs font-semibold active:scale-[0.98] ${
-                    isBookmarked
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)]"
-                  } ${bookmarkLoading ? "opacity-50" : ""}`}
-                >
-                  {bookmarkLoading ? (
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  ) : (
-                    <Bookmark className="w-4 h-4" fill={isBookmarked ? "currentColor" : "none"} />
-                  )}
                 </button>
               </div>
             </div>
           </div>
 
           {/* Описание для мобильных - отдельно под карточкой */}
-          <div className="md:hidden pb-6">
+          <div className="md:hidden pt-1 pb-6 px-0.5">
             <p
-              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-xs text-[var(--muted-foreground)] leading-relaxed ${
-                isDescriptionExpanded ? "" : "line-clamp-2"
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-[13px] text-[var(--muted-foreground)] leading-relaxed ${
+                isDescriptionExpanded ? "" : "line-clamp-3"
               }`}
             >
               {isDescriptionExpanded 
                 ? (currentItem.description || "Описание отсутствует")
-                : truncateDescription(currentItem.description, 120)
+                : truncateDescription(currentItem.description, 140)
               }
             </p>
-            {currentItem.description && currentItem.description.length > 120 && (
+            {currentItem.description && currentItem.description.length > 140 && (
               <button
                 onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                className="inline-flex items-center gap-1 text-[var(--primary)] text-xs font-medium mt-1.5"
+                className="inline-flex items-center gap-1.5 text-[var(--primary)] text-[13px] font-medium mt-2 py-1 touch-manipulation"
               >
                 {isDescriptionExpanded ? (
                   <>
                     Свернуть
-                    <ChevronUp className="w-3.5 h-3.5" />
+                    <ChevronUp className="w-4 h-4 shrink-0" />
                   </>
                 ) : (
                   <>
                     Развернуть
-                    <ChevronDown className="w-3.5 h-3.5" />
+                    <ChevronDown className="w-4 h-4 shrink-0" />
                   </>
                 )}
               </button>
@@ -536,8 +539,8 @@ export default function FeaturedTitleBlock({
             </Link>
           </div>
 
-          {/* Десктопный контент */}
-          <div className="hidden md:flex flex-1 flex-col justify-center min-w-0 text-left">
+          {/* Десктопный контент (вся высота, как на мобильном) */}
+          <div className="hidden md:flex flex-1 flex-col justify-between min-w-0 text-left min-h-0">
             <div className="flex flex-wrap items-center justify-start gap-2 mb-3">
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--accent)] backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-[var(--foreground)]">
                 <Tag className="w-3 h-3" />
@@ -580,7 +583,7 @@ export default function FeaturedTitleBlock({
               </div>
             )}
 
-            <div className="relative mb-6 max-w-2xl">
+            <div className="relative flex-1 min-h-0 mb-6 max-w-2xl flex flex-col">
               <p
                 className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} text-base text-[var(--muted-foreground)] leading-relaxed ${
                   isDescriptionExpanded ? "" : "line-clamp-4"
@@ -593,17 +596,17 @@ export default function FeaturedTitleBlock({
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3 justify-start items-stretch mb-8">
+            <div className="flex gap-3 justify-start items-stretch flex-shrink-0 mb-0">
               <button
                 onClick={handleReadClick}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)]/85 text-[var(--primary-foreground)] text-base font-semibold transition-all duration-200 shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40 active:scale-[0.98]"
+                className="flex-1 min-w-0 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)]/85 text-[var(--primary-foreground)] text-base font-semibold transition-all duration-200 shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40 active:scale-[0.98]"
               >
                 <BookOpen className="w-4 h-4" />
                 Читать
               </button>
               <button
                 onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--secondary)] hover:bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)] text-base font-semibold transition-all duration-200 active:scale-[0.98]"
+                className="flex-1 min-w-0 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--secondary)] hover:bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)] text-base font-semibold transition-all duration-200 active:scale-[0.98]"
               >
                 {isDescriptionExpanded ? (
                   <>
@@ -617,44 +620,6 @@ export default function FeaturedTitleBlock({
                   </>
                 )}
               </button>
-              <div ref={dropdownRef} className={`relative ${categoryOpen ? "z-[60]" : "z-30"}`}>
-                <button
-                  onClick={handleBookmarkClick}
-                  disabled={bookmarkLoading}
-                  className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 h-full rounded-xl text-base font-semibold transition-all duration-200 active:scale-[0.98] ${
-                    isBookmarked
-                      ? "bg-[var(--primary)] hover:bg-[var(--primary)]/85 text-[var(--primary-foreground)] shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40"
-                      : "bg-[var(--secondary)] hover:bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)]"
-                  } ${bookmarkLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  {bookmarkLoading ? (
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  ) : (
-                    <Bookmark className="w-4 h-4" fill={isBookmarked ? "currentColor" : "none"} />
-                  )}
-                  {isBookmarked ? "В закладках" : "В закладки"}
-                </button>
-                {categoryOpen && !bookmarkLoading && (
-                  <div className="absolute left-0 bottom-full mb-2 z-50 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]">
-                    <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
-                      Добавить в категорию
-                    </p>
-                    {CATEGORIES.map(cat => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => handleAddWithCategory(cat)}
-                        className="w-full text-left px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent)] active:bg-[var(--accent)] first:rounded-t-none rounded-none last:rounded-b-lg"
-                      >
-                        {CATEGORY_LABELS[cat]}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
