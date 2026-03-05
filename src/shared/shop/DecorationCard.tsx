@@ -37,27 +37,39 @@ const RARITY_STYLES: Record<
     border: string;
     badge: string;
     label: string;
+    /** Градиент свечения сверху для области картинки (рамка/аватар). */
+    glowTop: string;
+    /** Класс вращающегося градиента на фоне карточки (decoration-card-glow-*) */
+    glowSpin: string;
   }
 > = {
   common: {
     border: "border-slate-400/40 shadow-[0_0_0_1px_rgba(100,116,139,0.2)]",
     badge: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-700/80 dark:text-slate-200 dark:border-slate-600",
     label: "Обычная",
+    glowTop: "from-slate-400/15 via-transparent to-transparent",
+    glowSpin: "decoration-card-glow-common",
   },
   rare: {
     border: "border-blue-400/50 shadow-[0_0_0_1px_rgba(59,130,246,0.25),0_0_12px_rgba(59,130,246,0.15)]",
     badge: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/60 dark:text-blue-200 dark:border-blue-700",
     label: "Редкая",
+    glowTop: "from-blue-400/25 via-transparent to-transparent",
+    glowSpin: "decoration-card-glow-rare",
   },
   epic: {
     border: "border-violet-400/50 shadow-[0_0_0_1px_rgba(139,92,246,0.3),0_0_16px_rgba(139,92,246,0.2)]",
     badge: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/60 dark:text-violet-200 dark:border-violet-700",
     label: "Эпическая",
+    glowTop: "from-violet-400/25 via-transparent to-transparent",
+    glowSpin: "decoration-card-glow-epic",
   },
   legendary: {
     border: "border-amber-400/60 shadow-[0_0_0_1px_rgba(245,158,11,0.35),0_0_20px_rgba(245,158,11,0.25)]",
     badge: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-600",
     label: "Легендарная",
+    glowTop: "from-amber-400/30 via-transparent to-transparent",
+    glowSpin: "decoration-card-glow-legendary",
   },
 };
 
@@ -126,7 +138,8 @@ function DecorationPreviewModal({
     return primary || DEFAULT_AVATAR;
   }, [userAvatarDecorationUrl, userAvatar]);
 
-  const frameToShow = userFrameUrl ?? (displayType === "frame" ? imageSrc : null);
+  /** В превью рамки показываем ту рамку, которую смотрят (imageSrc); в остальных — текущую надетую рамку пользователя. */
+  const frameToShow = displayType === "frame" ? imageSrc : userFrameUrl;
   /** В превью аватара показываем ту декорацию, которую смотрят (imageSrc); в остальных — текущий вид пользователя (resolvedUserAvatar). */
   const avatarSrcInPreview = displayType === "avatar" ? imageSrc : resolvedUserAvatar;
   const AvatarWithOptionalFrame = ({ size }: { size: number }) => (
@@ -704,10 +717,14 @@ export function DecorationCard({
         {previewModal}
         <article
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 card-hover-soft flex flex-col cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm flex flex-col cursor-pointer ${rarityStyle.border}`}
         >
+        {/* Вращающийся градиент редкости на всю карточку */}
+        <div className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-[0.35] ${rarityStyle.glowSpin}`} aria-hidden />
+        {/* Свечение редкости сверху вниз (поверх вращающегося) */}
+        <div className={`absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b ${rarityStyle.glowTop} pointer-events-none z-0`} aria-hidden />
         {/* Картинка сверху: для аватаров — квадрат, для рамок — соотношение 1:1.2. */}
-        <div className={`w-full flex-shrink-0 flex items-center justify-center p-1 sm:p-1.5 ${isCircleCrop ? "aspect-square" : "aspect-[1/1.2]"}`}>
+        <div className={`relative w-full flex-shrink-0 flex items-center justify-center p-1 sm:p-1.5 ${isCircleCrop ? "aspect-square" : "aspect-[1/1.2]"}`}>
           <div className={`relative w-full max-w-[92%] ${isCircleCrop ? "aspect-square" : "aspect-[1/1.2]"}`}>
             {isCircleCrop && (
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
@@ -844,7 +861,7 @@ export function DecorationCard({
           <ImageIcon className="w-12 h-12 text-[var(--muted-foreground)]" />
         </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-transparent pointer-events-none" />
       <span
         className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${badgeCl} ${rarityStyle.badge}`}
       >
@@ -983,7 +1000,7 @@ export function DecorationCard({
               <ImageIcon className="w-12 h-12 text-[var(--muted-foreground)]" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)]/70 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/70 via-transparent to-transparent pointer-events-none" />
           <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-sm text-[10px] font-medium text-white/90">
             Фон профиля
           </span>

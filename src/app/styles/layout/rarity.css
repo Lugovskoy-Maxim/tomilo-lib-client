@@ -1,3 +1,59 @@
+/* --- DECORATION CARD: вращающийся градиент по редкости --- */
+@property --decoration-glow-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes decoration-glow-spin {
+  from { --decoration-glow-angle: 0deg; }
+  to { --decoration-glow-angle: 360deg; }
+}
+
+.decoration-card-glow-common {
+  --decoration-glow-angle: 0deg;
+  background: conic-gradient(
+    from var(--decoration-glow-angle),
+    rgba(100, 116, 139, 0.25),
+    rgba(148, 163, 184, 0.15),
+    rgba(100, 116, 139, 0.25)
+  );
+  animation: decoration-glow-spin 4s linear infinite;
+}
+
+.decoration-card-glow-rare {
+  --decoration-glow-angle: 0deg;
+  background: conic-gradient(
+    from var(--decoration-glow-angle),
+    rgba(59, 130, 246, 0.4),
+    rgba(96, 165, 250, 0.2),
+    rgba(59, 130, 246, 0.4)
+  );
+  animation: decoration-glow-spin 3.5s linear infinite;
+}
+
+.decoration-card-glow-epic {
+  --decoration-glow-angle: 0deg;
+  background: conic-gradient(
+    from var(--decoration-glow-angle),
+    rgba(139, 92, 246, 0.45),
+    rgba(167, 139, 250, 0.25),
+    rgba(139, 92, 246, 0.45)
+  );
+  animation: decoration-glow-spin 3s linear infinite;
+}
+
+.decoration-card-glow-legendary {
+  --decoration-glow-angle: 0deg;
+  background: conic-gradient(
+    from var(--decoration-glow-angle),
+    rgba(245, 158, 11, 0.5),
+    rgba(251, 191, 36, 0.3),
+    rgba(245, 158, 11, 0.5)
+  );
+  animation: decoration-glow-spin 2.5s linear infinite;
+}
+
 /* --- DECORATION RARITY EFFECTS --- */
 @keyframes shimmer-sweep {
   0% { background-position: 200% 0; }

@@ -14,6 +14,7 @@ import ToastContainer from "@/shared/ui/Toast";
 import ProgressNotificationContainer from "@/shared/ui/ProgressNotificationContainer";
 import type { Metadata, Viewport } from "next";
 import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";
+import { MobileFooterSpacer } from "./MobileFooterSpacer";
 
 /** Viewport без ограничения зума — жесты (пинч) работают; авто-зум при фокусе на инпутах убираем через font-size в CSS */
 export const viewport: Viewport = {
@@ -268,9 +269,7 @@ export default function RootLayout({
                   <Suspense fallback={null}>
                     <CardTiltEffect />
                   </Suspense>
-                  <div className="mobile-footer-spacer" suppressHydrationWarning>
-                    {children}
-                  </div>
+                  <MobileFooterSpacer>{children}</MobileFooterSpacer>
                   {/* Уведомления внизу экрана: cookie внизу, Telegram выше; не перекрывают друг друга */}
                   <div className="fixed bottom-4 left-0 right-0 z-50 flex flex-col-reverse items-center gap-3 px-4 pointer-events-none">
                     <div className="pointer-events-auto w-full max-w-md mx-auto">
