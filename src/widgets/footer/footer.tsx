@@ -87,7 +87,6 @@ const POLL_INTERVAL_MS = 5 * 60 * 1000;
 export default function Footer() {
   const pathname = usePathname();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [sheetTranslateY, setSheetTranslateY] = useState(0);
@@ -159,26 +158,13 @@ export default function Footer() {
   }, []);
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setShowBackToTop(currentScrollY > SCROLL_THRESHOLD_TOP);
-      const scrollingDown = currentScrollY > lastScrollY;
-      const atBottom =
-        window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 10;
-      if (atBottom) {
-        setIsVisible(true);
-      } else if (scrollingDown) {
-        setIsVisible(false);
-      } else if (!scrollingDown && currentScrollY < lastScrollY) {
-        setIsVisible(true);
-      }
-      lastScrollY = currentScrollY;
+      setShowBackToTop(window.scrollY > SCROLL_THRESHOLD_TOP);
     };
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isLargeScreen]);
+  }, []);
 
   useEffect(() => {
     if (isMoreOpen) document.body.style.overflow = "hidden";
@@ -303,11 +289,7 @@ export default function Footer() {
 
       {/* Мобильная нижняя панель — переработанный дизайн */}
       <div
-        className={`
-          mobile-footer fixed bottom-0 left-0 right-0 lg:hidden z-50
-          transition-all duration-300 ease-out
-          ${isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"}
-        `}
+        className="mobile-footer fixed bottom-0 left-0 right-0 lg:hidden z-50 transition-all duration-300 ease-out translate-y-0 opacity-100"
       >
         <div className="mobile-footer__container">
           <nav className="mobile-footer__nav" aria-label="Основная навигация">
