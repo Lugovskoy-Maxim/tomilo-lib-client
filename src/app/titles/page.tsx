@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import { TitlesPageClient } from "./TitlesPageClient";
 import { generateDynamicSEOMetadata } from "@/lib/seo-utils";
@@ -48,7 +48,9 @@ const catalogBreadcrumbJsonLd = {
   ],
 };
 
-export default function TitlesPageRoute() {
+export default function TitlesPageRoute({ searchParams }: PageProps) {
+  // Next.js 15: searchParams is a Promise and must be unwrapped before any serialization
+  React.use(searchParams);
   return (
     <>
       <script

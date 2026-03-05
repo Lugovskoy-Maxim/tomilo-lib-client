@@ -28,6 +28,9 @@ function normalizeDecoration(
     isEquipped: (item.isEquipped ?? item.is_equipped) as boolean | undefined,
     stock: stock != null ? Number(stock) : undefined,
     isSoldOut: isSoldOut ?? (stock != null && Number(stock) <= 0),
+    subscriptionPrice: (item.subscriptionPrice ?? item.subscription_price) as number | undefined,
+    onlyWithSubscription: (item.onlyWithSubscription ?? item.only_with_subscription) as boolean | undefined,
+    bonus: (item.bonus as number | undefined) ?? undefined,
   };
 }
 

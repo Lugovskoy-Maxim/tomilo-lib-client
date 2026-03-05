@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 import LeadersPageClient from "./LeadersPageClient";
 
 const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+
+type LeadersPageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildServerSEOMetadata({
@@ -29,7 +31,8 @@ const leadersBreadcrumbJsonLd = {
   ],
 };
 
-export default function LeadersPage() {
+export default function LeadersPage({ searchParams }: LeadersPageProps) {
+  React.use(searchParams);
   return (
     <>
       <script

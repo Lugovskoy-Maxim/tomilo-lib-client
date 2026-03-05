@@ -75,6 +75,11 @@ const RARITY_STYLES: Record<
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
 
+/** Форматирует цену с пробелами (1 800). */
+function formatPrice(n: number): string {
+  return n.toLocaleString("ru-RU");
+}
+
 const PREVIEW_LABELS: Record<"avatar" | "frame" | "background" | "card", string> = {
   avatar: "Как будет в профиле",
   frame: "Как будет в профиле",
@@ -401,9 +406,35 @@ function DecorationPreviewModal({
               </div>
 
               {!isOwned && !hidePurchase && (
-                <div className="flex items-center gap-2 mt-2">
-                  <Coins className="w-5 h-5 text-amber-500" />
-                  <span className="text-xl font-bold text-[var(--foreground)]">{decoration.price}</span>
+                <div className="flex flex-col gap-1 mt-2">
+                  {decoration.onlyWithSubscription && decoration.subscriptionPrice != null ? (
+                    <>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Coins className="w-5 h-5 text-amber-500 shrink-0" />
+                        <span className="text-xl font-bold text-[var(--foreground)]">{formatPrice(decoration.subscriptionPrice)}</span>
+                        {decoration.price > decoration.subscriptionPrice && (
+                          <span className="text-sm text-[var(--muted-foreground)] line-through">{formatPrice(decoration.price)}</span>
+                        )}
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 font-medium">
+                        <Crown className="w-4 h-4 shrink-0" />
+                        Только с подпиской
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Coins className="w-5 h-5 text-amber-500" />
+                        <span className="text-xl font-bold text-[var(--foreground)]">{formatPrice(decoration.price)}</span>
+                      </div>
+                      {decoration.subscriptionPrice != null && decoration.subscriptionPrice < decoration.price && (
+                        <span className="inline-flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
+                          <Crown className="w-4 h-4 shrink-0 text-blue-500" />
+                          {formatPrice(decoration.subscriptionPrice)} с подпиской
+                        </span>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
@@ -490,8 +521,49 @@ function DecorationPreviewModal({
 
             <div className="flex-1 flex flex-col min-w-0">
               <div className="text-sm font-medium text-[var(--muted-foreground)] mb-3">{PREVIEW_LABELS[displayType]}</div>
-              <div className="flex-1 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] min-h-0">
+              <div className="flex-1 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] min-h-0 flex flex-col gap-4">
                 {renderPreviewProfile()}
+                {/* Кнопка действия внутри блока предпросмотра */}
+                {!hidePurchase && (
+                  <div className="flex items-center justify-center gap-2 pt-2 border-t border-[var(--border)]">
+                    {!isAuthenticated ? (
+                      <p className="text-sm text-[var(--muted-foreground)]">Войдите для покупки</p>
+                    ) : isOwned ? (
+                      isEquipped ? (
+                        <button
+                          type="button"
+                          onClick={onUnequip}
+                          disabled={isLoading}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] font-medium text-sm hover:bg-[var(--muted)] disabled:opacity-50 transition-colors"
+                        >
+                          {isLoading ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <><Check className="w-4 h-4" /> Снять</>}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={onEquip}
+                          disabled={isLoading}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        >
+                          {isLoading ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <><Sparkles className="w-4 h-4" /> Надеть</>}
+                        </button>
+                      )
+                    ) : soldOut ? (
+                      <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
+                        <PackageX className="w-4 h-4" /> Распродано
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={onPurchase}
+                        disabled={isLoading}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+                      >
+                        {isLoading ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <><ShoppingBag className="w-4 h-4" /> Купить</>}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -537,6 +609,12 @@ export function DecorationCard({
   const rarityStyle = RARITY_STYLES[rarity];
   const soldOut = decoration.isSoldOut ?? (decoration.stock !== undefined && decoration.stock <= 0);
   const showStock = decoration.stock !== undefined;
+  const subscriptionPrice = decoration.subscriptionPrice;
+  const onlyWithSubscription = decoration.onlyWithSubscription === true;
+  const discountPercent =
+    subscriptionPrice != null && decoration.price > 0 && subscriptionPrice < decoration.price
+      ? Math.round((1 - subscriptionPrice / decoration.price) * 100)
+      : 0;
   const { avatarDecorationUrl } = useResolvedEquippedDecorations();
   const userFrameUrl = getEquippedFrameUrl((user?.equippedDecorations ?? null) as EquippedDecorations | null);
   /** Буква для превью аватара в карточках рамок: первая буква ника или T для гостя */
@@ -592,8 +670,27 @@ export function DecorationCard({
 
   const compactBtn = "inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium";
   const compactBtnMedium = "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium";
-  const renderAction = (compact = false, size: "small" | "medium" = "small") => {
+  /** cardView: на карточке показываем только «Распродано» (если soldOut), Купить/Надеть/Снять — только в предпросмотре */
+  const renderAction = (compact = false, size: "small" | "medium" = "small", cardView = false) => {
     if (hidePurchase && !isOwned) return null;
+    if (cardView) {
+      if (soldOut) {
+        const btnClass = compact ? (size === "medium" ? compactBtnMedium : compactBtn) : "";
+        const iconSize = size === "medium" ? "w-4 h-4" : "w-3.5 h-3.5";
+        return compact ? (
+          <span className={`${btnClass} bg-[var(--muted)] text-[var(--muted-foreground)]`}>
+            <PackageX className={iconSize} />
+            Распродано
+          </span>
+        ) : (
+          <div className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
+            <PackageX className="w-4 h-4 shrink-0" />
+            Распродано
+          </div>
+        );
+      }
+      return null;
+    }
     if (!isAuthenticated) {
       return (
         <p className="text-xs text-[var(--muted-foreground)] py-2">
@@ -717,15 +814,15 @@ export function DecorationCard({
         {previewModal}
         <article
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm flex flex-col cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full sm:max-w-[260px] md:max-w-[300px] lg:max-w-[320px] xl:max-w-[340px] min-w-[220px] sm:min-w-[240px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm flex flex-col cursor-pointer ${rarityStyle.border}`}
         >
         {/* Вращающийся градиент редкости на всю карточку */}
         <div className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-[0.35] ${rarityStyle.glowSpin}`} aria-hidden />
         {/* Свечение редкости сверху вниз (поверх вращающегося) */}
         <div className={`absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b ${rarityStyle.glowTop} pointer-events-none z-0`} aria-hidden />
-        {/* Картинка сверху: для аватаров — квадрат, для рамок — соотношение 1:1.2. */}
-        <div className={`relative w-full flex-shrink-0 flex items-center justify-center p-1 sm:p-1.5 ${isCircleCrop ? "aspect-square" : "aspect-[1/1.2]"}`}>
-          <div className={`relative w-full max-w-[92%] ${isCircleCrop ? "aspect-square" : "aspect-[1/1.2]"}`}>
+        {/* Картинка сверху: одинаковый квадрат для аватаров и рамок, декорация крупнее. */}
+        <div className="relative w-full flex-shrink-0 flex items-center justify-center p-0.5 sm:p-1 aspect-square">
+          <div className="relative w-full max-w-[96%] aspect-square">
             {isCircleCrop && (
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover/card:opacity-100 blur-sm transition-all duration-500" />
             )}
@@ -788,6 +885,11 @@ export function DecorationCard({
                 <Check className="w-3 h-3" />
               </span>
             )}
+            {onlyWithSubscription && discountPercent > 0 && (
+              <span className="absolute top-1.5 left-1.5 inline-flex items-center rounded-md bg-blue-500 text-white text-[10px] font-semibold px-2 py-0.5 shadow-sm">
+                −{discountPercent}%
+              </span>
+            )}
             {soldOut && (
               <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-1 rounded-md bg-rose-500/95 text-white text-[10px] sm:text-xs font-semibold px-2 py-1 whitespace-nowrap">
                 <PackageX className="w-3 h-3" />
@@ -812,20 +914,52 @@ export function DecorationCard({
               {decoration.stock! <= 0 ? "Нет в наличии" : decoration.stock! <= 3 ? "Осталось мало" : `Осталось: ${decoration.stock}`}
             </p>
           )}
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap min-h-[2rem]">
-            {!hidePurchase && !isOwned ? (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
-                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
-                {decoration.price}
-              </span>
-            ) : !hidePurchase && isOwned ? (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] sm:text-xs font-medium invisible" aria-hidden>
-                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
-                {decoration.price}
-              </span>
-            ) : null}
-            {renderAction(true, "small")}
-          </div>
+          {/* Цена: только с подпиской / обычная + с подпиской */}
+          {!hidePurchase && (
+            <div className="flex flex-col items-center gap-0.5 text-center">
+              {onlyWithSubscription && subscriptionPrice != null ? (
+                <>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
+                    <span className="inline-flex items-center gap-1 text-[var(--foreground)] font-medium text-xs sm:text-sm">
+                      <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
+                      {formatPrice(subscriptionPrice)}
+                    </span>
+                    {decoration.price > subscriptionPrice && (
+                      <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] line-through">
+                        {formatPrice(decoration.price)}
+                      </span>
+                    )}
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 font-medium">
+                    <Crown className="w-3 h-3 shrink-0" />
+                    Только с подпиской
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="inline-flex items-center gap-1 flex-wrap justify-center min-h-[1.5rem]">
+                    {!isOwned ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-[10px] sm:text-xs font-medium text-[var(--foreground)]">
+                        <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+                        {formatPrice(decoration.price)}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] sm:text-xs font-medium invisible" aria-hidden>
+                        <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+                        {formatPrice(decoration.price)}
+                      </span>
+                    )}
+                  </div>
+                  {subscriptionPrice != null && subscriptionPrice < decoration.price && (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-[var(--muted-foreground)]">
+                      <Crown className="w-3 h-3 shrink-0 text-blue-500" />
+                      {formatPrice(subscriptionPrice)} с подпиской
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
       </article>
       </>
@@ -929,7 +1063,7 @@ export function DecorationCard({
               {decoration.price}
             </span>
           ) : null}
-          {renderAction(true, isLarge ? "medium" : "small")}
+          {renderAction(true, isLarge ? "medium" : "small", true)}
         </div>
       ) : !hidePurchase && !isOwned && isAuthenticated && soldOut ? (
         <div className="flex items-center justify-center gap-2 py-2 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
@@ -961,7 +1095,7 @@ export function DecorationCard({
       ) : !hidePurchase && !isOwned && !isAuthenticated ? (
         <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">Войдите для покупки</p>
       ) : (
-        renderAction()
+        renderAction(false, "small", true)
       )}
     </div>
   );
@@ -974,7 +1108,7 @@ export function DecorationCard({
         {previewModal}
         <article 
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full min-w-0 self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full min-w-[140px] sm:min-w-[160px] self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
         >
         {/* Область изображения — горизонтальный баннер (ширина > высота) */}
         <div className="relative w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] shrink-0 min-w-0">
@@ -1062,7 +1196,7 @@ export function DecorationCard({
                 {decoration.price}
               </span>
             ) : null}
-            {renderAction(true)}
+            {renderAction(true, "small", true)}
           </div>
         </div>
         </article>
@@ -1077,7 +1211,7 @@ export function DecorationCard({
         {previewModal}
         <article 
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
         >
         {renderImageBlock("relative aspect-[3/4]", true)}
         {renderContentBlock(true, "large")}
@@ -1092,7 +1226,7 @@ export function DecorationCard({
       {previewModal}
       <article 
         onClick={handleCardClick}
-        className={`group/card relative w-full max-w-full sm:max-w-[200px] lg:max-w-[220px] min-w-0 rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+        className={`group/card relative w-full max-w-full sm:max-w-[200px] lg:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
       >
         {renderImageBlock("relative aspect-[9/16]")}
         {renderContentBlock()}
