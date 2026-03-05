@@ -86,6 +86,11 @@ export const useAuth = () => {
           level: user.level,
           experience: user.experience,
           balance: user.balance,
+          subscriptionExpiresAt:
+            (user as { subscriptionExpiresAt?: string | null; subscription_expires_at?: string | null })
+              .subscriptionExpiresAt ??
+            (user as { subscription_expires_at?: string | null }).subscription_expires_at ??
+            null,
           bookmarks: user.bookmarks,
           readingHistory: user.readingHistory,
           createdAt: user.createdAt,
