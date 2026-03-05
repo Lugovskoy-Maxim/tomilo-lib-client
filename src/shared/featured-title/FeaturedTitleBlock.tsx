@@ -89,9 +89,14 @@ export default function FeaturedTitleBlock({
   
   const minSwipeDistance = 50;
 
+  // Depend on stable primitives so we don't re-run when `user` object reference changes (avoids infinite loop)
+  const userId = user?._id ?? null;
+  const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
-    setIsAgeVerified(checkAgeVerification(user || null));
-  }, [user]);
+    const verified = checkAgeVerification(user || null);
+    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only userId/userBirthDate; `user` reference changes every render from Redux
+  }, [userId, userBirthDate]);
 
   // Предзагрузка изображений всех слайдов при монтировании
   useEffect(() => {

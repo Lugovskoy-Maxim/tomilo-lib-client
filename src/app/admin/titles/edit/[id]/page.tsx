@@ -307,6 +307,7 @@ export default function TitleEditorPage() {
     isAdult: false,
     chapters: [],
     isPublished: false,
+    chaptersRemovedByCopyrightHolder: false,
     createdAt: "",
     updatedAt: "",
   });
@@ -460,6 +461,7 @@ export default function TitleEditorPage() {
         releaseYear: Number(formData.releaseYear),
         ageLimit: Number(formData.ageLimit),
         isPublished: formData.isPublished,
+        chaptersRemovedByCopyrightHolder: formData.chaptersRemovedByCopyrightHolder ?? false,
         type: formData.type,
       };
 
@@ -747,6 +749,12 @@ function BasicInfoSection({
           label="Опубликован"
           checked={formData.isPublished}
           onChange={handleInputChange("isPublished")}
+        />
+
+        <CheckboxField
+          label="Главы скрыты по требованию правообладателя"
+          checked={formData.chaptersRemovedByCopyrightHolder ?? false}
+          onChange={handleInputChange("chaptersRemovedByCopyrightHolder")}
         />
         </div>
       </div>

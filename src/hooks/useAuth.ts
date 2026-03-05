@@ -17,7 +17,8 @@ import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-verification";
 import { ReadingProgressResponse } from "@/types/progress";
 
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
+
 const USER_DATA_KEY = "tomilo_lib_user";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -538,10 +539,12 @@ export const useAuth = () => {
         ? authResponse.data
         : (authResponse as AuthResponse);
     const token = data?.access_token;
+    const refreshToken = data?.refresh_token;
     const user = data?.user;
 
     if (typeof window !== "undefined" && token && user) {
       localStorage.setItem(AUTH_TOKEN_KEY, token);
+      if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
       localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
 
       // Check age and set verification if user is 18+
@@ -556,6 +559,7 @@ export const useAuth = () => {
   const logoutUser = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_DATA_KEY);
       // Clear age verification on logout
       clearAgeVerification();

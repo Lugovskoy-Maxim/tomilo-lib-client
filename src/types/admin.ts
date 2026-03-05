@@ -175,6 +175,29 @@ export interface AdminLogsQuery {
   endDate?: string;
 }
 
+/** Элемент списка тайтлов в админке */
+export interface AdminTitleListItem {
+  _id: string;
+  name: string;
+  slug: string;
+  status?: string;
+  type?: string;
+  isPublished?: boolean;
+  totalChapters?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  chaptersRemovedByCopyrightHolder?: boolean;
+}
+
+/** Параметры запроса списка тайтлов для админки */
+export interface AdminTitlesQuery {
+  page?: number;
+  limit?: number;
+  isPublished?: boolean;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
 /** Запрос на массовое обновление тайтлов */
 export interface BulkUpdateTitlesRequest {
   titleIds: string[];

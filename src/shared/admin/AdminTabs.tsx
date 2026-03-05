@@ -32,6 +32,7 @@ import {
   PanelLeft,
   Command,
   Ticket,
+  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -43,6 +44,7 @@ export type AdminTab =
   | "parser"
   | "auto-parsing"
   | "titles"
+  | "unpublished-titles"
   | "chapters"
   | "collections"
   | "announcements"
@@ -65,6 +67,7 @@ export const ADMIN_TABS: AdminTab[] = [
   "parser",
   "auto-parsing",
   "titles",
+  "unpublished-titles",
   "chapters",
   "collections",
   "announcements",
@@ -112,6 +115,7 @@ const tabGroups: TabGroup[] = [
       { id: "parser", label: "Парсинг", icon: Download, shortcut: "P" },
       { id: "auto-parsing", label: "Автопарсинг", icon: Clock },
       { id: "titles", label: "Тайтлы", icon: BookOpen, shortcut: "T" },
+      { id: "unpublished-titles", label: "Неопубликованные тайтлы", icon: EyeOff },
       { id: "chapters", label: "Главы", icon: FileText },
       { id: "collections", label: "Коллекции", icon: FolderOpen },
       { id: "announcements", label: "Новости / Объявления", icon: Megaphone },

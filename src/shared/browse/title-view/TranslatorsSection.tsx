@@ -59,7 +59,7 @@ function TeamCard({ team }: { team: TranslatorTeam }) {
 
         {team.slug && (
           <Link
-            href={`/team/${team.slug}`}
+            href={`/translators/${team.slug}`}
             className="p-2 rounded-lg bg-[var(--secondary)]/50 hover:bg-[var(--primary)]/10 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
           >
             <ExternalLink className="w-4 h-4" />

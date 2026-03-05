@@ -38,6 +38,10 @@ interface ChapterFormData {
   qualityCheck?: string;
   translatorTeamId?: string;
   translatorTeamName?: string;
+  isPublished?: boolean;
+  isPaid?: boolean;
+  unlockPrice?: number;
+  freeAt?: string | null;
 }
 
 export default function ChapterEditorPage() {
@@ -64,6 +68,10 @@ export default function ChapterEditorPage() {
     qualityCheck: "",
     translatorTeamId: undefined,
     translatorTeamName: undefined,
+    isPublished: true,
+    isPaid: false,
+    unlockPrice: 0,
+    freeAt: null,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -94,6 +102,10 @@ export default function ChapterEditorPage() {
         qualityCheck: chapterData.qualityCheck ?? "",
         translatorTeamId: chapterData.translatorTeamId,
         translatorTeamName: chapterData.translatorTeamName,
+        isPublished: chapterData.isPublished ?? true,
+        isPaid: chapterData.isPaid ?? false,
+        unlockPrice: chapterData.unlockPrice ?? 0,
+        freeAt: chapterData.freeAt ? (typeof chapterData.freeAt === "string" ? chapterData.freeAt.slice(0, 16) : new Date(chapterData.freeAt).toISOString().slice(0, 16)) : null,
       });
     } else if (apiError) {
       toast.error("Ошибка при загрузке данных главы");
@@ -256,6 +268,10 @@ export default function ChapterEditorPage() {
         qualityCheck: formData.qualityCheck || undefined,
         translatorTeamId: formData.translatorTeamId,
         translatorTeamName: formData.translatorTeamName,
+        isPublished: formData.isPublished,
+        isPaid: formData.isPaid,
+        unlockPrice: formData.unlockPrice ?? 0,
+        freeAt: formData.freeAt ? new Date(formData.freeAt).toISOString() : null,
       };
 
       const result = await updateChapterMutation({
@@ -444,6 +460,77 @@ export default function ChapterEditorPage() {
                     placeholder="Имя проверяющего качество"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Платная глава */}
+            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Платная глава</h2>
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPaid ?? false}
+                    onChange={e =>
+                      setFormData(prev => ({ ...prev, isPaid: e.target.checked }))
+                    }
+                    className="rounded border-[var(--border)]"
+                  />
+                  <span className="text-sm text-[var(--foreground)]">Платная глава</span>
+                </label>
+                {formData.isPaid && (
+                  <>
+                    <div>
+                      <label className="block mb-1 text-xs font-medium text-[var(--muted-foreground)]">
+                        Цена разблокировки (монеты)
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.unlockPrice ?? 0}
+                        onChange={e =>
+                          setFormData(prev => ({
+                            ...prev,
+                            unlockPrice: parseInt(e.target.value, 10) || 0,
+                          }))
+                        }
+                        className="w-28 px-3 py-2 rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-1 text-xs font-medium text-[var(--muted-foreground)]">
+                        Бесплатно с даты
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={formData.freeAt ?? ""}
+                        onChange={e =>
+                          setFormData(prev => ({
+                            ...prev,
+                            freeAt: e.target.value || null,
+                          }))
+                        }
+                        className="px-3 py-2 rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
+                      />
+                      <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                        После этой даты глава станет бесплатной для всех
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPublished ?? true}
+                    onChange={e =>
+                      setFormData(prev => ({ ...prev, isPublished: e.target.checked }))
+                    }
+                    className="rounded border-[var(--border)]"
+                  />
+                  <span className="text-sm text-[var(--foreground)]">Опубликована</span>
+                </label>
               </div>
             </div>
 
