@@ -103,6 +103,23 @@ export const translatorsApi = createApi({
       },
     }),
 
+    uploadTeamAvatar: builder.mutation<TranslatorTeam, { teamId: string; avatar: File }>({
+      query: ({ teamId, avatar }) => {
+        const formData = new FormData();
+        formData.append("avatar", avatar);
+        return {
+          url: `/translator-teams/${teamId}/avatar`,
+          method: "PUT",
+          body: formData,
+        };
+      },
+      invalidatesTags: [TRANSLATORS_TAG],
+      transformResponse: (response: ApiResponseDto<TranslatorTeam>) => {
+        if (!response.data) throw new Error("Failed to upload avatar");
+        return response.data;
+      },
+    }),
+
     addMember: builder.mutation<
       TranslatorTeam,
       { teamId: string; userId?: string; name: string; role: string; avatar?: string }
@@ -174,6 +191,7 @@ export const {
   useCreateTeamMutation,
   useCreateTeamWithImagesMutation,
   useUpdateTeamMutation,
+  useUploadTeamAvatarMutation,
   useAddMemberMutation,
   useRemoveMemberMutation,
   useAddTitleToTeamMutation,

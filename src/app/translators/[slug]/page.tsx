@@ -280,7 +280,7 @@ export default function TranslatorTeamPage() {
               {titles.map((title) => (
                 <Link
                   key={title._id}
-                  href={getTitlePath(title.slug)}
+                  href={getTitlePath(title)}
                   className="group block rounded-xl overflow-hidden border border-[var(--border)] hover:border-[var(--primary)]/50 transition-colors"
                 >
                   <div className="relative aspect-[3/4] bg-[var(--secondary)]/50">

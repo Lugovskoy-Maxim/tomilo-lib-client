@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Users2, Heart, ExternalLink, ChevronDown } from "lucide-react";
 import { useGetTeamsByTitleQuery } from "@/store/api/translatorsApi";
+import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { TranslatorTeam, translatorRoleLabels } from "@/types/translator";
 import { normalizeAssetUrl } from "@/lib/asset-url";
 
@@ -13,7 +14,13 @@ interface ChapterTranslatorInfoProps {
   chapterTranslator?: string;
 }
 
-function TeamMiniCard({ team }: { team: TranslatorTeam }) {
+function TeamMiniCard({
+  team,
+  chaptersCountInTitle,
+}: {
+  team: TranslatorTeam;
+  chaptersCountInTitle?: number;
+}) {
   const [imageError, setImageError] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -53,7 +60,12 @@ function TeamMiniCard({ team }: { team: TranslatorTeam }) {
             )}
           </div>
           <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
-            <span>{team.chaptersCount} глав</span>
+            <span>
+              {typeof chaptersCountInTitle === "number"
+                ? chaptersCountInTitle
+                : team.chaptersCount}{" "}
+              глав
+            </span>
             {team.subscribersCount > 0 && (
               <>
                 <span>•</span>
@@ -153,6 +165,21 @@ function TeamMiniCard({ team }: { team: TranslatorTeam }) {
 
 export function ChapterTranslatorInfo({ titleId, chapterTranslator }: ChapterTranslatorInfoProps) {
   const { data: teams, isLoading } = useGetTeamsByTitleQuery(titleId);
+  const { data: chaptersData } = useGetChaptersByTitleQuery(
+    { titleId, page: 1, limit: 10000, sortOrder: "asc" },
+    { skip: !titleId },
+  );
+
+  const chaptersByTeam = useMemo(() => {
+    const chapters = chaptersData?.chapters ?? [];
+    const map = new Map<string, number>();
+    for (const ch of chapters) {
+      if (ch.translatorTeamId) {
+        map.set(ch.translatorTeamId, (map.get(ch.translatorTeamId) ?? 0) + 1);
+      }
+    }
+    return map;
+  }, [chaptersData?.chapters]);
 
   if (isLoading) {
     return (
@@ -174,7 +201,11 @@ export function ChapterTranslatorInfo({ titleId, chapterTranslator }: ChapterTra
       {teams && teams.length > 0 ? (
         <div className="space-y-2">
           {teams.map(team => (
-            <TeamMiniCard key={team._id} team={team} />
+            <TeamMiniCard
+              key={team._id}
+              team={team}
+              chaptersCountInTitle={chaptersByTeam.get(team._id)}
+            />
           ))}
         </div>
       ) : chapterTranslator ? (

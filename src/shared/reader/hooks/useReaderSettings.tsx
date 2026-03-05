@@ -81,7 +81,7 @@ const DEFAULT_SETTINGS: ReaderSettings = {
   infiniteScroll: false,
   showTimer: false,
   showHints: false,
-  showProgress: true,
+  showProgress: false,
   imageQuality: "auto",
 };
 

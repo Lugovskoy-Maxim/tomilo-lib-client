@@ -568,7 +568,7 @@ export function RightContent({
             <CharactersSection titleId={titleId} />
 
             {/* Секция команды перевода */}
-            <TranslatorsSection titleId={titleId} />
+            <TranslatorsSection titleId={titleId} chapters={chapters} />
 
             {/* Похожие тайтлы */}
             <SimilarTitles

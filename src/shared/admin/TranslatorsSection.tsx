@@ -11,13 +11,18 @@ import {
   ExternalLink,
   X,
   Search,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
+import Image from "next/image";
+import { normalizeAssetUrl } from "@/lib/asset-url";
 import {
   useGetTeamsQuery,
   useGetTeamByIdQuery,
   useCreateTeamMutation,
   useUpdateTeamMutation,
   useDeleteTeamMutation,
+  useUploadTeamAvatarMutation,
   useAddTitleToTeamMutation,
   useRemoveTitleFromTeamMutation,
 } from "@/store/api/translatorsApi";
@@ -40,7 +45,6 @@ const emptyForm = {
   name: "",
   slug: "",
   description: "",
-  avatar: "",
   banner: "",
   members: [] as { name: string; role: TranslatorRole }[],
 };
@@ -77,6 +81,7 @@ export function TranslatorsSection() {
 
   const [createTeam, { isLoading: isCreating }] = useCreateTeamMutation();
   const [updateTeam, { isLoading: isUpdating }] = useUpdateTeamMutation();
+  const [uploadTeamAvatar, { isLoading: isUploadingAvatar }] = useUploadTeamAvatarMutation();
   const [deleteTeam] = useDeleteTeamMutation();
   const [addTitleToTeam] = useAddTitleToTeamMutation();
   const [removeTitleFromTeam] = useRemoveTitleFromTeamMutation();
@@ -87,7 +92,6 @@ export function TranslatorsSection() {
         name: editingTeam.name,
         slug: editingTeam.slug ?? "",
         description: editingTeam.description ?? "",
-        avatar: editingTeam.avatar ?? "",
         banner: editingTeam.banner ?? "",
         members: (editingTeam.members ?? []).map((m) => ({
           name: m.name,
@@ -130,7 +134,6 @@ export function TranslatorsSection() {
             name: form.name.trim(),
             slug: form.slug.trim() || undefined,
             description: form.description.trim() || undefined,
-            avatar: form.avatar.trim() || undefined,
             banner: form.banner.trim() || undefined,
             members: form.members.map((m) => ({
               name: m.name.trim(),
@@ -144,7 +147,6 @@ export function TranslatorsSection() {
           name: form.name.trim(),
           slug: form.slug.trim() || undefined,
           description: form.description.trim() || undefined,
-          avatar: form.avatar.trim() || undefined,
           banner: form.banner.trim() || undefined,
           members: form.members.map((m) => ({
             name: m.name.trim(),
@@ -371,16 +373,54 @@ export function TranslatorsSection() {
                   placeholder="автоматически из названия"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Аватар (URL)</label>
-                <input
-                  type="url"
-                  value={form.avatar}
-                  onChange={(e) => setForm((p) => ({ ...p, avatar: e.target.value }))}
-                  className="admin-input w-full"
-                  placeholder="https://..."
-                />
-              </div>
+              {editingTeam && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Аватар</label>
+                  <div className="flex items-center gap-4">
+                    {currentTeam?.avatar ? (
+                      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[var(--secondary)] border border-[var(--border)]">
+                        <Image
+                          src={normalizeAssetUrl(currentTeam.avatar)}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-[var(--muted-foreground)]" />
+                      </div>
+                    )}
+                    <label className="admin-btn admin-btn-secondary cursor-pointer inline-flex items-center gap-2">
+                      <Upload className="w-4 h-4" />
+                      {isUploadingAvatar ? "Загрузка…" : "Загрузить файл"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !editingTeam._id) return;
+                          try {
+                            await uploadTeamAvatar({ teamId: editingTeam._id, avatar: file }).unwrap();
+                            toast.success("Аватар загружен");
+                            refetch();
+                            refetchEditingTeam();
+                          } catch (err) {
+                            toast.error(err instanceof Error ? err.message : "Ошибка загрузки");
+                          }
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-1">JPG, PNG или WebP, до 2 МБ</p>
+                </div>
+              )}
+              {!editingTeam && (
+                <p className="text-sm text-[var(--muted-foreground)]">Аватар можно загрузить после создания команды.</p>
+              )}
               <div>
                 <label className="block text-sm font-medium mb-1">Баннер (URL)</label>
                 <input
