@@ -329,6 +329,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
   const showCard = cardUrl && !cardError;
   const showFrame = frameUrl && !frameError;
   const hasRarityEffect = Boolean(cardRarity && cardRarity !== "common");
+  const isPremium = isPremiumActive(user.subscriptionExpiresAt);
 
   useEffect(() => {
     if (showAnimation) {
@@ -346,6 +347,7 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         relative flex flex-col items-center justify-end text-center rounded-2xl border
         transition-all duration-200 hover:shadow-lg
         bg-[var(--card)] ${hasRarityEffect ? rarityStyles.borderClass : styles.cardBorder} 
+        ${isPremium ? "border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.15)] hover:shadow-[0_0_28px_rgba(245,158,11,0.22)]" : ""}
         overflow-hidden group
         ${isCurrentUser ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]" : ""}
         ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4") : ""}
@@ -468,11 +470,13 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   }, [showAnimation, animationDelay]);
 
   const isTopTen = rank <= 10;
+  const isPremium = isPremiumActive(user.subscriptionExpiresAt);
 
   const className = `
     relative flex items-center gap-3 rounded-xl border p-3 sm:p-4 transition-all duration-200
     bg-[var(--card)] hover:bg-[var(--muted)]/50 hover:border-[var(--border)]
     ${hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}
+    ${isPremium ? "border-amber-500/40 shadow-[0_0_18px_rgba(245,158,11,0.12)] hover:shadow-[0_0_22px_rgba(245,158,11,0.18)]" : ""}
     ${isCurrentUser ? "ring-2 ring-[var(--primary)]/50 ring-offset-2 ring-offset-[var(--background)]" : ""}
     ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2") : ""}
     overflow-hidden
