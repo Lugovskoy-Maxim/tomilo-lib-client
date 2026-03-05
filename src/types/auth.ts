@@ -57,6 +57,8 @@ export interface StoredUser {
   level?: number;
   experience?: number;
   balance?: number;
+  /** Дата окончания премиум-подписки (ISO). Если в будущем — подписка активна. */
+  subscriptionExpiresAt?: string | null;
   bookmarks?: import("@/types/user").BookmarkEntry[];
   readingHistory?: import("@/types/store").ReadingHistoryEntry[];
   birthDate?: string;

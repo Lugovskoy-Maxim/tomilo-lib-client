@@ -26,6 +26,8 @@ import { useUpdateProfileMutation } from "@/store/api/authApi";
 import type { EquippedDecorations } from "@/types/user";
 import type { LeaderboardCategory } from "@/store/api/leaderboardApi";
 import { levelToRank, getLevelProgress } from "@/lib/rank-utils";
+import { isPremiumActive } from "@/lib/premium";
+import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 
 interface LeaderboardPosition {
   category: LeaderboardCategory;
@@ -58,6 +60,7 @@ interface UserDropdownProps {
     balance?: number;
     role?: string;
     birthDate?: string;
+    subscriptionExpiresAt?: string | null;
     displaySettings?: {
       isAdult?: boolean;
       theme?: "light" | "dark" | "system";
@@ -198,7 +201,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
           role="menuitem"
           className="flex items-center gap-3 transition-colors cursor-pointer rounded-lg p-2 -m-2 hover:bg-[var(--accent)] focus:bg-[var(--accent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
         >
-          <div className="shrink-0 rounded-full ring-1 ring-[var(--border)]" style={{ width: 48, height: 48 }}>
+          <div className="shrink-0 rounded-full ring-1 ring-[var(--border)] relative" style={{ width: 48, height: 48 }}>
             <UserAvatar
               avatarUrl={user?.avatar}
               username={displayName}
@@ -206,11 +209,15 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
               className="rounded-full w-full h-full"
               frameUrl={frameUrl ?? undefined}
               avatarDecorationUrl={avatarDecorationUrl ?? undefined}
+              showPremium={isPremiumActive(user?.subscriptionExpiresAt)}
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-[var(--foreground)] truncate text-base">
+            <h3 className="font-semibold text-[var(--foreground)] truncate text-base flex items-center gap-1.5">
               {displayName}
+              {isPremiumActive(user?.subscriptionExpiresAt) && (
+                <PremiumBadge size="xs" ariaLabel="Премиум" />
+              )}
             </h3>
             <div className="flex items-center gap-2 min-w-0 mt-0.5" title={rankInfo.name}>
               <span className="inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)] shrink-0">

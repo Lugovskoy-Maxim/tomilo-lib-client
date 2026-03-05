@@ -56,6 +56,8 @@ export interface UpdateUserDataRequest {
     level?: number;
     experience?: number;
     bio?: string;
+    /** Дата окончания премиум (ISO). null — снять подписку. */
+    subscriptionExpiresAt?: string | null;
   };
 }
 

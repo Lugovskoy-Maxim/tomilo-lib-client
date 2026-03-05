@@ -225,12 +225,22 @@ export const titlesApi = createApi({
         params: { populateChapters: includeChapters.toString() },
       }),
       providesTags: (result, error, { id }) => [{ type: TITLES_TAG, id }],
-      transformResponse: (response: unknown): Title => {
+      transformResponse: (
+        response: unknown,
+        _meta,
+        arg: { id: string; includeChapters?: boolean },
+      ): Title => {
         const apiResponse = response as ApiResponseDto<Title> | Title;
         if (typeof apiResponse === "object" && apiResponse !== null && "success" in apiResponse) {
           const wrappedResponse = apiResponse as ApiResponseDto<Title>;
           if (wrappedResponse.success === false) {
-            throw new Error(wrappedResponse.message || "Failed to fetch title");
+            const msg =
+              wrappedResponse.message ||
+              (Array.isArray(wrappedResponse.errors) && wrappedResponse.errors.length > 0
+                ? wrappedResponse.errors.join("; ")
+                : null) ||
+              "Failed to fetch title";
+            throw new Error(`${msg} (id: ${arg.id})`);
           }
           if (!wrappedResponse.data) {
             throw new Error("No data in API response");
@@ -248,12 +258,22 @@ export const titlesApi = createApi({
         params: { populateChapters: includeChapters.toString() },
       }),
       providesTags: (result, error, { slug }) => [{ type: TITLES_TAG, id: `slug-${slug}` }],
-      transformResponse: (response: unknown): Title => {
+      transformResponse: (
+        response: unknown,
+        _meta,
+        arg: { slug: string; includeChapters?: boolean },
+      ): Title => {
         const apiResponse = response as ApiResponseDto<Title> | Title;
         if (typeof apiResponse === "object" && apiResponse !== null && "success" in apiResponse) {
           const wrappedResponse = apiResponse as ApiResponseDto<Title>;
           if (wrappedResponse.success === false) {
-            throw new Error(wrappedResponse.message || "Failed to fetch title by slug");
+            const msg =
+              wrappedResponse.message ||
+              (Array.isArray(wrappedResponse.errors) && wrappedResponse.errors.length > 0
+                ? wrappedResponse.errors.join("; ")
+                : null) ||
+              "Failed to fetch title by slug";
+            throw new Error(`${msg} (slug: ${arg.slug})`);
           }
           if (!wrappedResponse.data) {
             throw new Error("No data in API response");

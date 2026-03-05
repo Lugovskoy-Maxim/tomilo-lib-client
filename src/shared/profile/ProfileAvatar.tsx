@@ -6,6 +6,8 @@ import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl, getDecorationImage
 import { getImageUrls } from "@/lib/asset-url";
 import { useAuth } from "@/hooks/useAuth";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
+import { isPremiumActive } from "@/lib/premium";
+import { PremiumAvatarOverlay } from "@/shared/premium-badge/PremiumBadge";
 
 
 interface UserAvatarProps {
@@ -88,6 +90,8 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
     hasDecoration ? "" : "border-4 border-[var(--background)]"
   }`;
 
+  const isPremium = isPremiumActive(userProfile.subscriptionExpiresAt);
+
   return (
     <div className={`group relative overflow-visible ${sizeClass}`}>
       <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover:opacity-100 blur-sm transition-all duration-500" />
@@ -104,6 +108,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
           aria-hidden
         />
       )}
+      {isPremium && <PremiumAvatarOverlay />}
     </div>
   );
 }

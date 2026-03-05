@@ -8,6 +8,8 @@ import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
 import { getDecorationImageUrl, getEquippedFrameUrl, getEquippedBackgroundUrl, getEquippedAvatarDecorationUrl } from "@/api/shop";
 import { EquippedDecorations } from "@/types/user";
+import { isPremiumActive } from "@/lib/premium";
+import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
 
@@ -523,8 +525,11 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
       </div>
 
       <div className="flex-1 min-w-0 relative z-10">
-        <p className={`font-medium truncate text-sm ${isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`} title={user.username}>
-          {user.username}
+        <p className={`font-medium truncate text-sm flex items-center gap-1 ${isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`} title={user.username}>
+          <span className="truncate">{user.username}</span>
+          {isPremiumActive(user.subscriptionExpiresAt) && (
+            <PremiumBadge size="xs" ariaLabel="Премиум" />
+          )}
         </p>
         <p className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">
           {getRankDisplay(level).split("  ")[0]}

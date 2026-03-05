@@ -275,7 +275,7 @@ export function TranslatorsSection() {
                       href={`/translators/${team.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="admin-btn admin-btn-secondary p-2"
+                      className="admin-btn admin-btn-secondary p-2 inline-flex items-center justify-center"
                       title="Открыть страницу"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -284,7 +284,7 @@ export function TranslatorsSection() {
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(team)}
-                    className="admin-btn admin-btn-secondary p-2"
+                    className="admin-btn admin-btn-secondary p-2 inline-flex items-center justify-center"
                     title="Редактировать"
                   >
                     <Edit className="w-4 h-4" />
@@ -301,7 +301,7 @@ export function TranslatorsSection() {
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(team)}
-                    className="p-2 text-[var(--destructive)] hover:bg-[var(--destructive)]/10 rounded-lg transition-colors"
+                    className="p-2 inline-flex items-center justify-center text-[var(--destructive)] hover:bg-[var(--destructive)]/10 rounded-lg transition-colors"
                     title="Удалить"
                   >
                     <Trash2 className="w-4 h-4" />
