@@ -102,10 +102,17 @@ export function TranslatorTeamSelect({
         {label}
       </label>
       
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-left transition-colors hover:border-[var(--primary)]/50"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsOpen((prev) => !prev);
+          }
+        }}
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-left transition-colors hover:border-[var(--primary)]/50 cursor-pointer"
       >
         <div className="flex items-center gap-2 min-w-0">
           {selectedTeam ? (
@@ -150,7 +157,7 @@ export function TranslatorTeamSelect({
           )}
           <ChevronDown className={`w-4 h-4 text-[var(--muted-foreground)] transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </div>
-      </button>
+      </div>
 
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-lg overflow-hidden">
@@ -247,7 +254,7 @@ export function TranslatorTeamSelect({
           {selectedTeam && (
             <div className="p-2 border-t border-[var(--border)]">
               <a
-                href={`/team/${selectedTeam.slug || selectedTeam._id}`}
+                href={`/translators/${selectedTeam.slug || selectedTeam._id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors"

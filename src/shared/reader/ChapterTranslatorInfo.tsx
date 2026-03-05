@@ -66,7 +66,7 @@ function TeamMiniCard({ team }: { team: TranslatorTeam }) {
         <div className="flex items-center gap-1">
           {team.slug && (
             <Link
-              href={`/team/${team.slug}`}
+              href={`/translators/${team.slug}`}
               className="p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
               title="Страница команды"
             >

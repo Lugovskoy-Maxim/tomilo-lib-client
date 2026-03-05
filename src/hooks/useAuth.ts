@@ -398,7 +398,11 @@ export const useAuth = () => {
         }
 
         if (token) {
-          refetchProfile();
+          try {
+            await refetchProfile();
+          } catch {
+            // Profile query may be skipped on this page (RTK: "has not been started") — add succeeded
+          }
         }
         return { success: true, progress: result.data };
       };
@@ -472,6 +476,8 @@ export const useAuth = () => {
       } catch (error: unknown) {
         const message = getErrorMessage(error);
         if (isAlreadyInHistory(message)) return { success: true };
+        // Refetch failed (e.g. profile query was skipped) but add may have succeeded — don't log
+        if (isRefetchNotStarted(message)) return { success: true };
         if (isVersionConflict(message)) {
           try {
             const retryResult = await doRetry();

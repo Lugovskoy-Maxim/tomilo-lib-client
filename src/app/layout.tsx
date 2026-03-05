@@ -262,27 +262,28 @@ export default function RootLayout({
         <ToastProvider>
           <ProgressNotificationProvider>
           <Providers>
-            <ThemeProvider>
+            <ThemeProvider suppressHydrationWarning>
               <FontProvider>
-                <Suspense fallback={null}>
-                  <CardTiltEffect />
-                </Suspense>
-              <div className="mobile-footer-spacer">
-                {children}
-              </div>
-              {/* Уведомления внизу экрана: cookie внизу, Telegram выше; не перекрывают друг друга */}
-              <div className="fixed bottom-4 left-0 right-0 z-50 flex flex-col-reverse items-center gap-3 px-4 pointer-events-none">
-                <div className="pointer-events-auto w-full max-w-md mx-auto">
-                  <CookieConsent />
-                </div>
-                <div className="pointer-events-auto w-full max-w-md mx-auto">
-                  <TelegramJoinNotification />
-                </div>
-              </div>
-              {/* Обработчик сообщений от окна авторизации (Яндекс, VK) */}
-              <script
-                dangerouslySetInnerHTML={{
-                  __html: `
+                <div className="contents">
+                  <Suspense fallback={null}>
+                    <CardTiltEffect />
+                  </Suspense>
+                  <div className="mobile-footer-spacer">
+                    {children}
+                  </div>
+                  {/* Уведомления внизу экрана: cookie внизу, Telegram выше; не перекрывают друг друга */}
+                  <div className="fixed bottom-4 left-0 right-0 z-50 flex flex-col-reverse items-center gap-3 px-4 pointer-events-none">
+                    <div className="pointer-events-auto w-full max-w-md mx-auto">
+                      <CookieConsent />
+                    </div>
+                    <div className="pointer-events-auto w-full max-w-md mx-auto">
+                      <TelegramJoinNotification />
+                    </div>
+                  </div>
+                  {/* Обработчик сообщений от окна авторизации (Яндекс, VK) */}
+                  <script
+                    dangerouslySetInnerHTML={{
+                      __html: `
                     window.addEventListener('message', function(event) {
                       if (event.origin !== window.location.origin) return;
                       if (event.data.type === 'YANDEX_LOGIN_SUCCESS' || event.data.type === 'VK_LOGIN_SUCCESS') {
@@ -302,9 +303,10 @@ export default function RootLayout({
                       }
                     });
                   `,
-                }}
-              />
-            </FontProvider>
+                    }}
+                  />
+                </div>
+              </FontProvider>
             </ThemeProvider>
           </Providers>
           <ToastContainer />

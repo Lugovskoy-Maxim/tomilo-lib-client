@@ -4,6 +4,7 @@ import {
   BookOpen,
   FileText,
   Users,
+  Users2,
   FolderOpen,
   Clock,
   MessageCircle,
@@ -48,6 +49,7 @@ export type AdminTab =
   | "chapters"
   | "collections"
   | "announcements"
+  | "translator-teams"
   | "genres"
   | "achievements"
   | "comments"
@@ -70,9 +72,10 @@ export const ADMIN_TABS: AdminTab[] = [
   "unpublished-titles",
   "chapters",
   "collections",
-  "announcements",
-  "genres",
-  "achievements",
+      "announcements",
+      "translator-teams",
+      "genres",
+      "achievements",
   "comments",
   "users",
   "reports",
@@ -119,6 +122,7 @@ const tabGroups: TabGroup[] = [
       { id: "chapters", label: "Главы", icon: FileText },
       { id: "collections", label: "Коллекции", icon: FolderOpen },
       { id: "announcements", label: "Новости / Объявления", icon: Megaphone },
+      { id: "translator-teams", label: "Команды переводчиков", icon: Users2 },
       { id: "genres", label: "Жанры", icon: Tag },
       { id: "achievements", label: "Достижения", icon: Trophy },
     ],

@@ -9,6 +9,7 @@ import { StatsSection } from "@/shared/admin/StatsSection";
 import { ParserSection } from "@/shared/admin/ParserSection";
 import { TitlesSection } from "@/shared/admin/TitlesSection";
 import { UnpublishedTitlesSection } from "@/shared/admin/UnpublishedTitlesSection";
+import { TranslatorsSection } from "@/shared/admin/TranslatorsSection";
 import { UsersSection } from "@/shared/admin/UsersSection";
 import { CommentsSection } from "@/shared/admin/CommentsSection";
 import { ReportsSection } from "@/shared/admin/ReportsSection";
@@ -84,6 +85,7 @@ export default function AdminPageClient() {
       chapters: "Главы",
       collections: "Коллекции",
       announcements: "Новости / Объявления",
+      "translator-teams": "Команды переводчиков",
       genres: "Жанры",
       achievements: "Достижения",
       comments: "Комментарии",
@@ -127,6 +129,8 @@ export default function AdminPageClient() {
         return <CollectionsSection onTabChange={(tab: string) => setActiveTab(tab as AdminTab)} />;
       case "announcements":
         return <AnnouncementsSection />;
+      case "translator-teams":
+        return <TranslatorsSection />;
       case "genres":
         return <GenresSection />;
       case "achievements":

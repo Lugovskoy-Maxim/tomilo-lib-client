@@ -10,6 +10,7 @@ import {
   Heart,
   ExternalLink,
   MessageCircle,
+  Info,
 } from "lucide-react";
 import { useGetTeamBySlugQuery } from "@/store/api/translatorsApi";
 import {
@@ -19,6 +20,7 @@ import {
   type TranslatorRole,
 } from "@/types/translator";
 import { normalizeAssetUrl } from "@/lib/asset-url";
+import { getTitlePath } from "@/lib/title-paths";
 import { Header } from "@/widgets";
 
 function SocialLink({
@@ -94,9 +96,10 @@ export default function TranslatorTeamPage() {
     );
   }
 
-  const t = team as TranslatorTeam;
+  const t = team as TranslatorTeam & { titles?: { _id: string; name: string; slug: string; coverImage?: string; totalChapters?: number }[] };
   const socialLinks = t.socialLinks || {};
   const donationLinks = t.donationLinks || {};
+  const titles = t.titles && t.titles.length > 0 ? t.titles : null;
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -249,18 +252,76 @@ export default function TranslatorTeamPage() {
                 <SocialLink href={donationLinks.yoomoney} label="ЮMoney" icon={<Heart className="w-4 h-4" />} />
               )}
             </div>
+            <p className="mt-3 flex items-start gap-2 text-xs text-[var(--muted-foreground)]">
+              <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>Кнопка «Подписаться» на команду и встроенная поддержка донатами пока в разработке. Ссылки выше ведут на внешние страницы команды.</span>
+            </p>
           </div>
         )}
 
-        {/* Titles count / placeholder for future title list */}
-        {Array.isArray(t.titleIds) && t.titleIds.length > 0 && (
+        {/* Subscribers note when no donation block */}
+        {(!donationLinks.boosty && !donationLinks.patreon && !donationLinks.donationalerts && !donationLinks.yoomoney) && (
+          <p className="mt-4 flex items-start gap-2 text-xs text-[var(--muted-foreground)]">
+            <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>Функции «Подписаться на команду» и «Поддержать» пока в разработке.</span>
+          </p>
+        )}
+
+        {/* Titles list with covers */}
+        {(titles && titles.length > 0) && (
+          <div className="mt-6 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+            <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
+              Переводы
+            </h2>
+            <p className="text-[var(--muted-foreground)] text-sm mb-4">
+              Тайтлы, в переводе которых участвует команда.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {titles.map((title) => (
+                <Link
+                  key={title._id}
+                  href={getTitlePath(title.slug)}
+                  className="group block rounded-xl overflow-hidden border border-[var(--border)] hover:border-[var(--primary)]/50 transition-colors"
+                >
+                  <div className="relative aspect-[3/4] bg-[var(--secondary)]/50">
+                    {title.coverImage ? (
+                      <Image
+                        src={normalizeAssetUrl(title.coverImage)}
+                        alt={title.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <BookOpen className="w-10 h-10 text-[var(--muted-foreground)]" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-2">
+                    <div className="font-medium text-sm text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)]">
+                      {title.name}
+                    </div>
+                    {typeof title.totalChapters === "number" && (
+                      <div className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                        {title.totalChapters} глав
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Fallback when no titles from API but has titleIds */}
+        {(!titles || titles.length === 0) && Array.isArray(t.titleIds) && t.titleIds.length > 0 && (
           <div className="mt-6 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
             <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-2">
               Переводы
             </h2>
             <p className="text-[var(--muted-foreground)] text-sm">
-              Команда участвует в переводе {t.titleIds.length} тайтл{t.titleIds.length === 1 ? "а" : "ов"}.
-              Список можно посмотреть на страницах тайтлов.
+              Команда участвует в переводе {t.titleIds.length} тайтл{t.titleIds.length === 1 ? "а" : "ов"}. Список отображается на страницах тайтлов.
             </p>
           </div>
         )}
