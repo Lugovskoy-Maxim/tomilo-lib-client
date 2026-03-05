@@ -747,16 +747,16 @@ export function ShopSection({ type }: ShopSectionProps) {
         </div>
       ) : (
       <div
-        className={`grid gap-2 sm:gap-2 md:gap-3 min-w-0 ${
+        className={`grid gap-2 sm:gap-3 md:gap-4 min-w-0 ${
           type === "avatar" || type === "frame" || type === "card"
             ? type === "card"
-              ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 justify-items-center"
-              : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 justify-items-center"
+              ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 justify-items-stretch items-start"
+              : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 justify-items-stretch items-start"
             : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
         }`}
       >
         {filteredDecorations.map(decoration => (
-          <div key={decoration.id} className="relative group min-w-0 flex justify-center">
+          <div key={decoration.id} className={`relative group w-full min-w-0 flex justify-center ${type === "frame" ? "h-[281px]" : ""}`}>
             {isAdmin && (
               <div
                 className="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
