@@ -37,9 +37,12 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
 
+  const userId = user?._id ?? null;
+  const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
-    setIsAgeVerified(checkAgeVerification(user || null));
-  }, [user]);
+    const verified = checkAgeVerification(user || null);
+    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+  }, [userId, userBirthDate]);
 
   const handleAgeCancel = () => {
     setShowAgeModal(false);

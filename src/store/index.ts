@@ -76,7 +76,9 @@ export const store = configureStore({
     [promocodesApi.reducerPath]: promocodesApi.reducer,
   },
   middleware: getDefaultMiddleware =>
-    getDefaultMiddleware().concat(
+    getDefaultMiddleware({
+      immutableCheck: { warnAfter: 128 },
+    }).concat(
       authApi.middleware,
       titlesApi.middleware,
       chaptersApi.middleware,

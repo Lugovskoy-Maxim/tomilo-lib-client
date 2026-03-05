@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AuthState, StoredUser } from "@/types/auth";
 
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
+
 const USER_DATA_KEY = "tomilo_lib_user";
 
 // Функция для получения начального состояния из localStorage
@@ -59,6 +60,7 @@ const authSlice = createSlice({
       // Очищаем localStorage
       if (typeof window !== "undefined") {
         localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
         localStorage.removeItem(USER_DATA_KEY);
       }
     },

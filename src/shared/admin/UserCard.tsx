@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Trash2, Eye, Shield, Crown, User, Calendar, TrendingUp, MoreHorizontal, Copy, Check, Ban, UserCheck, MessageCircle, Edit } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import Image from "next/image";
+import { isPremiumActive } from "@/lib/premium";
+import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 
 interface UserCardProps {
   user: UserProfile & { isBanned?: boolean };
@@ -120,8 +122,11 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-semibold text-[var(--foreground)] truncate text-sm leading-tight">
+                  <h3 className="font-semibold text-[var(--foreground)] truncate text-sm leading-tight flex items-center gap-1">
                     {user.username}
+                    {!isBanned && isPremiumActive(user.subscriptionExpiresAt) && (
+                      <PremiumBadge size="xs" ariaLabel="Премиум" />
+                    )}
                   </h3>
                   {isBanned && (
                     <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-500 text-white">

@@ -1,4 +1,4 @@
-const lastUpdateDate = "16.02.2026";
+const lastUpdateDate = "05.03.2026";
 
 const termsOfUse = {
   ru: {
@@ -23,6 +23,8 @@ const termsOfUse = {
           "Сайт - информационный ресурс tomilo-lib.ru, включая связанные программы для ЭВМ и базы данных, обеспечивающие его работу",
           "Контент - материалы, размещенные на Сайте Администрацией и/или правообладателями в соответствии с применимыми правами",
           "Комментарий - текстовое сообщение Пользователя, размещаемое в предусмотренных разделах Сайта",
+          "Имя пользователя (ник) - отображаемое имя Пользователя в рамках Учетной записи на Сайте",
+          "Аватар - изображение, загружаемое Пользователем для отображения в профиле и при публикации комментариев",
           "Учетная запись - аутентификационные и личные данные Пользователя, хранимые на серверах Сайта",
           "Регистрация - действия Посетителя по созданию Учетной записи на Сайте",
           "Администрация - уполномоченные лица, определяющие порядок использования Сайта",
@@ -37,6 +39,44 @@ const termsOfUse = {
           "Администрация вправе вносить изменения в Соглашение в одностороннем порядке",
           "Пользователь несет персональную ответственность за публикуемые комментарии и последствия их размещения",
         ],
+      },
+      userContentRequirements: {
+        title: "Требования к имени пользователя, аватару и комментариям (соответствие законодательству РФ)",
+        intro:
+          "В целях соблюдения законодательства Российской Федерации (в том числе Федерального закона от 29.12.2010 № 436-ФЗ «О защите детей от информации, причиняющей вред их здоровью и развитию», Федерального закона от 27.07.2006 № 149-ФЗ «Об информации, информационных технологиях и о защите информации», КоАП РФ, УК РФ) Пользователь обязуется соблюдать следующие требования:",
+        nickname: {
+          title: "Имя пользователя (ник)",
+          items: [
+            "Не должно содержать ненормативную лексику, оскорбительные, унижающие достоинство или призывы к насилию",
+            "Не должно содержать символику или атрибутику экстремистских организаций, призывы к экстремизму или терроризму",
+            "Не должно создавать впечатление, что Пользователь действует от имени других лиц, организаций или органов власти, если на то нет правовых оснований",
+            "Не должно пропагандировать употребление наркотиков, алкоголя, суицид или иной вред здоровью",
+            "Не должно содержать дискриминацию по признакам расы, национальности, религии, пола и иным признакам, запрещенным законом",
+            "Администрация вправе отказать в регистрации, потребовать смены имени или заблокировать учетную запись при нарушении указанных требований",
+          ],
+        },
+        avatar: {
+          title: "Аватар",
+          items: [
+            "Не должен содержать порнографию, сцены насилия, жестокости, изображения, причиняющие вред здоровью и развитию детей",
+            "Не должен содержать символику или атрибутику экстремистских организаций, нацистскую символику, призывы к экстремизму или терроризму",
+            "Не должен нарушать права третьих лиц (в том числе право на изображение гражданина)",
+            "Не должен пропагандировать употребление наркотиков, алкоголя, суицид или иной вред",
+            "Должен соответствовать нормам законодательства РФ об информации и защите несовершеннолетних",
+            "Администрация вправе удалить аватар и/или ограничить доступ Пользователя при нарушении указанных требований",
+          ],
+        },
+        comments: {
+          title: "Комментарии",
+          items: [
+            "Запрещается размещение комментариев экстремистского характера, призывов к насилию, терроризму, разжиганию межнациональной, межрелигиозной или иной розни",
+            "Запрещается распространение информации, причиняющей вред здоровью и развитию детей (порнография, насилие, побуждение к суициду и т.п.) в соответствии с ФЗ-436",
+            "Запрещаются оскорбления, клевета, унижение чести и достоинства (в том числе по признакам, указанным в ст. 5.61 КоАП РФ и применимым нормам УК РФ)",
+            "Запрещается пропаганда наркотиков, пропаганда суицида, призывы к противоправным действиям",
+            "Запрещается размещение персональных данных третьих лиц без их согласия, если это не допускается законом",
+            "Пользователь несет ответственность за содержание комментариев в соответствии с законодательством Российской Федерации; Администрация вправе удалять комментарии и применять меры к учетной записи при нарушении",
+          ],
+        },
       },
       userRights: {
         title: "Права, обязанности и ответственность Пользователя",
@@ -127,6 +167,8 @@ const termsOfUse = {
           "Site - the tomilo-lib.ru information resource, including related software and databases required for its operation",
           "Content - materials published on the Site by the Administration and/or right holders in accordance with applicable rights",
           "Comment - a text message posted by a User in designated sections of the Site",
+          "Username (nickname) - the display name of the User within the Account on the Site",
+          "Avatar - an image uploaded by the User for display in the profile and when posting comments",
           "Account - authentication and personal data of the User stored on the Site servers",
           "Registration - actions performed by a Visitor to create an Account on the Site",
           "Administration - authorized persons who determine the procedure for using the Site",
@@ -141,6 +183,44 @@ const termsOfUse = {
           "The Administration may amend this Agreement unilaterally at any time",
           "The User bears personal responsibility for posted comments and all consequences of their publication",
         ],
+      },
+      userContentRequirements: {
+        title: "Requirements for Username, Avatar and Comments (Compliance with the Laws of the Russian Federation)",
+        intro:
+          "In order to comply with the legislation of the Russian Federation (including Federal Law No. 436-FZ of 29.12.2010 on protection of children from information harmful to their health and development, Federal Law No. 149-FZ of 27.07.2006 on information, information technologies and protection of information, the Code of Administrative Offences, the Criminal Code of the Russian Federation), the User agrees to comply with the following requirements:",
+        nickname: {
+          title: "Username (nickname)",
+          items: [
+            "Must not contain obscene language, offensive content, content degrading dignity, or calls for violence",
+            "Must not contain symbols or attributes of extremist organizations, or calls for extremism or terrorism",
+            "Must not create the impression that the User is acting on behalf of other persons, organizations or authorities without legal grounds",
+            "Must not promote drug use, alcohol, suicide or other harm to health",
+            "Must not contain discrimination on grounds of race, nationality, religion, gender or other characteristics prohibited by law",
+            "The Administration may refuse registration, require a name change or block the account in case of violation of these requirements",
+          ],
+        },
+        avatar: {
+          title: "Avatar",
+          items: [
+            "Must not contain pornography, scenes of violence or cruelty, or images harmful to the health and development of children",
+            "Must not contain symbols or attributes of extremist organizations, Nazi symbolism, or calls for extremism or terrorism",
+            "Must not infringe third-party rights (including the right to one's image)",
+            "Must not promote drug use, alcohol, suicide or other harm",
+            "Must comply with the laws of the Russian Federation on information and protection of minors",
+            "The Administration may remove the avatar and/or restrict User access in case of violation of these requirements",
+          ],
+        },
+        comments: {
+          title: "Comments",
+          items: [
+            "Posting comments of an extremist nature, calls for violence, terrorism, or incitement of ethnic, religious or other hatred is prohibited",
+            "Distribution of information harmful to the health and development of children (pornography, violence, incitement to suicide, etc.) in accordance with Federal Law 436-FZ is prohibited",
+            "Insults, defamation, humiliation of honour and dignity (including under Art. 5.61 of the Code of Administrative Offences and applicable provisions of the Criminal Code of the Russian Federation) are prohibited",
+            "Promotion of drugs, promotion of suicide, or calls for unlawful actions are prohibited",
+            "Posting personal data of third parties without their consent is prohibited, except where permitted by law",
+            "The User is liable for the content of comments in accordance with the laws of the Russian Federation; the Administration may remove comments and take action against the account in case of violation",
+          ],
+        },
       },
       userRights: {
         title: "Rights, Duties and Responsibilities of the User",

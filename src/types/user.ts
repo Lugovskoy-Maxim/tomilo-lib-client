@@ -84,6 +84,8 @@ export interface UserProfile {
   level?: number;
   experience?: number;
   balance?: number;
+  /** Дата окончания премиум-подписки (ISO). Если в будущем — подписка активна. */
+  subscriptionExpiresAt?: string | null;
   bookmarks: BookmarkEntry[];
   readingHistory: ReadingHistoryEntry[];
   birthDate?: string;

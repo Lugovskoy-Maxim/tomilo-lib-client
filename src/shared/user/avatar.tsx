@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { getImageUrls } from "@/lib/asset-url";
+import { PremiumAvatarOverlay } from "@/shared/premium-badge/PremiumBadge";
 
 interface UserAvatarProps {
   avatarUrl?: string | null;
@@ -13,6 +14,8 @@ interface UserAvatarProps {
   frameUrl?: string | null;
   /** URL декорации «аватар» (персонаж) — показывается как основное изображение вместо avatarUrl */
   avatarDecorationUrl?: string | null;
+  /** Показывать значок премиум-подписки на аватаре */
+  showPremium?: boolean;
 }
 
 export default function UserAvatar({
@@ -22,6 +25,7 @@ export default function UserAvatar({
   className = "",
   frameUrl,
   avatarDecorationUrl,
+  showPremium = false,
 }: UserAvatarProps) {
   const [imageError, setImageError] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -69,10 +73,18 @@ export default function UserAvatar({
       />
     );
 
-  if (frameSrc) {
-    return (
-      <div className="relative overflow-visible" style={{ width: size, height: size }}>
-        <div className="absolute inset-0 overflow-hidden rounded-full" style={{ borderRadius: "50%" }}>{content}</div>
+  const wrapper = (
+    <div
+      className="relative shrink-0 overflow-visible"
+      style={{ width: size, height: size }}
+    >
+      <div
+        className="absolute inset-0 overflow-hidden rounded-full"
+        style={{ borderRadius: "50%" }}
+      >
+        {content}
+      </div>
+      {frameSrc && (
         <OptimizedImage
           src={frameSrc}
           fallbackSrc={frameFallback !== frameSrc ? frameFallback : undefined}
@@ -83,21 +95,10 @@ export default function UserAvatar({
           aria-hidden="true"
           hidePlaceholder={true}
         />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="relative shrink-0 overflow-hidden rounded-full"
-      style={{ width: size, height: size, borderRadius: "50%" }}
-    >
-      <div
-        className="absolute inset-0 overflow-hidden [&_img]:!object-cover rounded-full"
-        style={{ borderRadius: "50%" }}
-      >
-        {content}
-      </div>
+      )}
+      {showPremium && <PremiumAvatarOverlay />}
     </div>
   );
+
+  return wrapper;
 }

@@ -17,7 +17,8 @@ import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-verification";
 import { ReadingProgressResponse } from "@/types/progress";
 
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
+
 const USER_DATA_KEY = "tomilo_lib_user";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -85,6 +86,11 @@ export const useAuth = () => {
           level: user.level,
           experience: user.experience,
           balance: user.balance,
+          subscriptionExpiresAt:
+            (user as { subscriptionExpiresAt?: string | null; subscription_expires_at?: string | null })
+              .subscriptionExpiresAt ??
+            (user as { subscription_expires_at?: string | null }).subscription_expires_at ??
+            null,
           bookmarks: user.bookmarks,
           readingHistory: user.readingHistory,
           createdAt: user.createdAt,
@@ -397,7 +403,11 @@ export const useAuth = () => {
         }
 
         if (token) {
-          refetchProfile();
+          try {
+            await refetchProfile();
+          } catch {
+            // Profile query may be skipped on this page (RTK: "has not been started") — add succeeded
+          }
         }
         return { success: true, progress: result.data };
       };
@@ -471,6 +481,8 @@ export const useAuth = () => {
       } catch (error: unknown) {
         const message = getErrorMessage(error);
         if (isAlreadyInHistory(message)) return { success: true };
+        // Refetch failed (e.g. profile query was skipped) but add may have succeeded — don't log
+        if (isRefetchNotStarted(message)) return { success: true };
         if (isVersionConflict(message)) {
           try {
             const retryResult = await doRetry();
@@ -538,10 +550,12 @@ export const useAuth = () => {
         ? authResponse.data
         : (authResponse as AuthResponse);
     const token = data?.access_token;
+    const refreshToken = data?.refresh_token;
     const user = data?.user;
 
     if (typeof window !== "undefined" && token && user) {
       localStorage.setItem(AUTH_TOKEN_KEY, token);
+      if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
       localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
 
       // Check age and set verification if user is 18+
@@ -556,6 +570,7 @@ export const useAuth = () => {
   const logoutUser = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_DATA_KEY);
       // Clear age verification on logout
       clearAgeVerification();

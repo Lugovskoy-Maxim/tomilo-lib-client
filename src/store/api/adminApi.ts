@@ -15,6 +15,8 @@ import {
   AdminCommentsStats,
   AdminLog,
   AdminLogsQuery,
+  AdminTitlesQuery,
+  AdminTitleListItem,
   BulkUpdateTitlesRequest,
   ExportUsersParams,
   ExportTitlesParams,
@@ -148,16 +150,38 @@ export const adminApi = createApi({
       invalidatesTags: [ADMIN_USERS_TAG, ADMIN_COMMENTS_TAG],
     }),
 
+    // ============== СПИСОК ТАЙТЛОВ (ВСЕ / НЕОПУБЛИКОВАННЫЕ) ==============
+
+    getAdminTitles: builder.query<
+      ApiResponseDto<{
+        titles: AdminTitleListItem[];
+        pagination: { total: number; page: number; limit: number; pages: number };
+      }>,
+      AdminTitlesQuery
+    >({
+      query: params => {
+        const searchParams = new URLSearchParams();
+        if (params.page != null) searchParams.set("page", String(params.page));
+        if (params.limit != null) searchParams.set("limit", String(params.limit));
+        if (params.isPublished === true) searchParams.set("isPublished", "true");
+        if (params.isPublished === false) searchParams.set("isPublished", "false");
+        if (params.sortBy) searchParams.set("sortBy", params.sortBy);
+        if (params.sortOrder) searchParams.set("sortOrder", params.sortOrder);
+        return `/admin/titles?${searchParams.toString()}`;
+      },
+      providesTags: [ADMIN_TAG],
+    }),
+
     // ============== МАССОВЫЕ ОПЕРАЦИИ С ТАЙТЛАМИ ==============
 
     bulkDeleteTitles: builder.mutation<
       ApiResponseDto<{ deletedCount: number }>,
       string[]
     >({
-      query: titleIds => ({
+      query: ids => ({
         url: "/admin/titles/bulk-delete",
         method: "POST",
-        body: { titleIds },
+        body: { ids },
       }),
       invalidatesTags: [ADMIN_TAG],
     }),
@@ -315,6 +339,7 @@ export const {
   useUpdateUserRoleMutation,
   useDeleteUserCommentsMutation,
   // Тайтлы
+  useGetAdminTitlesQuery,
   useBulkDeleteTitlesMutation,
   useBulkUpdateTitlesMutation,
   // Комментарии

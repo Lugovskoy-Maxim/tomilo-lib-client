@@ -4,6 +4,7 @@ import {
   BookOpen,
   FileText,
   Users,
+  Users2,
   FolderOpen,
   Clock,
   MessageCircle,
@@ -32,6 +33,7 @@ import {
   PanelLeft,
   Command,
   Ticket,
+  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -43,9 +45,11 @@ export type AdminTab =
   | "parser"
   | "auto-parsing"
   | "titles"
+  | "unpublished-titles"
   | "chapters"
   | "collections"
   | "announcements"
+  | "translator-teams"
   | "genres"
   | "achievements"
   | "comments"
@@ -65,11 +69,13 @@ export const ADMIN_TABS: AdminTab[] = [
   "parser",
   "auto-parsing",
   "titles",
+  "unpublished-titles",
   "chapters",
   "collections",
-  "announcements",
-  "genres",
-  "achievements",
+      "announcements",
+      "translator-teams",
+      "genres",
+      "achievements",
   "comments",
   "users",
   "reports",
@@ -112,9 +118,11 @@ const tabGroups: TabGroup[] = [
       { id: "parser", label: "Парсинг", icon: Download, shortcut: "P" },
       { id: "auto-parsing", label: "Автопарсинг", icon: Clock },
       { id: "titles", label: "Тайтлы", icon: BookOpen, shortcut: "T" },
+      { id: "unpublished-titles", label: "Неопубликованные тайтлы", icon: EyeOff },
       { id: "chapters", label: "Главы", icon: FileText },
       { id: "collections", label: "Коллекции", icon: FolderOpen },
       { id: "announcements", label: "Новости / Объявления", icon: Megaphone },
+      { id: "translator-teams", label: "Команды переводчиков", icon: Users2 },
       { id: "genres", label: "Жанры", icon: Tag },
       { id: "achievements", label: "Достижения", icon: Trophy },
     ],

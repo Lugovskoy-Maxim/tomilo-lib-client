@@ -36,18 +36,18 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [showAgeModal, setShowAgeModal] = useState(false);
 
-  // Check age verification on component mount
+  const userId = user?._id ?? null;
+  const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
     const verified = checkAgeVerification(user);
-    setIsAgeVerified(verified);
+    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
 
-    // If collection has 18+ content and is not verified, show modal
     const hasAdultContent =
       collection?.titles?.some((title: Title) => title.ageLimit === 18) || false;
     if (hasAdultContent && !verified) {
       setShowAgeModal(true);
     }
-  }, [user, collection]);
+  }, [userId, userBirthDate, collection]);
 
   // Check if collection has adult content
   const handleAgeVerification = () => {

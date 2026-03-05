@@ -262,27 +262,28 @@ export default function RootLayout({
         <ToastProvider>
           <ProgressNotificationProvider>
           <Providers>
-            <ThemeProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
               <FontProvider>
-                <Suspense fallback={null}>
-                  <CardTiltEffect />
-                </Suspense>
-              <div className="mobile-footer-spacer">
-                {children}
-              </div>
-              {/* Уведомления внизу экрана: cookie внизу, Telegram выше; не перекрывают друг друга */}
-              <div className="fixed bottom-4 left-0 right-0 z-50 flex flex-col-reverse items-center gap-3 px-4 pointer-events-none">
-                <div className="pointer-events-auto w-full max-w-md mx-auto">
-                  <CookieConsent />
-                </div>
-                <div className="pointer-events-auto w-full max-w-md mx-auto">
-                  <TelegramJoinNotification />
-                </div>
-              </div>
-              {/* Обработчик сообщений от окна авторизации (Яндекс, VK) */}
-              <script
-                dangerouslySetInnerHTML={{
-                  __html: `
+                <div className="contents">
+                  <Suspense fallback={null}>
+                    <CardTiltEffect />
+                  </Suspense>
+                  <div className="mobile-footer-spacer" suppressHydrationWarning>
+                    {children}
+                  </div>
+                  {/* Уведомления внизу экрана: cookie внизу, Telegram выше; не перекрывают друг друга */}
+                  <div className="fixed bottom-4 left-0 right-0 z-50 flex flex-col-reverse items-center gap-3 px-4 pointer-events-none">
+                    <div className="pointer-events-auto w-full max-w-md mx-auto">
+                      <CookieConsent />
+                    </div>
+                    <div className="pointer-events-auto w-full max-w-md mx-auto">
+                      <TelegramJoinNotification />
+                    </div>
+                  </div>
+                  {/* Обработчик сообщений от окна авторизации (Яндекс, VK) */}
+                  <script
+                    dangerouslySetInnerHTML={{
+                      __html: `
                     window.addEventListener('message', function(event) {
                       if (event.origin !== window.location.origin) return;
                       if (event.data.type === 'YANDEX_LOGIN_SUCCESS' || event.data.type === 'VK_LOGIN_SUCCESS') {
@@ -302,99 +303,100 @@ export default function RootLayout({
                       }
                     });
                   `,
-                }}
-              />
-            </FontProvider>
+                    }}
+                  />
+                  {/* JSON-LD внутри дерева контента — стабильный порядок узлов, без hydration mismatch */}
+                  <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                      __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@graph": [
+                          {
+                            "@type": "Organization",
+                            "@id": `${siteUrl}/#organization`,
+                            name: "Tomilo-lib.ru",
+                            alternateName: "Tomilo-lib",
+                            url: siteUrl,
+                            logo: {
+                              "@type": "ImageObject",
+                              url: `${siteUrl}/logo/tomilo_color.svg`,
+                              width: 200,
+                              height: 60,
+                            },
+                            image: `${siteUrl}/logo/og-default.png`,
+                            description:
+                              "Читайте мангу, манхву и маньхуа онлайн бесплатно. Каталог тайтлов, удобный ридер, закладки и история чтения.",
+                            sameAs: [
+                              "https://t.me/tomilolib",
+                              "https://t.me/TomiloDev",
+                            ],
+                            contactPoint: {
+                              "@type": "ContactPoint",
+                              email: "support@tomilo-lib.ru",
+                              contactType: "customer support",
+                              availableLanguage: "Russian",
+                            },
+                          },
+                          {
+                            "@type": "WebSite",
+                            "@id": `${siteUrl}/#website`,
+                            url: siteUrl,
+                            name: "Tomilo-lib.ru — Манга, манхва и маньхуа онлайн",
+                            alternateName: "Томило Либ",
+                            description:
+                              "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, регулярные обновления.",
+                            publisher: { "@id": `${siteUrl}/#organization` },
+                            inLanguage: "ru-RU",
+                            potentialAction: [
+                              {
+                                "@type": "SearchAction",
+                                target: {
+                                  "@type": "EntryPoint",
+                                  urlTemplate: `${siteUrl}/titles?search={search_term_string}`,
+                                },
+                                "query-input": "required name=search_term_string",
+                              },
+                              {
+                                "@type": "ReadAction",
+                                target: `${siteUrl}/titles`,
+                              },
+                            ],
+                          },
+                          {
+                            "@type": "WebApplication",
+                            "@id": `${siteUrl}/#webapp`,
+                            name: "Tomilo-lib",
+                            url: siteUrl,
+                            applicationCategory: "EntertainmentApplication",
+                            operatingSystem: "Web",
+                            browserRequirements: "Requires JavaScript",
+                            offers: {
+                              "@type": "Offer",
+                              price: "0",
+                              priceCurrency: "RUB",
+                            },
+                            featureList: [
+                              "Чтение манги онлайн",
+                              "Каталог по жанрам",
+                              "Закладки и история",
+                              "Ежедневные обновления",
+                              "Темная и светлая тема",
+                              "Адаптивный дизайн",
+                            ],
+                          },
+                        ],
+                      }),
+                    }}
+                  />
+                </div>
+              </FontProvider>
             </ThemeProvider>
           </Providers>
           <ToastContainer />
           <ProgressNotificationContainer />
           </ProgressNotificationProvider>
         </ToastProvider>
-        {/* JSON-LD в конце body — избегаем hydration mismatch (скрипты из head могли смещаться) */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@graph": [
-                {
-                  "@type": "Organization",
-                  "@id": `${siteUrl}/#organization`,
-                  name: "Tomilo-lib.ru",
-                  alternateName: "Tomilo-lib",
-                  url: siteUrl,
-                  logo: {
-                    "@type": "ImageObject",
-                    url: `${siteUrl}/logo/tomilo_color.svg`,
-                    width: 200,
-                    height: 60,
-                  },
-                  image: `${siteUrl}/logo/og-default.png`,
-                  description:
-                    "Читайте мангу, манхву и маньхуа онлайн бесплатно. Каталог тайтлов, удобный ридер, закладки и история чтения.",
-                  sameAs: [
-                    "https://t.me/tomilolib",
-                    "https://t.me/TomiloDev",
-                  ],
-                  contactPoint: {
-                    "@type": "ContactPoint",
-                    email: "support@tomilo-lib.ru",
-                    contactType: "customer support",
-                    availableLanguage: "Russian",
-                  },
-                },
-                {
-                  "@type": "WebSite",
-                  "@id": `${siteUrl}/#website`,
-                  url: siteUrl,
-                  name: "Tomilo-lib.ru — Манга, манхва и маньхуа онлайн",
-                  alternateName: "Томило Либ",
-                  description:
-                    "Читайте мангу, манхву и маньхуа онлайн бесплатно. Тысячи тайтлов, регулярные обновления.",
-                  publisher: { "@id": `${siteUrl}/#organization` },
-                  inLanguage: "ru-RU",
-                  potentialAction: [
-                    {
-                      "@type": "SearchAction",
-                      target: {
-                        "@type": "EntryPoint",
-                        urlTemplate: `${siteUrl}/titles?search={search_term_string}`,
-                      },
-                      "query-input": "required name=search_term_string",
-                    },
-                    {
-                      "@type": "ReadAction",
-                      target: `${siteUrl}/titles`,
-                    },
-                  ],
-                },
-                {
-                  "@type": "WebApplication",
-                  "@id": `${siteUrl}/#webapp`,
-                  name: "Tomilo-lib",
-                  url: siteUrl,
-                  applicationCategory: "EntertainmentApplication",
-                  operatingSystem: "Web",
-                  browserRequirements: "Requires JavaScript",
-                  offers: {
-                    "@type": "Offer",
-                    price: "0",
-                    priceCurrency: "RUB",
-                  },
-                  featureList: [
-                    "Чтение манги онлайн",
-                    "Каталог по жанрам",
-                    "Закладки и история",
-                    "Ежедневные обновления",
-                    "Темная и светлая тема",
-                    "Адаптивный дизайн",
-                  ],
-                },
-              ],
-            }),
-          }}
-        />
       </body>
     </html>
   );

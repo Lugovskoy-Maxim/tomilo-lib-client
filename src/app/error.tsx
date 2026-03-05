@@ -67,7 +67,7 @@ export default function Error({
     }, 100);
 
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--background)]">
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[var(--background)]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4" />
           <p className="text-[var(--muted-foreground)]">Перенаправление на страницу ошибки...</p>
@@ -79,9 +79,9 @@ export default function Error({
   console.error(error);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-[100dvh] flex-col">
       <Header />
-      <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4">
+      <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4 py-12 sm:py-16">
         <div className="max-w-md w-full text-center">
           <div className="mb-6 flex justify-center">
             <div className="rounded-full bg-[var(--destructive)]/10 p-4" aria-hidden>

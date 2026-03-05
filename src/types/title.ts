@@ -57,6 +57,8 @@ export interface Title {
   isAdult: boolean;
   chapters?: Chapter[]; // Array of chapter objects
   isPublished: boolean;
+  /** Главы скрыты по требованию правообладателя — не отображать главы в API и на сайте */
+  chaptersRemovedByCopyrightHolder?: boolean;
   createdAt?: string;
   updatedAt?: string;
   // Дополнительные поля для расширения
@@ -101,6 +103,9 @@ export interface Chapter {
   isPublished: boolean;
   isFree: boolean;
   price?: number;
+  isPaid?: boolean;
+  unlockPrice?: number;
+  freeAt?: string | null;
   translator?: string;
   proofreader?: string;
   qualityCheck?: string;

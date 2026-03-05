@@ -17,6 +17,8 @@ import type { EquippedDecorations } from "@/types/user";
 import { getCoverUrls } from "@/lib/asset-url";
 import { LeaderTop10Badge } from "./LeaderTop10Badge";
 import { useTop10Badge } from "@/hooks/useTop10Badge";
+import { isPremiumActive } from "@/lib/premium";
+import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 
 interface CommentItemProps {
   comment: Comment;
@@ -188,6 +190,9 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                   )}
                   {isAdmin && (
                     <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" aria-label="Админ" />
+                  )}
+                  {userData && isPremiumActive(userData.subscriptionExpiresAt ?? (userData as { subscription_expires_at?: string | null }).subscription_expires_at) && (
+                    <PremiumBadge size="xs" ariaLabel="Премиум" />
                   )}
                 </span>
               </span>

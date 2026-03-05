@@ -12,6 +12,7 @@ import {
   useUpdateUserBalanceMutation,
   useGetUserTransactionsQuery,
   useUpdateUserDataMutation,
+  useUpdateAvatarAdminMutation,
   type UserRole,
   type UserBan,
   type BalanceTransaction,
@@ -38,6 +39,7 @@ import {
   Clock,
   Plus,
   Minus,
+  Crown,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ProfileTab } from "@/shared/profile-tabs/profileTabConfig";
@@ -52,15 +54,19 @@ function AdminControlsPanel({
   currentRole,
   currentBalance,
   username,
+  bio = "",
+  subscriptionExpiresAt = null,
 }: {
   userId: string;
   currentRole: string;
   currentBalance: number;
   username: string;
+  bio?: string;
+  subscriptionExpiresAt?: string | null;
 }) {
   const toast = useToast();
   const dispatch = useDispatch<AppDispatch>();
-  const [activePanel, setActivePanel] = useState<"role" | "ban" | "balance" | "edit" | null>(null);
+  const [activePanel, setActivePanel] = useState<"role" | "ban" | "balance" | "edit" | "premium" | null>(null);
   
   const invalidateAuthCache = useCallback(() => {
     dispatch(authApi.util.invalidateTags(["Auth"]));
@@ -73,10 +79,24 @@ function AdminControlsPanel({
   const [balanceDescription, setBalanceDescription] = useState("");
   const [balanceOperation, setBalanceOperation] = useState<"add" | "subtract">("add");
 
+  const [editUsername, setEditUsername] = useState(username);
+  const [editBio, setEditBio] = useState(bio);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+  const subscriptionDate = subscriptionExpiresAt ? new Date(subscriptionExpiresAt) : null;
+  const isPremiumActive = subscriptionDate && subscriptionDate.getTime() > Date.now();
+  const [premiumDateInput, setPremiumDateInput] = useState(
+    subscriptionDate && !Number.isNaN(subscriptionDate.getTime())
+      ? subscriptionDate.toISOString().slice(0, 10)
+      : "",
+  );
+
   const [updateRole, { isLoading: isUpdatingRole }] = useUpdateUserRoleMutation();
   const [banUser, { isLoading: isBanning }] = useBanUserMutation();
   const [unbanUser, { isLoading: isUnbanning }] = useUnbanUserMutation();
   const [updateBalance, { isLoading: isUpdatingBalance }] = useUpdateUserBalanceMutation();
+  const [updateUserData, { isLoading: isUpdatingData }] = useUpdateUserDataMutation();
+  const [updateAvatarAdmin, { isLoading: isUpdatingAvatar }] = useUpdateAvatarAdminMutation();
 
   const { data: banHistoryData, refetch: refetchBanHistory } = useGetUserBanHistoryQuery(userId);
   const { data: transactionsData, refetch: refetchTransactions } = useGetUserTransactionsQuery({
@@ -163,6 +183,68 @@ function AdminControlsPanel({
       invalidateAuthCache();
     } catch (error) {
       toast.error("Ошибка при изменении баланса");
+    }
+  };
+
+  const handleSaveSubscription = async (value: string | null) => {
+    try {
+      await updateUserData({
+        userId,
+        data: { subscriptionExpiresAt: value },
+      }).unwrap();
+      toast.success(value ? "Подписка обновлена" : "Подписка снята");
+      setActivePanel(null);
+      invalidateAuthCache();
+    } catch (error: unknown) {
+      const msg = (error as { data?: { message?: string; errors?: string[] } })?.data?.errors?.[0]
+        ?? (error as { data?: { message?: string } })?.data?.message
+        ?? "Ошибка при сохранении";
+      toast.error(msg);
+    }
+  };
+
+  const addPremiumDays = (days: number) => {
+    const base = subscriptionDate && subscriptionDate.getTime() > Date.now()
+      ? subscriptionDate
+      : new Date();
+    const next = new Date(base);
+    next.setDate(next.getDate() + days);
+    setPremiumDateInput(next.toISOString().slice(0, 10));
+  };
+
+  const handleSaveProfile = async () => {
+    const usernameChanged = editUsername.trim() !== username;
+    const bioChanged = editBio !== (bio ?? "");
+    if (!usernameChanged && !bioChanged && !avatarFile) {
+      toast.error("Нет изменений для сохранения");
+      return;
+    }
+    if (editUsername.trim().length < 3) {
+      toast.error("Никнейм не менее 3 символов");
+      return;
+    }
+    try {
+      if (usernameChanged || bioChanged) {
+        await updateUserData({
+          userId,
+          data: {
+            ...(usernameChanged && { username: editUsername.trim() }),
+            ...(bioChanged && { bio: editBio }),
+          },
+        }).unwrap();
+      }
+      if (avatarFile) {
+        await updateAvatarAdmin({ userId, file: avatarFile }).unwrap();
+        setAvatarFile(null);
+      }
+      toast.success("Профиль обновлён");
+      setActivePanel(null);
+      invalidateAuthCache();
+    } catch (error: unknown) {
+      const msg = (error as { data?: { message?: string; errors?: string[] } })?.data?.errors?.[0]
+        ?? (error as { data?: { message?: string } })?.data?.message
+        ?? "Ошибка при сохранении";
+      toast.error(msg);
     }
   };
 
@@ -257,7 +339,108 @@ function AdminControlsPanel({
           <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           {currentBalance}
         </button>
+        <button
+          onClick={() => {
+            setActivePanel(activePanel === "edit" ? null : "edit");
+            setEditUsername(username);
+            setEditBio(bio ?? "");
+            setAvatarFile(null);
+          }}
+          className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all active:scale-[0.98] ${
+            activePanel === "edit"
+              ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+              : "bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)]"
+          }`}
+        >
+          <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          Профиль
+        </button>
+        <button
+          onClick={() => {
+            setActivePanel(activePanel === "premium" ? null : "premium");
+            const d = subscriptionExpiresAt ? new Date(subscriptionExpiresAt) : null;
+            setPremiumDateInput(
+              d && !Number.isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : "",
+            );
+          }}
+          className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all active:scale-[0.98] ${
+            activePanel === "premium"
+              ? "bg-amber-500 text-white"
+              : isPremiumActive
+                ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                : "bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)]"
+          }`}
+        >
+          <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          Премиум
+        </button>
       </div>
+
+      {activePanel === "edit" && (
+        <div className="p-3 sm:p-4 rounded-lg bg-[var(--secondary)] space-y-2 sm:space-y-3">
+          <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)] flex items-center gap-2">
+            <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--primary)]" />
+            Никнейм, био и аватар
+          </h4>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            Изменение данных пользователя для соблюдения правил (модерация).
+          </p>
+          <div>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Никнейм</label>
+            <input
+              type="text"
+              value={editUsername}
+              onChange={e => setEditUsername(e.target.value)}
+              placeholder="Никнейм"
+              minLength={3}
+              className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-xs sm:text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Био</label>
+            <textarea
+              value={editBio}
+              onChange={e => setEditBio(e.target.value)}
+              placeholder="Краткое описание (до 200 символов)"
+              maxLength={200}
+              rows={3}
+              className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-xs sm:text-sm resize-none"
+            />
+            <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{editBio.length}/200</p>
+          </div>
+          <div>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Новый аватар</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={e => setAvatarFile(e.target.files?.[0] ?? null)}
+              className="w-full text-xs sm:text-sm text-[var(--foreground)] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[var(--primary)] file:text-[var(--primary-foreground)] file:text-xs"
+            />
+            {avatarFile && (
+              <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">
+                Выбран: {avatarFile.name}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-1.5 sm:gap-2">
+            <button
+              onClick={handleSaveProfile}
+              disabled={isUpdatingData || isUpdatingAvatar}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-xs sm:text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              {isUpdatingData || isUpdatingAvatar ? "..." : "Сохранить"}
+            </button>
+            <button
+              onClick={() => setActivePanel(null)}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] text-[var(--foreground)] text-xs sm:text-sm font-medium hover:bg-[var(--accent)] active:scale-[0.98] transition-all"
+            >
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Отмена
+            </button>
+          </div>
+        </div>
+      )}
 
       {activePanel === "role" && (
         <div className="p-3 sm:p-4 rounded-lg bg-[var(--secondary)] space-y-2 sm:space-y-3">
@@ -472,6 +655,79 @@ function AdminControlsPanel({
         </div>
       )}
 
+      {activePanel === "premium" && (
+        <div className="p-3 sm:p-4 rounded-lg bg-[var(--secondary)] space-y-2 sm:space-y-3">
+          <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)] flex items-center gap-2">
+            <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+            Премиум-подписка
+          </h4>
+          {subscriptionExpiresAt && (
+            <p className="text-xs text-[var(--muted-foreground)]">
+              {isPremiumActive
+                ? `Активна до ${subscriptionDate?.toLocaleDateString("ru-RU")}`
+                : `Истекла ${subscriptionDate?.toLocaleDateString("ru-RU")}`}
+            </p>
+          )}
+          <div>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Премиум до (дата)</label>
+            <input
+              type="date"
+              value={premiumDateInput}
+              onChange={e => setPremiumDateInput(e.target.value)}
+              min={new Date().toISOString().slice(0, 10)}
+              className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-xs sm:text-sm"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => addPremiumDays(30)}
+              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)]"
+            >
+              +1 мес
+            </button>
+            <button
+              type="button"
+              onClick={() => addPremiumDays(90)}
+              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)]"
+            >
+              +3 мес
+            </button>
+            <button
+              type="button"
+              onClick={() => addPremiumDays(365)}
+              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)]"
+            >
+              +1 год
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <button
+              onClick={() => handleSaveSubscription(premiumDateInput ? new Date(premiumDateInput + "T23:59:59.999Z").toISOString() : null)}
+              disabled={isUpdatingData || !premiumDateInput}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-amber-500 text-white text-xs sm:text-sm font-medium hover:bg-amber-600 active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              {isUpdatingData ? "..." : "Сохранить дату"}
+            </button>
+            <button
+              onClick={() => handleSaveSubscription(null)}
+              disabled={isUpdatingData}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] text-[var(--foreground)] text-xs sm:text-sm font-medium hover:bg-[var(--accent)] active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              Убрать подписку
+            </button>
+            <button
+              onClick={() => setActivePanel(null)}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] text-[var(--foreground)] text-xs sm:text-sm font-medium hover:bg-[var(--accent)] active:scale-[0.98] transition-all"
+            >
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Отмена
+            </button>
+          </div>
+        </div>
+      )}
+
       {banHistory.length > 0 && activePanel !== "ban" && (
         <div className="pt-3 sm:pt-4 border-t border-[var(--border)]">
           <h4 className="text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
@@ -624,6 +880,8 @@ export default function AdminUserProfilePage() {
                       currentRole={userProfile.role}
                       currentBalance={userProfile.balance || 0}
                       username={userProfile.username}
+                      bio={userProfile.bio ?? ""}
+                      subscriptionExpiresAt={userProfile.subscriptionExpiresAt ?? undefined}
                     />
                     <ProfileTabs
                       userProfile={userProfile}

@@ -40,6 +40,8 @@ export interface LeaderboardUser {
   equippedDecorations?: LeaderboardUserEquippedDecorations | null;
   /** Показывать ли статистику в публичном профиле (если false — пользователь скрыт из лидеров) */
   showStats?: boolean;
+  /** Дата окончания премиум-подписки (ISO). Если в будущем — показываем значок премиум. */
+  subscriptionExpiresAt?: string | null;
 }
 
 export interface LeaderboardResponse {

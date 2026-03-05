@@ -113,6 +113,7 @@ interface TransformableUser {
   ratingsCount?: number;
   chaptersRead?: number;
   showStats?: boolean;
+  subscriptionExpiresAt?: string | null;
 }
 
 type DecorationValue = string | { id?: string; _id?: string; imageUrl?: string; image_url?: string; rarity?: DecorationRarity } | null | undefined;
@@ -237,6 +238,7 @@ function transformUsersToLeaderboard(
       likesReceivedCount: user.likesReceivedCount ?? 0,
       equippedDecorations: resolveEquippedDecorations(user.equippedDecorations, decorationsMap),
       showStats: user.showStats,
+      subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
     };
   });
 

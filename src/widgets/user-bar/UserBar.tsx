@@ -8,6 +8,7 @@ import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { isPremiumActive } from "@/lib/premium";
 
 interface UserDropdownUser {
   id?: string;
@@ -21,6 +22,7 @@ interface UserDropdownUser {
   balance?: number;
   role?: string;
   birthDate?: string;
+  subscriptionExpiresAt?: string | null;
   displaySettings?: {
     isAdult?: boolean;
     theme?: "light" | "dark" | "system";
@@ -79,6 +81,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
       balance: user.balance,
       role: user.role,
       birthDate: user.birthDate,
+      subscriptionExpiresAt: user.subscriptionExpiresAt,
       displaySettings: user.displaySettings,
     };
   };
@@ -143,6 +146,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
                 className="rounded-full"
                 frameUrl={frameUrl ?? undefined}
                 avatarDecorationUrl={avatarDecorationUrl ?? undefined}
+                showPremium={isPremiumActive(user?.subscriptionExpiresAt)}
               />
             </button>
 

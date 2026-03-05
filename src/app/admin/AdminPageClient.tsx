@@ -8,6 +8,8 @@ import { OverviewSection } from "@/shared/admin/OverviewSection";
 import { StatsSection } from "@/shared/admin/StatsSection";
 import { ParserSection } from "@/shared/admin/ParserSection";
 import { TitlesSection } from "@/shared/admin/TitlesSection";
+import { UnpublishedTitlesSection } from "@/shared/admin/UnpublishedTitlesSection";
+import { TranslatorsSection } from "@/shared/admin/TranslatorsSection";
 import { UsersSection } from "@/shared/admin/UsersSection";
 import { CommentsSection } from "@/shared/admin/CommentsSection";
 import { ReportsSection } from "@/shared/admin/ReportsSection";
@@ -79,9 +81,11 @@ export default function AdminPageClient() {
       parser: "Парсинг",
       "auto-parsing": "Автопарсинг",
       titles: "Тайтлы",
+      "unpublished-titles": "Неопубликованные тайтлы",
       chapters: "Главы",
       collections: "Коллекции",
       announcements: "Новости / Объявления",
+      "translator-teams": "Команды переводчиков",
       genres: "Жанры",
       achievements: "Достижения",
       comments: "Комментарии",
@@ -117,12 +121,16 @@ export default function AdminPageClient() {
             }}
           />
         );
+      case "unpublished-titles":
+        return <UnpublishedTitlesSection />;
       case "chapters":
         return <ChaptersSection titleId={selectedTitleId} onTitleChange={setSelectedTitleId} />;
       case "collections":
         return <CollectionsSection onTabChange={(tab: string) => setActiveTab(tab as AdminTab)} />;
       case "announcements":
         return <AnnouncementsSection />;
+      case "translator-teams":
+        return <TranslatorsSection />;
       case "genres":
         return <GenresSection />;
       case "achievements":

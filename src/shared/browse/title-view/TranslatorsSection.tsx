@@ -3,16 +3,19 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Users2, ChevronRight, Crown, ExternalLink, Heart } from "lucide-react";
+import { Users2, ChevronRight, Crown, ExternalLink, Heart, BookOpen } from "lucide-react";
 import { useGetTeamsByTitleQuery } from "@/store/api/translatorsApi";
 import { TranslatorTeam, translatorRoleLabels, translatorRoleColors } from "@/types/translator";
 import { normalizeAssetUrl } from "@/lib/asset-url";
+import type { Chapter } from "@/types/title";
 
 interface TranslatorsSectionProps {
   titleId: string;
+  /** Главы тайтла — по ним показываем, какие главы переводит каждая команда */
+  chapters?: Chapter[];
 }
 
-function TeamCard({ team }: { team: TranslatorTeam }) {
+function TeamCard({ team, chapterNumbers }: { team: TranslatorTeam; chapterNumbers?: number[] }) {
   const [imageError, setImageError] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -55,11 +58,17 @@ function TeamCard({ team }: { team: TranslatorTeam }) {
             <span>{team.chaptersCount} глав</span>
             <span>{team.subscribersCount} подписчиков</span>
           </div>
+          {chapterNumbers && chapterNumbers.length > 0 && (
+            <div className="flex items-center gap-1.5 mt-1.5 text-xs text-[var(--muted-foreground)]">
+              <BookOpen className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>Перевод глав: {[...chapterNumbers].sort((a, b) => a - b).join(", ")}</span>
+            </div>
+          )}
         </div>
 
         {team.slug && (
           <Link
-            href={`/team/${team.slug}`}
+            href={`/translators/${team.slug}`}
             className="p-2 rounded-lg bg-[var(--secondary)]/50 hover:bg-[var(--primary)]/10 text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
@@ -139,7 +148,7 @@ function TeamCard({ team }: { team: TranslatorTeam }) {
   );
 }
 
-export function TranslatorsSection({ titleId }: TranslatorsSectionProps) {
+export function TranslatorsSection({ titleId, chapters = [] }: TranslatorsSectionProps) {
   const { data: teams, isLoading, error } = useGetTeamsByTitleQuery(titleId);
 
   if (isLoading) {
@@ -183,9 +192,17 @@ export function TranslatorsSection({ titleId }: TranslatorsSectionProps) {
       </div>
 
       <div className="space-y-3">
-        {teams.map(team => (
-          <TeamCard key={team._id} team={team} />
-        ))}
+        {teams.map(team => {
+          const chapterNumbers =
+            chapters?.filter(c => c.translatorTeamId === team._id).map(c => c.chapterNumber) ?? [];
+          return (
+            <TeamCard
+              key={team._id}
+              team={team}
+              chapterNumbers={chapterNumbers.length > 0 ? chapterNumbers : undefined}
+            />
+          );
+        })}
       </div>
     </div>
   );

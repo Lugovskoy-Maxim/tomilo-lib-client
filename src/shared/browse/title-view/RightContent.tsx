@@ -108,17 +108,14 @@ export function RightContent({
   //   return getTitlePath(titleData);
   // }, [titleId, slug]);
 
-  // Проверяем статус подтверждения возраста при монтировании и при изменении пользователя
+  const userId = user?._id ?? null;
+  const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
-    if (user) {
-      const verified = checkAgeVerification(user);
-      setIsAgeVerified(verified);
-    } else {
-      // Проверяем localStorage для гостей
-      const verified = checkAgeVerification(null);
-      setIsAgeVerified(verified);
-    }
-  }, [user]);
+    const verified = user
+      ? checkAgeVerification(user)
+      : checkAgeVerification(null);
+    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+  }, [userId, userBirthDate]);
 
   // Лёгкий запрос: только id прочитанных глав (для статуса «прочитано» на странице тайтла)
   const { data: readIdsData } = useGetReadingHistoryReadIdsQuery(titleId, {
@@ -568,7 +565,7 @@ export function RightContent({
             <CharactersSection titleId={titleId} />
 
             {/* Секция команды перевода */}
-            <TranslatorsSection titleId={titleId} />
+            <TranslatorsSection titleId={titleId} chapters={chapters} />
 
             {/* Похожие тайтлы */}
             <SimilarTitles

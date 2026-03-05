@@ -2,7 +2,8 @@ import type { BaseQueryFn } from "@reduxjs/toolkit/query";
 import { fetchBaseQuery } from "@reduxjs/toolkit/query";
 import type { BaseQueryApi } from "@reduxjs/toolkit/query/react";
 
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+export const AUTH_TOKEN_KEY = "tomilo_lib_token";
+export const REFRESH_TOKEN_KEY = "tomilo_lib_refresh_token";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 /** Эндпоинт обновления токена на бэкенде (куки/refresh отправляются автоматически с credentials) */
@@ -61,16 +62,27 @@ export const baseQueryWithReauth: BaseQueryFn = async (
     if (!refreshPromise) {
       refreshPromise = (async () => {
         try {
+          const storedRefresh =
+            typeof window !== "undefined"
+              ? localStorage.getItem(REFRESH_TOKEN_KEY)
+              : null;
           const refreshResult = await fetch(REFRESH_URL, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
+            body: storedRefresh
+              ? JSON.stringify({ refresh_token: storedRefresh })
+              : undefined,
           });
           if (refreshResult.ok) {
             const data = await refreshResult.json().catch(() => ({}));
-            const newToken = data?.data?.access_token ?? data?.access_token;
-            if (newToken && typeof window !== "undefined") {
-              localStorage.setItem(AUTH_TOKEN_KEY, newToken);
+            const payload = data?.data ?? data;
+            const newAccess = payload?.access_token;
+            const newRefresh = payload?.refresh_token;
+            if (typeof window !== "undefined") {
+              if (newAccess) localStorage.setItem(AUTH_TOKEN_KEY, newAccess);
+              if (newRefresh)
+                localStorage.setItem(REFRESH_TOKEN_KEY, newRefresh);
             }
             return;
           }

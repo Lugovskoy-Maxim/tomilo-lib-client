@@ -15,6 +15,9 @@ export interface TranslatorTeamMember {
   };
 }
 
+/** Участник при создании/обновлении команды: _id не обязателен (сервер присвоит новым). */
+export type TranslatorTeamMemberInput = Omit<TranslatorTeamMember, "_id"> & { _id?: string };
+
 export interface TranslatorTeam {
   _id: string;
   name: string;
@@ -56,8 +59,15 @@ export interface TranslatorTeamListResponse {
 
 export type CreateTranslatorTeamDto = Omit<
   TranslatorTeam,
-  "_id" | "chaptersCount" | "subscribersCount" | "totalViews" | "createdAt" | "updatedAt"
->;
+  | "_id"
+  | "members"
+  | "chaptersCount"
+  | "subscribersCount"
+  | "totalViews"
+  | "createdAt"
+  | "updatedAt"
+  | "isActive"
+> & { members: TranslatorTeamMemberInput[]; isActive?: boolean };
 export type UpdateTranslatorTeamDto = Partial<CreateTranslatorTeamDto>;
 
 export const translatorRoleLabels: Record<TranslatorRole, string> = {

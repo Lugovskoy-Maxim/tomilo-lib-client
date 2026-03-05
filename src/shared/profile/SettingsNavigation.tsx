@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Monitor, Eye, Lock, Shield, ChevronRight } from "lucide-react";
+import { Bell, Monitor, Eye, Lock, Shield, ChevronRight, Crown } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface SettingsSection {
@@ -14,6 +14,7 @@ const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: "notifications", label: "Уведомления", icon: Bell, color: "text-blue-500" },
   { id: "display", label: "Отображение", icon: Monitor, color: "text-purple-500" },
   { id: "reading", label: "Чтение", icon: Eye, color: "text-green-500" },
+  { id: "premium", label: "Премиум", icon: Crown, color: "text-amber-500" },
   { id: "privacy", label: "Приватность", icon: Lock, color: "text-amber-500" },
   { id: "security", label: "Безопасность", icon: Shield, color: "text-red-500" },
 ];

@@ -21,6 +21,9 @@ function transformUserToProfile(user: User): UserProfile | null {
     level: user.level,
     experience: user.experience,
     balance: user.balance,
+    subscriptionExpiresAt:
+      (user as User & { subscriptionExpiresAt?: string | null }).subscriptionExpiresAt ??
+      (user as unknown as Record<string, unknown>).subscription_expires_at as string | null | undefined,
     bookmarks: normalizeBookmarks(user.bookmarks as unknown),
     readingHistory: Array.isArray(user.readingHistory)
       ? transformReadingHistory(user.readingHistory)

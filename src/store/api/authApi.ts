@@ -38,7 +38,7 @@ export interface TitleProgressResponse {
   readAt: string | null;
 }
 
-export const AUTH_TOKEN_KEY = "tomilo_lib_token";
+export { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "./baseQueryWithReauth";
 
 /** Формат элемента истории с сервера (пагинированный ответ: data.items) */
 interface RawHistoryItem {

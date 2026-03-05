@@ -31,6 +31,7 @@ import ProfileReadingSettings from "@/shared/profile/ProfileReadingSettings";
 import ProfilePrivacySettings from "@/shared/profile/ProfilePrivacySettings";
 import ProfileSecuritySettings from "@/shared/profile/ProfileSecuritySettings";
 import ProfileDisplaySettings from "@/shared/profile/ProfileDisplaySettings";
+import ProfilePremiumSettings from "@/shared/profile/ProfilePremiumSettings";
 import ProfileInventory from "@/shared/profile/ProfileInventory";
 import SettingsNavigation from "@/shared/profile/SettingsNavigation";
 
@@ -401,6 +402,9 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                 </div>
                 <div id="settings-reading">
                   <ProfileReadingSettings userProfile={userProfile} />
+                </div>
+                <div id="settings-premium">
+                  <ProfilePremiumSettings userProfile={userProfile} />
                 </div>
                 <div id="settings-privacy">
                   <ProfilePrivacySettings userProfile={userProfile} />

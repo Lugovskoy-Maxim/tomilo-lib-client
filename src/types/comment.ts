@@ -10,6 +10,10 @@ export interface CommentUser {
   avatar?: string;
   /** Роль пользователя (admin, moderator, user) — для отображения галочки админа */
   role?: string;
+  /** Дата окончания премиум-подписки (ISO). Если в будущем — показываем значок премиум. */
+  subscriptionExpiresAt?: string | null;
+  /** Вариант от API (snake_case) */
+  subscription_expires_at?: string | null;
   /** Надетые декорации (бэкенд может вернуть URL картинки рамки/аватара для отображения в комментариях) */
   equippedDecorations?: { frame?: string | null; avatar?: string | null };
   /** Вариант от API (snake_case) */
