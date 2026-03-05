@@ -13,9 +13,9 @@ export default function NotFound() {
   usePageTitle("404 — Страница не найдена");
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-[100dvh] flex-col">
       <Header />
-      <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4">
+      <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4 py-12 sm:py-16">
         <div className="max-w-md w-full text-center">
           <div className="relative mb-8">
             <div className="w-32 h-32 mx-auto flex items-center justify-center">

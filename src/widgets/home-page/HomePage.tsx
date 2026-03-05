@@ -181,32 +181,28 @@ export default function HomePage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return (
-      <>
-        <LinesBackground />
-        <Header />
-        <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full">
-          <FeaturedTitleSkeleton />
-          <GridSkeleton showTitle variant="trending" />
-          <GridSkeleton showTitle variant="updates" />
-          <div className="w-full">
-            <TopCombinedSkeleton />
-          </div>
-          <GridSkeleton showTitle variant="trending" />
-          <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
-          <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
-        </main>
-        <Footer />
-      </>
-    );
-  }
+  const mainClassName =
+    "flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full";
 
   return (
     <AgeVerificationProvider requestAgeVerification={requestAgeVerification}>
       <LinesBackground />
       <Header />
-      <main className="flex flex-col items-center justify-center gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full">
+      <main className={mainClassName}>
+        {!mounted ? (
+          <>
+            <FeaturedTitleSkeleton />
+            <GridSkeleton showTitle variant="trending" />
+            <GridSkeleton showTitle variant="updates" />
+            <div className="w-full">
+              <TopCombinedSkeleton />
+            </div>
+            <GridSkeleton showTitle variant="trending" />
+            <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
+            <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
+          </>
+        ) : (
+          <>
         {/* Популярные тайтлы — полноширинный блок */}
         <LazySection
           sectionId="featured"
@@ -444,6 +440,8 @@ export default function HomePage() {
             skeletonVariant="collection"
           />
         </LazySection>
+          </>
+        )}
       </main>
       <Footer />
       <AgeVerificationModal

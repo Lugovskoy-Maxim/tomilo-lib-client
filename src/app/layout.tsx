@@ -262,13 +262,13 @@ export default function RootLayout({
         <ToastProvider>
           <ProgressNotificationProvider>
           <Providers>
-            <ThemeProvider suppressHydrationWarning>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
               <FontProvider>
                 <div className="contents">
                   <Suspense fallback={null}>
                     <CardTiltEffect />
                   </Suspense>
-                  <div className="mobile-footer-spacer">
+                  <div className="mobile-footer-spacer" suppressHydrationWarning>
                     {children}
                   </div>
                   {/* Уведомления внизу экрана: cookie внизу, Telegram выше; не перекрывают друг друга */}

@@ -39,10 +39,12 @@ const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
 
   const { user } = useAuth();
 
-  // Проверяем подтверждение возраста при монтировании компонента
+  const userId = user?._id ?? null;
+  const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
-    setIsAgeVerified(checkAgeVerification(user || null));
-  }, [user]);
+    const verified = checkAgeVerification(user || null);
+    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+  }, [userId, userBirthDate]);
 
   const handleAgeConfirm = () => {
     setIsAgeVerified(true);

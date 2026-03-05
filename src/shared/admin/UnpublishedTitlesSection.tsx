@@ -86,7 +86,7 @@ export function UnpublishedTitlesSection() {
                       </td>
                       <td className="p-3">
                         <span className="text-[var(--muted-foreground)]">
-                          {translateTitleStatus(title.status) || title.status || "—"}
+                          {translateTitleStatus(title.status ?? "") || title.status || "—"}
                         </span>
                       </td>
                       <td className="p-3 text-right text-[var(--muted-foreground)]">

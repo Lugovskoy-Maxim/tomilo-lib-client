@@ -51,9 +51,12 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
+  const userId = user?._id ?? null;
+  const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
-    setIsAgeVerified(checkAgeVerification(user || null));
-  }, [user]);
+    const verified = checkAgeVerification(user || null);
+    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+  }, [userId, userBirthDate]);
 
   const normalizeImageUrls = (url: string | undefined) => {
     if (!url) return { primary: "", fallback: "" };

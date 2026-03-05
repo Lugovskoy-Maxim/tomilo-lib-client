@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // eslint: {
+  //   // Не падать по линту при билде; линт по-прежнему можно запускать через npm run lint
+  //   ignoreDuringBuilds: true,
+  // },
   // Уменьшаем кеш роутера, чтобы при переходе по Link контент обновлялся
   // (избегаем ситуации, когда URL меняется, а страница показывает старые данные)
   experimental: {

@@ -586,7 +586,7 @@ function AddTitleModal({
   teamId: string;
   onClose: () => void;
   onAdded: () => void;
-  addTitleToTeam: (arg: { teamId: string; titleId: string }) => Promise<any>;
+  addTitleToTeam: (arg: { teamId: string; titleId: string }) => { unwrap: () => Promise<unknown> };
   toast: { success: (s: string) => void; error: (s: string) => void };
 }) {
   const [search, setSearch] = useState("");
