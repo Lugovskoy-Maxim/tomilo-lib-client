@@ -16,7 +16,7 @@ export default function BackButton({
   const router = useRouter();
 
   return (
-    <div className="flex justify-center ">
+    <div className="flex justify-center mt-8">
       <button
         onClick={() => router.back()}
         className={`flex cursor-pointer items-center justify-center gap-2 px-8 py-3 bg-[var(--chart-1)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--chart-1)]/90 transition-colors font-medium ${className}`}

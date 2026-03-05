@@ -38,7 +38,7 @@ const HEADER_DROPDOWN_ITEMS = [
   { href: "/about", label: "О нас", icon: Info },
   { href: "/contact", label: "Контакты", icon: Mail },
   { href: "/tomilo-shop", label: "Магазин", icon: ShoppingBag },
-  { href: "/copyright", label: "Авторские права", icon: Shield },
+  { href: "/dmca", label: "Авторские права (DMCA)", icon: Shield },
   { href: "/terms-of-use", label: "Условия использования", icon: FileText },
   { href: "/privacy-policy", label: "Политика конфиденциальности", icon: Lock },
 ];
@@ -444,9 +444,9 @@ export default function Header() {
                           </Link>
                         </li>
                         <li>
-                          <Link href="/copyright" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/copyright" ? "true" : undefined}>
+                          <Link href="/dmca" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/dmca" ? "true" : undefined}>
                             <span className="mobile-menu-item-icon" aria-hidden><Shield className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">Авторские права</span>
+                            <span className="mobile-menu-item-label">Авторские права (DMCA)</span>
                             <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
                           </Link>
                         </li>

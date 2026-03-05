@@ -3,8 +3,11 @@ import Link from "next/link";
 import { Mail, Send } from "lucide-react";
 import { Header, Footer } from "@/widgets";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import BackButton from "@/shared/back-button/BackButton";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
+
+const LAST_UPDATED = "Последнее обновление: 06.03.2025";
 
 const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
@@ -60,11 +63,15 @@ export default function AboutPage() {
         <Header />
         <div className="w-full mx-auto px-2 min-[360px]:px-3 py-3 sm:px-4 sm:py-6 max-w-6xl min-w-0 overflow-x-hidden pb-12 sm:pb-16">
         <Breadcrumbs className="mb-6" />
-        <div className="content-page-hero">
+        <div className="content-card mb-6">
+          <div className="text-sm text-[var(--muted-foreground)]">{LAST_UPDATED}</div>
+        </div>
+        <div className="content-page-hero mb-10">
           <h1>О платформе TOMILO-LIB</h1>
           <p>
-            Мы создаем удобное пространство для чтения манги, манхвы и маньхуа: быстрый каталог,
-            персональный профиль, сохранение прогресса и понятная навигация на любых устройствах.
+            Tomilo-lib — бесплатная платформа для чтения манги, манхвы и маньхуа онлайн. Удобный
+            каталог, персональный профиль, автоматическое сохранение прогресса и навигация на любых
+            устройствах.
           </p>
         </div>
 
@@ -73,26 +80,29 @@ export default function AboutPage() {
             <h2 className="content-card-section-title">Наша миссия</h2>
             <p className="content-card-body">
               Делать чтение максимально простым и приятным: без лишних шагов, с аккуратным
-              интерфейсом и фокусом на самом важном - ваших любимых тайтлах.
+              интерфейсом и фокусом на самом важном — ваших любимых тайтлах. Мы заботимся о
+              скорости загрузки и удобстве читалки.
             </p>
           </section>
 
           <section className="content-card">
             <h2 className="content-card-section-title">Для кого платформа</h2>
             <p className="content-card-body">
-              Для новых читателей, которые только знакомятся с жанром, и для опытных фанатов,
-              которым важно быстро находить новинки и возвращаться к чтению с того же места.
+              Для тех, кто только знакомится с мангой и манхвой, и для опытных читателей: быстрый
+              поиск новинок, закладки, уведомления о новых главах и продолжение чтения с того же
+              места на любом устройстве.
             </p>
           </section>
 
           <section className="content-card">
             <h2 className="content-card-section-title">Что уже доступно</h2>
             <ul className="content-card-body space-y-1">
-              <li>Каталог с удобными фильтрами и поиском</li>
-              <li>Подборки и рекомендации на главной странице</li>
-              <li>Профиль с историей чтения и персональными разделами</li>
-              <li>Поддержка светлой и темной темы</li>
-              <li>Актуальные обновления глав и карточек тайтлов</li>
+              <li>Каталог с фильтрами по жанрам, году, статусу и поиском по названию</li>
+              <li>Подборки и лента новых глав на главной странице</li>
+              <li>Закладки (Читаю, Буду читать, Прочитано и др.) и история чтения</li>
+              <li>Профиль с рангами, достижениями и настройками приватности</li>
+              <li>Режимы чтения: по одной странице или непрерывная прокрутка</li>
+              <li>Светлая, тёмная и системная тема оформления</li>
             </ul>
           </section>
 
@@ -100,7 +110,8 @@ export default function AboutPage() {
             <h2 className="content-card-section-title">Как мы развиваемся</h2>
             <p className="content-card-body">
               Мы регулярно обновляем интерфейс, оптимизируем производительность и учитываем обратную
-              связь, чтобы главная, профиль и сервисные страницы работали как единая экосистема.
+              связь. Главная, каталог, профиль и сервисные страницы развиваются как единая
+              экосистема. Ваши предложения можно отправлять через страницу контактов.
             </p>
           </section>
 
@@ -110,8 +121,9 @@ export default function AboutPage() {
               Связь с командой
             </h2>
             <p className="content-card-body">
-              Если у вас есть вопросы, идеи или замечания по работе платформы, напишите нам - мы
-              внимательно читаем обращения и стараемся ответить максимально быстро.
+              Вопросы, идеи и замечания по работе платформы можно отправить на почту или в
+              Telegram. Мы читаем все обращения и стараемся ответить в течение 1–3 рабочих дней.
+              Частые вопросы собраны в разделе «Частые вопросы».
             </p>
             <div className="content-link-group">
               <Link href="mailto:support@tomilo-lib.ru" className="content-link-primary">
@@ -130,9 +142,14 @@ export default function AboutPage() {
               <Link href="/contact" className="content-link-outline">
                 Страница контактов
               </Link>
+              <Link href="/faq" className="content-link-outline">
+                Частые вопросы
+              </Link>
             </div>
           </section>
           </div>
+
+          <BackButton />
         </div>
         <Footer />
       </main>

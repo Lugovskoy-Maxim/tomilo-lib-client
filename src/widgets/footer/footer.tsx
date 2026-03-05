@@ -21,20 +21,31 @@ import {
   Crown,
   HelpCircle,
   Ticket,
+  Scale,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Logo from "@/shared/logo/logo";
 import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
 
-const FOOTER_NAV = [
-  { href: "/about", label: "О нас" },
-  { href: "/faq", label: "Частые вопросы" },
-  { href: "/contact", label: "Контакты" },
-  { href: "/terms-of-use", label: "Пользовательское соглашение" },
-  { href: "/privacy-policy", label: "Политика конфиденциальности" },
-  { href: "/copyright", label: "Авторское право" },
-  { href: "/updates", label: "Лента новых глав" },
+const FOOTER_NAV_GROUPS = [
+  {
+    label: "Сайт",
+    items: [
+      { href: "/about", label: "О нас", icon: Info },
+      { href: "/faq", label: "Частые вопросы", icon: HelpCircle },
+      { href: "/contact", label: "Контакты", icon: Mail },
+      { href: "/updates", label: "Лента новых глав", icon: Rss },
+    ],
+  },
+  {
+    label: "Документы",
+    items: [
+      { href: "/terms-of-use", label: "Пользовательское соглашение", icon: FileText },
+      { href: "/privacy-policy", label: "Политика конфиденциальности", icon: Shield },
+      { href: "/dmca", label: "Авторские права (DMCA)", icon: Scale },
+    ],
+  },
 ];
 const TELEGRAM_HREF = "https://t.me/tomilolib";
 const TELEGRAM_DEV_HREF = "https://t.me/TomiloDev";
@@ -54,9 +65,9 @@ const MOBILE_MENU_SECTIONS = [
   {
     title: "Правовая информация",
     items: [
-      { href: "/copyright", label: "Авторские права", icon: Copyright },
       { href: "/terms-of-use", label: "Условия использования", icon: FileText },
       { href: "/privacy-policy", label: "Конфиденциальность", icon: Shield },
+      { href: "/dmca", label: "Авторские права (DMCA)", icon: Scale },
     ],
   },
   {
@@ -188,63 +199,71 @@ export default function Footer() {
       {/* Десктопный футер */}
       <div className="footer-desktop w-full footer-glass mt-auto hidden lg:block" role="contentinfo" aria-label="Подвал сайта">
         <div className="footer-desktop-inner w-full max-w-7xl mx-auto px-4 py-10 sm:px-6 md:px-8 lg:px-10 xl:py-12">
-          <div className="footer-desktop-grid grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-12 mb-10">
-            {/* Колонка 1: Логотип и описание */}
-            <div className="md:col-span-5 flex flex-col items-center text-center md:items-start md:text-left">
-              <div className="footer-brand p-4 rounded-2xl -m-4">
+          <div className="footer-desktop-grid grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-10 mb-10">
+            {/* Колонка 1: Логотип */}
+            <div className="footer-col footer-col--logo">
+              <div className="footer-col__body">
                 <Logo variant="footer" />
-                <p className="text-[var(--muted-foreground)] text-sm leading-relaxed mt-3 max-w-[280px]">
+                <p className="footer-col__text">
                   TOMILO-LIB — платформа для чтения манги, манхвы и маньхуа.
                 </p>
               </div>
             </div>
 
-            {/* Колонка 2: Навигация */}
-            <div className="md:col-span-3 flex flex-col items-center md:items-start">
-              <h3 className="footer-section-title text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
-                Навигация
-              </h3>
-              <nav className="flex flex-col gap-2.5" aria-label="Основные разделы">
-                {FOOTER_NAV.map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="footer-link text-[var(--muted-foreground)] text-sm whitespace-nowrap py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </nav>
+            {/* Колонка 2: Сайт */}
+            <div className="footer-col">
+              <h3 className="footer-col__title">Сайт</h3>
+              <div className="footer-col__body">
+                <ul className="footer-col__list">
+                  {FOOTER_NAV_GROUPS[0].items.map(({ href, label }) => (
+                    <li key={href}>
+                      <Link href={href} className="footer-col__link">{label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
-            {/* Колонка 3: Контакты */}
-            <div className="md:col-span-4 flex flex-col items-center md:items-start text-center md:text-left">
-              <h3 className="footer-section-title text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
-                Контакты
-              </h3>
-              <p className="text-[var(--muted-foreground)] text-sm mb-4 max-w-[260px]">
-                По вопросам нарушения авторских прав и сотрудничества:
-              </p>
-              <div className="flex flex-col gap-3 items-center md:items-start">
-                <Link
-                  href="mailto:support@tomilo-lib.ru"
-                  className="footer-contact-link inline-flex items-center gap-2 text-sm rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-                  aria-label="Написать на support@tomilo-lib.ru"
-                >
-                  <Mail className="w-4 h-4 flex-shrink-0 text-[var(--chart-1)]" aria-hidden />
-                  support@tomilo-lib.ru
-                </Link>
-                <Link
-                  href={TELEGRAM_HREF}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="footer-contact-link footer-contact-link-external inline-flex items-center gap-2 text-sm rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-                  aria-label="Мы в Telegram (открывается в новой вкладке)"
-                >
-                  <Send className="w-4 h-4 flex-shrink-0 text-[var(--chart-1)]" aria-hidden />
-                  Мы в Telegram
-                  <ExternalLink className="w-3.5 h-3.5 opacity-70" aria-hidden />
-                </Link>
+            {/* Колонка 3: Документы */}
+            <div className="footer-col">
+              <h3 className="footer-col__title">Документы</h3>
+              <div className="footer-col__body">
+                <ul className="footer-col__list">
+                  {FOOTER_NAV_GROUPS[1].items.map(({ href, label }) => (
+                    <li key={href}>
+                      <Link href={href} className="footer-col__link">{label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Колонка 4: Контакты */}
+            <div className="footer-col">
+              <h3 className="footer-col__title">Контакты</h3>
+              <div className="footer-col__body">
+                <p className="footer-col__text">
+                  По вопросам нарушения авторских прав и сотрудничества:
+                </p>
+                <div className="footer-col__contacts">
+                  <Link
+                    href="mailto:support@tomilo-lib.ru"
+                    className="footer-col__contact-link"
+                    aria-label="Написать на support@tomilo-lib.ru"
+                  >
+                    support@tomilo-lib.ru
+                  </Link>
+                  <Link
+                    href={TELEGRAM_HREF}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="footer-col__contact-link"
+                    aria-label="Мы в Telegram (открывается в новой вкладке)"
+                  >
+                    Мы в Telegram
+                    <ExternalLink className="footer-col__contact-icon" aria-hidden />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
