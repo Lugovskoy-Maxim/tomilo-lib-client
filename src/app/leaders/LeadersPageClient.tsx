@@ -23,6 +23,8 @@ import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions
 import { getDecorationImageUrl, getEquippedAvatarDecorationUrl, getEquippedFrameUrl, getEquippedCardUrl, type DecorationRarity } from "@/api/shop";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
+import { isPremiumActive } from "@/lib/premium";
+import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 import type { EquippedDecorations } from "@/types/user";
 
 type CategoryConfig = {
@@ -611,9 +613,17 @@ export default function LeadersPageClient() {
                       const frameUrl = getLeaderFrameUrl(u);
                       return (
                         <div key={u._id} className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]">
-                          <p className="text-xs sm:text-sm font-semibold text-[var(--foreground)] truncate w-full text-center mb-0.5 px-0.5 -mt-0.5" title={u.username}>
-                            {u.username}
-                          </p>
+                          <div className="flex items-center justify-center gap-1 w-full mb-0.5 px-0.5 -mt-0.5">
+                            <p
+                              className={`text-xs sm:text-sm font-semibold truncate text-center ${isPremiumActive(u.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
+                              title={u.username}
+                            >
+                              {u.username}
+                            </p>
+                            {isPremiumActive(u.subscriptionExpiresAt) && (
+                              <PremiumBadge size="xs" className="shrink-0" ariaLabel="Премиум-подписчик" />
+                            )}
+                          </div>
                           <div className={`relative ${avatarWrapperSize} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}>
                             <div className="relative w-full aspect-square max-w-full shrink-0 min-w-0 transition-transform duration-200 hover:scale-105 origin-center cursor-pointer" style={{ aspectRatio: "1 / 1" }}>
                               <button
@@ -873,9 +883,12 @@ function PodiumUserModal({
                 )}
               </div>
             </div>
-            <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold text-[var(--foreground)] truncate max-w-full px-1">
-              <span className="inline-block px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm">
+            <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold truncate max-w-full px-1">
+              <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm ${isPremiumActive(user.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}>
                 {user.username}
+                {isPremiumActive(user.subscriptionExpiresAt) && (
+                  <PremiumBadge size="xs" className="shrink-0" ariaLabel="Премиум-подписчик" />
+                )}
               </span>
             </h2>
             {user.role && user.role !== "user" && (

@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { getImageUrls } from "@/lib/asset-url";
-import { PremiumAvatarOverlay } from "@/shared/premium-badge/PremiumBadge";
 
 interface UserAvatarProps {
   avatarUrl?: string | null;
@@ -14,8 +13,6 @@ interface UserAvatarProps {
   frameUrl?: string | null;
   /** URL декорации «аватар» (персонаж) — показывается как основное изображение вместо avatarUrl */
   avatarDecorationUrl?: string | null;
-  /** Показывать значок премиум-подписки на аватаре */
-  showPremium?: boolean;
 }
 
 export default function UserAvatar({
@@ -25,7 +22,6 @@ export default function UserAvatar({
   className = "",
   frameUrl,
   avatarDecorationUrl,
-  showPremium = false,
 }: UserAvatarProps) {
   const [imageError, setImageError] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -96,7 +92,6 @@ export default function UserAvatar({
           hidePlaceholder={true}
         />
       )}
-      {showPremium && <PremiumAvatarOverlay />}
     </div>
   );
 

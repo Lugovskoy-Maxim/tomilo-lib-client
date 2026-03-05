@@ -8,7 +8,6 @@ import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions
 import { useState, useRef, useEffect } from "react";
 import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { isPremiumActive } from "@/lib/premium";
 
 interface UserDropdownUser {
   id?: string;
@@ -146,7 +145,6 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
                 className="rounded-full"
                 frameUrl={frameUrl ?? undefined}
                 avatarDecorationUrl={avatarDecorationUrl ?? undefined}
-                showPremium={isPremiumActive(user?.subscriptionExpiresAt)}
               />
             </button>
 

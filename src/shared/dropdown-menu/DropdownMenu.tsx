@@ -209,7 +209,6 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
               className="rounded-full w-full h-full"
               frameUrl={frameUrl ?? undefined}
               avatarDecorationUrl={avatarDecorationUrl ?? undefined}
-              showPremium={isPremiumActive(user?.subscriptionExpiresAt)}
             />
           </div>
           <div className="flex-1 min-w-0">
