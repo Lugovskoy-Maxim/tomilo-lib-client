@@ -12,6 +12,7 @@ import {
   useUpdateUserBalanceMutation,
   useGetUserTransactionsQuery,
   useUpdateUserDataMutation,
+  useUpdateAvatarAdminMutation,
   type UserRole,
   type UserBan,
   type BalanceTransaction,
@@ -52,11 +53,13 @@ function AdminControlsPanel({
   currentRole,
   currentBalance,
   username,
+  bio = "",
 }: {
   userId: string;
   currentRole: string;
   currentBalance: number;
   username: string;
+  bio?: string;
 }) {
   const toast = useToast();
   const dispatch = useDispatch<AppDispatch>();
@@ -73,10 +76,16 @@ function AdminControlsPanel({
   const [balanceDescription, setBalanceDescription] = useState("");
   const [balanceOperation, setBalanceOperation] = useState<"add" | "subtract">("add");
 
+  const [editUsername, setEditUsername] = useState(username);
+  const [editBio, setEditBio] = useState(bio);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
   const [updateRole, { isLoading: isUpdatingRole }] = useUpdateUserRoleMutation();
   const [banUser, { isLoading: isBanning }] = useBanUserMutation();
   const [unbanUser, { isLoading: isUnbanning }] = useUnbanUserMutation();
   const [updateBalance, { isLoading: isUpdatingBalance }] = useUpdateUserBalanceMutation();
+  const [updateUserData, { isLoading: isUpdatingData }] = useUpdateUserDataMutation();
+  const [updateAvatarAdmin, { isLoading: isUpdatingAvatar }] = useUpdateAvatarAdminMutation();
 
   const { data: banHistoryData, refetch: refetchBanHistory } = useGetUserBanHistoryQuery(userId);
   const { data: transactionsData, refetch: refetchTransactions } = useGetUserTransactionsQuery({
@@ -163,6 +172,42 @@ function AdminControlsPanel({
       invalidateAuthCache();
     } catch (error) {
       toast.error("Ошибка при изменении баланса");
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    const usernameChanged = editUsername.trim() !== username;
+    const bioChanged = editBio !== (bio ?? "");
+    if (!usernameChanged && !bioChanged && !avatarFile) {
+      toast.error("Нет изменений для сохранения");
+      return;
+    }
+    if (editUsername.trim().length < 3) {
+      toast.error("Никнейм не менее 3 символов");
+      return;
+    }
+    try {
+      if (usernameChanged || bioChanged) {
+        await updateUserData({
+          userId,
+          data: {
+            ...(usernameChanged && { username: editUsername.trim() }),
+            ...(bioChanged && { bio: editBio }),
+          },
+        }).unwrap();
+      }
+      if (avatarFile) {
+        await updateAvatarAdmin({ userId, file: avatarFile }).unwrap();
+        setAvatarFile(null);
+      }
+      toast.success("Профиль обновлён");
+      setActivePanel(null);
+      invalidateAuthCache();
+    } catch (error: unknown) {
+      const msg = (error as { data?: { message?: string; errors?: string[] } })?.data?.errors?.[0]
+        ?? (error as { data?: { message?: string } })?.data?.message
+        ?? "Ошибка при сохранении";
+      toast.error(msg);
     }
   };
 
@@ -257,7 +302,89 @@ function AdminControlsPanel({
           <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           {currentBalance}
         </button>
+        <button
+          onClick={() => {
+            setActivePanel(activePanel === "edit" ? null : "edit");
+            setEditUsername(username);
+            setEditBio(bio ?? "");
+            setAvatarFile(null);
+          }}
+          className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all active:scale-[0.98] ${
+            activePanel === "edit"
+              ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+              : "bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)]"
+          }`}
+        >
+          <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          Профиль
+        </button>
       </div>
+
+      {activePanel === "edit" && (
+        <div className="p-3 sm:p-4 rounded-lg bg-[var(--secondary)] space-y-2 sm:space-y-3">
+          <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)] flex items-center gap-2">
+            <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--primary)]" />
+            Никнейм, био и аватар
+          </h4>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            Изменение данных пользователя для соблюдения правил (модерация).
+          </p>
+          <div>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Никнейм</label>
+            <input
+              type="text"
+              value={editUsername}
+              onChange={e => setEditUsername(e.target.value)}
+              placeholder="Никнейм"
+              minLength={3}
+              className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-xs sm:text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Био</label>
+            <textarea
+              value={editBio}
+              onChange={e => setEditBio(e.target.value)}
+              placeholder="Краткое описание (до 200 символов)"
+              maxLength={200}
+              rows={3}
+              className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-xs sm:text-sm resize-none"
+            />
+            <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{editBio.length}/200</p>
+          </div>
+          <div>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Новый аватар</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={e => setAvatarFile(e.target.files?.[0] ?? null)}
+              className="w-full text-xs sm:text-sm text-[var(--foreground)] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[var(--primary)] file:text-[var(--primary-foreground)] file:text-xs"
+            />
+            {avatarFile && (
+              <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">
+                Выбран: {avatarFile.name}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-1.5 sm:gap-2">
+            <button
+              onClick={handleSaveProfile}
+              disabled={isUpdatingData || isUpdatingAvatar}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-xs sm:text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              {isUpdatingData || isUpdatingAvatar ? "..." : "Сохранить"}
+            </button>
+            <button
+              onClick={() => setActivePanel(null)}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] text-[var(--foreground)] text-xs sm:text-sm font-medium hover:bg-[var(--accent)] active:scale-[0.98] transition-all"
+            >
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Отмена
+            </button>
+          </div>
+        </div>
+      )}
 
       {activePanel === "role" && (
         <div className="p-3 sm:p-4 rounded-lg bg-[var(--secondary)] space-y-2 sm:space-y-3">
@@ -624,6 +751,7 @@ export default function AdminUserProfilePage() {
                       currentRole={userProfile.role}
                       currentBalance={userProfile.balance || 0}
                       username={userProfile.username}
+                      bio={userProfile.bio ?? ""}
                     />
                     <ProfileTabs
                       userProfile={userProfile}

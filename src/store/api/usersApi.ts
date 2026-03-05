@@ -243,6 +243,29 @@ export const usersApi = createApi({
         } catch {}
       },
     }),
+
+    // Admin: update user avatar (moderation)
+    updateAvatarAdmin: builder.mutation<
+      ApiResponse<{ user: { id: string; username: string; email: string; avatar: string } }>,
+      { userId: string; file: File }
+    >({
+      query: ({ userId, file }) => {
+        const formData = new FormData();
+        formData.append("avatar", file);
+        return {
+          url: `/users/avatar/admin/${userId}`,
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: (result, error, { userId }) => [{ type: "Users", id: userId }, "Users"],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(["Auth"]));
+        } catch {}
+      },
+    }),
   }),
 });
 
@@ -258,4 +281,5 @@ export const {
   useUpdateUserBalanceMutation,
   useGetUserTransactionsQuery,
   useUpdateUserDataMutation,
+  useUpdateAvatarAdminMutation,
 } = usersApi;
