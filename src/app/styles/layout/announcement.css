@@ -125,7 +125,8 @@
   text-decoration: line-through;
 }
 
-[data-theme="dark"] .announcement-body blockquote {
+[data-theme="dark"] .announcement-body blockquote,
+.dark .announcement-body blockquote {
   border-left-color: var(--chart-1);
 }
 

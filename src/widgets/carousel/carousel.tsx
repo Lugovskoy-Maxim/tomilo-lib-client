@@ -219,12 +219,16 @@ export default function Carousel<T>({
    * @returns Строка с ID или пустая строка, если поле не найдено.
    */
   const getCardId = useCallback((item: T) => {
-    const idValue = item[idField];
-    return idValue ? String(idValue) : "";
+    if (item == null || typeof item !== "object") return "";
+    const idValue = (item as Record<string, unknown>)[idField as string];
+    return idValue != null ? String(idValue) : "";
   }, [idField]);
 
+  /** Отфильтровываем null/undefined, чтобы не падать при рендере. */
+  const safeData = data.filter((item): item is T => item != null && typeof item === "object");
+
   /** Для бесконечной автопрокрутки рендерим два набора данных подряд. */
-  const displayData = autoScrollInterval && data.length > 1 ? [...data, ...data] : data;
+  const displayData = autoScrollInterval && safeData.length > 1 ? [...safeData, ...safeData] : safeData;
 
   /**
    * Прокручивает карусель в указанном направлении.
@@ -471,7 +475,7 @@ export default function Carousel<T>({
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {(autoScrollInterval && data.length > 1 ? displayData : data).map((item, index) => (
+            {(autoScrollInterval && safeData.length > 1 ? displayData : safeData).map((item, index) => (
                 <div
                   key={`${getCardId(item)}-${index}`}
                   className={`flex-shrink-0 h-full ${cardWidth}`}
@@ -486,7 +490,7 @@ export default function Carousel<T>({
           </div>
 
         {/* Кнопки по бокам карусели */}
-        {showNavigation && data.length > 0 && (
+        {showNavigation && safeData.length > 0 && (
           <>
             <button
               type="button"

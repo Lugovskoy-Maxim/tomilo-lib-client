@@ -14,11 +14,14 @@
 }
 
 [data-theme="dark"] .dropdown-modern,
-[data-theme="dark"] .dropdown-list {
+[data-theme="dark"] .dropdown-list,
+.dark .dropdown-modern,
+.dark .dropdown-list {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
-[data-theme="dark"] .dropdown-modern {
+[data-theme="dark"] .dropdown-modern,
+.dark .dropdown-modern {
   background: var(--card);
   border-color: var(--border);
 }
