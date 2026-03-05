@@ -20,7 +20,6 @@
 
 .card-hover-soft:hover {
   --card-tilt-scale: 1.04;
-  border-color: transparent;
   box-shadow: 0 12px 24px rgb(0 0 0 / 0.1), 0 4px 8px rgb(0 0 0 / 0.06);
   z-index: 6;
 }
@@ -42,56 +41,6 @@
   box-shadow: 0 14px 28px rgb(0 0 0 / 0.35), 0 0 0 1px var(--primary);
 }
 
-.card-hover-soft::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  z-index: 3;
-  --card-border-angle: 0deg;
-  background: conic-gradient(
-    from var(--card-border-angle),
-    color-mix(in oklch, var(--primary) 90%, transparent),
-    color-mix(in oklch, var(--primary) 40%, transparent),
-    color-mix(in oklch, var(--primary) 90%, transparent)
-  );
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.22s ease;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-}
-
-.card-hover-soft > * {
-  position: relative;
-  z-index: 1;
-}
-
-.card-hover-soft:hover::before {
-  opacity: 1;
-  animation: card-border-spin 2.4s linear infinite;
-}
-
-@property --card-border-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
-@keyframes card-border-spin {
-  from {
-    --card-border-angle: 0deg;
-  }
-  to {
-    --card-border-angle: 360deg;
-  }
-}
-
 .card-media-hover {
   transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -109,9 +58,5 @@
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
   }
 
-  .card-hover-soft::before {
-    opacity: 0 !important;
-    animation: none !important;
-  }
 }
 
