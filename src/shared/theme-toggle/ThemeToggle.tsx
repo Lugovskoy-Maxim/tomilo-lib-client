@@ -47,30 +47,32 @@ export default function ThemeToggle() {
   const isLoadingTheme = isUpdatingTheme || (isAuthenticated && isLoading);
 
   const toggleTheme = async () => {
+    if (!mounted) return;
     setIsUpdatingTheme(true);
     const validThemes = ["light", "dark", "system"] as const;
-    const currentIndex = validThemes.indexOf(theme as "light" | "dark" | "system") || 0;
+    const idx = validThemes.indexOf((theme ?? "system") as "light" | "dark" | "system");
+    const currentIndex = idx >= 0 ? idx : 0;
     const nextIndex = (currentIndex + 1) % validThemes.length;
     const newTheme = validThemes[nextIndex];
 
     // Применяем тему локально сразу
     setTheme(newTheme);
 
-    // Для авторизованных пользователей сохраняем в профиль и ждём ответа сервера
-    if (isAuthenticated) {
-      const currentDisplaySettings = profileData?.data?.displaySettings || { isAdult: false };
-      await updateProfile({
-        displaySettings: {
-          ...currentDisplaySettings,
-          theme: newTheme,
-        },
-      }).unwrap();
-    } else {
-      // Для неавторизованных - небольшая задержка для анимации
-      await new Promise(resolve => setTimeout(resolve, 150));
+    try {
+      if (isAuthenticated) {
+        const currentDisplaySettings = profileData?.data?.displaySettings || { isAdult: false };
+        await updateProfile({
+          displaySettings: {
+            ...currentDisplaySettings,
+            theme: newTheme,
+          },
+        }).unwrap();
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+    } finally {
+      setIsUpdatingTheme(false);
     }
-
-    setIsUpdatingTheme(false);
   };
 
   const getCurrentTheme = () => {

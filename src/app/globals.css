@@ -134,7 +134,7 @@ html.font-rubik body {
   z-index: var(--z-toast);
 }
 
-/* Фон на главной — абстракции (линии, дуги, круги) */
+/* Фон на главной — декоративные иконки */
 .lines-background {
   position: fixed;
   inset: 0;
@@ -144,90 +144,24 @@ html.font-rubik body {
   color: var(--foreground);
 }
 
-.lines-background svg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.5;
+.lines-background__icon {
+  animation: lines-background-float ease-in-out infinite;
+  will-change: transform;
 }
 
-[data-theme="dark"] .lines-background svg {
-  opacity: 0.5;
-}
-
-/* Появление линий при загрузке + плавное движение */
-.lines-background__line {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: 
-    lines-abstract-draw 1.8s ease-out forwards,
-    lines-abstract-flow 12s ease-in-out 2s infinite;
-}
-
-.lines-background__line:nth-child(1) { animation-delay: 0s, 2s; }
-.lines-background__line:nth-child(2) { animation-delay: 0.15s, 2.5s; }
-.lines-background__line:nth-child(3) { animation-delay: 0.3s, 3s; }
-.lines-background__line:nth-child(4) { animation-delay: 0.2s, 3.5s; }
-.lines-background__line:nth-child(5) { animation-delay: 0.1s, 4s; }
-.lines-background__line:nth-child(6) { animation-delay: 0.35s, 4.5s; }
-
-@keyframes lines-abstract-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes lines-abstract-flow {
-  0%, 100% {
-    opacity: 1;
-    transform: translateX(0) translateY(0);
+@keyframes lines-background-float {
+  0%,
+  100% {
+    transform: translate(0, 0);
   }
   25% {
-    opacity: 0.7;
-    transform: translateX(8px) translateY(-4px);
+    transform: translate(12px, -8px);
   }
   50% {
-    opacity: 1;
-    transform: translateX(0) translateY(6px);
+    transform: translate(-8px, 10px);
   }
   75% {
-    opacity: 0.8;
-    transform: translateX(-6px) translateY(-2px);
-  }
-}
-
-/* Мягкое «дыхание» кругов */
-.lines-background__circle {
-  transform-origin: center;
-  animation: lines-abstract-pulse 8s ease-in-out infinite;
-}
-
-.lines-background__circles .lines-background__circle:nth-child(1) { animation-delay: 0s; }
-.lines-background__circles .lines-background__circle:nth-child(2) { animation-delay: 2.5s; }
-.lines-background__circles .lines-background__circle:nth-child(3) { animation-delay: 5s; }
-
-@keyframes lines-abstract-pulse {
-  0%, 100% {
-    opacity: 0.25;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.45;
-    transform: scale(1.05);
-  }
-}
-
-/* Плавная пульсация сетки */
-.lines-background__grid {
-  animation: lines-grid-pulse 10s ease-in-out infinite;
-}
-
-@keyframes lines-grid-pulse {
-  0%, 100% {
-    opacity: 0.1;
-  }
-  50% {
-    opacity: 0.18;
+    transform: translate(-10px, -6px);
   }
 }
 

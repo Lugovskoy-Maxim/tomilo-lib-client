@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   useGetProfileQuery,
@@ -66,49 +66,60 @@ export const useAuth = () => {
 
   const continueReading = readingHistoryData?.data;
 
+  // Синхронизируем loading только при изменении — иначе множество карточек (каждая с useAuth)
+  // вызывают dispatch при каждом рендере и приводят к "Maximum update depth exceeded"
   useEffect(() => {
-    dispatch(setLoading(profileLoading));
-  }, [profileLoading, dispatch]);
+    if (auth.isLoading !== profileLoading) {
+      dispatch(setLoading(profileLoading));
+    }
+  }, [profileLoading, dispatch, auth.isLoading]);
 
+  const lastAppliedProfileRef = useRef<typeof profileResponse | null>(null);
   useEffect(() => {
     const currentToken = getToken();
-    if (profileResponse && profileResponse.success && profileResponse.data && currentToken) {
-      const user = profileResponse.data as StoredUser & { equipped_decorations?: StoredUser["equippedDecorations"] };
-      const authResponse: AuthResponse = {
-        access_token: currentToken,
-        user: {
-          _id: user._id,
-          id: user.id || user._id,
-          email: user.email,
-          username: user.username,
-          avatar: user.avatar,
-          role: user.role,
-          level: user.level,
-          experience: user.experience,
-          balance: user.balance,
-          subscriptionExpiresAt:
-            (user as { subscriptionExpiresAt?: string | null; subscription_expires_at?: string | null })
-              .subscriptionExpiresAt ??
-            (user as { subscription_expires_at?: string | null }).subscription_expires_at ??
-            null,
-          bookmarks: user.bookmarks,
-          readingHistory: user.readingHistory,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-          birthDate: user.birthDate,
-          displaySettings: user.displaySettings,
-          privacy: user.privacy,
-          equippedDecorations: user.equippedDecorations ?? user.equipped_decorations,
-        },
-      };
-      dispatch(login(authResponse));
+    if (!profileResponse?.success || !profileResponse?.data || !currentToken) return;
 
-      // Check age and set verification if user is 18+
-      if (user.birthDate) {
-        checkAndSetAgeVerification(user.birthDate);
-      }
+    const user = profileResponse.data as StoredUser & { equipped_decorations?: StoredUser["equippedDecorations"] };
+    const userId = user?.id ?? user?._id;
+    // Не диспатчить, если в сторе уже этот пользователь — иначе несколько useAuth (карточки и т.д.)
+    // все вызывают login() и получается "Maximum update depth exceeded"
+    if (userId && auth.user && (auth.user.id === userId || auth.user._id === userId)) return;
+    if (lastAppliedProfileRef.current === profileResponse) return;
+    lastAppliedProfileRef.current = profileResponse;
+
+    const authResponse: AuthResponse = {
+      access_token: currentToken,
+      user: {
+        _id: user._id,
+        id: user.id || user._id,
+        email: user.email,
+        username: user.username,
+        avatar: user.avatar,
+        role: user.role,
+        level: user.level,
+        experience: user.experience,
+        balance: user.balance,
+        subscriptionExpiresAt:
+          (user as { subscriptionExpiresAt?: string | null; subscription_expires_at?: string | null })
+            .subscriptionExpiresAt ??
+          (user as { subscription_expires_at?: string | null }).subscription_expires_at ??
+          null,
+        bookmarks: user.bookmarks,
+        readingHistory: user.readingHistory,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        birthDate: user.birthDate,
+        displaySettings: user.displaySettings,
+        privacy: user.privacy,
+        equippedDecorations: user.equippedDecorations ?? user.equipped_decorations,
+      },
+    };
+    dispatch(login(authResponse));
+
+    if (user.birthDate) {
+      checkAndSetAgeVerification(user.birthDate);
     }
-  }, [profileResponse, token, dispatch]);
+  }, [profileResponse, token, dispatch, auth.user?.id, auth.user?._id]);
 
   useEffect(() => {
     if (error && getToken()) {
@@ -147,12 +158,17 @@ export const useAuth = () => {
     [dispatch],
   );
 
-  // Обновление истории чтения в профиле пользователя
+  // Обновление истории чтения в профиле пользователя (только при реальном изменении, чтобы избежать цикла #185)
+  const prevReadingHistoryRef = useRef<StoredUser["readingHistory"] | undefined>(undefined);
   useEffect(() => {
-    if (readingHistoryData && readingHistoryData.success && readingHistoryData.data) {
-      updateUserData({ readingHistory: readingHistoryData.data });
-    }
-  }, [readingHistoryData, updateUserData]);
+    if (!readingHistoryData?.success || !readingHistoryData?.data) return;
+    const next = readingHistoryData.data;
+    if (prevReadingHistoryRef.current === next) return;
+    // Не диспатчить, если в сторе уже те же данные — иначе несколько useAuth вызывают updateUserData и цикл
+    if (auth.user?.readingHistory === next) return;
+    prevReadingHistoryRef.current = next;
+    updateUserData({ readingHistory: next });
+  }, [readingHistoryData, updateUserData, auth.user?.readingHistory]);
 
   const updateAvatar = async (avatarFile: File): Promise<{ success: boolean; error?: string }> => {
     try {

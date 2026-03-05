@@ -91,10 +91,13 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
   // Ref для отслеживания последнего значения includeAdult при загрузке updates
   const lastIncludeAdultRef = useRef<boolean | null>(null);
 
-  // Мемоизированная функция форматирования коллекций
-  const formatCollections = useCallback((collectionsData: ApiCollection[]): Collection[] => {
-    return collectionsData.map((collection: ApiCollection) => {
-      const id = String((collection.id || collection._id) ?? "");
+  // Мемоизированная функция форматирования коллекций (устойчива к null/неполным элементам)
+  const formatCollections = useCallback((collectionsData: unknown[]): Collection[] => {
+    const safeItems = collectionsData.filter(
+      (x): x is ApiCollection => x != null && typeof x === "object" && ("id" in x || "_id" in x || "name" in x)
+    );
+    return safeItems.map((collection: ApiCollection) => {
+      const id = String((collection.id ?? collection._id) ?? "");
       const raw = (collection as Record<string, unknown>).titles;
       const titles = Array.isArray(raw) ? (raw as string[]) : [];
       const titlesCount =
@@ -108,7 +111,7 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
           (collection.coverImage as string) ??
           (collection.image as string) ??
           "",
-        name: collection.name ?? "",
+        name: String(collection.name ?? ""),
         description: undefined,
         titles,
         titlesCount,
@@ -141,10 +144,15 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
 
         const result = await response.json();
         if (cancelled) return;
-        
-        const raw = result.data?.collections ?? result.data?.data ?? result.data;
+
+        const raw = result?.data?.collections ?? result?.data?.data ?? result?.data ?? result;
         const collectionsData = Array.isArray(raw) ? raw : [];
-        const formattedCollections = formatCollections(collectionsData);
+        let formattedCollections: Collection[];
+        try {
+          formattedCollections = formatCollections(collectionsData);
+        } catch (_) {
+          formattedCollections = [];
+        }
 
         collectionsLoadedRef.current = true;
         setCollections({
