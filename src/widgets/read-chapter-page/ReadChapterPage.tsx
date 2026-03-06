@@ -141,7 +141,6 @@ function ReadChapterPageContent({
   const [forceStopAutoScroll, setForceStopAutoScroll] = useState(false);
   const [preloadAllImages, setPreloadAllImages] = useState(false);
   const [preloadProgress, setPreloadProgress] = useState(0);
-  const [showScrollToTop, setShowScrollToTop] = useState(false);
   const [showKeyboardHints, setShowKeyboardHints] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt: string } | null>(null);
   const [lastTapTime, setLastTapTime] = useState(0);
@@ -624,8 +623,6 @@ function ReadChapterPageContent({
         } else if (currentScrollY === prevScrollY) {
           setForceStopAutoScroll(false);
         }
-
-        setShowScrollToTop(currentScrollY > 600);
 
         if (window.innerHeight + currentScrollY >= document.body.offsetHeight - 100) {
           if (hideBottomMenuSetting) {
@@ -1320,7 +1317,7 @@ function ReadChapterPageContent({
                   data-chapter-id={ch._id}
                   className="chapter-container"
                 >
-                  <div className="bg-[var(--primary)]/10 py-6 mb-8">
+                  <div className="bg-[var(--primary)]/10 py-6">
                     <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
                       <div className="h-px bg-[var(--primary)]/30 flex-1" />
                       <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
@@ -1456,7 +1453,7 @@ function ReadChapterPageContent({
             data-infinite-chapter={displayChapter._id}
           >
             {/* Заголовок главы */}
-            <div className="bg-[var(--primary)]/10 py-6 mb-8">
+            <div className="bg-[var(--primary)]/10 py-6">
               <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
                 <div className="h-px bg-[var(--primary)]/30 flex-1" />
                 <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
@@ -1902,7 +1899,7 @@ function ReadChapterPageContent({
                 return (
                   <div key={loadedChapter._id} className="mt-0">
                     <div 
-                      className="bg-[var(--primary)]/10 py-6 mb-8"
+                      className="bg-[var(--primary)]/10 py-6"
                       data-infinite-chapter={loadedChapter._id}
                     >
                       <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
@@ -2122,35 +2119,44 @@ function ReadChapterPageContent({
         titleId={title._id}
       />
 
-      {/* Floating Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 z-[60] h-1 bg-[var(--muted)]/30">
-        <div 
-          className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] transition-all duration-200 ease-out"
-          style={{ width: `${Math.max(0, Math.min(100, Math.round((currentPage / Math.max(chapter.images.length, 1)) * 100)))}%` }}
+      {/* Floating Progress Bar — плавная полоса прогресса чтения */}
+      <div
+        className="fixed top-0 left-0 right-0 z-[60] h-1 overflow-hidden rounded-b-full"
+        role="progressbar"
+        aria-valuenow={Math.round((currentPage / Math.max(chapter.images.length, 1)) * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        {/* Трек */}
+        <div className="absolute inset-0 bg-[var(--muted)]/20 backdrop-blur-[2px]" />
+        {/* Заполнение с градиентом и скруглением */}
+        <div
+          className="absolute inset-y-0 left-0 min-w-[4px] rounded-r-full bg-gradient-to-r from-[var(--primary)] via-[var(--primary)] to-[var(--accent)] transition-[width] duration-500 ease-out"
+          style={{
+            width: `${Math.max(0, Math.min(100, (currentPage / Math.max(chapter.images.length, 1)) * 100))}%`,
+            boxShadow: "0 0 12px rgba(var(--primary-rgb), 0.35)",
+          }}
+        />
+        {/* Верхний блик для объёма */}
+        <div
+          className="absolute inset-y-0 left-0 rounded-r-full pointer-events-none opacity-30 transition-[width] duration-500 ease-out"
+          style={{
+            width: `${Math.max(0, Math.min(100, (currentPage / Math.max(chapter.images.length, 1)) * 100))}%`,
+            background: "linear-gradient(to bottom, rgba(255,255,255,0.35) 0%, transparent 60%)",
+          }}
         />
       </div>
 
-      {/* Scroll to Top Button */}
-      <button
-        onClick={scrollToTop}
-        className={`fixed left-4 z-[50] p-3 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg transition-all duration-300 hover:bg-[var(--accent)] hover:scale-110 active:scale-95 ${
-          showScrollToTop 
-            ? "opacity-100 translate-y-0 pointer-events-auto bottom-20 sm:bottom-6" 
-            : "opacity-0 translate-y-4 pointer-events-none bottom-20 sm:bottom-6"
-        }`}
-        title="Вернуться наверх"
-      >
-        <ChevronUp className="w-5 h-5 text-[var(--foreground)]" />
-      </button>
-
-      {/* Keyboard Shortcuts Button (Desktop) */}
-      <button
-        onClick={() => setShowKeyboardHints(!showKeyboardHints)}
-        className="hidden sm:flex fixed left-4 bottom-20 z-[50] p-3 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg transition-all duration-300 hover:bg-[var(--accent)] hover:scale-110 active:scale-95 items-center justify-center"
-        title="Горячие клавиши"
-      >
-        <Keyboard className="w-5 h-5 text-[var(--foreground)]" />
-      </button>
+      {/* Scroll to Top Button — показывается только после прокрутки вниз */}
+      {isHeaderVisible && lastScrollY > 600 && (
+        <button
+          onClick={scrollToTop}
+          className="fixed left-4 z-[50] p-3 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg transition-all duration-300 hover:bg-[var(--accent)] hover:scale-110 active:scale-95 bottom-20 sm:bottom-6 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          title="Вернуться наверх"
+        >
+          <ChevronUp className="w-5 h-5 text-[var(--foreground)]" />
+        </button>
+      )}
 
       {/* Keyboard Shortcuts Modal */}
       {showKeyboardHints && (
