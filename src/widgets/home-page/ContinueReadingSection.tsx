@@ -395,31 +395,29 @@ export default function ContinueReadingSection() {
       className="w-full min-w-0 max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6"
       aria-label="Продолжить чтение"
     >
-      <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
-        <div className="flex flex-col w-full">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 text-[var(--muted-foreground)]">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-[var(--muted-foreground)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)]">
               Продолжить чтение
             </h2>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 w-full">
-            <p className="text-[var(--muted-foreground)] text-sm max-w-2xl">
+            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
               На основе вашей истории чтения
             </p>
-            {items.length > 0 && (
-              <Link
-                href="/profile"
-                className="text-[var(--chart-1)] hover:underline flex items-center gap-1 whitespace-nowrap sm:ml-4 self-start sm:self-auto"
-              >
-                Вся история
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            )}
           </div>
         </div>
+        {items.length > 0 && (
+          <Link
+            href="/profile"
+            className="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-2 flex items-center gap-1"
+          >
+            Вся история
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        )}
       </div>
 
       {items.length === 0 ? (

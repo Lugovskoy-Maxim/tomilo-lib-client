@@ -71,30 +71,32 @@ export default function GridSection<T>({
   return (
     <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
       {/* Заголовок секции */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
-        <div className="flex flex-col w-full">
-          <div className="flex items-center gap-2 mb-2">
-            {icon && <div className="w-6 h-6 text-[var(--muted-foreground)]">{icon}</div>}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          {icon && (
+            <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] [&_svg]:w-5 [&_svg]:h-5">
+              {icon}
+            </div>
+          )}
+          <div>
             {title && (
-              <h2 className="text-xl sm:text-2xl font-bold text-[var(--muted-foreground)]">{title}</h2>
+              <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)]">{title}</h2>
             )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 w-full">
-            <p className="text-[var(--muted-foreground)] text-sm max-w-2xl">
-              {renderDescription()}
-            </p>
-
-            {href && (
-              <Link
-                href={href}
-                className="text-[var(--chart-1)] hover:underline flex items-center gap-1 whitespace-nowrap sm:ml-4 self-start sm:self-auto"
-              >
-                {navigationIcon || <ExternalLink className="w-6 h-6" />}
-              </Link>
+            {(description || descriptionLink) && (
+              <p className="text-[var(--muted-foreground)] text-xs mt-0.5 max-w-2xl">
+                {renderDescription()}
+              </p>
             )}
           </div>
         </div>
+        {href && (
+          <Link
+            href={href}
+            className="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-2 flex items-center gap-1 shrink-0"
+          >
+            {navigationIcon || <ExternalLink className="w-4 h-4" />}
+          </Link>
+        )}
       </div>
 
       {/* Grid с карточками — может быть фиксированным или auto-fit для редких данных */}
