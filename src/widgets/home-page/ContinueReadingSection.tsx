@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -183,9 +183,9 @@ function ContinueCard({ item }: { item: ContinueItem }) {
       <div className="group relative h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-300">
         <Link
           href={chapterHref}
-          className="flex gap-3 p-3 sm:p-4 block h-full"
+          className="flex items-start gap-3 p-3 sm:p-4 block h-full"
         >
-          <div className="relative w-20 h-28 sm:w-24 sm:h-32 rounded-xl overflow-hidden shrink-0 bg-[var(--muted)]">
+          <div className="relative w-[90px] h-[129px] sm:w-24 sm:h-32 rounded-xl overflow-hidden shrink-0 bg-[var(--muted)]">
             {imageUrls ? (
               <OptimizedImage
                 src={imageUrls.primary}
@@ -322,6 +322,51 @@ export default function ContinueReadingSection() {
       );
   }, [historyResponse?.data]);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const startXRef = useRef(0);
+  const startScrollLeftRef = useRef(0);
+  const dragOccurredRef = useRef(false);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    dragOccurredRef.current = false;
+    startXRef.current = e.pageX;
+    const el = scrollRef.current;
+    if (el) startScrollLeftRef.current = el.scrollLeft;
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const dx = Math.abs(e.pageX - startXRef.current);
+    if (dx > 8) {
+      dragOccurredRef.current = true;
+      e.preventDefault();
+    }
+    const el = scrollRef.current;
+    if (el && dx > 0) {
+      el.scrollLeft = startScrollLeftRef.current - (e.pageX - startXRef.current);
+    }
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setTimeout(() => { dragOccurredRef.current = false; }, 300);
+  }, [isDragging]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (isDragging) setIsDragging(false);
+  }, [isDragging]);
+
+  const handleClickCapture = useCallback((e: React.MouseEvent) => {
+    if (dragOccurredRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, []);
+
   if (!hasAuth) return null;
 
   if (isLoading) {
@@ -378,7 +423,16 @@ export default function ContinueReadingSection() {
       {items.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-visible pb-2 scrollbar-hide scroll-smooth min-w-0 touch-pan-x carousel-scroll will-change-scroll">
+        <div
+          ref={scrollRef}
+          className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-visible py-2 scrollbar-hide scroll-smooth min-w-0 touch-pan-x carousel-scroll will-change-scroll cursor-grab active:cursor-grabbing select-none"
+          style={{ userSelect: "none" }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onClickCapture={handleClickCapture}
+        >
           {items.map((item) => (
             <ContinueCard key={item.titleId} item={item} />
           ))}
