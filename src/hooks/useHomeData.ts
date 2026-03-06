@@ -6,11 +6,7 @@ import {
   useSearchTitlesQuery,
   useGetRandomTitlesQuery,
 } from "@/store/api/titlesApi";
-import { useGetReadingHistoryQuery } from "@/store/api/authApi";
-import { Chapter } from "@/types/title";
 import { normalizeGenres } from "@/lib/genre-normalizer";
-
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
 export type HomeVisibleSections = Partial<{
   popular: boolean;
@@ -113,27 +109,6 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     loading: boolean;
     error: unknown;
   };
-  readingProgress: {
-    data: {
-      id: string;
-      title: string;
-      cover: string;
-      currentChapter: number;
-      totalChapters: number;
-      newChaptersSinceLastRead: number;
-      type: string;
-      readingHistory?: {
-        titleId: string;
-        chapterId: string;
-        chapterNumber: number;
-        lastReadDate?: string;
-      };
-      lastReadTimestamp: number;
-    }[];
-    loading: boolean;
-    error: unknown;
-  };
-
   topManhua: {
     data: {
       id: string;
@@ -187,9 +162,6 @@ export const useHomeData = (options: HomeDataOptions = {}): {
   };
 } => {
   const { visibleSections = {}, includeAdult = false } = options;
-  
-  const getToken = () =>
-    typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
 
   // Опции кэша: не дергать сервер при каждом заходе на главную.
   // refetchOnMountOrArgChange: 600 — обновлять только если данные старше 10 мин.
@@ -204,7 +176,6 @@ export const useHomeData = (options: HomeDataOptions = {}): {
   const skipUnderrated = !visibleSections.underrated;
   const skipTopCombined = !visibleSections.topCombined;
   const skipRandom = !visibleSections.random;
-  const skipReading = !visibleSections.reading || !getToken();
 
   // Популярные тайтлы — запрос только когда секция в viewport
   const {
@@ -299,18 +270,6 @@ export const useHomeData = (options: HomeDataOptions = {}): {
   const [topManhuaData, topManhwaData, top2026Data] = topQueries.map(query => query.data);
   const [topManhuaLoading, topManhwaLoading, top2026Loading] = topQueries.map(query => query.isLoading);
   const [topManhuaError, topManhwaError, top2026Error] = topQueries.map(query => query.error);
-
-  // История чтения — только когда секция в viewport и пользователь авторизован
-  const {
-    data: readingHistory,
-    isLoading: readingHistoryLoading,
-    error: readingHistoryError,
-  } = useGetReadingHistoryQuery(
-    { limit: 100 },
-    {
-      skip: skipReading,
-    },
-  );
 
   // Мемоизированное преобразование популярных тайтлов
   const popularTitles = useMemo(() =>
@@ -472,62 +431,6 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     [top2026Data]
   );
 
-  // Мемоизированное преобразование прогресса чтения
-  const readingProgress = useMemo(() => {
-    const readingHistoryArray = Array.isArray(readingHistory?.data)
-      ? readingHistory.data
-      : [];
-
-    return readingHistoryArray
-      .map(item => {
-        const chaptersArray = item.chapters && Array.isArray(item.chapters) ? item.chapters : [];
-
-        const latestChapter =
-          chaptersArray.length > 0
-            ? chaptersArray.reduce((latest, current) => {
-                return new Date(current.readAt) > new Date(latest.readAt) ? current : latest;
-              })
-            : null;
-
-        const titleData = item.titleId && typeof item.titleId === "object" ? item.titleId : {};
-        const titleId =
-          typeof item.titleId === "string"
-            ? item.titleId
-            : (titleData as { _id?: string })._id || "";
-
-        const titleChapters = (titleData as { chapters?: Chapter[] }).chapters || [];
-        const totalChapters = titleChapters.length;
-        const currentChapter = latestChapter?.chapterNumber || 0;
-
-        const newChapters = titleChapters.filter(
-          (ch: Chapter) => (ch.chapterNumber ?? 0) > currentChapter,
-        ).length;
-
-        return {
-          id: titleId,
-          title: (titleData as { name?: string }).name || `Манга #${titleId}`,
-          cover: (titleData as { coverImage?: string }).coverImage || "",
-          currentChapter,
-          totalChapters,
-          newChaptersSinceLastRead: newChapters,
-          type: (titleData as { type?: string }).type || "Неуказан",
-          readingHistory: latestChapter
-            ? {
-                titleId,
-                chapterId: typeof latestChapter.chapterId === "object" && latestChapter.chapterId !== null
-                  ? (latestChapter.chapterId as { _id: string })._id
-                  : String(latestChapter.chapterId),
-                chapterNumber: latestChapter.chapterNumber,
-                lastReadDate: latestChapter.readAt,
-              }
-            : undefined,
-          lastReadTimestamp: latestChapter ? new Date(latestChapter.readAt).getTime() : 0,
-        };
-      })
-      .filter(item => item.currentChapter <= item.totalChapters && item.totalChapters > 0)
-      .sort((a, b) => b.lastReadTimestamp - a.lastReadTimestamp);
-  }, [readingHistory]);
-
   return {
     popularTitles: {
       data: popularTitles,
@@ -553,11 +456,6 @@ export const useHomeData = (options: HomeDataOptions = {}): {
       data: underratedTitles,
       loading: underratedTitlesLoading,
       error: underratedTitlesError,
-    },
-    readingProgress: {
-      data: readingProgress,
-      loading: readingHistoryLoading,
-      error: readingHistoryError,
     },
     topManhua: {
       data: topManhua,

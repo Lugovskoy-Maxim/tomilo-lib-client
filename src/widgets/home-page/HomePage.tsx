@@ -5,8 +5,8 @@ import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight } from 
 
 import CollectionCard from "@/shared/collection-card/CollectionCard";
 import LazySection from "@/shared/lazy-section/LazySection";
-import ReadingCard from "@/shared/reading-card/ReadingCard";
 import SectionLoadError from "@/shared/error-state/SectionLoadError";
+import ContinueReadingSection from "@/widgets/home-page/ContinueReadingSection";
 import TrendingCard from "@/shared/trending-card/TrendingCard";
 import UnderratedCard from "@/shared/underrated-card/UnderratedCard";
 import FeaturedTitleBlock from "@/shared/featured-title/FeaturedTitleBlock";
@@ -117,7 +117,6 @@ export default function HomePage() {
     randomTitles,
     trendingTitles,
     underratedTitles,
-    readingProgress,
     topManhua,
     topManhwa,
     top2026,
@@ -181,6 +180,7 @@ export default function HomePage() {
     setMounted(true);
   }, []);
 
+
   const mainClassName =
     "flex flex-col items-center justify-start gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full";
 
@@ -229,11 +229,11 @@ export default function HomePage() {
         {/* Быстрый доступ к жанрам */}
         <GenresQuickAccess />
 
-        {/* Продолжить чтение — для авторизованных пользователей в приоритете */}
+        {/* Продолжить чтение — новый блок с полями с сервера */}
         <LazySection
           sectionId="reading"
           onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.reading}
+          isVisible={!!visibleSections.reading || !!isAuthenticated}
           skeleton={
             <CarouselSkeleton
               cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
@@ -242,21 +242,7 @@ export default function HomePage() {
             />
           }
         >
-          <DataCarousel
-            title="Продолжить чтение"
-            data={readingProgress.data}
-            loading={readingProgress.loading}
-            error={readingProgress.error}
-            cardComponent={ReadingCard}
-            description="Это главы, которые вы ещё не прочитали. Данный список генерируется на основании вашей истории чтения."
-            type="browse"
-            icon={<BookOpen className="w-6 h-6" />}
-            navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-            descriptionLink={{ text: "истории чтения", href: "/profile" }}
-            showNavigation={false}
-            cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
-            skeletonVariant="reading"
-          />
+          <ContinueReadingSection />
         </LazySection>
 
         {/* В тренде на этой неделе */}
