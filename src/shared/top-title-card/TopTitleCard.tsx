@@ -1,17 +1,17 @@
 "use client";
 
-import React from "react";
-import { Trophy, Eye } from "lucide-react";
-import RatingBadge from "@/shared/rating-badge/RatingBadge";
-import { useAuth } from "@/hooks/useAuth";
-import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
+import { Eye } from "lucide-react";
+import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
+import RatingBadge from "@/shared/rating-badge/RatingBadge";
 import { getTitlePath } from "@/lib/title-paths";
 import { getCoverUrls } from "@/lib/asset-url";
+import { translateTitleType } from "@/lib/title-type-translations";
+import { useAuth } from "@/hooks/useAuth";
+import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 
-interface TopTitleData {
+export interface TopTitleCardData {
   id: string;
   slug?: string;
   title: string;
@@ -19,241 +19,103 @@ interface TopTitleData {
   year: number;
   rating: number;
   image: string;
-  genres: string[];
   rank: number;
   views?: number;
-  period?: string;
-  isAdult: boolean;
-  ratingCount?: number;
+  isAdult?: boolean;
 }
 
 interface TopTitleCardProps {
-  data: TopTitleData;
-  variant?: "top3" | "carousel";
+  data: TopTitleCardData;
 }
 
-const TopTitleCard = ({ data, variant = "top3" }: TopTitleCardProps) => {
+function formatViews(n: number | string | undefined): string {
+  if (n == null) return "—";
+  const num = typeof n === "string" ? parseFloat(n) : n;
+  if (isNaN(num)) return "—";
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}М`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}к`;
+  return String(num);
+}
+
+export default function TopTitleCard({ data }: TopTitleCardProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
 
-  const { user } = useAuth();
-
-  const userId = user?._id ?? null;
-  const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
-    const verified = checkAgeVerification(user || null);
-    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
-  }, [userId, userBirthDate]);
-
-  const handleAgeConfirm = () => {
-    setIsAgeVerified(true);
-    setShowAgeModal(false);
-  };
-
-  const handleAgeCancel = () => {
-    setShowAgeModal(false);
-  };
+    setIsAgeVerified(checkAgeVerification(user ?? null));
+  }, [user?._id, user?.birthDate]);
 
   const handleClick = () => {
-    // Проверяем, является ли контент для взрослых и подтверждено ли возрастное ограничение
     if (data.isAdult && !isAgeVerified) {
       setShowAgeModal(true);
       return;
     }
-    // Переход к странице тайтла с использованием правильного пути
     router.push(getTitlePath(data));
   };
 
   const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(data.image);
 
-  if (variant === "top3") {
-    return (
-      <>
-        <div
-          className="bg-[var(--muted)]/30 rounded-xl border border-[var(--border)] card-hover-soft cursor-pointer group p-4 sm:p-6"
-          onClick={handleClick}
-        >
-          {/* Мобильная версия - горизонтальная */}
-          <div className="flex gap-4 sm:hidden">
-            <div className="relative flex-shrink-0">
-              <OptimizedImage
-                src={imageSrc}
-                fallbackSrc={imageFallback}
-                alt={data.title}
-                width={120}
-                height={160}
-                className={`w-42 h-52 object-cover rounded-lg shadow-sm ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
-                priority={false}
-              />
-              {data.isAdult && (
-                <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
-                  <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
-                    <span>18+</span>
-                  </div>
-                </div>
-              )}
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
-                {data.rank}
-              </div>
-            </div>
-            <div className="flex-1 flex flex-col justify-center">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] text-[var(--primary)] rounded-full font-bold text-sm shadow-lg">
-                  <Trophy className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-lg text-[var(--foreground)] leading-tight group-hover:text-[var(--primary)] transition-colors line-clamp-2">
-                  {data.title}
-                </h3>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)] mb-2">
-                <span className="px-2 py-1 bg-[var(--muted)]/30  rounded-full font-medium">
-                  {data.type}
-                </span>
-                <span className="font-medium">{data.year}</span>
-                <RatingBadge rating={data.rating} size="sm" variant="default" />
-              </div>
-              <div className="flex flex-wrap gap-1 mb-2">
-                {data.genres.slice(0, 2).map(genre => (
-                  <span
-                    key={genre}
-                    className="px-2 py-1 bg-[var(--accent)] text-[var(--accent-foreground)] text-xs rounded-full font-medium"
-                  >
-                    {genre}
-                  </span>
-                ))}
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                {data.views && (
-                  <div className="flex items-center gap-1 font-medium text-[var(--primary)]">
-                    <Eye className="w-4 h-4" />
-                    <span>{data.views.toLocaleString()}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Десктопная версия - вертикальная */}
-          <div className="hidden sm:flex flex-col items-center gap-3">
-            <div className="relative">
-              <OptimizedImage
-                src={imageSrc}
-                fallbackSrc={imageFallback}
-                alt={data.title}
-                width={120}
-                height={160}
-                className={`w-42 h-54 object-cover rounded-lg shadow-sm ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
-                priority={false}
-              />
-              {data.isAdult && (
-                <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
-                  <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
-                    <span>18+</span>
-                  </div>
-                </div>
-              )}
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
-                {data.rank}
-              </div>
-            </div>
-            <div className="text-center w-full">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="w-8 h-8 flex shrink-0 items-center justify-center bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] text-[var(--primary)] rounded-full font-bold text-sm shadow-lg">
-                  <Trophy className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-lg text-[var(--foreground)] leading-tight group-hover:text-[var(--primary)] transition-colors">
-                  {data.title}
-                </h3>
-              </div>
-              <div className="flex flex-wrap justify-center items-center gap-2 text-sm text-[var(--muted-foreground)] mb-2">
-                <span className="px-2 py-1 bg-[var(--muted)]/30  rounded-full font-medium">
-                  {data.type}
-                </span>
-                <span className="font-medium">{data.year}</span>
-                <RatingBadge rating={data.rating} size="sm" variant="default" />
-              </div>
-              <div className="flex flex-wrap justify-center gap-1 mb-2">
-                {data.genres.slice(0, 2).map(genre => (
-                  <span
-                    key={genre}
-                    className="px-2 py-1 bg-[var(--accent)] text-[var(--accent-foreground)] text-xs rounded-full font-medium"
-                  >
-                    {genre}
-                  </span>
-                ))}
-              </div>
-              <div className="flex items-center justify-center gap-3 text-sm">
-                {data.views && (
-                  <div className="flex items-center gap-1 font-medium text-[var(--primary)]">
-                    <Eye className="w-4 h-4" />
-                    <span>{data.views.toLocaleString()}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-        <AgeVerificationModal
-          isOpen={showAgeModal}
-          onConfirm={handleAgeConfirm}
-          onCancel={handleAgeCancel}
-        />
-      </>
-    );
-  }
-
   return (
     <>
-      <div
-        className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-[var(--card)] rounded-lg border border-[var(--border)] hover:bg-[var(--accent)] card-hover-soft cursor-pointer group h-full"
+      <button
+        type="button"
         onClick={handleClick}
+        className="w-full text-left rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden hover:border-[var(--primary)]/30 hover:bg-[var(--card)] transition-colors active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
       >
-        <div className="relative">
-          <OptimizedImage
-            src={imageSrc}
-            fallbackSrc={imageFallback}
-            alt={data.title}
-            width={160}
-            height={128}
-            className={`w-full h-24 sm:h-32 object-cover rounded-lg shadow-sm ${data.isAdult && !isAgeVerified ? "blur-3xl" : ""}`}
-            priority={false}
-          />
-          {data.isAdult && (
-            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
-              <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
-                <span>18+</span>
-              </div>
-            </div>
-          )}
-          <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-[var(--chart-1)] to-[var(--chart-4)] rounded-full flex items-center justify-center text-[var(--primary)] font-bold text-xs">
-            {data.rank}
+        <div className="flex gap-3 p-2.5 sm:p-3">
+          <div className="relative flex-shrink-0 w-20 sm:w-24 aspect-[2/3] overflow-hidden rounded-lg bg-[var(--muted)]">
+            <OptimizedImage
+              src={imageSrc}
+              fallbackSrc={imageFallback}
+              alt=""
+              width={96}
+              height={144}
+              className={`w-full h-full object-cover ${data.isAdult && !isAgeVerified ? "blur-md" : ""}`}
+            />
           </div>
-        </div>
-        <div className="text-center w-full flex-1 flex flex-col justify-between">
-          <h3 className="font-semibold text-xs sm:text-sm text-[var(--foreground)] mb-1 leading-tight group-hover:text-[var(--primary)] transition-colors line-clamp-2">
-            {data.title}
-          </h3>
-          <div className="flex justify-around items-center">
-            <RatingBadge rating={data.rating} size="xs" variant="default" />
-            {data.views && (
-              <div className="flex items-center justify-center gap-1 text-xs font-medium text-[var(--primary)]">
-                <Eye className="w-3 h-3" />
-                <span>
-                  {data.views >= 1000 ? `${(data.views / 1000).toFixed(1)}k` : data.views}
+          <div className="min-w-0 flex-1 flex flex-col justify-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5 gap-y-1">
+              <span
+                className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)] border border-[var(--primary)]/30 px-1.5 text-[10px] font-bold tabular-nums"
+                aria-hidden
+              >
+                #{data.rank}
+              </span>
+              {data.isAdult && (
+                <span className="inline-flex items-center rounded-md border border-red-500/40 bg-red-500/10 px-1.5 py-0.5 text-[10px] font-medium text-red-600 dark:text-red-400">
+                  18+
                 </span>
-              </div>
-            )}
+              )}
+            </div>
+            <h3 className="font-semibold text-sm sm:text-base text-[var(--foreground)] line-clamp-2 leading-tight">
+              {data.title}
+            </h3>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[var(--muted-foreground)]">
+              <span>{translateTitleType(data.type)}</span>
+              <span aria-hidden>·</span>
+              <span>{data.year}</span>
+              <span aria-hidden>·</span>
+              <RatingBadge rating={data.rating} size="xs" variant="default" />
+              <span aria-hidden>·</span>
+              <span className="flex items-center gap-1" title="Просмотры">
+                <Eye className="w-3 h-3 shrink-0" />
+                {formatViews(data.views)}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </button>
       <AgeVerificationModal
         isOpen={showAgeModal}
-        onConfirm={handleAgeConfirm}
-        onCancel={handleAgeCancel}
+        onConfirm={() => {
+          setShowAgeModal(false);
+          setIsAgeVerified(true);
+          router.push(getTitlePath(data));
+        }}
+        onCancel={() => setShowAgeModal(false)}
       />
     </>
   );
-};
-
-export default TopTitleCard;
+}

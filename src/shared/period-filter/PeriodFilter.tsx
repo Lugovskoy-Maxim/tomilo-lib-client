@@ -3,14 +3,16 @@ import { Period, periodLabels } from "@/hooks/usePeriodFilter";
 interface PeriodFilterProps {
   activePeriod: Period;
   onPeriodChange: (period: Period) => void;
+  /** Убрать нижний отступ (для встраивания в шапку секции) */
+  compact?: boolean;
 }
 
 /**
  * Компонент фильтра периодов для топа тайтлов
  */
-export default function PeriodFilter({ activePeriod, onPeriodChange }: PeriodFilterProps) {
+export default function PeriodFilter({ activePeriod, onPeriodChange, compact }: PeriodFilterProps) {
   return (
-    <div className="flex justify-center mb-6 sm:mb-8">
+    <div className={`flex justify-center ${compact ? "" : "mb-6 sm:mb-8"}`}>
       <div className="flex gap-2 p-1 bg-[var(--muted)]/30 rounded-lg border border-[var(--border)]">
         {(["day", "week", "month"] as Period[]).map(period => (
           <button

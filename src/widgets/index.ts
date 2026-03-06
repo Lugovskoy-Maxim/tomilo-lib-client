@@ -15,3 +15,4 @@ export { default as CollectionsPage } from "./collections-page/CollectionsPage";
 export { default as CollectionDetails } from "./collection-details/CollectionDetails";
 export { default as HomePage } from "./home-page/HomePage";
 export { default as UpdatesPage } from "./updates-page/UpdatesPage";
+export { default as TopTitlesSection } from "./top-titles-section/TopTitlesSection";

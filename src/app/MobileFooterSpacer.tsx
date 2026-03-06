@@ -1,14 +1,8 @@
-"use client";
-
 /**
  * Wraps layout children in a div that adds bottom padding on mobile (for fixed footer).
- * Implemented as a client component so the same wrapper is present in both server and
- * client trees, avoiding hydration mismatch when RSC streams page content.
+ * Kept as a Server Component so the wrapper is rendered in the same order on server and
+ * client, avoiding hydration mismatch when RSC streams page content.
  */
 export function MobileFooterSpacer({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mobile-footer-spacer" suppressHydrationWarning>
-      {children}
-    </div>
-  );
+  return <div className="mobile-footer-spacer">{children}</div>;
 }

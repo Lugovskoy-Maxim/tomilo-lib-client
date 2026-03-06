@@ -46,7 +46,7 @@ function GenreChip({ name, icon: Icon, color, href }: GenreItemProps) {
 
 export function GenresQuickAccess() {
   return (
-    <section className="w-full max-w-7xl mx-auto px-3 sm:px-4">
+    <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
       <div className="flex items-center gap-2 mb-2">
         <Zap className="w-5 h-5 text-[var(--muted-foreground)]" />
         <h3 className="text-base sm:text-lg font-semibold text-[var(--muted-foreground)]">

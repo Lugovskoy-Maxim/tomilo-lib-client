@@ -28,7 +28,7 @@ const RandomTitles: React.FC<RandomTitlesProps> = ({ data, loading, error }) => 
     return (
       <CarouselSkeleton
         title="Рекомендуем для просмотра"
-        cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56"
+        cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
         variant="poster"
       />
     );
@@ -47,10 +47,10 @@ const RandomTitles: React.FC<RandomTitlesProps> = ({ data, loading, error }) => 
     <Carousel
       title="Рекомендуем для просмотра"
       data={data}
-      cardComponent={(props) => <CarouselCard {...props} openOnlyInNewTab />}
+      cardComponent={CarouselCard}
       type="browse"
       navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-      cardWidth="w-40 sm:w-40 md:w-40 lg:w-44 xl:w-52 2xl:w-56"
+      cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
       showNavigation={true}
     />
   );

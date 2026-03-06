@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight, Eye } from "lucide-react";
+import { ArrowRight, Eye, Trophy } from "lucide-react";
 import RatingBadge from "@/shared/rating-badge/RatingBadge";
 import Link from "next/link";
 import { TopTitleCombined } from "@/types/constants";
@@ -13,16 +13,17 @@ import { useAgeVerification } from "@/contexts/AgeVerificationContext";
 import { getCoverUrls } from "@/lib/asset-url";
 
 // Helper function for formatting views
-function formatViews(num: number | string): string {
-  const parsedNum = typeof num === 'string' ? parseFloat(num) : num;
-  if (isNaN(parsedNum)) return '0';
+function formatViews(num: number | string | undefined): string {
+  if (num == null) return "—";
+  const parsedNum = typeof num === "string" ? parseFloat(num) : num;
+  if (isNaN(parsedNum)) return "—";
   if (parsedNum >= 1000000) {
     return `${(parsedNum / 1000000).toFixed(1)}М`;
   }
   if (parsedNum >= 1000) {
     return `${(parsedNum / 1000).toFixed(1)}к`;
   }
-  return parsedNum.toString();
+  return String(parsedNum);
 }
 
 interface CombinedTopData {
@@ -83,9 +84,13 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
       e.preventDefault();
       e.stopPropagation();
       if (requestAgeVerification) {
-        requestAgeVerification(() => { window.location.href = titlePath; });
+        requestAgeVerification(() => {
+          window.location.href = titlePath;
+        });
       } else {
-        setPendingAction(() => { window.location.href = titlePath; });
+        setPendingAction(() => {
+          window.location.href = titlePath;
+        });
         setShowAgeModal(true);
       }
     }
@@ -134,7 +139,9 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
                 {translateTitleType(item.type)}
               </span>
               <span className="text-[var(--muted-foreground)]">•</span>
-              <span className="text-xs text-[var(--muted-foreground)] font-medium">{item.year || "2026"}</span>
+              <span className="text-xs text-[var(--muted-foreground)] font-medium">
+                {item.year || "2026"}
+              </span>
             </div>
             <h4
               className={`font-semibold text-sm text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-300 line-clamp-2 leading-tight ${
@@ -147,7 +154,9 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
               {showViews ? (
                 <span className="flex gap-1 text-xs items-center text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors duration-300">
                   <Eye className="w-3.5 h-3.5" />
-                  <span className="font-medium">{formatViews(Number(item.views) || 0)}</span>
+                  <span className="font-medium">
+                    {formatViews(Number(item.views) ?? 0)}
+                  </span>
                 </span>
               ) : (
                 <div />
@@ -156,7 +165,6 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
                 <RatingBadge rating={item.rating || 0} size="sm" variant="default" />
               )}
             </div>
-            
           </div>
         </div>
       </Link>
@@ -183,11 +191,19 @@ interface ColumnProps {
   showViews?: boolean;
 }
 
-const Column = ({ title, href, items, showRating = false, showViews = true }: ColumnProps) => {
+const Column = ({
+  title,
+  href,
+  items,
+  showRating = false,
+  showViews = true,
+}: ColumnProps) => {
   return (
     <div className="flex flex-col min-w-0">
       <div className="flex items-center justify-between mb-6 group">
-        <h3 className="text-lg md:text-2xl text-[var(--muted-foreground)] font-bold group-hover:text-[var(--primary)] transition-colors duration-300">{title}</h3>
+        <h3 className="text-lg md:text-2xl text-[var(--muted-foreground)] font-bold group-hover:text-[var(--primary)] transition-colors duration-300">
+          {title}
+        </h3>
         <Link
           href={href}
           className="flex items-center gap-1 text-[var(--chart-1)] hover:text-[var(--chart-5)] transition-all duration-300 hover:gap-2"
@@ -196,49 +212,78 @@ const Column = ({ title, href, items, showRating = false, showViews = true }: Co
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-      {/* py-1 даёт тени и подсветке при наведении место, чтобы не обрезаться */}
       <div className="space-y-4 min-w-0 py-1">
-        {items.slice(0, 5).map(item => (
-          <CardItem key={item.id} item={item} showRating={showRating} showViews={showViews} />
-        ))}
+        {items.length === 0 ? (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 text-center">
+            <p className="text-sm text-[var(--muted-foreground)] mb-3">
+              Пока нет тайтлов в этой категории
+            </p>
+            <Link
+              href={href}
+              className="text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+            >
+              Смотреть каталог
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        ) : (
+          items.slice(0, 5).map((item) => (
+            <CardItem
+              key={item.id}
+              item={item}
+              showRating={showRating}
+              showViews={showViews}
+            />
+          ))
+        )}
       </div>
     </div>
   );
 };
 
 /**
- * Компонент для отображения трех отдельных колонок: Топ 2026, Топ Манхв, Топ Маньхуа
+ * Секция топа: три колонки (Топ 2026, Топ Манхв, Топ Маньхуа). Данные с главной — поиск по views.
  */
 export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
   return (
     <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6 box-border">
-      {/* Три отдельные колонки */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+            <Trophy className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)]">
+              Топ тайтлов
+            </h2>
+            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+              По просмотрам за всё время
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 min-w-0">
-        {/* Колонка 1: Топ 2026 года */}
         <Column
           title="Топ 2026 года"
           href="/titles?releaseYears=2026"
-          items={data.top2026 || []}
-          showRating={true}
-          showViews={true}
+          items={data.top2026 ?? []}
+          showRating
+          showViews
         />
-
-        {/* Колонка 2: Топ Манхв */}
         <Column
           title="Топ Манхв"
           href="/titles?types=manhwa"
-          items={data.topManhwa || []}
-          showRating={true}
-          showViews={true}
+          items={data.topManhwa ?? []}
+          showRating
+          showViews
         />
-
-        {/* Колонка 3: Топ Маньхуа */}
         <Column
           title="Топ Маньхуа"
           href="/titles?types=manhua"
-          items={data.topManhua || []}
-          showRating={true}
-          showViews={true}
+          items={data.topManhua ?? []}
+          showRating
+          showViews
         />
       </div>
     </section>

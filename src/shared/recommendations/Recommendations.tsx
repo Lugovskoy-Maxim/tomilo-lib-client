@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { Star, TrendingUp } from "lucide-react";
+import { Star } from "lucide-react";
 import CarouselCard from "@/shared/popular-card/PopularCard";
 import { Carousel } from "@/widgets";
 import { getTitlePath } from "@/lib/title-paths";
@@ -87,18 +87,32 @@ export default function Recommendations({
   }));
 
   return (
-    <div ref={sectionRef} className="w-full min-w-0">
-    <Carousel
-      title="Подобрали для вас"
-      data={transformedData}
-      cardComponent={CarouselCard}
-      description="Персональные рекомендации на основе ваших предпочтений"
-      type="browse"
-      icon={<Star className="w-6 h-6" />}
-      navigationIcon={<TrendingUp className="w-6 h-6" />}
-      cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
-      getItemPath={(item) => getTitlePath(item)}
-    />
-    </div>
+    <section ref={sectionRef} className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
+      {/* Заголовок в стиле GridSection (как у рекомендуемых секций) */}
+      <div className="mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 min-w-0 flex-nowrap">
+          <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] [&_svg]:w-5 [&_svg]:h-5">
+            <Star className="w-5 h-5" />
+          </div>
+          <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)] truncate min-w-0">
+            Подобрали для вас
+          </h2>
+        </div>
+        <p className="text-[var(--muted-foreground)] text-xs mt-0.5 max-w-2xl">
+          Персональные рекомендации на основе ваших предпочтений
+        </p>
+      </div>
+
+      <Carousel
+        title=""
+        data={transformedData}
+        cardComponent={CarouselCard}
+        description=""
+        type="browse"
+        cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
+        getItemPath={(item) => getTitlePath(item)}
+        hideHeader
+      />
+    </section>
   );
 }

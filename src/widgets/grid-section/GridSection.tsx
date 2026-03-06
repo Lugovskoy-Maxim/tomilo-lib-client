@@ -1,7 +1,14 @@
 "use client";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect, useRef, useMemo } from "react";
 import { ExternalLink, Clock } from "lucide-react";
 import Link from "next/link";
+
+/** Колонки для layout="fixed": grid-cols-1 md:grid-cols-2 lg:grid-cols-3 (768px, 1024px). */
+function getFixedColumnsFromWidth(width: number): number {
+  if (width >= 1024) return 3;
+  if (width >= 768) return 2;
+  return 1;
+}
 
 interface GridSectionProps<T> {
   title: string;
@@ -37,7 +44,38 @@ export default function GridSection<T>({
   descriptionLink,
   layout = "fixed",
 }: GridSectionProps<T>) {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [columns, setColumns] = useState(1);
   const safeData = Array.isArray(data) ? data : [];
+
+  useEffect(() => {
+    if (layout === "fixed") {
+      const update = () => setColumns(getFixedColumnsFromWidth(window.innerWidth));
+      update();
+      window.addEventListener("resize", update);
+      return () => window.removeEventListener("resize", update);
+    }
+  }, [layout]);
+
+  useEffect(() => {
+    if (layout !== "auto-fit" || !gridRef.current) return;
+    const el = gridRef.current;
+    const ro = new ResizeObserver(() => {
+      const w = el.offsetWidth;
+      const gap = 20;
+      const minCell = 280;
+      const cols = Math.max(1, Math.floor((w + gap) / (minCell + gap)));
+      setColumns(cols);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [layout]);
+
+  /** Показываем число карточек кратное столбцам, чтобы не было неполной строки. */
+  const displayData = useMemo(
+    () => safeData.slice(0, Math.floor(safeData.length / columns) * columns),
+    [safeData, columns],
+  );
 
   /**
    * Получает уникальный ID карточки из данных.
@@ -70,43 +108,46 @@ export default function GridSection<T>({
 
   return (
     <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
-      {/* Заголовок секции */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
-        <div className="flex flex-col w-full">
-          <div className="flex items-center gap-2 mb-2">
-            {icon && <div className="w-6 h-6 text-[var(--muted-foreground)]">{icon}</div>}
-            {title && (
-              <h2 className="text-xl sm:text-2xl font-bold text-[var(--muted-foreground)]">{title}</h2>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 w-full">
-            <p className="text-[var(--muted-foreground)] text-sm max-w-2xl">
-              {renderDescription()}
-            </p>
-
-            {href && (
-              <Link
-                href={href}
-                className="text-[var(--chart-1)] hover:underline flex items-center gap-1 whitespace-nowrap sm:ml-4 self-start sm:self-auto"
-              >
-                {navigationIcon || <ExternalLink className="w-6 h-6" />}
-              </Link>
-            )}
-          </div>
+      {/* Заголовок секции: первая строка — иконка, заголовок и ссылка в одну линию; вторая — описание */}
+      <div className="mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 min-w-0 flex-nowrap">
+          {icon && (
+            <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] [&_svg]:w-5 [&_svg]:h-5">
+              {icon}
+            </div>
+          )}
+          {title && (
+            <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)] truncate min-w-0">
+              {title}
+            </h2>
+          )}
+          {href && (
+            <Link
+              href={href}
+              className="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-2 flex items-center gap-1 shrink-0 ml-auto"
+            >
+              {navigationIcon || <ExternalLink className="w-4 h-4" />}
+            </Link>
+          )}
         </div>
+        {(description || descriptionLink) && (
+          <p className="text-[var(--muted-foreground)] text-xs mt-0.5 max-w-2xl">
+            {renderDescription()}
+          </p>
+        )}
       </div>
 
       {/* Grid с карточками — может быть фиксированным или auto-fit для редких данных */}
       <div
+        ref={layout === "auto-fit" ? gridRef : undefined}
         className={`${
           layout === "auto-fit"
             ? "grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(260px,1fr))] lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 sm:gap-5 mx-auto"
             : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"
         }`}
       >
-        {safeData.length > 0 ? (
-          safeData.map(item => (
+        {displayData.length > 0 ? (
+          displayData.map(item => (
             <div
               key={getCardId(item)}
               data-card-id={getCardId(item)}
@@ -124,7 +165,7 @@ export default function GridSection<T>({
       </div>
 
       {/* Кнопка "Показать еще" для мобильных устройств */}
-      {href && safeData.length >= 6 && (
+      {href && displayData.length >= 6 && (
         <div className="flex justify-center mt-6 lg:hidden">
           <Link
             href={href}

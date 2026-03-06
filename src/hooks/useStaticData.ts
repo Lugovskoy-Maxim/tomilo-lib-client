@@ -210,11 +210,19 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
         
         const raw = result.data?.data ?? result.data?.items ?? result.data;
         const list = Array.isArray(raw) ? raw : [];
-        const transformedData = list.map((item: ApiLatestUpdate) => {
+        const transformedData = list.map((item: ApiLatestUpdate & { chapters?: number[] | { numbers?: number[] } }) => {
+          const raw = item.chapters;
+          const numbers = Array.isArray(raw)
+            ? raw
+            : Array.isArray((raw as unknown as { numbers?: number[] })?.numbers)
+              ? (raw as unknown as { numbers: number[] }).numbers
+              : [];
           const chapter =
-            item.chapters?.length !== undefined && item.chapters.length > 0
-              ? `Главы ${formatChapterRanges(item.chapters)}`
-              : item.chapter;
+            numbers.length > 0
+              ? numbers.length === 1
+                ? `Глава ${numbers[0]}`
+                : `Главы ${formatChapterRanges(numbers)}`
+              : item.chapter ?? "";
           return {
             ...item,
             chapter,

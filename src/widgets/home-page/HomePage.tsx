@@ -5,8 +5,8 @@ import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight } from 
 
 import CollectionCard from "@/shared/collection-card/CollectionCard";
 import LazySection from "@/shared/lazy-section/LazySection";
-import ReadingCard from "@/shared/reading-card/ReadingCard";
 import SectionLoadError from "@/shared/error-state/SectionLoadError";
+import ContinueReadingSection from "@/widgets/home-page/ContinueReadingSection";
 import TrendingCard from "@/shared/trending-card/TrendingCard";
 import UnderratedCard from "@/shared/underrated-card/UnderratedCard";
 import FeaturedTitleBlock from "@/shared/featured-title/FeaturedTitleBlock";
@@ -17,6 +17,7 @@ import {
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSection";
+import TopTitlesSection from "@/widgets/top-titles-section/TopTitlesSection";
 import { useHomeData, type HomeVisibleSections } from "@/hooks/useHomeData";
 import { useStaticData, type StaticDataVisibleSections } from "@/hooks/useStaticData";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,7 +36,7 @@ import type { Collection } from "@/types/collection";
 
 type VisibleSections = HomeVisibleSections &
   StaticDataVisibleSections &
-  Partial<{ ad: boolean; recommendations: boolean; news: boolean; featured: boolean }>;
+  Partial<{ ad: boolean; recommendations: boolean; news: boolean; featured: boolean; topPeriod: boolean }>;
 
 interface DataCarouselProps {
   title: string;
@@ -117,12 +118,15 @@ export default function HomePage() {
     randomTitles,
     trendingTitles,
     underratedTitles,
-    readingProgress,
-    topManhua,
     topManhwa,
+    topManhua,
     top2026,
   } = useHomeData({ visibleSections, includeAdult });
-  const { collections } = useStaticData({ visibleSections, includeAdult });
+  // latest-updates загружаем только через RTK Query ниже — не дублируем запрос из useStaticData
+  const { collections } = useStaticData({
+    visibleSections: { ...visibleSections, latestUpdates: false },
+    includeAdult,
+  });
 
   // Используем RTK Query для последних обновлений (корректно обрабатывает изменение includeAdult)
   const shouldLoadLatestUpdates = visibleSections.latestUpdates ?? false;
@@ -140,46 +144,49 @@ export default function HomePage() {
     error: latestUpdatesError ? "load_failed" : null,
   };
 
-  // Мемоизация данных для TopCombinedSection — предотвращает пересоздание объекта при каждом рендере
-  const topCombinedData = useMemo(() => ({
-    topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      coverImage: item.image,
-      type: item.type,
-      year: item.year,
-      rating: item.rating,
-      views: item.views || "0К",
-      isAdult: item.isAdult ?? false,
-    })),
-    top2026: (top2026.data || []).slice(0, 5).map(item => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      coverImage: item.image,
-      type: item.type,
-      year: item.year,
-      rating: item.rating,
-      views: item.views || "0К",
-      isAdult: item.isAdult ?? false,
-    })),
-    topManhua: (topManhua.data || []).slice(0, 5).map(item => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      coverImage: item.image,
-      type: item.type,
-      year: item.year,
-      rating: item.rating,
-      views: item.views || "0К",
-      isAdult: item.isAdult ?? false,
-    })),
-  }), [topManhwa.data, top2026.data, topManhua.data]);
+  const topCombinedData = useMemo(
+    () => ({
+      topManhwa: (topManhwa.data ?? []).slice(0, 5).map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        coverImage: item.image,
+        type: item.type,
+        year: item.year,
+        rating: item.rating,
+        views: item.views ?? "0",
+        isAdult: item.isAdult ?? false,
+      })),
+      top2026: (top2026.data ?? []).slice(0, 5).map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        coverImage: item.image,
+        type: item.type,
+        year: item.year,
+        rating: item.rating,
+        views: item.views ?? "0",
+        isAdult: item.isAdult ?? false,
+      })),
+      topManhua: (topManhua.data ?? []).slice(0, 5).map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        coverImage: item.image,
+        type: item.type,
+        year: item.year,
+        rating: item.rating,
+        views: item.views ?? "0",
+        isAdult: item.isAdult ?? false,
+      })),
+    }),
+    [topManhwa.data, top2026.data, topManhua.data],
+  );
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
 
   const mainClassName =
     "flex flex-col items-center justify-start gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full";
@@ -192,14 +199,37 @@ export default function HomePage() {
         {!mounted ? (
           <>
             <FeaturedTitleSkeleton />
+            <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
             <GridSkeleton showTitle variant="trending" />
-            <GridSkeleton showTitle variant="updates" />
+            <GridSkeleton showTitle variant="trending" />
+            <GridSkeleton variant="updates" />
+            <div className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <div className="w-9 h-9 rounded-xl bg-[var(--muted)] animate-pulse" />
+                <div className="h-7 w-28 bg-[var(--muted)] rounded animate-pulse" />
+              </div>
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                <div className="flex gap-4 p-4 sm:p-5">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-3/4 bg-[var(--muted)] rounded animate-pulse" />
+                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="flex gap-4 p-4 sm:p-5 border-t border-[var(--border)]">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-2/3 bg-[var(--muted)] rounded animate-pulse" />
+                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <GridSkeleton showTitle variant="trending" />
+            <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
             <div className="w-full">
               <TopCombinedSkeleton />
             </div>
-            <GridSkeleton showTitle variant="trending" />
-            <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
-            <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
           </>
         ) : (
           <>
@@ -226,14 +256,15 @@ export default function HomePage() {
         <QuickActions />
         */}
 
-        {/* Быстрый доступ к жанрам */}
+        {/* Быстрый доступ к жанрам (Популярные жанры) — закомментировано
         <GenresQuickAccess />
+        */}
 
-        {/* Продолжить чтение — для авторизованных пользователей в приоритете */}
+        {/* Продолжить чтение */}
         <LazySection
           sectionId="reading"
           onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.reading}
+          isVisible={!!visibleSections.reading || !!isAuthenticated}
           skeleton={
             <CarouselSkeleton
               cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
@@ -242,25 +273,20 @@ export default function HomePage() {
             />
           }
         >
-          <DataCarousel
-            title="Продолжить чтение"
-            data={readingProgress.data}
-            loading={readingProgress.loading}
-            error={readingProgress.error}
-            cardComponent={ReadingCard}
-            description="Это главы, которые вы ещё не прочитали. Данный список генерируется на основании вашей истории чтения."
-            type="browse"
-            icon={<BookOpen className="w-6 h-6" />}
-            navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-            descriptionLink={{ text: "истории чтения", href: "/profile" }}
-            showNavigation={false}
-            cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
-            skeletonVariant="reading"
-          />
+          <ContinueReadingSection />
         </LazySection>
 
-        {/* В тренде на этой неделе */}
         <LazySection
+          sectionId="topPeriod"
+          onVisible={handleSectionVisible}
+          isVisible={!!visibleSections.topPeriod}
+          skeleton={<GridSkeleton showTitle variant="trending" />}
+        >
+          <TopTitlesSection limit={10} />
+        </LazySection>
+
+        {/* В тренде на этой неделе — временно отключено */}
+        {/* <LazySection
           sectionId="trending"
           onVisible={handleSectionVisible}
           isVisible={!!visibleSections.trending}
@@ -280,7 +306,7 @@ export default function HomePage() {
               cardComponent={TrendingCard}
             />
           )}
-        </LazySection>
+        </LazySection> */}
 
         {/* Последние обновления */}
         <LazySection
@@ -373,26 +399,6 @@ export default function HomePage() {
           )}
         </LazySection>
 
-        {/* Объединенная секция топ манхв, маньхуа и новинок 2026 */}
-        <LazySection
-          sectionId="topCombined"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.topCombined}
-          skeleton={
-            <div className="w-full">
-              <TopCombinedSkeleton />
-            </div>
-          }
-        >
-          <div className="w-full">
-            {topManhwa.loading || top2026.loading || topManhua.loading ? (
-              <TopCombinedSkeleton />
-            ) : topManhwa.error || top2026.error || topManhua.error ? null : (
-              <TopCombinedSection data={topCombinedData} />
-            )}
-          </div>
-        </LazySection>
-
         {/* Случайные тайтлы */}
         <LazySection
           sectionId="random"
@@ -439,6 +445,26 @@ export default function HomePage() {
             navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
             skeletonVariant="collection"
           />
+        </LazySection>
+
+        {/* Топ тайтлов: три колонки (2026, Манхва, Маньхуа) — в самый низ */}
+        <LazySection
+          sectionId="topCombined"
+          onVisible={handleSectionVisible}
+          isVisible={!!visibleSections.topCombined}
+          skeleton={
+            <div className="w-full">
+              <TopCombinedSkeleton />
+            </div>
+          }
+        >
+          <div className="w-full">
+            {topManhwa.loading || top2026.loading || topManhua.loading ? (
+              <TopCombinedSkeleton />
+            ) : topManhwa.error || top2026.error || topManhua.error ? null : (
+              <TopCombinedSection data={topCombinedData} />
+            )}
+          </div>
         </LazySection>
           </>
         )}

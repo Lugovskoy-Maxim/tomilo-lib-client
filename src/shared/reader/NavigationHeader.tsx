@@ -41,21 +41,22 @@ export default function NavigationHeader({
         showControls ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 min-h-[56px] sm:min-h-[64px] flex items-center">
-        <div className="flex items-center justify-between gap-3 w-full">
-          <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-2 sm:py-4 min-h-[48px] sm:min-h-[64px] flex items-center">
+        <div className="flex flex-row items-center justify-between gap-2 sm:gap-3 w-full">
+          {/* Одна строка: кнопка назад, обложка, название и глава; справа — навигация по главам (десктоп) и кнопка ошибки */}
+          <div className="flex items-center gap-2 sm:gap-5 min-w-0 flex-1">
             <Link
               href={`/titles/${title.slug || title._id}`}
-              className="group flex items-center justify-center p-2.5 sm:p-3 text-[var(--foreground)] hover:text-[var(--primary)] transition-all duration-200 rounded-xl hover:bg-[var(--secondary)] min-h-[44px] min-w-[44px] sm:min-h-[48px] sm:min-w-[48px] touch-manipulation flex-shrink-0"
+              className="group flex items-center justify-center p-2 sm:p-3 text-[var(--foreground)] hover:text-[var(--primary)] transition-all duration-200 rounded-lg sm:rounded-xl hover:bg-[var(--secondary)] min-h-[36px] min-w-[36px] sm:min-h-[48px] sm:min-w-[48px] touch-manipulation flex-shrink-0"
               title="Назад к тайтлу"
             >
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5" />
+              <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5" />
             </Link>
 
-            <div className="h-7 w-px bg-[var(--border)] hidden sm:block flex-shrink-0" />
+            <div className="h-6 sm:h-7 w-px bg-[var(--border)] hidden sm:block flex-shrink-0" />
 
-            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-              <div className="relative w-10 h-14 sm:w-12 sm:h-[4.25rem] rounded-lg overflow-hidden flex-shrink-0 shadow-md ring-1 ring-[var(--border)]">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <div className="relative w-8 h-11 sm:w-12 sm:h-[4.25rem] rounded-md sm:rounded-lg overflow-hidden flex-shrink-0 shadow-md ring-1 ring-[var(--border)]">
                 <OptimizedImage
                   src={getCoverUrls(title.image).primary}
                   fallbackSrc={getCoverUrls(title.image).fallback}
@@ -65,10 +66,10 @@ export default function NavigationHeader({
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-base sm:text-lg font-semibold text-[var(--foreground)] truncate leading-tight">
+                <div className="text-sm sm:text-lg font-semibold text-[var(--foreground)] truncate leading-tight">
                   {title.title}
                 </div>
-                <div className="text-sm sm:text-base text-[var(--muted-foreground)] truncate mt-0.5">
+                <div className="text-xs sm:text-base text-[var(--muted-foreground)] truncate mt-0.5">
                   <span className="hidden sm:inline">Глава </span>
                   <span className="sm:hidden">Гл. </span>
                   {chapter.number}
@@ -115,26 +116,30 @@ export default function NavigationHeader({
             </div>
           </div>
 
-          {/* Мобильный индикатор прогресса */}
-          <div className="flex sm:hidden items-center gap-2.5 px-3 py-2 bg-[var(--secondary)] rounded-xl border border-[var(--border)] flex-shrink-0">
-            <span className="text-sm font-semibold text-[var(--foreground)] tabular-nums min-w-[2.25rem]">{progressPercent}%</span>
-            <div className="w-14 h-2 bg-[var(--muted)] rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Кнопка ошибки */}
+          {/* Кнопка «Сообщить об ошибке» в углу (мобильная версия — в одной строке с названием) */}
           {onReportError && (
-            <button
-              onClick={onReportError}
-              className="group p-2.5 sm:p-3 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--destructive)] border border-[var(--border)] rounded-xl hover:bg-[var(--accent)]/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-105 active:scale-95 min-h-[44px] min-w-[44px] sm:min-h-[48px] sm:min-w-[48px] touch-manipulation flex-shrink-0"
-              title="Сообщить об ошибке"
-            >
-              <AlertTriangle className="w-5 h-5 sm:w-5 sm:h-5 transition-transform group-hover:scale-110" />
-            </button>
+            <div className="flex sm:hidden flex-shrink-0">
+              <button
+                onClick={onReportError}
+                className="group p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--destructive)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-105 active:scale-95 min-h-[36px] min-w-[36px] touch-manipulation flex-shrink-0"
+                title="Сообщить об ошибке"
+              >
+                <AlertTriangle className="w-4 h-4 transition-transform group-hover:scale-110" />
+              </button>
+            </div>
+          )}
+
+          {/* Кнопка ошибки — только на sm и выше (на мобильном в блоке прогресса выше) */}
+          {onReportError && (
+            <div className="hidden sm:block flex-shrink-0">
+              <button
+                onClick={onReportError}
+                className="group p-2.5 sm:p-3 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--destructive)] border border-[var(--border)] rounded-xl hover:bg-[var(--accent)]/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-105 active:scale-95 min-h-[44px] min-w-[44px] sm:min-h-[48px] sm:min-w-[48px] touch-manipulation flex-shrink-0"
+                title="Сообщить об ошибке"
+              >
+                <AlertTriangle className="w-5 h-5 sm:w-5 sm:h-5 transition-transform group-hover:scale-110" />
+              </button>
+            </div>
           )}
         </div>
       </div>

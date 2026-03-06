@@ -48,8 +48,19 @@ function areConsecutive(a: number, b: number): boolean {
   return step > 0 && step <= 1 + STEP_EPS;
 }
 
+/** Распознаёт диапазон вида "1-12" или "1 – 12" (дефис или en-dash), возвращает [from, to] или null */
+function parseRangePart(part: string): [number, number] | null {
+  const normalized = part.replace(/\s/g, "").replace(/\u2013/g, "-"); // en-dash -> hyphen
+  const rangeMatch = normalized.match(/^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)$/);
+  if (!rangeMatch) return null;
+  const a = parseFloat(rangeMatch[1]);
+  const b = parseFloat(rangeMatch[2]);
+  if (Number.isNaN(a) || Number.isNaN(b)) return null;
+  return a <= b ? [a, b] : [b, a];
+}
+
 /**
- * Парсит строку вида "Главы 167, 166, 165, 164" или "167, 166, 165" и возвращает
+ * Парсит строку вида "Главы 167, 166, 165, 164", "Главы 1–12" или "167, 166, 165" и возвращает
  * отформатированную строку с логичной нумерацией (по возрастанию, диапазоны).
  * Если распарсить не удаётся — возвращает исходную строку.
  */
@@ -64,12 +75,18 @@ export function formatChapterString(chapterStr: string): string {
   const numbers: number[] = [];
   const parts = rest.split(/\s*,\s*/);
   for (const p of parts) {
+    const range = parseRangePart(p.trim());
+    if (range !== null) {
+      const [from, to] = range;
+      for (let n = from; n <= to; n++) numbers.push(n);
+      continue;
+    }
     const num = parseFloat(p.replace(/\s/g, ""));
     if (!Number.isNaN(num)) numbers.push(num);
   }
 
   if (numbers.length === 0) return chapterStr;
-  if (numbers.length === 1) return `${prefix}${numbers[0]}`;
+  if (numbers.length === 1) return `Глава ${numbers[0]}`;
 
   const sorted = [...new Set(numbers)].sort((a, b) => a - b);
   const ranges: string[] = [];

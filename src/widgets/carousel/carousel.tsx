@@ -519,30 +519,34 @@ export default function Carousel<T>({
 
   return (
     <section className="w-full min-w-0 max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-3 sm:mb-4">
-        <div className="flex flex-col w-full min-w-0 flex-1">
-          <div className="flex items-center gap-1 min-w-0">
-            {icon && <div className="w-6 h-6 shrink-0 text-[var(--muted-foreground)]">{icon}</div>}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          {icon && (
+            <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] [&_svg]:w-5 [&_svg]:h-5">
+              {icon}
+            </div>
+          )}
+          <div className="min-w-0">
             {title && (
-              <h2 className="text-lg md:text-2xl font-bold text-[var(--muted-foreground)] truncate min-w-0">
+              <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)] truncate">
                 {title}
               </h2>
             )}
-          </div>
-          <div className="flex flex-wrap justify-between items-center gap-2 w-full mt-0.5 min-w-0">
-            <p className="text-[var(--muted-foreground)] text-sm max-w-3xl min-w-0">
-              {_renderDescription()}
-            </p>
-            {href && (
-              <Link
-                href={href}
-                className="text-[var(--chart-1)] hover:underline flex items-center gap-1 shrink-0"
-              >
-                {navigationIcon || <ExternalLink className="w-4 h-4" />}
-              </Link>
+            {(description || descriptionLink) && (
+              <p className="text-[var(--muted-foreground)] text-xs mt-0.5 max-w-3xl min-w-0">
+                {_renderDescription()}
+              </p>
             )}
           </div>
         </div>
+        {href && (
+          <Link
+            href={href}
+            className="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-2 flex items-center gap-1 shrink-0"
+          >
+            {navigationIcon || <ExternalLink className="w-4 h-4" />}
+          </Link>
+        )}
       </div>
       {content}
     </section>

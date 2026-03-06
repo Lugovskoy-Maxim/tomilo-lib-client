@@ -1,9 +1,9 @@
 import React from "react";
 
 export const FeaturedTitleSkeleton: React.FC = () => (
-  <section className="w-full" aria-label="Загрузка популярных тайтлов">
+  <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" aria-label="Загрузка популярных тайтлов">
     <div className="relative w-full overflow-hidden">
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col min-h-[280px] sm:min-h-[340px] md:min-h-[420px] md:flex-row px-3 py-4 sm:px-6 sm:py-5 md:px-8 md:py-8 gap-3 sm:gap-5 md:gap-8">
+      <div className="relative z-10 w-full flex flex-col min-h-[280px] sm:min-h-[340px] md:min-h-[420px] md:flex-row gap-3 sm:gap-5 md:gap-8">
         {/* Обложка */}
         <div className="relative w-full md:w-auto flex-shrink-0 flex justify-center md:block">
           <div className="w-28 sm:w-40 md:w-56 aspect-[2/3] rounded-lg sm:rounded-xl bg-[var(--muted)] shimmer ring-1 ring-[var(--border)]" />
