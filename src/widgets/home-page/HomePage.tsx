@@ -192,13 +192,36 @@ export default function HomePage() {
         {!mounted ? (
           <>
             <FeaturedTitleSkeleton />
+            <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
             <GridSkeleton showTitle variant="trending" />
-            <GridSkeleton showTitle variant="updates" />
+            <GridSkeleton variant="updates" />
+            <div className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <div className="w-9 h-9 rounded-xl bg-[var(--muted)] animate-pulse" />
+                <div className="h-7 w-28 bg-[var(--muted)] rounded animate-pulse" />
+              </div>
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                <div className="flex gap-4 p-4 sm:p-5">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-3/4 bg-[var(--muted)] rounded animate-pulse" />
+                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="flex gap-4 p-4 sm:p-5 border-t border-[var(--border)]">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-2/3 bg-[var(--muted)] rounded animate-pulse" />
+                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <GridSkeleton showTitle variant="trending" />
             <div className="w-full">
               <TopCombinedSkeleton />
             </div>
             <GridSkeleton showTitle variant="trending" />
-            <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
             <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
           </>
         ) : (

@@ -17,7 +17,7 @@ export function TelegramSection() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#0088cc]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#00aaff]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
+        <div className="relative w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
             <div className="relative flex-shrink-0 group">
               <div className="absolute inset-0 bg-[#0088cc]/20 rounded-full blur-xl group-hover:bg-[#0088cc]/30 transition-colors" />

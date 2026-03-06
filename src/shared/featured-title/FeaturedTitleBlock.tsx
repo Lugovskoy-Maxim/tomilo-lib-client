@@ -296,7 +296,7 @@ export default function FeaturedTitleBlock({
   const hasHeader = title || description;
 
   return (
-    <section className={`w-full ${hasHeader ? "max-w-7xl mx-auto px-2 py-2 sm:px-4 sm:py-4 md:py-6" : ""}`}>
+    <section className={`w-full ${hasHeader ? "max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" : ""}`}>
       {hasHeader && (
         <div className="flex flex-col mb-2 sm:mb-4">
           <div className="flex items-center gap-1">
