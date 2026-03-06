@@ -17,6 +17,7 @@ import {
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSection";
+import TopTitlesSection from "@/widgets/top-titles-section/TopTitlesSection";
 import { useHomeData, type HomeVisibleSections } from "@/hooks/useHomeData";
 import { useStaticData, type StaticDataVisibleSections } from "@/hooks/useStaticData";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,7 +36,7 @@ import type { Collection } from "@/types/collection";
 
 type VisibleSections = HomeVisibleSections &
   StaticDataVisibleSections &
-  Partial<{ ad: boolean; recommendations: boolean; news: boolean; featured: boolean }>;
+  Partial<{ ad: boolean; recommendations: boolean; news: boolean; featured: boolean; topPeriod: boolean }>;
 
 interface DataCarouselProps {
   title: string;
@@ -200,6 +201,7 @@ export default function HomePage() {
             <FeaturedTitleSkeleton />
             <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
             <GridSkeleton showTitle variant="trending" />
+            <GridSkeleton showTitle variant="trending" />
             <GridSkeleton variant="updates" />
             <div className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
@@ -224,11 +226,10 @@ export default function HomePage() {
               </div>
             </div>
             <GridSkeleton showTitle variant="trending" />
+            <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
             <div className="w-full">
               <TopCombinedSkeleton />
             </div>
-            <GridSkeleton showTitle variant="trending" />
-            <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
           </>
         ) : (
           <>
@@ -255,10 +256,11 @@ export default function HomePage() {
         <QuickActions />
         */}
 
-        {/* Быстрый доступ к жанрам */}
+        {/* Быстрый доступ к жанрам (Популярные жанры) — закомментировано
         <GenresQuickAccess />
+        */}
 
-        {/* Продолжить чтение — новый блок с полями с сервера */}
+        {/* Продолжить чтение */}
         <LazySection
           sectionId="reading"
           onVisible={handleSectionVisible}
@@ -274,8 +276,17 @@ export default function HomePage() {
           <ContinueReadingSection />
         </LazySection>
 
-        {/* В тренде на этой неделе */}
         <LazySection
+          sectionId="topPeriod"
+          onVisible={handleSectionVisible}
+          isVisible={!!visibleSections.topPeriod}
+          skeleton={<GridSkeleton showTitle variant="trending" />}
+        >
+          <TopTitlesSection limit={10} />
+        </LazySection>
+
+        {/* В тренде на этой неделе — временно отключено */}
+        {/* <LazySection
           sectionId="trending"
           onVisible={handleSectionVisible}
           isVisible={!!visibleSections.trending}
@@ -295,7 +306,7 @@ export default function HomePage() {
               cardComponent={TrendingCard}
             />
           )}
-        </LazySection>
+        </LazySection> */}
 
         {/* Последние обновления */}
         <LazySection
@@ -388,26 +399,6 @@ export default function HomePage() {
           )}
         </LazySection>
 
-        {/* Объединенная секция топ манхв, маньхуа и новинок 2026 */}
-        <LazySection
-          sectionId="topCombined"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.topCombined}
-          skeleton={
-            <div className="w-full">
-              <TopCombinedSkeleton />
-            </div>
-          }
-        >
-          <div className="w-full">
-            {topManhwa.loading || top2026.loading || topManhua.loading ? (
-              <TopCombinedSkeleton />
-            ) : topManhwa.error || top2026.error || topManhua.error ? null : (
-              <TopCombinedSection data={topCombinedData} />
-            )}
-          </div>
-        </LazySection>
-
         {/* Случайные тайтлы */}
         <LazySection
           sectionId="random"
@@ -454,6 +445,26 @@ export default function HomePage() {
             navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
             skeletonVariant="collection"
           />
+        </LazySection>
+
+        {/* Топ тайтлов: три колонки (2026, Манхва, Маньхуа) — в самый низ */}
+        <LazySection
+          sectionId="topCombined"
+          onVisible={handleSectionVisible}
+          isVisible={!!visibleSections.topCombined}
+          skeleton={
+            <div className="w-full">
+              <TopCombinedSkeleton />
+            </div>
+          }
+        >
+          <div className="w-full">
+            {topManhwa.loading || top2026.loading || topManhua.loading ? (
+              <TopCombinedSkeleton />
+            ) : topManhwa.error || top2026.error || topManhua.error ? null : (
+              <TopCombinedSection data={topCombinedData} />
+            )}
+          </div>
         </LazySection>
           </>
         )}

@@ -1,7 +1,14 @@
 "use client";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect, useRef, useMemo } from "react";
 import { ExternalLink, Clock } from "lucide-react";
 import Link from "next/link";
+
+/** Колонки для layout="fixed": grid-cols-1 md:grid-cols-2 lg:grid-cols-3 (768px, 1024px). */
+function getFixedColumnsFromWidth(width: number): number {
+  if (width >= 1024) return 3;
+  if (width >= 768) return 2;
+  return 1;
+}
 
 interface GridSectionProps<T> {
   title: string;
@@ -37,7 +44,38 @@ export default function GridSection<T>({
   descriptionLink,
   layout = "fixed",
 }: GridSectionProps<T>) {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [columns, setColumns] = useState(1);
   const safeData = Array.isArray(data) ? data : [];
+
+  useEffect(() => {
+    if (layout === "fixed") {
+      const update = () => setColumns(getFixedColumnsFromWidth(window.innerWidth));
+      update();
+      window.addEventListener("resize", update);
+      return () => window.removeEventListener("resize", update);
+    }
+  }, [layout]);
+
+  useEffect(() => {
+    if (layout !== "auto-fit" || !gridRef.current) return;
+    const el = gridRef.current;
+    const ro = new ResizeObserver(() => {
+      const w = el.offsetWidth;
+      const gap = 20;
+      const minCell = 280;
+      const cols = Math.max(1, Math.floor((w + gap) / (minCell + gap)));
+      setColumns(cols);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [layout]);
+
+  /** Показываем число карточек кратное столбцам, чтобы не было неполной строки. */
+  const displayData = useMemo(
+    () => safeData.slice(0, Math.floor(safeData.length / columns) * columns),
+    [safeData, columns],
+  );
 
   /**
    * Получает уникальный ID карточки из данных.
@@ -101,14 +139,15 @@ export default function GridSection<T>({
 
       {/* Grid с карточками — может быть фиксированным или auto-fit для редких данных */}
       <div
+        ref={layout === "auto-fit" ? gridRef : undefined}
         className={`${
           layout === "auto-fit"
             ? "grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(260px,1fr))] lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 sm:gap-5 mx-auto"
             : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"
         }`}
       >
-        {safeData.length > 0 ? (
-          safeData.map(item => (
+        {displayData.length > 0 ? (
+          displayData.map(item => (
             <div
               key={getCardId(item)}
               data-card-id={getCardId(item)}
@@ -126,7 +165,7 @@ export default function GridSection<T>({
       </div>
 
       {/* Кнопка "Показать еще" для мобильных устройств */}
-      {href && safeData.length >= 6 && (
+      {href && displayData.length >= 6 && (
         <div className="flex justify-center mt-6 lg:hidden">
           <Link
             href={href}

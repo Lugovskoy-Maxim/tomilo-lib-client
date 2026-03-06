@@ -87,7 +87,7 @@ export default function NewsBlock() {
         </div>
         <div className="flex gap-3 overflow-hidden">
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="flex-shrink-0 w-[200px] sm:w-[220px] rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+            <div key={i} className="flex-shrink-0 w-[172px] sm:w-[220px] rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
               <div className="aspect-[4/3] bg-[var(--muted)] animate-pulse" />
               <div className="p-2.5 space-y-2">
                 <div className="h-3 w-14 bg-[var(--muted)] rounded animate-pulse" />
@@ -159,7 +159,7 @@ export default function NewsBlock() {
             <Link
               key={getItemId(a)}
               href={`/news/${encodeURIComponent(a.slug)}`}
-              className="group flex-shrink-0 w-[200px] sm:w-[220px] rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden hover:border-[var(--primary)]/30 hover:shadow-lg hover:shadow-[var(--primary)]/5 transition-all duration-300"
+              className="group flex-shrink-0 w-[172px] sm:w-[220px] rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden hover:border-[var(--primary)]/30 hover:shadow-lg hover:shadow-[var(--primary)]/5 transition-all duration-300"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-[var(--muted)]">
                 <AnnouncementImage
@@ -185,16 +185,6 @@ export default function NewsBlock() {
             </Link>
           );
         })}
-      </div>
-
-      <div className="flex justify-center mt-4 sm:hidden">
-        <Link
-          href="/news"
-          className="inline-flex items-center gap-1 text-sm text-[var(--primary)] font-medium hover:underline"
-        >
-          Все новости
-          <ChevronRight className="w-4 h-4" />
-        </Link>
       </div>
     </section>
   );

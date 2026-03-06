@@ -213,14 +213,29 @@ const Column = ({
         </Link>
       </div>
       <div className="space-y-4 min-w-0 py-1">
-        {items.slice(0, 5).map((item) => (
-          <CardItem
-            key={item.id}
-            item={item}
-            showRating={showRating}
-            showViews={showViews}
-          />
-        ))}
+        {items.length === 0 ? (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 text-center">
+            <p className="text-sm text-[var(--muted-foreground)] mb-3">
+              Пока нет тайтлов в этой категории
+            </p>
+            <Link
+              href={href}
+              className="text-sm font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+            >
+              Смотреть каталог
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        ) : (
+          items.slice(0, 5).map((item) => (
+            <CardItem
+              key={item.id}
+              item={item}
+              showRating={showRating}
+              showViews={showViews}
+            />
+          ))
+        )}
       </div>
     </div>
   );

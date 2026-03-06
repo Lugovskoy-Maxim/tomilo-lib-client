@@ -127,10 +127,10 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
       className="w-full group relative cursor-pointer block rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform"
       onClick={handleClick}
     >
-      <div className="relative flex items-stretch bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm">
-        {/* Image section — пропорциональные размеры */}
-        <div className="relative w-[4.5rem] sm:w-[5.5rem] md:w-[6.5rem] self-stretch min-h-24 sm:min-h-28 md:min-h-32 flex-shrink-0 overflow-hidden">
-          <div className="relative w-full h-full">
+      <div className="relative bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm p-2.5 sm:p-3">
+        <div className="flex gap-3 min-w-0">
+          {/* Обложка — как в топе и тренде */}
+          <div className="relative w-20 sm:w-24 aspect-[2/3] flex-shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
             <OptimizedImage
               src={imageUrl}
               fallbackSrc={imageFallback}
@@ -139,74 +139,66 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               className={`object-cover card-media-hover ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
               hidePlaceholder
             />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden />
+            {data.isAdult && (
+              <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
+                <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
+                  <span>18+</span>
+                </div>
+              </div>
+            )}
           </div>
-          
-          {/* Gradient overlay on image */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* Adult badge */}
-          {data.isAdult && (
-            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
-              <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
-                <span>18+</span>
+
+          {/* Контент карточки */}
+          <div className="flex flex-col flex-1 min-w-0 gap-2 sm:gap-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-h-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
+                <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-1.5 sm:px-2 py-0.5 rounded-md font-medium shrink-0">
+                  {getDisplayType()}
+                </span>
+                {getDisplayYear() && (
+                  <>
+                    <span className="text-[var(--muted-foreground)] text-xs shrink-0" aria-hidden>•</span>
+                    <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] font-medium shrink-0">
+                      {getDisplayYear()}
+                    </span>
+                  </>
+                )}
+              </div>
+              <div
+                className="flex items-center gap-1 text-[var(--muted-foreground)] text-[11px] sm:text-xs shrink-0 whitespace-nowrap"
+                title={`Обновлено: ${getDisplayTime(data.timeAgo)}`}
+              >
+                <Clock className="w-3 h-3 flex-shrink-0" aria-hidden />
+                <span>{getDisplayTime(data.timeAgo)}</span>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Контент карточки: мета → заголовок → главы → бейдж */}
-        <div className="flex flex-col flex-1 min-w-0 p-2.5 sm:p-3 gap-2 sm:gap-2.5">
-          {/* Верхняя строка: тип, год — время справа; при нехватке места время переносится на следующую строку */}
-          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-h-0">
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
-              <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-1.5 sm:px-2 py-0.5 rounded-md font-medium shrink-0">
-                {getDisplayType()}
+            <h3
+              className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-5 group-hover:text-[var(--primary)] transition-colors duration-300 min-h-[2.5rem] ${
+                data.isAdult && !isAgeVerified ? "blur-sm" : ""
+              }`}
+            >
+              {data.title}
+            </h3>
+
+            <div className="flex items-center gap-1.5 min-w-0 flex-shrink-0">
+              <Sparkles className="w-3 h-3 text-[var(--chart-1)] flex-shrink-0" aria-hidden />
+              <span
+                className="font-semibold text-xs sm:text-sm truncate min-w-0"
+                title={getDisplayChapter()}
+              >
+                {getDisplayChapter()}
               </span>
-              {getDisplayYear() && (
-                <>
-                  <span className="text-[var(--muted-foreground)] text-xs shrink-0" aria-hidden>•</span>
-                  <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] font-medium shrink-0">
-                    {getDisplayYear()}
-                  </span>
-                </>
-              )}
             </div>
-            <div
-              className="flex items-center gap-1 text-[var(--muted-foreground)] text-[11px] sm:text-xs shrink-0 whitespace-nowrap pl-1.5 sm:pl-2"
-              title={`Обновлено: ${getDisplayTime(data.timeAgo)}`}
-            >
-              <Clock className="w-3 h-3 flex-shrink-0" aria-hidden />
-              <span>{getDisplayTime(data.timeAgo)}</span>
-            </div>
+
+            {data.newChapters && data.newChapters > 0 && (
+              <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-1.5 sm:px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-medium border border-[var(--chart-1)]/20 w-fit">
+                <Plus className="w-3 h-3" aria-hidden />
+                <span>{getNewChaptersLabel(data.newChapters)}</span>
+              </div>
+            )}
           </div>
-
-          {/* Заголовок тайтла — отступ как у бейджа */}
-          <h3
-            className={`font-semibold text-sm text-[var(--foreground)] line-clamp-2 leading-5 group-hover:text-[var(--primary)] transition-colors duration-300 min-h-[2.5rem] pl-1.5 sm:pl-2 ${
-              data.isAdult && !isAgeVerified ? "blur-sm" : ""
-            }`}
-          >
-            {data.title}
-          </h3>
-
-          {/* Номера глав — отступ как у бейджа */}
-          <div className="flex items-center gap-1.5 min-w-0 flex-shrink-0 pl-1.5 sm:pl-2">
-            <Sparkles className="w-3 h-3 text-[var(--chart-1)] flex-shrink-0" aria-hidden />
-            <span
-              className="font-semibold text-xs sm:text-sm truncate min-w-0"
-              title={getDisplayChapter()}
-            >
-              {getDisplayChapter()}
-            </span>
-          </div>
-
-          {/* Бейдж «добавлено N глав» — только если есть */}
-          {data.newChapters && data.newChapters > 0 && (
-            <div className="flex items-center gap-1 bg-[var(--chart-1)]/10 text-[var(--chart-1)] px-1.5 sm:px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-medium border border-[var(--chart-1)]/20 w-fit">
-              <Plus className="w-3 h-3" aria-hidden />
-              <span>{getNewChaptersLabel(data.newChapters)}</span>
-            </div>
-          )}
         </div>
       </div>
 

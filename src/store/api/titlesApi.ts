@@ -382,6 +382,7 @@ export const titlesApi = createApi({
       ApiResponseDto<
         {
           id: string;
+          slug?: string;
           title: string;
           cover: string;
           rating: number;
@@ -390,6 +391,8 @@ export const titlesApi = createApi({
           description: string;
           isAdult?: boolean;
           ratingCount?: number;
+          views?: number;
+          dayViews?: number;
         }[]
       >,
       { limit?: number; includeAdult?: boolean }
@@ -403,6 +406,7 @@ export const titlesApi = createApi({
         response: ApiResponseDto<
           {
             id: string;
+            slug?: string;
             title: string;
             cover: string;
             rating: number;
@@ -411,6 +415,8 @@ export const titlesApi = createApi({
             description: string;
             isAdult?: boolean;
             ratingCount?: number;
+            views?: number;
+            dayViews?: number;
           }[]
         >,
       ) => response,
@@ -421,6 +427,7 @@ export const titlesApi = createApi({
       ApiResponseDto<
         {
           id: string;
+          slug?: string;
           title: string;
           cover: string;
           rating: number;
@@ -429,6 +436,8 @@ export const titlesApi = createApi({
           description: string;
           isAdult?: boolean;
           ratingCount?: number;
+          views?: number;
+          weekViews?: number;
         }[]
       >,
       { limit?: number; includeAdult?: boolean }
@@ -442,6 +451,7 @@ export const titlesApi = createApi({
         response: ApiResponseDto<
           {
             id: string;
+            slug?: string;
             title: string;
             cover: string;
             rating: number;
@@ -450,6 +460,8 @@ export const titlesApi = createApi({
             description: string;
             isAdult?: boolean;
             ratingCount?: number;
+            views?: number;
+            weekViews?: number;
           }[]
         >,
       ) => response,
@@ -460,6 +472,7 @@ export const titlesApi = createApi({
       ApiResponseDto<
         {
           id: string;
+          slug?: string;
           title: string;
           cover: string;
           rating: number;
@@ -468,6 +481,8 @@ export const titlesApi = createApi({
           description: string;
           isAdult?: boolean;
           ratingCount?: number;
+          views?: number;
+          monthViews?: number;
         }[]
       >,
       { limit?: number; includeAdult?: boolean }
@@ -481,6 +496,7 @@ export const titlesApi = createApi({
         response: ApiResponseDto<
           {
             id: string;
+            slug?: string;
             title: string;
             cover: string;
             rating: number;
@@ -489,6 +505,8 @@ export const titlesApi = createApi({
             description: string;
             isAdult?: boolean;
             ratingCount?: number;
+            views?: number;
+            monthViews?: number;
           }[]
         >,
       ) => response,

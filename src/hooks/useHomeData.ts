@@ -172,7 +172,8 @@ export const useHomeData = (options: HomeDataOptions = {}): {
 
   const skipPopular = !visibleSections.popular && !visibleSections.featured;
   const skipRecent = !visibleSections.recent;
-  const skipTrending = !visibleSections.trending;
+  // const skipTrending = !visibleSections.trending; // блок «В тренде» отключён
+  const skipTrending = true; // запрос тренда отключён
   const skipUnderrated = !visibleSections.underrated;
   const skipTopCombined = !visibleSections.topCombined;
   const skipRandom = !visibleSections.random;
@@ -199,21 +200,21 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     error: randomTitlesError,
   } = useGetRandomTitlesQuery({ limit: 10, includeAdult }, { ...popularCacheOptions, skip: skipRandom });
 
-  // В тренде: поиск по weekViews — эндпоинт отдаёт просмотры за неделю для бейджа «+N»
-  const {
-    data: trendingTitlesData,
-    isLoading: trendingTitlesLoading,
-    error: trendingTitlesError,
-  } = useSearchTitlesQuery(
-    {
-      search: "",
-      sortBy: "weekViews",
-      sortOrder: "desc",
-      limit: 20,
-      includeAdult,
-    },
-    { ...popularCacheOptions, skip: skipTrending },
-  );
+  // В тренде: поиск по weekViews — временно отключено
+  // const {
+  //   data: trendingTitlesData,
+  //   isLoading: trendingTitlesLoading,
+  //   error: trendingTitlesError,
+  // } = useSearchTitlesQuery(
+  //   {
+  //     search: "",
+  //     sortBy: "weekViews",
+  //     sortOrder: "desc",
+  //     limit: 20,
+  //     includeAdult,
+  //   },
+  //   { ...popularCacheOptions, skip: skipTrending },
+  // );
 
   const {
     data: underratedCandidatesData,
@@ -281,23 +282,27 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     [recentTitlesData]
   );
 
-  // Мемоизированное преобразование трендовых (поиск по weekViews — есть weekViews для бейджа «+N»)
-  const trendingTitles = useMemo(() =>
-    trendingTitlesData?.data?.data?.map((item: any) => ({
-      id: item._id,
-      slug: item.slug,
-      title: item.name,
-      image: item.coverImage || "",
-      description: item.description,
-      views: item.views || 0,
-      weekViews: item.weekViews ?? 0,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.averageRating || item.rating || 0,
-      genres: normalizeGenres(item.genres || []),
-      isAdult: item.isAdult ?? false,
-    })) || [],
-    [trendingTitlesData]
+  // Мемоизированное преобразование трендовых — отключено вместе с запросом
+  // const trendingTitles = useMemo(() =>
+  //   trendingTitlesData?.data?.data?.map((item: any) => ({
+  //     id: item._id,
+  //     slug: item.slug,
+  //     title: item.name,
+  //     image: item.coverImage || "",
+  //     description: item.description,
+  //     views: item.views || 0,
+  //     weekViews: item.weekViews ?? 0,
+  //     type: item.type || "Неуказан",
+  //     year: item.releaseYear || new Date().getFullYear(),
+  //     rating: item.averageRating || item.rating || 0,
+  //     genres: normalizeGenres(item.genres || []),
+  //     isAdult: item.isAdult ?? false,
+  //   })) || [],
+  //   [trendingTitlesData]
+  // );
+  const trendingTitles: { data: any[]; loading: boolean; error: unknown } = useMemo(
+    () => ({ data: [], loading: false, error: null }),
+    [],
   );
 
   // Мемоизированное преобразование кандидатов для блока "Недооцененные"
@@ -442,9 +447,9 @@ export const useHomeData = (options: HomeDataOptions = {}): {
       error: randomTitlesError,
     },
     trendingTitles: {
-      data: trendingTitles,
-      loading: trendingTitlesLoading,
-      error: trendingTitlesError,
+      data: trendingTitles.data,
+      loading: trendingTitles.loading,
+      error: trendingTitles.error,
     },
     underratedTitles: {
       data: underratedTitles,

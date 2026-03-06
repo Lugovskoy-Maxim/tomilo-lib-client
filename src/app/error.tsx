@@ -81,37 +81,43 @@ export default function Error({
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <Header />
-      <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4 py-12 sm:py-16">
-        <div className="max-w-md w-full text-center">
-          <div className="mb-6 flex justify-center">
-            <div className="rounded-full bg-[var(--destructive)]/10 p-4" aria-hidden>
-              <AlertCircle className="w-12 h-12 text-[var(--destructive)]" />
+      <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center py-8 sm:py-12">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex justify-center">
+          <div className="w-full max-w-[420px] min-w-0">
+            <div className="rounded-2xl p-6 sm:p-8 text-center">
+              <div className="mb-5 flex justify-center">
+                <div
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--destructive)]/10 text-[var(--destructive)] ring-2 ring-[var(--destructive)]/20"
+                  aria-hidden
+                >
+                  <AlertCircle className="h-7 w-7 shrink-0" strokeWidth={2} />
+                </div>
+              </div>
+              <h1 className="text-xl font-semibold text-[var(--foreground)] sm:text-2xl mb-2">
+                Что-то пошло не так
+              </h1>
+              <p className="text-sm text-[var(--muted-foreground)] leading-relaxed mb-6 sm:mb-8">
+                Произошла непредвиденная ошибка. Обновите страницу или перейдите на главную.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <button
+                  type="button"
+                  onClick={() => reset()}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary)]/90 active:scale-[0.98] transition-all min-h-11 min-w-[140px] sm:min-w-0"
+                >
+                  <RefreshCw className="h-4 w-4 shrink-0" />
+                  Попробовать снова
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/")}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-2.5 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]/50 active:scale-[0.98] transition-all min-h-11 min-w-[140px] sm:min-w-0"
+                >
+                  <Home className="h-4 w-4 shrink-0" />
+                  На главную
+                </button>
+              </div>
             </div>
-          </div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">
-            Что-то пошло не так!
-          </h1>
-          <p className="text-[var(--muted-foreground)] mb-8 leading-relaxed">
-            Произошла непредвиденная ошибка. Попробуйте перезагрузить страницу или вернуться на
-            главную.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <button
-              type="button"
-              onClick={() => reset()}
-              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity min-w-[180px]"
-            >
-              <RefreshCw className="w-5 h-5 shrink-0" />
-              Попробовать снова
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-[var(--border)] text-[var(--foreground)] font-medium hover:bg-[var(--muted)] transition-colors min-w-[180px]"
-            >
-              <Home className="w-5 h-5 shrink-0" />
-              На главную
-            </button>
           </div>
         </div>
       </main>
