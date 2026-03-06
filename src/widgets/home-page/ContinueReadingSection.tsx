@@ -179,11 +179,11 @@ function ContinueCard({ item }: { item: ContinueItem }) {
   const showChapterTitle = t && t !== String(chNum) && t !== `Глава ${chNum}`;
 
   return (
-    <div className="flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px]">
-      <div className="group relative h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-300">
+    <div className="flex flex-col flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px] h-full">
+      <div className="group relative flex-1 min-h-0 rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-300">
         <Link
           href={chapterHref}
-          className="flex items-start gap-3 p-3 sm:p-4 block h-full"
+          className="flex items-stretch gap-3 p-3 sm:p-4 block h-full"
         >
           <div className="relative w-[90px] h-[129px] sm:w-24 sm:h-32 rounded-xl overflow-hidden shrink-0 bg-[var(--muted)]">
             {imageUrls ? (
@@ -425,7 +425,7 @@ export default function ContinueReadingSection() {
       ) : (
         <div
           ref={scrollRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-visible py-2 scrollbar-hide scroll-smooth min-w-0 touch-pan-x carousel-scroll will-change-scroll cursor-grab active:cursor-grabbing select-none"
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto overflow-y-visible py-2 scrollbar-hide scroll-smooth min-w-0 touch-pan-x carousel-scroll will-change-scroll cursor-grab active:cursor-grabbing select-none"
           style={{ userSelect: "none" }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
