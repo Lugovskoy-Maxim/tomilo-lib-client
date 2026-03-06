@@ -623,15 +623,20 @@ export const titlesApi = createApi({
       ) => {
         if (!response?.data?.length) return response;
         const data = response.data.map(item => {
+          const raw = item.chapters as number[] | { numbers?: number[] } | undefined;
+          const numbers = Array.isArray(raw)
+            ? raw
+            : Array.isArray(raw?.numbers)
+              ? raw.numbers
+              : [];
           let chapter: string;
-          if (item.chapters?.length !== undefined && item.chapters.length > 0) {
-            const formatted = formatChapterRanges(item.chapters);
+          if (numbers.length > 0) {
             chapter =
-              item.chapters.length === 1
-                ? `Глава ${item.chapters[0]}`
-                : `Главы ${formatted}`;
+              numbers.length === 1
+                ? `Глава ${numbers[0]}`
+                : `Главы ${formatChapterRanges(numbers)}`;
           } else {
-            chapter = item.chapter;
+            chapter = item.chapter ?? "";
           }
           return { ...item, chapter };
         });

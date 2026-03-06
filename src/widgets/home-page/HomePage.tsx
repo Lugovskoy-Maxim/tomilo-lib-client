@@ -121,7 +121,11 @@ export default function HomePage() {
     topManhwa,
     top2026,
   } = useHomeData({ visibleSections, includeAdult });
-  const { collections } = useStaticData({ visibleSections, includeAdult });
+  // latest-updates загружаем только через RTK Query ниже — не дублируем запрос из useStaticData
+  const { collections } = useStaticData({
+    visibleSections: { ...visibleSections, latestUpdates: false },
+    includeAdult,
+  });
 
   // Используем RTK Query для последних обновлений (корректно обрабатывает изменение includeAdult)
   const shouldLoadLatestUpdates = visibleSections.latestUpdates ?? false;
