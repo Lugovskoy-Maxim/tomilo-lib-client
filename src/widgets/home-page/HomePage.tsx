@@ -117,8 +117,8 @@ export default function HomePage() {
     randomTitles,
     trendingTitles,
     underratedTitles,
-    topManhua,
     topManhwa,
+    topManhua,
     top2026,
   } = useHomeData({ visibleSections, includeAdult });
   // latest-updates загружаем только через RTK Query ниже — не дублируем запрос из useStaticData
@@ -143,42 +143,44 @@ export default function HomePage() {
     error: latestUpdatesError ? "load_failed" : null,
   };
 
-  // Мемоизация данных для TopCombinedSection — предотвращает пересоздание объекта при каждом рендере
-  const topCombinedData = useMemo(() => ({
-    topManhwa: (topManhwa.data || []).slice(0, 5).map(item => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      coverImage: item.image,
-      type: item.type,
-      year: item.year,
-      rating: item.rating,
-      views: item.views || "0К",
-      isAdult: item.isAdult ?? false,
-    })),
-    top2026: (top2026.data || []).slice(0, 5).map(item => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      coverImage: item.image,
-      type: item.type,
-      year: item.year,
-      rating: item.rating,
-      views: item.views || "0К",
-      isAdult: item.isAdult ?? false,
-    })),
-    topManhua: (topManhua.data || []).slice(0, 5).map(item => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      coverImage: item.image,
-      type: item.type,
-      year: item.year,
-      rating: item.rating,
-      views: item.views || "0К",
-      isAdult: item.isAdult ?? false,
-    })),
-  }), [topManhwa.data, top2026.data, topManhua.data]);
+  const topCombinedData = useMemo(
+    () => ({
+      topManhwa: (topManhwa.data ?? []).slice(0, 5).map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        coverImage: item.image,
+        type: item.type,
+        year: item.year,
+        rating: item.rating,
+        views: item.views ?? "0",
+        isAdult: item.isAdult ?? false,
+      })),
+      top2026: (top2026.data ?? []).slice(0, 5).map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        coverImage: item.image,
+        type: item.type,
+        year: item.year,
+        rating: item.rating,
+        views: item.views ?? "0",
+        isAdult: item.isAdult ?? false,
+      })),
+      topManhua: (topManhua.data ?? []).slice(0, 5).map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        coverImage: item.image,
+        type: item.type,
+        year: item.year,
+        rating: item.rating,
+        views: item.views ?? "0",
+        isAdult: item.isAdult ?? false,
+      })),
+    }),
+    [topManhwa.data, top2026.data, topManhua.data],
+  );
 
   useEffect(() => {
     setMounted(true);

@@ -230,47 +230,6 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     { ...popularCacheOptions, skip: skipUnderrated },
   );
 
-  // Топ тайтлы — загрузка только когда секция в viewport
-  const topQueries = [
-    useSearchTitlesQuery(
-      {
-        search: "",
-        types: "manhua",
-        sortBy: "views",
-        sortOrder: "desc",
-        limit: 5,
-        includeAdult,
-      },
-      { ...popularCacheOptions, skip: skipTopCombined },
-    ),
-    useSearchTitlesQuery(
-      {
-        search: "",
-        types: "manhwa",
-        sortBy: "views",
-        sortOrder: "desc",
-        limit: 5,
-        includeAdult,
-      },
-      { ...popularCacheOptions, skip: skipTopCombined },
-    ),
-    useSearchTitlesQuery(
-      {
-        search: "",
-        releaseYear: 2026,
-        sortBy: "views",
-        sortOrder: "desc",
-        limit: 5,
-        includeAdult,
-      },
-      { ...popularCacheOptions, skip: skipTopCombined },
-    ),
-  ];
-
-  const [topManhuaData, topManhwaData, top2026Data] = topQueries.map(query => query.data);
-  const [topManhuaLoading, topManhwaLoading, top2026Loading] = topQueries.map(query => query.isLoading);
-  const [topManhuaError, topManhwaError, top2026Error] = topQueries.map(query => query.error);
-
   // Мемоизированное преобразование популярных тайтлов
   const popularTitles = useMemo(() =>
     popularTitlesData?.data?.map(item => ({
@@ -377,58 +336,93 @@ export const useHomeData = (options: HomeDataOptions = {}): {
           .slice(0, 20);
   }, [underratedCandidatesData]);
 
-  // Мемоизированное преобразование топ тайтлов Маньхуа
-  const topManhua = useMemo(() =>
-    topManhuaData?.data?.data?.map(item => ({
-      id: item._id,
-      slug: (item as any).slug,
-      title: item.name,
-      image: item.coverImage || "",
-      description: item.description,
-      type: item.type || "Неуказан",
-      views: item.views || 0,
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.averageRating || item.rating || 0,
-      genres: normalizeGenres(item.genres || []),
-      isAdult: item.isAdult ?? false,
-    })) || [],
-    [topManhuaData]
+  // Топ по типам и году — поиск по views, всегда заполненные колонки и просмотры
+  const topQueries = [
+    useSearchTitlesQuery(
+      {
+        search: "",
+        types: "manhua",
+        sortBy: "views",
+        sortOrder: "desc",
+        limit: 5,
+        includeAdult,
+      },
+      { ...popularCacheOptions, skip: skipTopCombined },
+    ),
+    useSearchTitlesQuery(
+      {
+        search: "",
+        types: "manhwa",
+        sortBy: "views",
+        sortOrder: "desc",
+        limit: 5,
+        includeAdult,
+      },
+      { ...popularCacheOptions, skip: skipTopCombined },
+    ),
+    useSearchTitlesQuery(
+      {
+        search: "",
+        releaseYear: 2026,
+        sortBy: "views",
+        sortOrder: "desc",
+        limit: 5,
+        includeAdult,
+      },
+      { ...popularCacheOptions, skip: skipTopCombined },
+    ),
+  ];
+
+  const [topManhuaData, topManhwaData, top2026Data] = topQueries.map((q) => q.data);
+  const [topManhuaLoading, topManhwaLoading, top2026Loading] = topQueries.map((q) => q.isLoading);
+  const [topManhuaError, topManhwaError, top2026Error] = topQueries.map((q) => q.error);
+
+  const topManhua = useMemo(
+    () =>
+      topManhuaData?.data?.data?.map((item: any) => ({
+        id: item._id,
+        slug: item.slug,
+        title: item.name,
+        image: item.coverImage || "",
+        type: item.type || "Неуказан",
+        views: item.views || 0,
+        year: item.releaseYear || new Date().getFullYear(),
+        rating: item.averageRating ?? item.rating ?? 0,
+        isAdult: item.isAdult ?? false,
+      })) ?? [],
+    [topManhuaData],
   );
 
-  // Мемоизированное преобразование топ тайтлов Манхва
-  const topManhwa = useMemo(() =>
-    topManhwaData?.data?.data?.map(item => ({
-      id: item._id,
-      slug: (item as any).slug,
-      title: item.name,
-      image: item.coverImage || "",
-      description: item.description,
-      views: item.views || 0,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.averageRating || item.rating || 0,
-      genres: normalizeGenres(item.genres || []),
-      isAdult: item.isAdult ?? false,
-    })) || [],
-    [topManhwaData]
+  const topManhwa = useMemo(
+    () =>
+      topManhwaData?.data?.data?.map((item: any) => ({
+        id: item._id,
+        slug: item.slug,
+        title: item.name,
+        image: item.coverImage || "",
+        type: item.type || "Неуказан",
+        views: item.views || 0,
+        year: item.releaseYear || new Date().getFullYear(),
+        rating: item.averageRating ?? item.rating ?? 0,
+        isAdult: item.isAdult ?? false,
+      })) ?? [],
+    [topManhwaData],
   );
 
-  // Мемоизированное преобразование топ тайтлов 2026 года
-  const top2026 = useMemo(() =>
-    top2026Data?.data?.data?.map(item => ({
-      id: item._id,
-      slug: (item as any).slug,
-      title: item.name,
-      image: item.coverImage || "",
-      description: item.description,
-      views: item.views || 0,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.averageRating || item.rating || 0,
-      genres: normalizeGenres(item.genres || []),
-      isAdult: item.isAdult ?? false,
-    })) || [],
-    [top2026Data]
+  const top2026 = useMemo(
+    () =>
+      top2026Data?.data?.data?.map((item: any) => ({
+        id: item._id,
+        slug: item.slug,
+        title: item.name,
+        image: item.coverImage || "",
+        type: item.type || "Неуказан",
+        views: item.views || 0,
+        year: item.releaseYear || new Date().getFullYear(),
+        rating: item.averageRating ?? item.rating ?? 0,
+        isAdult: item.isAdult ?? false,
+      })) ?? [],
+    [top2026Data],
   );
 
   return {
@@ -457,20 +451,8 @@ export const useHomeData = (options: HomeDataOptions = {}): {
       loading: underratedTitlesLoading,
       error: underratedTitlesError,
     },
-    topManhua: {
-      data: topManhua,
-      loading: topManhuaLoading,
-      error: topManhuaError,
-    },
-    topManhwa: {
-      data: topManhwa,
-      loading: topManhwaLoading,
-      error: topManhwaError,
-    },
-    top2026: {
-      data: top2026,
-      loading: top2026Loading,
-      error: top2026Error,
-    },
+    topManhua: { data: topManhua, loading: topManhuaLoading, error: topManhuaError },
+    topManhwa: { data: topManhwa, loading: topManhwaLoading, error: topManhwaError },
+    top2026: { data: top2026, loading: top2026Loading, error: top2026Error },
   };
 };
