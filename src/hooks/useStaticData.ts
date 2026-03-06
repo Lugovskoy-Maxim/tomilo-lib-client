@@ -214,8 +214,8 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
           const raw = item.chapters;
           const numbers = Array.isArray(raw)
             ? raw
-            : Array.isArray((raw as { numbers?: number[] })?.numbers)
-              ? (raw as { numbers: number[] }).numbers
+            : Array.isArray((raw as unknown as { numbers?: number[] })?.numbers)
+              ? (raw as unknown as { numbers: number[] }).numbers
               : [];
           const chapter =
             numbers.length > 0
