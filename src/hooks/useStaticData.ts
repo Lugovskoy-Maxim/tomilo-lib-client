@@ -211,10 +211,15 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
         const raw = result.data?.data ?? result.data?.items ?? result.data;
         const list = Array.isArray(raw) ? raw : [];
         const transformedData = list.map((item: ApiLatestUpdate) => {
-          const chapter =
-            item.chapters?.length !== undefined && item.chapters.length > 0
-              ? `Главы ${formatChapterRanges(item.chapters)}`
-              : item.chapter;
+          let chapter: string;
+          if (item.chapters?.length !== undefined && item.chapters.length > 0) {
+            chapter =
+              item.chapters.length === 1
+                ? `Глава ${item.chapters[0]}`
+                : `Главы ${formatChapterRanges(item.chapters)}`;
+          } else {
+            chapter = item.chapter;
+          }
           return {
             ...item,
             chapter,

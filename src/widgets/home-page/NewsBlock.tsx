@@ -77,8 +77,13 @@ export default function NewsBlock() {
   if (isLoading) {
     return (
       <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" aria-label="Новости">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Новости</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+              <Megaphone className="w-5 h-5" />
+            </div>
+            <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)]">Новости</h2>
+          </div>
         </div>
         <div className="flex gap-3 overflow-hidden">
           {[1, 2, 3, 4, 5].map(i => (
@@ -108,12 +113,20 @@ export default function NewsBlock() {
 
   return (
     <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" aria-label="Новости">
-      <div className="flex items-center justify-between mb-4 sm:mb-5">
-        <h2 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Новости</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+            <Megaphone className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)]">Новости</h2>
+            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Анонсы и обновления</p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <Link
             href="/news"
-            className="text-sm text-[var(--primary)] hover:underline font-medium hidden sm:inline-flex items-center gap-1"
+            className="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-2 flex items-center gap-1 shrink-0"
           >
             Все новости
             <ChevronRight className="w-4 h-4" />

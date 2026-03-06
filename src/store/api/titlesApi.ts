@@ -623,10 +623,16 @@ export const titlesApi = createApi({
       ) => {
         if (!response?.data?.length) return response;
         const data = response.data.map(item => {
-          const chapter =
-            item.chapters?.length !== undefined && item.chapters.length > 0
-              ? `Главы ${formatChapterRanges(item.chapters)}`
-              : item.chapter;
+          let chapter: string;
+          if (item.chapters?.length !== undefined && item.chapters.length > 0) {
+            const formatted = formatChapterRanges(item.chapters);
+            chapter =
+              item.chapters.length === 1
+                ? `Глава ${item.chapters[0]}`
+                : `Главы ${formatted}`;
+          } else {
+            chapter = item.chapter;
+          }
           return { ...item, chapter };
         });
         return { ...response, data };
