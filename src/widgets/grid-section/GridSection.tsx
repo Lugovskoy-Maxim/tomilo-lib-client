@@ -70,32 +70,32 @@ export default function GridSection<T>({
 
   return (
     <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
-      {/* Заголовок секции */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
-        <div className="flex items-center gap-2 min-w-0">
+      {/* Заголовок секции: первая строка — иконка, заголовок и ссылка в одну линию; вторая — описание */}
+      <div className="mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 min-w-0 flex-nowrap">
           {icon && (
             <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] [&_svg]:w-5 [&_svg]:h-5">
               {icon}
             </div>
           )}
-          <div>
-            {title && (
-              <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)]">{title}</h2>
-            )}
-            {(description || descriptionLink) && (
-              <p className="text-[var(--muted-foreground)] text-xs mt-0.5 max-w-2xl">
-                {renderDescription()}
-              </p>
-            )}
-          </div>
+          {title && (
+            <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)] truncate min-w-0">
+              {title}
+            </h2>
+          )}
+          {href && (
+            <Link
+              href={href}
+              className="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-2 flex items-center gap-1 shrink-0 ml-auto"
+            >
+              {navigationIcon || <ExternalLink className="w-4 h-4" />}
+            </Link>
+          )}
         </div>
-        {href && (
-          <Link
-            href={href}
-            className="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-2 flex items-center gap-1 shrink-0"
-          >
-            {navigationIcon || <ExternalLink className="w-4 h-4" />}
-          </Link>
+        {(description || descriptionLink) && (
+          <p className="text-[var(--muted-foreground)] text-xs mt-0.5 max-w-2xl">
+            {renderDescription()}
+          </p>
         )}
       </div>
 
