@@ -2,8 +2,7 @@
 
 import { BookOpen, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { titlesApi } from "@/store/api/titlesApi";
-const useReadingProgressQuery = titlesApi.endpoints.getReadingProgress.useQuery;
+import { useGetReadingProgressQuery } from "@/store/api/titlesApi";
 import { getTitlePath } from "@/lib/title-paths";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { getCoverUrls } from "@/lib/asset-url";
@@ -12,7 +11,7 @@ import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 const MAX_ITEMS = 5;
 
 export default function ReadingProgressBlock() {
-  const { data, isLoading } = useReadingProgressQuery(undefined, {
+  const { data, isLoading } = useGetReadingProgressQuery(undefined, {
     skip: typeof window === "undefined",
   });
 
@@ -60,7 +59,7 @@ export default function ReadingProgressBlock() {
               >
                 <div className="w-10 h-14 rounded overflow-hidden shrink-0 bg-[var(--muted)]">
                   <OptimizedImage
-                    src={cover ? getCoverUrls(cover).default : IMAGE_HOLDER.src}
+                    src={cover ? getCoverUrls(cover).primary : IMAGE_HOLDER.src}
                     alt=""
                     width={40}
                     height={56}

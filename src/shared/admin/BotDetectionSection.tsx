@@ -16,8 +16,8 @@ function useEmptyBotStats() {
 function useEmptySuspiciousUsers(_opts: { page: number; limit: number }) {
   return { data: undefined, isLoading: false, refetch: () => {} };
 }
-function useEmptyResetBotStatus(): [(id: string) => Promise<{ unwrap: () => Promise<unknown> }>, { isLoading: boolean }] {
-  return [async () => ({ unwrap: async () => {} }), { isLoading: false }];
+function useEmptyResetBotStatus(): [(id: string) => { unwrap: () => Promise<unknown> }, { isLoading: boolean }] {
+  return [() => ({ unwrap: async () => {} }), { isLoading: false }];
 }
 
 const useGetBotStatsQuerySafe = typeof adminApi.useGetBotStatsQuery === "function" ? adminApi.useGetBotStatsQuery : useEmptyBotStats;

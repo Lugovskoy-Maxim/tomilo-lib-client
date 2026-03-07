@@ -201,7 +201,7 @@ export const authApi = createApi({
       providesTags: ["Auth"],
       transformResponse(response: ApiResponseDto<User>): ApiResponseDto<User> {
         if (!response?.data || typeof response.data !== "object") return response;
-        const raw = response.data as Record<string, unknown>;
+        const raw = response.data as unknown as Record<string, unknown>;
         const stats = raw.stats as Record<string, unknown> | undefined;
         const level =
           typeof raw.level === "number"

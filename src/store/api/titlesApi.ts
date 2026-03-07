@@ -648,12 +648,13 @@ export const titlesApi = createApi({
             (raw as { updates?: unknown[] })?.updates ??
             [];
         if (!list.length) return { ...response, data: [] };
-        const data = list.map((item: Record<string, unknown>) => {
-          const raw = item.chapters as number[] | { numbers?: number[] } | undefined;
-          const numbers = Array.isArray(raw)
+        const data = list.map((item: unknown) => {
+          const it = item as Record<string, unknown>;
+          const raw = it.chapters as number[] | { numbers?: number[] } | undefined;
+          const numbers: number[] = Array.isArray(raw)
             ? raw
             : Array.isArray((raw as { numbers?: number[] })?.numbers)
-              ? (raw as { numbers?: number[] }).numbers
+              ? (raw as { numbers?: number[] }).numbers ?? []
               : [];
           let chapter: string;
           if (numbers.length > 0) {
@@ -662,9 +663,9 @@ export const titlesApi = createApi({
                 ? `Глава ${numbers[0]}`
                 : `Главы ${formatChapterRanges(numbers)}`;
           } else {
-            chapter = (item.chapter as string) ?? "";
+            chapter = (it.chapter as string) ?? "";
           }
-          return { ...item, chapter } as {
+          return { ...it, chapter } as {
             id: string;
             slug?: string;
             title: string;
