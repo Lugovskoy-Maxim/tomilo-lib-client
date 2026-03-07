@@ -128,15 +128,15 @@ export default function HomePage() {
     includeAdult,
   });
 
-  // Используем RTK Query для последних обновлений (корректно обрабатывает изменение includeAdult)
-  const shouldLoadLatestUpdates = visibleSections.latestUpdates ?? false;
+  // Запрос последних обновлений выполняем сразу при загрузке главной (как на /updates),
+  // чтобы данные были готовы к моменту появления секции в viewport.
   const {
     data: latestUpdatesData,
     isLoading: latestUpdatesLoading,
     error: latestUpdatesError,
   } = useGetLatestUpdatesQuery(
-    { limit: 16, includeAdult },
-    { skip: !shouldLoadLatestUpdates, refetchOnMountOrArgChange: true, refetchOnFocus: true }
+    { limit: 24, includeAdult },
+    { refetchOnMountOrArgChange: true, refetchOnFocus: true }
   );
   const latestUpdates = {
     data: latestUpdatesData?.data ?? [],
@@ -317,18 +317,18 @@ export default function HomePage() {
         >
           {latestUpdates.loading ? (
             <GridSkeleton variant="updates" />
-          ) : latestUpdates.error ? null : Array.isArray(latestUpdates.data) && latestUpdates.data.length > 0 ? (
+          ) : latestUpdates.error ? null : (
             <GridSection
               title="Последние обновления"
               description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."
               type="browse"
               href="/updates"
               icon={<Clock className="w-6 h-6" />}
-              data={latestUpdates.data}
+              data={Array.isArray(latestUpdates.data) ? latestUpdates.data : []}
               cardComponent={LatestUpdateCard}
               layout="auto-fit"
             />
-          ) : null}
+          )}
         </LazySection>
 
         {/* Рекомендации (только для авторизованных) */}

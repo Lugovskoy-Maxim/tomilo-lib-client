@@ -22,7 +22,7 @@ export default function NavigationFooter({
   onLoginRequired,
 }: NavigationFooterProps) {
   return (
-    <div className="bg-[var(--background)] border-t border-[var(--border)] py-6">
+    <div className="bg-[var(--background)] border-t border-[var(--border)] py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
       <div className="max-w-4xl mx-auto px-4 space-y-6">
         {/* Реакции на главу */}
         <ChapterReactions

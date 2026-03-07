@@ -198,7 +198,7 @@ export default function TitlesContent() {
 
   // Запрос тайтлов с параметрами (пропускаем при восстановлении из кеша)
   const shouldSkipQuery = restoredFromCache;
-  const { data: titlesData, isLoading, isFetching, isError, error } = useSearchTitlesQuery(
+  const { data: titlesData, isLoading, isFetching, isError, error, refetch: refetchTitles } = useSearchTitlesQuery(
     {
       search: debouncedSearch || undefined,
       genres: appliedFilters.genres[0] || undefined,
@@ -266,6 +266,16 @@ export default function TitlesContent() {
       window.removeEventListener("pagehide", saveOnLeave);
     };
   }, [saveCatalogState]);
+
+  // Pull-to-refresh: слушаем событие и вызываем refetch
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const ev = e as CustomEvent<{ resolve?: () => void }>;
+      refetchTitles().finally(() => ev.detail?.resolve?.());
+    };
+    window.addEventListener("pull-to-refresh-titles", handler);
+    return () => window.removeEventListener("pull-to-refresh-titles", handler);
+  }, [refetchTitles]);
 
   // Сохранение при изменении данных (кроме восстановления)
   useEffect(() => {

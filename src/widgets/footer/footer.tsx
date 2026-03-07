@@ -26,7 +26,10 @@ import {
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Logo from "@/shared/logo/logo";
+import { useAuth } from "@/hooks/useAuth";
 import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
+import { useGetStatsQuery } from "@/store/api/statsApi";
+import { BarChart3 } from "lucide-react";
 
 const FOOTER_NAV_GROUPS = [
   {
@@ -110,11 +113,19 @@ export default function Footer() {
   const dragStartY = useRef(0);
   const currentY = useRef(0);
 
+  const { isAuthenticated } = useAuth();
   const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
+    skip: !isAuthenticated,
     pollingInterval: isTabVisible ? POLL_INTERVAL_MS : 0,
     refetchOnMountOrArgChange: 90,
   });
   const notificationCount = unreadCountResponse?.data?.count || 0;
+
+  const { data: statsResponse } = useGetStatsQuery(undefined, {
+    skip: false,
+    refetchOnMountOrArgChange: 300, // не чаще чем раз в 5 мин
+  });
+  const stats = statsResponse?.data;
 
   const openMore = useCallback(() => {
     setSheetTranslateY(0);
@@ -268,6 +279,26 @@ export default function Footer() {
             </div>
           </div>
 
+          {stats && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 py-4 text-xs text-[var(--muted-foreground)]" role="status" aria-label="Краткая статистика библиотеки">
+              <span className="inline-flex items-center gap-1.5">
+                <BarChart3 className="w-3.5 h-3.5 opacity-70" aria-hidden />
+                В библиотеке:
+              </span>
+              <span>{stats.totalTitles.toLocaleString("ru-RU")} тайтлов</span>
+              <span aria-hidden>·</span>
+              <span>{stats.totalChapters.toLocaleString("ru-RU")} глав</span>
+              <span aria-hidden>·</span>
+              <span>{stats.totalUsers.toLocaleString("ru-RU")} пользователей</span>
+              {typeof stats.totalViews === "number" && stats.totalViews > 0 && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span>{stats.totalViews.toLocaleString("ru-RU")} просмотров</span>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="h-px my-8 opacity-50 [background:linear-gradient(90deg,transparent_0%,var(--border)_20%,var(--primary)_50%,var(--border)_80%,transparent_100%)]" aria-hidden />
 
           <div className="footer-desktop-bottom flex flex-col items-center gap-5 sm:flex-row sm:justify-between sm:items-center text-[var(--muted-foreground)] text-sm">
@@ -299,7 +330,7 @@ export default function Footer() {
         <button
           type="button"
           onClick={scrollToTop}
-          className="footer-back-to-top fixed z-40 flex items-center justify-center border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[background-color,border-color,transform] duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] bottom-20 right-4 w-10 h-10 rounded-xl lg:bottom-6 lg:right-6 lg:w-11 lg:h-11 lg:rounded-full"
+          className="footer-back-to-top fixed z-40 flex items-center justify-center border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[background-color,border-color,transform] duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] bottom-[var(--mobile-footer-bar-height)] right-4 w-10 h-10 rounded-xl lg:bottom-6 lg:right-6 lg:w-11 lg:h-11 lg:rounded-full"
           aria-label="Вернуться наверх"
         >
           <ArrowUp className="w-5 h-5" aria-hidden />

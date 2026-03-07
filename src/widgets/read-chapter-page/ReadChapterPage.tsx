@@ -104,7 +104,14 @@ function ReadChapterPageContent({
     showHints,
     showProgress,
     getQualityValue,
+    hapticEnabled,
   } = useReaderSettingsContext();
+
+  const triggerHaptic = useCallback(() => {
+    if (hapticEnabled && typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  }, [hapticEnabled]);
   
   const imageQuality = getQualityValue();
   const [fetchChapterById] = useLazyGetChapterByIdQuery();
@@ -541,16 +548,16 @@ function ReadChapterPageContent({
         case "ArrowLeft":
           if (currentChapterIndex > 0) {
             const prevChapter = chapters[currentChapterIndex - 1];
-            // Очищаем позиции чтения других глав перед переходом
             clearOtherChaptersPositions(titleId, prevChapter._id);
+            triggerHaptic();
             router.push(getChapterPath(prevChapter._id));
           }
           break;
         case "ArrowRight":
           if (currentChapterIndex < chapters.length - 1) {
             const nextChapter = chapters[currentChapterIndex + 1];
-            // Очищаем позиции чтения других глав перед переходом
             clearOtherChaptersPositions(titleId, nextChapter._id);
+            triggerHaptic();
             router.push(getChapterPath(nextChapter._id));
           }
           break;
@@ -564,7 +571,7 @@ function ReadChapterPageContent({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [currentChapterIndex, chapters, titleId, router, getChapterPath]);
+  }, [currentChapterIndex, chapters, titleId, router, getChapterPath, triggerHaptic]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -680,14 +687,30 @@ function ReadChapterPageContent({
 
     if (isPagedMode) {
       if (diffX > minSwipeDistance) {
-        // Свайп влево - следующая страница
-        setCurrentPage(prev => Math.min(chapter.images.length, prev + 1));
+        // Свайп влево
+        if (currentPage >= chapter.images.length && currentChapterIndex < chapters.length - 1) {
+          const nextChapter = chapters[currentChapterIndex + 1];
+          clearOtherChaptersPositions(titleId, nextChapter._id);
+          triggerHaptic();
+          router.push(getChapterPath(nextChapter._id));
+        } else if (chapter.images.length > 0) {
+          setCurrentPage(prev => Math.min(chapter.images.length, Math.max(1, prev + 1)));
+          triggerHaptic();
+        }
       } else if (diffX < -minSwipeDistance) {
-        // Свайп вправо - предыдущая страница
-        setCurrentPage(prev => Math.max(1, prev - 1));
+        // Свайп вправо
+        if (currentPage <= 1 && currentChapterIndex > 0) {
+          const prevChapter = chapters[currentChapterIndex - 1];
+          clearOtherChaptersPositions(titleId, prevChapter._id);
+          triggerHaptic();
+          router.push(getChapterPath(prevChapter._id));
+        } else if (chapter.images.length > 0) {
+          setCurrentPage(prev => Math.max(1, prev - 1));
+          triggerHaptic();
+        }
       }
     }
-  }, [isPagedMode, chapter.images.length]);
+  }, [isPagedMode, chapter.images.length, currentPage, currentChapterIndex, chapters, titleId, getChapterPath, router, triggerHaptic]);
 
   // Загрузка настройки предзагрузки из localStorage
   useEffect(() => {
@@ -1217,16 +1240,16 @@ function ReadChapterPageContent({
         onPrev={() => {
           if (currentChapterIndex > 0) {
             const prevChapter = chapters[currentChapterIndex - 1];
-            // Очищаем позиции чтения других глав перед переходом
             clearOtherChaptersPositions(titleId, prevChapter._id);
+            triggerHaptic();
             router.push(getChapterPath(prevChapter._id));
           }
         }}
         onNext={() => {
           if (currentChapterIndex < chapters.length - 1) {
             const nextChapter = chapters[currentChapterIndex + 1];
-            // Очищаем позиции чтения других глав перед переходом
             clearOtherChaptersPositions(titleId, nextChapter._id);
+            triggerHaptic();
             router.push(getChapterPath(nextChapter._id));
           }
         }}
@@ -1265,6 +1288,9 @@ function ReadChapterPageContent({
           setCurrentPage(page);
         }}
         chapterImages={effectiveChapter.images}
+        shareChapterUrl={typeof window !== "undefined" ? `${window.location.origin}${getChapterPath(effectiveChapter._id)}` : undefined}
+        shareTitleName={title.title}
+        shareChapterNumber={effectiveChapter.number}
       />
 
       {/* Хедер */}
@@ -1285,6 +1311,7 @@ function ReadChapterPageContent({
           if (currentChapterIndex > 0) {
             const prevChapter = chapters[currentChapterIndex - 1];
             clearOtherChaptersPositions(titleId, prevChapter._id);
+            triggerHaptic();
             router.push(getChapterPath(prevChapter._id));
           }
         }}
@@ -1292,6 +1319,7 @@ function ReadChapterPageContent({
           if (currentChapterIndex < chapters.length - 1) {
             const nextChapter = chapters[currentChapterIndex + 1];
             clearOtherChaptersPositions(titleId, nextChapter._id);
+            triggerHaptic();
             router.push(getChapterPath(nextChapter._id));
           }
         }}

@@ -7,9 +7,10 @@ import LoadingState from "@/shared/profile/ProfileLoading";
 
 import { Footer, Header, BookmarksSection } from "@/widgets";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
+import { PullToRefresh } from "@/shared/pull-to-refresh/PullToRefresh";
 
 export default function BookmarksPage() {
-  const { userProfile, isLoading, authLoading } = useProfile();
+  const { userProfile, isLoading, authLoading, refetch } = useProfile();
 
   // SEO для страницы закладок
   useSEO(seoConfigs.bookmarks);
@@ -28,12 +29,14 @@ export default function BookmarksPage() {
         <Header />
 
         <div className="max-w-7xl mx-auto px-4 py-4 pb-20 md:pb-0">
-          <div className="mb-6 pt-8">
-            <h1 className="text-2xl font-bold text-[var(--foreground)]">Мои закладки</h1>
-            <p className="text-[var(--muted-foreground)] mt-2">Все сохраненные вами манги</p>
-          </div>
+          <PullToRefresh onRefresh={refetch} mobileOnly>
+            <div className="mb-6 pt-8">
+              <h1 className="text-2xl font-bold text-[var(--foreground)]">Мои закладки</h1>
+              <p className="text-[var(--muted-foreground)] mt-2">Все сохраненные вами манги</p>
+            </div>
 
-          <BookmarksSection bookmarks={userProfile.bookmarks} readingHistory={userProfile.readingHistory} showAll={true} />
+            <BookmarksSection bookmarks={userProfile.bookmarks} readingHistory={userProfile.readingHistory} showAll={true} />
+          </PullToRefresh>
         </div>
 
         <Footer />

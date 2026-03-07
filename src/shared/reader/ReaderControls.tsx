@@ -22,6 +22,7 @@ import { CommentEntityType } from "@/types/comment";
 import { ReportModal } from "@/shared/report/ReportModal";
 import { useAutoScroll, useBookmark, useReaderSettingsContext, useRefreshButton } from "./hooks";
 import PageThumbnails from "./PageThumbnails";
+import { ShareChapterButton } from "@/shared/share/ShareChapterButton";
 import { ReaderSettingsPanelContent } from "./ReaderSettingsPanelContent";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
 
@@ -50,6 +51,9 @@ interface ReaderControlsProps {
   preloadProgress?: number;
   onJumpToPage?: (page: number) => void;
   chapterImages?: string[];
+  shareChapterUrl?: string;
+  shareTitleName?: string;
+  shareChapterNumber?: number;
 }
 
 export default function ReaderControls({
@@ -77,6 +81,9 @@ export default function ReaderControls({
   preloadProgress = 0,
   onJumpToPage,
   chapterImages = [],
+  shareChapterUrl,
+  shareTitleName,
+  shareChapterNumber,
 }: ReaderControlsProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -564,6 +571,16 @@ export default function ReaderControls({
               <Bookmark className="w-5 h-5" fill={isBookmarked ? "currentColor" : "none"} />
             )}
           </button>
+
+          {shareChapterUrl && shareTitleName != null && shareChapterNumber != null && (
+            <ShareChapterButton
+              titleName={shareTitleName}
+              chapterNumber={shareChapterNumber}
+              chapterUrl={shareChapterUrl}
+              className="p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95"
+              ariaLabel="Поделиться главой"
+            />
+          )}
 
           <button
             type="button"

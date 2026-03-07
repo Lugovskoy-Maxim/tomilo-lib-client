@@ -11,6 +11,7 @@ import { TitlesSection } from "@/shared/admin/TitlesSection";
 import { UnpublishedTitlesSection } from "@/shared/admin/UnpublishedTitlesSection";
 import { TranslatorsSection } from "@/shared/admin/TranslatorsSection";
 import { UsersSection } from "@/shared/admin/UsersSection";
+import { BotDetectionSection } from "@/shared/admin/BotDetectionSection";
 import { CommentsSection } from "@/shared/admin/CommentsSection";
 import { ReportsSection } from "@/shared/admin/ReportsSection";
 import { IpManagementSection } from "@/shared/admin/IpManagementSection";
@@ -90,6 +91,7 @@ export default function AdminPageClient() {
       achievements: "Достижения",
       comments: "Комментарии",
       users: "Пользователи",
+      bots: "Подозрительные / Боты",
       reports: "Жалобы",
       notifications: "Уведомления",
       "ip-management": "IP-управление",
@@ -139,6 +141,8 @@ export default function AdminPageClient() {
         return <CommentsSection />;
       case "users":
         return <UsersSection />;
+      case "bots":
+        return <BotDetectionSection />;
       case "reports":
         return <ReportsSection />;
       case "notifications":

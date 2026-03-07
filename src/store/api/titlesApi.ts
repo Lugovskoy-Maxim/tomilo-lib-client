@@ -624,7 +624,48 @@ export const titlesApi = createApi({
       providesTags: [TITLES_TAG],
       transformResponse: (
         response: ApiResponseDto<
-          {
+          | {
+              id: string;
+              slug?: string;
+              title: string;
+              cover: string;
+              chapter: string;
+              chapterNumber: number;
+              chapters?: number[];
+              timeAgo: string;
+              releaseYear?: number;
+              type?: string;
+              isAdult?: boolean;
+            }[]
+          | { data?: unknown[]; items?: unknown[]; updates?: unknown[] }
+        >,
+      ) => {
+        const raw = response?.data;
+        const list: unknown[] = Array.isArray(raw)
+          ? raw
+          : (raw as { data?: unknown[] })?.data ??
+            (raw as { items?: unknown[] })?.items ??
+            (raw as { updates?: unknown[] })?.updates ??
+            [];
+        if (!list.length) return { ...response, data: [] };
+        const data = list.map((item: unknown) => {
+          const it = item as Record<string, unknown>;
+          const raw = it.chapters as number[] | { numbers?: number[] } | undefined;
+          const numbers: number[] = Array.isArray(raw)
+            ? raw
+            : Array.isArray((raw as { numbers?: number[] })?.numbers)
+              ? (raw as { numbers?: number[] }).numbers ?? []
+              : [];
+          let chapter: string;
+          if (numbers.length > 0) {
+            chapter =
+              numbers.length === 1
+                ? `Глава ${numbers[0]}`
+                : `Главы ${formatChapterRanges(numbers)}`;
+          } else {
+            chapter = (it.chapter as string) ?? "";
+          }
+          return { ...it, chapter } as {
             id: string;
             slug?: string;
             title: string;
@@ -636,27 +677,7 @@ export const titlesApi = createApi({
             releaseYear?: number;
             type?: string;
             isAdult?: boolean;
-          }[]
-        >,
-      ) => {
-        if (!response?.data?.length) return response;
-        const data = response.data.map(item => {
-          const raw = item.chapters as number[] | { numbers?: number[] } | undefined;
-          const numbers = Array.isArray(raw)
-            ? raw
-            : Array.isArray(raw?.numbers)
-              ? raw.numbers
-              : [];
-          let chapter: string;
-          if (numbers.length > 0) {
-            chapter =
-              numbers.length === 1
-                ? `Глава ${numbers[0]}`
-                : `Главы ${formatChapterRanges(numbers)}`;
-          } else {
-            chapter = item.chapter ?? "";
-          }
-          return { ...item, chapter };
+          };
         });
         return { ...response, data };
       },
@@ -749,6 +770,25 @@ export const titlesApi = createApi({
       }),
       invalidatesTags: [TITLES_TAG],
     }),
+
+    // Прогресс чтения пользователя по всем тайтлам (auth)
+    getReadingProgress: builder.query<
+      ApiResponseDto<
+        {
+          titleId: string;
+          title?: { name?: string; title?: string; slug?: string; cover?: string; coverImage?: string };
+          lastChapterNumber?: number;
+          readChaptersCount?: number;
+          totalChapters?: number;
+          lastReadAt?: string;
+        }[]
+      >,
+      void
+    >({
+      query: () => "/titles/user/reading-progress",
+      providesTags: [TITLES_TAG],
+      transformResponse: (response: ApiResponseDto<unknown>) => response as ApiResponseDto<{ titleId: string; title?: Record<string, unknown>; lastChapterNumber?: number; readChaptersCount?: number; totalChapters?: number; lastReadAt?: string }[]>,
+    }),
   }),
 });
 
@@ -778,4 +818,5 @@ export const {
   useGetMyTitleRatingQuery,
   useGetTitlesByGenreQuery,
   useDeleteTitleMutation,
+  useGetReadingProgressQuery,
 } = titlesApi;

@@ -81,40 +81,43 @@ export const useAuth = () => {
 
     const user = profileResponse.data as StoredUser & { equipped_decorations?: StoredUser["equippedDecorations"] };
     const userId = user?.id ?? user?._id;
-    // Не диспатчить, если в сторе уже этот пользователь — иначе несколько useAuth (карточки и т.д.)
-    // все вызывают login() и получается "Maximum update depth exceeded"
-    if (userId && auth.user && (auth.user.id === userId || auth.user._id === userId)) return;
     if (lastAppliedProfileRef.current === profileResponse) return;
     lastAppliedProfileRef.current = profileResponse;
 
-    const authResponse: AuthResponse = {
-      access_token: currentToken,
-      user: {
-        _id: user._id,
-        id: user.id || user._id,
-        email: user.email,
-        username: user.username,
-        avatar: user.avatar,
-        role: user.role,
-        level: user.level,
-        experience: user.experience,
-        balance: user.balance,
-        subscriptionExpiresAt:
-          (user as { subscriptionExpiresAt?: string | null; subscription_expires_at?: string | null })
-            .subscriptionExpiresAt ??
-          (user as { subscription_expires_at?: string | null }).subscription_expires_at ??
-          null,
-        bookmarks: user.bookmarks,
-        readingHistory: user.readingHistory,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        birthDate: user.birthDate,
-        displaySettings: user.displaySettings,
-        privacy: user.privacy,
-        equippedDecorations: user.equippedDecorations ?? user.equipped_decorations,
-      },
+    const profileUser = {
+      _id: user._id,
+      id: user.id || user._id,
+      email: user.email,
+      username: user.username,
+      avatar: user.avatar,
+      role: user.role,
+      level: user.level,
+      experience: user.experience,
+      balance: user.balance,
+      subscriptionExpiresAt:
+        (user as { subscriptionExpiresAt?: string | null; subscription_expires_at?: string | null })
+          .subscriptionExpiresAt ??
+        (user as { subscription_expires_at?: string | null }).subscription_expires_at ??
+        null,
+      bookmarks: user.bookmarks,
+      readingHistory: user.readingHistory,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      birthDate: user.birthDate,
+      displaySettings: user.displaySettings,
+      privacy: user.privacy,
+      equippedDecorations: user.equippedDecorations ?? user.equipped_decorations,
     };
-    dispatch(login(authResponse));
+
+    // Если в сторе уже этот пользователь — только обновляем поля из профиля (level, balance и т.д.),
+    // чтобы не вызывать login() многократно (Maximum update depth exceeded).
+    if (userId && auth.user && (auth.user.id === userId || auth.user._id === userId)) {
+      dispatch(updateUser(profileUser));
+      if (user.birthDate) checkAndSetAgeVerification(user.birthDate);
+      return;
+    }
+
+    dispatch(login({ access_token: currentToken, user: profileUser }));
 
     if (user.birthDate) {
       checkAndSetAgeVerification(user.birthDate);

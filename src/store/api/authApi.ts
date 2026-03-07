@@ -195,10 +195,48 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
-    // Профиль пользователя
+    // Профиль пользователя (нормализуем level, experience, balance из разных форматов ответа бэкенда)
     getProfile: builder.query<ApiResponseDto<User>, void>({
       query: () => "/users/profile",
       providesTags: ["Auth"],
+      transformResponse(response: ApiResponseDto<User>): ApiResponseDto<User> {
+        if (!response?.data || typeof response.data !== "object") return response;
+        const raw = response.data as unknown as Record<string, unknown>;
+        const stats = raw.stats as Record<string, unknown> | undefined;
+        const level =
+          typeof raw.level === "number"
+            ? raw.level
+            : typeof stats?.level === "number"
+              ? stats.level
+              : undefined;
+        const experience =
+          typeof raw.experience === "number"
+            ? raw.experience
+            : typeof raw.xp === "number"
+              ? raw.xp
+              : typeof stats?.experience === "number"
+                ? stats.experience
+                : typeof stats?.xp === "number"
+                  ? stats.xp
+                  : undefined;
+        const balance =
+          typeof raw.balance === "number"
+            ? raw.balance
+            : typeof raw.coins === "number"
+              ? raw.coins
+              : typeof stats?.balance === "number"
+                ? stats.balance
+                : typeof stats?.coins === "number"
+                  ? stats.coins
+                  : undefined;
+        const data = {
+          ...response.data,
+          ...(level !== undefined && { level }),
+          ...(experience !== undefined && { experience }),
+          ...(balance !== undefined && { balance }),
+        } as User;
+        return { ...response, data };
+      },
     }),
 
     getProfileByUsername: builder.query<ApiResponseDto<User>, string>({

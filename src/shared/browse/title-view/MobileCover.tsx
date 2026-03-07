@@ -4,6 +4,7 @@ import { Title, Chapter } from "@/types/title";
 import type { ReadingHistoryEntry } from "@/types/store";
 import { ReadButton } from "@/shared/browse/ReadButton";
 import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
+import { SubscribeButton } from "@/shared/browse/title-view/SubscribeButton";
 import { useAuth } from "@/hooks/useAuth";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useState } from "react";
@@ -84,31 +85,32 @@ export default function MobileCover({
           />
         </div>
         
-        {/* Вторичные действия */}
-        <div className="flex gap-2">
+        {/* Вторичные действия: сетка 2 колонки — на мобильном не сжимает кнопки */}
+        <div className="grid grid-cols-2 gap-2">
+          <SubscribeButton titleId={titleData._id as string} className="min-w-0" />
           <button
             onClick={() => setIsReportModalOpen(true)}
-            className="flex-1 h-11 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors flex items-center justify-center gap-2"
+            className="h-11 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors flex items-center justify-center gap-2"
             aria-label="Сообщить о проблеме"
           >
-            <AlertTriangle className="w-4 h-4" />
-            <span className="text-sm">Сообщить</span>
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span className="text-sm truncate">Сообщить</span>
           </button>
           <button
             onClick={onShare}
-            className="flex-1 h-11 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors flex items-center justify-center gap-2"
+            className="h-11 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors flex items-center justify-center gap-2"
             aria-label="Поделиться"
           >
-            <Share className="w-4 h-4" />
-            <span className="text-sm">Поделиться</span>
+            <Share className="w-4 h-4 shrink-0" />
+            <span className="text-sm truncate">Поделиться</span>
           </button>
           {isAdmin && (
             <Link
               href={`/admin/titles/edit/${titleData._id}`}
-              className="flex-1 h-11 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors flex items-center justify-center gap-2"
+              className="h-11 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 transition-colors flex items-center justify-center gap-2"
               aria-label="Редактировать"
             >
-              <Edit className="w-4 h-4" />
+              <Edit className="w-4 h-4 shrink-0" />
               <span className="text-sm">Изменить</span>
             </Link>
           )}

@@ -4,6 +4,7 @@ import { UserProfile } from "@/types/user";
 import { ProfileBookmarksLibrary, ReadingHistorySection } from "@/widgets";
 import ProfileAchievements from "./ProfileAchievements";
 import ContinueReading from "./ContinueReading";
+import ReadingProgressBlock from "./ReadingProgressBlock";
 import ProfileQuickActions from "./ProfileQuickActions";
 import DailyBonus from "./DailyBonus";
 import NextRankProgress from "./NextRankProgress";
@@ -45,6 +46,7 @@ export default function ProfileContent({
       {!isPublicView && <ProfileWelcome userProfile={userProfile} />}
       {!isPublicView && <ProfileQuickActions />}
       {!isPublicView && <ContinueReading userProfile={userProfile} />}
+      {!isPublicView && <ReadingProgressBlock />}
       {!isPublicView && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <NextRankProgress userProfile={userProfile} onShowStats={onShowStats} />

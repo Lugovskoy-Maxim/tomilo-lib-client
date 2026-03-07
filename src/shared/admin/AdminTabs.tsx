@@ -34,6 +34,7 @@ import {
   Command,
   Ticket,
   EyeOff,
+  Bot,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -54,6 +55,7 @@ export type AdminTab =
   | "achievements"
   | "comments"
   | "users"
+  | "bots"
   | "reports"
   | "notifications"
   | "ip-management"
@@ -78,6 +80,7 @@ export const ADMIN_TABS: AdminTab[] = [
       "achievements",
   "comments",
   "users",
+  "bots",
   "reports",
   "notifications",
   "ip-management",
@@ -134,6 +137,7 @@ const tabGroups: TabGroup[] = [
     tabs: [
       { id: "comments", label: "Комментарии", icon: MessageCircle },
       { id: "users", label: "Пользователи", icon: Users, shortcut: "U" },
+      { id: "bots", label: "Подозрительные / Боты", icon: Bot },
       { id: "reports", label: "Жалобы", icon: AlertTriangle, shortcut: "R" },
       { id: "notifications", label: "Уведомления", icon: Bell },
     ],

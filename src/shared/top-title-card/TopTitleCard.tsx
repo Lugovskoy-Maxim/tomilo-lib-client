@@ -91,7 +91,9 @@ export default function TopTitleCard({ data }: TopTitleCardProps) {
                   </span>
                 )}
               </div>
-              <h3 className="font-semibold text-sm sm:text-base text-[var(--foreground)] line-clamp-2 leading-tight group-hover:text-[var(--primary)] transition-colors duration-300">
+              <h3
+                className={`font-semibold text-sm sm:text-base text-[var(--foreground)] line-clamp-2 leading-tight group-hover:text-[var(--primary)] transition-colors duration-300 ${data.isAdult && !isAgeVerified ? "blur-sm select-none" : ""}`}
+              >
                 {data.title}
               </h3>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[var(--muted-foreground)]">

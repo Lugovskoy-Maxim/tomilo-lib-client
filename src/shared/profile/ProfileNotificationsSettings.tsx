@@ -3,6 +3,7 @@ import { Bell, HelpCircle } from "lucide-react";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import Tooltip from "@/shared/ui/Tooltip";
+import { PushSubscribeButton } from "./PushSubscribeButton";
 
 interface ProfileNotificationsSettingsProps {
   userProfile: UserProfile;
@@ -187,6 +188,11 @@ export default function ProfileNotificationsSettings({
               />
             </label>
           </div>
+        </div>
+
+        <div className="pt-2">
+          <span className="text-[11px] text-[var(--muted-foreground)] uppercase tracking-wider block mb-2">Браузер</span>
+          <PushSubscribeButton />
         </div>
       </div>
     </div>

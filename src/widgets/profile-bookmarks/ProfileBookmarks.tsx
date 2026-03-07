@@ -7,6 +7,7 @@ import type { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import BookmarkGridCard from "@/shared/bookmark-card/BookmarkGridCard";
 import { Bookmark, ChevronUp, Search, ArrowUpDown, X } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useGetBookmarkCountsQuery } from "@/store/api/authApi";
 
@@ -186,8 +187,11 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  // Запрос количества закладок по категориям с сервера
-  const { data: bookmarkCountsData } = useGetBookmarkCountsQuery();
+  const { isAuthenticated } = useAuth();
+  // Запрос количества закладок по категориям с сервера (только для авторизованных)
+  const { data: bookmarkCountsData } = useGetBookmarkCountsQuery(undefined, {
+    skip: !isAuthenticated,
+  });
   const serverCounts = bookmarkCountsData?.data;
 
   useEffect(() => {
