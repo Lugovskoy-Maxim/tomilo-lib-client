@@ -268,7 +268,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="gradient-divider my-8" />
+          <div className="h-px my-8 opacity-50 [background:linear-gradient(90deg,transparent_0%,var(--border)_20%,var(--primary)_50%,var(--border)_80%,transparent_100%)]" aria-hidden />
 
           <div className="footer-desktop-bottom flex flex-col items-center gap-5 sm:flex-row sm:justify-between sm:items-center text-[var(--muted-foreground)] text-sm">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 sm:justify-start">
@@ -288,7 +288,7 @@ export default function Footer() {
                 Сайт разработан: @TomiloDev
                 <ExternalLink className="w-3 h-3 opacity-70" aria-hidden />
               </Link>
-              <span className="footer-version">Версия 03032025</span>
+              <span className="footer-version py-1.5 px-3 rounded-xl whitespace-nowrap text-[var(--muted-foreground)]">Версия 03032025</span>
             </div>
           </div>
         </div>
@@ -299,7 +299,7 @@ export default function Footer() {
         <button
           type="button"
           onClick={scrollToTop}
-          className="footer-back-to-top fixed z-40 flex items-center justify-center shadow-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 bottom-20 right-4 w-10 h-10 rounded-xl lg:bottom-6 lg:right-6 lg:w-11 lg:h-11 lg:rounded-full"
+          className="footer-back-to-top fixed z-40 flex items-center justify-center shadow-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,border-color,transform] duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 bottom-20 right-4 w-10 h-10 rounded-xl lg:bottom-6 lg:right-6 lg:w-11 lg:h-11 lg:rounded-full"
           aria-label="Вернуться наверх"
         >
           <ArrowUp className="w-5 h-5" aria-hidden />

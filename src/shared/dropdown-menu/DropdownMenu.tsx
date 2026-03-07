@@ -334,7 +334,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
         )}
       </div>
 
-      <div className="dropdown-divider" aria-hidden />
+      <div className="h-px bg-[var(--border)] my-1 mx-2" aria-hidden />
 
       <div className="p-1.5">
         <button

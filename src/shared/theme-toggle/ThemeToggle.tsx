@@ -97,16 +97,16 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`theme-toggle-btn ${isLoadingTheme ? "theme-toggle-btn--loading" : ""}`}
+      className={`theme-toggle-btn relative flex items-center justify-center min-w-10 min-h-10 p-2 rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] cursor-pointer transition-all duration-300 ${isLoadingTheme ? "theme-toggle-btn--loading opacity-70 pointer-events-none" : ""}`}
       aria-label={`Тема: ${currentTheme.label}. Нажмите для смены`}
       title={`Тема: ${currentTheme.label}`}
       disabled={!mounted || isLoadingTheme}
     >
-      <span className="theme-toggle-btn__glow" aria-hidden />
+      <span className="theme-toggle-btn__glow absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none -z-0" aria-hidden />
       {isLoadingTheme ? (
-        <Loader2 className="theme-toggle-btn__icon theme-toggle-btn__icon--spin" />
+        <Loader2 className="theme-toggle-btn__icon theme-toggle-btn__icon--spin relative z-[1] w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300" />
       ) : (
-        <Icon className="theme-toggle-btn__icon" />
+        <Icon className="theme-toggle-btn__icon relative z-[1] w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300" />
       )}
     </button>
   );

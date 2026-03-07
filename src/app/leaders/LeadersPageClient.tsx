@@ -889,7 +889,21 @@ function PodiumUserModal({
   onClose: () => void;
 }) {
   const [showCardOnly, setShowCardOnly] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const { data: profileResponse } = useGetProfileByIdQuery(user._id);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
   const profileData = profileResponse?.success && profileResponse?.data ? (profileResponse.data as unknown as Record<string, unknown>) : undefined;
   const displayUser = useMemo(() => mergeLeaderForModal(user, profileData), [user, profileData]);
 
@@ -933,15 +947,15 @@ function PodiumUserModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="podium-modal-title"
     >
       <div
-        className={`relative w-auto max-w-[calc(100vw-2rem)] rounded-2xl border shadow-xl aspect-[9/19] flex flex-col overflow-hidden bg-[var(--card)] ${rarityGlowClass} ${cardRarity && cardRarity !== "common" ? "border-2" : ""} ${cardRarity === "legendary" ? "border-amber-400/80" : cardRarity === "epic" ? "border-purple-500/70" : cardRarity === "rare" ? "border-blue-500/70" : "border-[var(--border)]"}`}
-        style={{ height: "clamp(450px, 70vh, 70vh)" }}
+        className={`relative w-auto min-w-[260px] max-w-[min(400px,calc(100vw-2rem))] rounded-2xl border shadow-xl aspect-[9/19] flex flex-col overflow-hidden bg-[var(--card)] ${rarityGlowClass} ${cardRarity && cardRarity !== "common" ? "border-2" : ""} ${cardRarity === "legendary" ? "border-amber-400/80" : cardRarity === "epic" ? "border-purple-500/70" : cardRarity === "rare" ? "border-blue-500/70" : "border-[var(--border)]"}`}
+        style={{ height: "clamp(400px, 85vh, 85vh)", maxHeight: "calc(100dvh - 2rem)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {cardUrl && (
@@ -979,7 +993,10 @@ function PodiumUserModal({
         </header>
 
         {!showCardOnly && (
-        <div className="relative z-10 flex flex-col flex-1 min-h-0 overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className="relative z-10 flex flex-col flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth custom-scrollbar"
+        >
           <div className="flex flex-col items-center text-center pt-0 px-3 pb-2 bg-transparent shrink-0">
             <div className="p-4 shrink-0">
               <div className="relative w-20 h-20 shrink-0">
@@ -1002,9 +1019,12 @@ function PodiumUserModal({
                 )}
               </div>
             </div>
-            <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold truncate max-w-full px-1">
-              <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm ${isPremiumActive(displayUser.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}>
-                {displayUser.username}
+            <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold max-w-full px-1 min-w-0">
+              <span
+                className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm max-w-full min-w-0 ${isPremiumActive(displayUser.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
+                title={displayUser.username}
+              >
+                <span className="truncate">{displayUser.username}</span>
                 {isPremiumActive(displayUser.subscriptionExpiresAt) && (
                   <PremiumBadge size="xs" className="shrink-0" ariaLabel="Премиум-подписчик" />
                 )}
@@ -1015,8 +1035,8 @@ function PodiumUserModal({
                 {displayUser.role}
               </span>
             )}
-            <p className="mt-1 text-[11px] text-[var(--muted-foreground)]">
-              <span className="inline-block px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm">
+            <p className="mt-1 text-[11px] text-[var(--muted-foreground)] max-w-full min-w-0">
+              <span className="inline-block max-w-full truncate px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm" title={getRankDisplay(level).split("  ")[0]}>
                 {getRankDisplay(level).split("  ")[0]}
               </span>
             </p>
@@ -1024,9 +1044,9 @@ function PodiumUserModal({
 
           <div className="flex-1 min-h-0" aria-hidden />
 
-          <div className="relative z-10 px-3 pb-3 pt-2 flex flex-col gap-3 shrink-0">
+          <div className="relative z-10 px-3 pb-6 pt-2 flex flex-col gap-3 shrink-0">
             {stats.length > 0 && (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm px-3 py-2.5">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm px-3 py-2.5 min-w-0 overflow-hidden">
                 <p className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-1.5 px-0.5">
                   Показатели
                 </p>
@@ -1038,10 +1058,10 @@ function PodiumUserModal({
                     return (
                       <div key={label} className="flex items-start gap-1.5 min-w-0">
                         <Icon className="w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
-                        <div className="min-w-0 text-left overflow-hidden">
+                        <div className="min-w-0 flex-1 text-left overflow-hidden">
                           <p className="text-[10px] text-[var(--muted-foreground)] leading-tight truncate" title={label}>{label}</p>
-                          <p className="text-[11px] font-semibold text-[var(--foreground)] leading-tight flex flex-wrap items-center gap-x-1 gap-y-0.5">
-                            <span className="truncate max-w-full">{value}</span>
+                          <p className="text-[11px] font-semibold text-[var(--foreground)] leading-tight flex flex-wrap items-center gap-x-1 gap-y-0.5 min-w-0">
+                            <span className="truncate">{value}</span>
                             {bestPos != null && (
                               <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-medium shrink-0" title={`Топ ${bestPos}`}>
                                 <Trophy className="w-2.5 h-2.5" aria-hidden />
