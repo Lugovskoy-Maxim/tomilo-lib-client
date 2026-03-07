@@ -496,7 +496,7 @@ export default function FilterSidebar<
       className="sticky top-20 flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[0_1px_3px_var(--border)] overflow-hidden"
       aria-label="Фильтры каталога"
     >
-      <div className="max-h-[calc(100vh-6rem)] overflow-y-auto px-4 py-4 custom-scrollbar">
+      <div className="max-h-[calc(100dvh-6rem)] overflow-y-auto px-4 py-4 custom-scrollbar">
         {content}
       </div>
     </aside>

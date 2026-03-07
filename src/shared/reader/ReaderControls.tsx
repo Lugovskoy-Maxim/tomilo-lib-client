@@ -692,8 +692,8 @@ export default function ReaderControls({
         )}
       </div>
 
-      {/* Мобильное нижнее меню */}
-      <div className="sm:hidden fixed bottom-2 z-[55] left-0 right-0 overflow-visible">
+      {/* Мобильное нижнее меню — отступ снизу с учётом safe-area (вырез/домашняя полоска) */}
+      <div className="sm:hidden fixed bottom-0 z-[55] left-0 right-0 overflow-visible pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-2">
         {/* Свернутое меню - только иконка бургер (пока закомментировано)
         <button
           onClick={() => {

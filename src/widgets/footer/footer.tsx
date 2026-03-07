@@ -197,7 +197,7 @@ export default function Footer() {
   return (
     <footer className="relative w-full">
       {/* Десктопный футер */}
-      <div className="footer-desktop w-full mt-auto hidden lg:block bg-[rgba(var(--background-rgb),0.9)] dark:bg-[rgba(8,8,12,0.92)] backdrop-blur-[16px] border-t border-[rgba(var(--border-rgb),0.5)] dark:border-[rgba(255,255,255,0.06)]" role="contentinfo" aria-label="Подвал сайта">
+      <div className="footer-desktop w-full mt-auto hidden lg:block bg-white dark:bg-[rgba(8,8,12,0.92)] backdrop-blur-[16px] border-t border-[rgba(var(--border-rgb),0.65)] dark:border-[rgba(255,255,255,0.06)]" role="contentinfo" aria-label="Подвал сайта">
         <div className="footer-desktop-inner min-w-0 w-full max-w-7xl mx-auto px-4 py-10 sm:px-6 md:px-8 lg:px-10 xl:py-12">
           <div className="footer-desktop-grid min-w-0 grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-10 mb-10 [&>*]:min-w-0">
             {/* Колонка 1: Логотип */}

@@ -1296,7 +1296,7 @@ function ReadChapterPageContent({
 
       {/* Основной контент */}
       <main
-        className={`pt-20 sm:pt-24 ${isMenuCollapsed ? "pb-0" : "pb-16"} reader-scroll-container`}
+        className={`pt-20 sm:pt-24 ${isMenuCollapsed ? "pb-0" : "pb-[calc(4rem+env(safe-area-inset-bottom,0px))]"} reader-scroll-container reader-prevent-refresh`}
         onClick={handleMobileTap}
       >
         <div className="container mx-auto">
@@ -2153,7 +2153,7 @@ function ReadChapterPageContent({
       {isHeaderVisible && lastScrollY > 600 && (
         <button
           onClick={scrollToTop}
-          className="fixed left-4 z-[50] p-3 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg transition-all duration-300 hover:bg-[var(--accent)] hover:scale-110 active:scale-95 bottom-20 sm:bottom-6 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          className="fixed left-4 z-[50] p-3 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg transition-all duration-300 hover:bg-[var(--accent)] hover:scale-110 active:scale-95 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 animate-in fade-in slide-in-from-bottom-4 duration-300"
           title="Вернуться наверх"
         >
           <ChevronUp className="w-5 h-5 text-[var(--foreground)]" />

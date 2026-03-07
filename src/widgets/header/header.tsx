@@ -167,8 +167,8 @@ export default function Header() {
   return (
     <>
       <header
-        className={`relative z-[var(--z-dropdown)] w-full h-[var(--header-height)] transition-all duration-300 bg-[rgba(var(--background-rgb),0.8)] dark:bg-[rgba(8,8,12,0.92)] backdrop-blur-[20px] max-sm:backdrop-blur-[16px] border-b border-[rgba(var(--border-rgb),0.5)] dark:border-[rgba(255,255,255,0.06)] shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] ${
-          isScrolled ? "shadow-[0_8px_32px_rgba(0,0,0,0.15)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]" : ""
+        className={`relative z-[var(--z-dropdown)] w-full h-[var(--header-height)] transition-all duration-300 bg-white dark:bg-[rgba(8,8,12,0.92)] backdrop-blur-[20px] max-sm:backdrop-blur-[16px] border-b border-[rgba(var(--border-rgb),0.65)] dark:border-[rgba(255,255,255,0.06)] shadow-[0_4px_30px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] ${
+          isScrolled ? "shadow-[0_8px_32px_rgba(0,0,0,0.12),0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]" : ""
         }`}
       >
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-3 relative">

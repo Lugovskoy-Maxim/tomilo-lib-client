@@ -103,6 +103,12 @@ body {
   font-size: 14px;
 }
 
+/* Светлая тема: явно белый фон хедера и десктопного футера (по выбору темы в приложении, не по системной) */
+html:not(.dark) header,
+html:not(.dark) .footer-desktop {
+  background-color: #ffffff !important;
+}
+
 /* Шрифт из настроек (localStorage) */
 html.font-comfortaa body {
   font-family: var(--font-comfortaa), var(--font-exo_2), Arial, Helvetica, sans-serif;
