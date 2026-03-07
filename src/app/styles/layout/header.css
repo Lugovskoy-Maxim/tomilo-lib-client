@@ -1,9 +1,10 @@
 /* --- HEADER --- */
 /* Стили header-icon-btn и theme-toggle-btn перенесены в Tailwind (header.tsx, ThemeToggle.tsx, NotificationButton.tsx). */
 
-/* Кнопка-триггер поиска в хедере (десктоп) — доп. стили поверх search-trigger */
+/* Кнопка-триггер поиска в хедере (десктоп) — доп. стили поверх search-trigger, закругление как у остальных кнопок (rounded-xl) */
 .header-search .search-trigger {
   max-width: 100%;
+  border-radius: 0.75rem; /* rounded-xl — как у header-icon-btn */
 }
 .header-search .search-trigger:focus-visible {
   outline: none;

@@ -367,7 +367,7 @@ export default function FeaturedTitleBlock({
           </div>
         )}
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-3 py-4 sm:px-6 sm:py-5 md:px-8 md:py-8 gap-4 sm:gap-5 md:gap-8">
+        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-3 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5 md:px-8 md:pt-10 md:pb-8 gap-4 sm:gap-5 md:gap-8">
           {/* Мобильная версия: горизонтальная компоновка обложки и основной информации */}
           <div className="flex md:hidden gap-4 w-full min-w-0">
             <Link

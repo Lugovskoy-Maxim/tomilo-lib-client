@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { FontProvider } from "@/contexts/FontContext";
 import { ProgressNotificationProvider } from "@/contexts/ProgressNotificationContext";
+import { OverlayProvider } from "@/contexts/OverlayContext";
 
 import { Suspense } from "react";
 import Script from "next/script";
@@ -265,13 +266,14 @@ export default function RootLayout({
           <Providers>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange storageKey="theme">
               <FontProvider>
+                <OverlayProvider>
                 <div className="contents">
                   <Suspense fallback={null}>
                     <CardTiltEffect />
                   </Suspense>
                   <MobileFooterSpacer>{children}</MobileFooterSpacer>
                   {/* Уведомления внизу экрана: cookie внизу, Telegram выше; не перекрывают друг друга */}
-                  <div className="fixed bottom-4 left-0 right-0 z-50 flex flex-col-reverse items-center gap-3 px-4 pointer-events-none">
+                  <div className="fixed bottom-4 left-0 right-0 z-[100] flex flex-col-reverse items-center gap-3 px-4 pointer-events-none">
                     <div className="pointer-events-auto w-full max-w-md mx-auto">
                       <CookieConsent />
                     </div>
@@ -389,6 +391,7 @@ export default function RootLayout({
                     }}
                   />
                 </div>
+                </OverlayProvider>
               </FontProvider>
             </ThemeProvider>
           </Providers>

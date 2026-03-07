@@ -20,6 +20,12 @@ const PERIOD_LABELS: Record<(typeof PERIODS)[number], string> = {
   week: "Неделя",
   month: "Месяц",
 };
+/** Для фразы «По просмотрам за …» — винительный падеж: день, неделю, месяц */
+const PERIOD_LABELS_ACCUSATIVE: Record<(typeof PERIODS)[number], string> = {
+  day: "день",
+  week: "неделю",
+  month: "месяц",
+};
 
 export interface TopTitlesSectionProps {
   /** На отдельной странице (/top) — без ссылки «Весь топ». На главной — показать ссылку. */
@@ -163,7 +169,7 @@ export default function TopTitlesSection({ standalone = false, limit = DEFAULT_L
               Топ тайтлов
             </h2>
             <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-              По просмотрам за {PERIOD_LABELS[activePeriod].toLowerCase()}
+              По просмотрам за {PERIOD_LABELS_ACCUSATIVE[activePeriod]}
             </p>
           </div>
         </div>

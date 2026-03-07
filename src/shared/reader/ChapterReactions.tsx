@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Loader2, Star } from "lucide-react";
+import { Loader2, Star, MessageCircle, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   CHAPTER_ALLOWED_REACTION_EMOJIS,
@@ -239,7 +239,7 @@ export function ChapterReactions({
 
   if (apiUnavailable) {
     return (
-      <div className="rounded-xl border border-[var(--border)]/30 bg-[var(--card)]/60 px-4 py-3">
+      <div className="rounded-2xl border border-[var(--border)]/40 bg-[var(--card)]/80 px-5 py-4 shadow-sm">
         <p className="text-sm text-[var(--muted-foreground)]">
           Оценка и реакции появятся после обновления сервера.
         </p>
@@ -249,29 +249,65 @@ export function ChapterReactions({
 
   const showRatingBlock = ratingAvailable;
   const showReactionsBlock = !reactionsUnavailable;
+  const totalFeedback = totalReactions + ratingCount;
 
   return (
-    <div className="rounded-xl border border-[var(--border)]/30 bg-[var(--card)]/60 px-4 py-4 sm:px-5 sm:py-4">
-      {/* Заголовок и подсказка для неавторизованных */}
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <span className="text-sm text-[var(--muted-foreground)]">Оцените главу</span>
-        {(totalReactions > 0 || ratingCount > 0) && (
-          <span className="text-xs text-[var(--muted-foreground)] tabular-nums">
-            {totalReactions + ratingCount} отзывов
+    <section
+      className="rounded-2xl border border-[var(--border)]/40 bg-[var(--card)]/80 shadow-sm overflow-hidden"
+      aria-label="Оценка и реакции на главу"
+    >
+      {/* Заголовок блока */}
+      <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-1">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+            <MessageCircle className="w-5 h-5 text-[var(--primary)]" aria-hidden />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold text-[var(--foreground)] tracking-tight">
+              Оцените главу
+            </h3>
+            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+              Ваше мнение помогает другим читателям
+            </p>
+          </div>
+        </div>
+        {totalFeedback > 0 && (
+          <span className="flex-shrink-0 text-xs font-medium text-[var(--muted-foreground)] bg-[var(--secondary)]/80 px-2.5 py-1 rounded-full tabular-nums">
+            {totalFeedback} {totalFeedback === 1 ? "отзыв" : totalFeedback < 5 ? "отзыва" : "отзывов"}
           </span>
         )}
       </div>
-      {!isAuthenticated && (
-        <p className="text-xs text-[var(--muted-foreground)] mb-3">
-          Войдите, чтобы поставить оценку и реакцию.
-        </p>
-      )}
 
-      {/* Рейтинг 1–10: звёзды и явно "Ваша оценка" */}
-      {showRatingBlock && (
-        <div className="mb-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex gap-0.5" role="group" aria-label={`Рейтинг от 1 до ${CHAPTER_RATING_MAX}`}>
+      <div className="px-5 pb-5 pt-4 space-y-5">
+        {/* CTA для неавторизованных — рендерим только после mount, чтобы избежать hydration mismatch (isAuthenticated разный на сервере и клиенте) */}
+        {!mounted ? (
+          <div className="flex items-center gap-3 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/30 px-4 py-3">
+            <div className="w-5 h-5 shrink-0 rounded bg-[var(--muted)]/30" aria-hidden />
+            <div className="h-4 flex-1 max-w-[200px] rounded bg-[var(--muted)]/20" />
+          </div>
+        ) : !isAuthenticated ? (
+          <div className="flex items-center gap-3 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/30 px-4 py-3">
+            <LogIn className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Войдите, чтобы поставить оценку и реакцию — это займёт пару секунд.
+            </p>
+          </div>
+        ) : null}
+
+        {/* Рейтинг звёздами */}
+        {showRatingBlock && mounted && (
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+                Рейтинг
+              </span>
+              {averageRating != null && ratingCount > 0 && (
+                <span className="text-xs text-[var(--muted-foreground)] tabular-nums">
+                  {averageRating.toFixed(1)} из {CHAPTER_RATING_MAX} · {ratingCount} {ratingCount === 1 ? "оценка" : ratingCount < 5 ? "оценки" : "оценок"}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-nowrap items-center gap-0.5 sm:gap-1" role="group" aria-label={`Рейтинг от 1 до ${CHAPTER_RATING_MAX}`}>
               {RATING_VALUES.map((value) => {
                 const current = userRating ?? 0;
                 const isSelected = value <= current;
@@ -281,15 +317,15 @@ export function ChapterReactions({
                     type="button"
                     disabled={!mounted || !isAuthenticated || isRatingLoading}
                     onClick={() => handleRating(value)}
-                    className={`p-0.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`flex-shrink-0 p-0.5 sm:p-1 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--secondary)]/60 ${
                       isSelected
-                        ? "text-[var(--foreground)]"
-                        : "text-[var(--muted-foreground)]/60 hover:text-[var(--foreground)]/70"
+                        ? "text-[var(--primary)]"
+                        : "text-[var(--muted-foreground)]/50 hover:text-[var(--muted-foreground)]"
                     }`}
                     title={`${value} из ${CHAPTER_RATING_MAX}`}
                   >
                     <Star
-                      className="w-4 h-4"
+                      className="w-4 h-4 sm:w-5 sm:h-5"
                       fill={isSelected ? "currentColor" : "none"}
                       stroke="currentColor"
                       strokeWidth={1.5}
@@ -298,70 +334,66 @@ export function ChapterReactions({
                 );
               })}
             </div>
-            {averageRating != null && ratingCount > 0 && (
-              <span className="text-xs text-[var(--muted-foreground)] tabular-nums">
-                {averageRating.toFixed(1)} · {ratingCount}
-              </span>
+            {hasUserRating && (
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Ваша оценка: <span className="font-semibold text-[var(--foreground)] tabular-nums">{Number(userRating)} из {CHAPTER_RATING_MAX}</span>
+              </p>
             )}
           </div>
-          {hasUserRating && (
-            <p className="text-xs text-[var(--muted-foreground)] mt-1.5">
-              Ваша оценка: <span className="font-medium text-[var(--foreground)] tabular-nums">{Number(userRating)} из {CHAPTER_RATING_MAX}</span>
-            </p>
-          )}
-        </div>
-      )}
+        )}
 
-      {ratingUnavailable && !reactionsUnavailable && (
-        <p className="text-xs text-[var(--muted-foreground)] mb-3">Рейтинг временно недоступен.</p>
-      )}
+        {ratingUnavailable && !reactionsUnavailable && mounted && (
+          <p className="text-xs text-[var(--muted-foreground)]">Рейтинг временно недоступен.</p>
+        )}
 
-      {/* Reactions — только эмодзи + счётчик, без подписей */}
-      {showReactionsBlock && (
-        <div className="flex flex-wrap gap-1.5">
-          {CHAPTER_ALLOWED_REACTION_EMOJIS.map((emoji) => {
-            const isSelected = displaySelectedEmoji === emoji;
-            const count = countByEmoji[emoji] ?? 0;
-            const isAnimating = animatingEmoji === emoji;
+        {/* Реакции — эмодзи-кнопки с счётчиками */}
+        {showReactionsBlock && mounted && (
+          <div className="space-y-3">
+            <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+              Реакции
+            </span>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {CHAPTER_ALLOWED_REACTION_EMOJIS.map((emoji) => {
+                const isSelected = displaySelectedEmoji === emoji;
+                const count = countByEmoji[emoji] ?? 0;
+                const isAnimating = animatingEmoji === emoji;
 
-            return (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => handleReaction(emoji)}
-                disabled={isLoading}
-                title={EMOJI_LABELS[emoji] ?? emoji}
-                className={`flex items-center gap-1.5 min-w-[2.25rem] h-9 px-2 rounded-lg transition-colors active:scale-95 disabled:opacity-50 ${
-                  isSelected
-                    ? "bg-[var(--primary)]/15 text-[var(--foreground)]"
-                    : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]/80 hover:text-[var(--foreground)]"
-                } ${isAnimating ? "scale-105" : ""}`}
-              >
-                {isLoading && animatingEmoji === emoji ? (
-                  <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
-                ) : (
-                  <span className="text-base leading-none">{emoji}</span>
-                )}
-                {count > 0 && (
-                  <span className="text-xs text-[var(--muted-foreground)] tabular-nums min-w-[1rem] text-right">
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+                return (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => handleReaction(emoji)}
+                    disabled={isLoading}
+                    title={EMOJI_LABELS[emoji] ?? emoji}
+                    className={`flex items-center gap-1 sm:gap-2 h-8 sm:h-10 pl-2 pr-1.5 sm:pl-3 sm:pr-2.5 rounded-lg sm:rounded-xl border transition-all duration-150 active:scale-[0.98] disabled:opacity-50 ${
+                      isSelected
+                        ? "bg-[var(--primary)]/15 border-[var(--primary)]/30 text-[var(--foreground)] shadow-sm"
+                        : "border-[var(--border)]/50 bg-[var(--background)]/50 text-[var(--muted-foreground)] hover:border-[var(--border)] hover:bg-[var(--secondary)]/60 hover:text-[var(--foreground)]"
+                    } ${isAnimating ? "scale-105 ring-2 ring-[var(--primary)]/20" : ""}`}
+                  >
+                    {isLoading && animatingEmoji === emoji ? (
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 animate-spin" />
+                    ) : (
+                      <span className="text-base sm:text-lg leading-none select-none">{emoji}</span>
+                    )}
+                    {count > 0 && (
+                      <span className={`text-[10px] sm:text-xs font-medium tabular-nums min-w-[1rem] sm:min-w-[1.25rem] text-center ${
+                        isSelected ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
+                      }`}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-      {reactionsUnavailable && ratingAvailable && (
-        <p className="text-xs text-[var(--muted-foreground)]">Реакции временно недоступны.</p>
-      )}
-
-      {displaySelectedEmoji && (
-        <p className="mt-3 pt-3 border-t border-[var(--border)]/20 text-xs text-[var(--muted-foreground)]">
-          Ваша реакция: {displaySelectedEmoji} {EMOJI_LABELS[displaySelectedEmoji] ?? displaySelectedEmoji}
-        </p>
-      )}
-    </div>
+        {reactionsUnavailable && ratingAvailable && mounted && (
+          <p className="text-xs text-[var(--muted-foreground)]">Реакции временно недоступны.</p>
+        )}
+      </div>
+    </section>
   );
 }

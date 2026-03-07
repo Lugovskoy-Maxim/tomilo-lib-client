@@ -1,6 +1,5 @@
 "use client";
 import { useState, useRef, useEffect, useLayoutEffect, ReactNode, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { HelpCircle } from "lucide-react";
 
 const GAP = 8;
@@ -177,7 +176,7 @@ export default function Tooltip({
             ))}
         </div>
       </div>
-      {tooltipContent && createPortal(tooltipContent, document.body)}
+      {tooltipContent}
     </>
   );
 }

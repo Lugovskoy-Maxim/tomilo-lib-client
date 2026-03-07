@@ -102,6 +102,7 @@ function ReadChapterPageContent({
     fitMode,
     infiniteScroll,
     showHints,
+    showProgress,
     getQualityValue,
   } = useReaderSettingsContext();
   
@@ -390,13 +391,17 @@ function ReadChapterPageContent({
     }
   }, [fitMode]);
 
-  // Функция загрузчика изображений с поддержкой ширины
+  // Функция загрузчика изображений с поддержкой ширины и качества
   const imageLoader = useCallback(
-    ({ src, width }: { src: string; width: number }) => {
+    ({ src, width, quality }: { src: string; width: number; quality?: number }) => {
       // src уже содержит корректный URL (primary или fallback) от getImageUrlWithFallback
-      // Не преобразуем его повторно, чтобы fallback работал корректно
       const separator = src.includes("?") ? "&" : "?";
-      return `${src}${separator}w=${width}`;
+      const params = new URLSearchParams();
+      params.set("w", String(width));
+      if (quality != null && quality > 0) {
+        params.set("q", String(quality));
+      }
+      return `${src}${separator}${params.toString()}`;
     },
     [],
   );
@@ -1377,7 +1382,7 @@ function ReadChapterPageContent({
                           
                           {!isError ? (
                             <Image
-                              key={`${ch._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
+                              key={`${ch._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? 'fb' : 'pr'}`}
                               loader={imageLoader}
                               src={imageUrl}
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
@@ -1527,7 +1532,7 @@ function ReadChapterPageContent({
                         {!isError ? (
                           <>
                             <Image
-                              key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
+                              key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? 'fb' : 'pr'}`}
                               loader={imageLoader}
                               src={imageUrl}
                               alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
@@ -1683,7 +1688,7 @@ function ReadChapterPageContent({
                       
                       {!isError ? (
                         <Image
-                          key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
+                          key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? 'fb' : 'pr'}`}
                           loader={imageLoader}
                           src={imageUrl}
                           alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
@@ -1974,7 +1979,7 @@ function ReadChapterPageContent({
                               
                               {!isError ? (
                                 <Image
-                                  key={`${loadedChapter._id}-${imageIndex}-${imageWidth}-${useFallback ? 'fb' : 'pr'}`}
+                                  key={`${loadedChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? 'fb' : 'pr'}`}
                                   loader={imageLoader}
                                   src={imageUrl}
                                   alt={`Глава ${loadedChapter.number}, Страница ${imageIndex + 1}`}
@@ -2121,33 +2126,35 @@ function ReadChapterPageContent({
         titleId={title._id}
       />
 
-      {/* Floating Progress Bar — плавная полоса прогресса чтения */}
-      <div
-        className="fixed top-0 left-0 right-0 z-[60] h-1 overflow-hidden rounded-b-full"
-        role="progressbar"
-        aria-valuenow={Math.round((currentPage / Math.max(chapter.images.length, 1)) * 100)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        {/* Трек */}
-        <div className="absolute inset-0 bg-[var(--muted)]/20 backdrop-blur-[2px]" />
-        {/* Заполнение с градиентом и скруглением */}
+      {/* Floating Progress Bar — плавная полоса прогресса чтения (включить в настройках читалки) */}
+      {showProgress && (
         <div
-          className="absolute inset-y-0 left-0 min-w-[4px] rounded-r-full bg-gradient-to-r from-[var(--primary)] via-[var(--primary)] to-[var(--accent)] transition-[width] duration-500 ease-out"
-          style={{
-            width: `${Math.max(0, Math.min(100, (currentPage / Math.max(chapter.images.length, 1)) * 100))}%`,
-            boxShadow: "0 0 12px rgba(var(--primary-rgb), 0.35)",
-          }}
-        />
-        {/* Верхний блик для объёма */}
-        <div
-          className="absolute inset-y-0 left-0 rounded-r-full pointer-events-none opacity-30 transition-[width] duration-500 ease-out"
-          style={{
-            width: `${Math.max(0, Math.min(100, (currentPage / Math.max(chapter.images.length, 1)) * 100))}%`,
-            background: "linear-gradient(to bottom, rgba(255,255,255,0.35) 0%, transparent 60%)",
-          }}
-        />
-      </div>
+          className="fixed top-0 left-0 right-0 z-[60] h-1 overflow-hidden rounded-b-full"
+          role="progressbar"
+          aria-valuenow={Math.round((currentPage / Math.max(chapter.images.length, 1)) * 100)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          {/* Трек */}
+          <div className="absolute inset-0 bg-[var(--muted)]/20 backdrop-blur-[2px]" />
+          {/* Заполнение с градиентом и скруглением */}
+          <div
+            className="absolute inset-y-0 left-0 min-w-[4px] rounded-r-full bg-gradient-to-r from-[var(--primary)] via-[var(--primary)] to-[var(--accent)] transition-[width] duration-500 ease-out"
+            style={{
+              width: `${Math.max(0, Math.min(100, (currentPage / Math.max(chapter.images.length, 1)) * 100))}%`,
+              boxShadow: "0 0 12px rgba(var(--primary-rgb), 0.35)",
+            }}
+          />
+          {/* Верхний блик для объёма */}
+          <div
+            className="absolute inset-y-0 left-0 rounded-r-full pointer-events-none opacity-30 transition-[width] duration-500 ease-out"
+            style={{
+              width: `${Math.max(0, Math.min(100, (currentPage / Math.max(chapter.images.length, 1)) * 100))}%`,
+              background: "linear-gradient(to bottom, rgba(255,255,255,0.35) 0%, transparent 60%)",
+            }}
+          />
+        </div>
+      )}
 
       {/* Scroll to Top Button — показывается только после прокрутки вниз */}
       {isHeaderVisible && lastScrollY > 600 && (

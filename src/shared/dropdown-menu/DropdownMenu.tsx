@@ -220,7 +220,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
               )}
             </h3>
             <div className="flex items-center gap-2 min-w-0 mt-0.5" title={rankInfo.name}>
-              <span className="inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)] shrink-0">
+              <span className="inline-flex items-center gap-1 text-xs text-[var(--foreground)]/75 dark:text-[var(--muted-foreground)] shrink-0">
                 <span
                   className="inline-flex items-center justify-center w-4 h-4 rounded text-[10px] font-bold"
                   style={{ backgroundColor: `${rankColor}25`, color: rankColor }}
@@ -237,11 +237,11 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
               </div>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+          <ChevronRight className="w-5 h-5 text-[var(--foreground)]/60 dark:text-[var(--muted-foreground)] shrink-0" aria-hidden />
         </Link>
 
         {/* Сначки топов и баланс */}
-        <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[var(--border)]/30">
+        <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[var(--border)]/50 dark:border-[var(--border)]/30">
           <div className="flex flex-wrap items-center gap-1 min-w-0">
             {leaderboardPositions.length > 0 ? (
               leaderboardPositions.slice(0, 4).map(({ category, position, label }) => {
@@ -251,7 +251,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
                     key={category}
                     href={`/leaders?category=${category}`}
                     onClick={onClose}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300 hover:bg-amber-500/25 dark:hover:bg-amber-500/20 transition-colors cursor-pointer"
                     title={label}
                   >
                     <Icon className="w-2.5 h-2.5 shrink-0" aria-hidden />
@@ -260,13 +260,13 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
                 );
               })
             ) : (
-              <span className="text-[10px] text-[var(--muted-foreground)]">—</span>
+              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">—</span>
             )}
             {leaderboardPositions.length > 4 && (
-              <span className="text-[10px] text-[var(--muted-foreground)]">+{leaderboardPositions.length - 4}</span>
+              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">+{leaderboardPositions.length - 4}</span>
             )}
           </div>
-          <span className="flex items-center gap-1 text-xs text-[var(--muted-foreground)] shrink-0">
+          <span className="flex items-center gap-1 text-xs text-[var(--foreground)]/75 dark:text-[var(--muted-foreground)] shrink-0">
             <CoinIcon className="w-3.5 h-3.5 text-amber-500" aria-hidden />
             <span className="font-medium tabular-nums">{balance.toLocaleString("ru-RU")}</span>
           </span>

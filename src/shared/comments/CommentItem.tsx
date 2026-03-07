@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Comment, ALLOWED_REACTION_EMOJIS, type CommentReactionCount } from "@/types/comment";
+import { useOverlay } from "@/contexts/OverlayContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import {
@@ -67,6 +67,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pickerAnchorRect, setPickerAnchorRect] = useState<DOMRect | null>(null);
+  const setOverlayContent = useOverlay()?.setOverlayContent;
 
   const openEmojiPicker = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -88,6 +89,43 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
       toast.error(getErrorMessage(error, "Не удалось поставить реакцию"));
     }
   };
+
+  // Рендер пикера в корневой слот оверлея (без портала), чтобы на мобильных
+  // position:fixed не привязывался к панели с transform
+  useEffect(() => {
+    if (!setOverlayContent) return;
+    if (showEmojiPicker && pickerAnchorRect) {
+      setOverlayContent(
+        <>
+          <div
+            className="fixed inset-0 z-[100]"
+            aria-hidden
+            onClick={closeEmojiPicker}
+          />
+          <div
+            className="fixed z-[101] p-1.5 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg flex flex-wrap gap-0.5 max-w-[200px]"
+            style={{
+              left: pickerAnchorRect.left,
+              bottom: window.innerHeight - pickerAnchorRect.top + 4,
+              transform: "translateY(-100%)",
+            }}
+          >
+            {ALLOWED_REACTION_EMOJIS.map((e) => (
+              <button
+                key={e}
+                type="button"
+                onClick={() => handleReaction(e)}
+                className="p-1.5 rounded-md hover:bg-[var(--secondary)] text-lg leading-none transition-colors"
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+        </>
+      );
+      return () => setOverlayContent(null);
+    }
+  }, [showEmojiPicker, pickerAnchorRect, setOverlayContent, closeEmojiPicker]);
 
   const handleDelete = async () => {
     if (!confirm("Вы уверены, что хотите удалить этот комментарий?")) return;
@@ -264,52 +302,18 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                   <span>{count}</span>
                 </button>
               ))}
-              {/* Кнопка «добавить реакцию» — открывает пикер (портал, чтобы не обрезался) */}
+              {/* Кнопка «добавить реакцию» — пикер рендерится в корневом overlay-слоте (см. useEffect) */}
               {user && (
-                <>
-                  <button
-                    type="button"
-                    onClick={(e) =>
-                      showEmojiPicker ? closeEmojiPicker() : openEmojiPicker(e)
-                    }
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80 transition-colors"
-                    aria-label="Добавить реакцию"
-                  >
-                    <SmilePlus className="w-3.5 h-3.5" />
-                  </button>
-                  {showEmojiPicker &&
-                    pickerAnchorRect &&
-                    typeof document !== "undefined" &&
-                    createPortal(
-                      <>
-                        <div
-                          className="fixed inset-0 z-[100]"
-                          aria-hidden
-                          onClick={closeEmojiPicker}
-                        />
-                        <div
-                          className="fixed z-[101] p-1.5 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg flex flex-wrap gap-0.5 max-w-[200px]"
-                          style={{
-                            left: pickerAnchorRect.left,
-                            bottom: window.innerHeight - pickerAnchorRect.top + 4,
-                            transform: "translateY(-100%)",
-                          }}
-                        >
-                          {ALLOWED_REACTION_EMOJIS.map((e) => (
-                            <button
-                              key={e}
-                              type="button"
-                              onClick={() => handleReaction(e)}
-                              className="p-1.5 rounded-md hover:bg-[var(--secondary)] text-lg leading-none transition-colors"
-                            >
-                              {e}
-                            </button>
-                          ))}
-                        </div>
-                      </>,
-                      document.body
-                    )}
-                </>
+                <button
+                  type="button"
+                  onClick={(e) =>
+                    showEmojiPicker ? closeEmojiPicker() : openEmojiPicker(e)
+                  }
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80 transition-colors"
+                  aria-label="Добавить реакцию"
+                >
+                  <SmilePlus className="w-3.5 h-3.5" />
+                </button>
               )}
               {user && onReply && level < 2 && (
                 <button
