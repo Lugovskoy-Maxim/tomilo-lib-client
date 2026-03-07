@@ -179,7 +179,7 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="header-icon-btn"
+                className="header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden"
                 aria-label="Открыть меню"
               >
                 <Menu className="w-5 h-5 text-[var(--muted-foreground)]" />
@@ -207,7 +207,7 @@ export default function Header() {
             <button
               type="button"
               onClick={toggleSearch}
-              className={`${isSearchOpen ? "hidden " : ""}header-icon-btn`}
+              className={`${isSearchOpen ? "hidden " : ""}header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden`}
               aria-label="Поиск"
             >
               <SearchIcon className="w-5 h-5 text-[var(--muted-foreground)]" />
@@ -219,7 +219,7 @@ export default function Header() {
             <button
               type="button"
               onClick={toggleDropdown}
-              className="header-icon-btn"
+              className="header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden"
               aria-label="Дополнительное меню"
               aria-expanded={isDropdownOpen}
             >

@@ -198,23 +198,23 @@ export default function Footer() {
     <footer className="relative w-full">
       {/* Десктопный футер */}
       <div className="footer-desktop w-full footer-glass mt-auto hidden lg:block" role="contentinfo" aria-label="Подвал сайта">
-        <div className="footer-desktop-inner w-full max-w-7xl mx-auto px-4 py-10 sm:px-6 md:px-8 lg:px-10 xl:py-12">
-          <div className="footer-desktop-grid grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-10 mb-10">
+        <div className="footer-desktop-inner min-w-0 w-full max-w-7xl mx-auto px-4 py-10 sm:px-6 md:px-8 lg:px-10 xl:py-12">
+          <div className="footer-desktop-grid min-w-0 grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-10 mb-10 [&>*]:min-w-0">
             {/* Колонка 1: Логотип */}
-            <div className="footer-col footer-col--logo">
-              <div className="footer-col__body">
+            <div className="footer-col flex flex-col items-start min-w-0 footer-col--logo">
+              <div className="footer-col__body flex flex-col gap-3 w-full pt-7">
                 <Logo variant="footer" />
-                <p className="footer-col__text">
+                <p className="footer-col__text m-0 text-[0.8125rem] leading-normal text-[var(--muted-foreground)] max-w-full">
                   TOMILO-LIB — платформа для чтения манги, манхвы и маньхуа.
                 </p>
               </div>
             </div>
 
             {/* Колонка 2: Сайт */}
-            <div className="footer-col">
-              <h3 className="footer-col__title">Сайт</h3>
-              <div className="footer-col__body">
-                <ul className="footer-col__list">
+            <div className="footer-col flex flex-col items-start min-w-0">
+              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">Сайт</h3>
+              <div className="footer-col__body flex flex-col gap-3 w-full">
+                <ul className="footer-col__list list-none m-0 p-0 flex flex-col gap-0.5">
                   {FOOTER_NAV_GROUPS[0].items.map(({ href, label }) => (
                     <li key={href}>
                       <Link href={href} className="footer-col__link">{label}</Link>
@@ -225,10 +225,10 @@ export default function Footer() {
             </div>
 
             {/* Колонка 3: Документы */}
-            <div className="footer-col">
-              <h3 className="footer-col__title">Документы</h3>
-              <div className="footer-col__body">
-                <ul className="footer-col__list">
+            <div className="footer-col flex flex-col items-start min-w-0">
+              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">Документы</h3>
+              <div className="footer-col__body flex flex-col gap-3 w-full">
+                <ul className="footer-col__list list-none m-0 p-0 flex flex-col gap-0.5">
                   {FOOTER_NAV_GROUPS[1].items.map(({ href, label }) => (
                     <li key={href}>
                       <Link href={href} className="footer-col__link">{label}</Link>
@@ -239,16 +239,16 @@ export default function Footer() {
             </div>
 
             {/* Колонка 4: Контакты */}
-            <div className="footer-col">
-              <h3 className="footer-col__title">Контакты</h3>
-              <div className="footer-col__body">
-                <p className="footer-col__text">
+            <div className="footer-col flex flex-col items-start min-w-0">
+              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">Контакты</h3>
+              <div className="footer-col__body flex flex-col gap-3 w-full">
+                <p className="footer-col__text m-0 text-[0.8125rem] leading-normal text-[var(--muted-foreground)] max-w-full">
                   По вопросам нарушения авторских прав и сотрудничества:
                 </p>
-                <div className="footer-col__contacts">
+                <div className="footer-col__contacts flex flex-col gap-2">
                   <Link
                     href="mailto:support@tomilo-lib.ru"
-                    className="footer-col__contact-link"
+                    className="footer-col__contact-link inline-flex items-center gap-1.5 text-[0.8125rem] text-[var(--chart-1)] no-underline py-1 px-1.5 -mx-1.5 rounded-md transition-colors duration-200"
                     aria-label="Написать на support@tomilo-lib.ru"
                   >
                     support@tomilo-lib.ru
@@ -257,11 +257,11 @@ export default function Footer() {
                     href={TELEGRAM_HREF}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="footer-col__contact-link"
+                    className="footer-col__contact-link inline-flex items-center gap-1.5 text-[0.8125rem] text-[var(--chart-1)] no-underline py-1 px-1.5 -mx-1.5 rounded-md transition-colors duration-200"
                     aria-label="Мы в Telegram (открывается в новой вкладке)"
                   >
                     Мы в Telegram
-                    <ExternalLink className="footer-col__contact-icon" aria-hidden />
+                    <ExternalLink className="footer-col__contact-icon w-3 h-3 opacity-70 shrink-0" aria-hidden />
                   </Link>
                 </div>
               </div>
