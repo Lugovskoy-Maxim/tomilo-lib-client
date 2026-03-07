@@ -693,8 +693,8 @@ function ReadChapterPageContent({
           clearOtherChaptersPositions(titleId, nextChapter._id);
           triggerHaptic();
           router.push(getChapterPath(nextChapter._id));
-        } else {
-          setCurrentPage(prev => Math.min(chapter.images.length, prev + 1));
+        } else if (chapter.images.length > 0) {
+          setCurrentPage(prev => Math.min(chapter.images.length, Math.max(1, prev + 1)));
           triggerHaptic();
         }
       } else if (diffX < -minSwipeDistance) {
@@ -704,7 +704,7 @@ function ReadChapterPageContent({
           clearOtherChaptersPositions(titleId, prevChapter._id);
           triggerHaptic();
           router.push(getChapterPath(prevChapter._id));
-        } else {
+        } else if (chapter.images.length > 0) {
           setCurrentPage(prev => Math.max(1, prev - 1));
           triggerHaptic();
         }

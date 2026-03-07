@@ -10,14 +10,28 @@ import {
   useGetTitleSubscribersCountQuery,
 } from "@/store/api/subscriptionsApi";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
+
+function getSubscriptionErrorMessage(err: unknown, fallback: string): string {
+  if (typeof err === "string") return err;
+  if (err && typeof err === "object") {
+    const o = err as { status?: number; data?: { message?: string }; message?: string };
+    if (o.status === 404) return "Сервис подписок пока недоступен.";
+    return o.data?.message ?? o.message ?? fallback;
+  }
+  return fallback;
+}
 
 interface SubscribeButtonProps {
   titleId: string;
   onLoginRequired?: () => void;
+  /** Optional class for the outer wrapper (e.g. flex-1 on mobile) */
+  className?: string;
 }
 
-export function SubscribeButton({ titleId, onLoginRequired }: SubscribeButtonProps) {
+export function SubscribeButton({ titleId, onLoginRequired, className }: SubscribeButtonProps) {
   const { user } = useAuth();
+  const toast = useToast();
   const [showSettings, setShowSettings] = useState(false);
 
   const { data: subscriptionData, isLoading: checkingSubscription } = useCheckTitleSubscriptionQuery(
@@ -43,11 +57,17 @@ export function SubscribeButton({ titleId, onLoginRequired }: SubscribeButtonPro
     try {
       if (isSubscribed) {
         await unsubscribe(titleId).unwrap();
+        toast.success("Вы отписались от уведомлений");
       } else {
         await subscribe({ titleId, notifyOnNewChapter: true, notifyOnAnnouncement: true }).unwrap();
+        toast.success("Подписка оформлена. Вы будете получать уведомления о новых главах.");
       }
     } catch (error) {
-      console.error("Subscription error:", error);
+      const message = getSubscriptionErrorMessage(
+        error,
+        "Не удалось оформить подписку. Попробуйте позже."
+      );
+      toast.error(message);
     }
   };
 
@@ -57,38 +77,39 @@ export function SubscribeButton({ titleId, onLoginRequired }: SubscribeButtonPro
     try {
       await updateSubscription({ titleId, [key]: value }).unwrap();
     } catch (error) {
-      console.error("Update subscription error:", error);
+      toast.error(
+        getSubscriptionErrorMessage(error, "Не удалось сохранить настройки уведомлений.")
+      );
     }
   };
 
+  const actionButtonClass =
+    "flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--secondary)] hover:border-[var(--primary)]/30 hover:shadow-md disabled:opacity-50";
+  const subscribedClass =
+    "border-[var(--primary)]/50 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/15";
+
   return (
-    <div className="relative">
+    <div className={`relative w-full ${className ?? ""}`}>
       <div className="flex items-center gap-2">
         <button
           onClick={handleToggleSubscription}
           disabled={isLoading}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-300 ${
-            isSubscribed
-              ? "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
-              : "bg-[var(--secondary)]/80 text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 hover:text-[var(--primary)]"
-          }`}
+          className={`${actionButtonClass} ${isSubscribed ? subscribedClass : ""} ${
+            isSubscribed ? "flex-1 min-w-0" : "w-full"
+          } h-11 lg:h-auto lg:py-3 lg:px-4`}
         >
           {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
           ) : isSubscribed ? (
-            <BellRing className="w-4 h-4" />
+            <BellRing className="w-4 h-4 shrink-0" />
           ) : (
-            <Bell className="w-4 h-4" />
+            <Bell className="w-4 h-4 shrink-0" />
           )}
-          <span className="hidden sm:inline">
+          <span>
             {isSubscribed ? "Подписка" : "Подписаться"}
           </span>
           {typeof subscribersCount === "number" && subscribersCount > 0 && (
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-              isSubscribed
-                ? "bg-white/20"
-                : "bg-[var(--primary)]/10 text-[var(--primary)]"
-            }`}>
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
               {subscribersCount > 999 ? `${(subscribersCount / 1000).toFixed(1)}k` : subscribersCount}
             </span>
           )}
@@ -97,7 +118,8 @@ export function SubscribeButton({ titleId, onLoginRequired }: SubscribeButtonPro
         {isSubscribed && (
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2.5 rounded-xl bg-[var(--secondary)]/80 border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+            className={`${actionButtonClass} shrink-0 !p-0 w-11 h-11 sm:w-10 sm:h-10 rounded-xl`}
+            aria-label="Настройки уведомлений"
           >
             <Settings className="w-4 h-4" />
           </button>

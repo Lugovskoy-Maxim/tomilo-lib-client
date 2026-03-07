@@ -76,7 +76,7 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
                 fallbackSrc={imageFallback}
                 alt={data.title}
                 fill
-                className="object-cover"
+                className={`object-cover ${data.isAdult && !isAgeVerified ? "blur-md" : ""}`}
                 hidePlaceholder
               />
             </div>
@@ -95,7 +95,9 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
           {/* Контент справа */}
           <div className="flex flex-col flex-1 p-3 justify-between min-w-0">
             {/* Заголовок */}
-            <h3 className="font-semibold text-foreground line-clamp-1 leading-tight text-sm group-hover:text-primary transition-colors">
+            <h3
+              className={`font-semibold text-foreground line-clamp-1 leading-tight text-sm group-hover:text-primary transition-colors ${data.isAdult && !isAgeVerified ? "blur-sm select-none" : ""}`}
+            >
               {data.title}
             </h3>
 

@@ -150,6 +150,41 @@ export const adminApi = createApi({
       invalidatesTags: [ADMIN_USERS_TAG, ADMIN_COMMENTS_TAG],
     }),
 
+    // ============== ДЕТЕКЦИЯ БОТОВ ==============
+
+    getSuspiciousUsers: builder.query<
+      ApiResponseDto<{ users: AdminUserDetails[]; total?: number }>,
+      { page?: number; limit?: number }
+    >({
+      query: ({ page = 1, limit = 20 } = {}) => ({
+        url: "/users/admin/suspicious-users",
+        params: { page, limit },
+      }),
+      providesTags: [ADMIN_USERS_TAG],
+    }),
+
+    getBotStats: builder.query<
+      ApiResponseDto<{ total?: number; suspicious?: number; [key: string]: unknown }>,
+      void
+    >({
+      query: () => "/users/admin/bot-stats",
+      providesTags: [ADMIN_USERS_TAG],
+    }),
+
+    resetBotStatus: builder.mutation<
+      ApiResponseDto<{ success?: boolean; message?: string }>,
+      string
+    >({
+      query: id => ({
+        url: `/users/admin/${id}/reset-bot-status`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, id) => [
+        { type: ADMIN_USERS_TAG, id },
+        ADMIN_USERS_TAG,
+      ],
+    }),
+
     // ============== СПИСОК ТАЙТЛОВ (ВСЕ / НЕОПУБЛИКОВАННЫЕ) ==============
 
     getAdminTitles: builder.query<
@@ -338,6 +373,9 @@ export const {
   useUnbanUserMutation,
   useUpdateUserRoleMutation,
   useDeleteUserCommentsMutation,
+  useGetSuspiciousUsersQuery,
+  useGetBotStatsQuery,
+  useResetBotStatusMutation,
   // Тайтлы
   useGetAdminTitlesQuery,
   useBulkDeleteTitlesMutation,

@@ -71,11 +71,13 @@ export default function GridSection<T>({
     return () => ro.disconnect();
   }, [layout]);
 
-  /** Показываем число карточек кратное столбцам, чтобы не было неполной строки. */
-  const displayData = useMemo(
-    () => safeData.slice(0, Math.floor(safeData.length / columns) * columns),
-    [safeData, columns],
-  );
+  /** Показываем число карточек кратное столбцам, чтобы не было неполной строки. Если колонок больше, чем элементов — показываем все. */
+  const displayData = useMemo(() => {
+    const n = safeData.length;
+    if (n === 0) return [];
+    const take = Math.floor(n / columns) * columns;
+    return safeData.slice(0, take || n);
+  }, [safeData, columns]);
 
   /**
    * Получает уникальный ID карточки из данных.

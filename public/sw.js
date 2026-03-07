@@ -17,7 +17,11 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_SHELL).then((cache) => {
-      return cache.addAll(SHELL_PATHS.map((p) => self.location.origin + p).filter((u) => u)).catch(() => {});
+      const origin = self.location.origin;
+      const offlineUrl = origin + "/offline.html";
+      return cache.add(offlineUrl).catch(() => {}).then(() =>
+        cache.addAll(SHELL_PATHS.map((p) => origin + p).filter((u) => u && u !== offlineUrl)).catch(() => {})
+      );
     })
   );
 });
@@ -36,6 +40,7 @@ self.addEventListener("fetch", (event) => {
   if (!isSameOrigin(request.url) || request.method !== "GET") return;
 
   if (request.mode === "navigate") {
+    const offlineUrl = url.origin + "/offline.html";
     event.respondWith(
       fetch(request)
         .then((res) => {
@@ -43,7 +48,13 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_SHELL).then((c) => c.put(request, clone));
           return res;
         })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match("/offline.html").then((offline) => offline || new Response("Нет соединения", { status: 503, statusText: "Offline" }))))
+        .catch(() =>
+          caches.match(request).then((cached) =>
+            cached || caches.match(offlineUrl).then((offline) =>
+              offline || new Response("Нет соединения", { status: 503, statusText: "Offline" })
+            )
+          )
+        )
     );
     return;
   }

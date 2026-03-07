@@ -55,6 +55,11 @@ export function PushSubscribeButton() {
           credentials: "include",
           body: JSON.stringify(subscription.toJSON()),
         });
+        if (res.status === 401) {
+          toast.error("Войдите в аккаунт, чтобы включить push-уведомления");
+          setIsLoading(false);
+          return;
+        }
         if (!res.ok) throw new Error("Subscribe failed");
         toast.success("Push-уведомления включены");
         setPermission("granted");
@@ -85,6 +90,11 @@ export function PushSubscribeButton() {
             credentials: "include",
             body: JSON.stringify(subscription.toJSON()),
           });
+          if (res.status === 401) {
+            toast.error("Войдите в аккаунт, чтобы включить push-уведомления");
+            setIsLoading(false);
+            return;
+          }
           if (!res.ok) throw new Error("Subscribe failed");
           toast.success("Push-уведомления включены");
         } else if (result === "denied") {

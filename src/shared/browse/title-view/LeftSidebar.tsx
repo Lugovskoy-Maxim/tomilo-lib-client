@@ -3,6 +3,7 @@ import { Title, Chapter } from "@/types/title";
 import type { ReadingHistoryEntry } from "@/types/store";
 import { ReadButton } from "@/shared/browse/ReadButton";
 import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
+import { SubscribeButton } from "@/shared/browse/title-view/SubscribeButton";
 import { useRouter } from "next/navigation";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,6 +83,7 @@ export function LeftSidebar({
           initialBookmarked={false}
           className="w-full py-3 px-4 text-sm font-medium"
         />
+        <SubscribeButton titleId={titleData._id as string} />
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => {

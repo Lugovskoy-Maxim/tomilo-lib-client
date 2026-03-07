@@ -69,6 +69,8 @@ function transformUserToProfile(user: User): UserProfile {
     likesReceivedCount: u.likesReceivedCount,
     readingTimeMinutes: u.readingTimeMinutes,
     completedTitlesCount: u.completedTitlesCount,
+    scheduledDeletionAt: (u as User & { scheduledDeletionAt?: string | null }).scheduledDeletionAt ?? undefined,
+    deletedAt: (u as User & { deletedAt?: string | null }).deletedAt ?? undefined,
   };
 }
 

@@ -28,6 +28,8 @@ import { usePathname } from "next/navigation";
 import Logo from "@/shared/logo/logo";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
+import { useGetStatsQuery } from "@/store/api/statsApi";
+import { BarChart3 } from "lucide-react";
 
 const FOOTER_NAV_GROUPS = [
   {
@@ -118,6 +120,12 @@ export default function Footer() {
     refetchOnMountOrArgChange: 90,
   });
   const notificationCount = unreadCountResponse?.data?.count || 0;
+
+  const { data: statsResponse } = useGetStatsQuery(undefined, {
+    skip: false,
+    refetchOnMountOrArgChange: 300, // не чаще чем раз в 5 мин
+  });
+  const stats = statsResponse?.data;
 
   const openMore = useCallback(() => {
     setSheetTranslateY(0);
@@ -270,6 +278,26 @@ export default function Footer() {
               </div>
             </div>
           </div>
+
+          {stats && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 py-4 text-xs text-[var(--muted-foreground)]" role="status" aria-label="Краткая статистика библиотеки">
+              <span className="inline-flex items-center gap-1.5">
+                <BarChart3 className="w-3.5 h-3.5 opacity-70" aria-hidden />
+                В библиотеке:
+              </span>
+              <span>{stats.totalTitles.toLocaleString("ru-RU")} тайтлов</span>
+              <span aria-hidden>·</span>
+              <span>{stats.totalChapters.toLocaleString("ru-RU")} глав</span>
+              <span aria-hidden>·</span>
+              <span>{stats.totalUsers.toLocaleString("ru-RU")} пользователей</span>
+              {typeof stats.totalViews === "number" && stats.totalViews > 0 && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span>{stats.totalViews.toLocaleString("ru-RU")} просмотров</span>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="h-px my-8 opacity-50 [background:linear-gradient(90deg,transparent_0%,var(--border)_20%,var(--primary)_50%,var(--border)_80%,transparent_100%)]" aria-hidden />
 

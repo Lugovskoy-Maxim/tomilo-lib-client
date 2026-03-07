@@ -25,8 +25,10 @@ export function AddToHomeScreenBanner() {
       e.preventDefault();
       const ev = e as unknown as { prompt: () => Promise<{ outcome: string }> };
       setDeferredPrompt({ prompt: () => ev.prompt() });
-      setDismissed(false);
       try {
+        if (localStorage.getItem(STORAGE_KEY_DISMISSED) !== "true") {
+          setDismissed(false);
+        }
         localStorage.setItem(STORAGE_KEY_PROMPT_AVAILABLE, "true");
       } catch {
         // ignore

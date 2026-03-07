@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, User as UserIcon, Shield, Lock, Home } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Shield, Lock, Home, AlertTriangle, Calendar } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import { Footer, Header } from "@/widgets";
 import ProfileStrip from "@/shared/profile/ProfileStrip";
@@ -227,6 +227,26 @@ export default function ProfileShell({
 
         {/* Один столбец контента */}
         <div className="flex-1 min-h-0 flex flex-col gap-4 profile-shell-content">
+          {userProfile?.deletedAt && (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" aria-hidden />
+              <div>
+                <p className="font-medium">Профиль удалён</p>
+                <p className="text-[var(--muted-foreground)] mt-0.5">Данные учётной записи сохранены, но не используются.</p>
+              </div>
+            </div>
+          )}
+          {userProfile?.scheduledDeletionAt && !userProfile?.deletedAt && new Date(userProfile.scheduledDeletionAt).getTime() > Date.now() && (
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
+              <Calendar className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" aria-hidden />
+              <div>
+                <p className="font-medium">Запланировано удаление профиля</p>
+                <p className="text-[var(--muted-foreground)] mt-0.5">
+                  Удаление запланировано на {new Date(userProfile.scheduledDeletionAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}. До этой даты владелец может отменить удаление в настройках.
+                </p>
+              </div>
+            </div>
+          )}
           {hasPrivacyNotice && (
             <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-[var(--foreground)]">
               Часть данных скрыта настройками приватности.

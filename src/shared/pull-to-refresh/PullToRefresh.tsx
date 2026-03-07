@@ -47,8 +47,12 @@ export function PullToRefresh({ children, onRefresh, disabled = false, mobileOnl
     isPull.current = false;
     if (pullY >= PULL_THRESHOLD && !isRefreshing) {
       setIsRefreshing(true);
+      const timeoutId = setTimeout(() => setIsRefreshing(false), 30000);
       Promise.resolve(onRefresh())
-        .finally(() => setIsRefreshing(false));
+        .finally(() => {
+          clearTimeout(timeoutId);
+          setIsRefreshing(false);
+        });
       setPullY(0);
     } else {
       setPullY(0);

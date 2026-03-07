@@ -11,7 +11,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetProfileQuery } from "@/store/api/authApi";
 
-const UPDATES_PAGE_SIZE = 20;
+const UPDATES_PAGE_SIZE = 48;
 
 export default function UpdatesPage() {
   const [mounted, setMounted] = useState(false);
