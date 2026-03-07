@@ -270,7 +270,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
               return (
                 <div
                   key={title._id}
-                  className="flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-not-allowed relative"
+                  className="relative isolate flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-not-allowed"
                 >
                   {cardInner}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl z-10">
@@ -298,7 +298,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
               <Link
                 key={title._id}
                 href={titlePath}
-                className="flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
+                className="relative isolate flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
               >
                 {cardInner}
               </Link>

@@ -190,7 +190,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
       ref={panelRef}
       role="menu"
       aria-label="Меню пользователя"
-      className="absolute top-full right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] min-w-0 overflow-x-hidden dropdown-modern animate-fade-in-scale z-layer-modal"
+      className="absolute top-full right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] min-w-0 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35),0_0_1px_rgba(255,255,255,0.06)] [transform-origin:var(--dropdown-origin,top_right)] animate-fade-in-scale z-[var(--z-modal)]"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Карточка профиля */}

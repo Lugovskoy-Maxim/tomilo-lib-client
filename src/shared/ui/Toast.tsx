@@ -106,7 +106,7 @@ const ToastContainer: React.FC = () => {
 
   return (
     <div
-      className="fixed top-[max(1rem,env(safe-area-inset-top))] left-4 right-4 sm:left-auto sm:right-4 sm:top-4 z-layer-toast flex flex-col gap-3 pointer-events-none"
+      className="fixed top-[max(1rem,env(safe-area-inset-top))] left-4 right-4 sm:left-auto sm:right-4 sm:top-4 z-[var(--z-toast)] flex flex-col gap-3 pointer-events-none"
       aria-live="polite"
       aria-label="Уведомления"
     >

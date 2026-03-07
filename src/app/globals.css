@@ -123,27 +123,6 @@ html.font-rubik body {
   }
 }
 
-/* Layer helpers (keep component classes simple) */
-.z-layer-dropdown {
-  z-index: var(--z-dropdown);
-}
-
-.z-layer-sheet-backdrop {
-  z-index: var(--z-sheet-backdrop);
-}
-
-.z-layer-sheet {
-  z-index: var(--z-sheet);
-}
-
-.z-layer-modal {
-  z-index: var(--z-modal);
-}
-
-.z-layer-toast {
-  z-index: var(--z-toast);
-}
-
 /* Фон на главной — декоративные иконки (layout в Tailwind) */
 .lines-background__icon {
   animation: lines-background-float ease-in-out infinite;

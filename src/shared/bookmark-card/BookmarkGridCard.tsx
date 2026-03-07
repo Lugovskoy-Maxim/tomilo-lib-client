@@ -108,8 +108,8 @@ export default function BookmarkGridCard({
   return (
     <Link
       href={href}
-      className={`group relative flex flex-col rounded-xl overflow-visible bg-[var(--card)] border border-[var(--border)] card-hover-soft block ${
-        categoryOpen ? "z-layer-dropdown" : ""
+      className={`group relative isolate flex flex-col rounded-xl overflow-visible bg-[var(--card)] border border-[var(--border)] card-hover-soft block ${
+        categoryOpen ? "z-[var(--z-dropdown)]" : ""
       }`}
     >
       {/* Обложка */}
@@ -120,7 +120,7 @@ export default function BookmarkGridCard({
             fallbackSrc={coverFallback}
             alt={name}
             fill
-            className="object-cover card-media-hover"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
             onError={() => setImageError(true)}
           />
         ) : (

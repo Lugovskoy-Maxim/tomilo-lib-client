@@ -57,7 +57,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
       tabIndex={0}
       role="button"
     >
-      <div className="relative flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm">
+      <div className="relative isolate flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm">
         {/* Image section */}
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">
@@ -66,7 +66,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
               fallbackSrc={imageFallback}
               alt={data.title}
               width={128}
-              className="object-cover card-media-hover"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
               priority={false}
             />
           </div>

@@ -1,8 +1,6 @@
 
-/* Lightweight unified hover for cards */
+/* Lightweight unified hover for cards — relative/isolate в Tailwind */
 .card-hover-soft {
-  position: relative;
-  isolation: isolate;
   --card-tilt-x: 0deg;
   --card-tilt-y: 0deg;
   --card-tilt-scale: 1;
@@ -39,14 +37,6 @@
 [data-theme="dark"] .card-focus-ring:focus-visible .card-hover-soft,
 .dark .card-focus-ring:focus-visible .card-hover-soft {
   box-shadow: 0 14px 28px rgb(0 0 0 / 0.35), 0 0 0 1px var(--primary);
-}
-
-.card-media-hover {
-  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.group:hover .card-media-hover {
-  transform: scale(1.05);
 }
 
 @media (hover: none), (pointer: coarse) {

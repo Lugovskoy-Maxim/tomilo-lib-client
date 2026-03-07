@@ -248,7 +248,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 profile-content-scroll">
+      <div className="flex-1 min-h-0 profile-content-scroll overflow-y-auto overflow-x-hidden">
           {/* О себе */}
           {activeTab === "overview" && (
             <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
@@ -292,7 +292,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* Закладки */}
           {activeTab === "bookmarks" && (
-            <div className="profile-card p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
+            <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
               {isBookmarksRestricted ? (
                 <div className="flex-1 flex items-center justify-center text-center py-12">
                   <div className="max-w-sm">
@@ -320,7 +320,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* История */}
           {activeTab === "history" && (
-            <div className="profile-card p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
+            <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
               {isHistoryRestricted ? (
                 <div className="flex-1 flex items-center justify-center text-center py-12">
                   <div className="max-w-sm">
@@ -354,7 +354,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* Обмены */}
           {activeTab === "exchanges" && (
-            <div className="profile-card p-6 sm:p-8 animate-fade-in-up text-center">
+            <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-6 sm:p-8 animate-fade-in-up text-center">
               <div className="inline-flex p-4 rounded-2xl bg-[var(--secondary)]/50 border border-[var(--border)]/60 mb-4">
                 <Repeat className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--primary)]" />
               </div>

@@ -14,10 +14,5 @@
   .search-input-modern:focus {
     transform: scale(1.01);
   }
-  
-  .header-glass {
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-  }
 }
 

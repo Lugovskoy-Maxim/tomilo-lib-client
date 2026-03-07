@@ -53,7 +53,7 @@ export default function BookmarkLibraryCard({
   return (
     <Link
       href={href}
-      className="group flex flex-col rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] card-hover-soft block"
+      className="group relative isolate flex flex-col rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] card-hover-soft block"
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-[var(--secondary)]">
         {showImage ? (
@@ -63,7 +63,7 @@ export default function BookmarkLibraryCard({
             alt={name}
             fill
             draggable={false}
-            className="object-cover card-media-hover"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
             onError={() => setImageError(true)}
           />
         ) : (

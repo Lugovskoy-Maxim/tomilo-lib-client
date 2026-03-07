@@ -139,7 +139,7 @@ export function BookmarkButton({
   return (
     <div
       ref={dropdownRef}
-      className={`relative inline-flex ${categoryOpen ? "z-layer-sheet" : ""}`}
+      className={`relative inline-flex ${categoryOpen ? "z-[var(--z-sheet)]" : ""}`}
     >
       {displayIsBookmarked ? (
         <button
@@ -189,7 +189,7 @@ export function BookmarkButton({
           {categoryOpen && !isLoading && (
             <div
               ref={dropdownRef}
-              className="absolute right-0 lg:left-0 lg:right-auto top-full mt-1 z-layer-sheet py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
+              className="absolute right-0 lg:left-0 lg:right-auto top-full mt-1 z-[var(--z-sheet)] py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg min-w-[160px]"
             >
               <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
                 Добавить в категорию

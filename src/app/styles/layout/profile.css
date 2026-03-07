@@ -97,23 +97,7 @@
   outline-offset: 2px;
 }
 
-.profile-content-scroll {
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Карточки внутри разделов */
-.profile-card {
-  border-radius: 1rem;
-  border: 1px solid var(--border);
-  background: var(--card);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-/* Вкладки: пилл-кнопки */
-.profile-tab-btn {
-  border-radius: 9999px;
-}
+/* Карточки внутри разделов — layout в Tailwind */
 
 .glass {
   background: rgba(var(--card-rgb), 0.7);

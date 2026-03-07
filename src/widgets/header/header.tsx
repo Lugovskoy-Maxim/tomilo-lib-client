@@ -167,8 +167,8 @@ export default function Header() {
   return (
     <>
       <header
-        className={`relative z-layer-dropdown w-full header-glass h-[var(--header-height)] transition-all duration-300 ${
-          isScrolled ? "header-scrolled" : ""
+        className={`relative z-[var(--z-dropdown)] w-full h-[var(--header-height)] transition-all duration-300 bg-[rgba(var(--background-rgb),0.8)] dark:bg-[rgba(8,8,12,0.92)] backdrop-blur-[20px] max-sm:backdrop-blur-[16px] border-b border-[rgba(var(--border-rgb),0.5)] dark:border-[rgba(255,255,255,0.06)] shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] ${
+          isScrolled ? "shadow-[0_8px_32px_rgba(0,0,0,0.15)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]" : ""
         }`}
       >
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-3 relative">
@@ -179,7 +179,7 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden"
+                className="header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4"
                 aria-label="Открыть меню"
               >
                 <Menu className="w-5 h-5 text-[var(--muted-foreground)]" />
@@ -207,7 +207,7 @@ export default function Header() {
             <button
               type="button"
               onClick={toggleSearch}
-              className={`${isSearchOpen ? "hidden " : ""}header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden`}
+              className={`${isSearchOpen ? "hidden " : ""}header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4`}
               aria-label="Поиск"
             >
               <SearchIcon className="w-5 h-5 text-[var(--muted-foreground)]" />
@@ -219,7 +219,7 @@ export default function Header() {
             <button
               type="button"
               onClick={toggleDropdown}
-              className="header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden"
+              className="header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4"
               aria-label="Дополнительное меню"
               aria-expanded={isDropdownOpen}
             >
@@ -273,12 +273,12 @@ export default function Header() {
         <>
           <div
             data-header-portal
-            className={`lg:hidden fixed inset-0 z-layer-sheet-backdrop mobile-menu-backdrop ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
+            className={`lg:hidden fixed inset-0 z-[var(--z-sheet-backdrop)] mobile-menu-backdrop ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
             onClick={closeMobileMenu}
             aria-hidden
           />
           <div
-            className={`lg:hidden fixed left-0 top-0 bottom-0 z-layer-sheet bg-[var(--background)] mobile-menu-panel flex flex-col w-full h-full max-w-[min(320px,85vw)] pl-[env(safe-area-inset-left,0)] shadow-[8px_0_24px_rgba(0,0,0,0.15)] dark:shadow-[8px_0_32px_rgba(0,0,0,0.4)] ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
+            className={`lg:hidden fixed left-0 top-0 bottom-0 z-[var(--z-sheet)] bg-[var(--background)] mobile-menu-panel flex flex-col w-full h-full max-w-[min(320px,85vw)] pl-[env(safe-area-inset-left,0)] shadow-[8px_0_24px_rgba(0,0,0,0.15)] dark:shadow-[8px_0_32px_rgba(0,0,0,0.4)] ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-label="Меню"

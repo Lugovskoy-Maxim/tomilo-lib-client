@@ -101,11 +101,11 @@ export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
 
   const cardContent = (
     <>
-      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft p-2.5 sm:p-3 shadow-sm">
+      <div className="relative isolate overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft p-2.5 sm:p-3 shadow-sm">
         <div className="flex gap-3 min-w-0">
           <div className="relative w-20 sm:w-24 aspect-[2/3] overflow-hidden rounded-lg bg-[var(--muted)] shrink-0 ring-1 ring-[var(--border)]/50">
             <OptimizedImage
-              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center card-media-hover`}
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105`}
               src={imageSrc}
               fallbackSrc={imageFallback}
               alt={data.title}

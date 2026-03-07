@@ -28,7 +28,7 @@ export function NotificationButton() {
   return (
     <Link
       href="/notifications"
-      className={`header-icon-btn relative inline-flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl !overflow-visible ${notificationCount > 0 ? "bg-[var(--primary)]/5 border-[var(--primary)]/30 text-[var(--foreground)]" : ""}`}
+      className={`header-icon-btn relative inline-flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl !overflow-visible max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4 ${notificationCount > 0 ? "bg-[var(--primary)]/5 border-[var(--primary)]/30 text-[var(--foreground)]" : ""}`}
       aria-label={notificationCount > 0 ? `Уведомления (${notificationCount} новых)` : "Уведомления"}
     >
       <Bell className="w-5 h-5" />

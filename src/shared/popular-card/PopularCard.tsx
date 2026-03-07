@@ -101,7 +101,7 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
         {/* Image container - 2:3 aspect ratio for manga covers */}
         <div className="relative overflow-hidden flex-shrink-0 aspect-[2/3] w-full bg-[var(--muted)] rounded-t-xl">
           <OptimizedImage
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center card-media-hover`}
+            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105`}
             src={imageSrc}
             fallbackSrc={imageFallback}
             alt={data.title}

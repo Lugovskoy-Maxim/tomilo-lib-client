@@ -103,7 +103,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
         className="block group cursor-pointer relative rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform"
         onClick={handleClick}
       >
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft relative overflow-hidden max-w-full shadow-sm">
+        <div className="relative isolate flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft overflow-hidden max-w-full shadow-sm">
           {/* Обложка — пропорционально */}
           <div className="w-20 h-28 sm:w-22 sm:h-32 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--muted)] relative">
             {item.coverImage ? (
@@ -113,7 +113,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
                 alt={item.title}
                 width={96}
                 height={128}
-                className={`w-full h-full object-cover card-media-hover ${
+                className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${
                   item.isAdult && !isAgeVerified ? "blur-sm" : ""
                 }`}
                 priority={false}
