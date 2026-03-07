@@ -79,7 +79,30 @@ export default function TopTitlesSection({ standalone = false, limit = DEFAULT_L
   const month = useGetTopTitlesMonthQuery({ limit: Math.max(limit, 10), includeAdult });
 
   const current = activePeriod === "day" ? day : activePeriod === "week" ? week : month;
-  const list = current.data?.data ?? [];
+  const rawList = current.data?.data ?? [];
+
+  /** Сортируем по просмотрам за период по убыванию, чтобы топ-1 имел больше всего просмотров. */
+  const list = useMemo(() => {
+    return [...rawList].sort((a, b) => {
+      const viewsA =
+        (a as { views?: number; dayViews?: number; weekViews?: number; monthViews?: number }).views ??
+        (activePeriod === "day"
+          ? (a as { dayViews?: number }).dayViews
+          : activePeriod === "week"
+            ? (a as { weekViews?: number }).weekViews
+            : (a as { monthViews?: number }).monthViews) ??
+        0;
+      const viewsB =
+        (b as { views?: number; dayViews?: number; weekViews?: number; monthViews?: number }).views ??
+        (activePeriod === "day"
+          ? (b as { dayViews?: number }).dayViews
+          : activePeriod === "week"
+            ? (b as { weekViews?: number }).weekViews
+            : (b as { monthViews?: number }).monthViews) ??
+        0;
+      return viewsB - viewsA;
+    });
+  }, [rawList, activePeriod]);
 
   const cards: TopTitleCardData[] = useMemo(
     () =>
