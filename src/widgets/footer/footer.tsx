@@ -26,6 +26,7 @@ import {
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Logo from "@/shared/logo/logo";
+import { useAuth } from "@/hooks/useAuth";
 import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
 
 const FOOTER_NAV_GROUPS = [
@@ -110,7 +111,9 @@ export default function Footer() {
   const dragStartY = useRef(0);
   const currentY = useRef(0);
 
+  const { isAuthenticated } = useAuth();
   const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
+    skip: !isAuthenticated,
     pollingInterval: isTabVisible ? POLL_INTERVAL_MS : 0,
     refetchOnMountOrArgChange: 90,
   });

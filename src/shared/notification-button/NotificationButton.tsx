@@ -3,11 +3,13 @@
 import { Bell } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
 
 const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 минут — не спамить сервер
 
 export function NotificationButton() {
+  const { isAuthenticated } = useAuth();
   const [isTabVisible, setIsTabVisible] = useState(
     () => (typeof document !== "undefined" ? document.visibilityState === "visible" : true)
   );
@@ -19,6 +21,7 @@ export function NotificationButton() {
   }, []);
 
   const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
+    skip: !isAuthenticated,
     pollingInterval: isTabVisible ? POLL_INTERVAL_MS : 0,
     refetchOnMountOrArgChange: 90,
   });
