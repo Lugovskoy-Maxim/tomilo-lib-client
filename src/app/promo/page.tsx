@@ -199,16 +199,13 @@ function PromoPageContent() {
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-emerald-500" />
             </div>
-            <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">
+            <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">
               Промокод активирован!
             </h2>
-            <p className="text-[var(--muted-foreground)] mb-6">
-              Вы получили следующие награды:
-            </p>
 
-            {grantedRewards && grantedRewards.length > 0 && (
+            {(grantedRewards && grantedRewards.length > 0) || newBalance !== null ? (
               <div className="space-y-3 mb-6">
-                {grantedRewards.map((reward, index) => (
+                {grantedRewards?.map((reward, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)]"
@@ -219,12 +216,18 @@ function PromoPageContent() {
                     </span>
                   </div>
                 ))}
+                {newBalance !== null && (
+                  <div className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)]">
+                    <Coins className="w-6 h-6 text-amber-500" />
+                    <span className="font-medium text-[var(--foreground)]">
+                      Баланс: <span className="text-amber-500 font-semibold">{newBalance} монет</span>
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-
-            {newBalance !== null && (
-              <p className="text-sm text-[var(--muted-foreground)] mb-6">
-                Ваш новый баланс: <span className="font-semibold text-amber-500">{newBalance} монет</span>
+            ) : (
+              <p className="text-[var(--muted-foreground)] mb-6">
+                Награды зачислены на ваш аккаунт.
               </p>
             )}
 
@@ -264,11 +267,8 @@ function PromoPageContent() {
                   className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] font-mono text-lg uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent placeholder:text-[var(--muted-foreground)] placeholder:font-sans placeholder:text-base placeholder:normal-case"
                   onKeyDown={e => {
                     if (e.key === "Enter" && code.trim()) {
-                      if (previewRewards) {
-                        handleRedeem();
-                      } else {
-                        handleCheckCode();
-                      }
+                      e.preventDefault();
+                      handleRedeem();
                     }
                   }}
                 />
@@ -291,55 +291,38 @@ function PromoPageContent() {
                 </div>
               )}
 
-              <div className="flex gap-3">
-                {!previewRewards ? (
-                  <button
-                    type="button"
-                    onClick={handleCheckCode}
-                    disabled={!code.trim() || isChecking}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)] border border-[var(--border)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isChecking ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Проверка...
-                      </>
-                    ) : (
-                      <>
-                        <Ticket className="w-4 h-4" />
-                        Проверить код
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleReset}
-                      className="px-6 py-3 rounded-xl text-sm font-medium bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)] border border-[var(--border)] transition-colors"
-                    >
-                      Отмена
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleRedeem}
-                      disabled={isRedeeming}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isRedeeming ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Активация...
-                        </>
-                      ) : (
-                        <>
-                          <Gift className="w-4 h-4" />
-                          Активировать
-                        </>
-                      )}
-                    </button>
-                  </>
-                )}
+              <div className="flex flex-wrap gap-3 items-center">
+                <button
+                  type="button"
+                  onClick={handleRedeem}
+                  disabled={!code.trim() || isRedeeming}
+                  className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isRedeeming ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Активация...
+                    </>
+                  ) : (
+                    <>
+                      <Gift className="w-4 h-4" />
+                      Активировать промокод
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCheckCode}
+                  disabled={!code.trim() || isChecking}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)] border border-[var(--border)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isChecking ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                  <span className="whitespace-nowrap">Проверить награды</span>
+                </button>
               </div>
             </div>
           </div>

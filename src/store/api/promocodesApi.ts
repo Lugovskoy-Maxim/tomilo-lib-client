@@ -2,6 +2,7 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import type {
   PromoCode,
+  PromoCodeReward,
   PromoCodeUsage,
   CreatePromoCodeDto,
   UpdatePromoCodeDto,
@@ -47,17 +48,87 @@ function normalizePromoCode(item: Record<string, unknown>): PromoCode {
 
 function parsePromoCodesResponse(response: unknown): PromoCode[] {
   if (!response || typeof response !== "object") return [];
-  
+
   const r = response as Record<string, unknown>;
   const data = r.data ?? r.promoCodes ?? r.items ?? response;
-  
+
   if (Array.isArray(data)) {
     return data
       .filter((x): x is Record<string, unknown> => x != null && typeof x === "object")
       .map(normalizePromoCode);
   }
-  
+
   return [];
+}
+
+const REWARD_TYPES = ["balance", "premium", "decoration"] as const;
+/** Типы с бэкенда, которые считаем декорациями (аватар, рамка, фон, карточка) */
+const DECORATION_SUBTYPES = ["avatar", "frame", "background", "card"] as const;
+
+function normalizeRewardItem(item: unknown): PromoCodeReward | null {
+  if (!item || typeof item !== "object") return null;
+  const o = item as Record<string, unknown>;
+  const rawType = (o.type ?? o.rewardType ?? o.reward_type) as string | undefined;
+  if (!rawType || typeof rawType !== "string") return null;
+  let type = rawType.toLowerCase() as string;
+  if (DECORATION_SUBTYPES.includes(type as (typeof DECORATION_SUBTYPES)[number])) {
+    type = "decoration";
+  }
+  if (!REWARD_TYPES.includes(type as PromoCodeReward["type"])) return null;
+  const rewardType = type as PromoCodeReward["type"];
+
+  const decorationId = (o.decorationId ?? o.decoration_id) as string | undefined;
+  const displayName =
+    (o.displayName as string) ??
+    (o.display_name as string) ??
+    (o.name as string) ??
+    (o.title as string) ??
+    (o.label as string) ??
+    (o.decorationName as string) ??
+    (o.decoration_name as string);
+  const decoration = o.decoration;
+  const displayNameFromDecoration =
+    decoration && typeof decoration === "object" && decoration !== null && "name" in decoration
+      ? (decoration as Record<string, unknown>).name as string
+      : undefined;
+
+  return {
+    type: rewardType,
+    amount: (o.amount as number) ?? (o.quantity as number),
+    decorationId,
+    displayName: displayName ?? displayNameFromDecoration,
+  };
+}
+
+function normalizeRewardsList(raw: unknown): PromoCodeReward[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(normalizeRewardItem)
+    .filter((r): r is PromoCodeReward => r != null && r.type != null);
+}
+
+/** Собирает награды из ответа: rewards/grantedRewards + отдельный массив decorations/grantedDecorations */
+function collectRewardsFromResponse(r: Record<string, unknown>): PromoCodeReward[] {
+  const fromRewards =
+    r.rewards ?? r.grantedRewards ?? r.rewardsGranted ?? (r.data && typeof r.data === "object" && (r.data as Record<string, unknown>).rewards);
+  const list = normalizeRewardsList(fromRewards);
+
+  const rawDecorations =
+    r.decorations ?? r.grantedDecorations ?? (r.data && typeof r.data === "object" && (r.data as Record<string, unknown>).decorations);
+  const decorationsArray = Array.isArray(rawDecorations) ? rawDecorations : [];
+  for (const d of decorationsArray) {
+    if (!d || typeof d !== "object") continue;
+    const dec = d as Record<string, unknown>;
+    const id = (dec.id ?? dec._id ?? dec.decorationId ?? dec.decoration_id) as string | undefined;
+    const name = (dec.name ?? dec.displayName ?? dec.display_name ?? dec.title) as string | undefined;
+    list.push({
+      type: "decoration",
+      decorationId: id,
+      displayName: name ?? "Декорация",
+    });
+  }
+
+  return list;
 }
 
 export const promocodesApi = createApi({
@@ -206,13 +277,17 @@ export const promocodesApi = createApi({
         method: "POST",
         body: { code },
       }),
-      transformResponse: (response: unknown) => {
+      transformResponse: (response: unknown): RedeemPromoCodeResult => {
         const r = response as Record<string, unknown>;
+        const rewards = collectRewardsFromResponse(r);
+        const dataObj = r.data && typeof r.data === "object" ? (r.data as Record<string, unknown>) : null;
+        const newBalance: number | undefined =
+          typeof r.newBalance === "number" ? r.newBalance : typeof dataObj?.newBalance === "number" ? dataObj.newBalance : undefined;
         return {
           success: (r.success as boolean) ?? true,
           message: (r.message as string) ?? "Промокод активирован",
-          rewards: r.rewards as RedeemPromoCodeResult["rewards"],
-          newBalance: r.newBalance as number | undefined,
+          rewards: rewards.length > 0 ? rewards : undefined,
+          newBalance,
         };
       },
       invalidatesTags: [{ type: PROMO_TAG, id: "LIST" }],
