@@ -299,7 +299,7 @@ export default function Footer() {
         <button
           type="button"
           onClick={scrollToTop}
-          className="footer-back-to-top fixed z-40 flex items-center justify-center border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[background-color,border-color,transform] duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] bottom-20 right-4 w-10 h-10 rounded-xl lg:bottom-6 lg:right-6 lg:w-11 lg:h-11 lg:rounded-full"
+          className="footer-back-to-top fixed z-40 flex items-center justify-center border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[background-color,border-color,transform] duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] bottom-[var(--mobile-footer-bar-height)] right-4 w-10 h-10 rounded-xl lg:bottom-6 lg:right-6 lg:w-11 lg:h-11 lg:rounded-full"
           aria-label="Вернуться наверх"
         >
           <ArrowUp className="w-5 h-5" aria-hidden />

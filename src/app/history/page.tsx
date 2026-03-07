@@ -7,9 +7,10 @@ import LoadingState from "@/shared/profile/ProfileLoading";
 
 import { Footer, Header, ReadingHistorySection } from "@/widgets";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
+import { PullToRefresh } from "@/shared/pull-to-refresh/PullToRefresh";
 
 export default function HistoryPage() {
-  const { userProfile, isLoading, authLoading } = useProfile();
+  const { userProfile, isLoading, authLoading, refetch } = useProfile();
 
   // SEO для страницы истории чтения
   useSEO(seoConfigs.history);
@@ -28,12 +29,14 @@ export default function HistoryPage() {
         <Header />
 
         <div className="max-w-7xl mx-auto px-4 py-4 pb-20 md:pb-0">
-          <div className="mb-6 pt-8">
-            <h1 className="text-2xl font-bold text-[var(--foreground)]">История чтения</h1>
-            <p className="text-[var(--muted-foreground)] mt-2">Все прочитанные вами главы</p>
-          </div>
+          <PullToRefresh onRefresh={refetch} mobileOnly>
+            <div className="mb-6 pt-8">
+              <h1 className="text-2xl font-bold text-[var(--foreground)]">История чтения</h1>
+              <p className="text-[var(--muted-foreground)] mt-2">Все прочитанные вами главы</p>
+            </div>
 
-          <ReadingHistorySection readingHistory={userProfile.readingHistory} />
+            <ReadingHistorySection readingHistory={userProfile.readingHistory} />
+          </PullToRefresh>
         </div>
 
         <Footer />

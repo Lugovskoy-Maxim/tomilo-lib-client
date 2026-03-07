@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { List, Percent, Timer, Eye, Download, RotateCcw } from "lucide-react";
+import { List, Percent, Timer, Eye, Download, RotateCcw, Smartphone, Wifi } from "lucide-react";
 import { BookOpen, LayoutList } from "lucide-react";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 import { useAutoScroll, useReaderSettingsContext } from "./hooks";
@@ -188,6 +188,10 @@ export function ReaderSettingsPanelContent({
     setBrightness,
     imageQuality,
     setImageQuality,
+    hapticEnabled,
+    setHapticEnabled,
+    dataSaver,
+    setDataSaver,
   } = useReaderSettingsContext();
   const { autoScrollSpeed, setAutoScrollSpeed } = useAutoScroll();
 
@@ -270,6 +274,12 @@ export function ReaderSettingsPanelContent({
         </SettingsRow>
         <SettingsRow label="Время чтения" icon={Timer}>
           <ToggleSwitch on={showTimer} onClick={() => setShowTimer(!showTimer)} />
+        </SettingsRow>
+        <SettingsRow label="Вибрация при перелистывании" icon={Smartphone}>
+          <ToggleSwitch on={hapticEnabled} onClick={() => setHapticEnabled(!hapticEnabled)} />
+        </SettingsRow>
+        <SettingsRow label="Экономия трафика" icon={Wifi}>
+          <ToggleSwitch on={dataSaver} onClick={() => setDataSaver(!dataSaver)} />
         </SettingsRow>
         {onHideBottomMenuChange && (
           <SettingsRow label="Скрывать нижнее меню" icon={Eye}>

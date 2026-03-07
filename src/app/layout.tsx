@@ -16,6 +16,9 @@ import ProgressNotificationContainer from "@/shared/ui/ProgressNotificationConta
 import type { Metadata, Viewport } from "next";
 import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";
 import { MobileFooterSpacer } from "./MobileFooterSpacer";
+import ServiceWorkerRegistration from "@/shared/pwa/ServiceWorkerRegistration";
+import { OfflineBanner } from "@/shared/pwa/OfflineBanner";
+import { AddToHomeScreenBanner } from "@/shared/pwa/AddToHomeScreenBanner";
 
 /** Viewport без ограничения зума — жесты (пинч) работают; авто-зум при фокусе на инпутах убираем через font-size в CSS */
 export const viewport: Viewport = {
@@ -268,6 +271,11 @@ export default function RootLayout({
               <FontProvider>
                 <OverlayProvider>
                 <div className="contents">
+                  <Suspense fallback={null}>
+                    <ServiceWorkerRegistration />
+                    <OfflineBanner />
+                    <AddToHomeScreenBanner />
+                  </Suspense>
                   <Suspense fallback={null}>
                     <CardTiltEffect />
                   </Suspense>

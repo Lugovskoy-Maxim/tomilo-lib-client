@@ -83,11 +83,11 @@ export function useProfile() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const prevTitleRef = useRef<string | null>(null);
 
-  const { data: profileData, isLoading: profileLoading } = useGetProfileQuery(undefined, {
+  const { data: profileData, isLoading: profileLoading, refetch: refetchProfile } = useGetProfileQuery(undefined, {
     skip: !isAuthenticated && !authLoading,
   });
 
-  const { data: readingHistoryData, isLoading: readingHistoryLoading } =
+  const { data: readingHistoryData, isLoading: readingHistoryLoading, refetch: refetchReadingHistory } =
     useGetReadingHistoryQuery({ limit: 200, light: false }, {
       skip: !isAuthenticated && !authLoading,
     });
@@ -123,10 +123,15 @@ export function useProfile() {
 
   const isLoading = profileLoading || readingHistoryLoading || authLoading;
 
+  const refetch = useCallback(async () => {
+    await Promise.all([refetchProfile(), refetchReadingHistory()]);
+  }, [refetchProfile, refetchReadingHistory]);
+
   return {
     userProfile,
     isLoading,
     authLoading,
     handleAvatarUpdate,
+    refetch,
   };
 }

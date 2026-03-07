@@ -18,6 +18,8 @@ const STORAGE_KEYS = {
   showHints: "reader-show-hints",
   showProgress: "reader-show-progress",
   imageQuality: "reader-image-quality",
+  hapticEnabled: "reader-haptic-enabled",
+  dataSaver: "reader-data-saver",
 } as const;
 
 export type ReadingMode = "feed" | "paged";
@@ -42,6 +44,8 @@ interface ReaderSettings {
   showHints: boolean;
   showProgress: boolean;
   imageQuality: ImageQualityMode;
+  hapticEnabled: boolean;
+  dataSaver: boolean;
 }
 
 export interface UseReaderSettingsReturn extends ReaderSettings {
@@ -62,6 +66,10 @@ export interface UseReaderSettingsReturn extends ReaderSettings {
   setShowProgress: (value: boolean) => void;
   setImageQuality: (quality: ImageQualityMode) => void;
   getQualityValue: () => number;
+  hapticEnabled: boolean;
+  setHapticEnabled: (value: boolean) => void;
+  dataSaver: boolean;
+  setDataSaver: (value: boolean) => void;
   resetToDefaults: () => void;
 }
 
@@ -83,6 +91,8 @@ const DEFAULT_SETTINGS: ReaderSettings = {
   showHints: false,
   showProgress: false,
   imageQuality: "auto",
+  hapticEnabled: true,
+  dataSaver: false,
 };
 
 function qualityModeToValue(mode: ImageQualityMode): number {
@@ -158,6 +168,8 @@ function getInitialSettings(): ReaderSettings {
     showHints: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.showHints), DEFAULT_SETTINGS.showHints),
     showProgress: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.showProgress), DEFAULT_SETTINGS.showProgress),
     imageQuality: parseEnum(safeLocalStorageGet(STORAGE_KEYS.imageQuality), ["low", "medium", "high", "auto"] as const, DEFAULT_SETTINGS.imageQuality),
+    hapticEnabled: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.hapticEnabled), DEFAULT_SETTINGS.hapticEnabled),
+    dataSaver: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.dataSaver), DEFAULT_SETTINGS.dataSaver),
   };
 }
 
@@ -270,9 +282,20 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
     safeLocalStorageSet(STORAGE_KEYS.imageQuality, quality);
   }, []);
 
+  const setHapticEnabled = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, hapticEnabled: value }));
+    safeLocalStorageSet(STORAGE_KEYS.hapticEnabled, String(value));
+  }, []);
+
+  const setDataSaver = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, dataSaver: value }));
+    safeLocalStorageSet(STORAGE_KEYS.dataSaver, String(value));
+  }, []);
+
   const getQualityValue = useCallback(() => {
+    if (settings.dataSaver) return 60;
     return qualityModeToValue(settings.imageQuality);
-  }, [settings.imageQuality]);
+  }, [settings.imageQuality, settings.dataSaver]);
 
   const resetToDefaults = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);
@@ -284,6 +307,8 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
   return useMemo(() => ({
     ...settings,
     readChaptersInRow: effectiveReadChaptersInRow,
+    setHapticEnabled,
+    setDataSaver,
     setShowPageCounter,
     toggleShowPageCounter,
     setReadChaptersInRow,
@@ -305,6 +330,8 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
   }), [
     settings,
     effectiveReadChaptersInRow,
+    setHapticEnabled,
+    setDataSaver,
     setShowPageCounter,
     toggleShowPageCounter,
     setReadChaptersInRow,
