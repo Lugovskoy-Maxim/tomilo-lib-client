@@ -425,7 +425,7 @@ export default function ContinueReadingSection() {
       ) : (
         <div
           ref={scrollRef}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto overflow-y-visible py-2 scrollbar-hide scroll-smooth min-w-0 touch-pan-x carousel-scroll will-change-scroll cursor-grab active:cursor-grabbing select-none"
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto overflow-y-visible py-2 scrollbar-hide scroll-smooth min-w-0 touch-pan-both carousel-scroll will-change-scroll cursor-grab active:cursor-grabbing select-none"
           style={{ userSelect: "none" }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
