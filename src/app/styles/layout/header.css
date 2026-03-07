@@ -99,36 +99,22 @@
   color: var(--primary);
 }
 
-/* Кнопка-триггер поиска в хедере (десктоп) — в одном стиле с иконками */
-.header-search .search-container {
-  min-height: 44px;
-  height: 44px;
-  padding: 0 1rem 0 0.875rem;
-  border-radius: 0.75rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--muted-foreground);
-  font-size: 0.875rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, background 0.2s ease;
+/* Кнопка-триггер поиска в хедере (десктоп) — доп. стили поверх search-trigger */
+.header-search .search-trigger {
+  max-width: 100%;
 }
-.header-search .search-container:hover {
-  border-color: var(--primary);
-  color: var(--foreground);
-  background: var(--card);
-  box-shadow: 0 0 0 1px var(--primary);
-}
-.header-search .search-container[aria-expanded="true"] {
-  border-color: var(--primary);
-  color: var(--foreground);
-  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 18%, transparent);
-}
-.header-search .search-container:hover svg,
-.header-search .search-container[aria-expanded="true"] svg {
-  color: var(--primary);
-}
-.header-search .search-container:focus-visible {
+.header-search .search-trigger:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+}
+/* На узких экранах скрываем подсказку с горячей клавишей */
+@media (max-width: 380px) {
+  .header-search .search-trigger-shortcut {
+    display: none;
+  }
+  .header-search .search-trigger-text {
+    font-size: 0.8125rem;
+  }
 }
 
 /* Поиск в хедере — инпут (legacy) */
