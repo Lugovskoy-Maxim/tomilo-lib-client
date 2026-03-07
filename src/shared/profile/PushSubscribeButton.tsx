@@ -3,8 +3,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { Bell, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
+import { AUTH_TOKEN_KEY } from "@/store/api/baseQueryWithReauth";
 
 const VAPID_PUBLIC_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY : undefined;
+const API_BASE = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api" : "";
 
 export function PushSubscribeButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -43,9 +45,14 @@ export function PushSubscribeButton() {
           userVisibleOnly: true,
           applicationServerKey: VAPID_PUBLIC_KEY,
         });
-        const res = await fetch("/api/push-subscribe", {
+        const token = typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
+        const res = await fetch(`${API_BASE.replace(/\/$/, "")}/users/profile/push-subscribe`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: "include",
           body: JSON.stringify(subscription.toJSON()),
         });
         if (!res.ok) throw new Error("Subscribe failed");
@@ -68,9 +75,14 @@ export function PushSubscribeButton() {
             userVisibleOnly: true,
             applicationServerKey: VAPID_PUBLIC_KEY,
           });
-          const res = await fetch("/api/push-subscribe", {
+          const token = typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
+          const res = await fetch(`${API_BASE.replace(/\/$/, "")}/users/profile/push-subscribe`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            credentials: "include",
             body: JSON.stringify(subscription.toJSON()),
           });
           if (!res.ok) throw new Error("Subscribe failed");
