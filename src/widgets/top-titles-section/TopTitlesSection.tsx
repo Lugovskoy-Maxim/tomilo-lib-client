@@ -20,6 +20,12 @@ const PERIOD_LABELS: Record<(typeof PERIODS)[number], string> = {
   week: "Неделя",
   month: "Месяц",
 };
+/** Для фразы «По просмотрам за …» — винительный падеж: день, неделю, месяц */
+const PERIOD_LABELS_ACCUSATIVE: Record<(typeof PERIODS)[number], string> = {
+  day: "день",
+  week: "неделю",
+  month: "месяц",
+};
 
 export interface TopTitlesSectionProps {
   /** На отдельной странице (/top) — без ссылки «Весь топ». На главной — показать ссылку. */
@@ -79,7 +85,30 @@ export default function TopTitlesSection({ standalone = false, limit = DEFAULT_L
   const month = useGetTopTitlesMonthQuery({ limit: Math.max(limit, 10), includeAdult });
 
   const current = activePeriod === "day" ? day : activePeriod === "week" ? week : month;
-  const list = current.data?.data ?? [];
+  const rawList = current.data?.data ?? [];
+
+  /** Сортируем по просмотрам за период по убыванию, чтобы топ-1 имел больше всего просмотров. */
+  const list = useMemo(() => {
+    return [...rawList].sort((a, b) => {
+      const viewsA =
+        (a as { views?: number; dayViews?: number; weekViews?: number; monthViews?: number }).views ??
+        (activePeriod === "day"
+          ? (a as { dayViews?: number }).dayViews
+          : activePeriod === "week"
+            ? (a as { weekViews?: number }).weekViews
+            : (a as { monthViews?: number }).monthViews) ??
+        0;
+      const viewsB =
+        (b as { views?: number; dayViews?: number; weekViews?: number; monthViews?: number }).views ??
+        (activePeriod === "day"
+          ? (b as { dayViews?: number }).dayViews
+          : activePeriod === "week"
+            ? (b as { weekViews?: number }).weekViews
+            : (b as { monthViews?: number }).monthViews) ??
+        0;
+      return viewsB - viewsA;
+    });
+  }, [rawList, activePeriod]);
 
   const cards: TopTitleCardData[] = useMemo(
     () =>
@@ -140,7 +169,7 @@ export default function TopTitlesSection({ standalone = false, limit = DEFAULT_L
               Топ тайтлов
             </h2>
             <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-              По просмотрам за {PERIOD_LABELS[activePeriod].toLowerCase()}
+              По просмотрам за {PERIOD_LABELS_ACCUSATIVE[activePeriod]}
             </p>
           </div>
         </div>

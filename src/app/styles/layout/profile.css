@@ -1,5 +1,13 @@
 /* --- PROFILE PAGE --- */
 
+.profile-shell-content {
+  --profile-gap: 1rem;
+}
+
+/* Полоска профиля, карточка вкладок, уровень, вкладки, заголовок раздела — в Tailwind (ProfileStrip, ProfileShell, ProfileTabs). */
+
+/* Карточки внутри разделов — layout в Tailwind */
+
 .glass {
   background: rgba(var(--card-rgb), 0.7);
   backdrop-filter: blur(12px);

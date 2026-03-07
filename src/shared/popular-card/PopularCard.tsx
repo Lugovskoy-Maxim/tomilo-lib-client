@@ -101,7 +101,7 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
         {/* Image container - 2:3 aspect ratio for manga covers */}
         <div className="relative overflow-hidden flex-shrink-0 aspect-[2/3] w-full bg-[var(--muted)] rounded-t-xl">
           <OptimizedImage
-            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center card-media-hover`}
+            className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105`}
             src={imageSrc}
             fallbackSrc={imageFallback}
             alt={data.title}
@@ -164,7 +164,7 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
   );
 
   const className =
-    "relative group cursor-pointer select-none block h-full rounded-xl card-focus-ring focus:outline-none";
+    "relative group cursor-pointer select-none block h-full rounded-xl card-focus-ring focus:outline-none focus-visible:[&_.card-hover-soft]:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_0_0_0_1px_var(--primary)] dark:focus-visible:[&_.card-hover-soft]:shadow-[0_14px_28px_rgb(0_0_0/0.35),0_0_0_0_1px_var(--primary)]";
 
   if (onCardClick) {
     return (

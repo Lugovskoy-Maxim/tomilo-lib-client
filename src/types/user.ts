@@ -143,6 +143,10 @@ export interface UserProfile {
   showReadingHistory?: boolean;
   /** Показывать ли закладки */
   showBookmarks?: boolean;
+  /** Запланированная дата удаления профиля (ISO). */
+  scheduledDeletionAt?: string | null;
+  /** Фактическая дата удаления. */
+  deletedAt?: string | null;
 }
 
 /** Типы достижений */

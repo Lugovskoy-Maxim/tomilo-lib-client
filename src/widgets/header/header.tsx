@@ -220,8 +220,8 @@ export default function Header() {
   return (
     <>
       <header
-        className={`relative z-layer-dropdown w-full header-glass h-[var(--header-height)] transition-all duration-300 ${
-          isScrolled ? "header-scrolled" : ""
+        className={`relative z-[var(--z-dropdown)] w-full h-[var(--header-height)] transition-all duration-300 bg-white dark:bg-[rgba(8,8,12,0.92)] backdrop-blur-[20px] max-sm:backdrop-blur-[16px] border-b border-[rgba(var(--border-rgb),0.65)] dark:border-[rgba(255,255,255,0.06)] shadow-[0_4px_30px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] ${
+          isScrolled ? "shadow-[0_8px_32px_rgba(0,0,0,0.12),0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]" : ""
         }`}
       >
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-3 relative">
@@ -232,10 +232,11 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="header-icon-btn"
+                className="header-icon-btn group relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] transition-all duration-250 hover:border-[var(--primary)] hover:text-[var(--foreground)] hover:shadow-[0_0_20px_-5px_var(--primary)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4"
                 aria-label="Открыть меню"
               >
-                <Menu className="w-5 h-5 text-[var(--muted-foreground)]" />
+                <span className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] opacity-0 transition-opacity duration-250 group-hover:opacity-[0.12] -z-0" aria-hidden />
+                <Menu className="w-5 h-5 text-[var(--muted-foreground)] group-hover:scale-110 group-hover:-rotate-5 group-hover:text-[var(--primary)] transition-transform duration-300 relative z-[1]" />
               </button>
             </div>
           )}
@@ -260,10 +261,11 @@ export default function Header() {
             <button
               type="button"
               onClick={toggleSearch}
-              className={`${isSearchOpen ? "hidden " : ""}header-icon-btn`}
+              className={`${isSearchOpen ? "hidden " : ""}header-icon-btn group relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] transition-all duration-250 hover:border-[var(--primary)] hover:text-[var(--foreground)] hover:shadow-[0_0_20px_-5px_var(--primary)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4`}
               aria-label="Поиск"
             >
-              <SearchIcon className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <span className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] opacity-0 transition-opacity duration-250 group-hover:opacity-[0.12] -z-0" aria-hidden />
+              <SearchIcon className="w-5 h-5 text-[var(--muted-foreground)] group-hover:scale-110 group-hover:-rotate-5 group-hover:text-[var(--primary)] transition-transform duration-300 relative z-[1]" />
             </button>
           </div>
 
@@ -272,11 +274,12 @@ export default function Header() {
             <button
               type="button"
               onClick={toggleDropdown}
-              className="header-icon-btn"
+              className={`header-icon-btn group relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] transition-all duration-250 hover:border-[var(--primary)] hover:text-[var(--foreground)] hover:shadow-[0_0_20px_-5px_var(--primary)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4 ${isDropdownOpen ? "border-[var(--primary)] text-[var(--foreground)] shadow-[0_0_20px_-5px_var(--primary)] [&_.header-icon-glow]:opacity-[0.15] [&_.header-icon-svg]:scale-110 [&_.header-icon-svg]:-rotate-5 [&_.header-icon-svg]:text-[var(--primary)]" : ""}`}
               aria-label="Дополнительное меню"
               aria-expanded={isDropdownOpen}
             >
-              <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <span className="header-icon-glow absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] opacity-0 transition-opacity duration-250 group-hover:opacity-[0.12] -z-0" aria-hidden />
+              <MoreVertical className="header-icon-svg w-5 h-5 text-[var(--muted-foreground)] group-hover:scale-110 group-hover:-rotate-5 group-hover:text-[var(--primary)] transition-transform duration-300 relative z-[1]" />
             </button>
 
             {isDropdownOpen && (
@@ -285,8 +288,7 @@ export default function Header() {
                 <div
                   role="menu"
                   aria-label="Дополнительные ссылки"
-                  className="absolute right-0 top-full mt-2 w-56 dropdown-modern animate-fade-in-scale z-50 py-1"
-                  onClick={e => e.stopPropagation()}
+                  className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35),0_0_1px_rgba(255,255,255,0.06)] overflow-hidden animate-fade-in-scale z-50 py-1"
                 >
                   <form onSubmit={handleRedeemPromo} className="p-2 border-b border-[var(--border)]">
                     <div className="flex items-center gap-1.5">
@@ -316,7 +318,7 @@ export default function Header() {
                       href={href}
                       onClick={closeDropdown}
                       role="menuitem"
-                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] dropdown-item-modern w-full mx-1"
+                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] w-full mx-1 rounded-lg transition-[background-color,color] duration-150 hover:bg-[var(--accent)] hover:[&_svg]:text-[var(--foreground)] active:bg-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
                     >
                       <Icon className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0" aria-hidden />
                       {label}
@@ -349,28 +351,28 @@ export default function Header() {
         <>
           <div
             data-header-portal
-            className={`lg:hidden fixed inset-0 z-layer-sheet-backdrop mobile-menu-backdrop ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
+            className={`lg:hidden fixed inset-0 z-[var(--z-sheet-backdrop)] mobile-menu-backdrop ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
             onClick={closeMobileMenu}
             aria-hidden
           />
           <div
-            className={`lg:hidden fixed left-0 top-0 bottom-0 z-layer-sheet bg-[var(--background)] mobile-menu-panel ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
+            className={`lg:hidden fixed left-0 top-0 bottom-0 z-[var(--z-sheet)] bg-[var(--background)] mobile-menu-panel flex flex-col w-full h-full max-w-[min(320px,85vw)] pl-[env(safe-area-inset-left,0)] shadow-[8px_0_24px_rgba(0,0,0,0.15)] dark:shadow-[8px_0_32px_rgba(0,0,0,0.4)] ${isMobileMenuClosing ? "mobile-menu-closing" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-label="Меню"
           >
-            <div className="mobile-menu-header">
-              <span className="mobile-menu-title">Меню</span>
+            <div className="mobile-menu-header shrink-0 flex items-center justify-between gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] border-b border-[var(--border)] bg-[var(--background)] min-h-12">
+              <span className="mobile-menu-title text-base font-semibold text-[var(--foreground)] tracking-tight">Меню</span>
               <button
                 type="button"
                 onClick={closeMobileMenu}
-                className="mobile-menu-close"
+                className="mobile-menu-close flex items-center justify-center min-w-10 min-h-10 -mt-1 -mr-1 -mb-1 ml-0 rounded-[var(--radius)] text-[var(--muted-foreground)] bg-transparent border-none transition-colors duration-200 hover:bg-[var(--accent)] hover:text-[var(--foreground)] active:scale-95 [&::-webkit-tap-highlight-color]:transparent"
                 aria-label="Закрыть меню"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="mobile-menu-body">
+            <div className="mobile-menu-body flex-1 min-h-0 py-2 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] overflow-y-auto overflow-x-hidden [overflow-scrolling:touch]">
               <ErrorBoundary
                 fallback={
                   <div className="p-4 text-center text-sm text-[var(--muted-foreground)]">
@@ -385,179 +387,179 @@ export default function Header() {
                 ) : (
                   <>
                     {/* Главные разделы */}
-                    <section className="mobile-menu-section">
-                      <h2 className="mobile-menu-section-title">Разделы</h2>
-                      <ul className="mobile-menu-list">
+                    <section className="mobile-menu-section mb-4 last:mb-0">
+                      <h2 className="mobile-menu-section-title text-[0.625rem] font-semibold uppercase tracking-widest text-[var(--muted-foreground)] py-1.5 px-3 pt-1.5 pb-1 mb-0.5">Разделы</h2>
+                      <ul className="mobile-menu-list list-none m-0 p-0 flex flex-col gap-0.5">
                         <li>
                           <Link
                             href="/"
                             onClick={closeMobileMenu}
-                            className="mobile-menu-item"
+                            className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent"
                             data-active={pathname === "/" ? "true" : undefined}
                           >
-                            <span className="mobile-menu-item-icon" aria-hidden>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden>
                               <Home className="w-4 h-4" />
                             </span>
-                            <span className="mobile-menu-item-label">Главная</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Главная</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                         <li>
                           <Link
                             href="/titles"
                             onClick={closeMobileMenu}
-                            className="mobile-menu-item"
+                            className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent"
                             data-active={pathname === "/titles" || pathname?.startsWith("/titles/") ? "true" : undefined}
                           >
-                            <span className="mobile-menu-item-icon" aria-hidden>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden>
                               <BookOpen className="w-4 h-4" />
                             </span>
-                            <span className="mobile-menu-item-label">Каталог</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Каталог</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                         <li>
                           <Link
                             href="/tomilo-shop"
                             onClick={closeMobileMenu}
-                            className="mobile-menu-item"
+                            className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent"
                             data-active={pathname === "/tomilo-shop" || pathname?.startsWith("/tomilo-shop/") ? "true" : undefined}
                           >
-                            <span className="mobile-menu-item-icon" aria-hidden>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden>
                               <ShoppingBag className="w-4 h-4" />
                             </span>
-                            <span className="mobile-menu-item-label">Магазин</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Магазин</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                         <li>
                           <Link
                             href="/leaders"
                             onClick={closeMobileMenu}
-                            className="mobile-menu-item"
+                            className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent"
                             data-active={pathname === "/leaders" ? "true" : undefined}
                           >
-                            <span className="mobile-menu-item-icon" aria-hidden>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden>
                               <Crown className="w-4 h-4" />
                             </span>
-                            <span className="mobile-menu-item-label">Лидеры</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Лидеры</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                         <li>
                           <Link
                             href="/updates"
                             onClick={closeMobileMenu}
-                            className="mobile-menu-item"
+                            className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent"
                             data-active={pathname === "/updates" ? "true" : undefined}
                           >
-                            <span className="mobile-menu-item-icon" aria-hidden>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden>
                               <LayoutList className="w-4 h-4" />
                             </span>
-                            <span className="mobile-menu-item-label">Обновления</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Обновления</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                         <li>
                           <Link
                             href="/promo"
                             onClick={closeMobileMenu}
-                            className="mobile-menu-item"
+                            className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent"
                             data-active={pathname === "/promo" ? "true" : undefined}
                           >
-                            <span className="mobile-menu-item-icon" aria-hidden>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden>
                               <Ticket className="w-4 h-4" />
                             </span>
-                            <span className="mobile-menu-item-label">Промокоды</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Промокоды</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                       </ul>
                     </section>
 
-                    <section className="mobile-menu-section">
-                      <h2 className="mobile-menu-section-title">Аккаунт</h2>
-                      <ul className="mobile-menu-list">
+                    <section className="mobile-menu-section mb-4 last:mb-0">
+                      <h2 className="mobile-menu-section-title text-[0.625rem] font-semibold uppercase tracking-widest text-[var(--muted-foreground)] py-1.5 px-3 pt-1.5 pb-1 mb-0.5">Аккаунт</h2>
+                      <ul className="mobile-menu-list list-none m-0 p-0 flex flex-col gap-0.5">
                         <li>
-                          <Link href="/profile" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/profile" || pathname?.startsWith("/profile?") ? "true" : undefined}>
-                            <span className="mobile-menu-item-icon" aria-hidden><User className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">Профиль</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          <Link href="/profile" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent" data-active={pathname === "/profile" || pathname?.startsWith("/profile?") ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><User className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Профиль</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                         <li>
-                          <Link href="/bookmarks" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/bookmarks" ? "true" : undefined}>
-                            <span className="mobile-menu-item-icon" aria-hidden><Bookmark className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">Закладки</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          <Link href="/bookmarks" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent" data-active={pathname === "/bookmarks" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><Bookmark className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Закладки</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                         <li>
-                          <Link href="/notifications" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/notifications" ? "true" : undefined}>
-                            <span className="mobile-menu-item-icon" aria-hidden><Bell className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">Уведомления</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
-                          </Link>
-                        </li>
-                      </ul>
-                    </section>
-
-                    <section className="mobile-menu-section">
-                      <h2 className="mobile-menu-section-title">Информация</h2>
-                      <ul className="mobile-menu-list">
-                        <li>
-                          <Link href="/about" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/about" ? "true" : undefined}>
-                            <span className="mobile-menu-item-icon" aria-hidden><Info className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">О нас</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
-                          </Link>
-                        </li>
-                        <li>
-                          <Link href="/contact" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/contact" ? "true" : undefined}>
-                            <span className="mobile-menu-item-icon" aria-hidden><Mail className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">Контакты</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
-                          </Link>
-                        </li>
-                        <li>
-                          <Link href="/dmca" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/dmca" ? "true" : undefined}>
-                            <span className="mobile-menu-item-icon" aria-hidden><Shield className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">Авторские права (DMCA)</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
-                          </Link>
-                        </li>
-                        <li>
-                          <Link href="/terms-of-use" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/terms-of-use" ? "true" : undefined}>
-                            <span className="mobile-menu-item-icon" aria-hidden><FileText className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">Условия использования</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
-                          </Link>
-                        </li>
-                        <li>
-                          <Link href="/privacy-policy" onClick={closeMobileMenu} className="mobile-menu-item" data-active={pathname === "/privacy-policy" ? "true" : undefined}>
-                            <span className="mobile-menu-item-icon" aria-hidden><Lock className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">Политика конфиденциальности</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          <Link href="/notifications" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent" data-active={pathname === "/notifications" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><Bell className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Уведомления</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                       </ul>
                     </section>
 
-                    <section className="mobile-menu-section">
-                      <h2 className="mobile-menu-section-title">Связаться</h2>
-                      <ul className="mobile-menu-list">
+                    <section className="mobile-menu-section mb-4 last:mb-0">
+                      <h2 className="mobile-menu-section-title text-[0.625rem] font-semibold uppercase tracking-widest text-[var(--muted-foreground)] py-1.5 px-3 pt-1.5 pb-1 mb-0.5">Информация</h2>
+                      <ul className="mobile-menu-list list-none m-0 p-0 flex flex-col gap-0.5">
                         <li>
-                          <Link href="mailto:support@tomilo-lib.ru" onClick={closeMobileMenu} className="mobile-menu-item">
-                            <span className="mobile-menu-item-icon" aria-hidden><Mail className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">support@tomilo-lib.ru</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          <Link href="/about" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent" data-active={pathname === "/about" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><Info className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">О нас</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                         <li>
-                          <Link href="https://t.me/tomilolib" target="_blank" rel="noopener noreferrer" onClick={closeMobileMenu} className="mobile-menu-item">
-                            <span className="mobile-menu-item-icon" aria-hidden><Send className="w-4 h-4" /></span>
-                            <span className="mobile-menu-item-label">Telegram</span>
-                            <ChevronRight className="mobile-menu-item-arrow" aria-hidden />
+                          <Link href="/contact" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent" data-active={pathname === "/contact" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><Mail className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Контакты</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="/dmca" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent" data-active={pathname === "/dmca" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><Shield className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Авторские права (DMCA)</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="/terms-of-use" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent" data-active={pathname === "/terms-of-use" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><FileText className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Условия использования</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="/privacy-policy" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent" data-active={pathname === "/privacy-policy" ? "true" : undefined}>
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><Lock className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Политика конфиденциальности</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
+                          </Link>
+                        </li>
+                      </ul>
+                    </section>
+
+                    <section className="mobile-menu-section mb-4 last:mb-0">
+                      <h2 className="mobile-menu-section-title text-[0.625rem] font-semibold uppercase tracking-widest text-[var(--muted-foreground)] py-1.5 px-3 pt-1.5 pb-1 mb-0.5">Связаться</h2>
+                      <ul className="mobile-menu-list list-none m-0 p-0 flex flex-col gap-0.5">
+                        <li>
+                          <Link href="mailto:support@tomilo-lib.ru" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent">
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><Mail className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">support@tomilo-lib.ru</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link href="https://t.me/tomilolib" target="_blank" rel="noopener noreferrer" onClick={closeMobileMenu} className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent">
+                            <span className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300" aria-hidden><Send className="w-4 h-4" /></span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">Telegram</span>
+                            <ChevronRight className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250" aria-hidden />
                           </Link>
                         </li>
                       </ul>

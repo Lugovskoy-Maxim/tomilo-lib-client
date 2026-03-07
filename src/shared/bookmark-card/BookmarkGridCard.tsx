@@ -108,19 +108,19 @@ export default function BookmarkGridCard({
   return (
     <Link
       href={href}
-      className={`group relative flex flex-col rounded-xl overflow-visible bg-[var(--card)] border border-[var(--border)] card-hover-soft block ${
-        categoryOpen ? "z-layer-dropdown" : ""
+      className={`group relative isolate flex flex-col rounded-xl overflow-visible bg-[var(--card)] border border-[var(--border)] card-hover-soft block transition-[box-shadow] duration-250 hover:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_4px_8px_rgb(0_0_0/0.06)] dark:hover:shadow-[0_14px_28px_rgb(0_0_0/0.4),0_6px_12px_rgb(0_0_0/0.25)] ${
+        categoryOpen ? "z-[var(--z-dropdown)]" : ""
       }`}
     >
       {/* Обложка */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-[var(--secondary)]">
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-t-xl bg-[var(--secondary)]">
         {showImage ? (
           <OptimizedImage
             src={coverUrl}
             fallbackSrc={coverFallback}
             alt={name}
             fill
-            className="object-cover card-media-hover"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
             onError={() => setImageError(true)}
           />
         ) : (

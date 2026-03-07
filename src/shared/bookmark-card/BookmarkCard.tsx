@@ -107,8 +107,8 @@ export default function BookmarkCard({
 
   return (
     <div
-      className={`group relative flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border ${borderClass} card-hover-soft cursor-pointer overflow-visible ${
-        categoryOpen ? "z-layer-dropdown" : ""
+      className={`group relative isolate flex items-stretch gap-3 rounded-xl p-3 bg-[var(--background)]/60 border ${borderClass} card-hover-soft cursor-pointer overflow-visible transition-[box-shadow] duration-250 hover:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_4px_8px_rgb(0_0_0/0.06)] dark:hover:shadow-[0_14px_28px_rgb(0_0_0/0.4),0_6px_12px_rgb(0_0_0/0.25)] ${
+        categoryOpen ? "z-[var(--z-dropdown)]" : ""
       }`}
       onClick={handleClick}
     >
@@ -120,7 +120,7 @@ export default function BookmarkCard({
             alt={title.name}
             width={96}
             height={128}
-            className="w-full h-full object-cover card-media-hover"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             priority={false}
             onError={() => setImageError(true)}
           />

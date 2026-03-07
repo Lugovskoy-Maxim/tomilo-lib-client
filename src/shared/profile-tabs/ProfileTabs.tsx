@@ -15,6 +15,7 @@ import {
 } from "./profileTabConfig";
 
 // Компоненты обзора
+import ProfileAboutBlock from "@/shared/profile/ProfileAboutBlock";
 import ProfileAdditionalInfo from "@/shared/profile/ProfileAdditionalInfo";
 import ProfileContent from "@/shared/profile/ProfileContent";
 import ProfileStats from "@/shared/profile/ProfileStats";
@@ -32,6 +33,7 @@ import ProfilePrivacySettings from "@/shared/profile/ProfilePrivacySettings";
 import ProfileSecuritySettings from "@/shared/profile/ProfileSecuritySettings";
 import ProfileDisplaySettings from "@/shared/profile/ProfileDisplaySettings";
 import ProfilePremiumSettings from "@/shared/profile/ProfilePremiumSettings";
+import ProfileDeleteAccount from "@/shared/profile/ProfileDeleteAccount";
 import ProfileInventory from "@/shared/profile/ProfileInventory";
 import SettingsNavigation from "@/shared/profile/SettingsNavigation";
 
@@ -181,14 +183,15 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
   const sectionDescription = tabMeta[activeTab].description;
 
   return (
-    <div className="w-full min-w-0">
-      <div className="mb-4">
-        <div className="relative flex items-center">
+    <div className="w-full min-w-0 flex flex-col p-4 sm:p-5">
+      {/* Одна строка: вкладки разделов */}
+      <nav className="mb-5" aria-label="Разделы профиля">
+        <div className="relative">
           {canScrollLeft && (
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="absolute left-0 z-10 w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)]"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-[var(--secondary)] border border-[var(--border)] hover:bg-[var(--accent)] transition-colors sm:hidden"
               aria-label="Прокрутить влево"
             >
               <ChevronLeft className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -196,7 +199,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
           )}
           <div
             ref={scrollRef}
-            className="flex gap-1 overflow-x-auto scrollbar-hide py-1 px-1 cursor-grab select-none min-w-0"
+            className="profile-tabs-nav flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide py-1 px-0 cursor-grab select-none min-w-0 -mx-1 sm:cursor-default"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -212,13 +215,13 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                   key={tabId}
                   type="button"
                   onClick={() => { if (!hasDraggedRef.current) setActiveTab(tabId); }}
-                  className={`flex items-center gap-1.5 shrink-0 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  className={`profile-tab-btn flex items-center gap-2 shrink-0 px-3 py-2 rounded-full text-sm font-medium transition-all ${
                     isActive
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "bg-[var(--secondary)]/50 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                      : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] dark:bg-[color-mix(in_oklch,var(--secondary)_60%,transparent)] dark:text-[var(--foreground)] dark:hover:bg-[var(--accent)]"
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0" />
                   <span className="whitespace-nowrap">{meta.label}</span>
                 </button>
               );
@@ -228,44 +231,29 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="absolute right-0 z-10 w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)]"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-[var(--secondary)] border border-[var(--border)] hover:bg-[var(--accent)] transition-colors sm:hidden"
               aria-label="Прокрутить вправо"
             >
               <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
             </button>
           )}
         </div>
+      </nav>
+
+      {/* Заголовок раздела — одна строка */}
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[color-mix(in_oklch,var(--border)_70%,transparent)] dark:border-[color-mix(in_oklch,var(--border)_90%,transparent)] [&_h2]:text-[var(--foreground)] [&_p]:text-[var(--muted-foreground)] dark:[&_p]:text-[color-mix(in_oklch,var(--muted-foreground)_95%,var(--foreground))]">
+        <SectionIcon className="w-5 h-5 text-[var(--primary)] shrink-0" />
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold truncate">{sectionTitle}</h2>
+          <p className="text-xs truncate">{sectionDescription}</p>
+        </div>
       </div>
 
-      <main className="flex-1 min-w-0 flex flex-col">
-        <header className="flex-shrink-0 mb-4">
-          <Breadcrumbs
-            items={
-              breadcrumbPrefix?.length
-                ? [...breadcrumbPrefix, { name: sectionTitle, isCurrent: true }]
-                : [
-                    { name: "Главная", href: "/" },
-                    { name: "Профиль", href: "/profile" },
-                    { name: sectionTitle, isCurrent: true },
-                  ]
-            }
-            className="mb-2"
-          />
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-[var(--primary)]/10 rounded-lg shrink-0">
-              <SectionIcon className="w-4 h-4 text-[var(--primary)]" />
-            </div>
-            <div>
-              <h1 className="text-base font-semibold text-[var(--foreground)]">{sectionTitle}</h1>
-              <p className="text-xs text-[var(--muted-foreground)]">{sectionDescription}</p>
-            </div>
-          </div>
-        </header>
-
-        <div className="flex-1 min-h-0 profile-content-scroll">
+      <div className="flex-1 min-h-0 profile-content-scroll overflow-y-auto overflow-x-hidden">
           {/* О себе */}
           {activeTab === "overview" && (
             <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
+              <ProfileAboutBlock userProfile={userProfile} />
               <ProfileAdditionalInfo userProfile={userProfile} isPublicView={isPublicView} />
               <ProfileContent
                 userProfile={userProfile}
@@ -305,7 +293,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* Закладки */}
           {activeTab === "bookmarks" && (
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
+            <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
               {isBookmarksRestricted ? (
                 <div className="flex-1 flex items-center justify-center text-center py-12">
                   <div className="max-w-sm">
@@ -333,7 +321,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* История */}
           {activeTab === "history" && (
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
+            <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
               {isHistoryRestricted ? (
                 <div className="flex-1 flex items-center justify-center text-center py-12">
                   <div className="max-w-sm">
@@ -367,7 +355,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* Обмены */}
           {activeTab === "exchanges" && (
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-6 sm:p-8 shadow-sm animate-fade-in-up text-center">
+            <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-6 sm:p-8 animate-fade-in-up text-center">
               <div className="inline-flex p-4 rounded-2xl bg-[var(--secondary)]/50 border border-[var(--border)]/60 mb-4">
                 <Repeat className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--primary)]" />
               </div>
@@ -391,9 +379,9 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* Настройки */}
           {activeTab === "settings" && (
-            <div className="animate-fade-in-up">
+            <div className="animate-fade-in-up space-y-4">
               <SettingsNavigation />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
                 <div id="settings-notifications">
                   <ProfileNotificationsSettings userProfile={userProfile} />
                 </div>
@@ -409,14 +397,18 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                 <div id="settings-privacy">
                   <ProfilePrivacySettings userProfile={userProfile} />
                 </div>
-                <div id="settings-security" className="lg:col-span-2">
+                <div id="settings-security">
                   <ProfileSecuritySettings userProfile={userProfile} />
                 </div>
+                {!isPublicView && (
+                  <div id="settings-delete-account" className="lg:col-span-2">
+                    <ProfileDeleteAccount userProfile={userProfile} />
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
-      </main>
     </div>
   );
 }

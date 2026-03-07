@@ -98,11 +98,11 @@ export default function UnderratedCard({ data, onCardClick }: UnderratedCardProp
 
   const cardContent = (
     <>
-      <div className="relative overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft p-2.5 sm:p-3 shadow-sm">
+      <div className="relative isolate overflow-hidden rounded-xl bg-[var(--card)] border border-[var(--border)] card-hover-soft p-2.5 sm:p-3 shadow-sm transition-[box-shadow] duration-250 hover:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_4px_8px_rgb(0_0_0/0.06)] dark:hover:shadow-[0_14px_28px_rgb(0_0_0/0.4),0_6px_12px_rgb(0_0_0/0.25)]">
         <div className="flex gap-3 min-w-0">
           <div className="relative w-20 sm:w-24 aspect-[2/3] overflow-hidden rounded-lg bg-[var(--muted)] shrink-0 ring-1 ring-[var(--border)]/50">
             <OptimizedImage
-              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center card-media-hover`}
+              className={`${isAdultContent && !isAgeVerified ? "blur-sm" : ""} absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105`}
               src={imageSrc}
               fallbackSrc={imageFallback}
               alt={data.title}
@@ -158,7 +158,7 @@ export default function UnderratedCard({ data, onCardClick }: UnderratedCardProp
   );
 
   const className =
-    "relative group cursor-pointer select-none block h-full rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform";
+    "relative group cursor-pointer select-none block h-full rounded-xl card-focus-ring focus:outline-none focus-visible:[&_.card-hover-soft]:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_0_0_0_1px_var(--primary)] dark:focus-visible:[&_.card-hover-soft]:shadow-[0_14px_28px_rgb(0_0_0/0.35),0_0_0_0_1px_var(--primary)] active:scale-[0.99] transition-transform";
 
   if (onCardClick) {
     return (

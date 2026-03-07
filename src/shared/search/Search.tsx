@@ -76,6 +76,20 @@ export default function Search({
     }
   }, [isPanelOnly, isOpen]);
 
+  // Горячая клавиша Ctrl+K / Cmd+K для открытия поиска (десктоп)
+  useEffect(() => {
+    if (isPanelOnly) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setInternalOpen(true);
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isPanelOnly]);
+
   // Закрытие по клику снаружи
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -114,14 +128,20 @@ export default function Search({
           ref={containerRef as React.RefObject<HTMLButtonElement>}
           type="button"
           onClick={openSearch}
-          className="search-container w-full min-w-0 flex items-center gap-2 px-4 py-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] text-left text-[var(--muted-foreground)] hover:border-[var(--border)]/80 hover:bg-[var(--card)]/90 transition-colors"
+          className="search-trigger search-container w-full min-w-0"
           role="combobox"
           aria-expanded={showPanel}
           aria-haspopup="listbox"
           aria-controls="search-results-listbox"
+          aria-label="Открыть поиск по каталогу"
         >
-          <SearchIcon className="w-5 h-5 shrink-0" strokeWidth={2} />
-          <span className="truncate">Название, автор...</span>
+          <span className="search-trigger-icon-wrap">
+            <SearchIcon className="search-trigger-icon" strokeWidth={2} aria-hidden />
+          </span>
+          <span className="search-trigger-text truncate">Поиск по каталогу</span>
+          <kbd className="search-trigger-shortcut" aria-hidden>
+            <span className="search-trigger-kbd-inner">Ctrl</span>K
+          </kbd>
         </button>
       )}
       {showPanel && (
@@ -138,13 +158,13 @@ export default function Search({
           >
             <div className="search-overlay-header">
               <div className="search-overlay-input-wrap">
-                <SearchIcon className="w-5 h-5 search-overlay-icon" strokeWidth={2} aria-hidden />
+                <SearchIcon className="search-overlay-icon" strokeWidth={2} aria-hidden />
                 <input
                   ref={inputRef}
                   type="text"
                   id="search-input"
                   name="search"
-                  placeholder="Название, автор..."
+                  placeholder="Название, автор или ключевые слова..."
                   className="search-overlay-input"
                   value={searchTerm}
                   onChange={handleInputChange}
@@ -161,13 +181,13 @@ export default function Search({
                 />
                 <span className="search-overlay-actions">
                   {isLoading && (
-                    <div className="w-5 h-5 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" aria-hidden />
+                    <span className="search-overlay-spinner" aria-hidden />
                   )}
                   {!isLoading && searchTerm && (
                     <button
                       type="button"
                       onClick={clearSearch}
-                      className="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]"
+                      className="search-overlay-clear"
                       aria-label="Очистить поиск"
                     >
                       <XIcon className="w-5 h-5" strokeWidth={2} />

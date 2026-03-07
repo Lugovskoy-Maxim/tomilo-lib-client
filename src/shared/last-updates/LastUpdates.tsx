@@ -124,10 +124,10 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   return (
     <Link
       href={titlePath}
-      className="w-full group relative cursor-pointer block rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform"
+      className="w-full group relative cursor-pointer block rounded-xl card-focus-ring focus:outline-none focus-visible:[&_.card-hover-soft]:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_0_0_0_1px_var(--primary)] dark:focus-visible:[&_.card-hover-soft]:shadow-[0_14px_28px_rgb(0_0_0/0.35),0_0_0_0_1px_var(--primary)] active:scale-[0.99] transition-transform"
       onClick={handleClick}
     >
-      <div className="relative bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm p-2.5 sm:p-3">
+      <div className="relative isolate bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm p-2.5 sm:p-3 transition-[box-shadow] duration-250 hover:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_4px_8px_rgb(0_0_0/0.06)] dark:hover:shadow-[0_14px_28px_rgb(0_0_0/0.4),0_6px_12px_rgb(0_0_0/0.25)]">
         <div className="flex gap-3 min-w-0">
           {/* Обложка — как в топе и тренде */}
           <div className="relative w-20 sm:w-24 aspect-[2/3] flex-shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
@@ -136,7 +136,7 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               fallbackSrc={imageFallback}
               alt={data.title}
               fill
-              className={`object-cover card-media-hover ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
+              className={`object-cover transition-transform duration-300 group-hover:scale-105 ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
               hidePlaceholder
             />
             <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden />

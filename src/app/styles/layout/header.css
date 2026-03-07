@@ -1,134 +1,23 @@
 /* --- HEADER --- */
+/* Стили header-icon-btn и theme-toggle-btn перенесены в Tailwind (header.tsx, ThemeToggle.tsx, NotificationButton.tsx). */
 
-.header-glass {
-  background: rgba(var(--background-rgb), 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(var(--border-rgb), 0.5);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+/* Кнопка-триггер поиска в хедере (десктоп) — доп. стили поверх search-trigger, закругление как у остальных кнопок (rounded-xl) */
+.header-search .search-trigger {
+  max-width: 100%;
+  border-radius: 0.75rem; /* rounded-xl — как у header-icon-btn */
 }
-
-[data-theme="dark"] .header-glass,
-.dark .header-glass {
-  background: rgba(8, 8, 12, 0.92);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-}
-
-/* Header scroll state */
-.header-scrolled {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="dark"] .header-scrolled,
-.dark .header-scrolled {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-/* Header icon buttons (search, menu, close) */
-.header-icon-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0.5rem;
-  border-radius: 0.75rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--muted-foreground);
-  transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  overflow: hidden;
-}
-
-.header-icon-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  z-index: 0;
-}
-
-.header-icon-btn svg {
-  position: relative;
-  z-index: 1;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
-}
-
-.header-icon-btn:hover {
-  border-color: var(--primary);
-  color: var(--foreground);
-  box-shadow: 0 0 20px -5px var(--primary);
-}
-
-.header-icon-btn:hover::before {
-  opacity: 0.12;
-}
-
-.header-icon-btn:hover svg {
-  transform: scale(1.15) rotate(-5deg);
-  color: var(--primary);
-}
-
-.header-icon-btn:active,
-.theme-toggle-btn:active {
-  transform: scale(0.95);
-}
-
-.header-icon-btn:focus-visible,
-.theme-toggle-btn:focus-visible,
-.nav-link-modern:focus-visible,
-.card-focus-ring:focus-visible {
+.header-search .search-trigger:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
 }
-
-.header-icon-btn[aria-expanded="true"] {
-  border-color: var(--primary);
-  color: var(--foreground);
-}
-
-.header-icon-btn[aria-expanded="true"]::before {
-  opacity: 0.15;
-}
-
-.header-icon-btn[aria-expanded="true"] svg {
-  color: var(--primary);
-}
-
-/* Кнопка-триггер поиска в хедере (десктоп) — в одном стиле с иконками */
-.header-search .search-container {
-  min-height: 44px;
-  height: 44px;
-  padding: 0 1rem 0 0.875rem;
-  border-radius: 0.75rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--muted-foreground);
-  font-size: 0.875rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, background 0.2s ease;
-}
-.header-search .search-container:hover {
-  border-color: var(--primary);
-  color: var(--foreground);
-  background: var(--card);
-  box-shadow: 0 0 0 1px var(--primary);
-}
-.header-search .search-container[aria-expanded="true"] {
-  border-color: var(--primary);
-  color: var(--foreground);
-  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 18%, transparent);
-}
-.header-search .search-container:hover svg,
-.header-search .search-container[aria-expanded="true"] svg {
-  color: var(--primary);
-}
-.header-search .search-container:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+/* На узких экранах скрываем подсказку с горячей клавишей */
+@media (max-width: 380px) {
+  .header-search .search-trigger-shortcut {
+    display: none;
+  }
+  .header-search .search-trigger-text {
+    font-size: 0.8125rem;
+  }
 }
 
 /* Поиск в хедере — инпут (legacy) */
@@ -157,101 +46,15 @@
   border-color: var(--primary);
 }
 
-/* --- Theme Toggle --- */
-.theme-toggle-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  min-height: 40px;
-  padding: 0.5rem;
-  border-radius: 0.75rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--muted-foreground);
-  cursor: pointer;
-  overflow: hidden;
-  transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.theme-toggle-btn__glow {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.theme-toggle-btn__icon {
-  position: relative;
-  z-index: 1;
-  width: 1rem;
-  height: 1rem;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
-}
-
-@media (min-width: 480px) {
-  .theme-toggle-btn__icon {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-}
-
+/* Анимация загрузки темы (ThemeToggle использует Tailwind animate-spin) */
 .theme-toggle-btn__icon--spin {
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-.theme-toggle-btn:hover {
-  border-color: var(--primary);
-  color: var(--foreground);
-  box-shadow: 0 0 25px -5px var(--primary);
-}
-
-.theme-toggle-btn:hover .theme-toggle-btn__glow {
-  opacity: 0.15;
-}
-
-.theme-toggle-btn:hover .theme-toggle-btn__icon {
-  transform: scale(1.1);
-  color: var(--primary);
-}
-
-.theme-toggle-btn--loading {
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-.theme-toggle-btn--loading .theme-toggle-btn__glow {
-  opacity: 0.1;
-  animation: pulse-glow-opacity 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse-glow-opacity { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.2; } }
-
-/* Аватар и кнопки в UserBar в хедере — та же высота, что и остальные элементы */
-.header-user-bar button[aria-label="Открыть меню пользователя"] {
-  min-width: 44px;
-  min-height: 44px;
-}
-
-/* Компактный хедер на мобильных (≤480px, в т.ч. 360px) */
+/* Аватар в UserBar — размеры на узких экранах */
 @media (max-width: 480px) {
-  .header-icon-btn {
-    min-width: 34px;
-    min-height: 34px;
-    padding: 0.25rem;
-    border-radius: 0.5rem;
-  }
-  .header-icon-btn svg {
-    width: 1rem;
-    height: 1rem;
-  }
-  /* Только иконки-кнопки, не пункты выпадающего меню (у них свои px-3 py-2) */
   .header-user-bar button:not(.dropdown-item-modern),
   .header-user-bar a button:not(.dropdown-item-modern),
   .header-user-bar button[aria-label="Открыть меню пользователя"] {
@@ -269,17 +72,7 @@
   }
 }
 
-/* Mobile menu nav links (legacy, kept for compatibility) */
-.header-mobile-nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  color: var(--foreground);
-  border-radius: 0.75rem;
-  transition: background 0.2s ease;
-}
+/* Mobile menu nav links (legacy) — layout via Tailwind where used */
 .header-mobile-nav-link:hover {
   background: var(--accent);
 }

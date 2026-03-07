@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { TrendingUp, Star, Users, Flame, Search, ChevronUp, Eye, EyeOff, Calendar, MessageSquare, X, User, BookOpen, Trophy, Heart } from "lucide-react";
+import { TrendingUp, Star, Users, Flame, Search, Eye, EyeOff, Calendar, MessageSquare, X, User, BookOpen, Trophy, Heart } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
 import LoadingSkeleton from "@/shared/skeleton/skeleton";
@@ -16,6 +16,7 @@ import {
   LeaderboardUser,
 } from "@/store/api/leaderboardApi";
 import { useGetHomepageActiveUsersQuery } from "@/store/api/usersApi";
+import { useGetProfileByIdQuery } from "@/store/api/authApi";
 import { useGetDecorationsQuery } from "@/store/api/shopApi";
 import { useMounted } from "@/hooks/useMounted";
 import { useAuth } from "@/hooks/useAuth";
@@ -296,25 +297,56 @@ const NUMERIC_MERGE_KEYS = new Set([
   "activityScore", "reputationScore",
 ]);
 
+/** snake_case варианты полей из API (лидерборд/профиль могут приходить в snake_case) */
+const MERGE_KEY_SNAKE: Record<string, string> = {
+  chaptersRead: "chapters_read",
+  readingTimeMinutes: "reading_time_minutes",
+  readingTime: "reading_time",
+  ratingsCount: "ratings_count",
+  commentsCount: "comments_count",
+  titlesReadCount: "titles_read_count",
+  completedTitlesCount: "completed_titles_count",
+  currentStreak: "current_streak",
+  longestStreak: "longest_streak",
+  lastStreakDate: "last_streak_date",
+  likesReceivedCount: "likes_received_count",
+  activityScore: "activity_score",
+  reputationScore: "reputation_score",
+  equippedDecorations: "equipped_decorations",
+  lastActiveAt: "last_active_at",
+};
+
+function getMergeVal(record: Record<string, unknown>, key: string): unknown {
+  const val = record[key];
+  if (val !== undefined && val !== null) return val;
+  const snake = MERGE_KEY_SNAKE[key];
+  if (snake) return record[snake];
+  return undefined;
+}
+
 function mergeLeaderboardWithHomepage(
   leaderboardUser: Record<string, unknown>,
   homepageUser: Record<string, unknown> | undefined
 ): TransformableUser {
-  if (!homepageUser) {
-    return leaderboardUser as unknown as TransformableUser;
-  }
   const merged = { ...leaderboardUser } as Record<string, unknown>;
-  const keysToMerge = [...MERGE_STAT_KEYS, ...MERGE_EXTRA_KEYS];
-  for (const key of keysToMerge) {
-    const leaderVal = merged[key];
-    const homeVal = homepageUser[key];
-    const isNumeric = NUMERIC_MERGE_KEYS.has(key as keyof TransformableUser);
-    const useHome =
-      leaderVal === undefined || leaderVal === null
-        ? (homeVal !== undefined && homeVal !== null && (!isNumeric || (typeof homeVal === "number" && (homeVal as number) > 0)))
-        : (typeof leaderVal === "number" && leaderVal === 0 && typeof homeVal === "number" && (homeVal as number) > 0);
-    if (useHome && homeVal !== undefined && homeVal !== null) {
-      merged[key] = homeVal;
+  if (homepageUser) {
+    const keysToMerge = [...MERGE_STAT_KEYS, ...MERGE_EXTRA_KEYS];
+    for (const key of keysToMerge) {
+      const leaderVal = getMergeVal(merged, key);
+      const homeVal = getMergeVal(homepageUser, key);
+      const isNumeric = NUMERIC_MERGE_KEYS.has(key as keyof TransformableUser);
+      const useHome =
+        leaderVal === undefined || leaderVal === null
+          ? (homeVal !== undefined && homeVal !== null && (!isNumeric || (typeof homeVal === "number" && (homeVal as number) > 0)))
+          : (typeof leaderVal === "number" && leaderVal === 0 && typeof homeVal === "number" && (homeVal as number) > 0);
+      if (useHome && homeVal !== undefined && homeVal !== null) {
+        merged[key] = homeVal;
+      }
+    }
+  }
+  for (const key of Object.keys(MERGE_KEY_SNAKE)) {
+    if (merged[key] === undefined && merged[MERGE_KEY_SNAKE[key]] !== undefined) {
+      merged[key] = merged[MERGE_KEY_SNAKE[key]];
     }
   }
   if (merged.readingTimeMinutes == null && merged.readingTime != null && typeof merged.readingTime === "number") {
@@ -343,24 +375,11 @@ export default function LeadersPageClient() {
   }, [categoryFromUrl]);
   const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("month");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const [showAdmins, setShowAdmins] = useState(true);
   const [leaderModalState, setLeaderModalState] = useState<{ user: LeaderboardUser; rank: number } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const supportsPeriod = activeCategory === "ratings" || activeCategory === "comments";
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   const {
     data: leaderboardData,
@@ -730,17 +749,6 @@ export default function LeadersPageClient() {
             </div>
           )}
         </div>
-
-        {showScrollTop && (
-          <button
-            type="button"
-            onClick={scrollToTop}
-            className="fixed bottom-5 right-5 z-50 p-2.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md hover:shadow-lg transition-shadow"
-            aria-label="Наверх"
-          >
-            <ChevronUp className="w-4 h-4" />
-          </button>
-        )}
       </main>
       <Footer />
     </>
@@ -760,6 +768,113 @@ function getRarityGlowClass(rarity: DecorationRarity | null | undefined): string
   return "";
 }
 
+/** Поля статистики для подстановки из профиля, если в лидерборде их нет (вкладки «По оценкам» / «По комментариям») */
+const MODAL_STAT_KEYS: (keyof LeaderboardUser)[] = [
+  "level", "experience", "chaptersRead", "readingTimeMinutes", "readingTime",
+  "ratingsCount", "commentsCount", "titlesReadCount", "completedTitlesCount",
+  "currentStreak", "longestStreak", "likesReceivedCount",
+  "avatar", "equippedDecorations", "subscriptionExpiresAt",
+];
+
+/** Соответствие camelCase → snake_case для полей из API (профиль может приходить в snake_case) */
+const MODAL_STAT_KEY_SNAKE: Record<string, string> = {
+  chaptersRead: "chapters_read",
+  readingTimeMinutes: "reading_time_minutes",
+  readingTime: "reading_time",
+  ratingsCount: "ratings_count",
+  commentsCount: "comments_count",
+  titlesReadCount: "titles_read_count",
+  completedTitlesCount: "completed_titles_count",
+  currentStreak: "current_streak",
+  longestStreak: "longest_streak",
+  likesReceivedCount: "likes_received_count",
+  subscriptionExpiresAt: "subscription_expires_at",
+};
+
+/** Дополнительные варианты ключей для полей (бэкенд может использовать другие имена) */
+const MODAL_STAT_EXTRA_KEYS: Record<string, string[]> = {
+  commentsCount: ["comment_count", "total_comments", "totalComments"],
+  ratingsCount: ["rating_count", "total_ratings", "totalRatings"],
+};
+
+function getProfileVal(profile: Record<string, unknown>, key: string): unknown {
+  const val = profile[key];
+  if (val !== undefined && val !== null) return val;
+  const snake = MODAL_STAT_KEY_SNAKE[key];
+  if (snake) {
+    const snakeVal = profile[snake];
+    if (snakeVal !== undefined && snakeVal !== null) return snakeVal;
+  }
+  const stats = profile.stats ?? profile.statistics;
+  if (stats && typeof stats === "object" && !Array.isArray(stats)) {
+    const statObj = stats as Record<string, unknown>;
+    const s = statObj[key];
+    if (s !== undefined && s !== null) return s;
+    if (snake) {
+      const snakeVal = statObj[snake];
+      if (snakeVal !== undefined && snakeVal !== null) return snakeVal;
+    }
+    for (const extra of MODAL_STAT_EXTRA_KEYS[key] ?? []) {
+      const ev = statObj[extra];
+      if (ev !== undefined && ev !== null) return ev;
+    }
+  }
+  for (const extra of MODAL_STAT_EXTRA_KEYS[key] ?? []) {
+    const ev = profile[extra];
+    if (ev !== undefined && ev !== null) return ev;
+  }
+  if (key === "commentsCount") {
+    const fromCounts = (profile.counts as Record<string, unknown>)?.comments ?? (profile.counts as Record<string, unknown>)?.comments_count;
+    if (fromCounts !== undefined && fromCounts !== null) return fromCounts;
+    const fromActivity = (profile.activity as Record<string, unknown>)?.commentsCount ?? (profile.activity as Record<string, unknown>)?.comments_count;
+    if (fromActivity !== undefined && fromActivity !== null) return fromActivity;
+  }
+  return undefined;
+}
+
+/** Считает число прочитанных глав из readingHistory (профиль может не отдавать chaptersRead отдельно) */
+function getChaptersReadFromProfile(profile: Record<string, unknown>): number | undefined {
+  const raw = profile.readingHistory ?? profile.reading_history;
+  if (!Array.isArray(raw)) return undefined;
+  let total = 0;
+  for (const item of raw) {
+    const chapters = (item as Record<string, unknown>)?.chapters;
+    if (Array.isArray(chapters)) total += chapters.length;
+  }
+  return total > 0 ? total : undefined;
+}
+
+const NUMERIC_MODAL_STAT_KEYS = new Set([
+  "level", "experience", "chaptersRead", "readingTimeMinutes", "readingTime",
+  "ratingsCount", "commentsCount", "titlesReadCount", "completedTitlesCount",
+  "currentStreak", "longestStreak", "likesReceivedCount",
+]);
+
+function mergeLeaderForModal(leader: LeaderboardUser, profile: Record<string, unknown> | undefined): LeaderboardUser {
+  if (!profile) return leader;
+  const merged = { ...leader } as Record<string, unknown>;
+  for (const key of MODAL_STAT_KEYS) {
+    const leaderVal = merged[key];
+    let profileVal = getProfileVal(profile, key);
+    if (key === "chaptersRead" && (profileVal === undefined || profileVal === null)) {
+      profileVal = getChaptersReadFromProfile(profile);
+    }
+    const isNumeric = NUMERIC_MODAL_STAT_KEYS.has(key);
+    if (isNumeric && typeof profileVal === "string") {
+      const n = Number(profileVal);
+      if (!Number.isNaN(n)) profileVal = n;
+    }
+    const leaderMissing = leaderVal === undefined || leaderVal === null;
+    const leaderZero = isNumeric && typeof leaderVal === "number" && leaderVal === 0;
+    const profileHasValue = profileVal !== undefined && profileVal !== null;
+    const profilePositive = !isNumeric || (typeof profileVal === "number" && (profileVal as number) > 0);
+    if (profileHasValue && (leaderMissing || (leaderZero && profilePositive))) {
+      merged[key] = profileVal;
+    }
+  }
+  return merged as unknown as LeaderboardUser;
+}
+
 function PodiumUserModal({
   user,
   rank,
@@ -774,6 +889,24 @@ function PodiumUserModal({
   onClose: () => void;
 }) {
   const [showCardOnly, setShowCardOnly] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { data: profileResponse } = useGetProfileByIdQuery(user._id);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+  const profileData = profileResponse?.success && profileResponse?.data ? (profileResponse.data as unknown as Record<string, unknown>) : undefined;
+  const displayUser = useMemo(() => mergeLeaderForModal(user, profileData), [user, profileData]);
+
   const { positions: allPositions } = useUserLeaderboardPositions(user._id);
   const topPositionByCategory = useMemo(() => {
     const map = new Map<LeaderboardCategory, number>();
@@ -790,39 +923,39 @@ function PodiumUserModal({
     ? rank === 1 ? "from-yellow-400/90 to-amber-500/90" : rank === 2 ? "from-slate-400/90 to-slate-500/90" : "from-amber-500/90 to-orange-600/90"
     : "from-[var(--muted)] to-[var(--muted)]";
   const badgeTextClass = isTop3 ? "text-white" : "text-[var(--foreground)]";
-  const level = user.level ?? 0;
-  const cardUrl = getEquippedCardUrl(user.equippedDecorations as EquippedDecorations | null);
-  const frameUrl = getLeaderFrameUrl(user);
-  const cardRarity = user.equippedDecorations?.cardRarity ?? user.equippedDecorations?.frameRarity ?? null;
+  const level = displayUser.level ?? 0;
+  const cardUrl = getEquippedCardUrl(displayUser.equippedDecorations as EquippedDecorations | null);
+  const frameUrl = getLeaderFrameUrl(displayUser);
+  const cardRarity = displayUser.equippedDecorations?.cardRarity ?? displayUser.equippedDecorations?.frameRarity ?? null;
   const rarityGlowClass = getRarityGlowClass(cardRarity);
 
   type StatItem = { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; category?: LeaderboardCategory; categories?: LeaderboardCategory[] };
   const stats: StatItem[] = [];
-  if (user.level != null) stats.push({ icon: Trophy, label: "Уровень", value: user.level, category: "level" });
-  if (user.experience != null) stats.push({ icon: TrendingUp, label: "Опыт", value: user.experience.toLocaleString("ru") + " XP" });
-  if (user.chaptersRead != null) {
-    const chapters = user.chaptersRead ?? 0;
+  if (displayUser.level != null) stats.push({ icon: Trophy, label: "Уровень", value: displayUser.level, category: "level" });
+  if (displayUser.experience != null) stats.push({ icon: TrendingUp, label: "Опыт", value: displayUser.experience.toLocaleString("ru") + " XP" });
+  if (displayUser.chaptersRead != null) {
+    const chapters = displayUser.chaptersRead ?? 0;
     stats.push({ icon: BookOpen, label: "Глав прочитано", value: `${chapters.toLocaleString("ru")} глав`, categories: ["chaptersRead"] });
   }
-  if (user.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: user.ratingsCount.toLocaleString("ru"), category: "ratings" });
-  if (user.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: user.commentsCount.toLocaleString("ru"), category: "comments" });
-  if (user.titlesReadCount != null) stats.push({ icon: BookOpen, label: "Тайтлов прочитано", value: user.titlesReadCount.toLocaleString("ru") });
-  if (user.completedTitlesCount != null && user.completedTitlesCount > 0) stats.push({ icon: Trophy, label: "Завершено тайтлов", value: user.completedTitlesCount.toLocaleString("ru") });
-  if (user.currentStreak != null && user.currentStreak > 0) stats.push({ icon: Flame, label: "Серия дней", value: `${user.currentStreak} ${user.currentStreak === 1 ? "день" : user.currentStreak < 5 ? "дня" : "дней"}`, category: "streak" });
-  if (user.longestStreak != null && user.longestStreak > 0) stats.push({ icon: Flame, label: "Рекорд серии", value: `${user.longestStreak} дн.`, category: "streak" });
-  if (user.likesReceivedCount != null && user.likesReceivedCount > 0) stats.push({ icon: Heart, label: "Лайков получено", value: user.likesReceivedCount.toLocaleString("ru") });
+  if (displayUser.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: displayUser.ratingsCount.toLocaleString("ru"), category: "ratings" });
+  if (displayUser.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: displayUser.commentsCount.toLocaleString("ru"), category: "comments" });
+  if (displayUser.titlesReadCount != null) stats.push({ icon: BookOpen, label: "Тайтлов прочитано", value: displayUser.titlesReadCount.toLocaleString("ru") });
+  if (displayUser.completedTitlesCount != null && displayUser.completedTitlesCount > 0) stats.push({ icon: Trophy, label: "Завершено тайтлов", value: displayUser.completedTitlesCount.toLocaleString("ru") });
+  if (displayUser.currentStreak != null && displayUser.currentStreak > 0) stats.push({ icon: Flame, label: "Серия дней", value: `${displayUser.currentStreak} ${displayUser.currentStreak === 1 ? "день" : displayUser.currentStreak < 5 ? "дня" : "дней"}`, category: "streak" });
+  if (displayUser.longestStreak != null && displayUser.longestStreak > 0) stats.push({ icon: Flame, label: "Рекорд серии", value: `${displayUser.longestStreak} дн.`, category: "streak" });
+  if (displayUser.likesReceivedCount != null && displayUser.likesReceivedCount > 0) stats.push({ icon: Heart, label: "Лайков получено", value: displayUser.likesReceivedCount.toLocaleString("ru") });
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="podium-modal-title"
     >
       <div
-        className={`relative w-auto max-w-[calc(100vw-2rem)] rounded-2xl border shadow-xl aspect-[9/19] flex flex-col overflow-hidden bg-[var(--card)] ${rarityGlowClass} ${cardRarity && cardRarity !== "common" ? "border-2" : ""} ${cardRarity === "legendary" ? "border-amber-400/80" : cardRarity === "epic" ? "border-purple-500/70" : cardRarity === "rare" ? "border-blue-500/70" : "border-[var(--border)]"}`}
-        style={{ height: "clamp(450px, 70vh, 70vh)" }}
+        className={`relative w-auto min-w-[260px] max-w-[min(400px,calc(100vw-2rem))] rounded-2xl border shadow-xl aspect-[9/19] flex flex-col overflow-hidden bg-[var(--card)] ${rarityGlowClass} ${cardRarity && cardRarity !== "common" ? "border-2" : ""} ${cardRarity === "legendary" ? "border-amber-400/80" : cardRarity === "epic" ? "border-purple-500/70" : cardRarity === "rare" ? "border-blue-500/70" : "border-[var(--border)]"}`}
+        style={{ height: "clamp(400px, 85vh, 85vh)", maxHeight: "calc(100dvh - 2rem)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {cardUrl && (
@@ -860,13 +993,16 @@ function PodiumUserModal({
         </header>
 
         {!showCardOnly && (
-        <div className="relative z-10 flex flex-col flex-1 min-h-0 overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className="relative z-10 flex flex-col flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth custom-scrollbar"
+        >
           <div className="flex flex-col items-center text-center pt-0 px-3 pb-2 bg-transparent shrink-0">
             <div className="p-4 shrink-0">
               <div className="relative w-20 h-20 shrink-0">
                 <div className="absolute inset-0 overflow-hidden rounded-full">
                   <img
-                    src={getLeaderAvatarUrl(user)}
+                    src={getLeaderAvatarUrl(displayUser)}
                     alt=""
                     className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 ${borderClass} shadow-md bg-[var(--secondary)]`}
                     onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
@@ -883,21 +1019,24 @@ function PodiumUserModal({
                 )}
               </div>
             </div>
-            <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold truncate max-w-full px-1">
-              <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm ${isPremiumActive(user.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}>
-                {user.username}
-                {isPremiumActive(user.subscriptionExpiresAt) && (
+            <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold max-w-full px-1 min-w-0">
+              <span
+                className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm max-w-full min-w-0 ${isPremiumActive(displayUser.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
+                title={displayUser.username}
+              >
+                <span className="truncate">{displayUser.username}</span>
+                {isPremiumActive(displayUser.subscriptionExpiresAt) && (
                   <PremiumBadge size="xs" className="shrink-0" ariaLabel="Премиум-подписчик" />
                 )}
               </span>
             </h2>
-            {user.role && user.role !== "user" && (
+            {displayUser.role && displayUser.role !== "user" && (
               <span className="mt-0.5 text-[11px] px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] capitalize">
-                {user.role}
+                {displayUser.role}
               </span>
             )}
-            <p className="mt-1 text-[11px] text-[var(--muted-foreground)]">
-              <span className="inline-block px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm">
+            <p className="mt-1 text-[11px] text-[var(--muted-foreground)] max-w-full min-w-0">
+              <span className="inline-block max-w-full truncate px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm" title={getRankDisplay(level).split("  ")[0]}>
                 {getRankDisplay(level).split("  ")[0]}
               </span>
             </p>
@@ -905,9 +1044,9 @@ function PodiumUserModal({
 
           <div className="flex-1 min-h-0" aria-hidden />
 
-          <div className="relative z-10 px-3 pb-3 pt-2 flex flex-col gap-3 shrink-0">
+          <div className="relative z-10 px-3 pb-6 pt-2 flex flex-col gap-3 shrink-0">
             {stats.length > 0 && (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm px-3 py-2.5">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm px-3 py-2.5 min-w-0 overflow-hidden">
                 <p className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-1.5 px-0.5">
                   Показатели
                 </p>
@@ -919,10 +1058,10 @@ function PodiumUserModal({
                     return (
                       <div key={label} className="flex items-start gap-1.5 min-w-0">
                         <Icon className="w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
-                        <div className="min-w-0 text-left overflow-hidden">
+                        <div className="min-w-0 flex-1 text-left overflow-hidden">
                           <p className="text-[10px] text-[var(--muted-foreground)] leading-tight truncate" title={label}>{label}</p>
-                          <p className="text-[11px] font-semibold text-[var(--foreground)] leading-tight flex flex-wrap items-center gap-x-1 gap-y-0.5">
-                            <span className="truncate max-w-full">{value}</span>
+                          <p className="text-[11px] font-semibold text-[var(--foreground)] leading-tight flex flex-wrap items-center gap-x-1 gap-y-0.5 min-w-0">
+                            <span className="truncate">{value}</span>
                             {bestPos != null && (
                               <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-medium shrink-0" title={`Топ ${bestPos}`}>
                                 <Trophy className="w-2.5 h-2.5" aria-hidden />
@@ -940,7 +1079,7 @@ function PodiumUserModal({
 
             <div className="flex flex-col items-center gap-1">
               <Link
-                href={`/user/${user._id}`}
+                href={`/user/${displayUser._id}`}
                 onClick={onClose}
                 className="flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity text-sm"
               >

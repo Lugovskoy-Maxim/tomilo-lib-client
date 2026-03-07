@@ -124,7 +124,7 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
           </div>
         ) : (
           <div
-            className={`relative flex items-center justify-center ${dropdownOpen ? "z-layer-modal" : ""}`}
+            className={`relative flex items-center justify-center ${dropdownOpen ? "z-[var(--z-modal)]" : ""}`}
             ref={dropdownRef}
           >
             <button

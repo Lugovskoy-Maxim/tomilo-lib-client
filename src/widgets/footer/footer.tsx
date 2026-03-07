@@ -197,27 +197,27 @@ export default function Footer() {
   return (
     <footer className="relative w-full">
       {/* Десктопный футер */}
-      <div className="footer-desktop w-full footer-glass mt-auto hidden lg:block" role="contentinfo" aria-label="Подвал сайта">
-        <div className="footer-desktop-inner w-full max-w-7xl mx-auto px-4 py-10 sm:px-6 md:px-8 lg:px-10 xl:py-12">
-          <div className="footer-desktop-grid grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-10 mb-10">
+      <div className="footer-desktop w-full mt-auto hidden lg:block bg-white dark:bg-[rgba(8,8,12,0.92)] backdrop-blur-[16px] border-t border-[rgba(var(--border-rgb),0.65)] dark:border-[rgba(255,255,255,0.06)]" role="contentinfo" aria-label="Подвал сайта">
+        <div className="footer-desktop-inner min-w-0 w-full max-w-7xl mx-auto px-4 py-10 sm:px-6 md:px-8 lg:px-10 xl:py-12">
+          <div className="footer-desktop-grid min-w-0 grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-10 mb-10 [&>*]:min-w-0">
             {/* Колонка 1: Логотип */}
-            <div className="footer-col footer-col--logo">
-              <div className="footer-col__body">
+            <div className="footer-col flex flex-col items-start min-w-0 footer-col--logo">
+              <div className="footer-col__body flex flex-col gap-3 w-full pt-7">
                 <Logo variant="footer" />
-                <p className="footer-col__text">
+                <p className="footer-col__text m-0 text-[0.8125rem] leading-normal text-[var(--muted-foreground)] max-w-full">
                   TOMILO-LIB — платформа для чтения манги, манхвы и маньхуа.
                 </p>
               </div>
             </div>
 
             {/* Колонка 2: Сайт */}
-            <div className="footer-col">
-              <h3 className="footer-col__title">Сайт</h3>
-              <div className="footer-col__body">
-                <ul className="footer-col__list">
+            <div className="footer-col flex flex-col items-start min-w-0">
+              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">Сайт</h3>
+              <div className="footer-col__body flex flex-col gap-3 w-full">
+                <ul className="footer-col__list list-none m-0 p-0 flex flex-col gap-0.5">
                   {FOOTER_NAV_GROUPS[0].items.map(({ href, label }) => (
                     <li key={href}>
-                      <Link href={href} className="footer-col__link">{label}</Link>
+                      <Link href={href} className="break-words leading-[1.35] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[rgba(var(--primary-rgb),0.06)] focus-visible:outline-none focus-visible:text-[var(--foreground)] focus-visible:bg-[rgba(var(--primary-rgb),0.08)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded px-0.5 py-0.5 -mx-0.5 transition-colors duration-200">{label}</Link>
                     </li>
                   ))}
                 </ul>
@@ -225,13 +225,13 @@ export default function Footer() {
             </div>
 
             {/* Колонка 3: Документы */}
-            <div className="footer-col">
-              <h3 className="footer-col__title">Документы</h3>
-              <div className="footer-col__body">
-                <ul className="footer-col__list">
+            <div className="footer-col flex flex-col items-start min-w-0">
+              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">Документы</h3>
+              <div className="footer-col__body flex flex-col gap-3 w-full">
+                <ul className="footer-col__list list-none m-0 p-0 flex flex-col gap-0.5">
                   {FOOTER_NAV_GROUPS[1].items.map(({ href, label }) => (
                     <li key={href}>
-                      <Link href={href} className="footer-col__link">{label}</Link>
+                      <Link href={href} className="break-words leading-[1.35] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[rgba(var(--primary-rgb),0.06)] focus-visible:outline-none focus-visible:text-[var(--foreground)] focus-visible:bg-[rgba(var(--primary-rgb),0.08)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded px-0.5 py-0.5 -mx-0.5 transition-colors duration-200">{label}</Link>
                     </li>
                   ))}
                 </ul>
@@ -239,16 +239,16 @@ export default function Footer() {
             </div>
 
             {/* Колонка 4: Контакты */}
-            <div className="footer-col">
-              <h3 className="footer-col__title">Контакты</h3>
-              <div className="footer-col__body">
-                <p className="footer-col__text">
+            <div className="footer-col flex flex-col items-start min-w-0">
+              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">Контакты</h3>
+              <div className="footer-col__body flex flex-col gap-3 w-full">
+                <p className="footer-col__text m-0 text-[0.8125rem] leading-normal text-[var(--muted-foreground)] max-w-full">
                   По вопросам нарушения авторских прав и сотрудничества:
                 </p>
-                <div className="footer-col__contacts">
+                <div className="footer-col__contacts flex flex-col gap-2">
                   <Link
                     href="mailto:support@tomilo-lib.ru"
-                    className="footer-col__contact-link"
+                    className="inline-flex items-center gap-1.5 text-[0.8125rem] text-[var(--chart-1)] no-underline py-1 px-1.5 -mx-1.5 rounded-md transition-[color,background-color,box-shadow] duration-200 hover:text-[var(--foreground)] hover:shadow-[0_4px_15px_-3px_rgba(var(--primary-rgb),0.3)] focus-visible:outline-none focus-visible:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                     aria-label="Написать на support@tomilo-lib.ru"
                   >
                     support@tomilo-lib.ru
@@ -257,18 +257,18 @@ export default function Footer() {
                     href={TELEGRAM_HREF}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="footer-col__contact-link"
+                    className="inline-flex items-center gap-1.5 text-[0.8125rem] text-[var(--chart-1)] no-underline py-1 px-1.5 -mx-1.5 rounded-md transition-[color,background-color,box-shadow] duration-200 hover:text-[var(--foreground)] hover:shadow-[0_4px_15px_-3px_rgba(var(--primary-rgb),0.3)] focus-visible:outline-none focus-visible:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                     aria-label="Мы в Telegram (открывается в новой вкладке)"
                   >
                     Мы в Telegram
-                    <ExternalLink className="footer-col__contact-icon" aria-hidden />
+                    <ExternalLink className="footer-col__contact-icon w-3 h-3 opacity-70 shrink-0" aria-hidden />
                   </Link>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="gradient-divider my-8" />
+          <div className="h-px my-8 opacity-50 [background:linear-gradient(90deg,transparent_0%,var(--border)_20%,var(--primary)_50%,var(--border)_80%,transparent_100%)]" aria-hidden />
 
           <div className="footer-desktop-bottom flex flex-col items-center gap-5 sm:flex-row sm:justify-between sm:items-center text-[var(--muted-foreground)] text-sm">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 sm:justify-start">
@@ -282,13 +282,13 @@ export default function Footer() {
                 href={TELEGRAM_DEV_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="footer-credit-link inline-flex items-center gap-1.5 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                className="inline-flex items-center gap-1.5 rounded text-[var(--muted-foreground)] hover:text-[var(--chart-1)] transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                 aria-label="Разработчик сайта TomiloDev в Telegram (открывается в новой вкладке)"
               >
                 Сайт разработан: @TomiloDev
                 <ExternalLink className="w-3 h-3 opacity-70" aria-hidden />
               </Link>
-              <span className="footer-version">Версия 03032025</span>
+              <span className="py-1.5 px-3 rounded-xl whitespace-nowrap text-[var(--muted-foreground)] bg-gradient-to-br from-[rgba(var(--primary-rgb),0.12)] to-[rgba(var(--primary-rgb),0.06)] border border-[rgba(var(--border-rgb),0.6)] dark:border-[rgba(var(--border-rgb),0.6)]">Версия 03032025</span>
             </div>
           </div>
         </div>
@@ -299,7 +299,7 @@ export default function Footer() {
         <button
           type="button"
           onClick={scrollToTop}
-          className="footer-back-to-top fixed z-40 flex items-center justify-center shadow-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 bottom-20 right-4 w-10 h-10 rounded-xl lg:bottom-6 lg:right-6 lg:w-11 lg:h-11 lg:rounded-full"
+          className="footer-back-to-top fixed z-40 flex items-center justify-center border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] hover:bg-[var(--accent)] hover:border-[var(--chart-1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[background-color,border-color,transform] duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] bottom-20 right-4 w-10 h-10 rounded-xl lg:bottom-6 lg:right-6 lg:w-11 lg:h-11 lg:rounded-full"
           aria-label="Вернуться наверх"
         >
           <ArrowUp className="w-5 h-5" aria-hidden />

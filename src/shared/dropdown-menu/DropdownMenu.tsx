@@ -25,7 +25,7 @@ import { UserAvatar } from "..";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import type { EquippedDecorations } from "@/types/user";
 import type { LeaderboardCategory } from "@/store/api/leaderboardApi";
-import { levelToRank, getLevelProgress } from "@/lib/rank-utils";
+import { levelToRank, getLevelProgress, getRankColor } from "@/lib/rank-utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 
@@ -81,7 +81,7 @@ const THEME_LABELS: Record<string, string> = {
 };
 
 const itemClass =
-  "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none m-0 border-0 bg-transparent";
+  "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg min-w-0 cursor-pointer outline-none m-0 border-0 bg-transparent transition-[background-color,color] duration-150 hover:bg-[var(--accent)] hover:[&_svg]:text-[var(--foreground)] active:bg-[var(--muted)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset";
 
 export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl, avatarDecorationUrl, leaderboardPositions = [] }: UserDropdownProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -140,6 +140,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
   const balance = user?.balance ?? 0;
 
   const rankInfo = levelToRank(level);
+  const rankColor = getRankColor(rankInfo.rank);
   const { progressPercent } = getLevelProgress(level, experience);
 
   const themeLabel =
@@ -189,7 +190,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
       ref={panelRef}
       role="menu"
       aria-label="Меню пользователя"
-      className="absolute top-full right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] min-w-0 overflow-x-hidden dropdown-modern animate-fade-in-scale z-layer-modal"
+      className="absolute top-full right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] min-w-0 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35),0_0_1px_rgba(255,255,255,0.06)] [transform-origin:var(--dropdown-origin,top_right)] animate-fade-in-scale z-[var(--z-modal)]"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Карточка профиля */}
@@ -219,25 +220,28 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
               )}
             </h3>
             <div className="flex items-center gap-2 min-w-0 mt-0.5" title={rankInfo.name}>
-              <span className="inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)] shrink-0">
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold">
+              <span className="inline-flex items-center gap-1 text-xs text-[var(--foreground)]/75 dark:text-[var(--muted-foreground)] shrink-0">
+                <span
+                  className="inline-flex items-center justify-center w-4 h-4 rounded text-[10px] font-bold"
+                  style={{ backgroundColor: `${rankColor}25`, color: rankColor }}
+                >
                   {level}
                 </span>
                 ур.
               </span>
               <div className="flex-1 min-w-0 h-1.5 rounded-full bg-[var(--border)]/40 overflow-hidden">
                 <div
-                  className="h-full bg-[var(--primary)] rounded-full transition-[width]"
-                  style={{ width: `${progressPercent}%` }}
+                  className="h-full rounded-full transition-[width]"
+                  style={{ width: `${progressPercent}%`, backgroundColor: rankColor }}
                 />
               </div>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+          <ChevronRight className="w-5 h-5 text-[var(--foreground)]/60 dark:text-[var(--muted-foreground)] shrink-0" aria-hidden />
         </Link>
 
         {/* Сначки топов и баланс */}
-        <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[var(--border)]/30">
+        <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[var(--border)]/50 dark:border-[var(--border)]/30">
           <div className="flex flex-wrap items-center gap-1 min-w-0">
             {leaderboardPositions.length > 0 ? (
               leaderboardPositions.slice(0, 4).map(({ category, position, label }) => {
@@ -247,7 +251,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
                     key={category}
                     href={`/leaders?category=${category}`}
                     onClick={onClose}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300 hover:bg-amber-500/25 dark:hover:bg-amber-500/20 transition-colors cursor-pointer"
                     title={label}
                   >
                     <Icon className="w-2.5 h-2.5 shrink-0" aria-hidden />
@@ -256,13 +260,13 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
                 );
               })
             ) : (
-              <span className="text-[10px] text-[var(--muted-foreground)]">—</span>
+              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">—</span>
             )}
             {leaderboardPositions.length > 4 && (
-              <span className="text-[10px] text-[var(--muted-foreground)]">+{leaderboardPositions.length - 4}</span>
+              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">+{leaderboardPositions.length - 4}</span>
             )}
           </div>
-          <span className="flex items-center gap-1 text-xs text-[var(--muted-foreground)] shrink-0">
+          <span className="flex items-center gap-1 text-xs text-[var(--foreground)]/75 dark:text-[var(--muted-foreground)] shrink-0">
             <CoinIcon className="w-3.5 h-3.5 text-amber-500" aria-hidden />
             <span className="font-medium tabular-nums">{balance.toLocaleString("ru-RU")}</span>
           </span>
@@ -322,7 +326,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
             href="/admin"
             onClick={onClose}
             role="menuitem"
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--chart-1)] hover:bg-[var(--chart-1)]/10 rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--chart-1)]/50"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--chart-1)] rounded-lg min-w-0 cursor-pointer outline-none transition-[background-color,color] duration-150 hover:bg-[var(--chart-1)]/10 active:bg-[var(--muted)] focus-visible:ring-2 focus-visible:ring-[var(--chart-1)]/50 focus-visible:ring-inset"
           >
             <Shield className="w-4 h-4 shrink-0" aria-hidden />
             <span>Админ-панель</span>
@@ -330,7 +334,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
         )}
       </div>
 
-      <div className="dropdown-divider" aria-hidden />
+      <div className="h-px bg-[var(--border)] my-1 mx-2" aria-hidden />
 
       <div className="p-1.5">
         <button

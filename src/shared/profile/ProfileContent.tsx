@@ -41,7 +41,7 @@ export default function ProfileContent({
   isPublicView = false,
 }: ProfileContentProps) {
   return (
-    <div className="flex flex-col gap-4 items-stretch max-w-4xl min-w-0">
+    <div className="flex flex-col gap-4 items-stretch w-full min-w-0">
       {!isPublicView && <ProfileWelcome userProfile={userProfile} />}
       {!isPublicView && <ProfileQuickActions />}
       {!isPublicView && <ContinueReading userProfile={userProfile} />}

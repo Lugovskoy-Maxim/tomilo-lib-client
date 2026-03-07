@@ -42,7 +42,7 @@ export default function CollectionCard({ data, variant = "compact" }: Collection
 
   const cardClasses = `
     group relative select-none rounded-xl overflow-hidden cursor-pointer block
-    card-focus-ring focus:outline-none active:scale-[0.99]
+    card-focus-ring focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] active:scale-[0.99]
     transition-all duration-200 ease-out
     ${isGrid ? "w-full" : "flex-shrink-0 w-24 sm:w-28 md:w-32 lg:w-36"}
   `.trim().replace(/\s+/g, " ");
