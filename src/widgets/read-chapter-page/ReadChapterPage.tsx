@@ -31,6 +31,7 @@ import {
 } from "@/lib/reading-position";
 
 import ChapterErrorState from "@/shared/error-state/ChapterErrorState";
+import ChapterNoPagesState from "@/shared/error-state/ChapterNoPagesState";
 import ReadingPositionRestoreModal from "@/shared/reader/ReadingPositionRestoreModal";
 import { ChapterCommentsSection } from "@/shared/reader/ChapterCommentsSection";
 import { ChapterTranslatorInfo } from "@/shared/reader/ChapterTranslatorInfo";
@@ -1159,9 +1160,10 @@ function ReadChapterPageContent({
 
   if (!chapter.images?.length) {
     return (
-      <ChapterErrorState
-        title="Нет страниц"
-        message="В этой главе пока нет изображений. Попробуйте другую главу или обновите страницу позже."
+      <ChapterNoPagesState
+        title={title}
+        chapter={chapter}
+        chapters={chapters}
         slug={slug}
       />
     );

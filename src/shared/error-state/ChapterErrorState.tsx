@@ -10,6 +10,10 @@ interface ChapterErrorStateProps {
   message?: string;
   slug?: string;
   className?: string;
+  /** Ссылка на предыдущую главу — показывается кнопка «Назад к предыдущей главе» */
+  prevChapterHref?: string;
+  /** Ссылка на следующую главу — показывается кнопка «К следующей главе» */
+  nextChapterHref?: string;
 }
 
 /**
@@ -20,6 +24,8 @@ export default function ChapterErrorState({
   message = "Попробуйте обновить страницу",
   slug,
   className = "",
+  prevChapterHref,
+  nextChapterHref,
 }: ChapterErrorStateProps) {
   const router = useRouter();
 
@@ -32,7 +38,23 @@ export default function ChapterErrorState({
           <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">{title}</h1>
           <p className="text-[var(--muted-foreground)] mb-6">{message}</p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
+            {prevChapterHref && (
+              <Link
+                href={prevChapterHref}
+                className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors text-center"
+              >
+                Назад к предыдущей главе
+              </Link>
+            )}
+            {nextChapterHref && (
+              <Link
+                href={nextChapterHref}
+                className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors text-center"
+              >
+                К следующей главе
+              </Link>
+            )}
             {slug && (
               <Link
                 href={`/titles/${slug}`}
