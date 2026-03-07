@@ -498,6 +498,26 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
+    /** Запланировать удаление профиля (scheduledDeletionAt = now + 7 дней). Ответ — обновлённый пользователь. */
+    scheduleDeletion: builder.mutation<ApiResponseDto<User>, void>({
+      query: () => ({
+        url: "/users/profile/schedule-deletion",
+        method: "POST",
+        body: {},
+      }),
+      invalidatesTags: ["Auth"],
+    }),
+
+    /** Отменить запланированное удаление профиля. */
+    cancelDeletion: builder.mutation<ApiResponseDto<User>, void>({
+      query: () => ({
+        url: "/users/profile/cancel-deletion",
+        method: "POST",
+        body: {},
+      }),
+      invalidatesTags: ["Auth"],
+    }),
+
     // Проверка статуса закладки (добавлен ли тайтл и в какой категории)
     getBookmarkStatus: builder.query<
       ApiResponseDto<BookmarkStatusResponse>,
@@ -563,4 +583,6 @@ export const {
   useChangePasswordMutation,
   useForgotPasswordMutation,
   useClaimDailyBonusMutation,
+  useScheduleDeletionMutation,
+  useCancelDeletionMutation,
 } = authApi;

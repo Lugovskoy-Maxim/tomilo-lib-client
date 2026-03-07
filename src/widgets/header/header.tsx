@@ -179,10 +179,11 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4"
+                className="header-icon-btn group relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] transition-all duration-250 hover:border-[var(--primary)] hover:text-[var(--foreground)] hover:shadow-[0_0_20px_-5px_var(--primary)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4"
                 aria-label="Открыть меню"
               >
-                <Menu className="w-5 h-5 text-[var(--muted-foreground)]" />
+                <span className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] opacity-0 transition-opacity duration-250 group-hover:opacity-[0.12] -z-0" aria-hidden />
+                <Menu className="w-5 h-5 text-[var(--muted-foreground)] group-hover:scale-110 group-hover:-rotate-5 group-hover:text-[var(--primary)] transition-transform duration-300 relative z-[1]" />
               </button>
             </div>
           )}
@@ -207,10 +208,11 @@ export default function Header() {
             <button
               type="button"
               onClick={toggleSearch}
-              className={`${isSearchOpen ? "hidden " : ""}header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4`}
+              className={`${isSearchOpen ? "hidden " : ""}header-icon-btn group relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] transition-all duration-250 hover:border-[var(--primary)] hover:text-[var(--foreground)] hover:shadow-[0_0_20px_-5px_var(--primary)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4`}
               aria-label="Поиск"
             >
-              <SearchIcon className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <span className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] opacity-0 transition-opacity duration-250 group-hover:opacity-[0.12] -z-0" aria-hidden />
+              <SearchIcon className="w-5 h-5 text-[var(--muted-foreground)] group-hover:scale-110 group-hover:-rotate-5 group-hover:text-[var(--primary)] transition-transform duration-300 relative z-[1]" />
             </button>
           </div>
 
@@ -219,11 +221,12 @@ export default function Header() {
             <button
               type="button"
               onClick={toggleDropdown}
-              className="header-icon-btn relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4"
+              className={`header-icon-btn group relative flex items-center justify-center min-w-11 min-h-11 p-2 rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] transition-all duration-250 hover:border-[var(--primary)] hover:text-[var(--foreground)] hover:shadow-[0_0_20px_-5px_var(--primary)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:p-1 max-[480px]:rounded-lg [&_svg]:max-[480px]:w-4 [&_svg]:max-[480px]:h-4 ${isDropdownOpen ? "border-[var(--primary)] text-[var(--foreground)] shadow-[0_0_20px_-5px_var(--primary)] [&_.header-icon-glow]:opacity-[0.15] [&_.header-icon-svg]:scale-110 [&_.header-icon-svg]:-rotate-5 [&_.header-icon-svg]:text-[var(--primary)]" : ""}`}
               aria-label="Дополнительное меню"
               aria-expanded={isDropdownOpen}
             >
-              <MoreVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <span className="header-icon-glow absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] opacity-0 transition-opacity duration-250 group-hover:opacity-[0.12] -z-0" aria-hidden />
+              <MoreVertical className="header-icon-svg w-5 h-5 text-[var(--muted-foreground)] group-hover:scale-110 group-hover:-rotate-5 group-hover:text-[var(--primary)] transition-transform duration-300 relative z-[1]" />
             </button>
 
             {isDropdownOpen && (
@@ -232,7 +235,7 @@ export default function Header() {
                 <div
                   role="menu"
                   aria-label="Дополнительные ссылки"
-                  className="absolute right-0 top-full mt-2 w-52 dropdown-modern animate-fade-in-scale z-50 py-1"
+                  className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35),0_0_1px_rgba(255,255,255,0.06)] overflow-hidden animate-fade-in-scale z-50 py-1"
                 >
                   {HEADER_DROPDOWN_ITEMS.map(({ href, label, icon: Icon }) => (
                     <Link
@@ -240,7 +243,7 @@ export default function Header() {
                       href={href}
                       onClick={closeDropdown}
                       role="menuitem"
-                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] dropdown-item-modern w-full mx-1"
+                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] w-full mx-1 rounded-lg transition-[background-color,color] duration-150 hover:bg-[var(--accent)] hover:[&_svg]:text-[var(--foreground)] active:bg-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
                     >
                       <Icon className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0" aria-hidden />
                       {label}

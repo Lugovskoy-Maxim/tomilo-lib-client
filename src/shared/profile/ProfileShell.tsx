@@ -237,7 +237,7 @@ export default function ProfileShell({
               {adminControls}
             </div>
           )}
-          <div className="profile-content-card flex-1 min-h-0 min-w-0 rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden flex flex-col">
+          <div className="flex-1 min-h-0 min-w-0 rounded-2xl border border-[color-mix(in_oklch,var(--border)_70%,transparent)] overflow-hidden flex flex-col bg-[color-mix(in_oklch,var(--card)_88%,transparent)] dark:bg-[color-mix(in_oklch,var(--card)_58%,transparent)] backdrop-blur-[14px] shadow-[0_4px_24px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)]">
             <ProfileTabs
               userProfile={userProfile}
               breadcrumbPrefix={breadcrumbPrefix ?? undefined}

@@ -83,7 +83,11 @@ export interface StoredUser {
   longestStreak?: number;
   lastStreakDate?: string;
   completedTitlesCount?: number;
-  
+  /** Запланированная дата удаления профиля (ISO). Через 7 дней после неё профиль считается удалённым. */
+  scheduledDeletionAt?: string | null;
+  /** Фактическая дата удаления (проставляется сервером после истечения срока). */
+  deletedAt?: string | null;
+
   // Кастомизация профиля
   bio?: string;
   favoriteGenre?: string;

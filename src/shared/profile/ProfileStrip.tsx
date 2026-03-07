@@ -36,7 +36,7 @@ export default function ProfileStrip({
   const showStreak = !isPublicView || isOwnProfile || userProfile.showStats !== false;
 
   return (
-    <div className="profile-strip flex flex-wrap items-center gap-4 sm:gap-5 py-4 px-4 sm:px-5 border border-[var(--border)] rounded-2xl shadow-sm">
+    <div className="flex flex-wrap items-center gap-4 sm:gap-5 py-4 px-4 sm:px-5 rounded-2xl border border-[color-mix(in_oklch,var(--border)_70%,transparent)] bg-[color-mix(in_oklch,var(--card)_88%,transparent)] dark:bg-[color-mix(in_oklch,var(--card)_58%,transparent)] backdrop-blur-[14px] shadow-[0_4px_24px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)]">
       {/* Аватар: контейнер с overflow-visible и отступом, чтобы рамка и эффекты не обрезались */}
       <div className="relative w-[7rem] h-[7rem] shrink-0 flex items-center justify-center overflow-visible rounded-full ring-2 ring-[var(--border)]/50">
         <div className="relative w-24 h-24 flex items-center justify-center overflow-visible">
@@ -76,27 +76,29 @@ export default function ProfileStrip({
 
       {/* Уровень — на узких экранах переносим на новую строку, чтобы не наезжал на никнейм */}
       <div
-        className="profile-strip-level relative flex items-center gap-2 sm:gap-3 py-2 px-3 rounded-xl border border-[var(--border)]/70 min-w-0 z-0 basis-full w-max sm:basis-auto"
+        className="profile-strip-level relative flex items-center gap-2 sm:gap-3 py-2 px-3 rounded-xl border border-[var(--border)]/70 min-w-0 z-0 basis-full w-max sm:basis-auto overflow-visible"
         style={{ background: `linear-gradient(135deg, ${rankColor}12 0%, transparent 100%)` }}
       >
-        <div className="relative z-10 flex items-center gap-2 sm:gap-3 min-w-0">
+        <span className="absolute inset-0 rounded-xl bg-[var(--card)] opacity-72 dark:opacity-50 pointer-events-none z-0" aria-hidden />
+        <div className="relative z-10 flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm shrink-0"
             style={{ backgroundColor: `${rankColor}25`, color: rankColor }}
           >
             {level}
           </div>
-          <div className="min-w-0 hidden min-[400px]:block">
+          {/* Название ранга всегда видно; прогресс и XP — от 400px */}
+          <div className="min-w-0 flex-1 sm:flex-initial">
             <p className="text-xs font-semibold truncate" style={{ color: rankColor }}>
               {getRankDisplay(level)}
             </p>
-            <div className="mt-1 h-1 rounded-full bg-[var(--secondary)] overflow-hidden max-w-[80px]">
+            <div className="mt-1 h-1 rounded-full bg-[var(--secondary)] overflow-hidden max-w-[80px] hidden min-[400px]:block">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${expProgress}%`, backgroundColor: rankColor }}
               />
             </div>
-            <div className="flex items-center gap-1 min-w-0">
+            <div className="flex items-center gap-1 min-w-0 hidden min-[400px]:flex">
               <p className="text-[10px] text-[var(--muted-foreground)] truncate">
                 {experience.toLocaleString()}/{nextLevelExp.toLocaleString()} XP
               </p>
@@ -151,7 +153,7 @@ export default function ProfileStrip({
         <button
           type="button"
           onClick={onEdit}
-          className="profile-strip-edit flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border border-[var(--border)] bg-[var(--secondary)]/50 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors shrink-0"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border border-[var(--border)] bg-[var(--secondary)]/50 hover:bg-[var(--accent)] text-[var(--foreground)] transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2"
         >
           <Pencil className="w-4 h-4 shrink-0" />
           Редактировать

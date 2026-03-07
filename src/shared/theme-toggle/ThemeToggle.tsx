@@ -97,16 +97,16 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`theme-toggle-btn relative flex items-center justify-center min-w-10 min-h-10 p-2 rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] cursor-pointer transition-all duration-300 ${isLoadingTheme ? "theme-toggle-btn--loading opacity-70 pointer-events-none" : ""}`}
+      className={`group relative flex items-center justify-center min-w-10 min-h-10 p-2 rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] cursor-pointer transition-all duration-300 hover:border-[var(--primary)] hover:text-[var(--foreground)] hover:shadow-[0_0_25px_-5px_var(--primary)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] ${isLoadingTheme ? "opacity-70 pointer-events-none" : ""}`}
       aria-label={`Тема: ${currentTheme.label}. Нажмите для смены`}
       title={`Тема: ${currentTheme.label}`}
       disabled={!mounted || isLoadingTheme}
     >
-      <span className="theme-toggle-btn__glow absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none -z-0" aria-hidden />
+      <span className={`absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] pointer-events-none -z-0 transition-opacity duration-300 ${isLoadingTheme ? "opacity-10 animate-pulse" : "opacity-0 group-hover:opacity-[0.15]"}`} aria-hidden />
       {isLoadingTheme ? (
-        <Loader2 className="theme-toggle-btn__icon theme-toggle-btn__icon--spin relative z-[1] w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300" />
+        <Loader2 className="theme-toggle-btn__icon theme-toggle-btn__icon--spin relative z-[1] w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 animate-spin" />
       ) : (
-        <Icon className="theme-toggle-btn__icon relative z-[1] w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300" />
+        <Icon className="relative z-[1] w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:scale-110 group-hover:text-[var(--primary)]" />
       )}
     </button>
   );

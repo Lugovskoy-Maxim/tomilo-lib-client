@@ -49,6 +49,8 @@ function transformUserToProfile(user: User): UserProfile | null {
     showFavoriteCharacters: user.showFavoriteCharacters,
     showReadingHistory: user.showReadingHistory,
     showBookmarks: user.showBookmarks,
+    scheduledDeletionAt: (user as User & { scheduledDeletionAt?: string | null }).scheduledDeletionAt ?? undefined,
+    deletedAt: (user as User & { deletedAt?: string | null }).deletedAt ?? undefined,
     // Статистика
     titlesReadCount: user.titlesReadCount,
     commentsCount: user.commentsCount,

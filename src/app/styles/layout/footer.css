@@ -1,62 +1,5 @@
 /* --- FOOTER --- */
-
-.footer-col__link:hover {
-  color: var(--foreground);
-  background: rgba(var(--primary-rgb), 0.06);
-}
-
-.footer-col__link:focus-visible {
-  outline: none;
-  color: var(--foreground);
-  background: rgba(var(--primary-rgb), 0.08);
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
-}
-
-.footer-col__contact-link:hover {
-  color: var(--foreground);
-  background: rgba(var(--primary-rgb), 0.06);
-}
-
-.footer-col__contact-link:focus-visible {
-  outline: none;
-  color: var(--foreground);
-  background: rgba(var(--primary-rgb), 0.08);
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
-}
-
-/* --- Nav link modern (layout in Tailwind) --- */
-.nav-link-modern__glow {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
-}
-
-.nav-link-modern:hover {
-  color: var(--foreground);
-  border-color: var(--primary);
-  box-shadow: 0 0 20px -5px var(--primary);
-}
-
-.nav-link-modern:hover .nav-link-modern__glow {
-  opacity: 0.1;
-}
-
-.nav-link-modern:hover .nav-link-modern__icon {
-  transform: scale(1.15) rotate(-5deg);
-  color: var(--primary);
-}
-
-.nav-link-modern:active {
-  transform: scale(0.97);
-}
-
-.nav-link-modern--active {
-  color: var(--foreground);
-  border-color: var(--primary);
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0.05) 100%);
-}
-
-.nav-link-modern--active .nav-link-modern__icon {
-  color: var(--primary);
-}
+/* Стили ссылок, контактов, nav-link-modern и footer-version перенесены в Tailwind (footer.tsx, NavigationLink). */
 
 /* Legacy footer link (kept for any other use) */
 .footer-link {
@@ -162,36 +105,15 @@
   opacity: 0.15;
 }
 
-/* Footer credit link (разработчик) */
-.footer-credit-link {
-  transition: color 0.2s ease;
-}
-.footer-credit-link:hover {
-  color: var(--chart-1);
-}
-
 /* Desktop footer: заголовки секций */
 .footer-section-title {
   letter-spacing: 0.08em;
 }
 
-/* Desktop footer: кнопка «Наверх» — hover/active transform в Tailwind */
+/* Кнопка «Наверх» — анимация появления (остальное в Tailwind) */
 .footer-back-to-top {
   animation: footer-back-to-top-in 0.25s ease-out;
 }
 
 @keyframes footer-back-to-top-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Footer version badge (layout в Tailwind) */
-.footer-version {
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.12), rgba(var(--primary-rgb), 0.06));
-  border: 1px solid rgba(var(--border-rgb), 0.6);
-}
-
-/* Отступ снизу на мобильных, чтобы контент не перекрывался фиксированной панелью */
-@media (max-width: 1023px) {
-  .mobile-footer-spacer {
-    padding-bottom: var(--mobile-footer-bar-height);
-  }
-}
 

@@ -164,7 +164,7 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
   );
 
   const className =
-    "relative group cursor-pointer select-none block h-full rounded-xl card-focus-ring focus:outline-none";
+    "relative group cursor-pointer select-none block h-full rounded-xl card-focus-ring focus:outline-none focus-visible:[&_.card-hover-soft]:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_0_0_0_1px_var(--primary)] dark:focus-visible:[&_.card-hover-soft]:shadow-[0_14px_28px_rgb(0_0_0/0.35),0_0_0_0_1px_var(--primary)]";
 
   if (onCardClick) {
     return (

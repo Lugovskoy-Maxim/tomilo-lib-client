@@ -8,6 +8,7 @@ import { useUpdateProfileMutation } from "@/store/api/authApi";
 import { getEquippedBackgroundUrl, getDecorationImageUrl } from "@/api/shop";
 import ProfileEditForm from "@/shared/profile/ProfileEditForm";
 import ProfileShell from "@/shared/profile/ProfileShell";
+import { ProfileModalsProvider } from "@/shared/profile/ProfileModalsContext";
 import Modal from "@/shared/modal/modal";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
 import type { UserProfile } from "@/types/user";
@@ -55,26 +56,28 @@ export default function ProfileLayout(_: { children: React.ReactNode }) {
 
   return (
     <AuthGuard>
-      <ProfileShell
-        variant="own"
-        userProfile={userProfile ?? null}
-        isLoading={authLoading || isLoading}
-        backgroundUrl={userProfile ? getBackgroundUrl(userProfile) : "/user/banner.jpg"}
-        profileContextValue={profileContextValue}
-        onEdit={() => setIsEditing(true)}
-        onAvatarUpdate={handleAvatarUpdate}
-        showAdminLink={currentUser?.role === "admin"}
-      />
-      <Modal isOpen={isEditing} onClose={() => setIsEditing(false)} title="Данные профиля">
-        {userProfile && (
-          <ProfileEditForm
-            userProfile={userProfile}
-            onSave={handleUpdateProfile}
-            onCancel={() => setIsEditing(false)}
-            isLoading={isUpdatingProfile}
-          />
-        )}
-      </Modal>
+      <ProfileModalsProvider>
+        <ProfileShell
+          variant="own"
+          userProfile={userProfile ?? null}
+          isLoading={authLoading || isLoading}
+          backgroundUrl={userProfile ? getBackgroundUrl(userProfile) : "/user/banner.jpg"}
+          profileContextValue={profileContextValue}
+          onEdit={() => setIsEditing(true)}
+          onAvatarUpdate={handleAvatarUpdate}
+          showAdminLink={currentUser?.role === "admin"}
+        />
+        <Modal isOpen={isEditing} onClose={() => setIsEditing(false)} title="Данные профиля">
+          {userProfile && (
+            <ProfileEditForm
+              userProfile={userProfile}
+              onSave={handleUpdateProfile}
+              onCancel={() => setIsEditing(false)}
+              isLoading={isUpdatingProfile}
+            />
+          )}
+        </Modal>
+      </ProfileModalsProvider>
     </AuthGuard>
   );
 }

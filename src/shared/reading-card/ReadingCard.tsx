@@ -45,7 +45,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
 
   return (
     <div
-      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 group relative cursor-pointer rounded-xl card-focus-ring focus:outline-none active:scale-[0.99] transition-transform"
+      className="flex-shrink-0 w-68 sm:w-72 md:w-80 lg:w-96 group relative cursor-pointer rounded-xl card-focus-ring focus:outline-none focus-visible:[&_.card-hover-soft]:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_0_0_0_1px_var(--primary)] dark:focus-visible:[&_.card-hover-soft]:shadow-[0_14px_28px_rgb(0_0_0/0.35),0_0_0_0_1px_var(--primary)] active:scale-[0.99] transition-transform"
       data-card-id={data.id}
       onClick={handleClick}
       onKeyDown={e => {
@@ -57,7 +57,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
       tabIndex={0}
       role="button"
     >
-      <div className="relative isolate flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm">
+      <div className="relative isolate flex h-32 sm:h-36 bg-[var(--card)] rounded-xl overflow-hidden border border-[var(--border)] card-hover-soft shadow-sm transition-[box-shadow] duration-250 hover:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_4px_8px_rgb(0_0_0/0.06)] dark:hover:shadow-[0_14px_28px_rgb(0_0_0/0.4),0_6px_12px_rgb(0_0_0/0.25)]">
         {/* Image section */}
         <div className="relative w-24 sm:w-28 md:w-32 flex-shrink-0 overflow-hidden">
           <div className="relative w-full h-full">

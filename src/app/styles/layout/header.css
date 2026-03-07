@@ -1,69 +1,5 @@
 /* --- HEADER --- */
-
-/* Header icon buttons (search, menu, close) — layout via Tailwind */
-.header-icon-btn {
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--muted-foreground);
-  transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.header-icon-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  z-index: 0;
-}
-
-.header-icon-btn svg {
-  position: relative;
-  z-index: 1;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
-}
-
-.header-icon-btn:hover {
-  border-color: var(--primary);
-  color: var(--foreground);
-  box-shadow: 0 0 20px -5px var(--primary);
-}
-
-.header-icon-btn:hover::before {
-  opacity: 0.12;
-}
-
-.header-icon-btn:hover svg {
-  transform: scale(1.15) rotate(-5deg);
-  color: var(--primary);
-}
-
-.header-icon-btn:active,
-.theme-toggle-btn:active {
-  transform: scale(0.95);
-}
-
-.header-icon-btn:focus-visible,
-.theme-toggle-btn:focus-visible,
-.nav-link-modern:focus-visible,
-.card-focus-ring:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
-}
-
-.header-icon-btn[aria-expanded="true"] {
-  border-color: var(--primary);
-  color: var(--foreground);
-}
-
-.header-icon-btn[aria-expanded="true"]::before {
-  opacity: 0.15;
-}
-
-.header-icon-btn[aria-expanded="true"] svg {
-  color: var(--primary);
-}
+/* Стили header-icon-btn и theme-toggle-btn перенесены в Tailwind (header.tsx, ThemeToggle.tsx, NotificationButton.tsx). */
 
 /* Кнопка-триггер поиска в хедере (десктоп) — доп. стили поверх search-trigger */
 .header-search .search-trigger {
@@ -109,40 +45,14 @@
   border-color: var(--primary);
 }
 
-/* --- Theme Toggle (layout in Tailwind) --- */
-.theme-toggle-btn__glow {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
-}
-
+/* Анимация загрузки темы (ThemeToggle использует Tailwind animate-spin) */
 .theme-toggle-btn__icon--spin {
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-.theme-toggle-btn:hover {
-  border-color: var(--primary);
-  color: var(--foreground);
-  box-shadow: 0 0 25px -5px var(--primary);
-}
-
-.theme-toggle-btn:hover .theme-toggle-btn__glow {
-  opacity: 0.15;
-}
-
-.theme-toggle-btn:hover .theme-toggle-btn__icon {
-  transform: scale(1.1);
-  color: var(--primary);
-}
-
-.theme-toggle-btn--loading .theme-toggle-btn__glow {
-  opacity: 0.1;
-  animation: pulse-glow-opacity 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse-glow-opacity { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.2; } }
-
-/* Аватар в UserBar — добавьте в компонент: min-w-11 min-h-11 max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] */
+/* Аватар в UserBar — размеры на узких экранах */
 @media (max-width: 480px) {
   .header-user-bar button:not(.dropdown-item-modern),
   .header-user-bar a button:not(.dropdown-item-modern),

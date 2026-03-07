@@ -108,7 +108,7 @@ export default function BookmarkGridCard({
   return (
     <Link
       href={href}
-      className={`group relative isolate flex flex-col rounded-xl overflow-visible bg-[var(--card)] border border-[var(--border)] card-hover-soft block ${
+      className={`group relative isolate flex flex-col rounded-xl overflow-visible bg-[var(--card)] border border-[var(--border)] card-hover-soft block transition-[box-shadow] duration-250 hover:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_4px_8px_rgb(0_0_0/0.06)] dark:hover:shadow-[0_14px_28px_rgb(0_0_0/0.4),0_6px_12px_rgb(0_0_0/0.25)] ${
         categoryOpen ? "z-[var(--z-dropdown)]" : ""
       }`}
     >

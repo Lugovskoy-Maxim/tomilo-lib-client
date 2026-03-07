@@ -1,47 +1,6 @@
 /* --- DROPDOWN --- */
 
-.dropdown-list {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
-
-[data-theme="dark"] .dropdown-list,
-.dark .dropdown-list {
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), 0 0 1px rgba(255, 255, 255, 0.06);
-}
-
-/* Пункт меню: hover и фокус (layout — в Tailwind) */
-.dropdown-item-modern {
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.dropdown-item-modern:hover {
-  background: var(--accent);
-}
-
-.dropdown-item-modern:hover svg {
-  color: var(--foreground);
-}
-
-.dropdown-item-modern:active {
-  background: var(--muted);
-}
-
-.dropdown-item-modern:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--primary);
-}
-
-.dropdown-list-item {
-  transition: background-color 0.15s ease;
-}
-
-.dropdown-list-item:hover {
-  background: var(--accent);
-}
+/* Фон, рамки, тени и пункты меню перенесены в Tailwind (DropdownMenu, header). */
 
 /* Стрелка-указатель на триггер (опционально) */
 .dropdown-arrow {

@@ -270,7 +270,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
               return (
                 <div
                   key={title._id}
-                  className="relative isolate flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-not-allowed"
+                  className="relative isolate flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-not-allowed transition-[box-shadow] duration-250"
                 >
                   {cardInner}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl z-10">
@@ -298,7 +298,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
               <Link
                 key={title._id}
                 href={titlePath}
-                className="relative isolate flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
+                className="relative isolate flex flex-col h-full rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden card-hover-soft cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 transition-[box-shadow] duration-250 hover:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_4px_8px_rgb(0_0_0/0.06)] dark:hover:shadow-[0_14px_28px_rgb(0_0_0/0.4),0_6px_12px_rgb(0_0_0/0.25)]"
               >
                 {cardInner}
               </Link>

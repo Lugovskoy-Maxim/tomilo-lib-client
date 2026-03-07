@@ -81,7 +81,7 @@ const THEME_LABELS: Record<string, string> = {
 };
 
 const itemClass =
-  "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none m-0 border-0 bg-transparent";
+  "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg min-w-0 cursor-pointer outline-none m-0 border-0 bg-transparent transition-[background-color,color] duration-150 hover:bg-[var(--accent)] hover:[&_svg]:text-[var(--foreground)] active:bg-[var(--muted)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset";
 
 export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl, avatarDecorationUrl, leaderboardPositions = [] }: UserDropdownProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -326,7 +326,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
             href="/admin"
             onClick={onClose}
             role="menuitem"
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--chart-1)] hover:bg-[var(--chart-1)]/10 rounded-lg dropdown-item-modern min-w-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--chart-1)]/50"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--chart-1)] rounded-lg min-w-0 cursor-pointer outline-none transition-[background-color,color] duration-150 hover:bg-[var(--chart-1)]/10 active:bg-[var(--muted)] focus-visible:ring-2 focus-visible:ring-[var(--chart-1)]/50 focus-visible:ring-inset"
           >
             <Shield className="w-4 h-4 shrink-0" aria-hidden />
             <span>Админ-панель</span>

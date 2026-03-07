@@ -33,6 +33,7 @@ import ProfilePrivacySettings from "@/shared/profile/ProfilePrivacySettings";
 import ProfileSecuritySettings from "@/shared/profile/ProfileSecuritySettings";
 import ProfileDisplaySettings from "@/shared/profile/ProfileDisplaySettings";
 import ProfilePremiumSettings from "@/shared/profile/ProfilePremiumSettings";
+import ProfileDeleteAccount from "@/shared/profile/ProfileDeleteAccount";
 import ProfileInventory from "@/shared/profile/ProfileInventory";
 import SettingsNavigation from "@/shared/profile/SettingsNavigation";
 
@@ -198,7 +199,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
           )}
           <div
             ref={scrollRef}
-            className="profile-tabs-nav flex gap-2 overflow-x-auto scrollbar-hide py-1 px-0 cursor-grab select-none min-w-0 -mx-1 sm:flex-wrap sm:overflow-visible sm:cursor-default"
+            className="profile-tabs-nav flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide py-1 px-0 cursor-grab select-none min-w-0 -mx-1 sm:cursor-default"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -217,7 +218,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                   className={`profile-tab-btn flex items-center gap-2 shrink-0 px-3 py-2 rounded-full text-sm font-medium transition-all ${
                     isActive
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "profile-tab-btn-inactive text-[var(--muted-foreground)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
+                      : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] dark:bg-[color-mix(in_oklch,var(--secondary)_60%,transparent)] dark:text-[var(--foreground)] dark:hover:bg-[var(--accent)]"
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
@@ -240,11 +241,11 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
       </nav>
 
       {/* Заголовок раздела — одна строка */}
-      <div className="profile-section-header flex items-center gap-2 mb-4 pb-3 border-b border-[var(--border)]/60">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[color-mix(in_oklch,var(--border)_70%,transparent)] dark:border-[color-mix(in_oklch,var(--border)_90%,transparent)] [&_h2]:text-[var(--foreground)] [&_p]:text-[var(--muted-foreground)] dark:[&_p]:text-[color-mix(in_oklch,var(--muted-foreground)_95%,var(--foreground))]">
         <SectionIcon className="w-5 h-5 text-[var(--primary)] shrink-0" />
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold text-[var(--foreground)] truncate">{sectionTitle}</h2>
-          <p className="text-xs text-[var(--muted-foreground)] truncate">{sectionDescription}</p>
+          <h2 className="text-lg font-semibold truncate">{sectionTitle}</h2>
+          <p className="text-xs truncate">{sectionDescription}</p>
         </div>
       </div>
 
@@ -396,9 +397,14 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                 <div id="settings-privacy">
                   <ProfilePrivacySettings userProfile={userProfile} />
                 </div>
-                <div id="settings-security" className="lg:col-span-2">
+                <div id="settings-security">
                   <ProfileSecuritySettings userProfile={userProfile} />
                 </div>
+                {!isPublicView && (
+                  <div id="settings-delete-account" className="lg:col-span-2">
+                    <ProfileDeleteAccount userProfile={userProfile} />
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -64,7 +64,7 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
   return (
     <>
       <div
-        className="w-full relative isolate bg-card rounded-lg border border-border card-hover-soft overflow-hidden group cursor-pointer h-full flex flex-col"
+        className="w-full relative isolate bg-[var(--card)] rounded-lg border border-[var(--border)] card-hover-soft overflow-hidden group cursor-pointer h-full flex flex-col transition-[box-shadow] duration-250 hover:shadow-[0_12px_24px_rgb(0_0_0/0.1),0_4px_8px_rgb(0_0_0/0.06)] dark:hover:shadow-[0_14px_28px_rgb(0_0_0/0.4),0_6px_12px_rgb(0_0_0/0.25)]"
         onClick={handleClick}
       >
         <div className="flex flex-1">

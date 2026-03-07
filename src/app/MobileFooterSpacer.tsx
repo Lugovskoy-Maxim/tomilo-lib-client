@@ -4,5 +4,5 @@
  * client, avoiding hydration mismatch when RSC streams page content.
  */
 export function MobileFooterSpacer({ children }: { children: React.ReactNode }) {
-  return <div className="mobile-footer-spacer">{children}</div>;
+  return <div className="max-lg:pb-[var(--mobile-footer-bar-height)]">{children}</div>;
 }
