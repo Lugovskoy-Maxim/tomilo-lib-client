@@ -872,7 +872,7 @@ function mergeLeaderForModal(leader: LeaderboardUser, profile: Record<string, un
       merged[key] = profileVal;
     }
   }
-  return merged as LeaderboardUser;
+  return merged as unknown as LeaderboardUser;
 }
 
 function PodiumUserModal({

@@ -19,7 +19,6 @@ import {
 import { useSEO } from "@/hooks/useSEO";
 import { getEquippedBackgroundUrl } from "@/api/shop";
 import ProfileShell from "@/shared/profile/ProfileShell";
-import { AuthGuard } from "@/guard/AuthGuard";
 import {
   Ban,
   Wallet,
