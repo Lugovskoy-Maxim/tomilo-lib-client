@@ -1,5 +1,32 @@
 /* --- PROFILE PAGE --- */
 
+/* Единая оболочка профиля: контентная зона */
+.profile-shell-content {
+  --profile-gap: 1rem;
+}
+@media (min-width: 1024px) {
+  .profile-shell-content {
+    --profile-gap: 1.5rem;
+  }
+}
+
+/* Карточки разделов: минималистичные, ровные */
+.profile-card {
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.profile-content-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Кнопки вкладок профиля */
+.profile-tab-btn {
+  border-radius: 0.75rem;
+}
+
 .glass {
   background: rgba(var(--card-rgb), 0.7);
   backdrop-filter: blur(12px);

@@ -181,14 +181,15 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
   const sectionDescription = tabMeta[activeTab].description;
 
   return (
-    <div className="w-full min-w-0">
-      <div className="mb-4">
-        <div className="relative flex items-center">
+    <div className="w-full min-w-0 flex flex-col">
+      {/* Навигация вкладок: сетка на широких экранах, горизонтальный скролл на узких */}
+      <nav className="mb-4" aria-label="Разделы профиля">
+        <div className="relative">
           {canScrollLeft && (
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="absolute left-0 z-10 w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)]"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)] transition-colors sm:hidden"
               aria-label="Прокрутить влево"
             >
               <ChevronLeft className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -196,7 +197,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
           )}
           <div
             ref={scrollRef}
-            className="flex gap-1 overflow-x-auto scrollbar-hide py-1 px-1 cursor-grab select-none min-w-0"
+            className="flex gap-2 overflow-x-auto scrollbar-hide py-1.5 px-0.5 cursor-grab select-none min-w-0 -mx-0.5 sm:flex-wrap sm:overflow-visible sm:cursor-default"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -212,13 +213,13 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                   key={tabId}
                   type="button"
                   onClick={() => { if (!hasDraggedRef.current) setActiveTab(tabId); }}
-                  className={`flex items-center gap-1.5 shrink-0 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  className={`profile-tab-btn flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "bg-[var(--secondary)]/50 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                      : "bg-[var(--secondary)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] border border-transparent"
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0" />
                   <span className="whitespace-nowrap">{meta.label}</span>
                 </button>
               );
@@ -228,14 +229,14 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="absolute right-0 z-10 w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)]"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)] transition-colors sm:hidden"
               aria-label="Прокрутить вправо"
             >
               <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
             </button>
           )}
         </div>
-      </div>
+      </nav>
 
       <main className="flex-1 min-w-0 flex flex-col">
         <header className="flex-shrink-0 mb-4">
@@ -249,15 +250,15 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                     { name: sectionTitle, isCurrent: true },
                   ]
             }
-            className="mb-2"
+            className="mb-2 text-sm"
           />
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-[var(--primary)]/10 rounded-lg shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-[var(--secondary)]/60 border border-[var(--border)]/60 shrink-0">
               <SectionIcon className="w-4 h-4 text-[var(--primary)]" />
             </div>
-            <div>
-              <h1 className="text-base font-semibold text-[var(--foreground)]">{sectionTitle}</h1>
-              <p className="text-xs text-[var(--muted-foreground)]">{sectionDescription}</p>
+            <div className="min-w-0">
+              <h1 className="text-base font-semibold text-[var(--foreground)] truncate">{sectionTitle}</h1>
+              <p className="text-xs text-[var(--muted-foreground)] truncate">{sectionDescription}</p>
             </div>
           </div>
         </header>
@@ -305,7 +306,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* Закладки */}
           {activeTab === "bookmarks" && (
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
+            <div className="profile-card p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
               {isBookmarksRestricted ? (
                 <div className="flex-1 flex items-center justify-center text-center py-12">
                   <div className="max-w-sm">
@@ -333,7 +334,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* История */}
           {activeTab === "history" && (
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-5 shadow-sm min-h-[320px] flex flex-col animate-fade-in-up">
+            <div className="profile-card p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
               {isHistoryRestricted ? (
                 <div className="flex-1 flex items-center justify-center text-center py-12">
                   <div className="max-w-sm">
@@ -367,7 +368,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* Обмены */}
           {activeTab === "exchanges" && (
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-6 sm:p-8 shadow-sm animate-fade-in-up text-center">
+            <div className="profile-card p-6 sm:p-8 animate-fade-in-up text-center">
               <div className="inline-flex p-4 rounded-2xl bg-[var(--secondary)]/50 border border-[var(--border)]/60 mb-4">
                 <Repeat className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--primary)]" />
               </div>
@@ -391,9 +392,9 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
 
           {/* Настройки */}
           {activeTab === "settings" && (
-            <div className="animate-fade-in-up">
+            <div className="animate-fade-in-up space-y-4">
               <SettingsNavigation />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
                 <div id="settings-notifications">
                   <ProfileNotificationsSettings userProfile={userProfile} />
                 </div>

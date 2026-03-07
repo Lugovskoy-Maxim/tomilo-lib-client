@@ -24,6 +24,8 @@ interface OptimizedImageProps {
   fallbackSrc?: string;
   /** Изображение-заглушка при ошибке загрузки всех источников */
   errorSrc?: string;
+  /** Кастомный контент при ошибке загрузки (например, инициал пользователя вместо текста «Ошибка») */
+  errorContent?: React.ReactNode;
   /** Размеры для responsive images (для fill mode) */
   sizes?: string;
   /** Использовать нативный img вместо next/image (для внешних изображений без настроенных доменов) */
@@ -51,6 +53,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   hidePlaceholder = false,
   fallbackSrc,
   errorSrc,
+  errorContent,
   sizes,
   unoptimized = false,
 }) => {
@@ -150,6 +153,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Отображение ошибки
   const renderError = () => {
+    if (errorContent) return <>{errorContent}</>;
     const errorStyle: React.CSSProperties = fill
       ? { position: "absolute", inset: 0 }
       : { width: "100%", aspectRatio: width && height ? width / height : 160 / 220 };

@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { TrendingUp, Star, Users, Flame, Search, ChevronUp, Eye, EyeOff, Calendar, MessageSquare, X, User, BookOpen, Trophy, Heart } from "lucide-react";
+import { TrendingUp, Star, Users, Flame, Search, Eye, EyeOff, Calendar, MessageSquare, X, User, BookOpen, Trophy, Heart } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
 import LoadingSkeleton from "@/shared/skeleton/skeleton";
@@ -16,6 +16,7 @@ import {
   LeaderboardUser,
 } from "@/store/api/leaderboardApi";
 import { useGetHomepageActiveUsersQuery } from "@/store/api/usersApi";
+import { useGetProfileByIdQuery } from "@/store/api/authApi";
 import { useGetDecorationsQuery } from "@/store/api/shopApi";
 import { useMounted } from "@/hooks/useMounted";
 import { useAuth } from "@/hooks/useAuth";
@@ -343,24 +344,11 @@ export default function LeadersPageClient() {
   }, [categoryFromUrl]);
   const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("month");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const [showAdmins, setShowAdmins] = useState(true);
   const [leaderModalState, setLeaderModalState] = useState<{ user: LeaderboardUser; rank: number } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const supportsPeriod = activeCategory === "ratings" || activeCategory === "comments";
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   const {
     data: leaderboardData,
@@ -730,17 +718,6 @@ export default function LeadersPageClient() {
             </div>
           )}
         </div>
-
-        {showScrollTop && (
-          <button
-            type="button"
-            onClick={scrollToTop}
-            className="fixed bottom-5 right-5 z-50 p-2.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md hover:shadow-lg transition-shadow"
-            aria-label="Наверх"
-          >
-            <ChevronUp className="w-4 h-4" />
-          </button>
-        )}
       </main>
       <Footer />
     </>
@@ -760,6 +737,27 @@ function getRarityGlowClass(rarity: DecorationRarity | null | undefined): string
   return "";
 }
 
+/** Поля статистики для подстановки из профиля, если в лидерборде их нет (вкладки «По оценкам» / «По комментариям») */
+const MODAL_STAT_KEYS: (keyof LeaderboardUser)[] = [
+  "level", "experience", "chaptersRead", "readingTimeMinutes", "readingTime",
+  "ratingsCount", "commentsCount", "titlesReadCount", "completedTitlesCount",
+  "currentStreak", "longestStreak", "likesReceivedCount",
+  "avatar", "equippedDecorations", "subscriptionExpiresAt",
+];
+
+function mergeLeaderForModal(leader: LeaderboardUser, profile: Record<string, unknown> | undefined): LeaderboardUser {
+  if (!profile) return leader;
+  const merged = { ...leader } as Record<string, unknown>;
+  for (const key of MODAL_STAT_KEYS) {
+    const leaderVal = merged[key];
+    const profileVal = profile[key];
+    if ((leaderVal === undefined || leaderVal === null) && profileVal !== undefined && profileVal !== null) {
+      merged[key] = profileVal;
+    }
+  }
+  return merged as LeaderboardUser;
+}
+
 function PodiumUserModal({
   user,
   rank,
@@ -774,6 +772,10 @@ function PodiumUserModal({
   onClose: () => void;
 }) {
   const [showCardOnly, setShowCardOnly] = useState(false);
+  const { data: profileResponse } = useGetProfileByIdQuery(user._id);
+  const profileData = profileResponse?.success && profileResponse?.data ? (profileResponse.data as unknown as Record<string, unknown>) : undefined;
+  const displayUser = useMemo(() => mergeLeaderForModal(user, profileData), [user, profileData]);
+
   const { positions: allPositions } = useUserLeaderboardPositions(user._id);
   const topPositionByCategory = useMemo(() => {
     const map = new Map<LeaderboardCategory, number>();
@@ -790,27 +792,27 @@ function PodiumUserModal({
     ? rank === 1 ? "from-yellow-400/90 to-amber-500/90" : rank === 2 ? "from-slate-400/90 to-slate-500/90" : "from-amber-500/90 to-orange-600/90"
     : "from-[var(--muted)] to-[var(--muted)]";
   const badgeTextClass = isTop3 ? "text-white" : "text-[var(--foreground)]";
-  const level = user.level ?? 0;
-  const cardUrl = getEquippedCardUrl(user.equippedDecorations as EquippedDecorations | null);
-  const frameUrl = getLeaderFrameUrl(user);
-  const cardRarity = user.equippedDecorations?.cardRarity ?? user.equippedDecorations?.frameRarity ?? null;
+  const level = displayUser.level ?? 0;
+  const cardUrl = getEquippedCardUrl(displayUser.equippedDecorations as EquippedDecorations | null);
+  const frameUrl = getLeaderFrameUrl(displayUser);
+  const cardRarity = displayUser.equippedDecorations?.cardRarity ?? displayUser.equippedDecorations?.frameRarity ?? null;
   const rarityGlowClass = getRarityGlowClass(cardRarity);
 
   type StatItem = { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; category?: LeaderboardCategory; categories?: LeaderboardCategory[] };
   const stats: StatItem[] = [];
-  if (user.level != null) stats.push({ icon: Trophy, label: "Уровень", value: user.level, category: "level" });
-  if (user.experience != null) stats.push({ icon: TrendingUp, label: "Опыт", value: user.experience.toLocaleString("ru") + " XP" });
-  if (user.chaptersRead != null) {
-    const chapters = user.chaptersRead ?? 0;
+  if (displayUser.level != null) stats.push({ icon: Trophy, label: "Уровень", value: displayUser.level, category: "level" });
+  if (displayUser.experience != null) stats.push({ icon: TrendingUp, label: "Опыт", value: displayUser.experience.toLocaleString("ru") + " XP" });
+  if (displayUser.chaptersRead != null) {
+    const chapters = displayUser.chaptersRead ?? 0;
     stats.push({ icon: BookOpen, label: "Глав прочитано", value: `${chapters.toLocaleString("ru")} глав`, categories: ["chaptersRead"] });
   }
-  if (user.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: user.ratingsCount.toLocaleString("ru"), category: "ratings" });
-  if (user.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: user.commentsCount.toLocaleString("ru"), category: "comments" });
-  if (user.titlesReadCount != null) stats.push({ icon: BookOpen, label: "Тайтлов прочитано", value: user.titlesReadCount.toLocaleString("ru") });
-  if (user.completedTitlesCount != null && user.completedTitlesCount > 0) stats.push({ icon: Trophy, label: "Завершено тайтлов", value: user.completedTitlesCount.toLocaleString("ru") });
-  if (user.currentStreak != null && user.currentStreak > 0) stats.push({ icon: Flame, label: "Серия дней", value: `${user.currentStreak} ${user.currentStreak === 1 ? "день" : user.currentStreak < 5 ? "дня" : "дней"}`, category: "streak" });
-  if (user.longestStreak != null && user.longestStreak > 0) stats.push({ icon: Flame, label: "Рекорд серии", value: `${user.longestStreak} дн.`, category: "streak" });
-  if (user.likesReceivedCount != null && user.likesReceivedCount > 0) stats.push({ icon: Heart, label: "Лайков получено", value: user.likesReceivedCount.toLocaleString("ru") });
+  if (displayUser.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: displayUser.ratingsCount.toLocaleString("ru"), category: "ratings" });
+  if (displayUser.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: displayUser.commentsCount.toLocaleString("ru"), category: "comments" });
+  if (displayUser.titlesReadCount != null) stats.push({ icon: BookOpen, label: "Тайтлов прочитано", value: displayUser.titlesReadCount.toLocaleString("ru") });
+  if (displayUser.completedTitlesCount != null && displayUser.completedTitlesCount > 0) stats.push({ icon: Trophy, label: "Завершено тайтлов", value: displayUser.completedTitlesCount.toLocaleString("ru") });
+  if (displayUser.currentStreak != null && displayUser.currentStreak > 0) stats.push({ icon: Flame, label: "Серия дней", value: `${displayUser.currentStreak} ${displayUser.currentStreak === 1 ? "день" : displayUser.currentStreak < 5 ? "дня" : "дней"}`, category: "streak" });
+  if (displayUser.longestStreak != null && displayUser.longestStreak > 0) stats.push({ icon: Flame, label: "Рекорд серии", value: `${displayUser.longestStreak} дн.`, category: "streak" });
+  if (displayUser.likesReceivedCount != null && displayUser.likesReceivedCount > 0) stats.push({ icon: Heart, label: "Лайков получено", value: displayUser.likesReceivedCount.toLocaleString("ru") });
 
   return (
     <div
@@ -866,7 +868,7 @@ function PodiumUserModal({
               <div className="relative w-20 h-20 shrink-0">
                 <div className="absolute inset-0 overflow-hidden rounded-full">
                   <img
-                    src={getLeaderAvatarUrl(user)}
+                    src={getLeaderAvatarUrl(displayUser)}
                     alt=""
                     className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 ${borderClass} shadow-md bg-[var(--secondary)]`}
                     onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
@@ -884,16 +886,16 @@ function PodiumUserModal({
               </div>
             </div>
             <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold truncate max-w-full px-1">
-              <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm ${isPremiumActive(user.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}>
-                {user.username}
-                {isPremiumActive(user.subscriptionExpiresAt) && (
+              <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm ${isPremiumActive(displayUser.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}>
+                {displayUser.username}
+                {isPremiumActive(displayUser.subscriptionExpiresAt) && (
                   <PremiumBadge size="xs" className="shrink-0" ariaLabel="Премиум-подписчик" />
                 )}
               </span>
             </h2>
-            {user.role && user.role !== "user" && (
+            {displayUser.role && displayUser.role !== "user" && (
               <span className="mt-0.5 text-[11px] px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] capitalize">
-                {user.role}
+                {displayUser.role}
               </span>
             )}
             <p className="mt-1 text-[11px] text-[var(--muted-foreground)]">
@@ -940,7 +942,7 @@ function PodiumUserModal({
 
             <div className="flex flex-col items-center gap-1">
               <Link
-                href={`/user/${user._id}`}
+                href={`/user/${displayUser._id}`}
                 onClick={onClose}
                 className="flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity text-sm"
               >

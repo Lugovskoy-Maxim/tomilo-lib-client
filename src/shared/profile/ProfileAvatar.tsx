@@ -69,11 +69,22 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   
   const mainImageUrl = decorationUrls.primary ?? baseAvatarPrimary ?? DEFAULT_AVATAR;
   const fallbackImageUrl = decorationUrls.fallback ?? baseAvatarFallback ?? DEFAULT_AVATAR;
+  const initial = userProfile.username?.[0]?.toUpperCase() || "?";
 
   const avatarInner = (
     <OptimizedImage
       src={mainImageUrl}
       fallbackSrc={fallbackImageUrl && fallbackImageUrl !== mainImageUrl ? fallbackImageUrl : DEFAULT_AVATAR}
+      errorSrc={DEFAULT_AVATAR}
+      errorContent={
+        <div
+          className={`${sizeClass} bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center rounded-full font-semibold`}
+          style={{ width: "100%", aspectRatio: "1 / 1" }}
+          aria-hidden
+        >
+          {initial}
+        </div>
+      }
       alt={userProfile.username || "User avatar"}
       className="w-full h-full object-cover rounded-full"
       height={pixelSize}
