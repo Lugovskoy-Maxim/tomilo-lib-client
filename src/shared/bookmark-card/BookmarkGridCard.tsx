@@ -113,7 +113,7 @@ export default function BookmarkGridCard({
       }`}
     >
       {/* Обложка */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-[var(--secondary)]">
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-t-xl bg-[var(--secondary)]">
         {showImage ? (
           <OptimizedImage
             src={coverUrl}

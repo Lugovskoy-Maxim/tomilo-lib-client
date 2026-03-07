@@ -260,7 +260,8 @@ interface HistoryTitleCardProps {
   isExpandedTitle: boolean;
   onToggleExpand: () => void;
   onRemoveChapter: (titleId: string, chapterId: string) => void;
-  onRemoveTitle: (titleId: string, titleName?: string | null) => void;
+  /** Удалить тайтл из истории. chapterIds передаём, чтобы удалять по одной главе и не вызывать запрос «удалить весь тайтл» (на бэкенде он может очищать всю историю). */
+  onRemoveTitle: (titleId: string, titleName?: string | null, chapterIds?: string[]) => void;
 }
 
 const HistoryTitleCard = memo(function HistoryTitleCard({
@@ -319,12 +320,13 @@ const HistoryTitleCard = memo(function HistoryTitleCard({
 
   const handleRemoveClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    const titleIdStr = String(group.titleId);
     if (group.chapters.length === 1) {
-      onRemoveChapter(String(group.titleId), sortedSessions[0]?.[0]?.chapterId);
+      onRemoveChapter(titleIdStr, sortedSessions[0]?.[0]?.chapterId ?? group.chapters[0].chapterId);
     } else {
-      onRemoveTitle(String(group.titleId), titleName);
+      onRemoveTitle(titleIdStr, titleName, group.chapters.map(c => c.chapterId));
     }
-  }, [group.chapters.length, group.titleId, sortedSessions, onRemoveChapter, onRemoveTitle, titleName]);
+  }, [group.chapters, group.titleId, sortedSessions, onRemoveChapter, onRemoveTitle, titleName]);
 
   return (
     <div
@@ -478,8 +480,7 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
 
   const handleRemoveFromHistory = async (titleId: string, chapterId?: string) => {
     try {
-      // Если chapterId не передан, удаляем все главы тайтла
-      const result = await removeFromReadingHistory(titleId, chapterId || "");
+      const result = await removeFromReadingHistory(titleId, chapterId ?? "");
       if (!result.success) {
         console.error("Ошибка при удалении из истории чтения:", result.error);
         alert(`Ошибка при удалении из истории чтения: ${result.error}`);
@@ -490,12 +491,22 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
     }
   };
 
-  const handleRemoveTitleFromHistory = async (titleId: string, titleName?: string | null) => {
+  const handleRemoveTitleFromHistory = async (
+    titleId: string,
+    titleName?: string | null,
+    chapterIds?: string[],
+  ) => {
     const title = titleName || "этот тайтл";
     const confirmDelete = confirm(`Вы уверены, что хотите удалить ${title} из истории чтения?`);
     if (!confirmDelete) return;
 
-    await handleRemoveFromHistory(titleId);
+    if (chapterIds && chapterIds.length > 0) {
+      for (const chapterId of chapterIds) {
+        await handleRemoveFromHistory(titleId, chapterId);
+      }
+    } else {
+      await handleRemoveFromHistory(titleId);
+    }
   };
 
 

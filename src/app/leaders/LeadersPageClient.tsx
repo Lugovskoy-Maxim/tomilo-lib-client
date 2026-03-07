@@ -297,25 +297,56 @@ const NUMERIC_MERGE_KEYS = new Set([
   "activityScore", "reputationScore",
 ]);
 
+/** snake_case варианты полей из API (лидерборд/профиль могут приходить в snake_case) */
+const MERGE_KEY_SNAKE: Record<string, string> = {
+  chaptersRead: "chapters_read",
+  readingTimeMinutes: "reading_time_minutes",
+  readingTime: "reading_time",
+  ratingsCount: "ratings_count",
+  commentsCount: "comments_count",
+  titlesReadCount: "titles_read_count",
+  completedTitlesCount: "completed_titles_count",
+  currentStreak: "current_streak",
+  longestStreak: "longest_streak",
+  lastStreakDate: "last_streak_date",
+  likesReceivedCount: "likes_received_count",
+  activityScore: "activity_score",
+  reputationScore: "reputation_score",
+  equippedDecorations: "equipped_decorations",
+  lastActiveAt: "last_active_at",
+};
+
+function getMergeVal(record: Record<string, unknown>, key: string): unknown {
+  const val = record[key];
+  if (val !== undefined && val !== null) return val;
+  const snake = MERGE_KEY_SNAKE[key];
+  if (snake) return record[snake];
+  return undefined;
+}
+
 function mergeLeaderboardWithHomepage(
   leaderboardUser: Record<string, unknown>,
   homepageUser: Record<string, unknown> | undefined
 ): TransformableUser {
-  if (!homepageUser) {
-    return leaderboardUser as unknown as TransformableUser;
-  }
   const merged = { ...leaderboardUser } as Record<string, unknown>;
-  const keysToMerge = [...MERGE_STAT_KEYS, ...MERGE_EXTRA_KEYS];
-  for (const key of keysToMerge) {
-    const leaderVal = merged[key];
-    const homeVal = homepageUser[key];
-    const isNumeric = NUMERIC_MERGE_KEYS.has(key as keyof TransformableUser);
-    const useHome =
-      leaderVal === undefined || leaderVal === null
-        ? (homeVal !== undefined && homeVal !== null && (!isNumeric || (typeof homeVal === "number" && (homeVal as number) > 0)))
-        : (typeof leaderVal === "number" && leaderVal === 0 && typeof homeVal === "number" && (homeVal as number) > 0);
-    if (useHome && homeVal !== undefined && homeVal !== null) {
-      merged[key] = homeVal;
+  if (homepageUser) {
+    const keysToMerge = [...MERGE_STAT_KEYS, ...MERGE_EXTRA_KEYS];
+    for (const key of keysToMerge) {
+      const leaderVal = getMergeVal(merged, key);
+      const homeVal = getMergeVal(homepageUser, key);
+      const isNumeric = NUMERIC_MERGE_KEYS.has(key as keyof TransformableUser);
+      const useHome =
+        leaderVal === undefined || leaderVal === null
+          ? (homeVal !== undefined && homeVal !== null && (!isNumeric || (typeof homeVal === "number" && (homeVal as number) > 0)))
+          : (typeof leaderVal === "number" && leaderVal === 0 && typeof homeVal === "number" && (homeVal as number) > 0);
+      if (useHome && homeVal !== undefined && homeVal !== null) {
+        merged[key] = homeVal;
+      }
+    }
+  }
+  for (const key of Object.keys(MERGE_KEY_SNAKE)) {
+    if (merged[key] === undefined && merged[MERGE_KEY_SNAKE[key]] !== undefined) {
+      merged[key] = merged[MERGE_KEY_SNAKE[key]];
     }
   }
   if (merged.readingTimeMinutes == null && merged.readingTime != null && typeof merged.readingTime === "number") {
@@ -745,13 +776,99 @@ const MODAL_STAT_KEYS: (keyof LeaderboardUser)[] = [
   "avatar", "equippedDecorations", "subscriptionExpiresAt",
 ];
 
+/** Соответствие camelCase → snake_case для полей из API (профиль может приходить в snake_case) */
+const MODAL_STAT_KEY_SNAKE: Record<string, string> = {
+  chaptersRead: "chapters_read",
+  readingTimeMinutes: "reading_time_minutes",
+  readingTime: "reading_time",
+  ratingsCount: "ratings_count",
+  commentsCount: "comments_count",
+  titlesReadCount: "titles_read_count",
+  completedTitlesCount: "completed_titles_count",
+  currentStreak: "current_streak",
+  longestStreak: "longest_streak",
+  likesReceivedCount: "likes_received_count",
+  subscriptionExpiresAt: "subscription_expires_at",
+};
+
+/** Дополнительные варианты ключей для полей (бэкенд может использовать другие имена) */
+const MODAL_STAT_EXTRA_KEYS: Record<string, string[]> = {
+  commentsCount: ["comment_count", "total_comments", "totalComments"],
+  ratingsCount: ["rating_count", "total_ratings", "totalRatings"],
+};
+
+function getProfileVal(profile: Record<string, unknown>, key: string): unknown {
+  const val = profile[key];
+  if (val !== undefined && val !== null) return val;
+  const snake = MODAL_STAT_KEY_SNAKE[key];
+  if (snake) {
+    const snakeVal = profile[snake];
+    if (snakeVal !== undefined && snakeVal !== null) return snakeVal;
+  }
+  const stats = profile.stats ?? profile.statistics;
+  if (stats && typeof stats === "object" && !Array.isArray(stats)) {
+    const statObj = stats as Record<string, unknown>;
+    const s = statObj[key];
+    if (s !== undefined && s !== null) return s;
+    if (snake) {
+      const snakeVal = statObj[snake];
+      if (snakeVal !== undefined && snakeVal !== null) return snakeVal;
+    }
+    for (const extra of MODAL_STAT_EXTRA_KEYS[key] ?? []) {
+      const ev = statObj[extra];
+      if (ev !== undefined && ev !== null) return ev;
+    }
+  }
+  for (const extra of MODAL_STAT_EXTRA_KEYS[key] ?? []) {
+    const ev = profile[extra];
+    if (ev !== undefined && ev !== null) return ev;
+  }
+  if (key === "commentsCount") {
+    const fromCounts = (profile.counts as Record<string, unknown>)?.comments ?? (profile.counts as Record<string, unknown>)?.comments_count;
+    if (fromCounts !== undefined && fromCounts !== null) return fromCounts;
+    const fromActivity = (profile.activity as Record<string, unknown>)?.commentsCount ?? (profile.activity as Record<string, unknown>)?.comments_count;
+    if (fromActivity !== undefined && fromActivity !== null) return fromActivity;
+  }
+  return undefined;
+}
+
+/** Считает число прочитанных глав из readingHistory (профиль может не отдавать chaptersRead отдельно) */
+function getChaptersReadFromProfile(profile: Record<string, unknown>): number | undefined {
+  const raw = profile.readingHistory ?? profile.reading_history;
+  if (!Array.isArray(raw)) return undefined;
+  let total = 0;
+  for (const item of raw) {
+    const chapters = (item as Record<string, unknown>)?.chapters;
+    if (Array.isArray(chapters)) total += chapters.length;
+  }
+  return total > 0 ? total : undefined;
+}
+
+const NUMERIC_MODAL_STAT_KEYS = new Set([
+  "level", "experience", "chaptersRead", "readingTimeMinutes", "readingTime",
+  "ratingsCount", "commentsCount", "titlesReadCount", "completedTitlesCount",
+  "currentStreak", "longestStreak", "likesReceivedCount",
+]);
+
 function mergeLeaderForModal(leader: LeaderboardUser, profile: Record<string, unknown> | undefined): LeaderboardUser {
   if (!profile) return leader;
   const merged = { ...leader } as Record<string, unknown>;
   for (const key of MODAL_STAT_KEYS) {
     const leaderVal = merged[key];
-    const profileVal = profile[key];
-    if ((leaderVal === undefined || leaderVal === null) && profileVal !== undefined && profileVal !== null) {
+    let profileVal = getProfileVal(profile, key);
+    if (key === "chaptersRead" && (profileVal === undefined || profileVal === null)) {
+      profileVal = getChaptersReadFromProfile(profile);
+    }
+    const isNumeric = NUMERIC_MODAL_STAT_KEYS.has(key);
+    if (isNumeric && typeof profileVal === "string") {
+      const n = Number(profileVal);
+      if (!Number.isNaN(n)) profileVal = n;
+    }
+    const leaderMissing = leaderVal === undefined || leaderVal === null;
+    const leaderZero = isNumeric && typeof leaderVal === "number" && leaderVal === 0;
+    const profileHasValue = profileVal !== undefined && profileVal !== null;
+    const profilePositive = !isNumeric || (typeof profileVal === "number" && (profileVal as number) > 0);
+    if (profileHasValue && (leaderMissing || (leaderZero && profilePositive))) {
       merged[key] = profileVal;
     }
   }

@@ -203,10 +203,28 @@ export const authApi = createApi({
 
     getProfileByUsername: builder.query<ApiResponseDto<User>, string>({
       query: username => `/users/username/${encodeURIComponent(username)}`,
+      transformResponse(response: ApiResponseDto<User> | User): ApiResponseDto<User> {
+        if (response && typeof response === "object" && "success" in response && "data" in response) {
+          return response as ApiResponseDto<User>;
+        }
+        if (response && typeof response === "object" && ("_id" in response || "id" in response)) {
+          return { success: true, data: response as User };
+        }
+        return response as ApiResponseDto<User>;
+      },
     }),
 
     getProfileById: builder.query<ApiResponseDto<User>, string>({
       query: userId => `/users/${encodeURIComponent(userId)}`,
+      transformResponse(response: ApiResponseDto<User> | User): ApiResponseDto<User> {
+        if (response && typeof response === "object" && "success" in response && "data" in response) {
+          return response as ApiResponseDto<User>;
+        }
+        if (response && typeof response === "object" && ("_id" in response || "id" in response)) {
+          return { success: true, data: response as User };
+        }
+        return response as ApiResponseDto<User>;
+      },
     }),
 
     updateProfile: builder.mutation<ApiResponseDto<User>, Partial<User>>({

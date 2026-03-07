@@ -25,7 +25,7 @@ import { UserAvatar } from "..";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
 import type { EquippedDecorations } from "@/types/user";
 import type { LeaderboardCategory } from "@/store/api/leaderboardApi";
-import { levelToRank, getLevelProgress } from "@/lib/rank-utils";
+import { levelToRank, getLevelProgress, getRankColor } from "@/lib/rank-utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 
@@ -140,6 +140,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
   const balance = user?.balance ?? 0;
 
   const rankInfo = levelToRank(level);
+  const rankColor = getRankColor(rankInfo.rank);
   const { progressPercent } = getLevelProgress(level, experience);
 
   const themeLabel =
@@ -220,15 +221,18 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
             </h3>
             <div className="flex items-center gap-2 min-w-0 mt-0.5" title={rankInfo.name}>
               <span className="inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)] shrink-0">
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold">
+                <span
+                  className="inline-flex items-center justify-center w-4 h-4 rounded text-[10px] font-bold"
+                  style={{ backgroundColor: `${rankColor}25`, color: rankColor }}
+                >
                   {level}
                 </span>
                 ур.
               </span>
               <div className="flex-1 min-w-0 h-1.5 rounded-full bg-[var(--border)]/40 overflow-hidden">
                 <div
-                  className="h-full bg-[var(--primary)] rounded-full transition-[width]"
-                  style={{ width: `${progressPercent}%` }}
+                  className="h-full rounded-full transition-[width]"
+                  style={{ width: `${progressPercent}%`, backgroundColor: rankColor }}
                 />
               </div>
             </div>

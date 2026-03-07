@@ -15,6 +15,7 @@ import {
 } from "./profileTabConfig";
 
 // Компоненты обзора
+import ProfileAboutBlock from "@/shared/profile/ProfileAboutBlock";
 import ProfileAdditionalInfo from "@/shared/profile/ProfileAdditionalInfo";
 import ProfileContent from "@/shared/profile/ProfileContent";
 import ProfileStats from "@/shared/profile/ProfileStats";
@@ -181,15 +182,15 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
   const sectionDescription = tabMeta[activeTab].description;
 
   return (
-    <div className="w-full min-w-0 flex flex-col">
-      {/* Навигация вкладок: сетка на широких экранах, горизонтальный скролл на узких */}
-      <nav className="mb-4" aria-label="Разделы профиля">
+    <div className="w-full min-w-0 flex flex-col p-4 sm:p-5">
+      {/* Одна строка: вкладки разделов */}
+      <nav className="mb-5" aria-label="Разделы профиля">
         <div className="relative">
           {canScrollLeft && (
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)] transition-colors sm:hidden"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-[var(--secondary)] border border-[var(--border)] hover:bg-[var(--accent)] transition-colors sm:hidden"
               aria-label="Прокрутить влево"
             >
               <ChevronLeft className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -197,7 +198,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
           )}
           <div
             ref={scrollRef}
-            className="flex gap-2 overflow-x-auto scrollbar-hide py-1.5 px-0.5 cursor-grab select-none min-w-0 -mx-0.5 sm:flex-wrap sm:overflow-visible sm:cursor-default"
+            className="profile-tabs-nav flex gap-2 overflow-x-auto scrollbar-hide py-1 px-0 cursor-grab select-none min-w-0 -mx-1 sm:flex-wrap sm:overflow-visible sm:cursor-default"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -213,10 +214,10 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                   key={tabId}
                   type="button"
                   onClick={() => { if (!hasDraggedRef.current) setActiveTab(tabId); }}
-                  className={`profile-tab-btn flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  className={`profile-tab-btn flex items-center gap-2 shrink-0 px-3 py-2 rounded-full text-sm font-medium transition-all ${
                     isActive
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                      : "bg-[var(--secondary)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] border border-transparent"
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : "profile-tab-btn-inactive text-[var(--muted-foreground)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
@@ -229,7 +230,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-sm hover:bg-[var(--accent)] transition-colors sm:hidden"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-[var(--secondary)] border border-[var(--border)] hover:bg-[var(--accent)] transition-colors sm:hidden"
               aria-label="Прокрутить вправо"
             >
               <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
@@ -238,35 +239,20 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
         </div>
       </nav>
 
-      <main className="flex-1 min-w-0 flex flex-col">
-        <header className="flex-shrink-0 mb-4">
-          <Breadcrumbs
-            items={
-              breadcrumbPrefix?.length
-                ? [...breadcrumbPrefix, { name: sectionTitle, isCurrent: true }]
-                : [
-                    { name: "Главная", href: "/" },
-                    { name: "Профиль", href: "/profile" },
-                    { name: sectionTitle, isCurrent: true },
-                  ]
-            }
-            className="mb-2 text-sm"
-          />
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-[var(--secondary)]/60 border border-[var(--border)]/60 shrink-0">
-              <SectionIcon className="w-4 h-4 text-[var(--primary)]" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-base font-semibold text-[var(--foreground)] truncate">{sectionTitle}</h1>
-              <p className="text-xs text-[var(--muted-foreground)] truncate">{sectionDescription}</p>
-            </div>
-          </div>
-        </header>
+      {/* Заголовок раздела — одна строка */}
+      <div className="profile-section-header flex items-center gap-2 mb-4 pb-3 border-b border-[var(--border)]/60">
+        <SectionIcon className="w-5 h-5 text-[var(--primary)] shrink-0" />
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold text-[var(--foreground)] truncate">{sectionTitle}</h2>
+          <p className="text-xs text-[var(--muted-foreground)] truncate">{sectionDescription}</p>
+        </div>
+      </div>
 
-        <div className="flex-1 min-h-0 profile-content-scroll">
+      <div className="flex-1 min-h-0 profile-content-scroll">
           {/* О себе */}
           {activeTab === "overview" && (
             <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
+              <ProfileAboutBlock userProfile={userProfile} />
               <ProfileAdditionalInfo userProfile={userProfile} isPublicView={isPublicView} />
               <ProfileContent
                 userProfile={userProfile}
@@ -417,7 +403,6 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
             </div>
           )}
         </div>
-      </main>
     </div>
   );
 }

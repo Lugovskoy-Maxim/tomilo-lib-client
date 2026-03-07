@@ -1,14 +1,13 @@
 "use client";
 
 import { useParams, notFound } from "next/navigation";
-import { useGetProfileByIdQuery, useGetProfileByUsernameQuery } from "@/store/api/authApi";
+import { useGetProfileByIdQuery } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserProfile } from "@/types/user";
 import type { User } from "@/types/auth";
 import { ReadingHistoryEntry } from "@/types/store";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
-import { isMongoObjectId } from "@/lib/isMongoObjectId";
 import { getEquippedBackgroundUrl, getDecorationImageUrl } from "@/api/shop";
 import ProfileShell from "@/shared/profile/ProfileShell";
 import { useSEO, seoConfigs } from "@/hooks/useSEO";
@@ -29,6 +28,7 @@ function transformUserToProfile(user: User): UserProfile {
     level: u.level,
     experience: u.experience,
     balance: u.balance,
+    subscriptionExpiresAt: u.subscriptionExpiresAt ?? null,
     bookmarks: normalizeBookmarks(u.bookmarks),
     readingHistory: Array.isArray(u.readingHistory)
       ? (u.readingHistory as ReadingHistoryEntry[]).map(item => ({
@@ -90,18 +90,11 @@ function getProfileBgUrl(profile: UserProfile | null): string {
 
 export default function UserProfileLayout() {
   const params = useParams();
-  const userParam = typeof params.username === "string" ? params.username : "";
-  const loadById = isMongoObjectId(userParam);
+  const userId = typeof params.username === "string" ? params.username : "";
 
-  const usernameQuery = useGetProfileByUsernameQuery(userParam, {
-    skip: !userParam || loadById,
+  const { data, isLoading, isError, isSuccess } = useGetProfileByIdQuery(userId, {
+    skip: !userId,
   });
-  const idQuery = useGetProfileByIdQuery(userParam, {
-    skip: !userParam || !loadById,
-  });
-
-  const activeQuery = loadById ? idQuery : usernameQuery;
-  const { data, isLoading, isError, isSuccess } = activeQuery;
 
   const { user: currentUser } = useAuth();
   const userProfile =
@@ -119,12 +112,37 @@ export default function UserProfileLayout() {
 
   useSEO(seoConfigs.profile(userProfile?.username));
 
-  if (!userParam) {
+  if (!userId) {
     notFound();
   }
 
+  const isPrivateProfile =
+    isSuccess && data && (data as { success?: boolean; message?: string; errors?: string[] }).success === false &&
+    ((data as { message?: string }).message?.toLowerCase().includes("private") ||
+      (data as { errors?: string[] }).errors?.some(e => e?.toLowerCase().includes("private")));
+
+  // Показываем «Профиль не найден» или «Профиль скрыт» внутри лейаута вместо общей 404
   if (isError || (!isLoading && !userProfile)) {
-    notFound();
+    return (
+      <ProfileShell
+        variant="other"
+        userProfile={null}
+        isLoading={false}
+        backgroundUrl="/user/banner.jpg"
+        isOwnProfile={false}
+        isBookmarksRestricted={true}
+        isHistoryRestricted={true}
+        hasPrivacyNotice={false}
+        hideTabs={["settings", "inventory", "exchanges"]}
+        breadcrumbPrefix={[
+          { name: "Главная", href: "/" },
+          { name: "", href: `/user/${userId}` },
+        ]}
+        showMyProfileLink={!!currentUser}
+        emptyStateMessage={isPrivateProfile ? "Профиль скрыт" : undefined}
+        emptyStateVariant={isPrivateProfile ? "private" : "not_found"}
+      />
+    );
   }
 
   return (
@@ -138,10 +156,10 @@ export default function UserProfileLayout() {
       isHistoryRestricted={isReadingHistoryRestricted}
       hasPrivacyNotice={hasPrivacyNotice}
       hideTabs={["settings", "inventory", "exchanges"]}
-      breadcrumbPrefix={[
-        { name: "Главная", href: "/" },
-        { name: userProfile?.username ?? "", href: `/user/${userParam}` },
-      ]}
+        breadcrumbPrefix={[
+          { name: "Главная", href: "/" },
+          { name: userProfile?.username ?? "", href: `/user/${userId}` },
+        ]}
       showMyProfileLink={!!currentUser}
     />
   );

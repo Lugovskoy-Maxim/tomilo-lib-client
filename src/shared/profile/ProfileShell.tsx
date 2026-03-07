@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, User as UserIcon, Shield } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Shield, Lock, Home } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import { Footer, Header } from "@/widgets";
-import ProfileSidebar from "@/shared/profile/ProfileSidebar";
+import ProfileStrip from "@/shared/profile/ProfileStrip";
 import ProfileTabs, { type BreadcrumbItem } from "@/shared/profile-tabs/ProfileTabs";
 import type { ProfileTab } from "@/shared/profile-tabs/profileTabConfig";
 import { ProfileProvider } from "@/shared/profile/ProfileContext";
@@ -55,6 +55,10 @@ export interface ProfileShellProps {
   showAdminLink?: boolean;
   /** Для variant="other": показывать ссылку «Мой профиль» (если пользователь авторизован) */
   showMyProfileLink?: boolean;
+  /** Текст вместо «Профиль не найден», когда userProfile === null (например, «Профиль скрыт») */
+  emptyStateMessage?: string;
+  /** Вариант пустого состояния: "private" — отдельный UI для приватного профиля */
+  emptyStateVariant?: "not_found" | "private";
   /** Дочерние элементы не используются; контент формируется внутри оболочки */
   children?: never;
 }
@@ -77,6 +81,8 @@ export default function ProfileShell({
   breadcrumbs,
   showAdminLink = false,
   showMyProfileLink = true,
+  emptyStateMessage,
+  emptyStateVariant = "not_found",
 }: ProfileShellProps) {
   const router = useRouter();
 
@@ -86,20 +92,62 @@ export default function ProfileShell({
     else router.back();
   };
 
+  const renderEmptyState = () => {
+    if (emptyStateVariant === "private") {
+      return (
+        <div className="flex flex-1 flex-col items-center justify-center min-h-[50vh] px-4">
+          <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)]/80 p-8 shadow-lg shadow-[var(--border)]/10 backdrop-blur-sm">
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--muted)]/50 text-[var(--muted-foreground)]">
+                <Lock className="h-8 w-8 shrink-0" strokeWidth={1.5} aria-hidden />
+              </div>
+              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">
+                Профиль скрыт
+              </h2>
+              <p className="text-sm text-[var(--muted-foreground)] leading-relaxed mb-6">
+                Владелец профиля ограничил доступ. Вы можете вернуться назад или на главную.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <button
+                  type="button"
+                  onClick={topBarBack}
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors font-medium"
+                >
+                  <ArrowLeft className="h-4 w-4 shrink-0" />
+                  Назад
+                </button>
+                <Link
+                  href="/"
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity font-medium"
+                >
+                  <Home className="h-4 w-4 shrink-0" />
+                  На главную
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center min-h-[50vh] px-4">
+        <p className="text-[var(--foreground)] font-medium mb-2">{emptyStateMessage ?? "Профиль не найден"}</p>
+        <Link
+          href="/"
+          className="text-sm text-[var(--primary)] hover:underline"
+        >
+          На главную
+        </Link>
+      </div>
+    );
+  };
+
   const content = isLoading ? (
     <div className="flex flex-1 flex-col min-h-0">
       <LoadingState />
     </div>
   ) : !userProfile ? (
-    <div className="flex flex-1 flex-col items-center justify-center min-h-[50vh] px-4">
-      <p className="text-[var(--foreground)] font-medium mb-2">Профиль не найден</p>
-      <Link
-        href="/"
-        className="text-sm text-[var(--primary)] hover:underline"
-      >
-        На главную
-      </Link>
-    </div>
+    renderEmptyState()
   ) : (
     <div
       className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col bg-[var(--background)] pt-24 sm:pt-44 bg-no-repeat bg-top"
@@ -166,40 +214,38 @@ export default function ProfileShell({
           </div>
         )}
 
-        {/* Одна карточка: сайдбар + контент */}
-        <div className="rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-          <div className="p-4 sm:p-5 flex flex-col lg:flex-row gap-5 lg:gap-6 items-stretch lg:items-start flex-1 min-h-0">
-            <aside className="lg:w-60 xl:w-64 lg:shrink-0 lg:sticky lg:top-4">
-              <ProfileSidebar
-                userProfile={userProfile}
-                onEdit={variant === "own" ? onEdit : undefined}
-                onAvatarUpdate={variant === "own" ? onAvatarUpdate : undefined}
-                isOwnProfile={variant === "own" || isOwnProfile}
-                isPublicView={variant === "other"}
-              />
-            </aside>
-            <div className="flex-1 min-w-0 flex flex-col gap-4 profile-shell-content">
-              {hasPrivacyNotice && (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-[var(--foreground)]">
-                  Часть данных скрыта настройками приватности.
-                </div>
-              )}
-              {variant === "admin" && adminControls && (
-                <div className="shrink-0">
-                  {adminControls}
-                </div>
-              )}
-              <div className="flex-1 min-h-0 min-w-0">
-                <ProfileTabs
-                  userProfile={userProfile}
-                  breadcrumbPrefix={breadcrumbPrefix ?? undefined}
-                  hideTabs={hideTabs}
-                  isPublicView={variant === "other"}
-                  isBookmarksRestricted={isBookmarksRestricted}
-                  isHistoryRestricted={isHistoryRestricted}
-                />
-              </div>
+        {/* Полоска профиля: всё в одну линию */}
+        <div className="mb-4 sm:mb-5">
+          <ProfileStrip
+            userProfile={userProfile}
+            onEdit={variant === "own" ? onEdit : undefined}
+            onAvatarUpdate={variant === "own" ? onAvatarUpdate : undefined}
+            isOwnProfile={variant === "own" || isOwnProfile}
+            isPublicView={variant === "other"}
+          />
+        </div>
+
+        {/* Один столбец контента */}
+        <div className="flex-1 min-h-0 flex flex-col gap-4 profile-shell-content">
+          {hasPrivacyNotice && (
+            <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-[var(--foreground)]">
+              Часть данных скрыта настройками приватности.
             </div>
+          )}
+          {variant === "admin" && adminControls && (
+            <div className="shrink-0">
+              {adminControls}
+            </div>
+          )}
+          <div className="profile-content-card flex-1 min-h-0 min-w-0 rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden flex flex-col">
+            <ProfileTabs
+              userProfile={userProfile}
+              breadcrumbPrefix={breadcrumbPrefix ?? undefined}
+              hideTabs={hideTabs}
+              isPublicView={variant === "other"}
+              isBookmarksRestricted={isBookmarksRestricted}
+              isHistoryRestricted={isHistoryRestricted}
+            />
           </div>
         </div>
       </div>

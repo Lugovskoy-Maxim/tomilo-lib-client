@@ -836,7 +836,7 @@ export function DecorationCard({
           onClick={handleCardClick}
           className={`group/card relative w-full max-w-full min-w-[100px] sm:min-w-[140px] shrink aspect-square w-[240px] h-[241px] rounded-lg sm:rounded-xl md:rounded-2xl border-2 bg-[var(--card)] overflow-hidden cursor-pointer ${rarityStyle.border}`}
         >
-        <div className={`absolute inset-0 rounded-lg sm:rounded-xl md:rounded-2xl pointer-events-none z-0 opacity-[0.35] ${rarityStyle.glowSpin}`} aria-hidden />
+        <div className={`absolute inset-0 rounded-lg sm:rounded-xl md:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`} aria-hidden />
         <div className={`absolute inset-0 rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-b ${rarityStyle.glowTop} pointer-events-none z-0`} aria-hidden />
 
         <div className="relative flex flex-col p-2 justify-center items-center">
@@ -1151,6 +1151,8 @@ export function DecorationCard({
           onClick={handleCardClick}
           className={`group/card relative w-full max-w-full min-w-[140px] sm:min-w-[160px] self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
         >
+        <div className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`} aria-hidden />
+        <div className={`absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b ${rarityStyle.glowTop} pointer-events-none z-0`} aria-hidden />
         {/* Область изображения — горизонтальный баннер (ширина > высота) */}
         <div className="relative w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] shrink-0 min-w-0">
           {isImageLoading && hasImage && (
@@ -1255,6 +1257,8 @@ export function DecorationCard({
           onClick={handleCardClick}
           className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
         >
+        <div className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`} aria-hidden />
+        <div className={`absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b ${rarityStyle.glowTop} pointer-events-none z-0`} aria-hidden />
         {renderImageBlock("relative aspect-[3/4]", true)}
         {renderContentBlock(true, "large")}
         </article>
@@ -1271,6 +1275,8 @@ export function DecorationCard({
         onClick={handleCardClick}
         className={`group/card relative w-full max-w-full sm:max-w-[200px] lg:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
       >
+        <div className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`} aria-hidden />
+        <div className={`absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b ${rarityStyle.glowTop} pointer-events-none z-0`} aria-hidden />
         {renderImageBlock("relative aspect-[9/16]")}
         {renderContentBlock()}
       </article>

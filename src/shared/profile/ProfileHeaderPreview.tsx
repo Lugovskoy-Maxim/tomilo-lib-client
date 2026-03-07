@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { getRankColor, levelToRank } from "@/lib/rank-utils";
 
 type ProfileHeaderPreviewProps = {
   username: string;
@@ -63,6 +64,8 @@ export default function ProfileHeaderPreview({
   const bannerHeightClass = compact ? "h-28 sm:h-32" : "h-44 sm:h-56 lg:h-64";
   const avatarSize = compact ? 56 : 144;
   const avatarPadClass = compact ? "p-2.5" : "p-10 sm:p-12";
+  const lvl = Math.max(1, level);
+  const rankColor = getRankColor(levelToRank(lvl).rank);
 
   return (
     <div className="flex flex-col w-full">
@@ -102,8 +105,11 @@ export default function ProfileHeaderPreview({
         <div className="flex items-center gap-2 min-w-0">
           <div className="font-semibold text-[var(--foreground)] truncate">{username}</div>
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
-            <span className="w-4 h-4 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold inline-flex items-center justify-center">
-              {Math.max(1, level)}
+            <span
+              className="w-4 h-4 rounded text-[10px] font-bold inline-flex items-center justify-center"
+              style={{ backgroundColor: `${rankColor}25`, color: rankColor }}
+            >
+              {lvl}
             </span>
             Уровень
           </span>

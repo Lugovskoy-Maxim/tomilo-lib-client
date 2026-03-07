@@ -1,30 +1,118 @@
-/* --- PROFILE PAGE --- */
+/* --- PROFILE PAGE (единый столбец, полоска профиля) --- */
 
-/* Единая оболочка профиля: контентная зона */
 .profile-shell-content {
   --profile-gap: 1rem;
 }
-@media (min-width: 1024px) {
-  .profile-shell-content {
-    --profile-gap: 1.5rem;
-  }
+
+/* Полоска профиля: стеклянный фон, в светлой теме плотнее для читаемости текста */
+.profile-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  background: color-mix(in oklch, var(--card) 88%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* Карточки разделов: минималистичные, ровные */
-.profile-card {
-  border-radius: 1rem;
-  border: 1px solid var(--border);
-  background: var(--card);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+[data-theme="dark"] .profile-strip,
+.dark .profile-strip {
+  background: color-mix(in oklch, var(--card) 58%, transparent);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
+
+/* Карточка с вкладками: стекло, в светлой теме плотнее */
+.profile-content-card {
+  background: color-mix(in oklch, var(--card) 88%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .profile-content-card,
+.dark .profile-content-card {
+  background: color-mix(in oklch, var(--card) 58%, transparent);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+/* Блок уровня в полоске: в светлой теме подложка для читаемости текста */
+.profile-strip-level::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--card);
+  opacity: 0.72;
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="dark"] .profile-strip-level::before,
+.dark .profile-strip-level::before {
+  opacity: 0.5;
+}
+
+/* Вкладки: неактивная кнопка в тёмной теме — видимый фон */
+.profile-tab-btn-inactive {
+  background: transparent;
+}
+
+[data-theme="dark"] .profile-tab-btn-inactive,
+.dark .profile-tab-btn-inactive {
+  background: color-mix(in oklch, var(--secondary) 60%, transparent);
+  color: var(--foreground);
+}
+
+[data-theme="dark"] .profile-tab-btn-inactive:hover,
+.dark .profile-tab-btn-inactive:hover {
+  background: var(--accent);
+}
+
+/* Заголовок раздела: в тёмной теме чётче граница и контраст */
+.profile-section-header {
+  border-bottom-color: color-mix(in oklch, var(--border) 70%, transparent);
+}
+
+[data-theme="dark"] .profile-section-header,
+.dark .profile-section-header {
+  border-bottom-color: color-mix(in oklch, var(--border) 90%, transparent);
+}
+
+.profile-section-header h2 {
+  color: var(--foreground);
+}
+
+.profile-section-header p {
+  color: var(--muted-foreground);
+}
+
+[data-theme="dark"] .profile-section-header p,
+.dark .profile-section-header p {
+  color: color-mix(in oklch, var(--muted-foreground) 95%, var(--foreground));
+}
+
+.profile-strip-edit:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .profile-content-scroll {
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* Кнопки вкладок профиля */
+/* Карточки внутри разделов */
+.profile-card {
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Вкладки: пилл-кнопки */
 .profile-tab-btn {
-  border-radius: 0.75rem;
+  border-radius: 9999px;
 }
 
 .glass {
