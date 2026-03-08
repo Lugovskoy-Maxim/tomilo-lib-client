@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  // Корень проекта для file tracing (убирает предупреждение о нескольких lockfile)
+  outputFileTracingRoot: path.join(__dirname),
   // eslint: {
   //   // Не падать по линту при билде; линт по-прежнему можно запускать через npm run lint
   //   ignoreDuringBuilds: true,
