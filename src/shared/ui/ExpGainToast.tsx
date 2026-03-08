@@ -28,7 +28,7 @@ export default function ExpGainToast({ event, onClose, duration = 3000 }: ExpGai
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className="
-        relative flex items-center gap-3 px-4 py-3 rounded-xl 
+        relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden
         bg-[var(--card)] bg-gradient-to-r from-yellow-500/25 to-orange-500/25
         border border-yellow-500/40 shadow-lg shadow-yellow-500/20
         backdrop-blur-sm
@@ -117,7 +117,7 @@ export function GroupedExpGainToast({
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className="
-        relative flex items-center gap-3 px-4 py-3 rounded-xl 
+        relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden
         bg-[var(--card)] bg-gradient-to-r from-yellow-500/25 to-orange-500/25
         border border-yellow-500/40 shadow-lg shadow-yellow-500/20
         backdrop-blur-sm
