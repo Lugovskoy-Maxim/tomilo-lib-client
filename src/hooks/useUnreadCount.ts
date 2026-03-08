@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { AnyAction } from "redux";
 import {
   useGetUnreadCountQuery,
   notificationsApi,
@@ -42,15 +43,16 @@ export function useUnreadCount(options?: { tabVisible?: boolean; skip?: boolean 
       if (typeof event.connected === "boolean") {
         setIsSocketConnected(event.connected);
       }
-      if (typeof event.count === "number") {
+      const newCount = event.count;
+      if (typeof newCount === "number") {
         dispatch(
           notificationsApi.util.updateQueryData(
             "getUnreadCount",
             undefined,
             draft => {
-              if (draft?.data) draft.data.count = event.count;
+              if (draft?.data) draft.data.count = newCount;
             },
-          ),
+          ) as unknown as AnyAction,
         );
       }
     };

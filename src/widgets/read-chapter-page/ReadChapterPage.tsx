@@ -473,7 +473,7 @@ function ReadChapterPageContent({
 
     if (!historyAddedRef.current.has(chapterKey)) {
       addToReadingHistory(title._id.toString(), chapter._id.toString())
-        .then(result => {
+        .then(() => {
           historyAddedRef.current.add(chapterKey);
           // Тосты прогресса (опыт, уровень, достижения) приходят по WebSocket из ProgressNotificationContext
         })

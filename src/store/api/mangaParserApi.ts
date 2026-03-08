@@ -28,7 +28,7 @@ export const mangaParserApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["MangaParser"],
+  tagTypes: ["MangaParser", "Chapters"],
   endpoints: builder => ({
     // Parse and import complete title
     parseTitle: builder.mutation<ApiResponseDto<ParseResult>, ParseTitleDto>({
