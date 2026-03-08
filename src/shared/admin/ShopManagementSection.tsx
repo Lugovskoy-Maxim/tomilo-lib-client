@@ -67,6 +67,7 @@ export function ShopManagementSection() {
   const adminDecorationsQuery = useGetAdminDecorationsQuery(undefined, {
     skip: skipAdminDecorations,
   });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- decorations из запроса
   const decorations = adminDecorationsQuery.data ?? [];
   const isLoading = adminDecorationsQuery.isLoading;
   const error = adminDecorationsQuery.error;

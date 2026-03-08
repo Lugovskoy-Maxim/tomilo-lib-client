@@ -68,6 +68,8 @@ export default function LevelUpModal({ event, onClose, autoCloseDelay = 8000 }: 
     }, autoCloseDelay);
 
     return () => clearTimeout(timer);
+    // handleClose стабилен по onClose, не добавляем в deps чтобы не перезапускать таймер
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event, autoCloseDelay]);
 
   const handleClose = () => {

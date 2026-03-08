@@ -1210,6 +1210,8 @@ function ReadChapterPageContent({
 
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.setAttribute("content", description);
+  // shouldShowChapterTitle — стабильная функция из контекста
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [infiniteScroll, effectiveChapter, title.title, slug, titleId]);
   const pagedImageIndex = Math.min(
     Math.max(currentPage - 1, 0),

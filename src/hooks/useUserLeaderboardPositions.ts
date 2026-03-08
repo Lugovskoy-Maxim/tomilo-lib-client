@@ -54,6 +54,7 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     { skip: shouldSkip },
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- объект от хуков, пересчёт по userId
   const queries: Record<QueryCategory, ReturnType<typeof useGetLeaderboardQuery>> = {
     level: levelQuery,
     ratings: ratingsQuery,

@@ -24,6 +24,12 @@ const eslintConfig = [
       ".prettierrc.mjs",
     ],
   },
+  {
+    // В ридере, карточках и внешних URL часто нужен нативный <img> (динамический src, no optimization)
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
+  },
   prettier,
 ];
 

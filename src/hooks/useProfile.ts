@@ -138,6 +138,8 @@ export function useProfile() {
       prevTitleRef.current = newTitle;
       pageTitle.setTitlePage(newTitle);
     }
+    // userProfile целиком не нужен в deps — используем только username для заголовка
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile?.username]);
 
   const isLoading = profileLoading || readingHistoryLoading || authLoading;

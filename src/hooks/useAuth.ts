@@ -124,7 +124,9 @@ export const useAuth = () => {
     if (user.birthDate) {
       checkAndSetAgeVerification(user.birthDate);
     }
-  }, [profileResponse, token, dispatch, auth.user?.id, auth.user?._id]);
+  // auth.user синхронизируется из profileResponse, явно не добавляем чтобы избежать лишних синхронизаций
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileResponse, token, dispatch]);
 
   useEffect(() => {
     if (error && getToken()) {
@@ -534,6 +536,8 @@ export const useAuth = () => {
         return { success: false, error: message };
       }
     },
+    // token не добавляем — используется внутри RTK/API, стабильность через addToReadingHistory
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [addToReadingHistory, refetchProfile],
   );
 

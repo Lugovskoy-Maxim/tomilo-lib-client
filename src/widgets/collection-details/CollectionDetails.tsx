@@ -47,6 +47,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
     if (hasAdultContent && !verified) {
       setShowAgeModal(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- проверка по userId, userBirthDate, collection
   }, [userId, userBirthDate, collection]);
 
   // Check if collection has adult content

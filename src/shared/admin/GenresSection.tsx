@@ -77,6 +77,7 @@ export function GenresSection() {
   const [deleteGenre] = useDeleteGenreMutation();
   const [mergeGenres, { isLoading: isMerging }] = useMergeGenresMutation();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- rawGenres из запроса
   const rawGenres = genresData?.data?.genres || [];
   const pagination = genresData?.data?.pagination || { total: 0, page: 1, limit: 50, pages: 0 };
 

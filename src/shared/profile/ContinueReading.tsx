@@ -114,6 +114,7 @@ function getLastReadInfo(entry: ReadingHistoryEntry): {
 }
 
 export default function ContinueReading({ userProfile }: ContinueReadingProps) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- readingHistory из userProfile
   const readingHistory = userProfile.readingHistory ?? [];
   const [imageError, setImageError] = useState(false);
 

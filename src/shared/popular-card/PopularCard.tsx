@@ -43,6 +43,7 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
   useEffect(() => {
     const verified = checkAgeVerification(user || null);
     setIsAgeVerified(prev => (prev === verified ? prev : verified));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- проверка только по userId, userBirthDate
   }, [userId, userBirthDate]);
 
   const titlePath = getTitlePath(data);

@@ -253,7 +253,7 @@ function getInitialSettings(): ReaderSettings {
 
 function useReaderSettingsImpl(): UseReaderSettingsReturn {
   const [settings, setSettings] = useState<ReaderSettings>(DEFAULT_SETTINGS);
-  const [_isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const loadedSettings = getInitialSettings();
@@ -261,7 +261,7 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
     setIsInitialized(true);
   }, []);
 
-  const _createSetter = useCallback(
+  const createSetter = useCallback(
     <K extends keyof ReaderSettings>(
       key: K,
       storageKey: string,
@@ -275,6 +275,8 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
     },
     [],
   );
+  void isInitialized;
+  void createSetter;
 
   const setShowPageCounter = useCallback((value: boolean) => {
     setSettings(prev => ({ ...prev, showPageCounter: value }));

@@ -45,6 +45,7 @@ export function ChapterReactions({
   onLoginRequired,
   initialRating,
   initialReactions,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- titleId в пропсах для API, не используется в компоненте
   ..._rest
 }: ChapterReactionsProps) {
   const CHAPTER_RATING_STORAGE_KEY = "chapter_user_rating";
@@ -90,6 +91,8 @@ export function ChapterReactions({
     } catch {
       // ignore
     }
+    // ALLOWED_EMOJIS_SET стабилен (константа из Set), не добавляем в deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId]);
 
   const {

@@ -128,6 +128,7 @@ export function ShopSection({ type }: ShopSectionProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const publicDecorationsQuery = useGetDecorationsByTypeQuery({ type });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- decorations из запроса
   const decorations: Decoration[] = publicDecorationsQuery.data ?? [];
   const decorationsLoading = publicDecorationsQuery.isLoading;
   const decorationsError = publicDecorationsQuery.error;

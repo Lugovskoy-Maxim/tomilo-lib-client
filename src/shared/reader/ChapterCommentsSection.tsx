@@ -47,6 +47,7 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
     includeReplies: true,
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- comments из запроса
   const comments = commentsData?.data?.comments || [];
   const total = commentsData?.data?.total || 0;
   const totalPages = commentsData?.data?.totalPages || 0;

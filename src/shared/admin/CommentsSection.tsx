@@ -219,6 +219,7 @@ export function CommentsSection() {
       : entityType === CommentEntityType.TITLE
         ? titleQuery.isError
         : titleQuery.isError || chapterQuery.isError;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch от RTK, не оборачиваем в useCallback
   const refetch = () => {
     titleQuery.refetch();
     chapterQuery.refetch();

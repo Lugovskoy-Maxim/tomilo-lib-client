@@ -211,6 +211,7 @@ export function AuditLogsSection() {
   });
   const { data: statsData } = useGetAuditLogStatsQuery();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- allLogs из запроса
   const allLogs = logsData?.data?.logs || [];
   const pagination = logsData?.data?.pagination || { total: 0, page: 1, limit: 50, pages: 0 };
   const stats = statsData?.data;

@@ -203,6 +203,8 @@ export default function ProfileInventory() {
       hasRefetchedForMissing.current = true;
       refetchCatalog();
     }
+  // catalogDecorations целиком не в deps — используем только length для проверки
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needCatalog, catalogDecorations.length, ownedFromProfile, refetchCatalog]);
 
   /** В инвентаре показываем только приобретённые декорации. */

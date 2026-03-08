@@ -119,6 +119,7 @@ export function NotificationsSection() {
   const [sendNotification, { isLoading: isSending }] = useSendSystemNotificationMutation();
   const [deleteNotification] = useDeleteSystemNotificationMutation();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- allNotifications из запроса
   const allNotifications = notificationsData?.data?.notifications || [];
   const pagination = notificationsData?.data?.pagination || {
     total: 0,

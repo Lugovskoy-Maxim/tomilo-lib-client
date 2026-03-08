@@ -27,6 +27,7 @@ export function useIntersectionTrigger(
   onIntersectRef.current = onIntersect;
   enabledRef.current = enabled;
 
+  const thresholdDep = typeof threshold === "number" ? threshold : undefined;
   return useCallback(
     (node: HTMLDivElement | null) => {
       if (observerRef.current) {
@@ -44,6 +45,8 @@ export function useIntersectionTrigger(
       );
       observerRef.current.observe(node);
     },
-    [rootMargin, typeof threshold === "number" ? threshold : undefined],
+    // threshold может быть number | number[], используем thresholdDep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rootMargin, thresholdDep],
   );
 }

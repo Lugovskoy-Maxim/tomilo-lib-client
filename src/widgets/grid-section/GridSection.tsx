@@ -46,6 +46,7 @@ export default function GridSection<T>({
 }: GridSectionProps<T>) {
   const gridRef = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- safeData производная от data
   const safeData = Array.isArray(data) ? data : [];
 
   useEffect(() => {

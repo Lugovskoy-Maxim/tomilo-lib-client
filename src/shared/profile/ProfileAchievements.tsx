@@ -333,6 +333,8 @@ export default function ProfileAchievements({
 
   const achievements = useMemo(
     () => generateAchievements(userProfile),
+    // явные поля userProfile вместо всего объекта, чтобы избежать лишних пересчётов
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       userProfile.readingHistory,
       userProfile.bookmarks?.length,

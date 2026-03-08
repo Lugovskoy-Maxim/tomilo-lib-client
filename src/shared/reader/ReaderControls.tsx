@@ -72,7 +72,8 @@ export default function ReaderControls({
   isMenuHidden = false,
   hideBottomMenuSetting = false,
   onHideBottomMenuChange,
-  onToggleMenu: _onToggleMenu,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- опциональный колбэк из родителя
+  onToggleMenu,
   forceStopAutoScroll = false,
   onMenuOpen,
   onAutoScrollStart,
@@ -119,18 +120,19 @@ export default function ReaderControls({
   });
   const commentsCount = commentsData?.data?.total || 0;
 
-  const [_instantContinue, setInstantContinueState] = useState(() => {
+  const [instantContinue, setInstantContinueState] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("reader-instant-continue") === "true";
   });
-
-  const _toggleInstantContinue = useCallback(() => {
+  const toggleInstantContinue = useCallback(() => {
     setInstantContinueState(prev => {
       const newValue = !prev;
       localStorage.setItem("reader-instant-continue", newValue.toString());
       return newValue;
     });
   }, []);
+  void instantContinue;
+  void toggleInstantContinue;
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(Date.now());

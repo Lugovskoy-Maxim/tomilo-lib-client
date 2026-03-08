@@ -45,6 +45,7 @@ export default function TopTitleCard({ data }: TopTitleCardProps) {
 
   useEffect(() => {
     setIsAgeVerified(checkAgeVerification(user ?? null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- проверка только по id и birthDate
   }, [user?._id, user?.birthDate]);
 
   const handleClick = () => {

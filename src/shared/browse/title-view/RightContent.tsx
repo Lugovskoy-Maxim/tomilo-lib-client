@@ -138,6 +138,8 @@ export function RightContent({
   useEffect(() => {
     const verified = user ? checkAgeVerification(user) : checkAgeVerification(null);
     setIsAgeVerified(prev => (prev === verified ? prev : verified));
+    // user не в deps — проверка только по userId и userBirthDate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, userBirthDate]);
 
   // Лёгкий запрос: только id прочитанных глав (для статуса «прочитано» на странице тайтла)

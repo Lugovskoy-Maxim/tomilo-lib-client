@@ -23,6 +23,7 @@ export default function ReadingPositionRestoreModal({
   onJumpToPage,
   page,
   totalPages,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- timestamp, chapterTitle в пропсах для типа
   ..._rest
 }: ReadingPositionRestoreModalProps) {
   const [countdown, setCountdown] = useState(5);

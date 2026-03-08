@@ -118,6 +118,8 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
       );
       return () => setOverlayContent(null);
     }
+  // handleReaction в overlay не нужен в deps — стабильная ссылка по setOverlayContent
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showEmojiPicker, pickerAnchorRect, setOverlayContent, closeEmojiPicker]);
 
   const handleDelete = async () => {

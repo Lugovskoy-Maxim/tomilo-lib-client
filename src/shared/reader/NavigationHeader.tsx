@@ -33,10 +33,11 @@ export default function NavigationHeader({
   canGoPrev = false,
   canGoNext = false,
 }: NavigationHeaderProps) {
-  const _progressPercent = Math.max(
+  const progressPercent = Math.max(
     0,
     Math.min(100, Math.round(((currentImageIndex + 1) / Math.max(imagesCount, 1)) * 100)),
   );
+  void progressPercent;
 
   return (
     <div

@@ -62,6 +62,7 @@ export function useTop10Badge(userId: string | undefined) {
     period: LeaderboardPeriod;
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- объекты от хуков, пересчёт по userId
   const queriesAll: Record<LeaderboardCategory, QueryInfo> = {
     level: { query: levelQuery, period: "all" },
     readingTime: { query: levelQuery, period: "all" },
@@ -71,6 +72,7 @@ export function useTop10Badge(userId: string | undefined) {
     chaptersRead: { query: chaptersReadQuery, period: "all" },
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- объекты от хуков
   const queriesMonth: Partial<Record<LeaderboardCategory, QueryInfo>> = {
     ratings: { query: ratingsMonthQuery, period: "month" },
     comments: { query: commentsMonthQuery, period: "month" },

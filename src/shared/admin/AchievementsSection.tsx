@@ -91,6 +91,7 @@ export function AchievementsSection() {
   const [updateAchievement, { isLoading: isUpdating }] = useUpdateAchievementMutation();
   const [deleteAchievement] = useDeleteAchievementMutation();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- achievements из запроса
   const achievements = achievementsData?.data?.achievements || [];
   const pagination = achievementsData?.data?.pagination || {
     total: 0,

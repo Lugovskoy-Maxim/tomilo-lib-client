@@ -48,7 +48,8 @@ export function useImageLoader({
   strategy = "preload-nearby",
   preloadCount = 3,
   maxRetries = 2,
-  quality: _quality = "auto",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- quality зарезервирован для будущей оптимизации
+  quality = "auto",
 }: UseImageLoaderOptions): UseImageLoaderReturn {
   const [imageStates, setImageStates] = useState<Map<number, ImageLoadState>>(() => new Map());
   const preloadedRef = useRef<Set<number>>(new Set());
@@ -234,11 +235,13 @@ export function useImageLoader({
   }, [loadedCount, images.length]);
 
   useEffect(() => {
+    const observer = observerRef.current;
+    const imageElements = imageElementsRef.current;
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+      if (observer) {
+        observer.disconnect();
       }
-      imageElementsRef.current.clear();
+      imageElements.clear();
     };
   }, []);
 

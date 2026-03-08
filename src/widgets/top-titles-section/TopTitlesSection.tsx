@@ -92,6 +92,7 @@ export default function TopTitlesSection({
   const month = useGetTopTitlesMonthQuery({ limit: Math.max(limit, 10), includeAdult });
 
   const current = activePeriod === "day" ? day : activePeriod === "week" ? week : month;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- rawList из запроса
   const rawList = current.data?.data ?? [];
 
   /** Сортируем по просмотрам за период по убыванию, чтобы топ-1 имел больше всего просмотров. */
