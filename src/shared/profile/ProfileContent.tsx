@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { UserProfile } from "@/types/user";
 import { ProfileBookmarksLibrary, ReadingHistorySection } from "@/widgets";
 import ProfileAchievements from "./ProfileAchievements";
@@ -10,6 +11,7 @@ import DailyBonus from "./DailyBonus";
 import NextRankProgress from "./NextRankProgress";
 import ProfileDailyQuests from "./ProfileDailyQuests";
 import ProfileWelcome from "./ProfileWelcome";
+import { useClaimDailyBonusMutation } from "@/store/api/authApi";
 import { Trophy, ChevronRight } from "lucide-react";
 
 interface ProfileContentProps {
@@ -42,6 +44,19 @@ export default function ProfileContent({
   showAchievementsPreview = true,
   isPublicView = false,
 }: ProfileContentProps) {
+  const [claimDailyBonus] = useClaimDailyBonusMutation();
+  const dailyBonusSyncedRef = useRef(false);
+
+  // Синхронизация квеста «Ежедневный вход» при загрузке профиля (если бонус уже получен при логине)
+  useEffect(() => {
+    if (isPublicView || dailyBonusSyncedRef.current) return;
+    dailyBonusSyncedRef.current = true;
+    claimDailyBonus()
+      .unwrap()
+      .catch(() => {})
+      .finally(() => {});
+  }, [isPublicView, claimDailyBonus]);
+
   return (
     <div className="flex flex-col gap-4 items-stretch w-full min-w-0">
       {!isPublicView && <ProfileWelcome userProfile={userProfile} />}

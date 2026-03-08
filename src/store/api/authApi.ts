@@ -542,7 +542,7 @@ export const authApi = createApi({
         url: "/users/daily-bonus",
         method: "POST",
       }),
-      invalidatesTags: ["Auth"],
+      invalidatesTags: ["Auth", "DailyQuests"],
     }),
 
     // Ежедневные задания
