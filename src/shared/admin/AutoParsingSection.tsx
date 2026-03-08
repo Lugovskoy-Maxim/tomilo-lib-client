@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
 import {
   DndContext,
   DragOverlay,
@@ -19,6 +20,7 @@ import {
   Edit,
   Trash2,
   RefreshCw,
+  FileDown,
   Clock,
   ExternalLink,
   AlertCircle,
@@ -27,6 +29,8 @@ import {
   GripVertical,
   Search,
 } from "lucide-react";
+import { mangaParserApi } from "@/store/api/mangaParserApi";
+import type { AppDispatch } from "@/store";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 import { getCoverUrls } from "@/lib/asset-url";
@@ -78,6 +82,9 @@ export default function AutoParsingSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<{ title: string; message: string } | null>(null);
   const [activeJob, setActiveJob] = useState<AutoParsingJob | null>(null);
+  const [syncingJobId, setSyncingJobId] = useState<string | null>(null);
+
+  const dispatch = useDispatch<AppDispatch>();
 
   // API hooks
   const { data: jobsResponse, isLoading: jobsLoading } = useGetAutoParsingJobsQuery();
@@ -198,6 +205,45 @@ export default function AutoParsingSection() {
         message: "Произошла ошибка при проверке новых глав",
       });
       setIsModalOpen(true);
+    }
+  };
+
+  const handleSyncChapters = async (job: AutoParsingJob) => {
+    const titleId = job.titleId?._id;
+    const sources = getJobDisplaySources(job);
+    const sourceUrl = sources[0]?.trim();
+    if (!titleId || !sourceUrl) {
+      setModalContent({
+        title: "Ошибка",
+        message: "У задачи нет тайтла или источника для синхронизации",
+      });
+      setIsModalOpen(true);
+      return;
+    }
+    setSyncingJobId(job._id);
+    try {
+      const res = await dispatch(
+        mangaParserApi.endpoints.syncChapters.initiate({
+          titleId,
+          sourceUrl,
+        }),
+      ).unwrap();
+      if (res.data) {
+        setModalContent({
+          title: "Синхронизация завершена",
+          message: `Обновлено: ${res.data.synced.length}, пропущено: ${res.data.skipped.length}, ошибок: ${res.data.errors.length}`,
+        });
+        setIsModalOpen(true);
+      }
+    } catch (e) {
+      const message =
+        e && typeof e === "object" && "data" in e
+          ? String((e as { data?: { message?: string } }).data?.message ?? "Ошибка синхронизации")
+          : "Ошибка синхронизации";
+      setModalContent({ title: "Ошибка синхронизации", message });
+      setIsModalOpen(true);
+    } finally {
+      setSyncingJobId(null);
     }
   };
 
@@ -389,6 +435,8 @@ export default function AutoParsingSection() {
                       onEdit={setEditingJob}
                       onDelete={handleDeleteJob}
                       onCheck={handleCheckChapters}
+                      onSync={handleSyncChapters}
+                      syncingJobId={syncingJobId}
                       deleteLoading={deleteLoading}
                       checkLoading={checkLoading}
                     />
@@ -401,6 +449,8 @@ export default function AutoParsingSection() {
                         onEdit={setEditingJob}
                         onDelete={handleDeleteJob}
                         onCheck={handleCheckChapters}
+                        onSync={handleSyncChapters}
+                        syncingJobId={syncingJobId}
                         deleteLoading={deleteLoading}
                         checkLoading={checkLoading}
                       />
@@ -540,6 +590,18 @@ export default function AutoParsingSection() {
                         <span className="capitalize">{job.frequency}</span>
                       </div>
                       <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleSyncChapters(job)}
+                          disabled={!!syncingJobId || !getJobDisplaySources(job).length}
+                          className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
+                          title="Синхронизировать страницы глав с источника"
+                        >
+                          {syncingJobId === job._id ? (
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                          ) : (
+                            <FileDown className="w-6 h-6" />
+                          )}
+                        </button>
                         <button
                           onClick={() => handleCheckChapters(job._id)}
                           disabled={checkLoading}
@@ -841,6 +903,8 @@ interface HourCellProps {
   onEdit: (job: AutoParsingJob) => void;
   onDelete: (id: string) => void;
   onCheck: (id: string) => void;
+  onSync: (job: AutoParsingJob) => void;
+  syncingJobId: string | null;
   deleteLoading: boolean;
   checkLoading: boolean;
 }
@@ -852,6 +916,8 @@ function HourCell({
   onEdit,
   onDelete,
   onCheck,
+  onSync,
+  syncingJobId,
   deleteLoading,
   checkLoading,
 }: HourCellProps) {
@@ -872,6 +938,8 @@ function HourCell({
             onEdit={onEdit}
             onDelete={onDelete}
             onCheck={onCheck}
+            onSync={onSync}
+            syncingJobId={syncingJobId}
             deleteLoading={deleteLoading}
             checkLoading={checkLoading}
           />
@@ -888,6 +956,8 @@ interface ScheduleJobCardProps {
   onEdit?: (job: AutoParsingJob) => void;
   onDelete?: (id: string) => void;
   onCheck?: (id: string) => void;
+  onSync?: (job: AutoParsingJob) => void;
+  syncingJobId?: string | null;
   deleteLoading?: boolean;
   checkLoading?: boolean;
 }
@@ -899,9 +969,12 @@ function ScheduleJobCard({
   onEdit,
   onDelete,
   onCheck,
+  onSync,
+  syncingJobId,
   deleteLoading,
   checkLoading,
 }: ScheduleJobCardProps) {
+  const hasSource = (job.sources?.length ?? 0) > 0 || !!(job.url?.trim());
   return (
     <div
       className={`
@@ -943,6 +1016,21 @@ function ScheduleJobCard({
       </div>
       {!isOverlay && onEdit && onDelete && onCheck && (
         <div className="flex items-center gap-0.5 flex-shrink-0">
+          {onSync && (
+            <button
+              type="button"
+              onClick={e => (e.stopPropagation(), onSync(job))}
+              disabled={!!syncingJobId || !hasSource}
+              className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
+              title="Синхронизировать страницы глав с источника"
+            >
+              {syncingJobId === job._id ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileDown className="w-4 h-4" />
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={e => (e.stopPropagation(), onCheck(job._id))}
@@ -986,12 +1074,16 @@ function DraggableScheduleJobCard({
   onEdit,
   onDelete,
   onCheck,
+  onSync,
+  syncingJobId,
   deleteLoading,
   checkLoading,
 }: Omit<ScheduleJobCardProps, "isOverlay"> & {
   onEdit: (job: AutoParsingJob) => void;
   onDelete: (id: string) => void;
   onCheck: (id: string) => void;
+  onSync: (job: AutoParsingJob) => void;
+  syncingJobId: string | null;
   deleteLoading: boolean;
   checkLoading: boolean;
 }) {
@@ -1014,6 +1106,8 @@ function DraggableScheduleJobCard({
         onEdit={onEdit}
         onDelete={onDelete}
         onCheck={onCheck}
+        onSync={onSync}
+        syncingJobId={syncingJobId}
         deleteLoading={deleteLoading}
         checkLoading={checkLoading}
       />

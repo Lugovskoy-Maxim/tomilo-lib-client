@@ -114,6 +114,8 @@ export interface Chapter {
   status: ChapterStatus;
   createdAt: string;
   updatedAt: string;
+  /** URL главы на источнике (при импорте/синхронизации) */
+  sourceChapterUrl?: string | null;
   // Для сортировки и навигации
   sortOrder?: number;
   // Связь с тайтлом (может быть заполнена при join-запросах)
