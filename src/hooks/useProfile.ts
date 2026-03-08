@@ -2,12 +2,17 @@ import { useMemo, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
-import { isValidAvatarUrl } from "@/lib/asset-url";
 import { pageTitle } from "@/lib/page-title";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
 import { useGetProfileQuery, useGetReadingHistoryQuery } from "@/store/api/authApi";
 import { ReadingHistoryEntry } from "@/types/store";
+
+function isValidAvatarUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") return false;
+  if (url.includes("undefined") || url.includes("null")) return false;
+  return true;
+}
 
 function transformUserToProfile(user: User): UserProfile | null {
   if (!user) return null;

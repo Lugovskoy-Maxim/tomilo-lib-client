@@ -7,7 +7,7 @@ import {
   getEquippedAvatarDecorationUrl,
   getDecorationImageUrls,
 } from "@/api/shop";
-import { getImageUrls, isValidAvatarUrl } from "@/lib/asset-url";
+import { getImageUrls } from "@/lib/asset-url";
 import { useAuth } from "@/hooks/useAuth";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 
@@ -24,6 +24,12 @@ const sizeClasses = {
 };
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
+
+function isValidAvatarUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") return false;
+  if (url.includes("undefined") || url.includes("null")) return false;
+  return true;
+}
 
 /** URL декорации «аватар» из профиля (при populate объект с imageUrl или _id). */
 function getAvatarDecorationUrls(equipped: UserProfile["equippedDecorations"]): {
