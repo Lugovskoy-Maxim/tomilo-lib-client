@@ -11,6 +11,15 @@ import {
   ChevronRight,
   ChevronUp,
   Sparkles,
+  MessageCircle,
+  Star,
+  Flame,
+  CheckCircle,
+  Coins,
+  ShoppingBag,
+  Heart,
+  Compass,
+  ShieldAlert,
 } from "lucide-react";
 import { useState, useMemo, memo } from "react";
 
@@ -48,6 +57,16 @@ function generateAchievements(userProfile: UserProfile): AchievementWithLevels[]
     : 0;
   const linkedProviders = userProfile.linkedProviders?.length ?? 0;
   const emailVerified = userProfile.emailVerified ? 1 : 0;
+  const commentsCount = userProfile.commentsCount ?? 0;
+  const ratingsCount = userProfile.ratingsCount ?? 0;
+  const longestStreak = userProfile.longestStreak ?? 0;
+  const completedTitlesCount = userProfile.completedTitlesCount ?? 0;
+  const readingTimeMinutes = userProfile.readingTimeMinutes ?? 0;
+  const balance = userProfile.balance ?? 0;
+  const ownedDecorationsCount = userProfile.ownedDecorations?.length ?? 0;
+  const likesReceivedCount = userProfile.likesReceivedCount ?? 0;
+  const titlesReadCount = userProfile.titlesReadCount ?? 0;
+  const reportsCount = userProfile.reportsCount ?? 0;
 
   const achievements: AchievementWithLevels[] = [
     {
@@ -140,6 +159,188 @@ function generateAchievements(userProfile: UserProfile): AchievementWithLevels[]
       currentLevel: 0,
       maxLevel: 3,
     },
+    {
+      id: "commentator",
+      name: "Комментатор",
+      description: "Оставляйте комментарии к главам и тайтлам",
+      icon: MessageCircle,
+      color: "#06b6d4",
+      bgColor: "from-cyan-500/20 to-teal-500/20",
+      currentValue: commentsCount,
+      levels: [
+        { threshold: 5, name: "Первый отзыв" },
+        { threshold: 50, name: "Голос сообщества" },
+        { threshold: 250, name: "Активный участник" },
+        { threshold: 500, name: "Эксперт мнений" },
+        { threshold: 2500, name: "Легенда обсуждений" },
+      ],
+      currentLevel: 0,
+      maxLevel: 5,
+    },
+    {
+      id: "critic",
+      name: "Критик",
+      description: "Ставьте оценки тайтлам и главам",
+      icon: Star,
+      color: "#eab308",
+      bgColor: "from-yellow-500/20 to-amber-500/20",
+      currentValue: ratingsCount,
+      levels: [
+        { threshold: 5, name: "Оценка" },
+        { threshold: 50, name: "Ценитель" },
+        { threshold: 250, name: "Знаток" },
+        { threshold: 500, name: "Строгий судья" },
+        { threshold: 1500, name: "Вердикт мастера" },
+      ],
+      currentLevel: 0,
+      maxLevel: 5,
+    },
+    {
+      id: "marathon",
+      name: "Марафонец",
+      description: "Читайте подряд несколько дней подряд (серия)",
+      icon: Flame,
+      color: "#ef4444",
+      bgColor: "from-red-500/20 to-orange-500/20",
+      currentValue: longestStreak,
+      levels: [
+        { threshold: 3, name: "Три дня" },
+        { threshold: 7, name: "Неделя" },
+        { threshold: 14, name: "Две недели" },
+        { threshold: 30, name: "Месяц" },
+        { threshold: 100, name: "Сто дней" },
+      ],
+      currentLevel: 0,
+      maxLevel: 5,
+    },
+    {
+      id: "completer",
+      name: "Завершающий",
+      description: "Добавляйте тайтлы в «Прочитано»",
+      icon: CheckCircle,
+      color: "#10b981",
+      bgColor: "from-emerald-500/20 to-green-500/20",
+      currentValue: completedTitlesCount,
+      levels: [
+        { threshold: 1, name: "Первый финиш" },
+        { threshold: 5, name: "Любитель концовок" },
+        { threshold: 15, name: "Собиратель завершений" },
+        { threshold: 30, name: "Мастер списка" },
+        { threshold: 100, name: "Легенда завершений" },
+      ],
+      currentLevel: 0,
+      maxLevel: 5,
+    },
+    {
+      id: "time_reader",
+      name: "Читатель времени",
+      description: "Проводите время за чтением (минуты)",
+      icon: Clock,
+      color: "#6366f1",
+      bgColor: "from-indigo-500/20 to-violet-500/20",
+      currentValue: readingTimeMinutes,
+      levels: [
+        { threshold: 60, name: "Час" },
+        { threshold: 300, name: "Пять часов" },
+        { threshold: 600, name: "Десять часов" },
+        { threshold: 1800, name: "30 часов" },
+        { threshold: 5000, name: "Сто часов" },
+        { threshold: 10000, name: "Мастер времени" },
+      ],
+      currentLevel: 0,
+      maxLevel: 6,
+    },
+    {
+      id: "saver",
+      name: "Накопитель",
+      description: "Копите монеты на балансе",
+      icon: Coins,
+      color: "#84cc16",
+      bgColor: "from-lime-500/20 to-green-500/20",
+      currentValue: balance,
+      levels: [
+        { threshold: 100, name: "Первая сотня" },
+        { threshold: 500, name: "Копилка" },
+        { threshold: 1000, name: "Бережливый" },
+        { threshold: 2500, name: "Накопитель" },
+        { threshold: 5000, name: "Казначей" },
+        { threshold: 10000, name: "Владелец сундука" },
+      ],
+      currentLevel: 0,
+      maxLevel: 6,
+    },
+    {
+      id: "shopper",
+      name: "Покупатель",
+      description: "Покупайте декорации в магазине",
+      icon: ShoppingBag,
+      color: "#a855f7",
+      bgColor: "from-violet-500/20 to-purple-500/20",
+      currentValue: ownedDecorationsCount,
+      levels: [
+        { threshold: 1, name: "Первый выбор" },
+        { threshold: 5, name: "Клиент магазина" },
+        { threshold: 10, name: "Покупатель" },
+        { threshold: 25, name: "Коллекционер декора" },
+        { threshold: 50, name: "Меценат" },
+      ],
+      currentLevel: 0,
+      maxLevel: 5,
+    },
+    {
+      id: "popular",
+      name: "Популярный",
+      description: "Получайте лайки на комментариях",
+      icon: Heart,
+      color: "#f43f5e",
+      bgColor: "from-rose-500/20 to-pink-500/20",
+      currentValue: likesReceivedCount,
+      levels: [
+        { threshold: 1, name: "Первый лайк" },
+        { threshold: 10, name: "Заметный" },
+        { threshold: 50, name: "Популярный" },
+        { threshold: 100, name: "Любимец сообщества" },
+        { threshold: 500, name: "Звезда обсуждений" },
+      ],
+      currentLevel: 0,
+      maxLevel: 5,
+    },
+    {
+      id: "explorer",
+      name: "Исследователь",
+      description: "Читайте разные тайтлы (уникальные прочитанные)",
+      icon: Compass,
+      color: "#0ea5e9",
+      bgColor: "from-sky-500/20 to-blue-500/20",
+      currentValue: titlesReadCount,
+      levels: [
+        { threshold: 1, name: "Первый тайтл" },
+        { threshold: 10, name: "Любознательный" },
+        { threshold: 50, name: "Исследователь" },
+        { threshold: 100, name: "Широкий кругозор" },
+        { threshold: 300, name: "Мастер жанров" },
+      ],
+      currentLevel: 0,
+      maxLevel: 5,
+    },
+    {
+      id: "reporter",
+      name: "Страж порядка",
+      description: "Отправляйте жалобы на некорректный контент",
+      icon: ShieldAlert,
+      color: "#64748b",
+      bgColor: "from-slate-500/20 to-zinc-500/20",
+      currentValue: reportsCount,
+      levels: [
+        { threshold: 1, name: "Первый сигнал" },
+        { threshold: 5, name: "Бдительный" },
+        { threshold: 10, name: "Помощник модерации" },
+        { threshold: 25, name: "Страж порядка" },
+        { threshold: 50, name: "Защитник сообщества" },
+      ],
+      currentLevel: 0,
+      maxLevel: 5,
+    },
   ];
 
   return achievements.map(ach => {
@@ -179,6 +380,10 @@ const AchievementCard = memo(function AchievementCard({
       if (val >= 365) return `${Math.floor(val / 365)}г ${val % 365}д`;
       if (val >= 30) return `${Math.floor(val / 30)}м ${val % 30}д`;
       return `${val}д`;
+    }
+    if (id === "time_reader") {
+      if (val >= 60) return `${Math.floor(val / 60)}ч`;
+      return `${val}м`;
     }
     return val.toLocaleString();
   };
@@ -342,6 +547,16 @@ export default function ProfileAchievements({
       userProfile.createdAt,
       userProfile.linkedProviders?.length,
       userProfile.emailVerified,
+      userProfile.commentsCount,
+      userProfile.ratingsCount,
+      userProfile.longestStreak,
+      userProfile.completedTitlesCount,
+      userProfile.readingTimeMinutes,
+      userProfile.balance,
+      userProfile.ownedDecorations?.length,
+      userProfile.likesReceivedCount,
+      userProfile.titlesReadCount,
+      userProfile.reportsCount,
     ],
   );
 

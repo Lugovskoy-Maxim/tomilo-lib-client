@@ -26,6 +26,7 @@ const CATEGORY_SHORT_LABELS: Record<LeaderboardCategory, string> = {
 const PERIOD_LABELS: Record<LeaderboardPeriod, string> = {
   all: "всё время",
   month: "месяц",
+  week: "неделя",
 };
 
 interface LeaderTop10BadgeProps {

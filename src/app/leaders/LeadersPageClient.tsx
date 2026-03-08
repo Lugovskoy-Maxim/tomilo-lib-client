@@ -102,8 +102,9 @@ type PeriodConfig = {
 };
 
 const PERIODS: PeriodConfig[] = [
-  { id: "all", label: "За всё время", shortLabel: "Всё время" },
+  { id: "week", label: "За неделю", shortLabel: "Неделя" },
   { id: "month", label: "За месяц", shortLabel: "Месяц" },
+  { id: "all", label: "За всё время", shortLabel: "Всё время" },
 ];
 
 interface TransformableUserEquipped {
@@ -458,8 +459,7 @@ export default function LeadersPageClient() {
   } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const supportsPeriod = activeCategory === "ratings" || activeCategory === "comments";
-
+  /** Бэкенд может поддерживать period (week/month/all) для части категорий; для остальных обычно возвращает то же, что для "all". */
   const {
     data: leaderboardData,
     isLoading: leaderboardLoading,
@@ -468,7 +468,7 @@ export default function LeadersPageClient() {
   } = useGetLeaderboardQuery(
     {
       category: activeCategory,
-      period: supportsPeriod ? activePeriod : "all",
+      period: activePeriod,
       limit: 50,
     },
     {
@@ -586,6 +586,9 @@ export default function LeadersPageClient() {
             <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
               {activeCategoryConfig?.description ?? "Рейтинг активных читателей"}
             </p>
+            <p className="text-xs text-[var(--muted-foreground)] mt-1 opacity-90">
+              Данные обновляются каждые 6 часов.
+            </p>
           </header>
 
           <div
@@ -622,26 +625,24 @@ export default function LeadersPageClient() {
             })}
           </div>
 
-          {supportsPeriod && (
-            <div className="flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5 text-[var(--muted-foreground)] shrink-0" />
-              <div className="flex gap-0.5">
-                {PERIODS.map(period => (
-                  <button
-                    key={period.id}
-                    onClick={() => setActivePeriod(period.id)}
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                      activePeriod === period.id
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "bg-[var(--secondary)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                    }`}
-                  >
-                    {period.shortLabel}
-                  </button>
-                ))}
-              </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="w-3.5 h-3.5 text-[var(--muted-foreground)] shrink-0" />
+            <div className="flex gap-0.5" role="group" aria-label="Период рейтинга">
+              {PERIODS.map(period => (
+                <button
+                  key={period.id}
+                  onClick={() => setActivePeriod(period.id)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                    activePeriod === period.id
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : "bg-[var(--secondary)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  {period.shortLabel}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
           <div className="flex items-center gap-2">
             <div className="relative flex-1 min-w-0">

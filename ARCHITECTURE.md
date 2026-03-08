@@ -40,6 +40,7 @@
 ## Данные и API
 
 - **Серверный бэкенд**: все запросы к API идут через RTK Query в `store/api/*Api.ts`. Базовый запрос и reauth — `store/api/baseQueryWithReauth.ts`.
+- **Таблица лидеров**: клиент ожидает, что данные `/users/leaderboard` кешируются на бэкенде (рекомендуется 6 часов, константа `LEADERBOARD_CACHE_HOURS` в `store/api/leaderboardApi.ts`). Поддерживаются периоды `period=week`, `month`, `all`.
 - **Типы запросов/ответов**: в `types/` (title, user, api, chapter и т.д.). API-модули импортируют типы оттуда, не дублируют.
 - **Локальное состояние UI** (фильтры, модалки, форма поиска): Redux slices в `store/slices/`.
 - **Добавление нового эндпоинта**: создать или дополнить файл в `store/api/`, зарегистрировать API в `store/rootReducer.ts` (см. ниже) — middleware подтянется автоматически.

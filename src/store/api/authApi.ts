@@ -83,7 +83,7 @@ function normalizeHistoryItem(item: RawHistoryItem): ReadingHistoryEntry {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Auth", "ReadingHistory", "Bookmarks"],
+  tagTypes: ["Auth", "ReadingHistory", "Bookmarks", "DailyQuests"],
   endpoints: builder => ({
     // Аутентификация
     login: builder.mutation<ApiResponseDto<AuthResponse>, LoginData>({
@@ -545,6 +545,40 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
+    // Ежедневные задания
+    getDailyQuests: builder.query<
+      ApiResponseDto<{
+        date: string;
+        quests: {
+          id: string;
+          type: string;
+          name: string;
+          description: string;
+          target: number;
+          progress: number;
+          rewardExp: number;
+          rewardCoins: number;
+          completed: boolean;
+          claimedAt: string | null;
+        }[];
+      } | null>,
+      void
+    >({
+      query: () => "/users/daily-quests",
+      providesTags: ["DailyQuests"],
+    }),
+    claimDailyQuest: builder.mutation<
+      ApiResponseDto<{ success: boolean; expGained?: number; coinsGained?: number; message?: string }>,
+      string
+    >({
+      query: questId => ({
+        url: "/users/daily-quests/claim",
+        method: "POST",
+        body: { questId },
+      }),
+      invalidatesTags: ["Auth", "DailyQuests"],
+    }),
+
     /** Запланировать удаление профиля (scheduledDeletionAt = now + 7 дней). Ответ — обновлённый пользователь. */
     scheduleDeletion: builder.mutation<ApiResponseDto<User>, void>({
       query: () => ({
@@ -618,6 +652,8 @@ export const {
   useChangePasswordMutation,
   useForgotPasswordMutation,
   useClaimDailyBonusMutation,
+  useGetDailyQuestsQuery,
+  useClaimDailyQuestMutation,
   useScheduleDeletionMutation,
   useCancelDeletionMutation,
 } = authApi;

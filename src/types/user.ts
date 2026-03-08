@@ -125,6 +125,8 @@ export interface UserProfile {
   lastStreakDate?: string;
   /** Количество завершённых тайтлов */
   completedTitlesCount?: number;
+  /** Количество отправленных жалоб */
+  reportsCount?: number;
 
   // Кастомизация профиля
   /** Краткое описание / статус (до 200 символов) */

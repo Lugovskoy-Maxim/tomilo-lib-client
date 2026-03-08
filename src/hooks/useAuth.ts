@@ -15,6 +15,7 @@ import { login, logout, setLoading, updateUser } from "@/store/slices/authSlice"
 import { RootState } from "@/store";
 import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-verification";
+import { isValidAvatarUrl } from "@/lib/asset-url";
 import { ReadingProgressResponse } from "@/types/progress";
 
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
@@ -91,7 +92,7 @@ export const useAuth = () => {
       id: user.id || user._id,
       email: user.email,
       username: user.username,
-      avatar: user.avatar,
+      avatar: isValidAvatarUrl(user.avatar) ? user.avatar : (auth.user?.avatar ?? user.avatar),
       role: user.role,
       level: user.level,
       experience: user.experience,
@@ -196,16 +197,20 @@ export const useAuth = () => {
         throw new Error(errorData.message || "Ошибка при обновлении аватара");
       }
 
-      const result: ApiResponseDto<StoredUser> = await response.json();
+      const result = await response.json() as ApiResponseDto<{ avatar?: string; updatedAt?: string }>;
 
       if (!result.success) {
         throw new Error(result.message || "Ошибка при обновлении аватара");
       }
 
-      updateUserData({
-        avatar: result.data?.avatar,
-        updatedAt: result.data?.updatedAt,
-      });
+      // Обновляем стор только если бэкенд вернул валидный avatar/updatedAt (не затираем текущий ошибочным "/uploads/avatars/undefined")
+      const data = result.data;
+      if (data && (data.avatar !== undefined || data.updatedAt !== undefined)) {
+        updateUserData({
+          ...(data.avatar !== undefined && isValidAvatarUrl(data.avatar) && { avatar: data.avatar }),
+          ...(data.updatedAt !== undefined && { updatedAt: data.updatedAt }),
+        });
+      }
 
       if (token) {
         refetchProfile();

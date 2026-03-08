@@ -7,7 +7,7 @@ import {
   getEquippedAvatarDecorationUrl,
   getDecorationImageUrls,
 } from "@/api/shop";
-import { getImageUrls } from "@/lib/asset-url";
+import { getImageUrls, isValidAvatarUrl } from "@/lib/asset-url";
 import { useAuth } from "@/hooks/useAuth";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 
@@ -68,10 +68,15 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
     ? resolvedFrameUrl
     : getEquippedFrameUrl(userProfile.equippedDecorations);
 
-  const { primary: baseAvatarPrimary, fallback: baseAvatarFallback } = userProfile.avatar
-    ? getImageUrls(userProfile.avatar)
+  const effectiveAvatar = isValidAvatarUrl(userProfile.avatar) ? userProfile.avatar : null;
+  const baseAvatarWithCacheBust =
+    effectiveAvatar && userProfile.updatedAt
+      ? `${effectiveAvatar}${effectiveAvatar.includes("?") ? "&" : "?"}t=${new Date(userProfile.updatedAt).getTime()}`
+      : effectiveAvatar;
+  const { primary: baseAvatarPrimary, fallback: baseAvatarFallback } = baseAvatarWithCacheBust
+    ? getImageUrls(baseAvatarWithCacheBust)
     : { primary: null, fallback: null };
-
+ 
   const decorationUrls = isCurrentUser
     ? { primary: resolvedAvatarUrl, fallback: null }
     : getAvatarDecorationUrls(userProfile.equippedDecorations);

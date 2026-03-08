@@ -38,6 +38,16 @@ function normalizePathForS3(p: string): string {
 }
 
 /**
+ * Проверяет, что URL аватара пригоден для отображения.
+ * Отсекает ошибочные значения с бэкенда (например "/uploads/avatars/undefined").
+ */
+export function isValidAvatarUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") return false;
+  if (url.includes("undefined") || url.includes("null")) return false;
+  return true;
+}
+
+/**
  * Возвращает primary и fallback URL для изображения.
  * Primary = S3 (если настроен), fallback = старый сервер.
  */

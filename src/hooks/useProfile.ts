@@ -2,6 +2,7 @@ import { useMemo, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
+import { isValidAvatarUrl } from "@/lib/asset-url";
 import { pageTitle } from "@/lib/page-title";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
@@ -16,7 +17,7 @@ function transformUserToProfile(user: User): UserProfile | null {
     username: user.username,
     email: user.email,
     emailVerified: user.emailVerified,
-    avatar: user.avatar || "",
+    avatar: user.avatar && isValidAvatarUrl(user.avatar) ? user.avatar : "",
     role: user.role,
     level: user.level,
     experience: user.experience,

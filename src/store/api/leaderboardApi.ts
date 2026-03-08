@@ -10,7 +10,10 @@ export type LeaderboardCategory =
   | "comments"
   | "streak"
   | "chaptersRead";
-export type LeaderboardPeriod = "all" | "month";
+export type LeaderboardPeriod = "all" | "month" | "week";
+
+/** Рекомендуемый кеш на бэкенде для /users/leaderboard (в часах). Данные на странице лидеров обновляются с этой периодичностью. */
+export const LEADERBOARD_CACHE_HOURS = 6;
 
 export type DecorationRarity = "common" | "rare" | "epic" | "legendary";
 
