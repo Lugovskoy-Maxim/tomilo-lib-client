@@ -337,6 +337,16 @@ function ReadChapterPageContent({
     resetHideTimeout();
   }, [resetHideTimeout]);
 
+  // Очистка таймера скрытия меню при размонтировании (избегаем setState после unmount)
+  useEffect(() => {
+    return () => {
+      if (menuHideTimeoutRef.current) {
+        clearTimeout(menuHideTimeoutRef.current);
+        menuHideTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   // Функция для получения корректного URL изображения с учётом fallback
   const getImageUrlWithFallback = useCallback(
     (url: string, chapterId: string, imageIndex: number) => {

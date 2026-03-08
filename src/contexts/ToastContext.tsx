@@ -1,6 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  ReactNode,
+} from "react";
 import { Toast, ToastContextType } from "@/types/toast";
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -19,8 +27,13 @@ interface ToastProviderProps {
 
 export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const timeoutIdsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const removeToast = useCallback((id: string) => {
+    if (timeoutIdsRef.current.has(id)) {
+      clearTimeout(timeoutIdsRef.current.get(id));
+      timeoutIdsRef.current.delete(id);
+    }
     setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
 
@@ -31,15 +44,23 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
 
       setToasts(prev => [...prev, toast]);
 
-      // Auto-remove toast after duration
       if (duration > 0) {
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
+          timeoutIdsRef.current.delete(id);
           removeToast(id);
         }, duration);
+        timeoutIdsRef.current.set(id, timeoutId);
       }
     },
     [removeToast],
   );
+
+  useEffect(() => {
+    return () => {
+      timeoutIdsRef.current.forEach(id => clearTimeout(id));
+      timeoutIdsRef.current.clear();
+    };
+  }, []);
 
   const value: ToastContextType = {
     toasts,

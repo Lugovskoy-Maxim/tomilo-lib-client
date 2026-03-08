@@ -77,6 +77,9 @@ export const chaptersApi = createApi({
     getChapterByNumber: builder.query<Chapter, { titleId: string; chapterNumber: number }>({
       query: ({ titleId, chapterNumber }) =>
         `/chapters/by-number/${titleId}?chapterNumber=${chapterNumber}`,
+      providesTags: (result, error, { titleId }) => [
+        { type: CHAPTERS_TAG, id: `title-${titleId}` },
+      ],
     }),
 
     getChaptersByTitle: builder.query<

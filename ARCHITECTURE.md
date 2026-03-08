@@ -44,10 +44,16 @@
 - **Локальное состояние UI** (фильтры, модалки, форма поиска): Redux slices в `store/slices/`.
 - **Добавление нового эндпоинта**: создать или дополнить файл в `store/api/`, зарегистрировать API в `store/rootReducer.ts` (см. ниже) — middleware подтянется автоматически.
 
+## Store: кеш и слайсы
+
+- **Кеш серверных данных**: RTK Query в `store/api/*Api.ts` кеширует ответы по ключу запроса (endpoint + аргументы). Повторные вызовы `useXQuery` с теми же аргументами не делают лишний запрос — используются данные из кеша. Срок хранения: `keepUnusedDataFor` (например 60 с в titlesApi, 300 с в notificationsApi).
+- **Использование кеша**: компоненты получают данные через хуки RTK Query (`useSearchTitlesQuery`, `useGetChaptersByTitleQuery`, `useGetCommentsQuery` и т.д.). Данные не дублируются в слайсах.
+- **Слайсы**: в приложении реально читается только **auth** (useSelector в useAuth). Остальные слайсы (titles, chapters, collections, comments, notifications, search, filter, readingHistory, bookmarks, userProfile) не заполняются и не читаются компонентами — список/профиль/история приходят из API (authApi, titlesApi, collectionsApi и т.д.). При добавлении новых фич предпочтительно опираться на RTK Query и не дублировать серверные данные в слайсах.
+
 ## Store: как добавлять новое
 
-1. **Новый RTK Query API**: создать `store/api/exampleApi.ts`, затем в `store/rootReducer.ts` добавить импорт и запись в массивы `reducers.api` и `reducers.middleware` (один раз — reducer и middleware подключаются из единого списка).
-2. **Новый slice**: создать `store/slices/exampleSlice.ts`, экспортировать из `store/slices/index.ts`, добавить в `store/rootReducer.ts` в `reducers.slices`.
+1. **Новый RTK Query API**: создать `store/api/exampleApi.ts`, затем в `store/rootReducer.ts` добавить импорт и запись в массив `apiList` — reducer и middleware подключатся автоматически.
+2. **Новый slice**: создать `store/slices/exampleSlice.ts`, добавить в `store/rootReducer.ts` в объект `slices`.
 
 Так вы не забудете подключить middleware при добавлении API.
 
