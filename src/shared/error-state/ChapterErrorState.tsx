@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, BookOpen, ChevronLeft, ChevronRight, Home, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Footer, Header } from "@/widgets";
@@ -10,15 +10,10 @@ interface ChapterErrorStateProps {
   message?: string;
   slug?: string;
   className?: string;
-  /** Ссылка на предыдущую главу — показывается кнопка «Назад к предыдущей главе» */
   prevChapterHref?: string;
-  /** Ссылка на следующую главу — показывается кнопка «К следующей главе» */
   nextChapterHref?: string;
 }
 
-/**
- * Компонент для отображения состояния ошибки на странице главы с навигацией
- */
 export default function ChapterErrorState({
   title = "Произошла ошибка",
   message = "Попробуйте обновить страницу",
@@ -30,57 +25,72 @@ export default function ChapterErrorState({
   const router = useRouter();
 
   return (
-    <>
+    <div className={`flex min-h-[100dvh] flex-col ${className}`}>
       <Header />
-      <main className={`min-h-screen flex flex-col items-center justify-center bg-[var(--background)] pb-16 ${className}`}>
-        <div className="text-center max-w-md mx-auto px-4 flex-1 flex flex-col justify-center">
-          <AlertTriangle className="w-16 h-16 text-[var(--destructive)] mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">{title}</h1>
-          <p className="text-[var(--muted-foreground)] mb-6">{message}</p>
+      <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4 py-12 sm:py-16 pb-20">
+        <div className="max-w-md w-full text-center">
+          <div className="mb-8 flex justify-center">
+            <div
+              className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[var(--destructive)]/10 text-[var(--destructive)] ring-2 ring-[var(--destructive)]/20"
+              aria-hidden
+            >
+              <AlertTriangle className="h-10 w-10 shrink-0" strokeWidth={2} />
+            </div>
+          </div>
+          <p className="text-6xl font-bold text-[var(--muted-foreground)]/20 mb-2 tabular-nums">
+            Ошибка
+          </p>
+          <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-3">{title}</h1>
+          <p className="text-[var(--muted-foreground)] mb-10 leading-relaxed">{message}</p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center flex-wrap">
             {prevChapterHref && (
               <Link
                 href={prevChapterHref}
-                className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors text-center"
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 transition-colors font-medium min-w-[180px]"
               >
-                Назад к предыдущей главе
+                <ChevronLeft className="w-5 h-5 shrink-0" />
+                Пред. глава
               </Link>
             )}
             {nextChapterHref && (
               <Link
                 href={nextChapterHref}
-                className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors text-center"
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 transition-colors font-medium min-w-[180px]"
               >
-                К следующей главе
+                След. глава
+                <ChevronRight className="w-5 h-5 shrink-0" />
               </Link>
             )}
             {slug && (
               <Link
                 href={`/titles/${slug}`}
-                className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors text-center"
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 transition-colors font-medium min-w-[180px]"
               >
-                Вернуться к тайтлу
+                <BookOpen className="w-5 h-5 shrink-0" />
+                К тайтлу
               </Link>
             )}
-
             <button
+              type="button"
               onClick={() => router.push("/titles")}
-              className="px-6 py-3 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors text-center"
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors font-medium min-w-[180px]"
             >
-              Каталог тайтлов
+              <Home className="w-5 h-5 shrink-0" />
+              Каталог
             </button>
-
             <button
+              type="button"
               onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-[var(--secondary)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--secondary)]/80 transition-colors text-center"
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors font-medium min-w-[180px]"
             >
-              Перезагрузить
+              <RefreshCw className="w-5 h-5 shrink-0" />
+              Обновить
             </button>
           </div>
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
