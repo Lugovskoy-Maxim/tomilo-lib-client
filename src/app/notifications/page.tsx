@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { 
-  Bell, 
-  CheckCheck, 
-  Trash2, 
-  Inbox, 
+import {
+  Bell,
+  CheckCheck,
+  Trash2,
+  Inbox,
   ChevronLeft,
   ChevronRight,
   CheckSquare,
@@ -23,18 +23,16 @@ import { useSEO } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
 import NotificationCard from "@/shared/notification-card/NotificationCard";
 import { Button } from "@/shared/ui/button";
-import { useGetNotificationsQuery, useMarkAllAsReadMutation, useDeleteNotificationMutation } from "@/store/api/notificationsApi";
+import {
+  useGetNotificationsQuery,
+  useMarkAllAsReadMutation,
+  useDeleteNotificationMutation,
+} from "@/store/api/notificationsApi";
 import { Notification } from "@/types/notifications";
 import LoginModal from "@/shared/modal/LoginModal";
 import RegisterModal from "@/shared/modal/RegisterModal";
 
-type NotificationFilter =
-  | "all"
-  | "new_chapter"
-  | "update"
-  | "user"
-  | "system"
-  | "report_response";
+type NotificationFilter = "all" | "new_chapter" | "update" | "user" | "system" | "report_response";
 
 const filterConfig = [
   { key: "all" as const, label: "Все", icon: Bell },
@@ -56,16 +54,17 @@ export default function NotificationsPage() {
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
 
   const { isAuthenticated } = useAuth();
-  const { data: notificationsResponse, isLoading, isFetching } = useGetNotificationsQuery(
-    { page, limit: 20 },
-    { skip: !isAuthenticated }
-  );
+  const {
+    data: notificationsResponse,
+    isLoading,
+    isFetching,
+  } = useGetNotificationsQuery({ page, limit: 20 }, { skip: !isAuthenticated });
   const [markAllAsRead] = useMarkAllAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
 
   const notificationsData = useMemo(
     () => notificationsResponse?.data?.notifications || [],
-    [notificationsResponse?.data?.notifications]
+    [notificationsResponse?.data?.notifications],
   );
   const pagination = notificationsResponse?.data?.pagination;
 
@@ -128,7 +127,7 @@ export default function NotificationsPage() {
   const handleSelectAll = useCallback(() => {
     const visibleIds = filteredNotifications.map(n => n._id);
     const allSelected = visibleIds.every(id => selectedIds.has(id));
-    
+
     setSelectedIds((prev: Set<string>) => {
       const newSet = new Set(prev);
       if (allSelected) {
@@ -158,9 +157,9 @@ export default function NotificationsPage() {
     setRegisterModalOpen(false);
   };
 
-  const unreadCount = useMemo(() => 
-    notificationsData.filter((n: Notification) => !n.isRead).length,
-    [notificationsData]
+  const unreadCount = useMemo(
+    () => notificationsData.filter((n: Notification) => !n.isRead).length,
+    [notificationsData],
   );
 
   const typeCounts = useMemo(() => {
@@ -217,9 +216,9 @@ export default function NotificationsPage() {
     return groups;
   };
 
-  const groupedNotifications = useMemo(() => 
-    groupByDate(filteredNotifications),
-    [filteredNotifications]
+  const groupedNotifications = useMemo(
+    () => groupByDate(filteredNotifications),
+    [filteredNotifications],
   );
 
   const hasMorePages = pagination ? page < pagination.pages : false;
@@ -257,13 +256,11 @@ export default function NotificationsPage() {
             </div>
             <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">Уведомления</h1>
             <p className="text-[var(--muted-foreground)] mb-8 leading-relaxed">
-              Войдите в аккаунт, чтобы видеть уведомления о новых главах, обновлениях и ответах на жалобы
+              Войдите в аккаунт, чтобы видеть уведомления о новых главах, обновлениях и ответах на
+              жалобы
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-              <Button
-                onClick={() => setLoginModalOpen(true)}
-                className="rounded-xl cursor-pointer"
-              >
+              <Button onClick={() => setLoginModalOpen(true)} className="rounded-xl cursor-pointer">
                 Войти
               </Button>
               <Button
@@ -356,16 +353,19 @@ export default function NotificationsPage() {
                   className={`
                     flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
                     transition-colors whitespace-nowrap
-                    ${isActive
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+                    ${
+                      isActive
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
                     }
                   `}
                 >
                   <Icon className="w-4 h-4 flex-shrink-0 opacity-80" />
                   <span className="hidden min-[380px]:inline">{label}</span>
                   {count > 0 && (
-                    <span className={`text-xs ${isActive ? "opacity-90" : "text-[var(--muted-foreground)]"}`}>
+                    <span
+                      className={`text-xs ${isActive ? "opacity-90" : "text-[var(--muted-foreground)]"}`}
+                    >
                       {count}
                     </span>
                   )}
@@ -383,9 +383,10 @@ export default function NotificationsPage() {
                 onClick={() => setShowRead(true)}
                 className={`
                   flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors
-                  ${showRead
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+                  ${
+                    showRead
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50"
                   }
                 `}
               >
@@ -397,9 +398,10 @@ export default function NotificationsPage() {
                 onClick={() => setShowRead(false)}
                 className={`
                   flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors
-                  ${!showRead
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+                  ${
+                    !showRead
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
+                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50"
                   }
                 `}
               >
@@ -419,20 +421,32 @@ export default function NotificationsPage() {
                   className="flex items-center gap-1.5 text-sm font-medium text-[var(--primary)] hover:underline"
                 >
                   {filteredNotifications.every(n => selectedIds.has(n._id)) ? (
-                    <><Square className="w-4 h-4" /> Снять</>
+                    <>
+                      <Square className="w-4 h-4" /> Снять
+                    </>
                   ) : (
-                    <><CheckSquare className="w-4 h-4" /> Всё</>
+                    <>
+                      <CheckSquare className="w-4 h-4" /> Всё
+                    </>
                   )}
                 </button>
-                <span className="text-sm text-[var(--muted-foreground)]">
-                  {selectedIds.size}
-                </span>
+                <span className="text-sm text-[var(--muted-foreground)]">{selectedIds.size}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} className="rounded-lg h-8">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedIds(new Set())}
+                  className="rounded-lg h-8"
+                >
                   Отмена
                 </Button>
-                <Button variant="destructive" size="sm" onClick={handleDeleteSelected} className="gap-1.5 rounded-lg h-8">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteSelected}
+                  className="gap-1.5 rounded-lg h-8"
+                >
                   <Trash2 className="w-4 h-4" />
                   Удалить
                 </Button>
@@ -444,7 +458,10 @@ export default function NotificationsPage() {
           {isLoading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-20 sm:h-24 rounded-xl bg-[var(--muted)]/50 animate-pulse" />
+                <div
+                  key={i}
+                  className="h-20 sm:h-24 rounded-xl bg-[var(--muted)]/50 animate-pulse"
+                />
               ))}
             </div>
           ) : filteredNotifications.length > 0 ? (
@@ -563,12 +580,22 @@ export default function NotificationsPage() {
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {!showRead && notificationsData.some(n => n.isRead) && (
-                  <Button variant="outline" size="sm" onClick={() => setShowRead(true)} className="rounded-lg">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowRead(true)}
+                    className="rounded-lg"
+                  >
                     Показать прочитанные
                   </Button>
                 )}
                 {activeFilter !== "all" && (
-                  <Button variant="outline" size="sm" onClick={() => setActiveFilter("all")} className="rounded-lg">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setActiveFilter("all")}
+                    className="rounded-lg"
+                  >
                     Все уведомления
                   </Button>
                 )}

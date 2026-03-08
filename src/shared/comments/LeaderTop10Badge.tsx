@@ -26,6 +26,7 @@ const CATEGORY_SHORT_LABELS: Record<LeaderboardCategory, string> = {
 const PERIOD_LABELS: Record<LeaderboardPeriod, string> = {
   all: "всё время",
   month: "месяц",
+  week: "неделя",
 };
 
 interface LeaderTop10BadgeProps {
@@ -52,7 +53,9 @@ export function LeaderTop10BadgeContent({ badge }: LeaderTop10BadgeContentProps)
       <span className="font-bold">#{badge.position}</span>
       <span className="text-[var(--primary)]/70 hidden sm:inline">{shortLabel}</span>
       {showPeriod && (
-        <span className="text-[9px] sm:text-[10px] text-[var(--primary)]/50 hidden sm:inline">({periodLabel})</span>
+        <span className="text-[9px] sm:text-[10px] text-[var(--primary)]/50 hidden sm:inline">
+          ({periodLabel})
+        </span>
       )}
     </Link>
   );
@@ -67,7 +70,7 @@ export function LeaderTop10Badge({ userId }: LeaderTop10BadgeProps) {
 
   return (
     <div className="inline-flex items-center gap-0.5 sm:gap-1 flex-wrap min-w-0 max-w-full">
-      {badges.map((badge) => (
+      {badges.map(badge => (
         <LeaderTop10BadgeContent key={`${badge.category}-${badge.period}`} badge={badge} />
       ))}
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { List, Percent, Timer, Eye, Download, RotateCcw, Smartphone, Wifi } from "lucide-react";
+import { List, Percent, Timer, Eye, Download, Smartphone, Wifi } from "lucide-react";
 import { BookOpen, LayoutList } from "lucide-react";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 import { useAutoScroll, useReaderSettingsContext } from "./hooks";
@@ -16,9 +16,17 @@ function ImageQualitySelector({ imageQuality, setImageQuality }: ImageQualitySel
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Качество изображений</span>
+        <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+          Качество изображений
+        </span>
         <span className="text-sm font-medium text-[var(--foreground)]">
-          {imageQuality === "low" ? "НИЗКОЕ" : imageQuality === "medium" ? "СРЕДНЕЕ" : imageQuality === "high" ? "ВЫСОКОЕ" : "АВТО"}
+          {imageQuality === "low"
+            ? "НИЗКОЕ"
+            : imageQuality === "medium"
+              ? "СРЕДНЕЕ"
+              : imageQuality === "high"
+                ? "ВЫСОКОЕ"
+                : "АВТО"}
         </span>
       </div>
       <div className="flex bg-[var(--secondary)] rounded-xl p-1">
@@ -138,7 +146,9 @@ function SegmentOption<T extends string>({
           type="button"
           onClick={() => onChange(v)}
           className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2 ${
-            value === v ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)]"
+            value === v
+              ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+              : "text-[var(--muted-foreground)]"
           }`}
         >
           {Icon && <Icon className="w-4 h-4" />}
@@ -205,7 +215,9 @@ export function ReaderSettingsPanelContent({
               type="button"
               onClick={() => setReadingMode("feed")}
               className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                readingMode === "feed" ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)]"
+                readingMode === "feed"
+                  ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                  : "text-[var(--muted-foreground)]"
               }`}
             >
               Лента
@@ -214,7 +226,9 @@ export function ReaderSettingsPanelContent({
               type="button"
               onClick={() => setReadingMode("paged")}
               className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                readingMode === "paged" ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)]"
+                readingMode === "paged"
+                  ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                  : "text-[var(--muted-foreground)]"
               }`}
             >
               По страницам
@@ -283,7 +297,10 @@ export function ReaderSettingsPanelContent({
         </SettingsRow>
         {onHideBottomMenuChange && (
           <SettingsRow label="Скрывать нижнее меню" icon={Eye}>
-            <ToggleSwitch on={hideBottomMenuSetting} onClick={() => onHideBottomMenuChange(!hideBottomMenuSetting)} />
+            <ToggleSwitch
+              on={hideBottomMenuSetting}
+              onClick={() => onHideBottomMenuChange(!hideBottomMenuSetting)}
+            />
           </SettingsRow>
         )}
       </SettingsSection>
@@ -331,7 +348,11 @@ export function ReaderSettingsPanelContent({
           <div className="flex justify-between text-sm">
             <span className="text-[var(--foreground)]">Скорость</span>
             <span className="font-medium text-[var(--primary)]">
-              {autoScrollSpeed === "slow" ? "Медленно" : autoScrollSpeed === "medium" ? "Средне" : "Быстро"}
+              {autoScrollSpeed === "slow"
+                ? "Медленно"
+                : autoScrollSpeed === "medium"
+                  ? "Средне"
+                  : "Быстро"}
             </span>
           </div>
           <input
@@ -353,10 +374,17 @@ export function ReaderSettingsPanelContent({
       {onPreloadChange && (
         <SettingsSection title="Дополнительно">
           <SettingsRow
-            label={preloadAllImages && preloadProgress > 0 && preloadProgress < 100 ? `Предзагрузка главы (${preloadProgress}%)` : "Предзагрузка главы"}
+            label={
+              preloadAllImages && preloadProgress > 0 && preloadProgress < 100
+                ? `Предзагрузка главы (${preloadProgress}%)`
+                : "Предзагрузка главы"
+            }
             icon={Download}
           >
-            <ToggleSwitch on={preloadAllImages} onClick={() => onPreloadChange(!preloadAllImages)} />
+            <ToggleSwitch
+              on={preloadAllImages}
+              onClick={() => onPreloadChange(!preloadAllImages)}
+            />
           </SettingsRow>
         </SettingsSection>
       )}

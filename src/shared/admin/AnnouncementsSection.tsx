@@ -50,7 +50,9 @@ function slugFromTitle(title: string): string {
 /** id объявления (бэкенд может отдавать _id) */
 function getAnnouncementId(a: Announcement | null): string {
   if (!a) return "";
-  return (a as Announcement & { _id?: string }).id ?? (a as Announcement & { _id?: string })._id ?? "";
+  return (
+    (a as Announcement & { _id?: string }).id ?? (a as Announcement & { _id?: string })._id ?? ""
+  );
 }
 
 const emptyForm: CreateAnnouncementDto = {
@@ -144,7 +146,12 @@ export function AnnouncementsSection() {
     try {
       const payload: CreateAnnouncementDto = {
         ...form,
-        tags: Array.isArray(form.tags) ? form.tags : String(form.tags ?? "").split(",").map(t => t.trim()).filter(Boolean),
+        tags: Array.isArray(form.tags)
+          ? form.tags
+          : String(form.tags ?? "")
+              .split(",")
+              .map(t => t.trim())
+              .filter(Boolean),
       };
       await createAnnouncement(payload).unwrap();
       showAlert("Успешно", "Объявление создано");
@@ -161,7 +168,12 @@ export function AnnouncementsSection() {
     try {
       const payload: UpdateAnnouncementDto = {
         ...form,
-        tags: Array.isArray(form.tags) ? form.tags : String(form.tags ?? "").split(",").map(t => t.trim()).filter(Boolean),
+        tags: Array.isArray(form.tags)
+          ? form.tags
+          : String(form.tags ?? "")
+              .split(",")
+              .map(t => t.trim())
+              .filter(Boolean),
       };
       await updateAnnouncement({ id, data: payload }).unwrap();
       showAlert("Успешно", "Объявление обновлено");
@@ -229,7 +241,9 @@ export function AnnouncementsSection() {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Slug (ЧПУ)</label>
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+          Slug (ЧПУ)
+        </label>
         <input
           type="text"
           value={form.slug}
@@ -242,7 +256,9 @@ export function AnnouncementsSection() {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Краткое описание (до 500 символов)</label>
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+          Краткое описание (до 500 символов)
+        </label>
         <textarea
           value={form.shortDescription ?? ""}
           onChange={e => setForm(f => ({ ...f, shortDescription: e.target.value }))}
@@ -274,7 +290,9 @@ export function AnnouncementsSection() {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Обложка (URL)</label>
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+          Обложка (URL)
+        </label>
         <div className="flex gap-2">
           <input
             type="text"
@@ -320,7 +338,9 @@ export function AnnouncementsSection() {
           className="w-full rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--foreground)]"
         >
           {LAYOUTS.map(l => (
-            <option key={l.value} value={l.value}>{l.label}</option>
+            <option key={l.value} value={l.value}>
+              {l.label}
+            </option>
           ))}
         </select>
       </div>
@@ -493,8 +513,12 @@ export function AnnouncementsSection() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-[var(--foreground)] truncate">{a.title}</span>
-                        {a.isPinned && <Pin className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />}
+                        <span className="font-medium text-[var(--foreground)] truncate">
+                          {a.title}
+                        </span>
+                        {a.isPinned && (
+                          <Pin className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />
+                        )}
                         {!a.isPublished && (
                           <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)]">
                             Черновик
@@ -506,9 +530,7 @@ export function AnnouncementsSection() {
                           {a.shortDescription}
                         </p>
                       )}
-                      <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                        /{a.slug}
-                      </p>
+                      <p className="text-xs text-[var(--muted-foreground)] mt-1">/{a.slug}</p>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
@@ -532,11 +554,7 @@ export function AnnouncementsSection() {
                 ))}
               </ul>
               {totalPages > 1 && (
-                <Pagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  onPageChange={setPage}
-                />
+                <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
               )}
             </>
           )}

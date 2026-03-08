@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 const BACKEND_BASE = API_BASE.replace(/\/api\/?$/, "");
 
 /** Лимит: 30 обменов кода/токена с одного IP за 15 минут */
@@ -14,7 +13,10 @@ export async function POST(request: Request) {
   if (!allowed) {
     return NextResponse.json(
       { success: false, message: "Слишком много попыток. Попробуйте позже." },
-      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+      {
+        status: 429,
+        headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined,
+      },
     );
   }
   try {
@@ -45,8 +47,7 @@ export async function POST(request: Request) {
     }
 
     const backendUrl = `${BACKEND_BASE}/auth/vk-token`;
-    const defaultRedirect =
-      process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+    const defaultRedirect = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
     const backendBody = hasToken
       ? { access_token: accessToken }
       : {

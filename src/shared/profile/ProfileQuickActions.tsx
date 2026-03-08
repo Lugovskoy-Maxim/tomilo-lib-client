@@ -1,13 +1,6 @@
 "use client";
 
-import { 
-  BookOpen, 
-  ShoppingBag, 
-  Compass, 
-  Sparkles,
-  Settings,
-  Trophy
-} from "lucide-react";
+import { ShoppingBag, Compass, Sparkles, Trophy } from "lucide-react";
 import Link from "next/link";
 
 interface QuickAction {
@@ -71,7 +64,7 @@ interface ProfileQuickActionsProps {
 export default function ProfileQuickActions({ className = "" }: ProfileQuickActionsProps) {
   return (
     <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 ${className}`}>
-      {QUICK_ACTIONS.map((action) => {
+      {QUICK_ACTIONS.map(action => {
         const Icon = action.icon;
         return (
           <Link
@@ -83,8 +76,12 @@ export default function ProfileQuickActions({ className = "" }: ProfileQuickActi
               <Icon className={`w-4 h-4 ${action.color}`} />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-[var(--foreground)] truncate">{action.label}</p>
-              <p className="text-[10px] text-[var(--muted-foreground)] truncate hidden sm:block">{action.description}</p>
+              <p className="text-sm font-medium text-[var(--foreground)] truncate">
+                {action.label}
+              </p>
+              <p className="text-[10px] text-[var(--muted-foreground)] truncate hidden sm:block">
+                {action.description}
+              </p>
             </div>
           </Link>
         );

@@ -6,9 +6,9 @@ export async function POST(req: NextRequest) {
   try {
     // Get auth token from request headers
     const authHeader = req.headers.get("authorization");
-    
+
     const url = new URL("/stats/record", API_BASE);
-    
+
     const res = await fetch(url.toString(), {
       method: "POST",
       cache: "no-store",
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       const errorData = await res.json().catch(() => ({ message: "Failed to record stats" }));
       return NextResponse.json(
         { success: false, message: errorData.message || "Failed to record stats" },
-        { status: res.status }
+        { status: res.status },
       );
     }
 
@@ -30,9 +30,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Record stats API error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

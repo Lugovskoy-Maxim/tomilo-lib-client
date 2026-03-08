@@ -9,7 +9,17 @@ import { useRedeemPromoCodeMutation, useLazyCheckPromoCodeQuery } from "@/store/
 import { useSEO } from "@/hooks/useSEO";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/hooks/useAuth";
-import { Gift, Ticket, Coins, Crown, Palette, CheckCircle2, Loader2, Sparkles, LogIn } from "lucide-react";
+import {
+  Gift,
+  Ticket,
+  Coins,
+  Crown,
+  Palette,
+  CheckCircle2,
+  Loader2,
+  Sparkles,
+  LogIn,
+} from "lucide-react";
 import type { PromoCodeReward } from "@/types/promocode";
 import type { ApiResponseDto } from "@/types/api";
 import type { AuthResponse } from "@/types/auth";
@@ -18,7 +28,7 @@ function PromoPageContent() {
   const searchParams = useSearchParams();
   const toast = useToast();
   const { isAuthenticated, login } = useAuth();
-  
+
   const [code, setCode] = useState("");
   const [isChecking, setIsChecking] = useState(false);
   const [previewRewards, setPreviewRewards] = useState<PromoCodeReward[] | null>(null);
@@ -64,16 +74,16 @@ function PromoPageContent() {
 
   const handleCheckCode = async () => {
     if (!code.trim()) return;
-    
+
     if (!isAuthenticated) {
       toast.error("Для проверки промокода необходимо войти в аккаунт");
       handleLoginModalOpen();
       return;
     }
-    
+
     setIsChecking(true);
     setPreviewRewards(null);
-    
+
     try {
       const result = await checkPromoCode(code.trim().toUpperCase()).unwrap();
       if (result.valid && result.rewards) {
@@ -90,7 +100,7 @@ function PromoPageContent() {
 
   const handleRedeem = async () => {
     if (!code.trim()) return;
-    
+
     if (!isAuthenticated) {
       toast.error("Для активации промокода необходимо войти в аккаунт");
       handleLoginModalOpen();
@@ -220,7 +230,8 @@ function PromoPageContent() {
                   <div className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)]">
                     <Coins className="w-6 h-6 text-amber-500" />
                     <span className="font-medium text-[var(--foreground)]">
-                      Баланс: <span className="text-amber-500 font-semibold">{newBalance} монет</span>
+                      Баланс:{" "}
+                      <span className="text-amber-500 font-semibold">{newBalance} монет</span>
                     </span>
                   </div>
                 )}
@@ -246,9 +257,7 @@ function PromoPageContent() {
               <div className="p-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
                 <Gift className="w-5 h-5" />
               </div>
-              <h2 className="text-xl font-semibold text-[var(--foreground)]">
-                Введите промокод
-              </h2>
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">Введите промокод</h2>
             </div>
 
             <div className="space-y-4">
@@ -374,11 +383,13 @@ function PromoPageContent() {
 
 export default function PromoPage() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+        </main>
+      }
+    >
       <PromoPageContent />
     </Suspense>
   );

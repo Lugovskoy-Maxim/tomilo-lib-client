@@ -296,7 +296,8 @@ export function ChaptersTab({
 export function ChapterItem({
   chapter,
   titleId,
-  user: _user,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- user передаётся с родителя
+  ..._rest
 }: {
   chapter: Chapter;
   titleId: string;
@@ -312,8 +313,7 @@ export function ChapterItem({
     chapter.averageRating != null ||
     (chapter.ratingCount != null && chapter.ratingCount > 0) ||
     (chapter.ratingSum != null && (chapter.ratingCount ?? 0) > 0);
-  const hasReactionsInChapter =
-    Array.isArray(chapter.reactions) && chapter.reactions.length > 0;
+  const hasReactionsInChapter = Array.isArray(chapter.reactions) && chapter.reactions.length > 0;
 
   useEffect(() => {
     const el = wrapperRef.current;
@@ -322,7 +322,7 @@ export function ChapterItem({
       ([entry]) => {
         if (entry?.isIntersecting) setIsVisible(true);
       },
-      { rootMargin: "100px", threshold: 0 }
+      { rootMargin: "100px", threshold: 0 },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -341,9 +341,9 @@ export function ChapterItem({
     rating?.averageRating ??
     (rating?.ratingSum != null && (rating?.ratingCount ?? 0) > 0
       ? rating!.ratingSum! / (rating!.ratingCount ?? 1)
-      : (chapter.ratingSum != null && (chapter.ratingCount ?? 0) > 0
-          ? chapter.ratingSum! / (chapter.ratingCount ?? 1)
-          : null));
+      : chapter.ratingSum != null && (chapter.ratingCount ?? 0) > 0
+        ? chapter.ratingSum! / (chapter.ratingCount ?? 1)
+        : null);
   const ratingCount = chapter.ratingCount ?? rating?.ratingCount ?? 0;
   const totalReactions =
     chapter.reactions?.reduce((sum, r) => sum + (r.count ?? 0), 0) ??
@@ -432,7 +432,9 @@ export function ChapterItem({
             <span className="flex items-center gap-1" title="Рейтинг главы">
               <Star className="w-3.5 h-3.5 text-[var(--muted-foreground)] fill-[var(--muted-foreground)]" />
               <span className="tabular-nums min-w-[2.5rem]">
-                {hasRating ? `${averageRating!.toFixed(1)}${ratingCount > 0 ? ` (${ratingCount})` : ""}` : "—"}
+                {hasRating
+                  ? `${averageRating!.toFixed(1)}${ratingCount > 0 ? ` (${ratingCount})` : ""}`
+                  : "—"}
               </span>
             </span>
             <span className="flex items-center gap-1" title="Реакции">

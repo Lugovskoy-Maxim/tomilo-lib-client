@@ -50,7 +50,12 @@ const getValidScheduleHour = (value: unknown): number | null => {
 
   if (typeof value === "string") {
     const normalized = value.trim().toLowerCase();
-    if (!normalized || normalized === "null" || normalized === "undefined" || normalized === "none") {
+    if (
+      !normalized ||
+      normalized === "null" ||
+      normalized === "undefined" ||
+      normalized === "none"
+    ) {
       return null;
     }
   }
@@ -234,9 +239,7 @@ export default function AutoParsingSection() {
     [jobsByHour],
   );
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const handleDragStart = (event: DragStartEvent) => {
     const job = jobs.find(j => j._id === event.active.id);
@@ -276,10 +279,7 @@ export default function AutoParsingSection() {
             </h3>
             <p className="text-[var(--muted-foreground)] mb-6">{modalContent.message}</p>
             <div className="flex justify-end">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="admin-btn admin-btn-primary"
-              >
+              <button onClick={() => setIsModalOpen(false)} className="admin-btn admin-btn-primary">
                 Закрыть
               </button>
             </div>
@@ -341,11 +341,7 @@ export default function AutoParsingSection() {
       </div>
 
       {/* Schedule by hour (UTC) — drag & drop */}
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {viewMode === "hourly" && (
           <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
@@ -416,11 +412,7 @@ export default function AutoParsingSection() {
 
             <DragOverlay>
               {activeJob ? (
-                <ScheduleJobCard
-                  job={activeJob}
-                  getImageUrl={getImageUrl}
-                  isOverlay
-                />
+                <ScheduleJobCard job={activeJob} getImageUrl={getImageUrl} isOverlay />
               ) : null}
             </DragOverlay>
           </div>
@@ -429,155 +421,156 @@ export default function AutoParsingSection() {
         {/* Jobs List */}
         {viewMode === "default" && (
           <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
-          <div className="mb-4 flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
-              <input
-                type="text"
-                value={jobSearch}
-                onChange={e => setJobSearch(e.target.value)}
-                placeholder="Поиск по тайтлу, id или источнику..."
-                className="admin-input w-full pl-9"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setOnlyEnabled(prev => !prev)}
-              className={`admin-btn ${onlyEnabled ? "admin-btn-primary" : "admin-btn-secondary"}`}
-            >
-              Только активные
-            </button>
-          </div>
-          {jobsLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
-          </div>
-        ) : filteredDefaultJobs.length === 0 ? (
-          <div className="text-center py-8">
-            <Clock className="w-12 h-12 text-[var(--muted-foreground)] mx-auto mb-4" />
-            <p className="text-[var(--muted-foreground)]">
-              {jobs.length === 0 ? "Нет задач автоматического парсинга" : "Ничего не найдено по фильтрам"}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredDefaultJobs.map((job: AutoParsingJob) => (
-              <div
-                key={job._id}
-                className="border border-[var(--border)] flex flex-col rounded-[var(--admin-radius)] p-2 hover:border-[var(--primary)] transition-colors overflow-hidden"
-              >
-                <div className="flex gap-2">
-                  <div className="w-24 h-32 bg-[var(--accent)] rounded overflow-hidden flex-shrink-0">
-                    {job.titleId?.coverImage ? (
-                      <OptimizedImage
-                        src={getImageUrls(job.titleId.coverImage).primary}
-                        fallbackSrc={getImageUrls(job.titleId.coverImage).fallback}
-                        alt={job.titleId?.name || "Title"}
-                        className="w-full h-full object-cover"
-                        width={96}
-                        height={128}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-[var(--muted)]">
-                        <div className="w-8 h-8 rounded-full border-2 border-[var(--muted)] border-t-[var(--primary)] animate-spin" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col items-start gap-3 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div
-                          className={`w-4 h-4 rounded-[var(--admin-radius)] ${
-                            job.enabled ? "bg-[var(--chart-2)]" : "bg-[var(--destructive)]"
-                          }`}
-                        />
-                        <h3 className="font-medium text-[var(--foreground)] truncate">
-                          {job.titleId?.name || "Не указан"}
-                        </h3>
-                      </div>
-                      <p className="text-xs text-[var(--muted-foreground)] truncate">
-                        ID: {job._id.slice(-8)}
-                      </p>
-                      <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                        {job.titleId?.releaseYear && `${job.titleId.releaseYear} • `}
-                        {job.titleId?.author || "Неизвестен"}
-                      </p>
-                    </div>
-
-                    <div className="mb-3 w-full">
-                      <span className="text-xs text-[var(--muted-foreground)] block mb-1">
-                        Источники:
-                      </span>
-                      <div className="flex flex-col gap-1 w-full">
-                        {getJobDisplaySources(job)
-                          .slice(0, 2)
-                          .map((source, idx) => (
-                            <div key={idx} className="flex items-start gap-1 w-full break-all">
-                              <span className="text-[var(--foreground)] text-xs flex-1 min-w-0">
-                                {source}
-                              </span>
-                              <button
-                                onClick={() => window.open(source, "_blank")}
-                                className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex-shrink-0"
-                              >
-                                <ExternalLink className="w-5 h-5" />
-                              </button>
-                            </div>
-                          ))}
-                        {getJobDisplaySources(job).length > 2 && (
-                          <span className="text-xs text-[var(--muted-foreground)]">
-                            +{getJobDisplaySources(job).length - 2} ещё
-                          </span>
-                        )}
-                        {getJobDisplaySources(job).length === 0 && (
-                          <span className="text-xs text-[var(--muted-foreground)]">
-                            Не указаны
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
-                  <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
-                    <Clock className="w-5 h-5" />
-                    <span className="capitalize">{job.frequency}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleCheckChapters(job._id)}
-                      disabled={checkLoading}
-                      className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
-                      title="Проверить новые главы"
-                    >
-                      <RefreshCw className={`w-6 h-6 ${checkLoading ? "animate-spin" : ""}`} />
-                    </button>
-                    <button
-                      onClick={() => setEditingJob(job)}
-                      className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                      title="Редактировать"
-                    >
-                      <Edit className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteJob(job._id)}
-                      disabled={deleteLoading}
-                      className="p-2 text-red-500 hover:text-red-600 disabled:opacity-50"
-                      title="Удалить"
-                    >
-                      <Trash2 className="w-6 h-6" />
-                    </button>
-                  </div>
-                </div>
+            <div className="mb-4 flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+                <input
+                  type="text"
+                  value={jobSearch}
+                  onChange={e => setJobSearch(e.target.value)}
+                  placeholder="Поиск по тайтлу, id или источнику..."
+                  className="admin-input w-full pl-9"
+                />
               </div>
-            ))}
-          </div>
-        )}
-          </div>
-        )}
+              <button
+                type="button"
+                onClick={() => setOnlyEnabled(prev => !prev)}
+                className={`admin-btn ${onlyEnabled ? "admin-btn-primary" : "admin-btn-secondary"}`}
+              >
+                Только активные
+              </button>
+            </div>
+            {jobsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
+              </div>
+            ) : filteredDefaultJobs.length === 0 ? (
+              <div className="text-center py-8">
+                <Clock className="w-12 h-12 text-[var(--muted-foreground)] mx-auto mb-4" />
+                <p className="text-[var(--muted-foreground)]">
+                  {jobs.length === 0
+                    ? "Нет задач автоматического парсинга"
+                    : "Ничего не найдено по фильтрам"}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredDefaultJobs.map((job: AutoParsingJob) => (
+                  <div
+                    key={job._id}
+                    className="border border-[var(--border)] flex flex-col rounded-[var(--admin-radius)] p-2 hover:border-[var(--primary)] transition-colors overflow-hidden"
+                  >
+                    <div className="flex gap-2">
+                      <div className="w-24 h-32 bg-[var(--accent)] rounded overflow-hidden flex-shrink-0">
+                        {job.titleId?.coverImage ? (
+                          <OptimizedImage
+                            src={getImageUrls(job.titleId.coverImage).primary}
+                            fallbackSrc={getImageUrls(job.titleId.coverImage).fallback}
+                            alt={job.titleId?.name || "Title"}
+                            className="w-full h-full object-cover"
+                            width={96}
+                            height={128}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-[var(--muted)]">
+                            <div className="w-8 h-8 rounded-full border-2 border-[var(--muted)] border-t-[var(--primary)] animate-spin" />
+                          </div>
+                        )}
+                      </div>
 
+                      <div className="flex flex-col items-start gap-3 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div
+                              className={`w-4 h-4 rounded-[var(--admin-radius)] ${
+                                job.enabled ? "bg-[var(--chart-2)]" : "bg-[var(--destructive)]"
+                              }`}
+                            />
+                            <h3 className="font-medium text-[var(--foreground)] truncate">
+                              {job.titleId?.name || "Не указан"}
+                            </h3>
+                          </div>
+                          <p className="text-xs text-[var(--muted-foreground)] truncate">
+                            ID: {job._id.slice(-8)}
+                          </p>
+                          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                            {job.titleId?.releaseYear && `${job.titleId.releaseYear} • `}
+                            {job.titleId?.author || "Неизвестен"}
+                          </p>
+                        </div>
+
+                        <div className="mb-3 w-full">
+                          <span className="text-xs text-[var(--muted-foreground)] block mb-1">
+                            Источники:
+                          </span>
+                          <div className="flex flex-col gap-1 w-full">
+                            {getJobDisplaySources(job)
+                              .slice(0, 2)
+                              .map((source, idx) => (
+                                <div key={idx} className="flex items-start gap-1 w-full break-all">
+                                  <span className="text-[var(--foreground)] text-xs flex-1 min-w-0">
+                                    {source}
+                                  </span>
+                                  <button
+                                    onClick={() => window.open(source, "_blank")}
+                                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex-shrink-0"
+                                  >
+                                    <ExternalLink className="w-5 h-5" />
+                                  </button>
+                                </div>
+                              ))}
+                            {getJobDisplaySources(job).length > 2 && (
+                              <span className="text-xs text-[var(--muted-foreground)]">
+                                +{getJobDisplaySources(job).length - 2} ещё
+                              </span>
+                            )}
+                            {getJobDisplaySources(job).length === 0 && (
+                              <span className="text-xs text-[var(--muted-foreground)]">
+                                Не указаны
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
+                      <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+                        <Clock className="w-5 h-5" />
+                        <span className="capitalize">{job.frequency}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleCheckChapters(job._id)}
+                          disabled={checkLoading}
+                          className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50"
+                          title="Проверить новые главы"
+                        >
+                          <RefreshCw className={`w-6 h-6 ${checkLoading ? "animate-spin" : ""}`} />
+                        </button>
+                        <button
+                          onClick={() => setEditingJob(job)}
+                          className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                          title="Редактировать"
+                        >
+                          <Edit className="w-6 h-6" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteJob(job._id)}
+                          disabled={deleteLoading}
+                          className="p-2 text-red-500 hover:text-red-600 disabled:opacity-50"
+                          title="Удалить"
+                        >
+                          <Trash2 className="w-6 h-6" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </DndContext>
 
       {/* Create/Edit Modal */}
@@ -1008,7 +1001,13 @@ function DraggableScheduleJobCard({
   });
   const style = transform ? { transform: CSS.Translate.toString(transform) } : undefined;
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={isDragging ? "opacity-50" : ""}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={isDragging ? "opacity-50" : ""}
+    >
       <ScheduleJobCard
         job={job}
         getImageUrl={getImageUrl}

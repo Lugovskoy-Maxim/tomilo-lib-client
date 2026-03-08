@@ -16,7 +16,10 @@ export async function GET(request: Request) {
   if (!allowed) {
     return NextResponse.json(
       { success: false, message: "Слишком много попыток. Попробуйте позже." },
-      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+      {
+        status: 429,
+        headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined,
+      },
     );
   }
   try {
@@ -41,7 +44,10 @@ export async function GET(request: Request) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       return NextResponse.json(
-        { success: false, message: (data as { message?: string }).message || "Ошибка подтверждения email" },
+        {
+          success: false,
+          message: (data as { message?: string }).message || "Ошибка подтверждения email",
+        },
         { status: res.status === 400 || res.status === 401 ? res.status : 400 },
       );
     }
@@ -51,7 +57,7 @@ export async function GET(request: Request) {
       message: "Email успешно подтверждён",
       ...(typeof data === "object" && data !== null ? data : {}),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Ошибка подтверждения email" },
       { status: 500 },

@@ -6,7 +6,7 @@ import { PullToRefresh } from "@/shared/pull-to-refresh/PullToRefresh";
 
 export function TitlesPageClient() {
   const handleRefresh = () =>
-    new Promise<void>((resolve) => {
+    new Promise<void>(resolve => {
       window.dispatchEvent(new CustomEvent("pull-to-refresh-titles", { detail: { resolve } }));
     });
 

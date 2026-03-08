@@ -23,16 +23,18 @@
 
 /* Glow effects */
 .glow-primary {
-  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4),
-              0 0 40px rgba(var(--primary-rgb), 0.2),
-              0 0 60px rgba(var(--primary-rgb), 0.1);
+  box-shadow:
+    0 0 20px rgba(var(--primary-rgb), 0.4),
+    0 0 40px rgba(var(--primary-rgb), 0.2),
+    0 0 60px rgba(var(--primary-rgb), 0.1);
 }
 
 .glow-avatar {
-  box-shadow: 0 0 30px rgba(var(--primary-rgb), 0.5),
-              0 0 60px rgba(var(--primary-rgb), 0.3),
-              0 0 90px rgba(var(--primary-rgb), 0.1),
-              inset 0 0 20px rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 0 30px rgba(var(--primary-rgb), 0.5),
+    0 0 60px rgba(var(--primary-rgb), 0.3),
+    0 0 90px rgba(var(--primary-rgb), 0.1),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 /* Gradient text (Safari: -webkit-*, Firefox/Edge: color + background-clip) */
@@ -55,7 +57,7 @@
 }
 
 .gradient-border::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -2px;
   border-radius: calc(var(--radius) + 2px);
@@ -89,7 +91,14 @@
 }
 
 /* Progress bar animation */
-@keyframes progress-fill { from { width: 0%; } to { width: var(--progress-width); } }
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
 
 .progress-animated {
   animation: progress-fill 1s ease-out forwards;
@@ -113,7 +122,8 @@
 
 /* Pulse glow animation */
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4);
   }
   50% {
@@ -136,18 +146,20 @@
 }
 
 .shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--secondary) 25%,
-    var(--muted) 50%,
-    var(--secondary) 75%
-  );
+  background: linear-gradient(90deg, var(--secondary) 25%, var(--muted) 50%, var(--secondary) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 /* Tab indicator animation */
-@keyframes tab-slide { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes tab-slide {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
 
 .tab-indicator,
 .avatar-ring-animated {
@@ -155,7 +167,7 @@
 }
 
 .tab-indicator::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -2px;
   left: 0;
@@ -171,10 +183,17 @@
 }
 
 /* Avatar ring animation */
-@keyframes ring-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes ring-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .avatar-ring-animated::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -4px;
   border-radius: 50%;
@@ -202,7 +221,11 @@
 
 /* Rank badge styles */
 .rank-badge {
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--chart-1-rgb), 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 0.1) 0%,
+    rgba(var(--chart-1-rgb), 0.1) 100%
+  );
   border: 1px solid rgba(var(--primary-rgb), 0.2);
   box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.1);
 }
@@ -219,4 +242,3 @@
   border-radius: 9999px;
   transition: width 0.5s ease-out;
 }
-

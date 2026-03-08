@@ -7,14 +7,9 @@ import {
   RefreshCw,
   AlertTriangle,
   Globe,
-  Users,
-  MessageCircle,
-  Star,
   Shield,
   Database,
   Trash2,
-  CheckCircle,
-  XCircle,
   Activity,
 } from "lucide-react";
 import {
@@ -30,7 +25,7 @@ import { useToast } from "@/hooks/useToast";
 export function SiteSettingsSection() {
   const toast = useToast();
   const { data: settingsData, isLoading, refetch } = useGetSiteSettingsQuery();
-  const { data: healthData, refetch: refetchHealth } = useGetSystemHealthQuery();
+  const { data: healthData } = useGetSystemHealthQuery();
   const [updateSettings, { isLoading: isUpdating }] = useUpdateSiteSettingsMutation();
   const [clearCache, { isLoading: isClearing }] = useClearCacheMutation();
 
@@ -59,7 +54,7 @@ export function SiteSettingsSection() {
       toast.success("Настройки сохранены");
       setHasChanges(false);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при сохранении настроек");
     }
   };
@@ -68,7 +63,7 @@ export function SiteSettingsSection() {
     try {
       const result = await clearCache({ cacheType }).unwrap();
       toast.success(`Кэш очищен: ${result.data?.cleared?.join(", ") || "все"}`);
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при очистке кэша");
     }
   };
@@ -114,7 +109,11 @@ export function SiteSettingsSection() {
               <span className="text-[10px] sm:text-sm text-[var(--muted-foreground)]">Статус</span>
             </div>
             <p className={`text-base sm:text-lg font-semibold ${getHealthColor(health.status)}`}>
-              {health.status === "healthy" ? "OK" : health.status === "degraded" ? "Замедлен" : "Откл"}
+              {health.status === "healthy"
+                ? "OK"
+                : health.status === "degraded"
+                  ? "Замедлен"
+                  : "Откл"}
             </p>
           </div>
           <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
@@ -122,7 +121,9 @@ export function SiteSettingsSection() {
               <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--muted-foreground)]" />
               <span className="text-[10px] sm:text-sm text-[var(--muted-foreground)]">Uptime</span>
             </div>
-            <p className="text-base sm:text-lg font-semibold text-[var(--foreground)]">{formatUptime(health.uptime)}</p>
+            <p className="text-base sm:text-lg font-semibold text-[var(--foreground)]">
+              {formatUptime(health.uptime)}
+            </p>
           </div>
           <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
@@ -190,7 +191,9 @@ export function SiteSettingsSection() {
                   onChange={e => setForm({ ...form, maintenanceMode: e.target.checked })}
                   className="w-4 h-4 sm:w-5 sm:h-5 rounded border-[var(--border)]"
                 />
-                <span className="text-sm sm:text-base text-[var(--foreground)]">Включить режим обслуживания</span>
+                <span className="text-sm sm:text-base text-[var(--foreground)]">
+                  Включить режим обслуживания
+                </span>
               </label>
               {form.maintenanceMode && (
                 <div>
@@ -265,8 +268,12 @@ export function SiteSettingsSection() {
                   className="w-4 h-4 sm:w-5 sm:h-5 rounded border-[var(--border)] flex-shrink-0"
                 />
                 <div className="min-w-0">
-                  <p className="text-sm sm:text-base font-medium text-[var(--foreground)]">Регистрация</p>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">Новые пользователи</p>
+                  <p className="text-sm sm:text-base font-medium text-[var(--foreground)]">
+                    Регистрация
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">
+                    Новые пользователи
+                  </p>
                 </div>
               </label>
               <label className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-[var(--secondary)] cursor-pointer">
@@ -277,8 +284,12 @@ export function SiteSettingsSection() {
                   className="w-4 h-4 sm:w-5 sm:h-5 rounded border-[var(--border)] flex-shrink-0"
                 />
                 <div className="min-w-0">
-                  <p className="text-sm sm:text-base font-medium text-[var(--foreground)]">Комментарии</p>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">Обсуждения контента</p>
+                  <p className="text-sm sm:text-base font-medium text-[var(--foreground)]">
+                    Комментарии
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">
+                    Обсуждения контента
+                  </p>
                 </div>
               </label>
               <label className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-[var(--secondary)] cursor-pointer">
@@ -289,8 +300,12 @@ export function SiteSettingsSection() {
                   className="w-4 h-4 sm:w-5 sm:h-5 rounded border-[var(--border)] flex-shrink-0"
                 />
                 <div className="min-w-0">
-                  <p className="text-sm sm:text-base font-medium text-[var(--foreground)]">Рейтинги</p>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">Оценки контента</p>
+                  <p className="text-sm sm:text-base font-medium text-[var(--foreground)]">
+                    Рейтинги
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">
+                    Оценки контента
+                  </p>
                 </div>
               </label>
               <label className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-[var(--secondary)] cursor-pointer">
@@ -302,45 +317,63 @@ export function SiteSettingsSection() {
                 />
                 <div className="min-w-0">
                   <p className="text-sm sm:text-base font-medium text-[var(--foreground)]">18+</p>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">Контент для взрослых</p>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">
+                    Контент для взрослых
+                  </p>
                 </div>
               </label>
             </div>
           </section>
 
           <section>
-            <h3 className="text-sm sm:text-lg font-medium text-[var(--foreground)] mb-3 sm:mb-4">Социальные сети</h3>
+            <h3 className="text-sm sm:text-lg font-medium text-[var(--foreground)] mb-3 sm:mb-4">
+              Социальные сети
+            </h3>
             <div className="grid grid-cols-1 min-[400px]:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">Telegram</label>
+                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">
+                  Telegram
+                </label>
                 <input
                   type="url"
                   value={form.socialLinks?.telegram || ""}
                   onChange={e =>
-                    setForm({ ...form, socialLinks: { ...form.socialLinks, telegram: e.target.value } })
+                    setForm({
+                      ...form,
+                      socialLinks: { ...form.socialLinks, telegram: e.target.value },
+                    })
                   }
                   placeholder="t.me/..."
                   className="admin-input w-full text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">Discord</label>
+                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">
+                  Discord
+                </label>
                 <input
                   type="url"
                   value={form.socialLinks?.discord || ""}
                   onChange={e =>
-                    setForm({ ...form, socialLinks: { ...form.socialLinks, discord: e.target.value } })
+                    setForm({
+                      ...form,
+                      socialLinks: { ...form.socialLinks, discord: e.target.value },
+                    })
                   }
                   placeholder="discord.gg/..."
                   className="admin-input w-full text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">VK</label>
+                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">
+                  VK
+                </label>
                 <input
                   type="url"
                   value={form.socialLinks?.vk || ""}
-                  onChange={e => setForm({ ...form, socialLinks: { ...form.socialLinks, vk: e.target.value } })}
+                  onChange={e =>
+                    setForm({ ...form, socialLinks: { ...form.socialLinks, vk: e.target.value } })
+                  }
                   placeholder="vk.com/..."
                   className="admin-input w-full text-sm"
                 />
@@ -349,7 +382,9 @@ export function SiteSettingsSection() {
           </section>
 
           <section>
-            <h3 className="text-sm sm:text-lg font-medium text-[var(--foreground)] mb-3 sm:mb-4">SEO настройки</h3>
+            <h3 className="text-sm sm:text-lg font-medium text-[var(--foreground)] mb-3 sm:mb-4">
+              SEO настройки
+            </h3>
             <div className="space-y-3 sm:space-y-4">
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">
@@ -359,7 +394,10 @@ export function SiteSettingsSection() {
                   type="text"
                   value={form.seoSettings?.defaultTitle || ""}
                   onChange={e =>
-                    setForm({ ...form, seoSettings: { ...form.seoSettings, defaultTitle: e.target.value } })
+                    setForm({
+                      ...form,
+                      seoSettings: { ...form.seoSettings, defaultTitle: e.target.value },
+                    })
                   }
                   className="admin-input w-full text-sm"
                 />
@@ -371,7 +409,10 @@ export function SiteSettingsSection() {
                 <textarea
                   value={form.seoSettings?.defaultDescription || ""}
                   onChange={e =>
-                    setForm({ ...form, seoSettings: { ...form.seoSettings, defaultDescription: e.target.value } })
+                    setForm({
+                      ...form,
+                      seoSettings: { ...form.seoSettings, defaultDescription: e.target.value },
+                    })
                   }
                   className="admin-input w-full resize-none text-sm"
                   rows={2}
@@ -385,7 +426,10 @@ export function SiteSettingsSection() {
                   type="text"
                   value={form.seoSettings?.defaultKeywords || ""}
                   onChange={e =>
-                    setForm({ ...form, seoSettings: { ...form.seoSettings, defaultKeywords: e.target.value } })
+                    setForm({
+                      ...form,
+                      seoSettings: { ...form.seoSettings, defaultKeywords: e.target.value },
+                    })
                   }
                   placeholder="манга, манхва, онлайн"
                   className="admin-input w-full text-sm"

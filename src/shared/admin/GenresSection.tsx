@@ -1,7 +1,20 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash2, Search, Tag, Merge, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown, Download, BarChart3 } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  Tag,
+  Merge,
+  AlertTriangle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Download,
+  BarChart3,
+} from "lucide-react";
 import {
   useGetGenresQuery,
   useCreateGenreMutation,
@@ -48,7 +61,12 @@ export function GenresSection() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: genresData, isLoading, error, refetch } = useGetGenresQuery({
+  const {
+    data: genresData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetGenresQuery({
     search: debouncedSearch,
     page: currentPage,
     limit: 50,
@@ -59,16 +77,17 @@ export function GenresSection() {
   const [deleteGenre] = useDeleteGenreMutation();
   const [mergeGenres, { isLoading: isMerging }] = useMergeGenresMutation();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- rawGenres из запроса
   const rawGenres = genresData?.data?.genres || [];
   const pagination = genresData?.data?.pagination || { total: 0, page: 1, limit: 50, pages: 0 };
 
   const filteredAndSortedGenres = useMemo(() => {
     const filtered = rawGenres.filter(g => g.titlesCount >= minTitlesFilter);
-    
+
     return [...filtered].sort((a, b) => {
       let aVal: string | number;
       let bVal: string | number;
-      
+
       switch (sortField) {
         case "name":
           aVal = a.name.toLowerCase();
@@ -85,16 +104,14 @@ export function GenresSection() {
         default:
           return 0;
       }
-      
+
       if (typeof aVal === "string" && typeof bVal === "string") {
         return sortDirection === "asc"
           ? aVal.localeCompare(bVal, "ru")
           : bVal.localeCompare(aVal, "ru");
       }
-      
-      return sortDirection === "asc"
-        ? Number(aVal) - Number(bVal)
-        : Number(bVal) - Number(aVal);
+
+      return sortDirection === "asc" ? Number(aVal) - Number(bVal) : Number(bVal) - Number(aVal);
     });
   }, [rawGenres, sortField, sortDirection, minTitlesFilter]);
 
@@ -110,25 +127,22 @@ export function GenresSection() {
     return { total, withTitles, empty, totalTitlesUsage, avgTitles, mostUsed };
   }, [rawGenres]);
 
-  const handleSort = useCallback((field: GenreSortField) => {
-    if (field === sortField) {
-      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection(field === "name" ? "asc" : "desc");
-    }
-  }, [sortField]);
+  const handleSort = useCallback(
+    (field: GenreSortField) => {
+      if (field === sortField) {
+        setSortDirection(prev => (prev === "asc" ? "desc" : "asc"));
+      } else {
+        setSortField(field);
+        setSortDirection(field === "name" ? "asc" : "desc");
+      }
+    },
+    [sortField],
+  );
 
   const handleExportCSV = useCallback(() => {
     const headers = ["ID", "Название", "Slug", "Тайтлов", "Описание"];
-    const rows = genres.map(g => [
-      g._id,
-      g.name,
-      g.slug,
-      g.titlesCount || 0,
-      g.description || "",
-    ]);
-    
+    const rows = genres.map(g => [g._id, g.name, g.slug, g.titlesCount || 0, g.description || ""]);
+
     const csvContent = [
       headers.join(","),
       ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
@@ -195,7 +209,7 @@ export function GenresSection() {
       setIsFormOpen(false);
       setForm(emptyForm);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error(editingGenre ? "Ошибка при обновлении жанра" : "Ошибка при создании жанра");
     }
   };
@@ -208,7 +222,7 @@ export function GenresSection() {
       toast.success("Жанр удалён");
       setDeleteTarget(null);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при удалении жанра");
     } finally {
       setDeleteLoading(false);
@@ -227,7 +241,7 @@ export function GenresSection() {
       setMergeSource(null);
       setMergeTarget(null);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при объединении жанров");
     }
   };
@@ -262,7 +276,9 @@ export function GenresSection() {
       <div className="grid grid-cols-2 min-[480px]:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
         <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
           <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">Всего жанров</p>
-          <p className="mt-1 text-lg sm:text-xl font-bold text-[var(--foreground)]">{stats.total}</p>
+          <p className="mt-1 text-lg sm:text-xl font-bold text-[var(--foreground)]">
+            {stats.total}
+          </p>
         </div>
         <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
           <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">С тайтлами</p>
@@ -274,13 +290,19 @@ export function GenresSection() {
         </div>
         <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
           <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">Среднее исп.</p>
-          <p className="mt-1 text-lg sm:text-xl font-bold text-[var(--foreground)]">{stats.avgTitles}</p>
+          <p className="mt-1 text-lg sm:text-xl font-bold text-[var(--foreground)]">
+            {stats.avgTitles}
+          </p>
         </div>
         {stats.mostUsed && (
           <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)] col-span-2 min-[480px]:col-span-1">
             <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">Популярный</p>
-            <p className="mt-1 text-sm sm:text-base font-bold text-[var(--primary)] truncate">{stats.mostUsed.name}</p>
-            <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">{stats.mostUsed.titlesCount} тайтлов</p>
+            <p className="mt-1 text-sm sm:text-base font-bold text-[var(--primary)] truncate">
+              {stats.mostUsed.name}
+            </p>
+            <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">
+              {stats.mostUsed.titlesCount} тайтлов
+            </p>
           </div>
         )}
       </div>
@@ -308,9 +330,14 @@ export function GenresSection() {
               }`}
             >
               <Merge className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden min-[400px]:inline">{mergeMode ? "Отмена" : "Объединить"}</span>
+              <span className="hidden min-[400px]:inline">
+                {mergeMode ? "Отмена" : "Объединить"}
+              </span>
             </button>
-            <button onClick={openCreate} className="admin-btn-primary flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
+            <button
+              onClick={openCreate}
+              className="admin-btn-primary flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm"
+            >
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden min-[400px]:inline">Добавить</span>
             </button>
@@ -343,10 +370,14 @@ export function GenresSection() {
                 </select>
                 <button
                   type="button"
-                  onClick={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
+                  onClick={() => setSortDirection(prev => (prev === "asc" ? "desc" : "asc"))}
                   className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 >
-                  {sortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />}
+                  {sortDirection === "asc" ? (
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  )}
                 </button>
               </div>
               <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--card)] px-2 py-1">
@@ -435,8 +466,12 @@ export function GenresSection() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)] truncate">{genre.name}</h4>
-                      <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">/{genre.slug}</p>
+                      <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)] truncate">
+                        {genre.name}
+                      </h4>
+                      <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">
+                        /{genre.slug}
+                      </p>
                       {genre.description && (
                         <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2">
                           {genre.description}
@@ -498,7 +533,11 @@ export function GenresSection() {
               onChange={e => {
                 setForm({ ...form, name: e.target.value });
                 if (!editingGenre && !form.slug) {
-                  setForm(prev => ({ ...prev, name: e.target.value, slug: generateSlug(e.target.value) }));
+                  setForm(prev => ({
+                    ...prev,
+                    name: e.target.value,
+                    slug: generateSlug(e.target.value),
+                  }));
                 }
               }}
               placeholder="Например: Романтика"
@@ -542,16 +581,8 @@ export function GenresSection() {
             >
               Отмена
             </button>
-            <button
-              type="submit"
-              disabled={isCreating || isUpdating}
-              className="admin-btn-primary"
-            >
-              {isCreating || isUpdating
-                ? "Сохранение..."
-                : editingGenre
-                  ? "Сохранить"
-                  : "Создать"}
+            <button type="submit" disabled={isCreating || isUpdating} className="admin-btn-primary">
+              {isCreating || isUpdating ? "Сохранение..." : editingGenre ? "Сохранить" : "Создать"}
             </button>
           </div>
         </form>

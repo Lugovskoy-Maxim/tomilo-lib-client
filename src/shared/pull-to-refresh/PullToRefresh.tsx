@@ -13,7 +13,12 @@ interface PullToRefreshProps {
   mobileOnly?: boolean;
 }
 
-export function PullToRefresh({ children, onRefresh, disabled = false, mobileOnly = true }: PullToRefreshProps) {
+export function PullToRefresh({
+  children,
+  onRefresh,
+  disabled = false,
+  mobileOnly = true,
+}: PullToRefreshProps) {
   const [pullY, setPullY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const startY = useRef(0);
@@ -22,12 +27,17 @@ export function PullToRefresh({ children, onRefresh, disabled = false, mobileOnl
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (disabled || isRefreshing) return;
-      if (mobileOnly && typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) return;
+      if (
+        mobileOnly &&
+        typeof window !== "undefined" &&
+        window.matchMedia("(min-width: 1024px)").matches
+      )
+        return;
       if (window.scrollY > 10) return;
       startY.current = e.touches[0].clientY;
       isPull.current = true;
     },
-    [disabled, isRefreshing, mobileOnly]
+    [disabled, isRefreshing, mobileOnly],
   );
 
   const handleTouchMove = useCallback(
@@ -39,7 +49,7 @@ export function PullToRefresh({ children, onRefresh, disabled = false, mobileOnl
       const pull = Math.min(delta * 0.5, MAX_PULL);
       setPullY(pull);
     },
-    [disabled, isRefreshing]
+    [disabled, isRefreshing],
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -48,11 +58,10 @@ export function PullToRefresh({ children, onRefresh, disabled = false, mobileOnl
     if (pullY >= PULL_THRESHOLD && !isRefreshing) {
       setIsRefreshing(true);
       const timeoutId = setTimeout(() => setIsRefreshing(false), 30000);
-      Promise.resolve(onRefresh())
-        .finally(() => {
-          clearTimeout(timeoutId);
-          setIsRefreshing(false);
-        });
+      Promise.resolve(onRefresh()).finally(() => {
+        clearTimeout(timeoutId);
+        setIsRefreshing(false);
+      });
       setPullY(0);
     } else {
       setPullY(0);

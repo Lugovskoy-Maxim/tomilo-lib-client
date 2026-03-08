@@ -8,7 +8,12 @@ interface PaginationProps {
   className?: string;
 }
 
-export function Pagination({ currentPage, totalPages, onPageChange, className = "" }: PaginationProps) {
+export function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  className = "",
+}: PaginationProps) {
   if (totalPages <= 1) return null;
 
   const getVisiblePages = () => {
@@ -16,7 +21,11 @@ export function Pagination({ currentPage, totalPages, onPageChange, className = 
     const range = [];
     const rangeWithDots = [];
 
-    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
       range.push(i);
     }
 
@@ -85,4 +94,3 @@ export function Pagination({ currentPage, totalPages, onPageChange, className = 
     </div>
   );
 }
-

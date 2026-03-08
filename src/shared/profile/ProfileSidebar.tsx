@@ -21,11 +21,16 @@ interface ProfileSidebarProps {
   isPublicView?: boolean;
 }
 
-export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, isOwnProfile = false, isPublicView = false }: ProfileSidebarProps) {
+export default function ProfileSidebar({
+  userProfile,
+  onEdit,
+  onAvatarUpdate,
+  isOwnProfile = false,
+  isPublicView = false,
+}: ProfileSidebarProps) {
   const { showLevelUp, showAchievement, showExpGain } = useProgressNotification();
   const level = userProfile.level ?? 0;
-  
-  // Определяем, что показывать в публичном просмотре
+
   const showBalance = !isPublicView || isOwnProfile;
   const showStreak = !isPublicView || isOwnProfile || userProfile.showStats !== false;
   const experience = userProfile.experience ?? 0;
@@ -35,9 +40,10 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
   const isAdmin = userProfile.role === "admin";
   const joinedDate = userProfile.createdAt ? new Date(userProfile.createdAt) : null;
   const isJoinedDateVisible = joinedDate != null && !Number.isNaN(joinedDate.getTime());
-  const joinedAtLabel = joinedDate && !Number.isNaN(joinedDate.getTime())
-    ? joinedDate.toLocaleDateString("ru-RU")
-    : "дата скрыта";
+  const joinedAtLabel =
+    joinedDate && !Number.isNaN(joinedDate.getTime())
+      ? joinedDate.toLocaleDateString("ru-RU")
+      : "дата скрыта";
 
   const rankInfo = levelToRank(level);
   const rankColor = getRankColor(rankInfo.rank);
@@ -70,7 +76,9 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
           </h1>
           <span
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium mt-1.5 ${
-              isAdmin ? "bg-red-500/15 text-red-600 dark:text-red-400" : "bg-[var(--primary)]/10 text-[var(--primary)]"
+              isAdmin
+                ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                : "bg-[var(--primary)]/10 text-[var(--primary)]"
             }`}
           >
             {isAdmin ? <Shield className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
@@ -99,18 +107,23 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
 
         {/* Баланс и серия */}
         {(showBalance || showStreak) && (
-          <div className={`grid gap-1.5 mb-3 ${showBalance && showStreak ? "grid-cols-2" : "grid-cols-1"}`}>
+          <div
+            className={`grid gap-1.5 mb-3 ${showBalance && showStreak ? "grid-cols-2" : "grid-cols-1"}`}
+          >
             {showBalance && (
               <div className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-[var(--secondary)]/50">
                 <Coins className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span className="text-[11px] font-medium tabular-nums truncate">{balance.toLocaleString()}</span>
+                <span className="text-[11px] font-medium tabular-nums truncate">
+                  {balance.toLocaleString()}
+                </span>
               </div>
             )}
             {showStreak && (
               <div className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-[var(--secondary)]/50">
                 <Flame className="w-3.5 h-3.5 text-orange-500 shrink-0" />
                 <span className="text-[11px] font-medium tabular-nums">
-                  {currentStreak} {currentStreak === 1 ? "день" : currentStreak < 5 ? "дня" : "дней"}
+                  {currentStreak}{" "}
+                  {currentStreak === 1 ? "день" : currentStreak < 5 ? "дня" : "дней"}
                 </span>
               </div>
             )}
@@ -169,9 +182,9 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
             onClick={() => {
               const demoOldRank = levelToRank(level);
               const demoNewRank = levelToRank(level + 1);
-              
+
               showExpGain(25, "За чтение главы");
-              
+
               setTimeout(() => {
                 showAchievement({
                   id: "demo-achievement",
@@ -183,7 +196,7 @@ export default function ProfileSidebar({ userProfile, onEdit, onAvatarUpdate, is
                   unlockedAt: new Date().toISOString(),
                 });
               }, 500);
-              
+
               setTimeout(() => {
                 showLevelUp(level, level + 1, demoOldRank, demoNewRank);
               }, 1000);

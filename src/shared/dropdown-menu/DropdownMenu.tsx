@@ -83,7 +83,15 @@ const THEME_LABELS: Record<string, string> = {
 const itemClass =
   "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] rounded-lg min-w-0 cursor-pointer outline-none m-0 border-0 bg-transparent transition-[background-color,color] duration-150 hover:bg-[var(--accent)] hover:[&_svg]:text-[var(--foreground)] active:bg-[var(--muted)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset";
 
-export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl, avatarDecorationUrl, leaderboardPositions = [] }: UserDropdownProps) {
+export default function UserDropdown({
+  isOpen,
+  onClose,
+  onLogout,
+  user,
+  frameUrl,
+  avatarDecorationUrl,
+  leaderboardPositions = [],
+}: UserDropdownProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [contentReady, setContentReady] = useState(false);
@@ -191,7 +199,7 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
       role="menu"
       aria-label="Меню пользователя"
       className="absolute top-full right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] min-w-0 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35),0_0_1px_rgba(255,255,255,0.06)] [transform-origin:var(--dropdown-origin,top_right)] animate-fade-in-scale z-[var(--z-modal)]"
-      onClick={(e) => e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
     >
       {/* Карточка профиля */}
       <div className="p-3 border-b border-[var(--border)] bg-[var(--background)]/50">
@@ -202,7 +210,10 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
           role="menuitem"
           className="flex items-center gap-3 transition-colors cursor-pointer rounded-lg p-2 -m-2 hover:bg-[var(--accent)] focus:bg-[var(--accent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
         >
-          <div className="shrink-0 rounded-full ring-1 ring-[var(--border)] relative" style={{ width: 48, height: 48 }}>
+          <div
+            className="shrink-0 rounded-full ring-1 ring-[var(--border)] relative"
+            style={{ width: 48, height: 48 }}
+          >
             <UserAvatar
               avatarUrl={user?.avatar}
               username={displayName}
@@ -237,7 +248,10 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
               </div>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-[var(--foreground)]/60 dark:text-[var(--muted-foreground)] shrink-0" aria-hidden />
+          <ChevronRight
+            className="w-5 h-5 text-[var(--foreground)]/60 dark:text-[var(--muted-foreground)] shrink-0"
+            aria-hidden
+          />
         </Link>
 
         {/* Сначки топов и баланс */}
@@ -254,16 +268,19 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
                     className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300 hover:bg-amber-500/25 dark:hover:bg-amber-500/20 transition-colors cursor-pointer"
                     title={label}
                   >
-                    <Icon className="w-2.5 h-2.5 shrink-0" aria-hidden />
-                    #{position}
+                    <Icon className="w-2.5 h-2.5 shrink-0" aria-hidden />#{position}
                   </Link>
                 );
               })
             ) : (
-              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">—</span>
+              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">
+                —
+              </span>
             )}
             {leaderboardPositions.length > 4 && (
-              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">+{leaderboardPositions.length - 4}</span>
+              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">
+                +{leaderboardPositions.length - 4}
+              </span>
             )}
           </div>
           <span className="flex items-center gap-1 text-xs text-[var(--foreground)]/75 dark:text-[var(--muted-foreground)] shrink-0">
@@ -305,18 +322,15 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
           </span>
           <span
             className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
-              isAdult ? "bg-emerald-500/25 text-emerald-700 dark:text-emerald-300" : "bg-[var(--border)]/60 text-[var(--muted-foreground)]"
+              isAdult
+                ? "bg-emerald-500/25 text-emerald-700 dark:text-emerald-300"
+                : "bg-[var(--border)]/60 text-[var(--muted-foreground)]"
             }`}
           >
             {isAdult ? "Вкл" : "Выкл"}
           </span>
         </button>
-        <button
-          type="button"
-          role="menuitem"
-          className={itemClass}
-          onClick={handleThemeClick}
-        >
+        <button type="button" role="menuitem" className={itemClass} onClick={handleThemeClick}>
           <Palette className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
           <span className="min-w-0 truncate">Тема</span>
           <span className="ml-auto text-xs text-[var(--muted-foreground)]">{themeLabel}</span>
@@ -351,7 +365,10 @@ export default function UserDropdown({ isOpen, onClose, onLogout, user, frameUrl
   );
 }
 
-function CoinIcon({ className, ...props }: { className?: string } & React.SVGAttributes<SVGSVGElement>) {
+function CoinIcon({
+  className,
+  ...props
+}: { className?: string } & React.SVGAttributes<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

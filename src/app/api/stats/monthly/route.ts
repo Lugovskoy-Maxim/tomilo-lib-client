@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   if (!year || !month) {
     return NextResponse.json(
       { success: false, message: "Missing 'year' or 'month' parameter" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -22,14 +22,14 @@ export async function GET(req: NextRequest) {
   if (isNaN(yearNum) || yearNum < 2000 || yearNum > 2100) {
     return NextResponse.json(
       { success: false, message: "Invalid year. Must be between 2000 and 2100" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
     return NextResponse.json(
       { success: false, message: "Invalid month. Must be between 1 and 12" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -47,10 +47,12 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ message: "Failed to fetch monthly stats" }));
+      const errorData = await res
+        .json()
+        .catch(() => ({ message: "Failed to fetch monthly stats" }));
       return NextResponse.json(
         { success: false, message: errorData.message || "Failed to fetch monthly stats" },
-        { status: res.status }
+        { status: res.status },
       );
     }
 
@@ -58,9 +60,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Monthly stats API error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

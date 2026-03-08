@@ -45,12 +45,7 @@ export function ShareChapterButton({
   }, [titleName, chapterNumber, chapterUrl, toast]);
 
   return (
-    <button
-      type="button"
-      onClick={handleShare}
-      className={className}
-      aria-label={ariaLabel}
-    >
+    <button type="button" onClick={handleShare} className={className} aria-label={ariaLabel}>
       <Share className="w-4 h-4" />
     </button>
   );

@@ -50,13 +50,7 @@ interface ToolbarButtonProps {
   children: React.ReactNode;
 }
 
-function ToolbarButton({
-  onClick,
-  isActive,
-  disabled,
-  title,
-  children,
-}: ToolbarButtonProps) {
+function ToolbarButton({ onClick, isActive, disabled, title, children }: ToolbarButtonProps) {
   return (
     <button
       type="button"
@@ -339,11 +333,7 @@ export function RichTextEditor({
         <ToolbarDivider />
 
         {/* Links & Images */}
-        <ToolbarButton
-          onClick={setLink}
-          isActive={editor.isActive("link")}
-          title="Ссылка"
-        >
+        <ToolbarButton onClick={setLink} isActive={editor.isActive("link")} title="Ссылка">
           <LinkIcon className={iconSize} />
         </ToolbarButton>
         {editor.isActive("link") && (

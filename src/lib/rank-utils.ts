@@ -24,7 +24,10 @@ export function getCurrentLevelExp(level: number): number {
  * Прогресс до следующего уровня: 0..100.
  * experience — суммарный XP пользователя.
  */
-export function getLevelProgress(level: number, experience: number): {
+export function getLevelProgress(
+  level: number,
+  experience: number,
+): {
   progressPercent: number;
   currentLevelExp: number;
   nextLevelExp: number;
@@ -33,8 +36,7 @@ export function getLevelProgress(level: number, experience: number): {
   const nextLevelExp = getNextLevelExp(level);
   const segment = nextLevelExp - currentLevelExp;
   const expInSegment = Math.max(0, experience - currentLevelExp);
-  const progressPercent =
-    segment <= 0 ? 100 : Math.min(100, (expInSegment / segment) * 100);
+  const progressPercent = segment <= 0 ? 100 : Math.min(100, (expInSegment / segment) * 100);
   return { progressPercent, currentLevelExp, nextLevelExp };
 }
 

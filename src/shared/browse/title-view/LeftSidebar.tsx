@@ -105,7 +105,7 @@ export function LeftSidebar({
                       titleId: titleData._id as string,
                       creatorId: titleData.creatorId,
                     },
-                  })
+                  }),
                 );
               }
             }}
@@ -130,10 +130,7 @@ export function LeftSidebar({
               <Edit className="w-4 h-4 shrink-0" />
               <span>Редактировать</span>
             </button>
-            <TitleAutoParsingManager
-              titleId={titleData._id as string}
-              titleName={titleData.name}
-            />
+            <TitleAutoParsingManager titleId={titleData._id as string} titleName={titleData.name} />
           </>
         )}
       </div>

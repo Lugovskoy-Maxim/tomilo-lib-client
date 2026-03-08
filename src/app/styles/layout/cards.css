@@ -6,8 +6,12 @@
   transform: perspective(900px) rotateX(var(--card-tilt-x)) rotateY(var(--card-tilt-y))
     scale(var(--card-tilt-scale));
   transform-style: preserve-3d;
-  transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    border-color 0.2s ease, box-shadow 0.25s ease, background-color 0.2s ease, color 0.2s ease;
+  transition:
+    transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.2s ease,
+    box-shadow 0.25s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
   will-change: transform;
 }
 
@@ -21,7 +25,10 @@
     --card-tilt-y: 0deg !important;
     --card-tilt-scale: 1 !important;
     transform: none !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 }
-

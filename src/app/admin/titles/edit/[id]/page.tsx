@@ -523,17 +523,17 @@ export default function TitleEditorPage() {
           </div>
           <form onSubmit={handleSubmit} className="space-y-6 w-full">
             <BasicInfoSection
-                formData={formData}
-                titleId={titleId}
-                handleInputChange={handleInputChange}
-                handleArrayFieldChange={handleArrayFieldChange}
-                handleNormalize={handleNormalize}
-                handleAltNamesChange={handleAltNamesChange}
-                handleImageChange={handleImageChange}
-                selectedFile={selectedFile}
-                onCoverUpdate={newCover => setFormData(prev => ({ ...prev, coverImage: newCover }))}
-                onSlugGenerate={handleSlugGenerate}
-              />
+              formData={formData}
+              titleId={titleId}
+              handleInputChange={handleInputChange}
+              handleArrayFieldChange={handleArrayFieldChange}
+              handleNormalize={handleNormalize}
+              handleAltNamesChange={handleAltNamesChange}
+              handleImageChange={handleImageChange}
+              selectedFile={selectedFile}
+              onCoverUpdate={newCover => setFormData(prev => ({ ...prev, coverImage: newCover }))}
+              onSlugGenerate={handleSlugGenerate}
+            />
 
             {/* Управление персонажами */}
             <CharactersManager titleId={titleId} />
@@ -678,84 +678,84 @@ function BasicInfoSection({
             </div>
           </div>
 
-        <div className="md:col-span-2">
+          <div className="md:col-span-2">
+            <InputField
+              label="Альтернативные названия (через запятую)"
+              value={formData.altNames?.join(", ") || ""}
+              onChange={handleAltNamesChange}
+              placeholder="Альтернативные названия через запятую"
+              icon={Globe}
+            />
+          </div>
+
           <InputField
-            label="Альтернативные названия (через запятую)"
-            value={formData.altNames?.join(", ") || ""}
-            onChange={handleAltNamesChange}
-            placeholder="Альтернативные названия через запятую"
-            icon={Globe}
+            label="Автор"
+            value={formData.author || ""}
+            onChange={handleInputChange("author")}
+            placeholder="Автор произведения"
+            icon={User}
           />
-        </div>
 
-        <InputField
-          label="Автор"
-          value={formData.author || ""}
-          onChange={handleInputChange("author")}
-          placeholder="Автор произведения"
-          icon={User}
-        />
+          <InputField
+            label="Художник"
+            value={formData.artist || ""}
+            onChange={handleInputChange("artist")}
+            placeholder="Художник"
+          />
 
-        <InputField
-          label="Художник"
-          value={formData.artist || ""}
-          onChange={handleInputChange("artist")}
-          placeholder="Художник"
-        />
+          <InputField
+            label="Год выпуска *"
+            type="number"
+            value={formData.releaseYear}
+            onChange={handleInputChange("releaseYear")}
+            min="1900"
+            max={new Date().getFullYear() + 1}
+            icon={Calendar}
+            required
+          />
 
-        <InputField
-          label="Год выпуска *"
-          type="number"
-          value={formData.releaseYear}
-          onChange={handleInputChange("releaseYear")}
-          min="1900"
-          max={new Date().getFullYear() + 1}
-          icon={Calendar}
-          required
-        />
+          <SelectField
+            label="Статус *"
+            value={formData.status}
+            onChange={handleInputChange("status")}
+            options={Object.values(TitleStatus).map(status => ({
+              value: status,
+              label: translateTitleStatus(status),
+            }))}
+          />
 
-        <SelectField
-          label="Статус *"
-          value={formData.status}
-          onChange={handleInputChange("status")}
-          options={Object.values(TitleStatus).map(status => ({
-            value: status,
-            label: translateTitleStatus(status),
-          }))}
-        />
+          <SelectField
+            label="Тип тайтла"
+            value={formData.type || ""}
+            onChange={handleInputChange("type")}
+            options={[
+              { value: "", label: "Не указан" },
+              ...Object.values(TitleType).map(type => ({
+                value: type as string,
+                label: translateTitleType(type as string),
+              })),
+            ]}
+          />
 
-        <SelectField
-          label="Тип тайтла"
-          value={formData.type || ""}
-          onChange={handleInputChange("type")}
-          options={[
-            { value: "", label: "Не указан" },
-            ...Object.values(TitleType).map(type => ({
-              value: type as string,
-              label: translateTitleType(type as string),
-            })),
-          ]}
-        />
+          <SelectField
+            label="Возрастное ограничение *"
+            value={formData.ageLimit}
+            onChange={handleInputChange("ageLimit")}
+            options={API_CONFIG.ageLimits}
+            icon={AlertTriangle}
+          />
 
-        <SelectField
-          label="Возрастное ограничение *"
-          value={formData.ageLimit}
-          onChange={handleInputChange("ageLimit")}
-          options={API_CONFIG.ageLimits}
-          icon={AlertTriangle}
-        />
+          <CheckboxField
+            label="Опубликован"
+            checked={formData.isPublished}
+            onChange={handleInputChange("isPublished")}
+          />
 
-        <CheckboxField
-          label="Опубликован"
-          checked={formData.isPublished}
-          onChange={handleInputChange("isPublished")}
-        />
-
-        <CheckboxField
-          label="Главы скрыты по требованию правообладателя"
-          checked={formData.chaptersRemovedByCopyrightHolder ?? false}
-          onChange={handleInputChange("chaptersRemovedByCopyrightHolder")}
-        />
+          <CheckboxField
+            label="Главы скрыты по требованию правообладателя"
+            checked={formData.chaptersRemovedByCopyrightHolder ?? false}
+            onChange={handleInputChange("chaptersRemovedByCopyrightHolder")}
+          />
         </div>
       </div>
 
@@ -796,16 +796,17 @@ function GenreTagBlock({
   items: string[];
   selectedItems: string[];
   onChange: (value: string, isChecked: boolean) => void;
-  onNormalize: (values: string[]) => { normalized: string[]; changes: Array<{ original: string; normalized: string }> };
+  onNormalize: (values: string[]) => {
+    normalized: string[];
+    changes: Array<{ original: string; normalized: string }>;
+  };
   toast: { success: (m: string) => void; info: (m: string) => void };
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [pasteInput, setPasteInput] = useState("");
   const safeSelected = Array.isArray(selectedItems) ? selectedItems : [];
   const filteredItems = searchQuery.trim()
-    ? items.filter(item =>
-        item.toLowerCase().includes(searchQuery.toLowerCase().trim()),
-      )
+    ? items.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase().trim()))
     : items;
 
   const handleNormalize = () => {
@@ -951,7 +952,8 @@ function GenresTagsSection({
         Жанры и теги
       </h2>
       <p className="text-sm text-[var(--muted-foreground)] mb-4">
-        Выберите из списка или введите через запятую. Кнопка «Привести к стандартному виду» исправит регистр и варианты написания.
+        Выберите из списка или введите через запятую. Кнопка «Привести к стандартному виду» исправит
+        регистр и варианты написания.
       </p>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <GenreTagBlock

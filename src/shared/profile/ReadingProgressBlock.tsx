@@ -41,9 +41,8 @@ export default function ReadingProgressBlock() {
         Прогресс чтения
       </h3>
       <ul className="space-y-2">
-        {displayList.map((item) => {
-          const titleName =
-            (item.title?.name ?? item.title?.title) || `Тайтл #${item.titleId}`;
+        {displayList.map(item => {
+          const titleName = (item.title?.name ?? item.title?.title) || `Тайтл #${item.titleId}`;
           const slug = item.title?.slug;
           const cover = item.title?.cover ?? item.title?.coverImage;
           const total = item.totalChapters ?? 0;
@@ -82,7 +81,10 @@ export default function ReadingProgressBlock() {
                     </div>
                   )}
                 </div>
-                <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+                <ChevronRight
+                  className="w-4 h-4 text-[var(--muted-foreground)] shrink-0"
+                  aria-hidden
+                />
               </Link>
             </li>
           );

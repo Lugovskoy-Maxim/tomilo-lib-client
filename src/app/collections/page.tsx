@@ -33,7 +33,9 @@ export async function generateMetadata({ searchParams }: CollectionsPageProps): 
   const description = search
     ? `Коллекции по запросу «${search}». Подборки тайтлов по темам и жанрам для чтения онлайн.`
     : "Подборки тайтлов по темам и жанрам. Коллекции манги, манхвы и маньхуа для удобного чтения онлайн.";
-  const canonicalUrl = search ? `${baseUrl}/collections?search=${encodeURIComponent(search)}` : `${baseUrl}/collections`;
+  const canonicalUrl = search
+    ? `${baseUrl}/collections?search=${encodeURIComponent(search)}`
+    : `${baseUrl}/collections`;
 
   return buildServerSEOMetadata({
     title,
@@ -56,7 +58,13 @@ export default function CollectionsPageRoute({ searchParams }: CollectionsPagePr
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionsBreadcrumbJsonLd) }}
       />
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" /></div>}>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+          </div>
+        }
+      >
         <CollectionsPage />
       </Suspense>
     </>

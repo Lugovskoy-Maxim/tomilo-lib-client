@@ -8,13 +8,17 @@ const STORAGE_KEY_DISMISSED = "tomilo-a2hs-dismissed";
 const STORAGE_KEY_PROMPT_AVAILABLE = "tomilo-a2hs-prompt-available";
 
 export function AddToHomeScreenBanner() {
-  const [deferredPrompt, setDeferredPrompt] = useState<{ prompt: () => Promise<{ outcome: string }> } | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<{
+    prompt: () => Promise<{ outcome: string }>;
+  } | null>(null);
   const [dismissed, setDismissed] = useState(true);
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
     setIsStandalone(standalone);
     const wasDismissed = localStorage.getItem(STORAGE_KEY_DISMISSED) === "true";
     setDismissed(wasDismissed);
@@ -75,7 +79,9 @@ export function AddToHomeScreenBanner() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-[var(--foreground)]">Установить приложение</p>
-          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Быстрый доступ с главного экрана</p>
+          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+            Быстрый доступ с главного экрана
+          </p>
           <div className="flex gap-2 mt-3">
             <button
               type="button"

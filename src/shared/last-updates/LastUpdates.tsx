@@ -42,7 +42,8 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
   const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
     const verified = checkAgeVerification(user || null);
-    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+    setIsAgeVerified(prev => (prev === verified ? prev : verified));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- проверка только по userId, userBirthDate
   }, [userId, userBirthDate]);
 
   const handleAgeCancel = () => {
@@ -71,7 +72,10 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
     router.push(titlePath);
   };
 
-  const { primary: imageUrl, fallback: imageFallback } = getCoverUrls(data.cover, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
+  const { primary: imageUrl, fallback: imageFallback } = getCoverUrls(
+    data.cover,
+    typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src,
+  );
 
   const getDisplayTime = (value: string) => {
     if (!value) return "недавно";
@@ -139,7 +143,10 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
               className={`object-cover transition-transform duration-300 group-hover:scale-105 ${data.isAdult && !isAgeVerified ? "blur-sm" : ""}`}
               hidePlaceholder
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden />
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              aria-hidden
+            />
             {data.isAdult && (
               <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10">
                 <div className="bg-red-500/30 backdrop-blur-sm text-red-600 border-red-500 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium sm:font-bold shadow-lg border flex items-center gap-1 sm:gap-1.5">
@@ -158,7 +165,9 @@ export default function LatestUpdateCard({ data }: LatestUpdateCardProps) {
                 </span>
                 {getDisplayYear() && (
                   <>
-                    <span className="text-[var(--muted-foreground)] text-xs shrink-0" aria-hidden>•</span>
+                    <span className="text-[var(--muted-foreground)] text-xs shrink-0" aria-hidden>
+                      •
+                    </span>
                     <span className="text-[11px] sm:text-xs text-[var(--muted-foreground)] font-medium shrink-0">
                       {getDisplayYear()}
                     </span>

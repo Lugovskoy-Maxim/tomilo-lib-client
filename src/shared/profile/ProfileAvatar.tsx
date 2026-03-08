@@ -2,11 +2,14 @@
 
 import { UserProfile } from "@/types/user";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
-import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl, getDecorationImageUrls } from "@/api/shop";
-import { getImageUrls } from "@/lib/asset-url";
+import {
+  getEquippedFrameUrl,
+  getEquippedAvatarDecorationUrl,
+  getDecorationImageUrls,
+} from "@/api/shop";
+import { getImageUrls, isValidAvatarUrl } from "@/lib/asset-url";
 import { useAuth } from "@/hooks/useAuth";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
-
 
 interface UserAvatarProps {
   userProfile: UserProfile;
@@ -23,7 +26,10 @@ const sizeClasses = {
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
 
 /** URL декорации «аватар» из профиля (при populate объект с imageUrl или _id). */
-function getAvatarDecorationUrls(equipped: UserProfile["equippedDecorations"]): { primary: string | null; fallback: string | null } {
+function getAvatarDecorationUrls(equipped: UserProfile["equippedDecorations"]): {
+  primary: string | null;
+  fallback: string | null;
+} {
   if (!equipped?.avatar) return { primary: null, fallback: null };
   const raw = equipped.avatar;
   if (typeof raw === "string") {
@@ -52,21 +58,29 @@ function getAvatarDecorationUrls(equipped: UserProfile["equippedDecorations"]): 
 
 export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarProps) {
   const { user } = useAuth();
-  const { frameUrl: resolvedFrameUrl, avatarDecorationUrl: resolvedAvatarUrl } = useResolvedEquippedDecorations();
+  const { frameUrl: resolvedFrameUrl, avatarDecorationUrl: resolvedAvatarUrl } =
+    useResolvedEquippedDecorations();
   const isCurrentUser = user && (userProfile._id === user._id || userProfile._id === user.id);
 
   const sizeClass = sizeClasses[size];
   const pixelSize = size === "sm" ? 96 : 144;
-  const frameUrl = isCurrentUser ? resolvedFrameUrl : getEquippedFrameUrl(userProfile.equippedDecorations);
+  const frameUrl = isCurrentUser
+    ? resolvedFrameUrl
+    : getEquippedFrameUrl(userProfile.equippedDecorations);
 
-  const { primary: baseAvatarPrimary, fallback: baseAvatarFallback } = userProfile.avatar
-    ? getImageUrls(userProfile.avatar)
+  const effectiveAvatar = isValidAvatarUrl(userProfile.avatar) ? userProfile.avatar : null;
+  const baseAvatarWithCacheBust =
+    effectiveAvatar && userProfile.updatedAt
+      ? `${effectiveAvatar}${effectiveAvatar.includes("?") ? "&" : "?"}t=${new Date(userProfile.updatedAt).getTime()}`
+      : effectiveAvatar;
+  const { primary: baseAvatarPrimary, fallback: baseAvatarFallback } = baseAvatarWithCacheBust
+    ? getImageUrls(baseAvatarWithCacheBust)
     : { primary: null, fallback: null };
-  
-  const decorationUrls = isCurrentUser 
+ 
+  const decorationUrls = isCurrentUser
     ? { primary: resolvedAvatarUrl, fallback: null }
     : getAvatarDecorationUrls(userProfile.equippedDecorations);
-  
+
   const mainImageUrl = decorationUrls.primary ?? baseAvatarPrimary ?? DEFAULT_AVATAR;
   const fallbackImageUrl = decorationUrls.fallback ?? baseAvatarFallback ?? DEFAULT_AVATAR;
   const initial = userProfile.username?.[0]?.toUpperCase() || "?";
@@ -74,7 +88,9 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   const avatarInner = (
     <OptimizedImage
       src={mainImageUrl}
-      fallbackSrc={fallbackImageUrl && fallbackImageUrl !== mainImageUrl ? fallbackImageUrl : DEFAULT_AVATAR}
+      fallbackSrc={
+        fallbackImageUrl && fallbackImageUrl !== mainImageUrl ? fallbackImageUrl : DEFAULT_AVATAR
+      }
       errorSrc={DEFAULT_AVATAR}
       errorContent={
         <div
@@ -103,9 +119,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
     <div className={`group relative overflow-visible ${sizeClass}`}>
       <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover:opacity-100 blur-sm transition-all duration-500" />
       <div className="absolute -inset-2 rounded-full bg-[var(--primary)]/20 blur-xl transition-all duration-500" />
-      <div className={wrapperClass}>
-        {avatarInner}
-      </div>
+      <div className={wrapperClass}>{avatarInner}</div>
       {frameUrl && (
         <img
           src={frameUrl}

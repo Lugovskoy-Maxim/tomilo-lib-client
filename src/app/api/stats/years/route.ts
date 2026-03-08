@@ -15,10 +15,12 @@ export async function GET() {
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ message: "Failed to fetch available years" }));
+      const errorData = await res
+        .json()
+        .catch(() => ({ message: "Failed to fetch available years" }));
       return NextResponse.json(
         { success: false, message: errorData.message || "Failed to fetch available years" },
-        { status: res.status }
+        { status: res.status },
       );
     }
 
@@ -26,9 +28,6 @@ export async function GET() {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Available years API error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

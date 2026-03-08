@@ -218,34 +218,41 @@ npm run bot:chapters
 
 ## 📁 Структура проекта
 
+Исходный код находится в `src/`. Для понимания слоёв приложения и правил масштабирования см. **[ARCHITECTURE.md](ARCHITECTURE.md)**. Соглашения по именованию и организации файлов — в [FILE_STRUCTURE.md](FILE_STRUCTURE.md).
+
 ```
-tomilo-lib-client/
-├── app/                    # Next.js App Router страницы
-│   ├── admin/             # Административные страницы
-│   ├── collections/       # Страницы коллекций
-│   ├── browse/            # Страницы просмотра
+src/
+├── app/              # Next.js App Router: страницы, layout, API routes
+│   ├── admin/        # Админ-панель
+│   ├── auth/         # Вход, регистрация, восстановление пароля
+│   ├── api/          # Route handlers (search, push, auth, stats и др.)
+│   ├── titles/       # Каталог и карточки тайтлов
+│   ├── profile/      # Свой профиль
+│   ├── user/         # Публичные профили пользователей
 │   └── ...
-├── components/            # React компоненты
-│   ├── shared/            # Общие компоненты
-│   │   └── optimized-image.tsx # Оптимизированный компонент изображения
-│   ├── widgets/           # Крупные компоненты страниц
-│   └── ui/                # UI компоненты
-├── store/                 # Redux store
-│   ├── slices/            # Redux slices
-│   └── api/               # RTK Query API
-├── types/                 # TypeScript типы
-├── hooks/                 # Кастомные React хуки
-├── lib/                   # Вспомогательные функции
-├── constants/             # Константы приложения
-├── contexts/              # React контексты
-├── guards/                # Route guards
-├── lib/                   # Вспомогательные функции
-│   └── image-optimizer.ts # Оптимизация изображений
-└── public/                # Статические файлы
-    ├── logo/              # Логотипы
-    ├── collections/       # Изображения коллекций
-    └── ...
+├── shared/           # Переиспользуемые UI и фичи (reader, comments, modal, browse)
+├── widgets/          # Крупные блоки страниц (header, footer, carousel, home-page)
+├── store/            # Redux: slices + RTK Query API
+├── lib/              # Утилиты (date, sanitize, seo, image-optimizer и др.)
+├── hooks/            # Кастомные React-хуки
+├── types/            # TypeScript-типы
+├── constants/        # Константы приложения
+├── contexts/         # React-контексты
+├── guard/            # Защита маршрутов (AuthGuard)
+├── api/              # Прямые API-вызовы (не RTK)
+└── ...
 ```
+
+Статика: `public/` (логотипы, манифест PWA, изображения коллекций).
+
+## 📚 Документация
+
+| Документ                                                     | Описание                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [ARCHITECTURE.md](ARCHITECTURE.md)                           | Слои приложения, зависимости, масштабирование store и API    |
+| [FILE_STRUCTURE.md](FILE_STRUCTURE.md)                       | Соглашения по структуре папок, именованию файлов и CSS       |
+| [PERFORMANCE_OPTIMIZATION.md](PERFORMANCE_OPTIMIZATION.md)   | Выполненные оптимизации и рекомендации по производительности |
+| [docs/api-profile-deletion.md](docs/api-profile-deletion.md) | Спецификация API удаления профиля для бэкенда                |
 
 ## 📸 Скриншоты
 

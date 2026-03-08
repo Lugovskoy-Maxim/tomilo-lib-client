@@ -69,7 +69,8 @@ function transformUserToProfile(user: User): UserProfile {
     likesReceivedCount: u.likesReceivedCount,
     readingTimeMinutes: u.readingTimeMinutes,
     completedTitlesCount: u.completedTitlesCount,
-    scheduledDeletionAt: (u as User & { scheduledDeletionAt?: string | null }).scheduledDeletionAt ?? undefined,
+    scheduledDeletionAt:
+      (u as User & { scheduledDeletionAt?: string | null }).scheduledDeletionAt ?? undefined,
     deletedAt: (u as User & { deletedAt?: string | null }).deletedAt ?? undefined,
   };
 }
@@ -100,17 +101,20 @@ export default function UserProfileLayout() {
 
   const { user: currentUser } = useAuth();
   const userProfile =
-    isSuccess && data?.success && data?.data
-      ? transformUserToProfile(data.data)
-      : null;
+    isSuccess && data?.success && data?.data ? transformUserToProfile(data.data) : null;
   const isOwnProfile = Boolean(
-    currentUser && userProfile && (currentUser.username === userProfile.username || currentUser._id === userProfile._id),
+    currentUser &&
+    userProfile &&
+    (currentUser.username === userProfile.username || currentUser._id === userProfile._id),
   );
   const privacy = userProfile?.privacy;
   const isProfileRestricted = Boolean(privacy && privacy.profileVisibility !== "public");
   const isBookmarksRestricted = Boolean(!isOwnProfile && userProfile?.showBookmarks === false);
-  const isReadingHistoryRestricted = Boolean(!isOwnProfile && userProfile?.showReadingHistory === false);
-  const hasPrivacyNotice = isProfileRestricted || isBookmarksRestricted || isReadingHistoryRestricted;
+  const isReadingHistoryRestricted = Boolean(
+    !isOwnProfile && userProfile?.showReadingHistory === false,
+  );
+  const hasPrivacyNotice =
+    isProfileRestricted || isBookmarksRestricted || isReadingHistoryRestricted;
 
   useSEO(seoConfigs.profile(userProfile?.username));
 
@@ -119,11 +123,12 @@ export default function UserProfileLayout() {
   }
 
   const isPrivateProfile =
-    isSuccess && data && (data as { success?: boolean; message?: string; errors?: string[] }).success === false &&
+    isSuccess &&
+    data &&
+    (data as { success?: boolean; message?: string; errors?: string[] }).success === false &&
     ((data as { message?: string }).message?.toLowerCase().includes("private") ||
       (data as { errors?: string[] }).errors?.some(e => e?.toLowerCase().includes("private")));
 
-  // Показываем «Профиль не найден» или «Профиль скрыт» внутри лейаута вместо общей 404
   if (isError || (!isLoading && !userProfile)) {
     return (
       <ProfileShell
@@ -158,10 +163,10 @@ export default function UserProfileLayout() {
       isHistoryRestricted={isReadingHistoryRestricted}
       hasPrivacyNotice={hasPrivacyNotice}
       hideTabs={["settings", "inventory", "exchanges"]}
-        breadcrumbPrefix={[
-          { name: "Главная", href: "/" },
-          { name: userProfile?.username ?? "", href: `/user/${userId}` },
-        ]}
+      breadcrumbPrefix={[
+        { name: "Главная", href: "/" },
+        { name: userProfile?.username ?? "", href: `/user/${userId}` },
+      ]}
       showMyProfileLink={!!currentUser}
     />
   );

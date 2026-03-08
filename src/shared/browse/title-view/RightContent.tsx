@@ -26,7 +26,11 @@ import {
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from "react";
-import { useUpdateRatingMutation, useGetTitleStatsQuery, useGetMyTitleRatingQuery } from "@/store/api/titlesApi";
+import {
+  useUpdateRatingMutation,
+  useGetTitleStatsQuery,
+  useGetMyTitleRatingQuery,
+} from "@/store/api/titlesApi";
 import { useGetReadingHistoryReadIdsQuery, useGetTitleProgressQuery } from "@/store/api/authApi";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
@@ -109,7 +113,7 @@ export function RightContent({
   const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
 
   const { removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
-  const includeAdult = !user ? true : (user.displaySettings?.isAdult !== false);
+  const includeAdult = !user ? true : user.displaySettings?.isAdult !== false;
 
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
@@ -132,10 +136,10 @@ export function RightContent({
   const userId = user?._id ?? null;
   const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
-    const verified = user
-      ? checkAgeVerification(user)
-      : checkAgeVerification(null);
-    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+    const verified = user ? checkAgeVerification(user) : checkAgeVerification(null);
+    setIsAgeVerified(prev => (prev === verified ? prev : verified));
+    // user не в deps — проверка только по userId и userBirthDate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, userBirthDate]);
 
   // Лёгкий запрос: только id прочитанных глав (для статуса «прочитано» на странице тайтла)
@@ -157,7 +161,7 @@ export function RightContent({
   // Текущая оценка: приоритет — с сервера через новый эндпоинт my-rating, затем ratings по userId, иначе localStorage
   useEffect(() => {
     if (!titleData?._id) return;
-    
+
     // Приоритет 1: данные из нового эндпоинта my-rating
     if (myRatingData?.data?.hasRated && myRatingData.data.rating !== null) {
       setPendingRating(myRatingData.data.rating);
@@ -166,12 +170,13 @@ export function RightContent({
       }
       return;
     }
-    
+
     // Приоритет 2: поиск в массиве ratings (fallback для старого формата)
     const ratings = titleData.ratings;
     if (user?._id && Array.isArray(ratings)) {
       const entry = ratings.find(
-        (r): r is TitleRatingEntry => typeof r === "object" && r !== null && "userId" in r && r.userId === user._id,
+        (r): r is TitleRatingEntry =>
+          typeof r === "object" && r !== null && "userId" in r && r.userId === user._id,
       );
       if (entry) {
         setPendingRating(entry.rating);
@@ -181,7 +186,7 @@ export function RightContent({
         return;
       }
     }
-    
+
     // Приоритет 3: localStorage
     if (typeof window !== "undefined") {
       const savedRating = localStorage.getItem(`title-rating-${titleData._id}`);
@@ -194,10 +199,9 @@ export function RightContent({
     skip: !user || !titleId,
   });
 
-  // Получаем количество комментариев для отображения в табах
   const { data: commentsData } = useGetCommentsQuery(
     { entityType: CommentEntityType.TITLE, entityId: titleId, page: 1, limit: 1 },
-    { skip: !titleId }
+    { skip: !titleId },
   );
   const commentsCount = commentsData?.data?.total ?? null;
 
@@ -219,7 +223,10 @@ export function RightContent({
       const chaptersList = entry?.chapters ?? [];
       return chaptersList.some(ch => {
         if (!ch.chapterId) return false;
-        const id = typeof ch.chapterId === "object" && ch.chapterId !== null ? (ch.chapterId as { _id: string })._id : String(ch.chapterId);
+        const id =
+          typeof ch.chapterId === "object" && ch.chapterId !== null
+            ? (ch.chapterId as { _id: string })._id
+            : String(ch.chapterId);
         return id === chapterId;
       });
     },
@@ -284,43 +291,43 @@ export function RightContent({
   // Фильтрация и сортировка глав через useMemo (без лишних state и effect)
   const displayedChapters = useMemo(() => {
     let result = chapters;
-    
+
     if (searchQuery) {
       const query = searchQuery.trim().toLowerCase();
       const queryNumber = parseFloat(query);
-      
+
       result = chapters.filter(chapter => {
         const chapterNum = chapter.chapterNumber ?? 0;
         const chapterNumStr = String(chapterNum);
-        
+
         if (!isNaN(queryNumber)) {
           if (chapterNum === queryNumber) return true;
           if (chapterNumStr.startsWith(query)) return true;
         }
-        
+
         const chapterTitle = (chapter.title || chapter.name || "").toLowerCase();
         if (chapterTitle.includes(query)) return true;
-        
+
         return false;
       });
-      
+
       // При поиске: сначала точные совпадения, потом частичные
       return [...result].sort((a, b) => {
         const aNum = a.chapterNumber ?? 0;
         const bNum = b.chapterNumber ?? 0;
-        
+
         // Точное совпадение с числовым запросом
         const aExact = !isNaN(queryNumber) && aNum === queryNumber;
         const bExact = !isNaN(queryNumber) && bNum === queryNumber;
-        
+
         if (aExact && !bExact) return -1;
         if (!aExact && bExact) return 1;
-        
+
         // Затем сортировка по порядку
         return sortOrder === "desc" ? bNum - aNum : aNum - bNum;
       });
     }
-    
+
     return [...result].sort((a, b) => {
       const aNum = a.chapterNumber || 0;
       const bNum = b.chapterNumber || 0;
@@ -334,20 +341,27 @@ export function RightContent({
   }, [displayedChapters, loadedChaptersCount, searchQuery]);
 
   // Ref для хранения актуальных значений (избегаем устаревших замыканий)
-  const scrollStateRef = useRef({ loadedChaptersCount, displayedChaptersLength: displayedChapters.length });
-  scrollStateRef.current = { loadedChaptersCount, displayedChaptersLength: displayedChapters.length };
-  
+  const scrollStateRef = useRef({
+    loadedChaptersCount,
+    displayedChaptersLength: displayedChapters.length,
+  });
+  scrollStateRef.current = {
+    loadedChaptersCount,
+    displayedChaptersLength: displayedChapters.length,
+  };
+
   // Throttled scroll handler для подгрузки глав
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   useEffect(() => {
     const handleScroll = () => {
       if (scrollTimeoutRef.current) return;
-      
+
       scrollTimeoutRef.current = setTimeout(() => {
         scrollTimeoutRef.current = null;
-        const { loadedChaptersCount: loaded, displayedChaptersLength: total } = scrollStateRef.current;
-        
+        const { loadedChaptersCount: loaded, displayedChaptersLength: total } =
+          scrollStateRef.current;
+
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
           if (loaded < total) {
             setLoadedChaptersCount(prev => Math.min(prev + 20, total));
@@ -411,17 +425,18 @@ export function RightContent({
                 <span className="font-medium text-[var(--foreground)]">
                   {(() => {
                     // Находим дату последней добавленной главы
-                    const lastChapterDate = chapters.length > 0
-                      ? chapters.reduce((latest, ch) => {
-                          const chDate = new Date(ch.createdAt).getTime();
-                          return chDate > latest ? chDate : latest;
-                        }, 0)
-                      : null;
-                    
+                    const lastChapterDate =
+                      chapters.length > 0
+                        ? chapters.reduce((latest, ch) => {
+                            const chDate = new Date(ch.createdAt).getTime();
+                            return chDate > latest ? chDate : latest;
+                          }, 0)
+                        : null;
+
                     if (lastChapterDate) {
                       return timeAgo(new Date(lastChapterDate).toISOString());
                     }
-                    
+
                     // Fallback на createdAt тайтла если глав нет
                     return titleData?.createdAt ? timeAgo(titleData.createdAt) : "неизвестно";
                   })()}
@@ -477,12 +492,14 @@ export function RightContent({
               <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">
                 <div className="flex items-center gap-2 mb-3 text-[var(--primary)]">
                   <BookOpen className="w-4 h-4" />
-                  <span className="text-xs uppercase tracking-wider font-medium">Альтернативные названия</span>
+                  <span className="text-xs uppercase tracking-wider font-medium">
+                    Альтернативные названия
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {titleData.altNames.map((name, idx) => (
-                    <span 
-                      key={idx} 
+                    <span
+                      key={idx}
                       className="text-sm text-[var(--foreground)] bg-[var(--background)]/70 px-3 py-1.5 rounded-xl"
                     >
                       {name}
@@ -498,7 +515,7 @@ export function RightContent({
                 <Eye className="w-4 h-4" />
                 <span className="text-xs uppercase tracking-wider font-medium">Статистика</span>
               </div>
-              
+
               {/* Основная статистика */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center p-3 bg-[var(--background)]/60 rounded-xl">
@@ -540,24 +557,26 @@ export function RightContent({
               )}
 
               {/* Количество закладок */}
-              {titleStatsData?.data?.bookmarksCount !== undefined && titleStatsData.data.bookmarksCount > 0 && (
-                <div className="flex items-center justify-between p-2 bg-[var(--background)]/40 rounded-lg mb-4">
-                  <span className="text-xs text-[var(--muted-foreground)]">В закладках у читателей</span>
-                  <span className="text-sm font-semibold text-[var(--primary)]">
-                    {titleStatsData.data.bookmarksCount.toLocaleString()}
-                  </span>
-                </div>
-              )}
+              {titleStatsData?.data?.bookmarksCount !== undefined &&
+                titleStatsData.data.bookmarksCount > 0 && (
+                  <div className="flex items-center justify-between p-2 bg-[var(--background)]/40 rounded-lg mb-4">
+                    <span className="text-xs text-[var(--muted-foreground)]">
+                      В закладках у читателей
+                    </span>
+                    <span className="text-sm font-semibold text-[var(--primary)]">
+                      {titleStatsData.data.bookmarksCount.toLocaleString()}
+                    </span>
+                  </div>
+                )}
 
               {totalRatings > 0 && ratingStats.length > 0 && (
                 <div className="space-y-2">
-                  <div className="text-xs text-[var(--muted-foreground)] mb-2">Распределение оценок:</div>
+                  <div className="text-xs text-[var(--muted-foreground)] mb-2">
+                    Распределение оценок:
+                  </div>
                   <div className="space-y-2">
                     {ratingStats.slice(0, 5).map(stat => (
-                      <div
-                        key={stat.rating}
-                        className="flex items-center gap-3"
-                      >
+                      <div key={stat.rating} className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5 w-12">
                           <span className="text-sm font-bold text-[var(--foreground)]">
                             {stat.rating}
@@ -571,9 +590,10 @@ export function RightContent({
                             style={{ width: `${stat.percentage}%` }}
                           />
                         </div>
-                        
+
                         <span className="text-xs text-[var(--muted-foreground)] w-16 text-right">
-                          {stat.count} <span className="text-[var(--foreground)]/50">({stat.percentage}%)</span>
+                          {stat.count}{" "}
+                          <span className="text-[var(--foreground)]/50">({stat.percentage}%)</span>
                         </span>
                       </div>
                     ))}
@@ -637,8 +657,11 @@ export function RightContent({
         // Используем данные прогресса с сервера, если доступны, иначе считаем локально
         const serverProgress = titleProgressData?.data;
         const totalChaptersCount = serverProgress?.totalChapters ?? chapters.length;
-        const readChaptersCount = serverProgress?.chaptersRead ?? chapters.filter(ch => isChapterRead(ch._id || "")).length;
-        const progressPercent = serverProgress?.progressPercent ?? (totalChaptersCount > 0 ? Math.round((readChaptersCount / totalChaptersCount) * 100) : 0);
+        const readChaptersCount =
+          serverProgress?.chaptersRead ?? chapters.filter(ch => isChapterRead(ch._id || "")).length;
+        const progressPercent =
+          serverProgress?.progressPercent ??
+          (totalChaptersCount > 0 ? Math.round((readChaptersCount / totalChaptersCount) * 100) : 0);
         const hasReadingProgress = user && readChaptersCount > 0;
 
         return (
@@ -649,14 +672,16 @@ export function RightContent({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <CheckCheck className="w-4 h-4 text-[var(--primary)]" />
-                    <span className="text-sm font-medium text-[var(--foreground)]">Прогресс чтения</span>
+                    <span className="text-sm font-medium text-[var(--foreground)]">
+                      Прогресс чтения
+                    </span>
                   </div>
                   <span className="text-sm text-[var(--muted-foreground)]">
                     {readChaptersCount} из {totalChaptersCount} глав
                   </span>
                 </div>
                 <div className="w-full h-2 bg-[var(--background)]/70 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/60 rounded-full transition-all duration-500"
                     style={{ width: `${progressPercent}%` }}
                   />
@@ -699,9 +724,8 @@ export function RightContent({
                     <div className="flex gap-1">
                       <button
                         onClick={() => {
-                          const firstChapter = sortOrder === "desc" 
-                            ? chapters[chapters.length - 1] 
-                            : chapters[0];
+                          const firstChapter =
+                            sortOrder === "desc" ? chapters[chapters.length - 1] : chapters[0];
                           if (firstChapter) {
                             onSearchChange(String(firstChapter.chapterNumber || 1));
                           }
@@ -713,9 +737,8 @@ export function RightContent({
                       </button>
                       <button
                         onClick={() => {
-                          const lastChapter = sortOrder === "desc" 
-                            ? chapters[0] 
-                            : chapters[chapters.length - 1];
+                          const lastChapter =
+                            sortOrder === "desc" ? chapters[0] : chapters[chapters.length - 1];
                           if (lastChapter) {
                             onSearchChange(String(lastChapter.chapterNumber || chapters.length));
                           }
@@ -737,7 +760,9 @@ export function RightContent({
                         sortOrder === "desc" ? "rotate-0" : "rotate-180"
                       }`}
                     />
-                    <span className="text-sm hidden sm:inline">{sortOrder === "desc" ? "Сначала новые" : "Сначала старые"}</span>
+                    <span className="text-sm hidden sm:inline">
+                      {sortOrder === "desc" ? "Сначала новые" : "Сначала старые"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -748,17 +773,22 @@ export function RightContent({
               {visibleChapters.length === 0 && !searchQuery && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <BookOpen className="w-16 h-16 text-[var(--muted-foreground)]/30 mb-4" />
-                  <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Глав пока нет</h3>
+                  <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">
+                    Глав пока нет
+                  </h3>
                   <p className="text-sm text-[var(--muted-foreground)] max-w-xs">
-                    Главы ещё не добавлены. Подпишитесь на тайтл, чтобы получить уведомление о новых главах.
+                    Главы ещё не добавлены. Подпишитесь на тайтл, чтобы получить уведомление о новых
+                    главах.
                   </p>
                 </div>
               )}
-              
+
               {visibleChapters.length === 0 && searchQuery && !chaptersLoading && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Search className="w-16 h-16 text-[var(--muted-foreground)]/30 mb-4" />
-                  <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Глава не найдена</h3>
+                  <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">
+                    Глава не найдена
+                  </h3>
                   <p className="text-sm text-[var(--muted-foreground)] mb-4">
                     По запросу &ldquo;{searchQuery}&rdquo; ничего не найдено
                   </p>
@@ -770,19 +800,18 @@ export function RightContent({
                   </button>
                 </div>
               )}
-              
+
               {visibleChapters.length === 0 && searchQuery && chaptersLoading && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="w-12 h-12 border-3 border-[var(--primary)]/20 border-t-[var(--primary)] rounded-full animate-spin mb-4" />
                   <p className="text-sm text-[var(--muted-foreground)]">Загрузка глав...</p>
                 </div>
               )}
-              
+
               {visibleChapters.map((chapter, index) => {
                 const read = isChapterRead(chapter._id || "");
                 const isRemoving = removingChapterId === chapter._id;
-                const hasRating =
-                  chapter.averageRating != null && (chapter.ratingCount ?? 0) > 0;
+                const hasRating = chapter.averageRating != null && (chapter.ratingCount ?? 0) > 0;
                 const totalReactions =
                   chapter.reactions?.reduce((s, r) => s + (r.count ?? 0), 0) ?? 0;
                 const hasReactions = totalReactions > 0;
@@ -874,11 +903,19 @@ export function RightContent({
 
                     {/* Десктоп: рейтинг и реакции справа отдельно для сканности */}
                     <div className="hidden sm:flex items-center gap-3 text-[var(--muted-foreground)] flex-shrink-0">
-                      <span className="flex items-center gap-1 tabular-nums text-sm" title="Рейтинг">
+                      <span
+                        className="flex items-center gap-1 tabular-nums text-sm"
+                        title="Рейтинг"
+                      >
                         <Star className="w-3.5 h-3.5 text-[var(--muted-foreground)] fill-[var(--muted-foreground)] shrink-0" />
-                        {hasRating ? `${chapter.averageRating!.toFixed(1)}${(chapter.ratingCount ?? 0) > 0 ? ` (${chapter.ratingCount})` : ""}` : "—"}
+                        {hasRating
+                          ? `${chapter.averageRating!.toFixed(1)}${(chapter.ratingCount ?? 0) > 0 ? ` (${chapter.ratingCount})` : ""}`
+                          : "—"}
                       </span>
-                      <span className="flex items-center gap-1 tabular-nums text-sm" title="Реакции">
+                      <span
+                        className="flex items-center gap-1 tabular-nums text-sm"
+                        title="Реакции"
+                      >
                         <SmilePlus className="w-3.5 h-3.5 shrink-0" />
                         {hasReactions ? totalReactions : "—"}
                       </span>
@@ -921,7 +958,9 @@ export function RightContent({
             </div>
             <div className="flex items-center gap-2 bg-[var(--secondary)]/80 px-3 py-1.5 rounded-xl text-[var(--foreground)] border border-[var(--border)]/50">
               <CheckCheck className="w-4 h-4 text-[var(--primary)]" />
-              {titleData?.status && <span className="font-medium">{translateTitleStatus(titleData.status || "")}</span>}
+              {titleData?.status && (
+                <span className="font-medium">{translateTitleStatus(titleData.status || "")}</span>
+              )}
             </div>
             {/* <button
               onClick={() => setIsReportModalOpen(true)}
@@ -945,7 +984,8 @@ export function RightContent({
                 </span>
                 {totalRatings > 0 && (
                   <span className="text-xs text-[var(--muted-foreground)] shrink-0">
-                    {totalRatings} {totalRatings === 1 ? "оценка" : totalRatings < 5 ? "оценки" : "оценок"}
+                    {totalRatings}{" "}
+                    {totalRatings === 1 ? "оценка" : totalRatings < 5 ? "оценки" : "оценок"}
                   </span>
                 )}
               </div>
@@ -970,11 +1010,8 @@ export function RightContent({
                 {isRatingOpen && (
                   <>
                     {/* Backdrop для закрытия при клике вне */}
-                    <div 
-                      className="fixed inset-0 z-40" 
-                      onClick={() => setIsRatingOpen(false)}
-                    />
-                    
+                    <div className="fixed inset-0 z-40" onClick={() => setIsRatingOpen(false)} />
+
                     <div
                       className="absolute bottom-full right-0 mb-2 flex flex-col w-[280px] sm:w-[320px] bg-[var(--card)] rounded-2xl p-4 z-50 shadow-2xl border border-[var(--border)]/30 animate-in fade-in slide-in-from-bottom-2 duration-200 backdrop-blur-xl"
                       style={ratingPopoverStyle}
@@ -986,10 +1023,14 @@ export function RightContent({
                             <Star className="w-4 h-4 text-[var(--primary)] fill-[var(--primary)]" />
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-xs text-[var(--foreground)]/50 uppercase tracking-wider">Оценка</span>
+                            <span className="text-xs text-[var(--foreground)]/50 uppercase tracking-wider">
+                              Оценка
+                            </span>
                             <span className="text-lg font-bold text-[var(--foreground)]">
                               {hoveredRating || pendingRating || "—"}
-                              <span className="text-sm font-normal text-[var(--foreground)]/40 ml-0.5">/10</span>
+                              <span className="text-sm font-normal text-[var(--foreground)]/40 ml-0.5">
+                                /10
+                              </span>
                             </span>
                           </div>
                         </div>
@@ -1009,8 +1050,11 @@ export function RightContent({
                           const ratingValue = i + 1;
                           const isSelected = pendingRating === ratingValue;
                           const isHovered = hoveredRating !== null && ratingValue <= hoveredRating;
-                          const isPreviouslySelected = pendingRating !== null && ratingValue <= pendingRating && hoveredRating === null;
-                          
+                          const isPreviouslySelected =
+                            pendingRating !== null &&
+                            ratingValue <= pendingRating &&
+                            hoveredRating === null;
+
                           const getColor = (value: number) => {
                             if (value <= 3) return "bg-red-500";
                             if (value <= 5) return "bg-orange-500";
@@ -1028,7 +1072,10 @@ export function RightContent({
                                 setIsRatingOpen(false);
                                 updateRating({ id: titleData?._id || "", rating: ratingValue });
                                 if (typeof window !== "undefined" && titleData?._id) {
-                                  localStorage.setItem(`title-rating-${titleData._id}`, ratingValue.toString());
+                                  localStorage.setItem(
+                                    `title-rating-${titleData._id}`,
+                                    ratingValue.toString(),
+                                  );
                                 }
                               }}
                               onMouseEnter={() => setHoveredRating(ratingValue)}
@@ -1048,11 +1095,13 @@ export function RightContent({
                       {/* Описание оценки */}
                       <div className="flex items-center justify-between text-xs px-1">
                         <span className="text-[var(--foreground)]/40">Ужасно</span>
-                        <span className={`font-medium transition-colors ${
-                          (hoveredRating || pendingRating)
-                            ? "text-[var(--foreground)]"
-                            : "text-[var(--foreground)]/50"
-                        }`}>
+                        <span
+                          className={`font-medium transition-colors ${
+                            hoveredRating || pendingRating
+                              ? "text-[var(--foreground)]"
+                              : "text-[var(--foreground)]/50"
+                          }`}
+                        >
                           {hoveredRating
                             ? hoveredRating <= 2
                               ? "Ужасно"
@@ -1124,7 +1173,7 @@ export function RightContent({
             <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[var(--card)] to-transparent pointer-events-none" />
           )}
         </div>
-        
+
         {/* Кнопка развернуть/свернуть с иконкой - показываем только если есть переполнение */}
         {isDescriptionOverflowing && (
           <button
@@ -1132,10 +1181,10 @@ export function RightContent({
             className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2 mt-3 rounded-xl text-sm font-medium text-[var(--primary)] bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 border border-[var(--primary)]/20 hover:border-[var(--primary)]/30 transition-all group"
           >
             <span>{isDescriptionExpanded ? "Свернуть описание" : "Читать полностью"}</span>
-            <ChevronDown 
+            <ChevronDown
               className={`w-4 h-4 transition-transform duration-300 ${
                 isDescriptionExpanded ? "rotate-180" : "group-hover:translate-y-0.5"
-              }`} 
+              }`}
             />
           </button>
         )}
@@ -1144,11 +1193,11 @@ export function RightContent({
         <div className="bg-[var(--secondary)]/95 backdrop-blur-xl rounded-2xl p-1.5 border border-[var(--border)] shadow-sm">
           <div className="flex gap-1">
             {[
-              { 
-                key: "main" as const, 
-                label: "Главная", 
+              {
+                key: "main" as const,
+                label: "Главная",
                 icon: Home,
-                count: null 
+                count: null,
               },
               {
                 key: "chapters" as const,
@@ -1156,16 +1205,16 @@ export function RightContent({
                 icon: List,
                 count: titleData?.totalChapters || chapters.length || 0,
               },
-              { 
-                key: "comments" as const, 
-                label: "Комментарии", 
+              {
+                key: "comments" as const,
+                label: "Комментарии",
                 icon: MessageCircle,
-                count: commentsCount
+                count: commentsCount,
               },
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.key;
-              
+
               return (
                 <button
                   key={tab.key}
@@ -1176,14 +1225,18 @@ export function RightContent({
                       : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--background)]/70"
                   }`}
                 >
-                  <Icon className={`w-4 h-4 transition-transform duration-300 ${isActive ? "scale-110" : ""}`} />
+                  <Icon
+                    className={`w-4 h-4 transition-transform duration-300 ${isActive ? "scale-110" : ""}`}
+                  />
                   <span className="hidden sm:inline">{tab.label}</span>
                   {tab.count !== null && tab.count > 0 && (
-                    <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-xl ${
-                      isActive 
-                        ? "bg-white/20 text-white" 
-                        : "bg-[var(--primary)]/10 text-[var(--primary)]"
-                    }`}>
+                    <span
+                      className={`ml-1 text-xs px-1.5 py-0.5 rounded-xl ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                      }`}
+                    >
                       {tab.count}
                     </span>
                   )}

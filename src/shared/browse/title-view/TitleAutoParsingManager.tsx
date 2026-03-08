@@ -21,10 +21,7 @@ import {
   useDeleteAutoParsingJobMutation,
   useCheckNewChaptersMutation,
 } from "@/store/api/autoParsingApi";
-import {
-  CreateAutoParsingJobDto,
-  UpdateAutoParsingJobDto,
-} from "@/types/auto-parsing";
+import { CreateAutoParsingJobDto, UpdateAutoParsingJobDto } from "@/types/auto-parsing";
 import { useMemo } from "react";
 
 interface TitleAutoParsingManagerProps {
@@ -40,10 +37,13 @@ const SCHEDULE_HOUR_OPTIONS: { value: string; label: string }[] = [
 export function TitleAutoParsingManager({ titleId, titleName }: TitleAutoParsingManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const { data: allJobs, isLoading: jobLoading, error: jobError } = useGetAutoParsingJobsQuery();
-  
+
   const existingJob = useMemo(() => {
     if (!allJobs || !Array.isArray(allJobs)) return null;
     return allJobs.find(job => job.titleId?._id === titleId) || null;
@@ -95,7 +95,10 @@ export function TitleAutoParsingManager({ titleId, titleName }: TitleAutoParsing
     if (!existingJob) return;
     try {
       const result = await checkChapters(existingJob._id).unwrap();
-      showNotification("success", `Найдено глав: ${result.chaptersFound}, добавлено: ${result.chaptersAdded}`);
+      showNotification(
+        "success",
+        `Найдено глав: ${result.chaptersFound}, добавлено: ${result.chaptersAdded}`,
+      );
     } catch {
       showNotification("error", "Ошибка при проверке глав");
     }
@@ -204,10 +207,7 @@ export function TitleAutoParsingManager({ titleId, titleName }: TitleAutoParsing
             </div>
           </>
         ) : (
-          <button
-            onClick={() => handleOpenModal(false)}
-            className={actionButtonClass}
-          >
+          <button onClick={() => handleOpenModal(false)} className={actionButtonClass}>
             <Plus className="w-4 h-4" />
             <span>Автопарсинг</span>
           </button>
@@ -235,14 +235,17 @@ export function TitleAutoParsingManager({ titleId, titleName }: TitleAutoParsing
 interface AutoParsingModalProps {
   titleId: string;
   titleName: string;
-  existingJob: {
-    _id: string;
-    sources?: string[];
-    url?: string;
-    frequency: string;
-    scheduleHour?: number;
-    enabled: boolean;
-  } | null | undefined;
+  existingJob:
+    | {
+        _id: string;
+        sources?: string[];
+        url?: string;
+        frequency: string;
+        scheduleHour?: number;
+        enabled: boolean;
+      }
+    | null
+    | undefined;
   onClose: () => void;
   onCreate: (data: CreateAutoParsingJobDto) => void;
   onUpdate: (data: UpdateAutoParsingJobDto) => void;
@@ -267,7 +270,7 @@ function AutoParsingModal({
   const [scheduleHour, setScheduleHour] = useState<string>(
     existingJob?.scheduleHour !== undefined && existingJob.scheduleHour !== null
       ? String(existingJob.scheduleHour)
-      : ""
+      : "",
   );
   const [enabled, setEnabled] = useState(existingJob?.enabled ?? true);
 

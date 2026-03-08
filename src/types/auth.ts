@@ -73,7 +73,7 @@ export interface StoredUser {
   linkedProviders?: string[];
   /** Надетые декорации (рамка аватара, фон и т.д.) — отображаются поверх пользовательских */
   equippedDecorations?: import("@/types/user").EquippedDecorations;
-  
+
   // Статистика пользователя
   titlesReadCount?: number;
   commentsCount?: number;

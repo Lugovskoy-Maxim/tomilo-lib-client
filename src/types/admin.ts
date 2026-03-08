@@ -1,5 +1,5 @@
-import { UserProfile, BookmarkCategory } from "./user";
-import { Title, TitleType, TitleStatus } from "./title";
+import { UserProfile } from "./user";
+import { TitleType, TitleStatus } from "./title";
 
 /** Статистика дашборда админки */
 export interface AdminDashboardStats {
@@ -44,7 +44,13 @@ export interface AdminChartData {
 /** Последние действия в системе */
 export interface AdminActivity {
   id: string;
-  type: "user_registered" | "title_created" | "chapter_published" | "comment_created" | "rating_added" | "bookmark_added";
+  type:
+    | "user_registered"
+    | "title_created"
+    | "chapter_published"
+    | "comment_created"
+    | "rating_added"
+    | "bookmark_added";
   description: string;
   userId?: string;
   username?: string;

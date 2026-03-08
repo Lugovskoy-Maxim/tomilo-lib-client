@@ -36,31 +36,26 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
   const userId = targetUserId || user?.id || user?._id;
   const shouldSkip = !targetUserId && !isAuthenticated;
 
-  const levelQuery = useGetLeaderboardQuery(
-    { category: "level", limit: 10 },
-    { skip: shouldSkip }
-  );
+  const levelQuery = useGetLeaderboardQuery({ category: "level", limit: 10 }, { skip: shouldSkip });
   const ratingsQuery = useGetLeaderboardQuery(
     { category: "ratings", limit: 10 },
-    { skip: shouldSkip }
+    { skip: shouldSkip },
   );
   const commentsQuery = useGetLeaderboardQuery(
     { category: "comments", limit: 10 },
-    { skip: shouldSkip }
+    { skip: shouldSkip },
   );
   const streakQuery = useGetLeaderboardQuery(
     { category: "streak", limit: 10 },
-    { skip: shouldSkip }
+    { skip: shouldSkip },
   );
   const chaptersReadQuery = useGetLeaderboardQuery(
     { category: "chaptersRead", limit: 10 },
-    { skip: shouldSkip }
+    { skip: shouldSkip },
   );
 
-  const queries: Record<
-    QueryCategory,
-    ReturnType<typeof useGetLeaderboardQuery>
-  > = {
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- объект от хуков, пересчёт по userId
+  const queries: Record<QueryCategory, ReturnType<typeof useGetLeaderboardQuery>> = {
     level: levelQuery,
     ratings: ratingsQuery,
     comments: commentsQuery,
@@ -68,7 +63,7 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     chaptersRead: chaptersReadQuery,
   };
 
-  const isLoading = Object.values(queries).some((q) => q.isLoading);
+  const isLoading = Object.values(queries).some(q => q.isLoading);
 
   const top10Positions = useMemo(() => {
     if (!userId) return [];
@@ -80,9 +75,7 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
       const users = query.data?.data?.users;
       if (!users) continue;
 
-      const index = users.findIndex(
-        (u: LeaderboardUser) => u._id === userId
-      );
+      const index = users.findIndex((u: LeaderboardUser) => u._id === userId);
 
       if (index !== -1 && index < 10) {
         positions.push({

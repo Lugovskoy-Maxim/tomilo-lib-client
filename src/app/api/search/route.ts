@@ -12,7 +12,10 @@ export async function GET(req: NextRequest) {
   if (!allowed) {
     return NextResponse.json(
       { message: "Too Many Requests" },
-      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+      {
+        status: 429,
+        headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined,
+      },
     );
   }
 
@@ -29,7 +32,6 @@ export async function GET(req: NextRequest) {
 
     const res = await fetch(url.toString(), { cache: "no-store", next: { revalidate: 0 } });
     if (!res.ok) {
-      // Возвращаем пустой результат вместо проброса 4xx/5xx, чтобы не ломать UI
       return NextResponse.json([], { status: 200 });
     }
 

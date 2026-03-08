@@ -38,17 +38,15 @@ interface ChapterReactionsProps {
   initialReactions?: ChapterReactionCount[] | null;
 }
 
-const RATING_VALUES = Array.from(
-  { length: CHAPTER_RATING_MAX },
-  (_, i) => i + 1
-) as number[];
+const RATING_VALUES = Array.from({ length: CHAPTER_RATING_MAX }, (_, i) => i + 1) as number[];
 
 export function ChapterReactions({
   chapterId,
-  titleId: _titleId,
   onLoginRequired,
   initialRating,
   initialReactions,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- titleId в пропсах для API, не используется в компоненте
+  ..._rest
 }: ChapterReactionsProps) {
   const CHAPTER_RATING_STORAGE_KEY = "chapter_user_rating";
   const CHAPTER_REACTION_STORAGE_KEY = "chapter_user_reaction";
@@ -93,29 +91,36 @@ export function ChapterReactions({
     } catch {
       // ignore
     }
+    // ALLOWED_EMOJIS_SET стабилен (константа из Set), не добавляем в deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId]);
 
-  const { data: ratingData, error: ratingError, isError: isRatingError } = useGetChapterRatingQuery(
-    chapterId,
-    { skip: !chapterId }
-  );
+  const {
+    data: ratingData,
+    error: ratingError,
+    isError: isRatingError,
+  } = useGetChapterRatingQuery(chapterId, { skip: !chapterId });
   const [setRating, { isLoading: isRatingLoading }] = useSetChapterRatingMutation();
 
-  const { data: countData, error: countError, isError: isCountError } =
-    useGetChapterReactionsCountQuery(chapterId, { skip: !chapterId });
+  const {
+    data: countData,
+    error: countError,
+    isError: isCountError,
+  } = useGetChapterReactionsCountQuery(chapterId, { skip: !chapterId });
 
   const ratingUnavailable = isRatingError && (ratingError as { status?: number })?.status === 404;
   const reactionsUnavailable = isCountError && (countError as { status?: number })?.status === 404;
   const apiUnavailable = ratingUnavailable && reactionsUnavailable;
 
-  const [toggleReaction, { isLoading: isReactionLoading }] =
-    useToggleChapterReactionMutation();
+  const [toggleReaction, { isLoading: isReactionLoading }] = useToggleChapterReactionMutation();
 
   // Приоритет у ответа API (там есть userRating при авторизации), иначе — initialRating из главы
   const rating = ratingData ?? initialRating ?? null;
-  const averageRating = rating?.averageRating ?? (rating?.ratingSum != null && (rating?.ratingCount ?? 0) > 0
-    ? (rating.ratingSum! / (rating.ratingCount ?? 1))
-    : null);
+  const averageRating =
+    rating?.averageRating ??
+    (rating?.ratingSum != null && (rating?.ratingCount ?? 0) > 0
+      ? rating.ratingSum! / (rating.ratingCount ?? 1)
+      : null);
   const ratingCount = rating?.ratingCount ?? 0;
   const userRatingFromApi = rating?.userRating != null ? Number(rating.userRating) : null;
   const ratingAvailable = !ratingUnavailable;
@@ -128,7 +133,7 @@ export function ChapterReactions({
       try {
         sessionStorage.setItem(
           `${CHAPTER_RATING_STORAGE_KEY}_${chapterId}`,
-          String(userRatingFromApi)
+          String(userRatingFromApi),
         );
       } catch {
         // ignore
@@ -139,7 +144,9 @@ export function ChapterReactions({
   const reactionsList = countData?.data?.reactions ?? initialReactions ?? null;
   const userReactionFromApi =
     countData?.data?.userReaction != null && countData.data.userReaction !== ""
-      ? (ALLOWED_EMOJIS_SET.has(countData.data.userReaction) ? countData.data.userReaction : null)
+      ? ALLOWED_EMOJIS_SET.has(countData.data.userReaction)
+        ? countData.data.userReaction
+        : null
       : null;
   const displaySelectedEmoji = userReactionFromApi ?? selectedEmoji;
 
@@ -147,10 +154,7 @@ export function ChapterReactions({
     if (userReactionFromApi != null) {
       setSelectedEmoji(userReactionFromApi);
       try {
-        sessionStorage.setItem(
-          `${CHAPTER_REACTION_STORAGE_KEY}_${chapterId}`,
-          userReactionFromApi
-        );
+        sessionStorage.setItem(`${CHAPTER_REACTION_STORAGE_KEY}_${chapterId}`, userReactionFromApi);
       } catch {
         // ignore
       }
@@ -159,7 +163,7 @@ export function ChapterReactions({
 
   const countByEmoji = useMemo(() => {
     const map: Record<string, number> = {};
-    reactionsList?.forEach((r) => {
+    reactionsList?.forEach(r => {
       map[r.emoji] = r.count;
     });
     return map;
@@ -167,7 +171,7 @@ export function ChapterReactions({
 
   const totalReactions = useMemo(
     () => Object.values(countByEmoji).reduce((a, b) => a + b, 0),
-    [countByEmoji]
+    [countByEmoji],
   );
 
   const handleReaction = async (emoji: string) => {
@@ -273,7 +277,8 @@ export function ChapterReactions({
         </div>
         {totalFeedback > 0 && (
           <span className="flex-shrink-0 text-xs font-medium text-[var(--muted-foreground)] bg-[var(--secondary)]/80 px-2.5 py-1 rounded-full tabular-nums">
-            {totalFeedback} {totalFeedback === 1 ? "отзыв" : totalFeedback < 5 ? "отзыва" : "отзывов"}
+            {totalFeedback}{" "}
+            {totalFeedback === 1 ? "отзыв" : totalFeedback < 5 ? "отзыва" : "отзывов"}
           </span>
         )}
       </div>
@@ -303,12 +308,17 @@ export function ChapterReactions({
               </span>
               {averageRating != null && ratingCount > 0 && (
                 <span className="text-xs text-[var(--muted-foreground)] tabular-nums">
-                  {averageRating.toFixed(1)} из {CHAPTER_RATING_MAX} · {ratingCount} {ratingCount === 1 ? "оценка" : ratingCount < 5 ? "оценки" : "оценок"}
+                  {averageRating.toFixed(1)} из {CHAPTER_RATING_MAX} · {ratingCount}{" "}
+                  {ratingCount === 1 ? "оценка" : ratingCount < 5 ? "оценки" : "оценок"}
                 </span>
               )}
             </div>
-            <div className="flex flex-nowrap items-center gap-0.5 sm:gap-1" role="group" aria-label={`Рейтинг от 1 до ${CHAPTER_RATING_MAX}`}>
-              {RATING_VALUES.map((value) => {
+            <div
+              className="flex flex-nowrap items-center gap-0.5 sm:gap-1"
+              role="group"
+              aria-label={`Рейтинг от 1 до ${CHAPTER_RATING_MAX}`}
+            >
+              {RATING_VALUES.map(value => {
                 const current = userRating ?? 0;
                 const isSelected = value <= current;
                 return (
@@ -336,7 +346,10 @@ export function ChapterReactions({
             </div>
             {hasUserRating && (
               <p className="text-xs text-[var(--muted-foreground)]">
-                Ваша оценка: <span className="font-semibold text-[var(--foreground)] tabular-nums">{Number(userRating)} из {CHAPTER_RATING_MAX}</span>
+                Ваша оценка:{" "}
+                <span className="font-semibold text-[var(--foreground)] tabular-nums">
+                  {Number(userRating)} из {CHAPTER_RATING_MAX}
+                </span>
               </p>
             )}
           </div>
@@ -353,7 +366,7 @@ export function ChapterReactions({
               Реакции
             </span>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {CHAPTER_ALLOWED_REACTION_EMOJIS.map((emoji) => {
+              {CHAPTER_ALLOWED_REACTION_EMOJIS.map(emoji => {
                 const isSelected = displaySelectedEmoji === emoji;
                 const count = countByEmoji[emoji] ?? 0;
                 const isAnimating = animatingEmoji === emoji;
@@ -377,9 +390,11 @@ export function ChapterReactions({
                       <span className="text-base sm:text-lg leading-none select-none">{emoji}</span>
                     )}
                     {count > 0 && (
-                      <span className={`text-[10px] sm:text-xs font-medium tabular-nums min-w-[1rem] sm:min-w-[1.25rem] text-center ${
-                        isSelected ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
-                      }`}>
+                      <span
+                        className={`text-[10px] sm:text-xs font-medium tabular-nums min-w-[1rem] sm:min-w-[1.25rem] text-center ${
+                          isSelected ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
+                        }`}
+                      >
                         {count}
                       </span>
                     )}

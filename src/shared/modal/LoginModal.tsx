@@ -1,10 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
-import {
-  useLoginMutation,
-  useForgotPasswordMutation,
-} from "@/store/api/authApi";
+import { useLoginMutation, useForgotPasswordMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginData, FormErrors, FormTouched } from "../../types/form";
 import { Modal } from "..";
@@ -48,7 +45,10 @@ async function sha256Base64Url(str: string): Promise<string> {
 
 /** Редирект на VK ID authorize с PKCE (по документации API). */
 async function redirectToVkAuth(): Promise<void> {
-  const redirectUri = typeof window !== "undefined" ? `${window.location.origin}/auth/vk` : "https://tomilo-lib.ru/auth/vk";
+  const redirectUri =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/auth/vk`
+      : "https://tomilo-lib.ru/auth/vk";
   try {
     // Очищаем режим привязки, чтобы callback не принял вход за привязку (ошибка «откройте привязку со страницы профиля»)
     sessionStorage.removeItem("vk_link_mode");
@@ -475,7 +475,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <label htmlFor="password" className="block text-sm font-medium text-[var(--foreground)]">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-[var(--foreground)]"
+              >
                 Пароль
               </label>
               <button
@@ -506,7 +509,9 @@ const LoginModal: React.FC<LoginModalProps> = ({
                   }
                 }}
               >
-                {isForgotPasswordLoading ? MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD_SENDING : MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD}
+                {isForgotPasswordLoading
+                  ? MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD_SENDING
+                  : MESSAGES.UI_ELEMENTS.FORGOT_PASSWORD}
               </button>
             </div>
             <div className="relative">
@@ -535,13 +540,20 @@ const LoginModal: React.FC<LoginModalProps> = ({
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/20"
                 disabled={isLoading}
-                aria-label={showPassword ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD}
+                aria-label={
+                  showPassword
+                    ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD
+                    : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD
+                }
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {errors.password && (
-              <p id="password-error" className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
+              <p
+                id="password-error"
+                className="text-xs text-red-500 flex items-center gap-1.5 mt-1"
+              >
                 <span className="w-1 h-1 bg-red-500 rounded-full" />
                 {errors.password}
               </p>
@@ -582,9 +594,12 @@ const LoginModal: React.FC<LoginModalProps> = ({
               } catch {
                 // sessionStorage недоступен
               }
-              const clientId = process.env.NEXT_PUBLIC_YANDEX_CLIENT_ID || "ffd24e1c16544069bc7a1e8c66316f37";
+              const clientId =
+                process.env.NEXT_PUBLIC_YANDEX_CLIENT_ID || "ffd24e1c16544069bc7a1e8c66316f37";
               const redirectUri = encodeURIComponent(
-                typeof window !== "undefined" ? `${window.location.origin}/auth/yandex` : "https://tomilo-lib.ru/auth/yandex",
+                typeof window !== "undefined"
+                  ? `${window.location.origin}/auth/yandex`
+                  : "https://tomilo-lib.ru/auth/yandex",
               );
               window.location.href = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
             }}
@@ -600,7 +615,12 @@ const LoginModal: React.FC<LoginModalProps> = ({
             className="w-full h-10 min-[360px]:h-11 sm:h-12 rounded-lg min-[360px]:rounded-xl font-medium text-sm min-[360px]:text-base bg-[#0077FF] hover:bg-[#0066DD] text-white transition-colors flex items-center justify-center gap-2 min-[360px]:gap-2.5 focus:outline-none focus:ring-2 focus:ring-[#0077FF]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
             title="Войти через VK ID"
           >
-            <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <svg
+              className="w-5 h-5 flex-shrink-0"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden
+            >
               <path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.408 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.864-.525-2.05-1.727-1.033-1-1.49-1.135-1.744-1.135-.356 0-.458.102-.458.593v1.575c0 .424-.135.678-1.253.678-1.846 0-3.896-1.118-5.335-3.202C4.624 10.857 4.03 8.57 4.03 8.096c0-.254.102-.491.593-.491h1.744c.44 0 .61.203.78.678.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.721c-.068-1.186-.695-1.287-.695-1.71 0-.203.17-.407.44-.407h2.744c.373 0 .508.203.508.643v3.473c0 .372.17.508.271.508.22 0 .407-.136.813-.542 1.254-1.406 2.151-3.574 2.151-3.574.119-.254.322-.491.763-.491h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.779 1.203 1.253.745.847 1.32 1.558 1.473 2.049.17.49-.085.744-.576.744z" />
             </svg>
             <span>VK ID</span>

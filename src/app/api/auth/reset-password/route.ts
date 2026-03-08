@@ -12,7 +12,10 @@ export async function POST(request: Request) {
   if (!allowed) {
     return NextResponse.json(
       { success: false, message: "Слишком много попыток. Попробуйте позже." },
-      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+      {
+        status: 429,
+        headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined,
+      },
     );
   }
   try {
@@ -35,7 +38,10 @@ export async function POST(request: Request) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       return NextResponse.json(
-        { success: false, message: (data as { message?: string }).message || "Ошибка сброса пароля" },
+        {
+          success: false,
+          message: (data as { message?: string }).message || "Ошибка сброса пароля",
+        },
         { status: res.status >= 400 ? res.status : 500 },
       );
     }
@@ -44,7 +50,7 @@ export async function POST(request: Request) {
       message: "Пароль успешно сброшен",
       ...(typeof data === "object" && data !== null ? data : {}),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: false, message: "Ошибка сброса пароля" }, { status: 500 });
   }
 }

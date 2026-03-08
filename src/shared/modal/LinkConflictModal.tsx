@@ -40,8 +40,8 @@ export default function LinkConflictModal({
     <Modal isOpen={isOpen} onClose={onClose} title={`${label} уже привязан`}>
       <div className="flex flex-col gap-4">
         <p className="text-sm text-[var(--muted-foreground)]">
-          {label} уже привязан к пользователю <strong className="text-[var(--foreground)]">{username}</strong>.
-          Что сделать?
+          {label} уже привязан к пользователю{" "}
+          <strong className="text-[var(--foreground)]">{username}</strong>. Что сделать?
         </p>
         <div className="flex flex-col gap-2">
           <button

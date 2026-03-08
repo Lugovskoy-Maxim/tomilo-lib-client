@@ -99,7 +99,9 @@ export function WorkQueueSection() {
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">Рабочая очередь контента</h2>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+              Рабочая очередь контента
+            </h2>
             <p className="mt-1 text-sm text-[var(--muted-foreground)]">
               Тайтлы без глав и главы без страниц для оперативной модерации
             </p>
@@ -162,16 +164,23 @@ export function WorkQueueSection() {
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
             <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
               <h3 className="font-semibold text-[var(--foreground)]">Тайтлы без глав</h3>
-              <span className="text-sm text-[var(--muted-foreground)]">{titlesWithoutChapters.length}</span>
+              <span className="text-sm text-[var(--muted-foreground)]">
+                {titlesWithoutChapters.length}
+              </span>
             </div>
             {pagedTitles.length === 0 ? (
               <div className="p-6 text-sm text-[var(--muted-foreground)]">Ничего не найдено</div>
             ) : (
               <div className="divide-y divide-[var(--border)]">
                 {pagedTitles.map(title => (
-                  <div key={title._id} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div
+                    key={title._id}
+                    className="flex items-center justify-between gap-3 px-4 py-3"
+                  >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-[var(--foreground)]">{title.name}</p>
+                      <p className="truncate text-sm font-medium text-[var(--foreground)]">
+                        {title.name}
+                      </p>
                       <p className="truncate text-xs text-[var(--muted-foreground)]">
                         {title.author || "Автор не указан"} · {title._id}
                       </p>
@@ -220,17 +229,23 @@ export function WorkQueueSection() {
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
             <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
               <h3 className="font-semibold text-[var(--foreground)]">Главы без страниц</h3>
-              <span className="text-sm text-[var(--muted-foreground)]">{chaptersWithoutPages.length}</span>
+              <span className="text-sm text-[var(--muted-foreground)]">
+                {chaptersWithoutPages.length}
+              </span>
             </div>
             {pagedChapters.length === 0 ? (
               <div className="p-6 text-sm text-[var(--muted-foreground)]">Ничего не найдено</div>
             ) : (
               <div className="divide-y divide-[var(--border)]">
                 {pagedChapters.map(chapter => (
-                  <div key={chapter._id} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div
+                    key={chapter._id}
+                    className="flex items-center justify-between gap-3 px-4 py-3"
+                  >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-[var(--foreground)]">
-                        Глава {chapter.chapterNumber}: {chapter.title || chapter.name || "Без названия"}
+                        Глава {chapter.chapterNumber}:{" "}
+                        {chapter.title || chapter.name || "Без названия"}
                       </p>
                       <p className="truncate text-xs text-[var(--muted-foreground)]">
                         Тайтл: {chapter.titleInfo?.name || chapter.titleId} · {chapter._id}

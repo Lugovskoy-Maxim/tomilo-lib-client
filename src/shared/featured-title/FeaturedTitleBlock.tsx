@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ChevronLeft, ChevronRight, Eye, BookOpen, Calendar, Tag, Play, Bookmark, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  BookOpen,
+  Calendar,
+  Tag,
+  Play,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import RatingBadge from "@/shared/rating-badge/RatingBadge";
 import Link from "next/link";
 import { useToast } from "@/hooks/useToast";
@@ -39,16 +49,6 @@ interface FeaturedTitleBlockProps {
   autoPlayInterval?: number;
 }
 
-const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
-  reading: "Читаю",
-  planned: "В планах",
-  completed: "Прочитано",
-  favorites: "Избранное",
-  dropped: "Брошено",
-};
-
-const CATEGORIES: BookmarkCategory[] = ["reading", "planned", "completed", "favorites", "dropped"];
-
 const formatViews = (value?: number | string) => {
   if (value === undefined || value === null) return null;
   const views = typeof value === "string" ? parseInt(value.replace(/[KkМм]/g, "000"), 10) : value;
@@ -57,7 +57,6 @@ const formatViews = (value?: number | string) => {
   if (views >= 1_000) return `${(views / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
   return `${views}`;
 };
-
 
 export default function FeaturedTitleBlock({
   data,
@@ -80,15 +79,17 @@ export default function FeaturedTitleBlock({
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastTickRef = useRef<number>(Date.now());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  void bookmarkLoading;
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const touchTargetRef = useRef<EventTarget | null>(null);
   const bookmarkHandledByPointerRef = useRef(false);
+  void bookmarkHandledByPointerRef;
   const dropdownRef = useRef<HTMLDivElement>(null);
   const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
-  
+
   const minSwipeDistance = 50;
 
   const isInteractiveElement = (target: EventTarget | null): boolean => {
@@ -102,14 +103,14 @@ export default function FeaturedTitleBlock({
   const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
     const verified = checkAgeVerification(user || null);
-    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+    setIsAgeVerified(prev => (prev === verified ? prev : verified));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only userId/userBirthDate; `user` reference changes every render from Redux
   }, [userId, userBirthDate]);
 
   // Предзагрузка изображений всех слайдов при монтировании
   useEffect(() => {
     if (typeof window === "undefined") return;
-    data.forEach((item) => {
+    data.forEach(item => {
       if (!item.image) return;
       const { primary, fallback } = getCoverUrls(item.image, "");
       if (primary) {
@@ -135,7 +136,8 @@ export default function FeaturedTitleBlock({
     if (!categoryOpen) return;
     const close = (e: MouseEvent) => {
       const target = e.target as Node;
-      if (dropdownRef.current?.contains(target) || bookmarkButtonRef.current?.contains(target)) return;
+      if (dropdownRef.current?.contains(target) || bookmarkButtonRef.current?.contains(target))
+        return;
       setCategoryOpen(false);
     };
     document.addEventListener("click", close);
@@ -146,20 +148,27 @@ export default function FeaturedTitleBlock({
 
   const titlePath = currentItem ? getTitlePath(currentItem) : "";
   const isAdultContent = currentItem?.isAdult;
-  const isBookmarked = user?.bookmarks && currentItem
-    ? normalizeBookmarks(user.bookmarks).some(e => e.titleId === currentItem.id)
-    : false;
+  const isBookmarked =
+    user?.bookmarks && currentItem
+      ? normalizeBookmarks(user.bookmarks).some(e => e.titleId === currentItem.id)
+      : false;
 
-  const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(currentItem?.image, IMAGE_HOLDER.src);
+  const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(
+    currentItem?.image,
+    IMAGE_HOLDER.src,
+  );
 
-  const goToSlide = useCallback((index: number) => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCurrentIndex(index);
-    setProgress(0);
-    lastTickRef.current = Date.now();
-    setTimeout(() => setIsTransitioning(false), 500);
-  }, [isTransitioning]);
+  const goToSlide = useCallback(
+    (index: number) => {
+      if (isTransitioning) return;
+      setIsTransitioning(true);
+      setCurrentIndex(index);
+      setProgress(0);
+      lastTickRef.current = Date.now();
+      setTimeout(() => setIsTransitioning(false), 500);
+    },
+    [isTransitioning],
+  );
 
   const goToPrevious = useCallback(() => {
     const newIndex = currentIndex === 0 ? data.length - 1 : currentIndex - 1;
@@ -262,6 +271,7 @@ export default function FeaturedTitleBlock({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- выбор категории закладки
   const handleAddWithCategory = async (category: BookmarkCategory) => {
     if (!isAuthenticated) {
       toast.warning("Пожалуйста, авторизуйтесь, чтобы добавить в закладки");
@@ -281,6 +291,7 @@ export default function FeaturedTitleBlock({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- клик по кнопке закладки
   const handleBookmarkClick = () => {
     if (!isAuthenticated) {
       toast.warning("Пожалуйста, авторизуйтесь, чтобы добавить в закладки");
@@ -296,11 +307,17 @@ export default function FeaturedTitleBlock({
   const hasHeader = title || description;
 
   return (
-    <section className={`w-full ${hasHeader ? "max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" : ""}`}>
+    <section
+      className={`w-full ${hasHeader ? "max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" : ""}`}
+    >
       {hasHeader && (
         <div className="flex flex-col mb-2 sm:mb-4">
           <div className="flex items-center gap-1">
-            {icon && <div className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 text-[var(--muted-foreground)]">{icon}</div>}
+            {icon && (
+              <div className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 text-[var(--muted-foreground)]">
+                {icon}
+              </div>
+            )}
             {title && (
               <h2 className="text-base sm:text-lg md:text-2xl font-bold text-[var(--muted-foreground)]">
                 {title}
@@ -319,16 +336,16 @@ export default function FeaturedTitleBlock({
         className={`relative w-full overflow-hidden group ${hasHeader ? "rounded-xl sm:rounded-2xl" : ""}`}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={(e) => {
+        onTouchStart={e => {
           setIsPaused(true);
           setTouchEnd(null);
           touchTargetRef.current = e.target;
           setTouchStart(e.targetTouches[0].clientX);
         }}
-        onTouchMove={(e) => {
+        onTouchMove={e => {
           setTouchEnd(e.targetTouches[0].clientX);
         }}
-        onTouchEnd={(e) => {
+        onTouchEnd={() => {
           if (isInteractiveElement(touchTargetRef.current)) {
             touchTargetRef.current = null;
             setTouchStart(null);
@@ -343,25 +360,26 @@ export default function FeaturedTitleBlock({
           const distance = touchStart - touchEnd;
           const isLeftSwipe = distance > minSwipeDistance;
           const isRightSwipe = distance < -minSwipeDistance;
-          
+
           if (isLeftSwipe && data.length > 1) {
             goToNext();
           } else if (isRightSwipe && data.length > 1) {
             goToPrevious();
           }
-          
+
           setTouchStart(null);
           setTouchEnd(null);
           setTimeout(() => setIsPaused(false), 3000);
         }}
       >
-
         {isAdultContent && !isAgeVerified && (
           <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
             <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 md:px-8 pt-3 sm:pt-4 flex justify-end">
               <div className="bg-red-500/90 backdrop-blur-sm text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold shadow-lg border border-red-400/50 flex items-center gap-1.5 pointer-events-auto">
                 <span>18+</span>
-                <span className="hidden sm:inline text-red-100 font-medium">Контент для взрослых</span>
+                <span className="hidden sm:inline text-red-100 font-medium">
+                  Контент для взрослых
+                </span>
               </div>
             </div>
           </div>
@@ -373,7 +391,7 @@ export default function FeaturedTitleBlock({
             <Link
               href={titlePath}
               className="block relative w-28 min-w-[112px] sm:w-32 sm:min-w-[128px] aspect-[2/3] rounded-xl overflow-hidden shadow-xl ring-1 ring-[var(--border)] flex-shrink-0"
-              onClick={(e) => {
+              onClick={e => {
                 if (isAdultContent && !isAgeVerified) {
                   e.preventDefault();
                   if (requestAgeVerification) {
@@ -416,7 +434,12 @@ export default function FeaturedTitleBlock({
                   {currentItem.year}
                 </span>
                 <span className="ml-auto shrink-0 inline-flex items-center">
-                  <RatingBadge rating={currentItem.rating} size="xs" variant="default" className="text-xs" />
+                  <RatingBadge
+                    rating={currentItem.rating}
+                    size="xs"
+                    variant="default"
+                    className="text-xs"
+                  />
                 </span>
               </div>
 
@@ -450,7 +473,7 @@ export default function FeaturedTitleBlock({
               <div className="relative z-10 flex gap-2 mt-1 flex-shrink-0">
                 <button
                   type="button"
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     handleReadClick(e as unknown as React.MouseEvent);
                   }}
@@ -470,10 +493,9 @@ export default function FeaturedTitleBlock({
                 isDescriptionExpanded ? "" : "line-clamp-3"
               }`}
             >
-              {isDescriptionExpanded 
-                ? (currentItem.description || "Описание отсутствует")
-                : truncateDescription(currentItem.description, 140)
-              }
+              {isDescriptionExpanded
+                ? currentItem.description || "Описание отсутствует"
+                : truncateDescription(currentItem.description, 140)}
             </p>
             {currentItem.description && currentItem.description.length > 140 && (
               <button
@@ -500,7 +522,7 @@ export default function FeaturedTitleBlock({
             <Link
               href={titlePath}
               className="block relative w-56 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl ring-1 ring-[var(--border)] transition-transform duration-300 hover:scale-[1.02] group/cover"
-              onClick={(e) => {
+              onClick={e => {
                 if (isAdultContent && !isAgeVerified) {
                   e.preventDefault();
                   if (requestAgeVerification) {
@@ -589,10 +611,9 @@ export default function FeaturedTitleBlock({
                   isDescriptionExpanded ? "" : "line-clamp-4"
                 } transition-all duration-300`}
               >
-                {isDescriptionExpanded 
-                  ? (currentItem.description || "Описание отсутствует")
-                  : truncateDescription(currentItem.description, 250)
-                }
+                {isDescriptionExpanded
+                  ? currentItem.description || "Описание отсутствует"
+                  : truncateDescription(currentItem.description, 250)}
               </p>
             </div>
 

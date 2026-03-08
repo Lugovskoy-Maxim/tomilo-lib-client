@@ -19,11 +19,7 @@ export function ProfileProvider({
   value: ProfileContextValue;
   children: ReactNode;
 }) {
-  return (
-    <ProfileContext.Provider value={value}>
-      {children}
-    </ProfileContext.Provider>
-  );
+  return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 
 export function useProfileContext(): ProfileContextValue {

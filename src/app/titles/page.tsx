@@ -17,7 +17,9 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     genres: (params.genres as string)?.split(",").filter(Boolean) || [],
     types: (params.types as string)?.split(",").filter(Boolean) || [],
     status: (params.status as string)?.split(",").filter(Boolean) || [],
-    ageLimits: ((params.ageLimits ?? params.ageLimit) as string)?.split(",").filter(Boolean).map(Number) || [],
+    ageLimits:
+      ((params.ageLimits ?? params.ageLimit) as string)?.split(",").filter(Boolean).map(Number) ||
+      [],
     releaseYears: (params.releaseYears as string)?.split(",").filter(Boolean).map(Number) || [],
     tags: (params.tags as string)?.split(",").filter(Boolean) || [],
     sortBy: (params.sortBy as SortBy) || "averageRating",

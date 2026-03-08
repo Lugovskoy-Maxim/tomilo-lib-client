@@ -70,7 +70,13 @@ export default function ProfileHeaderPreview({
   return (
     <div className="flex flex-col w-full">
       <div className={`relative ${bannerHeightClass} overflow-hidden bg-[var(--secondary)]`}>
-        <Image src={baseBannerUrl} alt="" fill unoptimized className="absolute inset-0 object-cover object-center" />
+        <Image
+          src={baseBannerUrl}
+          alt=""
+          fill
+          unoptimized
+          className="absolute inset-0 object-cover object-center"
+        />
         {backgroundUrl && (
           <Image
             src={backgroundUrl}
@@ -83,7 +89,10 @@ export default function ProfileHeaderPreview({
         )}
         <div
           className="absolute inset-0 pointer-events-none z-20"
-          style={{ background: "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)" }}
+          style={{
+            background:
+              "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)",
+          }}
           aria-hidden
         />
 
@@ -95,13 +104,21 @@ export default function ProfileHeaderPreview({
         </div>
 
         <div className="absolute left-4 sm:left-6 bottom-0 z-30 translate-y-1/2">
-          <div className={`relative ring-4 ring-[var(--background)] rounded-2xl shadow-lg bg-[var(--background)] ${avatarPadClass} flex items-center justify-center min-w-[72px] min-h-[72px]`}>
+          <div
+            className={`relative ring-4 ring-[var(--background)] rounded-2xl shadow-lg bg-[var(--background)] ${avatarPadClass} flex items-center justify-center min-w-[72px] min-h-[72px]`}
+          >
             <AvatarWithFramePreview avatarUrl={avatarUrl} frameUrl={frameUrl} size={avatarSize} />
           </div>
         </div>
       </div>
 
-      <div className={compact ? "relative pt-10 pb-4 px-4 bg-[var(--background)]" : "relative pt-14 sm:pt-16 pb-5 px-4 sm:px-6 sm:pb-6 bg-[var(--background)]"}>
+      <div
+        className={
+          compact
+            ? "relative pt-10 pb-4 px-4 bg-[var(--background)]"
+            : "relative pt-14 sm:pt-16 pb-5 px-4 sm:px-6 sm:pb-6 bg-[var(--background)]"
+        }
+      >
         <div className="flex items-center gap-2 min-w-0">
           <div className="font-semibold text-[var(--foreground)] truncate">{username}</div>
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
@@ -118,4 +135,3 @@ export default function ProfileHeaderPreview({
     </div>
   );
 }
-

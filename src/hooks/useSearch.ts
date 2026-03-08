@@ -24,7 +24,7 @@ function saveRecentSearch(query: string) {
   const trimmed = query.trim();
   if (!trimmed) return;
   const prev = getRecentSearches();
-  const next = [trimmed, ...prev.filter((q) => q !== trimmed)].slice(0, RECENT_SEARCHES_MAX);
+  const next = [trimmed, ...prev.filter(q => q !== trimmed)].slice(0, RECENT_SEARCHES_MAX);
   try {
     localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
   } catch {
@@ -34,7 +34,7 @@ function saveRecentSearch(query: string) {
 
 function removeRecentSearchItem(query: string): string[] {
   const prev = getRecentSearches();
-  const next = prev.filter((q) => q !== query);
+  const next = prev.filter(q => q !== query);
   try {
     localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
   } catch {
@@ -55,11 +55,15 @@ export function useSearch() {
   }, []);
 
   // RTK Query для автодополнения (показываем больше тайтлов)
-  const { data: autocompleteData, isLoading, isFetching } = useGetAutocompleteQuery(
+  const {
+    data: autocompleteData,
+    isLoading,
+    isFetching,
+  } = useGetAutocompleteQuery(
     { q: debouncedTerm, limit: 24 },
-    { 
+    {
       skip: !debouncedTerm.trim() || debouncedTerm.length < 2,
-    }
+    },
   );
 
   // Преобразуем ответ autocomplete в формат SearchResult; наиболее релевантные — сверху (API отдаёт в обратном порядке)
@@ -78,22 +82,19 @@ export function useSearch() {
     return mapped.reverse();
   }, [autocompleteData]);
 
-  const handleSearchChange = useCallback(
-    (term: string) => {
-      setSearchTerm(term);
-      setError(null);
+  const handleSearchChange = useCallback((term: string) => {
+    setSearchTerm(term);
+    setError(null);
 
-      // Debounce для автодополнения
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+    // Debounce для автодополнения
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
-      timeoutRef.current = setTimeout(() => {
-        setDebouncedTerm(term);
-      }, 300);
-    },
-    [],
-  );
+    timeoutRef.current = setTimeout(() => {
+      setDebouncedTerm(term);
+    }, 300);
+  }, []);
 
   // Для полного поиска (используется при нажатии Enter)
   const performSearch = useCallback(async (term: string) => {

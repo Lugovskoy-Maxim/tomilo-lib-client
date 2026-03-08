@@ -8,9 +8,9 @@ import AchievementToast from "./AchievementToast";
 import ExpGainToast from "./ExpGainToast";
 
 export default function ProgressNotificationContainer() {
-  const { 
-    levelUpEvent, 
-    achievementEvents, 
+  const {
+    levelUpEvent,
+    achievementEvents,
     expGainEvents,
     dismissLevelUp,
     dismissAchievement,
@@ -20,10 +20,7 @@ export default function ProgressNotificationContainer() {
   return (
     <>
       {/* Level Up Modal - highest priority, fullscreen */}
-      <LevelUpModal 
-        event={levelUpEvent} 
-        onClose={dismissLevelUp}
-      />
+      <LevelUpModal event={levelUpEvent} onClose={dismissLevelUp} />
 
       {/* Achievement and Exp toasts container */}
       <div
@@ -46,11 +43,7 @@ export default function ProgressNotificationContainer() {
           {/* Exp gain toasts */}
           <AnimatePresence mode="popLayout">
             {expGainEvents.map(event => (
-              <ExpGainToast
-                key={event.id}
-                event={event}
-                onClose={() => dismissExpGain(event.id)}
-              />
+              <ExpGainToast key={event.id} event={event} onClose={() => dismissExpGain(event.id)} />
             ))}
           </AnimatePresence>
         </div>

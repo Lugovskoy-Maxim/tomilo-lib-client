@@ -40,15 +40,13 @@ export function useBookmark({ titleId }: UseBookmarkOptions): UseBookmarkReturn 
     setIsBookmarkLoading(true);
 
     try {
-      const result = isBookmarked 
-        ? await removeBookmark(titleId) 
-        : await addBookmark(titleId);
+      const result = isBookmarked ? await removeBookmark(titleId) : await addBookmark(titleId);
 
       if (result.success) {
         setIsBookmarked(!isBookmarked);
-        
+
         // Haptic feedback для мобильных устройств
-        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
           navigator.vibrate(isBookmarked ? 30 : [30, 50, 30]);
         }
       } else {

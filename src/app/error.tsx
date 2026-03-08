@@ -20,20 +20,16 @@ export default function Error({
   const router = useRouter();
   usePageTitle("Ошибка");
 
-  // Проверяем, является ли это ошибкой rate limit (429)
   const isRateLimitError =
     error.status === 429 ||
     error.message?.toLowerCase().includes("rate limit") ||
     error.message?.toLowerCase().includes("too many requests");
 
-  // Извлекаем время ожидания из ошибки
   const getRemainingSeconds = (): number => {
-    // Проверяем data.error для RTK Query ошибок
     if (error.data?.remainingMs) {
       return Math.ceil(error.data.remainingMs / 1000);
     }
 
-    // Проверяем сообщение об ошибке на наствие времени
     const message = error.message || "";
     const secondsMatch = message.match(/(\d+)\s*сек/i);
     if (secondsMatch) {
@@ -45,7 +41,6 @@ export default function Error({
       return parseInt(minutesMatch[1], 10) * 60;
     }
 
-    // Проверяем digest на наличие параметров
     if (error.digest) {
       const digestSeconds = error.digest.match(/seconds=(\d+)/);
       if (digestSeconds) {
@@ -53,15 +48,12 @@ export default function Error({
       }
     }
 
-    // Значение по умолчанию
     return 60;
   };
 
-  // Если это ошибка rate limit, перенаправляем на страницу rate-limit
   if (isRateLimitError) {
     const remainingSeconds = getRemainingSeconds();
 
-    // Используем useEffect для навигации (поскольку это клиентский компонент)
     setTimeout(() => {
       router.push(`/rate-limit?seconds=${remainingSeconds}`);
     }, 100);
@@ -91,8 +83,12 @@ export default function Error({
               <AlertCircle className="h-10 w-10 shrink-0" strokeWidth={2} />
             </div>
           </div>
-          <p className="text-6xl font-bold text-[var(--muted-foreground)]/20 mb-2 tabular-nums">500</p>
-          <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-3">Что-то пошло не так</h1>
+          <p className="text-6xl font-bold text-[var(--muted-foreground)]/20 mb-2 tabular-nums">
+            500
+          </p>
+          <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-3">
+            Что-то пошло не так
+          </h1>
           <p className="text-[var(--muted-foreground)] mb-10 leading-relaxed">
             Произошла непредвиденная ошибка. Обновите страницу или перейдите на главную.
           </p>

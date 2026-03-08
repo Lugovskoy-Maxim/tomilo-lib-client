@@ -19,7 +19,10 @@ export default function ProfileAboutBlock({ userProfile }: ProfileAboutBlockProp
   const hasJoined = joinedLabel != null;
 
   return (
-    <section className="profile-about-block rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 mb-5" aria-label="О пользователе">
+    <section
+      className="profile-about-block rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 mb-5"
+      aria-label="О пользователе"
+    >
       {(hasBio || hasGenre || hasJoined) && (
         <div className="flex flex-wrap items-center gap-3 gap-y-2 text-sm mb-4">
           {hasBio && (
@@ -30,7 +33,9 @@ export default function ProfileAboutBlock({ userProfile }: ProfileAboutBlockProp
           {hasGenre && (
             <span className="inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]/50">
               <Heart className="w-4 h-4 text-pink-500 shrink-0" />
-              <span className="font-medium text-[var(--foreground)]">{userProfile.favoriteGenre}</span>
+              <span className="font-medium text-[var(--foreground)]">
+                {userProfile.favoriteGenre}
+              </span>
             </span>
           )}
           {hasJoined && (

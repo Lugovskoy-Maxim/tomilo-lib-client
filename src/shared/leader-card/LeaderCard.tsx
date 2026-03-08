@@ -6,7 +6,11 @@ import { Crown, Medal, Award, Clock, Star, TrendingUp, Flame } from "lucide-reac
 import { LeaderboardUser, LeaderboardCategory, DecorationRarity } from "@/store/api/leaderboardApi";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
-import { getDecorationImageUrl, getEquippedFrameUrl, getEquippedBackgroundUrl, getEquippedAvatarDecorationUrl } from "@/api/shop";
+import {
+  getDecorationImageUrl,
+  getEquippedFrameUrl,
+  getEquippedAvatarDecorationUrl,
+} from "@/api/shop";
 import { EquippedDecorations } from "@/types/user";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
@@ -38,7 +42,7 @@ function isValidUrl(value: string): boolean {
 
 function resolveDecorationValue(raw: string | object | null | undefined): string | null {
   if (raw == null) return null;
-  
+
   if (typeof raw === "object") {
     const o = raw as Record<string, unknown>;
     const imageUrl = (o.imageUrl ?? o.image_url) as string | undefined;
@@ -51,37 +55,37 @@ function resolveDecorationValue(raw: string | object | null | undefined): string
     }
     return null;
   }
-  
+
   const str = String(raw).trim();
   if (!str) return null;
-  
+
   if (str.startsWith("http://") || str.startsWith("https://")) {
     return str;
   }
-  
+
   if (str.startsWith("/")) {
     const resolved = getDecorationImageUrl(str);
     return resolved || str;
   }
-  
+
   if (/^[a-f0-9]{24}$/i.test(str)) {
     return null;
   }
-  
+
   const maybeUrl = getDecorationImageUrl(str);
   if (maybeUrl && isValidUrl(maybeUrl)) {
     return maybeUrl;
   }
-  
+
   return null;
 }
 
 function getFrameUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
   if (!equipped) return null;
-  
+
   const fromHelper = getEquippedFrameUrl(equipped as EquippedDecorations);
   if (fromHelper) return fromHelper;
-  
+
   return resolveDecorationValue(equipped.frame);
 }
 
@@ -90,21 +94,12 @@ function getCardUrl(equipped: LeaderboardUser["equippedDecorations"]): string | 
   return resolveDecorationValue(equipped.card);
 }
 
-function getBackgroundUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
-  if (!equipped) return null;
-  
-  const fromHelper = getEquippedBackgroundUrl(equipped as EquippedDecorations);
-  if (fromHelper) return fromHelper;
-  
-  return resolveDecorationValue(equipped.background);
-}
-
 function getAvatarDecorationUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
   if (!equipped?.avatar) return null;
-  
+
   const fromHelper = getEquippedAvatarDecorationUrl(equipped as EquippedDecorations);
   if (fromHelper) return fromHelper;
-  
+
   return resolveDecorationValue(equipped.avatar);
 }
 
@@ -119,7 +114,8 @@ function getRarityStyles(rarity: DecorationRarity | null | undefined): {
     case "legendary":
       return {
         borderClass: "border-amber-400",
-        glowClass: "shadow-[0_0_20px_rgba(251,191,36,0.5)] hover:shadow-[0_0_30px_rgba(251,191,36,0.7)]",
+        glowClass:
+          "shadow-[0_0_20px_rgba(251,191,36,0.5)] hover:shadow-[0_0_30px_rgba(251,191,36,0.7)]",
         gradientClass: "from-amber-400/40 via-yellow-500/30 to-orange-400/40",
         badgeClass: "bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950",
         animationClass: "animate-pulse",
@@ -127,7 +123,8 @@ function getRarityStyles(rarity: DecorationRarity | null | undefined): {
     case "epic":
       return {
         borderClass: "border-purple-500",
-        glowClass: "shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)]",
+        glowClass:
+          "shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)]",
         gradientClass: "from-purple-500/30 via-violet-500/20 to-fuchsia-500/30",
         badgeClass: "bg-gradient-to-r from-purple-500 to-violet-500 text-white",
         animationClass: "",
@@ -135,7 +132,8 @@ function getRarityStyles(rarity: DecorationRarity | null | undefined): {
     case "rare":
       return {
         borderClass: "border-blue-500",
-        glowClass: "shadow-[0_0_12px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]",
+        glowClass:
+          "shadow-[0_0_12px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]",
         gradientClass: "from-blue-500/25 via-sky-500/15 to-cyan-500/25",
         badgeClass: "bg-gradient-to-r from-blue-500 to-sky-500 text-white",
         animationClass: "",
@@ -169,10 +167,14 @@ function getCategoryValue(user: LeaderboardUser, category: LeaderboardCategory):
       return `Уровень ${user.level ?? 0}`;
     case "chaptersRead":
       const chapters = user.chaptersRead ?? 0;
-      const readingTime = formatReadingTime(user.readingTimeMinutes ?? user.readingTime ?? chapters * 2);
+      const readingTime = formatReadingTime(
+        user.readingTimeMinutes ?? user.readingTime ?? chapters * 2,
+      );
       return `${chapters} глав · ${readingTime}`;
     case "readingTime":
-      return formatReadingTime(user.readingTimeMinutes ?? user.readingTime ?? (user.chaptersRead ?? 0) * 2);
+      return formatReadingTime(
+        user.readingTimeMinutes ?? user.readingTime ?? (user.chaptersRead ?? 0) * 2,
+      );
     case "ratings":
       return `${user.ratingsCount ?? 0} оценок`;
     case "comments":
@@ -297,32 +299,40 @@ function getSecondaryValue(user: LeaderboardUser, category: LeaderboardCategory)
   }
 }
 
-function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animationDelay = 0 }: Omit<LeaderCardProps, "variant">) {
+function Top3Card({
+  user,
+  rank,
+  category,
+  isCurrentUser,
+  showAnimation,
+  animationDelay = 0,
+}: Omit<LeaderCardProps, "variant">) {
   const [frameError, setFrameError] = useState(false);
   const [cardError, setCardError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [avatarDecorationError, setAvatarDecorationError] = useState(false);
   const [isVisible, setIsVisible] = useState(!showAnimation);
-  
+
   const RankIcon = getRankIcon(rank)!;
   const CategoryIcon = getCategoryIcon(category);
   const styles = getRankStyles(rank);
   const avatarDecorationUrl = getAvatarDecorationUrl(user.equippedDecorations);
   const baseAvatarUrl = user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR;
-  const avatarUrl = avatarError 
-    ? DEFAULT_AVATAR 
-    : (avatarDecorationUrl && !avatarDecorationError ? avatarDecorationUrl : baseAvatarUrl);
+  const avatarUrl = avatarError
+    ? DEFAULT_AVATAR
+    : avatarDecorationUrl && !avatarDecorationError
+      ? avatarDecorationUrl
+      : baseAvatarUrl;
   const level = user.level ?? 0;
   const frameUrl = getFrameUrl(user.equippedDecorations);
   const cardUrl = getCardUrl(user.equippedDecorations);
   const secondaryValue = getSecondaryValue(user, category);
-  
+
   const cardRarity = user.equippedDecorations?.cardRarity;
   const frameRarity = user.equippedDecorations?.frameRarity;
   const rarityStyles = getRarityStyles(cardRarity || frameRarity);
 
   const avatarSize = rank === 1 ? "w-12 h-12 md:w-28 md:h-28" : "w-12 h-12 md:w-20 md:h-20";
-  const cardPadding = rank === 1 ? "p-2.5 md:p-8" : "p-2 md:p-5";
   const iconSize = rank === 1 ? "w-3 h-3 md:w-8 md:h-8" : "w-2.5 h-2.5 md:w-6 md:h-6";
   const badgeSize = rank === 1 ? "w-5 h-5 md:w-14 md:h-14" : "w-4 h-4 md:w-10 md:h-10";
 
@@ -352,24 +362,28 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         ${isCurrentUser ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]" : ""}
         ${showAnimation ? (isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4") : ""}
       `}
-      style={{ 
+      style={{
         aspectRatio: "9 / 16",
-        ...(showAnimation ? { transitionDelay: `${animationDelay}ms` } : {})
+        ...(showAnimation ? { transitionDelay: `${animationDelay}ms` } : {}),
       }}
     >
       {hasRarityEffect && (
-        <div className={`absolute inset-0 pointer-events-none z-0 bg-gradient-to-b opacity-30 ${rarityStyles.gradientClass}`} />
+        <div
+          className={`absolute inset-0 pointer-events-none z-0 bg-gradient-to-b opacity-30 ${rarityStyles.gradientClass}`}
+        />
       )}
 
       {showCard ? (
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:opacity-50 transition-opacity duration-200"
           style={{ backgroundImage: `url(${cardUrl})` }}
         >
           <img src={cardUrl} alt="" className="hidden" onError={() => setCardError(true)} />
         </div>
       ) : (
-        <div className={`absolute inset-0 bg-gradient-to-b ${hasRarityEffect ? rarityStyles.gradientClass : styles.gradient} pointer-events-none opacity-90`} />
+        <div
+          className={`absolute inset-0 bg-gradient-to-b ${hasRarityEffect ? rarityStyles.gradientClass : styles.gradient} pointer-events-none opacity-90`}
+        />
       )}
 
       {/* На md+ — бейдж места сверху справа; на мобиле уровень в одном блоке с результатом ниже */}
@@ -385,7 +399,9 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         </div>
       )}
 
-      <div className={`relative z-10 mt-2 mb-1 md:mt-0 md:mb-4 shrink-0 ${avatarSize} aspect-square`}>
+      <div
+        className={`relative z-10 mt-2 mb-1 md:mt-0 md:mb-4 shrink-0 ${avatarSize} aspect-square`}
+      >
         <div className="relative w-full h-full overflow-hidden rounded-full">
           <img
             src={avatarUrl}
@@ -401,19 +417,21 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
           />
         </div>
         {showFrame && (
-            <img
-              src={frameUrl}
-              alt=""
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[105%] h-[105%] md:w-[120%] md:h-[120%] pointer-events-none object-contain z-10"
-              style={{ maxWidth: "none", maxHeight: "none" }}
-              onError={() => setFrameError(true)}
-              aria-hidden
-            />
-          )}
+          <img
+            src={frameUrl}
+            alt=""
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[105%] h-[105%] md:w-[120%] md:h-[120%] pointer-events-none object-contain z-10"
+            style={{ maxWidth: "none", maxHeight: "none" }}
+            onError={() => setFrameError(true)}
+            aria-hidden
+          />
+        )}
       </div>
 
       <div className="relative z-10 w-full px-2 md:px-3 py-2 md:py-3 rounded-b-xl md:rounded-b-2xl bg-gradient-to-t from-black/90 via-black/75 to-black/40 md:from-black/75 md:via-transparent md:to-transparent">
-        <p className={`font-semibold text-white truncate max-w-[4.5rem] md:max-w-[140px] mx-auto drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${rank === 1 ? "text-xs md:text-lg" : "text-[11px] md:text-base"}`}>
+        <p
+          className={`font-semibold text-white truncate max-w-[4.5rem] md:max-w-[140px] mx-auto drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${rank === 1 ? "text-xs md:text-lg" : "text-[11px] md:text-base"}`}
+        >
           {user.username}
         </p>
         {user.role && user.role !== "user" && (
@@ -424,20 +442,36 @@ function Top3Card({ user, rank, category, isCurrentUser, showAnimation, animatio
         <p className="text-[10px] md:text-xs text-white/90 mt-1 md:mt-1.5 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] hidden md:block">
           {getRankDisplay(level).split("  ")[0]}
         </p>
-        <div className={`flex items-center justify-center gap-1 md:gap-1.5 mt-1.5 md:mt-2.5 px-2 py-1.5 md:px-3 md:py-2 rounded-md md:rounded-lg ${styles.bg} ${styles.text} shadow-sm`}>
+        <div
+          className={`flex items-center justify-center gap-1 md:gap-1.5 mt-1.5 md:mt-2.5 px-2 py-1.5 md:px-3 md:py-2 rounded-md md:rounded-lg ${styles.bg} ${styles.text} shadow-sm`}
+        >
           <CategoryIcon className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
-          <span className="font-semibold text-[10px] md:text-sm md:inline hidden">{getCategoryValue(user, category)}</span>
-          <span className="font-semibold text-[10px] md:hidden">{getCategoryValueShort(user, category)} · Ур. {level}</span>
+          <span className="font-semibold text-[10px] md:text-sm md:inline hidden">
+            {getCategoryValue(user, category)}
+          </span>
+          <span className="font-semibold text-[10px] md:hidden">
+            {getCategoryValueShort(user, category)} · Ур. {level}
+          </span>
         </div>
         {secondaryValue && (
-          <p className="mt-1 md:mt-1.5 text-[9px] md:text-[11px] text-white/80 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] hidden md:block">{secondaryValue}</p>
+          <p className="mt-1 md:mt-1.5 text-[9px] md:text-[11px] text-white/80 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] hidden md:block">
+            {secondaryValue}
+          </p>
         )}
       </div>
     </Link>
   );
 }
 
-function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, animationDelay = 0, onClick }: Omit<LeaderCardProps, "variant">) {
+function DefaultCard({
+  user,
+  rank,
+  category,
+  isCurrentUser,
+  showAnimation,
+  animationDelay = 0,
+  onClick,
+}: Omit<LeaderCardProps, "variant">) {
   const [frameError, setFrameError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [avatarDecorationError, setAvatarDecorationError] = useState(false);
@@ -448,7 +482,9 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   const baseAvatarUrl = user.avatar ? normalizeAvatarUrl(user.avatar) : DEFAULT_AVATAR;
   const avatarUrl = avatarError
     ? DEFAULT_AVATAR
-    : (avatarDecorationUrl && !avatarDecorationError ? avatarDecorationUrl : baseAvatarUrl);
+    : avatarDecorationUrl && !avatarDecorationError
+      ? avatarDecorationUrl
+      : baseAvatarUrl;
   const level = user.level ?? 0;
   const frameUrl = getFrameUrl(user.equippedDecorations);
   const secondaryValue = getSecondaryValue(user, category);
@@ -456,7 +492,9 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   const cardRarity = user.equippedDecorations?.cardRarity;
   const frameRarity = user.equippedDecorations?.frameRarity;
   const rarityStyles = getRarityStyles(cardRarity || frameRarity);
-  const hasRarityEffect = Boolean((cardRarity || frameRarity) && cardRarity !== "common" && frameRarity !== "common");
+  const hasRarityEffect = Boolean(
+    (cardRarity || frameRarity) && cardRarity !== "common" && frameRarity !== "common",
+  );
 
   const showFrame = frameUrl && !frameError;
 
@@ -487,7 +525,9 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   const content = (
     <>
       {hasRarityEffect && (
-        <div className={`absolute inset-0 pointer-events-none bg-gradient-to-r ${rarityStyles.gradientClass} opacity-20`} />
+        <div
+          className={`absolute inset-0 pointer-events-none bg-gradient-to-r ${rarityStyles.gradientClass} opacity-20`}
+        />
       )}
 
       <div
@@ -544,17 +584,35 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
         </p>
       </div>
 
-      <div className={`flex items-center gap-1.5 shrink-0 px-2 py-1.5 sm:px-2.5 rounded-lg text-right relative z-10 ${hasRarityEffect ? rarityStyles.badgeClass : "bg-[var(--muted)]"}`}>
+      <div
+        className={`flex items-center gap-1.5 shrink-0 px-2 py-1.5 sm:px-2.5 rounded-lg text-right relative z-10 ${hasRarityEffect ? rarityStyles.badgeClass : "bg-[var(--muted)]"}`}
+      >
         <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
-        <span className="font-semibold text-xs sm:text-sm whitespace-nowrap hidden sm:inline">{getCategoryValue(user, category)}</span>
-        <span className="font-semibold text-xs whitespace-nowrap sm:hidden">{getCategoryValueShort(user, category)}</span>
+        <span className="font-semibold text-xs sm:text-sm whitespace-nowrap hidden sm:inline">
+          {getCategoryValue(user, category)}
+        </span>
+        <span className="font-semibold text-xs whitespace-nowrap sm:hidden">
+          {getCategoryValueShort(user, category)}
+        </span>
       </div>
     </>
   );
 
   if (onClick) {
     return (
-      <div role="button" tabIndex={0} className={className} style={style} onClick={onClick} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}>
+      <div
+        role="button"
+        tabIndex={0}
+        className={className}
+        style={style}
+        onClick={onClick}
+        onKeyDown={e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+      >
         {content}
       </div>
     );
@@ -567,10 +625,10 @@ function DefaultCard({ user, rank, category, isCurrentUser, showAnimation, anima
   );
 }
 
-export default function LeaderCard({ 
-  user, 
-  rank, 
-  category, 
+export default function LeaderCard({
+  user,
+  rank,
+  category,
   variant = "default",
   isCurrentUser = false,
   showAnimation = false,
@@ -579,9 +637,9 @@ export default function LeaderCard({
 }: LeaderCardProps) {
   if (variant === "top3" || rank <= 3) {
     return (
-      <Top3Card 
-        user={user} 
-        rank={rank} 
+      <Top3Card
+        user={user}
+        rank={rank}
         category={category}
         isCurrentUser={isCurrentUser}
         showAnimation={showAnimation}
@@ -591,9 +649,9 @@ export default function LeaderCard({
   }
 
   return (
-    <DefaultCard 
-      user={user} 
-      rank={rank} 
+    <DefaultCard
+      user={user}
+      rank={rank}
       category={category}
       isCurrentUser={isCurrentUser}
       showAnimation={showAnimation}

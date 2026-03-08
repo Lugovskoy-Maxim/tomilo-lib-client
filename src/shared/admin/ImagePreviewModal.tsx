@@ -17,7 +17,7 @@ export function ImagePreviewModal({
   altText = "Предпросмотр изображения",
 }: ImagePreviewModalProps) {
   const { primary, fallback } = getImageUrls(imageUrl);
-  
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Предпросмотр изображения">
       <div className="flex justify-center">

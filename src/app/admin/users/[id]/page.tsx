@@ -56,8 +56,10 @@ function AdminControlsPanel({
 }) {
   const toast = useToast();
   const dispatch = useDispatch<AppDispatch>();
-  const [activePanel, setActivePanel] = useState<"role" | "ban" | "balance" | "edit" | "premium" | null>(null);
-  
+  const [activePanel, setActivePanel] = useState<
+    "role" | "ban" | "balance" | "edit" | "premium" | null
+  >(null);
+
   const invalidateAuthCache = useCallback(() => {
     dispatch(authApi.util.invalidateTags(["Auth"]));
   }, [dispatch]);
@@ -104,7 +106,7 @@ function AdminControlsPanel({
       toast.success(`Роль пользователя изменена на ${getRoleName(selectedRole)}`);
       setActivePanel(null);
       invalidateAuthCache();
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при изменении роли");
     }
   };
@@ -135,7 +137,7 @@ function AdminControlsPanel({
       setBanDuration("permanent");
       setActivePanel(null);
       refetchBanHistory();
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при блокировке пользователя");
     }
   };
@@ -145,7 +147,7 @@ function AdminControlsPanel({
       await unbanUser(userId).unwrap();
       toast.success("Пользователь разблокирован");
       refetchBanHistory();
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при разблокировке пользователя");
     }
   };
@@ -164,14 +166,18 @@ function AdminControlsPanel({
     const finalAmount = balanceOperation === "subtract" ? -amount : amount;
 
     try {
-      await updateBalance({ userId, amount: finalAmount, description: balanceDescription }).unwrap();
+      await updateBalance({
+        userId,
+        amount: finalAmount,
+        description: balanceDescription,
+      }).unwrap();
       toast.success(`Баланс ${balanceOperation === "add" ? "пополнен" : "уменьшен"} на ${amount}`);
       setBalanceAmount("");
       setBalanceDescription("");
       setActivePanel(null);
       refetchTransactions();
       invalidateAuthCache();
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при изменении баланса");
     }
   };
@@ -186,17 +192,17 @@ function AdminControlsPanel({
       setActivePanel(null);
       invalidateAuthCache();
     } catch (error: unknown) {
-      const msg = (error as { data?: { message?: string; errors?: string[] } })?.data?.errors?.[0]
-        ?? (error as { data?: { message?: string } })?.data?.message
-        ?? "Ошибка при сохранении";
+      const msg =
+        (error as { data?: { message?: string; errors?: string[] } })?.data?.errors?.[0] ??
+        (error as { data?: { message?: string } })?.data?.message ??
+        "Ошибка при сохранении";
       toast.error(msg);
     }
   };
 
   const addPremiumDays = (days: number) => {
-    const base = subscriptionDate && subscriptionDate.getTime() > Date.now()
-      ? subscriptionDate
-      : new Date();
+    const base =
+      subscriptionDate && subscriptionDate.getTime() > Date.now() ? subscriptionDate : new Date();
     const next = new Date(base);
     next.setDate(next.getDate() + days);
     setPremiumDateInput(next.toISOString().slice(0, 10));
@@ -231,9 +237,10 @@ function AdminControlsPanel({
       setActivePanel(null);
       invalidateAuthCache();
     } catch (error: unknown) {
-      const msg = (error as { data?: { message?: string; errors?: string[] } })?.data?.errors?.[0]
-        ?? (error as { data?: { message?: string } })?.data?.message
-        ?? "Ошибка при сохранении";
+      const msg =
+        (error as { data?: { message?: string; errors?: string[] } })?.data?.errors?.[0] ??
+        (error as { data?: { message?: string } })?.data?.message ??
+        "Ошибка при сохранении";
       toast.error(msg);
     }
   };
@@ -277,7 +284,9 @@ function AdminControlsPanel({
             <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Заблокирован
           </div>
-          <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">Причина: {activeBan.reason}</p>
+          <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">
+            Причина: {activeBan.reason}
+          </p>
           <p className="text-[10px] sm:text-sm text-[var(--muted-foreground)]">
             С: {formatDate(activeBan.bannedAt)}
             {activeBan.expiresAt && ` до ${formatDate(activeBan.expiresAt)}`}
@@ -376,7 +385,9 @@ function AdminControlsPanel({
             Изменение данных пользователя для соблюдения правил (модерация).
           </p>
           <div>
-            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Никнейм</label>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+              Никнейм
+            </label>
             <input
               type="text"
               value={editUsername}
@@ -387,7 +398,9 @@ function AdminControlsPanel({
             />
           </div>
           <div>
-            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Био</label>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+              Био
+            </label>
             <textarea
               value={editBio}
               onChange={e => setEditBio(e.target.value)}
@@ -396,10 +409,14 @@ function AdminControlsPanel({
               rows={3}
               className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] text-xs sm:text-sm resize-none"
             />
-            <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{editBio.length}/200</p>
+            <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">
+              {editBio.length}/200
+            </p>
           </div>
           <div>
-            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Новый аватар</label>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+              Новый аватар
+            </label>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -434,7 +451,9 @@ function AdminControlsPanel({
 
       {activePanel === "role" && (
         <div className="p-3 sm:p-4 rounded-lg bg-[var(--secondary)] space-y-2 sm:space-y-3">
-          <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)]">Изменить роль</h4>
+          <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)]">
+            Изменить роль
+          </h4>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {(["user", "moderator", "admin"] as UserRole[]).map(role => (
               <button
@@ -477,7 +496,9 @@ function AdminControlsPanel({
             Заблокировать
           </h4>
           <div>
-            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Причина</label>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+              Причина
+            </label>
             <textarea
               value={banReason}
               onChange={e => setBanReason(e.target.value)}
@@ -487,7 +508,9 @@ function AdminControlsPanel({
             />
           </div>
           <div>
-            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Длительность</label>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+              Длительность
+            </label>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {[
                 { value: "1", label: "1ч" },
@@ -574,7 +597,9 @@ function AdminControlsPanel({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Сумма</label>
+              <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+                Сумма
+              </label>
               <input
                 type="number"
                 value={balanceAmount}
@@ -585,7 +610,9 @@ function AdminControlsPanel({
               />
             </div>
             <div>
-              <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Описание</label>
+              <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+                Описание
+              </label>
               <input
                 type="text"
                 value={balanceDescription}
@@ -600,7 +627,9 @@ function AdminControlsPanel({
               onClick={handleUpdateBalance}
               disabled={isUpdatingBalance}
               className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-white text-xs sm:text-sm font-medium active:scale-[0.98] transition-all disabled:opacity-50 ${
-                balanceOperation === "add" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"
+                balanceOperation === "add"
+                  ? "bg-green-500 hover:bg-green-600"
+                  : "bg-red-500 hover:bg-red-600"
               }`}
             >
               <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -629,7 +658,9 @@ function AdminControlsPanel({
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-[var(--foreground)] truncate">{tx.description}</p>
-                      <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">{formatDate(tx.createdAt)}</p>
+                      <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">
+                        {formatDate(tx.createdAt)}
+                      </p>
                     </div>
                     <span
                       className={`font-medium flex-shrink-0 ml-2 ${tx.amount > 0 ? "text-green-500" : "text-red-500"}`}
@@ -659,7 +690,9 @@ function AdminControlsPanel({
             </p>
           )}
           <div>
-            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Премиум до (дата)</label>
+            <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+              Премиум до (дата)
+            </label>
             <input
               type="date"
               value={premiumDateInput}
@@ -693,7 +726,13 @@ function AdminControlsPanel({
           </div>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             <button
-              onClick={() => handleSaveSubscription(premiumDateInput ? new Date(premiumDateInput + "T23:59:59.999Z").toISOString() : null)}
+              onClick={() =>
+                handleSaveSubscription(
+                  premiumDateInput
+                    ? new Date(premiumDateInput + "T23:59:59.999Z").toISOString()
+                    : null,
+                )
+              }
               disabled={isUpdatingData || !premiumDateInput}
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-amber-500 text-white text-xs sm:text-sm font-medium hover:bg-amber-600 active:scale-[0.98] transition-all disabled:opacity-50"
             >
@@ -751,7 +790,7 @@ export default function AdminUserProfilePage() {
   const params = useParams();
   const userId = params.id as string;
 
-  const { data: userData, isLoading, error } = useGetUserByIdQuery(userId);
+  const { data: userData, isLoading } = useGetUserByIdQuery(userId);
   const userProfile = userData?.data ?? null;
 
   useSEO({

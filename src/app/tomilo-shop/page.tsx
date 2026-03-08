@@ -14,7 +14,8 @@ export default function TomiloShopPage() {
     title: "Магазин украшений - Tomilo-lib.ru",
     description:
       "Аватары и фоны для профиля, карточки для колоды. Покупайте за монеты активности — их получают за чтение тайтлов и активность на сайте.",
-    keywords: "магазин, украшения, аватары, фоны, карточки, колода, монеты активности, чтение тайтлов",
+    keywords:
+      "магазин, украшения, аватары, фоны, карточки, колода, монеты активности, чтение тайтлов",
   });
 
   return (
@@ -45,7 +46,7 @@ export default function TomiloShopPage() {
           aria-labelledby={`shop-tab-${activeTab}`}
           className="min-h-[360px]"
         >
-          {(["avatar", "frame", "background", "card"] as const).map((tabType) => (
+          {(["avatar", "frame", "background", "card"] as const).map(tabType => (
             <div
               key={tabType}
               className={activeTab === tabType ? "block" : "hidden"}

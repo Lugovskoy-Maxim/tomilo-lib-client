@@ -65,7 +65,10 @@ export default function ProfileBanner({
         {/* Жёсткий переход в цвет фона — как в layout профиля (и для декоративного баннера) */}
         <div
           className="absolute inset-0 pointer-events-none z-20"
-          style={{ background: "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)" }}
+          style={{
+            background:
+              "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)",
+          }}
           aria-hidden
         />
 

@@ -32,7 +32,7 @@ import { formatNumber } from "@/lib/utils";
 import { getCoverUrls } from "@/lib/asset-url";
 
 // Get placeholder image URL
-const placeholderImageUrl = typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+const placeholderImageUrl = typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
 
 // Helper to get image URLs with fallback
 function getImageUrls(coverImage: string | undefined): { primary: string; fallback: string } {
@@ -40,19 +40,19 @@ function getImageUrls(coverImage: string | undefined): { primary: string; fallba
 }
 
 // Cover image component with error handling
-function CoverImage({ 
-  src, 
+function CoverImage({
+  src,
   fallbackSrc,
-  alt, 
-  width, 
-  height, 
-  className = "" 
-}: { 
+  alt,
+  width,
+  height,
+  className = "",
+}: {
   src: string;
   fallbackSrc: string;
-  alt: string; 
-  width: number; 
-  height: number; 
+  alt: string;
+  width: number;
+  height: number;
   className?: string;
 }) {
   return (
@@ -68,11 +68,7 @@ function CoverImage({
 }
 
 // Grid cover image component
-function GridCoverImage({ 
-  title
-}: { 
-  title: Title; 
-}) {
+function GridCoverImage({ title }: { title: Title }) {
   const { primary, fallback } = getImageUrls(title.coverImage);
   return (
     <OptimizedImage
@@ -114,7 +110,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
-  
+
   // Modal states
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [titleToDelete, setTitleToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -203,8 +199,14 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
     const titles = titlesResponse?.data?.data || [];
     return {
       total: apiTotal,
-      ongoing: statusFilter === "ongoing" ? apiTotal : titles.filter((t: Title) => t.status === "ongoing").length,
-      completed: statusFilter === "completed" ? apiTotal : titles.filter((t: Title) => t.status === "completed").length,
+      ongoing:
+        statusFilter === "ongoing"
+          ? apiTotal
+          : titles.filter((t: Title) => t.status === "ongoing").length,
+      completed:
+        statusFilter === "completed"
+          ? apiTotal
+          : titles.filter((t: Title) => t.status === "completed").length,
       totalViews: titles.reduce((sum: number, t: Title) => sum + (t.views || 0), 0),
     };
   }, [statusFilter, apiTotal, titlesResponse?.data?.data]);
@@ -288,9 +290,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
         message: `Удалено ${successCount}, ошибок: ${failedCount}`,
         type: "error",
       });
-      setSelectedIds(prev =>
-        prev.filter((_, index) => results[index]?.status === "rejected"),
-      );
+      setSelectedIds(prev => prev.filter((_, index) => results[index]?.status === "rejected"));
     } finally {
       setIsBulkDeleting(false);
     }
@@ -355,8 +355,8 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
             title.status === "ongoing"
               ? "bg-green-500/10 text-green-600"
               : title.status === "completed"
-              ? "bg-blue-500/10 text-blue-600"
-              : "bg-gray-500/10 text-gray-600"
+                ? "bg-blue-500/10 text-blue-600"
+                : "bg-gray-500/10 text-gray-600"
           }`}
         >
           {translateTitleStatus(title.status)}
@@ -367,18 +367,14 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
       key: "chapters",
       header: "Главы",
       sortable: true,
-      render: (title: Title) => (
-        <span className="text-sm">{title.totalChapters || 0}</span>
-      ),
+      render: (title: Title) => <span className="text-sm">{title.totalChapters || 0}</span>,
     },
     {
       key: "year",
       header: "Год",
       sortable: true,
       render: (title: Title) => (
-        <span className="text-sm text-[var(--muted-foreground)]">
-          {title.releaseYear || "—"}
-        </span>
+        <span className="text-sm text-[var(--muted-foreground)]">{title.releaseYear || "—"}</span>
       ),
     },
   ];
@@ -424,7 +420,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                 type="text"
                 placeholder="Поиск тайтлов..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="admin-input w-full pl-10"
               />
               {searchTerm && (
@@ -501,7 +497,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
 
               <span className="text-sm text-[var(--muted-foreground)]">Статус:</span>
               <div className="flex flex-wrap gap-2">
-                {statusFilters.map((filter) => (
+                {statusFilters.map(filter => (
                   <button
                     key={filter.value}
                     onClick={() => setStatusFilter(filter.value)}
@@ -573,11 +569,11 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
         <AdminTable
           data={filteredTitles}
           columns={tableColumns}
-          keyExtractor={(title) => title._id}
+          keyExtractor={title => title._id}
           selectable
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
-          actions={(title) => (
+          actions={title => (
             <>
               <Link
                 href={getTitlePath(title)}
@@ -618,19 +614,17 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
             >
               {/* Cover */}
               <div className="relative aspect-[2/3] overflow-hidden bg-[var(--muted)]">
-<GridCoverImage
-                  title={title}
-                />
-                
+                <GridCoverImage title={title} />
+
                 {/* Selection checkbox */}
                 <div className="absolute top-2 left-2 z-10">
                   <button
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
-                      setSelectedIds((prev) =>
+                      setSelectedIds(prev =>
                         prev.includes(title._id)
-                          ? prev.filter((id) => id !== title._id)
-                          : [...prev, title._id]
+                          ? prev.filter(id => id !== title._id)
+                          : [...prev, title._id],
                       );
                     }}
                     className={`p-1.5 rounded-[var(--admin-radius)] transition-colors ${
@@ -654,8 +648,8 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
                       title.status === "ongoing"
                         ? "bg-green-500/90 text-white"
                         : title.status === "completed"
-                        ? "bg-blue-500/90 text-white"
-                        : "bg-gray-500/90 text-white"
+                          ? "bg-blue-500/90 text-white"
+                          : "bg-gray-500/90 text-white"
                     }`}
                   >
                     {translateTitleStatus(title.status)}
@@ -746,7 +740,7 @@ export function TitlesSection({ onTitleSelect }: TitlesSectionProps) {
       {/* Alert Modal */}
       <AlertModal
         isOpen={alertModal.isOpen}
-        onClose={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
+        onClose={() => setAlertModal(prev => ({ ...prev, isOpen: false }))}
         title={alertModal.title}
         message={alertModal.message}
         type={alertModal.type}

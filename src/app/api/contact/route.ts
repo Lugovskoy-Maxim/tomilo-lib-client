@@ -26,7 +26,10 @@ export async function POST(request: Request) {
   if (!allowed) {
     return NextResponse.json(
       { success: false, message: "Слишком много попыток. Попробуйте позже." },
-      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+      {
+        status: 429,
+        headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined,
+      },
     );
   }
 
@@ -52,7 +55,10 @@ export async function POST(request: Request) {
           remoteip: ip,
         }),
       });
-      const verifyData = (await verifyRes.json()) as { success?: boolean; "error-codes"?: string[] };
+      const verifyData = (await verifyRes.json()) as {
+        success?: boolean;
+        "error-codes"?: string[];
+      };
       if (!verifyData?.success) {
         return NextResponse.json(
           { success: false, message: "Проверка капчи не пройдена. Попробуйте ещё раз." },
@@ -91,7 +97,12 @@ export async function POST(request: Request) {
     }
 
     const subjectLabel = SUBJECT_LABELS[subject] || subject;
-    const payload = { name: nameTrimmed, email: email.trim(), subject: subjectLabel, message: messageTrimmed };
+    const payload = {
+      name: nameTrimmed,
+      email: email.trim(),
+      subject: subjectLabel,
+      message: messageTrimmed,
+    };
 
     // Опционально: отправить на бэкенд, если задан endpoint
     const backendUrl = process.env.CONTACT_API_URL || process.env.NEXT_PUBLIC_API_URL;
@@ -121,7 +132,10 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Ошибка обработки формы контактов:", error);
     return NextResponse.json(
-      { success: false, message: "Ошибка отправки. Попробуйте позже или напишите на support@tomilo-lib.ru" },
+      {
+        success: false,
+        message: "Ошибка отправки. Попробуйте позже или напишите на support@tomilo-lib.ru",
+      },
       { status: 500 },
     );
   }

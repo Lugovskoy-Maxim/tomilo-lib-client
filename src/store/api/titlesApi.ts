@@ -68,14 +68,12 @@ export const titlesApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: [TITLES_TAG],
   endpoints: builder => ({
-    // Получить все тайтлы (простой список)
     getTitles: builder.query<ApiResponseDto<{ titles: Title[] }>, void>({
       query: () => "/titles",
       providesTags: [TITLES_TAG],
       transformResponse: (response: ApiResponseDto<{ titles: Title[] }>) => response,
     }),
 
-    // Поиск/список тайтлов с фильтрами и пагинацией
     searchTitles: builder.query<
       ApiResponseDto<{
         data: Title[];
@@ -101,7 +99,6 @@ export const titlesApi = createApi({
       query: params => {
         const queryParams: Record<string, any> = {};
 
-        // Копируем все параметры
         Object.keys(params).forEach(key => {
           const value = params[key as keyof typeof params];
           if (value !== undefined && value !== null) {
@@ -109,7 +106,6 @@ export const titlesApi = createApi({
           }
         });
 
-        // Специальная обработка ageLimits: строка с запятыми; бэкенд может ожидать ageLimit (единственное число)
         if (params.ageLimits) {
           const ageLimitsStr =
             typeof params.ageLimits === "string"
@@ -148,7 +144,6 @@ export const titlesApi = createApi({
           totalPages?: number;
         }>,
       ) => {
-        // Нормализуем серверный ответ { titles, pagination }
         const data: Title[] = response?.data?.titles ?? response?.data?.data ?? [];
         const total: number =
           response?.data?.pagination?.total ?? response?.data?.total ?? data.length ?? 0;
@@ -166,7 +161,6 @@ export const titlesApi = createApi({
       providesTags: [TITLES_TAG],
     }),
 
-    // Опции фильтров
     getFilterOptions: builder.query<
       ApiResponseDto<{
         ageLimits: number[];
@@ -191,7 +185,6 @@ export const titlesApi = createApi({
           types?: string[];
         }>,
       ) => {
-        // Обеспечиваем дефолтные значения для всех полей
         const data = response.data || {};
         return {
           ...response,
@@ -218,7 +211,6 @@ export const titlesApi = createApi({
       },
     }),
 
-    // Получить тайтл по ID
     getTitleById: builder.query<Title, { id: string; includeChapters?: boolean }>({
       query: ({ id, includeChapters = false }) => ({
         url: `/titles/${id}`,
@@ -251,7 +243,6 @@ export const titlesApi = createApi({
       },
     }),
 
-    // Получить тайтл по slug (slug кодируем для URL — апостроф и др. символы)
     getTitleBySlug: builder.query<Title, { slug: string; includeChapters?: boolean }>({
       query: ({ slug, includeChapters = false }) => ({
         url: `/titles/slug/${encodeURIComponent(slug)}`,
@@ -284,7 +275,6 @@ export const titlesApi = createApi({
       },
     }),
 
-    // Создание тайтла
     createTitle: builder.mutation<ApiResponseDto<Title>, Partial<CreateTitleDto>>({
       query: data => ({
         url: "/titles",
@@ -295,7 +285,6 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
-    // Создание тайтла с обложкой
     createTitleWithCover: builder.mutation<
       ApiResponseDto<Title>,
       { data: Partial<CreateTitleDto>; coverImage: File }
@@ -314,7 +303,6 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
-    // Обновление тайтла (без обложки)
     updateTitle: builder.mutation<
       ApiResponseDto<Title>,
       { id: string; data: Partial<UpdateTitleDto> }
@@ -328,7 +316,6 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
-    // Обновление обложки тайтла
     updateTitleCover: builder.mutation<ApiResponseDto<Title>, { id: string; coverImage: File }>({
       query: ({ id, coverImage }) => {
         const formData = new FormData();
@@ -343,7 +330,6 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
-    // Обновление рейтинга тайтла
     updateRating: builder.mutation<ApiResponseDto<Title>, { id: string; rating: number }>({
       query: ({ id, rating }) => ({
         url: `/titles/${id}/rating`,
@@ -354,7 +340,6 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
-    // Увеличение счётчика просмотров тайтла
     incrementViews: builder.mutation<ApiResponseDto<Title>, string>({
       query: id => ({
         url: `/titles/${id}/views`,
@@ -364,8 +349,10 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
-    // Получить популярные тайтлы
-    getPopularTitles: builder.query<ApiResponseDto<PopularTitle[]>, { limit?: number; includeAdult?: boolean } | void>({
+    getPopularTitles: builder.query<
+      ApiResponseDto<PopularTitle[]>,
+      { limit?: number; includeAdult?: boolean } | void
+    >({
       query: (params = {}) => ({
         url: "/titles/popular",
         params: {
@@ -377,7 +364,6 @@ export const titlesApi = createApi({
       transformResponse: (response: ApiResponseDto<PopularTitle[]>) => response,
     }),
 
-    // Получить топ тайтлы за день
     getTopTitlesDay: builder.query<
       ApiResponseDto<
         {
@@ -422,7 +408,6 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
-    // Получить топ тайтлы за неделю
     getTopTitlesWeek: builder.query<
       ApiResponseDto<
         {
@@ -467,7 +452,6 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
-    // Получить топ тайтлы за месяц
     getTopTitlesMonth: builder.query<
       ApiResponseDto<
         {
@@ -512,7 +496,6 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
-    // Получить коллекции
     getCollections: builder.query<
       ApiResponseDto<{ id: string; name: string; image: string; link: string }[]>,
       void
@@ -524,7 +507,6 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
-    // Получить случайные тайтлы
     getRandomTitles: builder.query<
       ApiResponseDto<
         {
@@ -567,7 +549,6 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
-    // Недавно добавленные в каталог тайтлы (GET /titles/titles/recent)
     getRecentTitles: builder.query<
       ApiResponseDto<PopularTitle[]>,
       { limit?: number; page?: number; includeAdult?: boolean } | void
@@ -589,16 +570,13 @@ export const titlesApi = createApi({
         const raw = response?.data;
         const list = Array.isArray(raw)
           ? raw
-          : (raw as { data?: PopularTitle[] })?.data ??
+          : ((raw as { data?: PopularTitle[] })?.data ??
             (raw as { titles?: PopularTitle[] })?.titles ??
-            [];
+            []);
         return { ...response, data: list };
       },
     }),
 
-    // Получить последние обновления.
-    // Для корректного отображения диапазонов (например "Главы 24, 34-55" вместо "24-55") бэкенд может
-    // возвращать опциональное поле chapters: number[] — массив номеров обновлённых глав.
     getLatestUpdates: builder.query<
       ApiResponseDto<
         {
@@ -643,10 +621,10 @@ export const titlesApi = createApi({
         const raw = response?.data;
         const list: unknown[] = Array.isArray(raw)
           ? raw
-          : (raw as { data?: unknown[] })?.data ??
+          : ((raw as { data?: unknown[] })?.data ??
             (raw as { items?: unknown[] })?.items ??
             (raw as { updates?: unknown[] })?.updates ??
-            [];
+            []);
         if (!list.length) return { ...response, data: [] };
         const data = list.map((item: unknown) => {
           const it = item as Record<string, unknown>;
@@ -654,7 +632,7 @@ export const titlesApi = createApi({
           const numbers: number[] = Array.isArray(raw)
             ? raw
             : Array.isArray((raw as { numbers?: number[] })?.numbers)
-              ? (raw as { numbers?: number[] }).numbers ?? []
+              ? ((raw as { numbers?: number[] }).numbers ?? [])
               : [];
           let chapter: string;
           if (numbers.length > 0) {
@@ -683,7 +661,6 @@ export const titlesApi = createApi({
       },
     }),
 
-    // Получить рекомендации для пользователя
     getRecommendedTitles: builder.query<
       ApiResponseDto<
         {
@@ -726,7 +703,6 @@ export const titlesApi = createApi({
       ) => response,
     }),
 
-    // Похожие тайтлы (по жанрам и тегам)
     getSimilarTitles: builder.query<
       ApiResponseDto<SimilarTitle[]>,
       { id: string; limit?: number; includeAdult?: boolean }
@@ -738,19 +714,16 @@ export const titlesApi = createApi({
       providesTags: (result, error, { id }) => [{ type: TITLES_TAG, id: `similar-${id}` }],
     }),
 
-    // Статистика тайтла (просмотры, рейтинг, закладки)
     getTitleStats: builder.query<ApiResponseDto<TitleStats>, string>({
       query: id => `/titles/${id}/stats`,
       providesTags: (result, error, id) => [{ type: TITLES_TAG, id: `stats-${id}` }],
     }),
 
-    // Проверка рейтинга пользователя для тайтла
     getMyTitleRating: builder.query<ApiResponseDto<UserTitleRating>, string>({
       query: id => `/titles/${id}/my-rating`,
       providesTags: (result, error, id) => [{ type: TITLES_TAG, id: `rating-${id}` }],
     }),
 
-    // Тайтлы по жанру с пагинацией
     getTitlesByGenre: builder.query<
       ApiResponseDto<TitlesByGenreResponse>,
       { genre: string; page?: number; limit?: number; includeAdult?: boolean }
@@ -762,7 +735,6 @@ export const titlesApi = createApi({
       providesTags: (result, error, { genre }) => [{ type: TITLES_TAG, id: `genre-${genre}` }],
     }),
 
-    // Удаление тайтла
     deleteTitle: builder.mutation<void, string>({
       query: id => ({
         url: `/titles/${id}`,
@@ -771,12 +743,17 @@ export const titlesApi = createApi({
       invalidatesTags: [TITLES_TAG],
     }),
 
-    // Прогресс чтения пользователя по всем тайтлам (auth)
     getReadingProgress: builder.query<
       ApiResponseDto<
         {
           titleId: string;
-          title?: { name?: string; title?: string; slug?: string; cover?: string; coverImage?: string };
+          title?: {
+            name?: string;
+            title?: string;
+            slug?: string;
+            cover?: string;
+            coverImage?: string;
+          };
           lastChapterNumber?: number;
           readChaptersCount?: number;
           totalChapters?: number;
@@ -787,7 +764,17 @@ export const titlesApi = createApi({
     >({
       query: () => "/titles/user/reading-progress",
       providesTags: [TITLES_TAG],
-      transformResponse: (response: ApiResponseDto<unknown>) => response as ApiResponseDto<{ titleId: string; title?: Record<string, unknown>; lastChapterNumber?: number; readChaptersCount?: number; totalChapters?: number; lastReadAt?: string }[]>,
+      transformResponse: (response: ApiResponseDto<unknown>) =>
+        response as ApiResponseDto<
+          {
+            titleId: string;
+            title?: Record<string, unknown>;
+            lastChapterNumber?: number;
+            readChaptersCount?: number;
+            totalChapters?: number;
+            lastReadAt?: string;
+          }[]
+        >,
     }),
   }),
 });

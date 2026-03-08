@@ -43,6 +43,7 @@ export default function Search({
   const isPanelOnly = trigger === "none";
   const isOpen = isPanelOnly ? controlledOpen : internalOpen;
   const setOpen = isPanelOnly && onOpenChange ? onOpenChange : setInternalOpen;
+  void setOpen;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleSearchChange(e.target.value);
@@ -68,7 +69,6 @@ export default function Search({
     }
   };
 
-  // Фокус в поле при открытии в режиме «только панель»
   useEffect(() => {
     if (isPanelOnly && isOpen) {
       const t = setTimeout(() => inputRef.current?.focus(), 80);
@@ -76,7 +76,6 @@ export default function Search({
     }
   }, [isPanelOnly, isOpen]);
 
-  // Горячая клавиша Ctrl+K / Cmd+K для открытия поиска (десктоп)
   useEffect(() => {
     if (isPanelOnly) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -90,7 +89,6 @@ export default function Search({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isPanelOnly]);
 
-  // Закрытие по клику снаружи
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -146,16 +144,8 @@ export default function Search({
       )}
       {showPanel && (
         <>
-          <div
-            className="search-overlay-backdrop"
-            aria-hidden
-            onClick={() => closePanel()}
-          />
-          <div
-            id="search-results-listbox"
-            role="listbox"
-            className="search-overlay-panel"
-          >
+          <div className="search-overlay-backdrop" aria-hidden onClick={() => closePanel()} />
+          <div id="search-results-listbox" role="listbox" className="search-overlay-panel">
             <div className="search-overlay-header">
               <div className="search-overlay-input-wrap">
                 <SearchIcon className="search-overlay-icon" strokeWidth={2} aria-hidden />
@@ -180,9 +170,7 @@ export default function Search({
                   aria-activedescendant={undefined}
                 />
                 <span className="search-overlay-actions">
-                  {isLoading && (
-                    <span className="search-overlay-spinner" aria-hidden />
-                  )}
+                  {isLoading && <span className="search-overlay-spinner" aria-hidden />}
                   {!isLoading && searchTerm && (
                     <button
                       type="button"

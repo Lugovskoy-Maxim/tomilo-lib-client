@@ -39,7 +39,6 @@ const formatViews = (value?: number) => {
   return `${views}`;
 };
 
-
 export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
   const router = useRouter();
   const { user } = useAuth();
@@ -52,7 +51,8 @@ export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
   const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
     const verified = checkAgeVerification(user || null);
-    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+    setIsAgeVerified(prev => (prev === verified ? prev : verified));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- проверка только по userId, userBirthDate
   }, [userId, userBirthDate]);
 
   const titlePath = getTitlePath(data);
@@ -183,7 +183,12 @@ export default function TrendingCard({ data, onCardClick }: TrendingCardProps) {
   }
 
   return (
-    <Link href={titlePath} className={className} onClick={handleClick} data-card-click-handler="true">
+    <Link
+      href={titlePath}
+      className={className}
+      onClick={handleClick}
+      data-card-click-handler="true"
+    >
       {cardContent}
     </Link>
   );

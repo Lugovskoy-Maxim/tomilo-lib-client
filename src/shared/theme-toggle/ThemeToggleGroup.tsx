@@ -52,7 +52,7 @@ export default function ThemeToggleGroup({ className = "" }: ThemeToggleGroupPro
 
   const handleThemeChange = async (newTheme: "light" | "dark" | "system") => {
     if (newTheme === theme || isLoadingTheme) return;
-    
+
     setIsUpdatingTheme(true);
 
     // Применяем тему локально сразу
@@ -78,7 +78,7 @@ export default function ThemeToggleGroup({ className = "" }: ThemeToggleGroupPro
   if (!mounted) {
     return (
       <div className={`grid grid-cols-3 gap-2 ${className}`}>
-        {themes.map((t) => (
+        {themes.map(t => (
           <button
             key={t.value}
             disabled

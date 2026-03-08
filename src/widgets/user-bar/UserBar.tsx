@@ -129,7 +129,11 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
           >
             <button
               type="button"
-              title={hasTop10 && bestPosition ? `Топ ${bestPosition.position} — ${bestPosition.label}` : undefined}
+              title={
+                hasTop10 && bestPosition
+                  ? `Топ ${bestPosition.position} — ${bestPosition.label}`
+                  : undefined
+              }
               className={`relative flex items-center justify-center min-h-[40px] min-w-[40px] p-1 rounded-xl bg-[var(--card)] border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 cursor-pointer overflow-visible ${
                 hasTop10
                   ? "border-amber-400/60 shadow-[0_0_14px_rgba(245,158,11,0.45),0_0_28px_rgba(251,191,36,0.25)] hover:shadow-[0_0_18px_rgba(245,158,11,0.55),0_0_32px_rgba(251,191,36,0.3)]"
@@ -160,7 +164,6 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
           </div>
         )}
       </div>
-
     </>
   );
 }

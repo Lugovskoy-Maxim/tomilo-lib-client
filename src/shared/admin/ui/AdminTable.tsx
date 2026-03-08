@@ -1,11 +1,5 @@
 import React, { useState, useMemo } from "react";
-import {
-  ChevronUp,
-  ChevronDown,
-  ChevronsUpDown,
-  Search,
-  Inbox,
-} from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Inbox } from "lucide-react";
 
 // Simple cn utility function
 function cn(...inputs: (string | undefined | null | false | Record<string, boolean>)[]): string {
@@ -88,9 +82,9 @@ export function AdminTable<T>({
   const filteredData = useMemo(() => {
     if (!searchable || !searchTerm) return data;
 
-    return data.filter((item) => {
+    return data.filter(item => {
       const searchLower = searchTerm.toLowerCase();
-      return searchKeys.some((key) => {
+      return searchKeys.some(key => {
         const value = getNestedValue(item, key);
         return String(value).toLowerCase().includes(searchLower);
       });
@@ -130,7 +124,7 @@ export function AdminTable<T>({
   const handleSort = (key: string) => {
     if (!sortable) return;
 
-    setSortConfig((current) => {
+    setSortConfig(current => {
       if (current?.key === key) {
         return {
           key,
@@ -145,10 +139,10 @@ export function AdminTable<T>({
     if (!onSelectionChange) return;
 
     const allIds = paginatedData.map(keyExtractor);
-    const allSelected = allIds.every((id) => selectedIds.includes(id));
+    const allSelected = allIds.every(id => selectedIds.includes(id));
 
     if (allSelected) {
-      onSelectionChange(selectedIds.filter((id) => !allIds.includes(id)));
+      onSelectionChange(selectedIds.filter(id => !allIds.includes(id)));
     } else {
       onSelectionChange([...new Set([...selectedIds, ...allIds])]);
     }
@@ -158,7 +152,7 @@ export function AdminTable<T>({
     if (!onSelectionChange) return;
 
     if (selectedIds.includes(id)) {
-      onSelectionChange(selectedIds.filter((sid) => sid !== id));
+      onSelectionChange(selectedIds.filter(sid => sid !== id));
     } else {
       onSelectionChange([...selectedIds, id]);
     }
@@ -203,7 +197,7 @@ export function AdminTable<T>({
               type="text"
               placeholder="Поиск..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="admin-input w-full pl-10"
               aria-label="Поиск по таблице"
             />
@@ -228,9 +222,7 @@ export function AdminTable<T>({
                       type="checkbox"
                       checked={
                         paginatedData.length > 0 &&
-                        paginatedData.every((item) =>
-                          selectedIds.includes(keyExtractor(item))
-                        )
+                        paginatedData.every(item => selectedIds.includes(keyExtractor(item)))
                       }
                       onChange={handleSelectAll}
                       className="rounded border-[var(--border)]"
@@ -238,14 +230,14 @@ export function AdminTable<T>({
                   </th>
                 )}
                 {columns
-                  .filter((col) => !col.hidden)
-                  .map((column) => (
+                  .filter(col => !col.hidden)
+                  .map(column => (
                     <th
                       key={column.key}
                       className={cn(
                         "text-left p-3 font-medium text-[var(--foreground)] text-sm",
                         column.sortable && "cursor-pointer hover:bg-[var(--accent)]",
-                        column.width
+                        column.width,
                       )}
                       onClick={() => handleSort(column.key)}
                       style={{ width: column.width }}
@@ -264,7 +256,7 @@ export function AdminTable<T>({
                 <tr>
                   <td
                     colSpan={
-                      columns.filter((c) => !c.hidden).length +
+                      columns.filter(c => !c.hidden).length +
                       (selectable ? 1 : 0) +
                       (actions ? 1 : 0)
                     }
@@ -288,15 +280,12 @@ export function AdminTable<T>({
                       className={cn(
                         "border-t border-[var(--border)] transition-colors",
                         onRowClick && "cursor-pointer hover:bg-[var(--accent)]/30",
-                        selectedIds.includes(id) && "bg-[var(--primary)]/5"
+                        selectedIds.includes(id) && "bg-[var(--primary)]/5",
                       )}
                       onClick={() => onRowClick?.(item)}
                     >
                       {selectable && (
-                        <td
-                          className="p-3"
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <td className="p-3" onClick={e => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={selectedIds.includes(id)}
@@ -306,13 +295,13 @@ export function AdminTable<T>({
                         </td>
                       )}
                       {columns
-                        .filter((col) => !col.hidden)
-                        .map((column) => (
+                        .filter(col => !col.hidden)
+                        .map(column => (
                           <td
                             key={column.key}
                             className={cn(
                               "p-3 text-[var(--foreground)] text-sm",
-                              column.cellClassName
+                              column.cellClassName,
                             )}
                           >
                             {column.render
@@ -321,13 +310,8 @@ export function AdminTable<T>({
                           </td>
                         ))}
                       {actions && (
-                        <td
-                          className="p-3 text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            {actions(item)}
-                          </div>
+                        <td className="p-3 text-right" onClick={e => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1">{actions(item)}</div>
                         </td>
                       )}
                     </tr>
@@ -358,9 +342,7 @@ export function AdminTable<T>({
               </span>
               <button
                 onClick={() => pagination.onPageChange(pagination.page + 1)}
-                disabled={
-                  pagination.page >= Math.ceil(pagination.total / pagination.limit)
-                }
+                disabled={pagination.page >= Math.ceil(pagination.total / pagination.limit)}
                 className="admin-btn admin-btn-secondary"
                 aria-label="Следующая страница"
               >
@@ -396,17 +378,12 @@ interface CompactTableProps<T> {
   className?: string;
 }
 
-export function CompactTable<T>({
-  data,
-  columns,
-  keyExtractor,
-  className,
-}: CompactTableProps<T>) {
+export function CompactTable<T>({ data, columns, keyExtractor, className }: CompactTableProps<T>) {
   return (
     <div className={cn("overflow-x-auto", className)}>
       <table className="w-full">
         <tbody>
-          {data.map((item) => (
+          {data.map(item => (
             <tr
               key={keyExtractor(item)}
               className="border-b border-[var(--border)] last:border-b-0"
@@ -418,7 +395,7 @@ export function CompactTable<T>({
                     "py-2 px-3 text-sm",
                     idx === 0
                       ? "font-medium text-[var(--foreground)]"
-                      : "text-[var(--muted-foreground)] text-right"
+                      : "text-[var(--muted-foreground)] text-right",
                   )}
                 >
                   {column.render

@@ -24,7 +24,10 @@ interface SettingsNavigationProps {
   onSectionClick?: (sectionId: string) => void;
 }
 
-export default function SettingsNavigation({ activeSection, onSectionClick }: SettingsNavigationProps) {
+export default function SettingsNavigation({
+  activeSection,
+  onSectionClick,
+}: SettingsNavigationProps) {
   const [currentSection, setCurrentSection] = useState<string>(activeSection || "");
 
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function SettingsNavigation({ activeSection, onSectionClick }: Se
   const handleClick = (sectionId: string) => {
     setCurrentSection(sectionId);
     onSectionClick?.(sectionId);
-    
+
     const element = document.getElementById(`settings-${sectionId}`);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -51,10 +54,10 @@ export default function SettingsNavigation({ activeSection, onSectionClick }: Se
         </h3>
       </div>
       <div className="flex flex-wrap gap-2">
-        {SETTINGS_SECTIONS.map((section) => {
+        {SETTINGS_SECTIONS.map(section => {
           const Icon = section.icon;
           const isActive = currentSection === section.id;
-          
+
           return (
             <button
               key={section.id}

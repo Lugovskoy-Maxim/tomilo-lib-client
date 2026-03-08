@@ -148,7 +148,12 @@ export default function ChapterCreatePage() {
                   <input
                     type="number"
                     value={form.chapterNumber ?? ""}
-                    onChange={e => handleChange("chapterNumber", e.target.value ? parseFloat(e.target.value) : undefined)}
+                    onChange={e =>
+                      handleChange(
+                        "chapterNumber",
+                        e.target.value ? parseFloat(e.target.value) : undefined,
+                      )
+                    }
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
                     required
                     min={0}
@@ -162,7 +167,10 @@ export default function ChapterCreatePage() {
                     type="number"
                     value={form.volumeNumber ?? ""}
                     onChange={e =>
-                      handleChange("volumeNumber", e.target.value ? Number(e.target.value) : undefined)
+                      handleChange(
+                        "volumeNumber",
+                        e.target.value ? Number(e.target.value) : undefined,
+                      )
                     }
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
                     min={1}
@@ -193,7 +201,9 @@ export default function ChapterCreatePage() {
                   </select>
                 </label>
                 <label className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-[var(--foreground)]">Цена (если платная)</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">
+                    Цена (если платная)
+                  </span>
                   <input
                     type="number"
                     value={form.price ?? ""}
@@ -213,7 +223,10 @@ export default function ChapterCreatePage() {
                       form.releaseDate ? new Date(form.releaseDate).toISOString().slice(0, 16) : ""
                     }
                     onChange={e =>
-                      handleChange("releaseDate", e.target.value ? new Date(e.target.value) : undefined)
+                      handleChange(
+                        "releaseDate",
+                        e.target.value ? new Date(e.target.value) : undefined,
+                      )
                     }
                     className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
                   />
@@ -241,7 +254,7 @@ export default function ChapterCreatePage() {
 
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-4">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">Команда перевода</h2>
-              
+
               {/* Выбор команды переводчиков */}
               <div className="pb-4 border-b border-[var(--border)]">
                 <TranslatorTeamSelect
@@ -259,7 +272,9 @@ export default function ChapterCreatePage() {
                 </p>
               </div>
 
-              <h3 className="text-sm font-medium text-[var(--foreground)] pt-2">Участники (вручную)</h3>
+              <h3 className="text-sm font-medium text-[var(--foreground)] pt-2">
+                Участники (вручную)
+              </h3>
               <p className="text-xs text-[var(--muted-foreground)] -mt-2">
                 Если команда не зарегистрирована, можно указать участников вручную
               </p>
@@ -300,8 +315,12 @@ export default function ChapterCreatePage() {
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-medium text-[var(--foreground)]">Страницы главы (изображения)</p>
-                  <p className="text-xs text-[var(--muted-foreground)]">Перетащите файлы или выберите вручную</p>
+                  <p className="text-sm font-medium text-[var(--foreground)]">
+                    Страницы главы (изображения)
+                  </p>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    Перетащите файлы или выберите вручную
+                  </p>
                 </div>
                 {pages.length > 0 && (
                   <span className="text-sm text-[var(--primary)]">
@@ -367,7 +386,7 @@ export default function ChapterCreatePage() {
                           </div>
                           <button
                             type="button"
-                            onClick={(e) => {
+                            onClick={e => {
                               e.preventDefault();
                               e.stopPropagation();
                               removeFile(index);
@@ -397,7 +416,7 @@ export default function ChapterCreatePage() {
                     <div className="flex justify-end">
                       <button
                         type="button"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.preventDefault();
                           e.stopPropagation();
                           clearFiles();

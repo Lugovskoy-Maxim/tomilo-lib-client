@@ -15,7 +15,10 @@ interface AgeVerificationProviderProps {
   requestAgeVerification: RequestAgeVerificationFn;
 }
 
-export function AgeVerificationProvider({ children, requestAgeVerification }: AgeVerificationProviderProps) {
+export function AgeVerificationProvider({
+  children,
+  requestAgeVerification,
+}: AgeVerificationProviderProps) {
   return (
     <AgeVerificationContext.Provider value={requestAgeVerification}>
       {children}

@@ -40,13 +40,14 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
   const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
     const verified = checkAgeVerification(user);
-    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+    setIsAgeVerified(prev => (prev === verified ? prev : verified));
 
     const hasAdultContent =
       collection?.titles?.some((title: Title) => title.ageLimit === 18) || false;
     if (hasAdultContent && !verified) {
       setShowAgeModal(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- проверка по userId, userBirthDate, collection
   }, [userId, userBirthDate, collection]);
 
   // Check if collection has adult content
@@ -280,7 +281,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
                       </p>
                       <button
                         type="button"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.preventDefault();
                           setShowAgeModal(true);
                         }}
@@ -308,7 +309,9 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
 
         {(!collection.titles || collection.titles.length === 0) && (
           <div className="text-center py-14 sm:py-16 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
-            <p className="text-[var(--muted-foreground)] text-sm sm:text-base">В этой коллекции пока нет тайтлов.</p>
+            <p className="text-[var(--muted-foreground)] text-sm sm:text-base">
+              В этой коллекции пока нет тайтлов.
+            </p>
           </div>
         )}
       </div>
@@ -348,9 +351,7 @@ export default function CollectionDetails({ collectionId }: { collectionId: stri
               "@type": "CreativeWork",
               name: title.name,
               url: `${process.env.NEXT_PUBLIC_URL}${getTitlePath({ id: title._id, slug: title.slug })}`,
-              image: title.coverImage
-                ? getCoverUrl(title.coverImage)
-                : undefined,
+              image: title.coverImage ? getCoverUrl(title.coverImage) : undefined,
               author: title.author,
               genre: title.genres,
             })),

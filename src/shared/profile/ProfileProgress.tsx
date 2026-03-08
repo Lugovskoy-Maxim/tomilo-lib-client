@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { 
-  TrendingUp, 
-  Trophy, 
-  Zap, 
-  ArrowUp, 
+import {
+  TrendingUp,
+  Trophy,
+  Zap,
+  ArrowUp,
   Calendar,
   Filter,
   Trash2,
@@ -15,7 +15,7 @@ import {
   Bookmark,
   Users,
   Clock,
-  Star
+  Star,
 } from "lucide-react";
 import { useProgressNotification } from "@/contexts/ProgressNotificationContext";
 import { ProgressEvent, ProgressEventType } from "@/types/progress";
@@ -27,12 +27,15 @@ interface ProfileProgressProps {
   userProfile: UserProfile;
 }
 
-const EVENT_TYPE_CONFIG: Record<ProgressEventType, {
-  label: string;
-  icon: React.ElementType;
-  color: string;
-  bg: string;
-}> = {
+const EVENT_TYPE_CONFIG: Record<
+  ProgressEventType,
+  {
+    label: string;
+    icon: React.ElementType;
+    color: string;
+    bg: string;
+  }
+> = {
   level_up: {
     label: "Повышение уровня",
     icon: ArrowUp,
@@ -89,13 +92,13 @@ function formatTime(dateString: string): string {
 
 function groupEventsByDate(events: ProgressEvent[]): Map<string, ProgressEvent[]> {
   const groups = new Map<string, ProgressEvent[]>();
-  
+
   events.forEach(event => {
     const dateKey = formatDate(event.timestamp);
     const existing = groups.get(dateKey) || [];
     groups.set(dateKey, [...existing, event]);
   });
-  
+
   return groups;
 }
 
@@ -107,10 +110,7 @@ function EventCard({ event }: { event: ProgressEvent }) {
     const rankColor = getRankColor(event.newRank.rank);
     return (
       <div className="flex items-start gap-4 p-4 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50 hover:border-[var(--border)] transition-colors">
-        <div 
-          className="p-2.5 rounded-xl"
-          style={{ backgroundColor: `${rankColor}20` }}
-        >
+        <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${rankColor}20` }}>
           <Icon className="w-5 h-5" style={{ color: rankColor }} />
         </div>
         <div className="flex-1 min-w-0">
@@ -119,9 +119,9 @@ function EventCard({ event }: { event: ProgressEvent }) {
               Уровень {event.oldLevel} → {event.newLevel}
             </span>
             {event.newRank.rank > event.oldRank.rank && (
-              <span 
+              <span
                 className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                style={{ 
+                style={{
                   backgroundColor: `${rankColor}20`,
                   color: rankColor,
                 }}
@@ -130,9 +130,7 @@ function EventCard({ event }: { event: ProgressEvent }) {
               </span>
             )}
           </div>
-          <p className="text-xs text-[var(--muted-foreground)]">
-            {event.newRank.name}
-          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">{event.newRank.name}</p>
           <div className="flex gap-1 mt-2">
             {[...Array(9)].map((_, i) => (
               <Star
@@ -155,7 +153,7 @@ function EventCard({ event }: { event: ProgressEvent }) {
     const { achievement } = event;
     const AchIcon = TYPE_ICONS[achievement.type] || Trophy;
     const rarityColor = RARITY_COLORS[achievement.rarity];
-    
+
     return (
       <div className="flex items-start gap-4 p-4 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50 hover:border-[var(--border)] transition-colors">
         <div className={`p-2.5 rounded-xl ${config.bg}`}>
@@ -174,9 +172,7 @@ function EventCard({ event }: { event: ProgressEvent }) {
               {achievement.rarity === "legendary" && "Легендарное"}
             </span>
           </div>
-          <p className="text-xs text-[var(--muted-foreground)]">
-            {achievement.description}
-          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">{achievement.description}</p>
         </div>
         <span className="text-[10px] text-[var(--muted-foreground)] shrink-0">
           {formatTime(event.timestamp)}
@@ -192,12 +188,8 @@ function EventCard({ event }: { event: ProgressEvent }) {
           <Icon className={`w-5 h-5 ${config.color}`} />
         </div>
         <div className="flex-1 min-w-0">
-          <span className="text-sm font-semibold text-yellow-500">
-            +{event.amount} XP
-          </span>
-          <p className="text-xs text-[var(--muted-foreground)]">
-            {event.reason}
-          </p>
+          <span className="text-sm font-semibold text-yellow-500">+{event.amount} XP</span>
+          <p className="text-xs text-[var(--muted-foreground)]">{event.reason}</p>
         </div>
         <span className="text-[10px] text-[var(--muted-foreground)] shrink-0">
           {formatTime(event.timestamp)}
@@ -209,7 +201,8 @@ function EventCard({ event }: { event: ProgressEvent }) {
   return null;
 }
 
-export default function ProfileProgress({ userProfile }: ProfileProgressProps) {
+export default function ProfileProgress(props: ProfileProgressProps) {
+  void props.userProfile;
   const { history, clearHistory } = useProgressNotification();
   const [filter, setFilter] = useState<ProgressEventType | "all">("all");
   const [showAll, setShowAll] = useState(false);
@@ -241,7 +234,7 @@ export default function ProfileProgress({ userProfile }: ProfileProgressProps) {
 
     history.forEach(event => {
       const eventDate = new Date(event.timestamp);
-      
+
       if (event.type === "exp_gain") {
         if (eventDate >= weekAgo) weeklyXp += event.amount;
         if (eventDate >= monthAgo) monthlyXp += event.amount;
@@ -253,12 +246,13 @@ export default function ProfileProgress({ userProfile }: ProfileProgressProps) {
     return { weeklyXp, monthlyXp, levelUps, achievements };
   }, [history]);
 
-  const filterOptions: { id: ProgressEventType | "all"; label: string; icon: React.ElementType }[] = [
-    { id: "all", label: "Все", icon: Filter },
-    { id: "level_up", label: "Уровни", icon: ArrowUp },
-    { id: "achievement", label: "Достижения", icon: Trophy },
-    { id: "exp_gain", label: "Опыт", icon: Zap },
-  ];
+  const filterOptions: { id: ProgressEventType | "all"; label: string; icon: React.ElementType }[] =
+    [
+      { id: "all", label: "Все", icon: Filter },
+      { id: "level_up", label: "Уровни", icon: ArrowUp },
+      { id: "achievement", label: "Достижения", icon: Trophy },
+      { id: "exp_gain", label: "Опыт", icon: Zap },
+    ];
 
   return (
     <div className="space-y-6">
@@ -301,9 +295,7 @@ export default function ProfileProgress({ userProfile }: ProfileProgressProps) {
               Уровней
             </span>
           </div>
-          <p className="text-xl font-bold text-[var(--foreground)]">
-            {stats.levelUps}
-          </p>
+          <p className="text-xl font-bold text-[var(--foreground)]">{stats.levelUps}</p>
         </div>
 
         <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
@@ -315,9 +307,7 @@ export default function ProfileProgress({ userProfile }: ProfileProgressProps) {
               Достижений
             </span>
           </div>
-          <p className="text-xl font-bold text-[var(--foreground)]">
-            {stats.achievements}
-          </p>
+          <p className="text-xl font-bold text-[var(--foreground)]">{stats.achievements}</p>
         </div>
       </div>
 
@@ -375,9 +365,7 @@ export default function ProfileProgress({ userProfile }: ProfileProgressProps) {
               <Calendar className="w-10 h-10 text-[var(--muted-foreground)]" />
             </div>
             <p className="text-sm text-[var(--muted-foreground)]">
-              {filter === "all" 
-                ? "История прогресса пуста" 
-                : "Нет событий этого типа"}
+              {filter === "all" ? "История прогресса пуста" : "Нет событий этого типа"}
             </p>
             <p className="text-xs text-[var(--muted-foreground)] mt-1">
               Читайте мангу, чтобы получать опыт и достижения

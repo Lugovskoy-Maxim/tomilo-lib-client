@@ -148,8 +148,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
       : form.username.length < 3
         ? "Минимум 3 символа"
         : null;
-    const confirmErr =
-      form.confirmPassword !== form.password ? "Пароли не совпадают" : null;
+    const confirmErr = form.confirmPassword !== form.password ? "Пароли не совпадают" : null;
     const valid =
       !emailErr &&
       !passwordErr &&
@@ -177,10 +176,12 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     } catch (err: unknown) {
       const status =
         err && typeof err === "object" && "status" in err ? (err as { status: number }).status : 0;
-      const data = err && typeof err === "object" && "data" in err ? (err as { data: unknown }).data : null;
-      const message = data && typeof data === "object" && data !== null && "message" in data
-        ? String((data as { message: string }).message)
-        : "";
+      const data =
+        err && typeof err === "object" && "data" in err ? (err as { data: unknown }).data : null;
+      const message =
+        data && typeof data === "object" && data !== null && "message" in data
+          ? String((data as { message: string }).message)
+          : "";
       if (status === 429) {
         const match = message.match(/(\d+)\s*сек/);
         if (match) setResendCooldown(parseInt(match[1], 10));
@@ -189,7 +190,15 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         toast.error(message || "Ошибка отправки кода. Попробуйте позже.");
       }
     }
-  }, [form.email, form.password, form.username, form.confirmPassword, captchaToken, sendCode, toast]);
+  }, [
+    form.email,
+    form.password,
+    form.username,
+    form.confirmPassword,
+    captchaToken,
+    sendCode,
+    toast,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,10 +218,12 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
       }).unwrap();
       onAuthSuccess(response);
     } catch (err: unknown) {
-      const data = err && typeof err === "object" && "data" in err ? (err as { data: unknown }).data : null;
-      const message = data && typeof data === "object" && data !== null && "message" in data
-        ? String((data as { message: string }).message)
-        : "";
+      const data =
+        err && typeof err === "object" && "data" in err ? (err as { data: unknown }).data : null;
+      const message =
+        data && typeof data === "object" && data !== null && "message" in data
+          ? String((data as { message: string }).message)
+          : "";
       toast.error(message || "Ошибка регистрации. Проверьте код и попробуйте снова.");
       console.error("Ошибка регистрации:", err);
     }
@@ -324,208 +335,243 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
 
           {step === "form" && (
             <>
-          <div className="space-y-1.5">
-            <label htmlFor="username" className="block text-sm font-medium text-[var(--foreground)]">
-              Имя
-            </label>
-            <div className="relative">
-              <User
-                className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                  errors.username ? "text-red-500" : "text-[var(--muted-foreground)]"
-                }`}
-              />
-              <input
-                id="username"
-                type="text"
-                placeholder={MESSAGES.UI_ELEMENTS.USERNAME_PLACEHOLDER}
-                value={form.username}
-                onChange={handleChange("username")}
-                onBlur={handleBlur("username")}
-                className={`${inputBase} ${errors.username ? inputError : inputNormal}`}
-                required
-                name="username"
-                disabled={isLoading}
-                autoComplete="username"
-                aria-invalid={!!errors.username}
-                aria-describedby={errors.username ? "username-error" : undefined}
-              />
-            </div>
-            {errors.username && (
-              <p id="username-error" className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
-                <span className="w-1 h-1 bg-red-500 rounded-full" />
-                {errors.username}
-              </p>
-            )}
-          </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-[var(--foreground)]"
+                >
+                  Имя
+                </label>
+                <div className="relative">
+                  <User
+                    className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                      errors.username ? "text-red-500" : "text-[var(--muted-foreground)]"
+                    }`}
+                  />
+                  <input
+                    id="username"
+                    type="text"
+                    placeholder={MESSAGES.UI_ELEMENTS.USERNAME_PLACEHOLDER}
+                    value={form.username}
+                    onChange={handleChange("username")}
+                    onBlur={handleBlur("username")}
+                    className={`${inputBase} ${errors.username ? inputError : inputNormal}`}
+                    required
+                    name="username"
+                    disabled={isLoading}
+                    autoComplete="username"
+                    aria-invalid={!!errors.username}
+                    aria-describedby={errors.username ? "username-error" : undefined}
+                  />
+                </div>
+                {errors.username && (
+                  <p
+                    id="username-error"
+                    className="text-xs text-red-500 flex items-center gap-1.5 mt-1"
+                  >
+                    <span className="w-1 h-1 bg-red-500 rounded-full" />
+                    {errors.username}
+                  </p>
+                )}
+              </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="email-register" className="block text-sm font-medium text-[var(--foreground)]">
-              Email
-            </label>
-            <div className="relative">
-              <Mail
-                className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                  errors.email ? "text-red-500" : "text-[var(--muted-foreground)]"
-                }`}
-              />
-              <input
-                id="email-register"
-                type="email"
-                placeholder={MESSAGES.UI_ELEMENTS.EMAIL_PLACEHOLDER}
-                value={form.email}
-                onChange={handleChange("email")}
-                onBlur={handleBlur("email")}
-                className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
-                required
-                name="email"
-                disabled={isLoading}
-                autoComplete="email"
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? "email-register-error" : undefined}
-              />
-            </div>
-            {errors.email && (
-              <p id="email-register-error" className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
-                <span className="w-1 h-1 bg-red-500 rounded-full" />
-                {errors.email}
-              </p>
-            )}
-          </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="email-register"
+                  className="block text-sm font-medium text-[var(--foreground)]"
+                >
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail
+                    className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                      errors.email ? "text-red-500" : "text-[var(--muted-foreground)]"
+                    }`}
+                  />
+                  <input
+                    id="email-register"
+                    type="email"
+                    placeholder={MESSAGES.UI_ELEMENTS.EMAIL_PLACEHOLDER}
+                    value={form.email}
+                    onChange={handleChange("email")}
+                    onBlur={handleBlur("email")}
+                    className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
+                    required
+                    name="email"
+                    disabled={isLoading}
+                    autoComplete="email"
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "email-register-error" : undefined}
+                  />
+                </div>
+                {errors.email && (
+                  <p
+                    id="email-register-error"
+                    className="text-xs text-red-500 flex items-center gap-1.5 mt-1"
+                  >
+                    <span className="w-1 h-1 bg-red-500 rounded-full" />
+                    {errors.email}
+                  </p>
+                )}
+              </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="password-register" className="block text-sm font-medium text-[var(--foreground)]">
-              Пароль
-            </label>
-            <div className="relative">
-              <Lock
-                className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                  errors.password ? "text-red-500" : "text-[var(--muted-foreground)]"
-                }`}
-              />
-              <input
-                id="password-register"
-                type={showPassword ? "text" : "password"}
-                placeholder={MESSAGES.UI_ELEMENTS.PASSWORD_PLACEHOLDER}
-                value={form.password}
-                onChange={handleChange("password")}
-                onBlur={handleBlur("password")}
-                className={`${inputBase} ${inputRightPadding} ${errors.password ? inputError : inputNormal}`}
-                required
-                name="password"
-                disabled={isLoading}
-                autoComplete="new-password"
-                aria-invalid={!!errors.password}
-                aria-describedby={errors.password ? "password-register-error" : undefined}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/20"
-                disabled={isLoading}
-                aria-label={showPassword ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            {errors.password && (
-              <p id="password-register-error" className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
-                <span className="w-1 h-1 bg-red-500 rounded-full" />
-                {errors.password}
-              </p>
-            )}
-          </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="password-register"
+                  className="block text-sm font-medium text-[var(--foreground)]"
+                >
+                  Пароль
+                </label>
+                <div className="relative">
+                  <Lock
+                    className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                      errors.password ? "text-red-500" : "text-[var(--muted-foreground)]"
+                    }`}
+                  />
+                  <input
+                    id="password-register"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={MESSAGES.UI_ELEMENTS.PASSWORD_PLACEHOLDER}
+                    value={form.password}
+                    onChange={handleChange("password")}
+                    onBlur={handleBlur("password")}
+                    className={`${inputBase} ${inputRightPadding} ${errors.password ? inputError : inputNormal}`}
+                    required
+                    name="password"
+                    disabled={isLoading}
+                    autoComplete="new-password"
+                    aria-invalid={!!errors.password}
+                    aria-describedby={errors.password ? "password-register-error" : undefined}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/20"
+                    disabled={isLoading}
+                    aria-label={
+                      showPassword
+                        ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD
+                        : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD
+                    }
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p
+                    id="password-register-error"
+                    className="text-xs text-red-500 flex items-center gap-1.5 mt-1"
+                  >
+                    <span className="w-1 h-1 bg-red-500 rounded-full" />
+                    {errors.password}
+                  </p>
+                )}
+              </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-[var(--foreground)]">
-              Подтверждение пароля
-            </label>
-            <div className="relative">
-              <Lock
-                className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                  errors.confirmPassword ? "text-red-500" : "text-[var(--muted-foreground)]"
-                }`}
-              />
-              <input
-                id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder={MESSAGES.UI_ELEMENTS.CONFIRM_PASSWORD_PLACEHOLDER}
-                value={form.confirmPassword}
-                onChange={handleChange("confirmPassword")}
-                onBlur={handleBlur("confirmPassword")}
-                className={`${inputBase} ${inputRightPadding} ${errors.confirmPassword ? inputError : inputNormal}`}
-                required
-                name="confirmPassword"
-                disabled={isLoading}
-                autoComplete="new-password"
-                aria-invalid={!!errors.confirmPassword}
-                aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/20"
-                disabled={isLoading}
-                aria-label={showConfirmPassword ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD}
-              >
-                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p id="confirm-password-error" className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
-                <span className="w-1 h-1 bg-red-500 rounded-full" />
-                {errors.confirmPassword}
-              </p>
-            )}
-          </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-[var(--foreground)]"
+                >
+                  Подтверждение пароля
+                </label>
+                <div className="relative">
+                  <Lock
+                    className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                      errors.confirmPassword ? "text-red-500" : "text-[var(--muted-foreground)]"
+                    }`}
+                  />
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder={MESSAGES.UI_ELEMENTS.CONFIRM_PASSWORD_PLACEHOLDER}
+                    value={form.confirmPassword}
+                    onChange={handleChange("confirmPassword")}
+                    onBlur={handleBlur("confirmPassword")}
+                    className={`${inputBase} ${inputRightPadding} ${errors.confirmPassword ? inputError : inputNormal}`}
+                    required
+                    name="confirmPassword"
+                    disabled={isLoading}
+                    autoComplete="new-password"
+                    aria-invalid={!!errors.confirmPassword}
+                    aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/20"
+                    disabled={isLoading}
+                    aria-label={
+                      showConfirmPassword
+                        ? MESSAGES.UI_ELEMENTS.HIDE_PASSWORD
+                        : MESSAGES.UI_ELEMENTS.SHOW_PASSWORD
+                    }
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p
+                    id="confirm-password-error"
+                    className="text-xs text-red-500 flex items-center gap-1.5 mt-1"
+                  >
+                    <span className="w-1 h-1 bg-red-500 rounded-full" />
+                    {errors.confirmPassword}
+                  </p>
+                )}
+              </div>
 
-          {TURNSTILE_SITE_KEY && (
-            <div className="flex flex-col items-center gap-1 min-[360px]:gap-1.5 turnstile-container">
-              <Turnstile
-                siteKey={TURNSTILE_SITE_KEY}
-                onSuccess={setCaptchaToken}
-                onExpire={() => setCaptchaToken(null)}
-                options={{
-                  theme: "auto",
-                  language: "ru",
-                  size: "normal",
-                }}
-              />
-              {!captchaToken && touched.confirmPassword && (
-                <p className="text-[0.625rem] min-[360px]:text-xs text-[var(--muted-foreground)]">
-                  Подтвердите, что вы не робот
-                </p>
+              {TURNSTILE_SITE_KEY && (
+                <div className="flex flex-col items-center gap-1 min-[360px]:gap-1.5 turnstile-container">
+                  <Turnstile
+                    siteKey={TURNSTILE_SITE_KEY}
+                    onSuccess={setCaptchaToken}
+                    onExpire={() => setCaptchaToken(null)}
+                    options={{
+                      theme: "auto",
+                      language: "ru",
+                      size: "normal",
+                    }}
+                  />
+                  {!captchaToken && touched.confirmPassword && (
+                    <p className="text-[0.625rem] min-[360px]:text-xs text-[var(--muted-foreground)]">
+                      Подтвердите, что вы не робот
+                    </p>
+                  )}
+                </div>
               )}
-            </div>
-          )}
 
-          <div className="flex items-start gap-2 min-[360px]:gap-3">
-            <input
-              id="terms"
-              type="checkbox"
-              className="mt-0.5 min-[360px]:mt-1 w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 rounded border-[var(--border)] bg-[var(--secondary)] text-[var(--chart-1)] focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2"
-              required
-            />
-            <label htmlFor="terms" className="text-xs min-[360px]:text-sm text-[var(--foreground)] leading-relaxed cursor-pointer">
-              {MESSAGES.UI_ELEMENTS.TERMS_LABEL}{" "}
-              <button
-                type="button"
-                className="text-[var(--chart-1)] font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2 rounded px-0.5 -mx-0.5"
-                onClick={() => setShowTermsModal(true)}
-              >
-                {MESSAGES.UI_ELEMENTS.TERMS_LINK}
-              </button>
-            </label>
-          </div>
+              <div className="flex items-start gap-2 min-[360px]:gap-3">
+                <input
+                  id="terms"
+                  type="checkbox"
+                  className="mt-0.5 min-[360px]:mt-1 w-3.5 h-3.5 min-[360px]:w-4 min-[360px]:h-4 rounded border-[var(--border)] bg-[var(--secondary)] text-[var(--chart-1)] focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2"
+                  required
+                />
+                <label
+                  htmlFor="terms"
+                  className="text-xs min-[360px]:text-sm text-[var(--foreground)] leading-relaxed cursor-pointer"
+                >
+                  {MESSAGES.UI_ELEMENTS.TERMS_LABEL}{" "}
+                  <button
+                    type="button"
+                    className="text-[var(--chart-1)] font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/30 focus:ring-offset-2 rounded px-0.5 -mx-0.5"
+                    onClick={() => setShowTermsModal(true)}
+                  >
+                    {MESSAGES.UI_ELEMENTS.TERMS_LINK}
+                  </button>
+                </label>
+              </div>
             </>
           )}
 
           <button
             type="submit"
-            disabled={
-              step === "form"
-                ? !isFormValid() || isLoading
-                : !isCodeStepValid || isLoading
-            }
+            disabled={step === "form" ? !isFormValid() || isLoading : !isCodeStepValid || isLoading}
             className="w-full py-2.5 min-[360px]:py-3 sm:py-3.5 rounded-lg min-[360px]:rounded-xl font-semibold text-sm min-[360px]:text-base text-white bg-[var(--chart-1)] hover:opacity-95 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-[var(--chart-1)]/25 focus:outline-none focus:ring-2 focus:ring-[var(--chart-1)]/50 focus:ring-offset-2 focus:ring-offset-[var(--background)]"
           >
             {isLoading ? (

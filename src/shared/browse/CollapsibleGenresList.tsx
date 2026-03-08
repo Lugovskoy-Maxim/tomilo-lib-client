@@ -68,9 +68,7 @@ export default function CollapsibleGenresList({
       </div>
 
       {filteredGenres.length === 0 && (
-        <p className="py-2 text-center text-sm text-[var(--muted-foreground)]">
-          Ничего не найдено
-        </p>
+        <p className="py-2 text-center text-sm text-[var(--muted-foreground)]">Ничего не найдено</p>
       )}
 
       {shouldShowToggle && filteredGenres.length > 0 && (

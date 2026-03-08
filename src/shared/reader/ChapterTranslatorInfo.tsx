@@ -24,8 +24,11 @@ function TeamMiniCard({
   const [imageError, setImageError] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  const hasDonationLinks = team.donationLinks && 
-    Object.keys(team.donationLinks).some(k => team.donationLinks?.[k as keyof typeof team.donationLinks]);
+  const hasDonationLinks =
+    team.donationLinks &&
+    Object.keys(team.donationLinks).some(
+      k => team.donationLinks?.[k as keyof typeof team.donationLinks],
+    );
 
   return (
     <div className="bg-[var(--secondary)]/60 backdrop-blur-sm rounded-xl p-3 border border-[var(--border)]/30">
@@ -54,16 +57,18 @@ function TeamMiniCard({
             {team.isVerified && (
               <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                 <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
             )}
           </div>
           <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
             <span>
-              {typeof chaptersCountInTitle === "number"
-                ? chaptersCountInTitle
-                : team.chaptersCount}{" "}
+              {typeof chaptersCountInTitle === "number" ? chaptersCountInTitle : team.chaptersCount}{" "}
               глав
             </span>
             {team.subscribersCount > 0 && (
@@ -90,7 +95,9 @@ function TeamMiniCard({
               onClick={() => setExpanded(!expanded)}
               className="p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
             >
-              <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+              />
             </button>
           )}
         </div>
@@ -182,9 +189,7 @@ export function ChapterTranslatorInfo({ titleId, chapterTranslator }: ChapterTra
   }, [chaptersData?.chapters]);
 
   if (isLoading) {
-    return (
-      <div className="animate-pulse bg-[var(--secondary)]/60 rounded-xl p-3 h-16" />
-    );
+    return <div className="animate-pulse bg-[var(--secondary)]/60 rounded-xl p-3 h-16" />;
   }
 
   if (!teams?.length && !chapterTranslator) {

@@ -16,15 +16,14 @@ interface RecommendationsProps {
 // refetch только если данные старше 5 мин (keepUnusedDataFor задаётся в titlesApi).
 const RECOMMENDED_REFETCH_SEC = 300;
 
-export default function Recommendations({
-  limit = 10
-}: RecommendationsProps) {
+export default function Recommendations({ limit = 10 }: RecommendationsProps) {
   const [shouldFetch, setShouldFetch] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { data: profileData } = useGetProfileQuery(undefined, { skip: !user });
-  const displayAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult;
-  const includeAdult = !user ? true : (displayAdult !== false);
+  const displayAdult =
+    profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult;
+  const includeAdult = !user ? true : displayAdult !== false;
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -33,7 +32,7 @@ export default function Recommendations({
       ([entry]) => {
         if (entry?.isIntersecting) setShouldFetch(true);
       },
-      { rootMargin: "200px", threshold: 0 }
+      { rootMargin: "200px", threshold: 0 },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -45,17 +44,11 @@ export default function Recommendations({
     {
       skip: !shouldFetch,
       refetchOnMountOrArgChange: RECOMMENDED_REFETCH_SEC,
-    }
+    },
   );
 
   if (!shouldFetch) {
-    return (
-      <div
-        ref={sectionRef}
-        className="w-full min-w-0 min-h-[200px]"
-        aria-hidden
-      />
-    );
+    return <div ref={sectionRef} className="w-full min-w-0 min-h-[200px]" aria-hidden />;
   }
 
   if (isLoading) {
@@ -87,7 +80,10 @@ export default function Recommendations({
   }));
 
   return (
-    <section ref={sectionRef} className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
+    <section
+      ref={sectionRef}
+      className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6"
+    >
       {/* Заголовок в стиле GridSection (как у рекомендуемых секций) */}
       <div className="mb-3 sm:mb-4">
         <div className="flex items-center gap-2 min-w-0 flex-nowrap">
@@ -110,7 +106,7 @@ export default function Recommendations({
         description=""
         type="browse"
         cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
-        getItemPath={(item) => getTitlePath(item)}
+        getItemPath={item => getTitlePath(item)}
         hideHeader
       />
     </section>

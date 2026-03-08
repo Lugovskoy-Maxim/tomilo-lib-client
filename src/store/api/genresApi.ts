@@ -44,7 +44,10 @@ export const genresApi = createApi({
   tagTypes: ["Genres"],
   endpoints: builder => ({
     getGenres: builder.query<
-      ApiResponse<{ genres: Genre[]; pagination: { total: number; page: number; limit: number; pages: number } }>,
+      ApiResponse<{
+        genres: Genre[];
+        pagination: { total: number; page: number; limit: number; pages: number };
+      }>,
       { search?: string; page?: number; limit?: number }
     >({
       query: ({ search = "", page = 1, limit = 50 }) => ({

@@ -87,17 +87,16 @@
   .snap-mandatory {
     scroll-snap-type: none;
   }
-  
+
   .scroll-smooth {
     scroll-behavior: auto;
   }
-  
+
   .will-change-scroll {
     will-change: auto;
   }
-  
+
   .carousel-marquee-track {
     animation: none;
   }
 }
-

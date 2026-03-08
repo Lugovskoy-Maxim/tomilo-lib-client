@@ -21,7 +21,7 @@ const SORT_LABELS: Record<SortOption, string> = {
 };
 
 function getTitleIdFromHistoryEntry(entry: ReadingHistoryEntry): string {
-  return typeof entry.titleId === "string" ? entry.titleId : entry.titleId?._id ?? "";
+  return typeof entry.titleId === "string" ? entry.titleId : (entry.titleId?._id ?? "");
 }
 
 const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
@@ -180,7 +180,12 @@ function BookmarkCategorySection({
   );
 }
 
-function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSectionHeader = true }: BookmarksSectionProps) {
+function BookmarksSection({
+  bookmarks,
+  readingHistory,
+  showAll = false,
+  showSectionHeader = true,
+}: BookmarksSectionProps) {
   const normalized = useMemo(() => normalizeBookmarks(bookmarks), [bookmarks]);
   const [currentBookmarks, setCurrentBookmarks] = useState(normalized);
   const [searchQuery, setSearchQuery] = useState("");
@@ -283,9 +288,7 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
   };
 
   const handleCategoryChange = (titleId: string, category: BookmarkCategory) => {
-    setCurrentBookmarks(prev =>
-      prev.map(e => (e.titleId === titleId ? { ...e, category } : e)),
-    );
+    setCurrentBookmarks(prev => prev.map(e => (e.titleId === titleId ? { ...e, category } : e)));
   };
 
   if (!currentBookmarks || currentBookmarks.length === 0) {
@@ -384,9 +387,16 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
 
           {hasFilters && (
             <p className="text-xs text-[var(--muted-foreground)]">
-              Найдено <span className="font-medium text-[var(--foreground)] tabular-nums">{sortedBookmarks.length}</span>
+              Найдено{" "}
+              <span className="font-medium text-[var(--foreground)] tabular-nums">
+                {sortedBookmarks.length}
+              </span>
               {" · "}
-              <button type="button" onClick={() => setSearchQuery("")} className="text-[var(--primary)] hover:underline">
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="text-[var(--primary)] hover:underline"
+              >
                 Сбросить
               </button>
             </p>
@@ -398,23 +408,26 @@ function BookmarksSection({ bookmarks, readingHistory, showAll = false, showSect
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <Search className="w-10 h-10 text-[var(--muted-foreground)] opacity-50 mb-2" />
           <p className="text-sm font-medium text-[var(--foreground)]">Ничего не найдено</p>
-          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Измените запрос или сбросьте фильтр</p>
+          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+            Измените запрос или сбросьте фильтр
+          </p>
         </div>
       )}
 
-      {!noResults && categoriesWithCount.map(({ category, label, count }) => (
-        <BookmarkCategorySection
-          key={category}
-          label={label}
-          count={count}
-          entries={byCategory.get(category) ?? []}
-          chaptersReadByTitleId={chaptersReadByTitleId}
-          maxPerSection={maxPerSection}
-          showAll={showAll}
-          onRemove={handleRemoveBookmark}
-          onCategoryChange={handleCategoryChange}
-        />
-      ))}
+      {!noResults &&
+        categoriesWithCount.map(({ category, label, count }) => (
+          <BookmarkCategorySection
+            key={category}
+            label={label}
+            count={count}
+            entries={byCategory.get(category) ?? []}
+            chaptersReadByTitleId={chaptersReadByTitleId}
+            maxPerSection={maxPerSection}
+            showAll={showAll}
+            onRemove={handleRemoveBookmark}
+            onCategoryChange={handleCategoryChange}
+          />
+        ))}
     </div>
   );
 }

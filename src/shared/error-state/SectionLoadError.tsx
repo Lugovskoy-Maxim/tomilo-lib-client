@@ -13,10 +13,7 @@ interface SectionLoadErrorProps {
  * Компактное состояние ошибки загрузки для секций главной страницы.
  * Визуально согласовано с каруселями и скелетонами.
  */
-export default function SectionLoadError({
-  sectionTitle,
-  className = "",
-}: SectionLoadErrorProps) {
+export default function SectionLoadError({ sectionTitle, className = "" }: SectionLoadErrorProps) {
   return (
     <div
       className={`flex flex-col items-center justify-center w-full max-w-7xl mx-auto px-4 py-8 sm:py-10 ${className}`}

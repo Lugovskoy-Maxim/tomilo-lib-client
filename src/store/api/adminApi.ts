@@ -2,7 +2,6 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { ApiResponseDto } from "@/types/api";
 import { UserProfile } from "@/types/user";
-import { Title } from "@/types/title";
 import {
   AdminDashboardStats,
   AdminChartData,
@@ -51,10 +50,7 @@ export const adminApi = createApi({
       providesTags: [ADMIN_TAG],
     }),
 
-    getActivity: builder.query<
-      ApiResponseDto<AdminActivity[]>,
-      { limit?: number; page?: number }
-    >({
+    getActivity: builder.query<ApiResponseDto<AdminActivity[]>, { limit?: number; page?: number }>({
       query: ({ limit = 20, page = 1 }) => ({
         url: "/admin/activity",
         params: { limit, page },
@@ -104,24 +100,15 @@ export const adminApi = createApi({
         method: "POST",
         body: { reason, duration },
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: ADMIN_USERS_TAG, id },
-        ADMIN_USERS_TAG,
-      ],
+      invalidatesTags: (result, error, { id }) => [{ type: ADMIN_USERS_TAG, id }, ADMIN_USERS_TAG],
     }),
 
-    unbanUser: builder.mutation<
-      ApiResponseDto<{ success: boolean; message: string }>,
-      string
-    >({
+    unbanUser: builder.mutation<ApiResponseDto<{ success: boolean; message: string }>, string>({
       query: id => ({
         url: `/admin/users/${id}/unban`,
         method: "POST",
       }),
-      invalidatesTags: (result, error, id) => [
-        { type: ADMIN_USERS_TAG, id },
-        ADMIN_USERS_TAG,
-      ],
+      invalidatesTags: (result, error, id) => [{ type: ADMIN_USERS_TAG, id }, ADMIN_USERS_TAG],
     }),
 
     updateUserRole: builder.mutation<
@@ -133,16 +120,10 @@ export const adminApi = createApi({
         method: "PUT",
         body: { role },
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: ADMIN_USERS_TAG, id },
-        ADMIN_USERS_TAG,
-      ],
+      invalidatesTags: (result, error, { id }) => [{ type: ADMIN_USERS_TAG, id }, ADMIN_USERS_TAG],
     }),
 
-    deleteUserComments: builder.mutation<
-      ApiResponseDto<{ deletedCount: number }>,
-      string
-    >({
+    deleteUserComments: builder.mutation<ApiResponseDto<{ deletedCount: number }>, string>({
       query: id => ({
         url: `/admin/users/${id}/comments`,
         method: "DELETE",
@@ -179,10 +160,7 @@ export const adminApi = createApi({
         url: `/users/admin/${id}/reset-bot-status`,
         method: "POST",
       }),
-      invalidatesTags: (result, error, id) => [
-        { type: ADMIN_USERS_TAG, id },
-        ADMIN_USERS_TAG,
-      ],
+      invalidatesTags: (result, error, id) => [{ type: ADMIN_USERS_TAG, id }, ADMIN_USERS_TAG],
     }),
 
     // ============== СПИСОК ТАЙТЛОВ (ВСЕ / НЕОПУБЛИКОВАННЫЕ) ==============
@@ -209,10 +187,7 @@ export const adminApi = createApi({
 
     // ============== МАССОВЫЕ ОПЕРАЦИИ С ТАЙТЛАМИ ==============
 
-    bulkDeleteTitles: builder.mutation<
-      ApiResponseDto<{ deletedCount: number }>,
-      string[]
-    >({
+    bulkDeleteTitles: builder.mutation<ApiResponseDto<{ deletedCount: number }>, string[]>({
       query: ids => ({
         url: "/admin/titles/bulk-delete",
         method: "POST",
@@ -274,10 +249,7 @@ export const adminApi = createApi({
       invalidatesTags: [ADMIN_COMMENTS_TAG],
     }),
 
-    deleteComment: builder.mutation<
-      ApiResponseDto<{ success: boolean }>,
-      string
-    >({
+    deleteComment: builder.mutation<ApiResponseDto<{ success: boolean }>, string>({
       query: id => ({
         url: `/admin/comments/${id}`,
         method: "DELETE",
@@ -285,10 +257,7 @@ export const adminApi = createApi({
       invalidatesTags: [ADMIN_COMMENTS_TAG],
     }),
 
-    bulkDeleteComments: builder.mutation<
-      ApiResponseDto<{ deletedCount: number }>,
-      string[]
-    >({
+    bulkDeleteComments: builder.mutation<ApiResponseDto<{ deletedCount: number }>, string[]>({
       query: commentIds => ({
         url: "/admin/comments/bulk-delete",
         method: "POST",

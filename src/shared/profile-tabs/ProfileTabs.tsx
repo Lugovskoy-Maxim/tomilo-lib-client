@@ -4,17 +4,10 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UserProfile } from "@/types/user";
-import { Menu, Repeat, X, ChevronLeft, ChevronRight } from "lucide-react";
-import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import { Repeat, ChevronLeft, ChevronRight } from "lucide-react";
 
-import {
-  type ProfileTab,
-  tabMeta,
-  PROFILE_TABS,
-  isValidProfileTab,
-} from "./profileTabConfig";
+import { type ProfileTab, tabMeta, PROFILE_TABS, isValidProfileTab } from "./profileTabConfig";
 
-// Компоненты обзора
 import ProfileAboutBlock from "@/shared/profile/ProfileAboutBlock";
 import ProfileAdditionalInfo from "@/shared/profile/ProfileAdditionalInfo";
 import ProfileContent from "@/shared/profile/ProfileContent";
@@ -22,11 +15,9 @@ import ProfileStats from "@/shared/profile/ProfileStats";
 import ProfileAchievements from "@/shared/profile/ProfileAchievements";
 import ProfileProgress from "@/shared/profile/ProfileProgress";
 
-// Компоненты закладок и истории
 import { default as BookmarksSection } from "@/widgets/profile-bookmarks/ProfileBookmarks";
 import { default as ReadingHistorySection } from "@/widgets/profile-reading/ProfileReading";
 
-// Компоненты настроек
 import ProfileNotificationsSettings from "@/shared/profile/ProfileNotificationsSettings";
 import ProfileReadingSettings from "@/shared/profile/ProfileReadingSettings";
 import ProfilePrivacySettings from "@/shared/profile/ProfilePrivacySettings";
@@ -56,23 +47,32 @@ interface ProfileTabsProps {
   isHistoryRestricted?: boolean;
 }
 
-export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicView = false, isBookmarksRestricted = false, isHistoryRestricted = false }: ProfileTabsProps) {
+export function ProfileTabs({
+  userProfile,
+  breadcrumbPrefix,
+  hideTabs,
+  isPublicView = false,
+  isBookmarksRestricted = false,
+  isHistoryRestricted = false,
+}: ProfileTabsProps) {
+  void breadcrumbPrefix;
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  void isMobileNavOpen;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  
+
   const isDraggingRef = useRef(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
   const hasDraggedRef = useRef(false);
 
   const tabFromUrl = searchParams.get("tab");
-  
-  const visibleTabs = hideTabs?.length 
+
+  const visibleTabs = hideTabs?.length
     ? PROFILE_TABS.filter(t => !hideTabs.includes(t))
     : PROFILE_TABS;
 
@@ -88,7 +88,7 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
     checkScroll();
     el.addEventListener("scroll", checkScroll, { passive: true });
     window.addEventListener("resize", checkScroll, { passive: true });
-    
+
     return () => {
       el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
@@ -145,19 +145,18 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
     activeTab = "overview";
   }
 
-  // При открытии без ?tab= — подставить lastTab из localStorage или overview
   useEffect(() => {
     if (isValidProfileTab(tabFromUrl)) return;
     const lastTab = localStorage.getItem("profile:lastTab");
-    const tab = isValidProfileTab(lastTab) && (!hideTabs?.length || !hideTabs.includes(lastTab as ProfileTab))
-      ? (lastTab as ProfileTab)
-      : "overview";
+    const tab =
+      isValidProfileTab(lastTab) && (!hideTabs?.length || !hideTabs.includes(lastTab as ProfileTab))
+        ? (lastTab as ProfileTab)
+        : "overview";
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [pathname, router, searchParams, tabFromUrl, hideTabs]);
 
-  // Редирект на overview, если открыта скрытая вкладка
   useEffect(() => {
     if (hideTabs?.length && tabFromUrl && hideTabs.includes(tabFromUrl as ProfileTab)) {
       const params = new URLSearchParams(searchParams.toString());
@@ -166,7 +165,6 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
     }
   }, [pathname, router, searchParams, tabFromUrl, hideTabs]);
 
-  // Сохранять выбранную вкладку в localStorage
   useEffect(() => {
     localStorage.setItem("profile:lastTab", activeTab);
   }, [activeTab]);
@@ -214,7 +212,9 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
                 <button
                   key={tabId}
                   type="button"
-                  onClick={() => { if (!hasDraggedRef.current) setActiveTab(tabId); }}
+                  onClick={() => {
+                    if (!hasDraggedRef.current) setActiveTab(tabId);
+                  }}
                   className={`profile-tab-btn flex items-center gap-2 shrink-0 px-3 py-2 rounded-full text-sm font-medium transition-all ${
                     isActive
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
@@ -250,165 +250,193 @@ export function ProfileTabs({ userProfile, breadcrumbPrefix, hideTabs, isPublicV
       </div>
 
       <div className="flex-1 min-h-0 profile-content-scroll overflow-y-auto overflow-x-hidden">
-          {/* О себе */}
-          {activeTab === "overview" && (
-            <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
-              <ProfileAboutBlock userProfile={userProfile} />
-              <ProfileAdditionalInfo userProfile={userProfile} isPublicView={isPublicView} />
-              <ProfileContent
-                userProfile={userProfile}
-                allBookmarksHref={`${pathname}?tab=bookmarks`}
-                historyHref={`${pathname}?tab=history`}
-                onShowBookmarks={() => setActiveTab("bookmarks")}
-                onShowHistory={() => setActiveTab("history")}
-                onShowAchievements={() => setActiveTab("achievements")}
-                onShowStats={() => setActiveTab("stats")}
-                isPublicView={isPublicView}
-                hiddenBookmarksMessage={isBookmarksRestricted ? "Пользователь скрыл свои закладки в настройках приватности." : undefined}
-                hiddenHistoryMessage={isHistoryRestricted ? "Пользователь скрыл свою историю чтения в настройках приватности." : undefined}
+        {/* О себе */}
+        {activeTab === "overview" && (
+          <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
+            <ProfileAboutBlock userProfile={userProfile} />
+            <ProfileAdditionalInfo userProfile={userProfile} isPublicView={isPublicView} />
+            <ProfileContent
+              userProfile={userProfile}
+              allBookmarksHref={`${pathname}?tab=bookmarks`}
+              historyHref={`${pathname}?tab=history`}
+              onShowBookmarks={() => setActiveTab("bookmarks")}
+              onShowHistory={() => setActiveTab("history")}
+              onShowAchievements={() => setActiveTab("achievements")}
+              onShowStats={() => setActiveTab("stats")}
+              isPublicView={isPublicView}
+              hiddenBookmarksMessage={
+                isBookmarksRestricted
+                  ? "Пользователь скрыл свои закладки в настройках приватности."
+                  : undefined
+              }
+              hiddenHistoryMessage={
+                isHistoryRestricted
+                  ? "Пользователь скрыл свою историю чтения в настройках приватности."
+                  : undefined
+              }
+            />
+          </div>
+        )}
+
+        {/* Статистика */}
+        {activeTab === "stats" && (
+          <div className="animate-fade-in-up">
+            <ProfileStats userProfile={userProfile} showDetailed isPublicView={isPublicView} />
+          </div>
+        )}
+
+        {/* Достижения */}
+        {activeTab === "achievements" && (
+          <div className="animate-fade-in-up">
+            <ProfileAchievements userProfile={userProfile} isPublicView={isPublicView} />
+          </div>
+        )}
+
+        {/* Прогресс */}
+        {activeTab === "progress" && (
+          <div className="animate-fade-in-up">
+            <ProfileProgress userProfile={userProfile} />
+          </div>
+        )}
+
+        {/* Закладки */}
+        {activeTab === "bookmarks" && (
+          <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
+            {isBookmarksRestricted ? (
+              <div className="flex-1 flex items-center justify-center text-center py-12">
+                <div className="max-w-sm">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
+                    <svg
+                      className="w-8 h-8 text-[var(--muted-foreground)]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-[var(--foreground)] font-medium mb-1">Закладки скрыты</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Пользователь ограничил доступ к своим закладкам в настройках приватности.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <BookmarksSection
+                bookmarks={userProfile.bookmarks}
+                readingHistory={userProfile.readingHistory}
+                showAll={true}
+                showSectionHeader={false}
               />
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
-          {/* Статистика */}
-          {activeTab === "stats" && (
-            <div className="animate-fade-in-up">
-              <ProfileStats userProfile={userProfile} showDetailed isPublicView={isPublicView} />
-            </div>
-          )}
-
-          {/* Достижения */}
-          {activeTab === "achievements" && (
-            <div className="animate-fade-in-up">
-              <ProfileAchievements userProfile={userProfile} isPublicView={isPublicView} />
-            </div>
-          )}
-
-          {/* Прогресс */}
-          {activeTab === "progress" && (
-            <div className="animate-fade-in-up">
-              <ProfileProgress userProfile={userProfile} />
-            </div>
-          )}
-
-          {/* Закладки */}
-          {activeTab === "bookmarks" && (
-            <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
-              {isBookmarksRestricted ? (
-                <div className="flex-1 flex items-center justify-center text-center py-12">
-                  <div className="max-w-sm">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
-                      <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </div>
-                    <p className="text-[var(--foreground)] font-medium mb-1">Закладки скрыты</p>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                      Пользователь ограничил доступ к своим закладкам в настройках приватности.
-                    </p>
+        {/* История */}
+        {activeTab === "history" && (
+          <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
+            {isHistoryRestricted ? (
+              <div className="flex-1 flex items-center justify-center text-center py-12">
+                <div className="max-w-sm">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
+                    <svg
+                      className="w-8 h-8 text-[var(--muted-foreground)]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
                   </div>
+                  <p className="text-[var(--foreground)] font-medium mb-1">История чтения скрыта</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Пользователь ограничил доступ к истории чтения в настройках приватности.
+                  </p>
                 </div>
-              ) : (
-                <BookmarksSection
-                  bookmarks={userProfile.bookmarks}
-                  readingHistory={userProfile.readingHistory}
-                  showAll={true}
-                  showSectionHeader={false}
-                />
+              </div>
+            ) : (
+              <ReadingHistorySection
+                readingHistory={userProfile.readingHistory}
+                showAll={true}
+                showSectionHeader={false}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Инвентарь */}
+        {activeTab === "inventory" && (
+          <div className="animate-fade-in-up">
+            <ProfileInventory />
+          </div>
+        )}
+
+        {/* Обмены */}
+        {activeTab === "exchanges" && (
+          <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-6 sm:p-8 animate-fade-in-up text-center">
+            <div className="inline-flex p-4 rounded-2xl bg-[var(--secondary)]/50 border border-[var(--border)]/60 mb-4">
+              <Repeat className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--primary)]" />
+            </div>
+            <h2 className="text-base font-semibold text-[var(--foreground)] mb-2">Обмены</h2>
+            <p className="text-[var(--muted-foreground)] max-w-md mx-auto mb-6 text-sm leading-relaxed">
+              Здесь вы сможете обмениваться предметами и декорациями с другими пользователями.
+              Раздел в разработке.
+            </p>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Следите за обновлениями или загляните в{" "}
+              <Link
+                href="/tomilo-shop"
+                className="text-[var(--primary)] hover:underline font-medium"
+              >
+                магазин
+              </Link>
+              .
+            </p>
+          </div>
+        )}
+
+        {/* Настройки */}
+        {activeTab === "settings" && (
+          <div className="animate-fade-in-up space-y-4">
+            <SettingsNavigation />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+              <div id="settings-notifications">
+                <ProfileNotificationsSettings userProfile={userProfile} />
+              </div>
+              <div id="settings-display">
+                <ProfileDisplaySettings userProfile={userProfile} />
+              </div>
+              <div id="settings-reading">
+                <ProfileReadingSettings userProfile={userProfile} />
+              </div>
+              <div id="settings-premium">
+                <ProfilePremiumSettings userProfile={userProfile} />
+              </div>
+              <div id="settings-privacy">
+                <ProfilePrivacySettings userProfile={userProfile} />
+              </div>
+              <div id="settings-security">
+                <ProfileSecuritySettings userProfile={userProfile} />
+              </div>
+              {!isPublicView && (
+                <div id="settings-delete-account" className="lg:col-span-2">
+                  <ProfileDeleteAccount userProfile={userProfile} />
+                </div>
               )}
             </div>
-          )}
-
-          {/* История */}
-          {activeTab === "history" && (
-            <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-4 sm:p-5 min-h-[320px] flex flex-col animate-fade-in-up">
-              {isHistoryRestricted ? (
-                <div className="flex-1 flex items-center justify-center text-center py-12">
-                  <div className="max-w-sm">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
-                      <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </div>
-                    <p className="text-[var(--foreground)] font-medium mb-1">История чтения скрыта</p>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                      Пользователь ограничил доступ к истории чтения в настройках приватности.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <ReadingHistorySection
-                  readingHistory={userProfile.readingHistory}
-                  showAll={true}
-                  showSectionHeader={false}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Инвентарь */}
-          {activeTab === "inventory" && (
-            <div className="animate-fade-in-up">
-              <ProfileInventory />
-            </div>
-          )}
-
-          {/* Обмены */}
-          {activeTab === "exchanges" && (
-            <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-6 sm:p-8 animate-fade-in-up text-center">
-              <div className="inline-flex p-4 rounded-2xl bg-[var(--secondary)]/50 border border-[var(--border)]/60 mb-4">
-                <Repeat className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--primary)]" />
-              </div>
-              <h2 className="text-base font-semibold text-[var(--foreground)] mb-2">Обмены</h2>
-              <p className="text-[var(--muted-foreground)] max-w-md mx-auto mb-6 text-sm leading-relaxed">
-                Здесь вы сможете обмениваться предметами и декорациями с другими пользователями.
-                Раздел в разработке.
-              </p>
-              <p className="text-sm text-[var(--muted-foreground)]">
-                Следите за обновлениями или загляните в{" "}
-                <Link
-                  href="/tomilo-shop"
-                  className="text-[var(--primary)] hover:underline font-medium"
-                >
-                  магазин
-                </Link>
-                .
-              </p>
-            </div>
-          )}
-
-          {/* Настройки */}
-          {activeTab === "settings" && (
-            <div className="animate-fade-in-up space-y-4">
-              <SettingsNavigation />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-                <div id="settings-notifications">
-                  <ProfileNotificationsSettings userProfile={userProfile} />
-                </div>
-                <div id="settings-display">
-                  <ProfileDisplaySettings userProfile={userProfile} />
-                </div>
-                <div id="settings-reading">
-                  <ProfileReadingSettings userProfile={userProfile} />
-                </div>
-                <div id="settings-premium">
-                  <ProfilePremiumSettings userProfile={userProfile} />
-                </div>
-                <div id="settings-privacy">
-                  <ProfilePrivacySettings userProfile={userProfile} />
-                </div>
-                <div id="settings-security">
-                  <ProfileSecuritySettings userProfile={userProfile} />
-                </div>
-                {!isPublicView && (
-                  <div id="settings-delete-account" className="lg:col-span-2">
-                    <ProfileDeleteAccount userProfile={userProfile} />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

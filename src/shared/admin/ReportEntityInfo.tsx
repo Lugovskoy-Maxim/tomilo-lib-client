@@ -93,12 +93,17 @@ function ChapterInfo({ chapterId, titleId }: { chapterId: string; titleId?: stri
     (chapterData?.titleInfo?.name as string) ||
     "Неизвестный тайтл";
   const resolvedTitleId = (titleData as { _id?: string })?._id || titleId || "";
-  const titleSlug = (titleData as { slug?: string })?.slug || (chapterData?.titleInfo as { slug?: string })?.slug;
+  const titleSlug =
+    (titleData as { slug?: string })?.slug || (chapterData?.titleInfo as { slug?: string })?.slug;
   const chapterNumber = chapterData?.chapterNumber;
   const chapterName = chapterData?.name;
 
-  const titleHref = resolvedTitleId ? getTitlePath({ _id: resolvedTitleId, slug: titleSlug }) : null;
-  const chapterHref = resolvedTitleId ? getChapterPath({ _id: resolvedTitleId, slug: titleSlug }, chapterId) : null;
+  const titleHref = resolvedTitleId
+    ? getTitlePath({ _id: resolvedTitleId, slug: titleSlug })
+    : null;
+  const chapterHref = resolvedTitleId
+    ? getChapterPath({ _id: resolvedTitleId, slug: titleSlug }, chapterId)
+    : null;
 
   return (
     <div className="flex flex-col gap-1">

@@ -37,7 +37,10 @@ function cleanup(): void {
  * Проверяет лимит для ключа (обычно IP). Возвращает true, если запрос разрешён.
  * При превышении лимита возвращает false и вызывающий код должен вернуть 429.
  */
-export function checkRateLimit(key: string, options: RateLimitOptions): { allowed: boolean; retryAfterSec?: number } {
+export function checkRateLimit(
+  key: string,
+  options: RateLimitOptions,
+): { allowed: boolean; retryAfterSec?: number } {
   cleanup();
   const now = Date.now();
   const windowMs = options.windowSec * 1000;

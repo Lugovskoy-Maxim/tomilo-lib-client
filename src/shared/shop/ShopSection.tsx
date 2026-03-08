@@ -53,7 +53,6 @@ const RARITY_OPTIONS: { value: DecorationRarity; label: string }[] = [
   { value: "legendary", label: "Легендарная" },
 ];
 
-
 const emptyAdminForm = {
   name: "",
   description: "",
@@ -107,7 +106,10 @@ function getQueryErrorMessage(error: unknown): string {
         : "";
 
   const status = e.status != null ? String(e.status) : "";
-  const main = dataMessage || (e.error != null ? String(e.error) : "") || (e.message != null ? String(e.message) : "");
+  const main =
+    dataMessage ||
+    (e.error != null ? String(e.error) : "") ||
+    (e.message != null ? String(e.message) : "");
 
   if (status && main) return `${status}: ${main}`;
   if (status) return `Ошибка (${status})`;
@@ -126,12 +128,16 @@ export function ShopSection({ type }: ShopSectionProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const publicDecorationsQuery = useGetDecorationsByTypeQuery({ type });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- decorations из запроса
   const decorations: Decoration[] = publicDecorationsQuery.data ?? [];
   const decorationsLoading = publicDecorationsQuery.isLoading;
   const decorationsError = publicDecorationsQuery.error;
   const refetchDecorations = publicDecorationsQuery.refetch;
 
-  const decorationsErrorText = useMemo(() => getQueryErrorMessage(decorationsError), [decorationsError]);
+  const decorationsErrorText = useMemo(
+    () => getQueryErrorMessage(decorationsError),
+    [decorationsError],
+  );
 
   const loadUserDecorations = useCallback(async () => {
     if (!isAuthenticated) {
@@ -161,7 +167,7 @@ export function ShopSection({ type }: ShopSectionProps) {
 
   const { data: profileData } = useGetProfileQuery(undefined, { skip: !isAuthenticated });
   const profile = profileData?.success ? profileData.data : null;
-  const profileWithDecorations = profile as (typeof profile) & UserProfile | null;
+  const profileWithDecorations = profile as (typeof profile & UserProfile) | null;
   /** API может вернуть equippedDecorations или equipped_decorations */
   const equippedRaw =
     profileWithDecorations?.equippedDecorations ??
@@ -215,9 +221,11 @@ export function ShopSection({ type }: ShopSectionProps) {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [createDecoration, { isLoading: isCreatingJson }] = useCreateDecorationMutation();
-  const [createDecorationWithImage, { isLoading: isCreatingWithImage }] = useCreateDecorationWithImageMutation();
+  const [createDecorationWithImage, { isLoading: isCreatingWithImage }] =
+    useCreateDecorationWithImageMutation();
   const [updateDecoration, { isLoading: isUpdatingJson }] = useUpdateDecorationMutation();
-  const [updateDecorationWithImage, { isLoading: isUpdatingWithImage }] = useUpdateDecorationWithImageMutation();
+  const [updateDecorationWithImage, { isLoading: isUpdatingWithImage }] =
+    useUpdateDecorationWithImageMutation();
   const [deleteDecoration] = useDeleteDecorationMutation();
 
   const isSaving = isCreatingJson || isCreatingWithImage || isUpdatingJson || isUpdatingWithImage;
@@ -259,7 +267,9 @@ export function ShopSection({ type }: ShopSectionProps) {
       return;
     }
     if (file.size > MAX_DECORATION_FILE_SIZE) {
-      toast.error(`Файл слишком большой (${(file.size / 1024 / 1024).toFixed(1)} МБ). Максимум — 20 МБ.`);
+      toast.error(
+        `Файл слишком большой (${(file.size / 1024 / 1024).toFixed(1)} МБ). Максимум — 20 МБ.`,
+      );
       setImageFile(null);
       e.target.value = "";
       return;
@@ -275,9 +285,13 @@ export function ShopSection({ type }: ShopSectionProps) {
     const stockValue =
       form.stock === ""
         ? undefined
-        : (typeof form.stock === "number" ? form.stock : parseInt(String(form.stock), 10));
+        : typeof form.stock === "number"
+          ? form.stock
+          : parseInt(String(form.stock), 10);
     const stockParam =
-      stockValue !== undefined && !Number.isNaN(stockValue) && stockValue >= 0 ? stockValue : undefined;
+      stockValue !== undefined && !Number.isNaN(stockValue) && stockValue >= 0
+        ? stockValue
+        : undefined;
 
     try {
       if (editingDecoration) {
@@ -345,10 +359,14 @@ export function ShopSection({ type }: ShopSectionProps) {
       refetchDecorations();
     } catch (err) {
       const e = err as { data?: unknown; error?: unknown; status?: unknown };
-      const data = e?.data as { errors?: Array<string | { message?: string }>; message?: string } | undefined;
+      const data = e?.data as
+        | { errors?: Array<string | { message?: string }>; message?: string }
+        | undefined;
       const firstError =
         Array.isArray(data?.errors) && data.errors.length > 0
-          ? (typeof data.errors[0] === "string" ? data.errors[0] : data.errors[0]?.message)
+          ? typeof data.errors[0] === "string"
+            ? data.errors[0]
+            : data.errors[0]?.message
           : undefined;
       const msg =
         (typeof data?.message === "string" && data.message) ||
@@ -425,7 +443,9 @@ export function ShopSection({ type }: ShopSectionProps) {
       >
         <form id="shop-admin-decoration-form" onSubmit={handleAdminSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Название</label>
+            <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+              Название
+            </label>
             <input
               type="text"
               value={form.name}
@@ -436,7 +456,9 @@ export function ShopSection({ type }: ShopSectionProps) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Описание</label>
+            <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+              Описание
+            </label>
             <textarea
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -448,7 +470,9 @@ export function ShopSection({ type }: ShopSectionProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Цена (монеты)</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Цена (монеты)
+              </label>
               <input
                 type="number"
                 min={0}
@@ -459,7 +483,9 @@ export function ShopSection({ type }: ShopSectionProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Редкость</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Редкость
+              </label>
               <select
                 value={form.rarity}
                 onChange={e => setForm(f => ({ ...f, rarity: e.target.value as DecorationRarity }))}
@@ -481,12 +507,16 @@ export function ShopSection({ type }: ShopSectionProps) {
                   onChange={e => setForm(f => ({ ...f, isAvailable: e.target.checked }))}
                   className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
                 />
-                <span className="text-sm font-medium text-[var(--foreground)]">Доступно в магазине</span>
+                <span className="text-sm font-medium text-[var(--foreground)]">
+                  Доступно в магазине
+                </span>
               </label>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Лимит количества</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Лимит количества
+              </label>
               <input
                 type="number"
                 min={0}
@@ -503,7 +533,9 @@ export function ShopSection({ type }: ShopSectionProps) {
 
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
-              {editingDecoration ? "Изображение (оставьте пустым, чтобы не менять)" : "Файл изображения * (макс. 20 МБ)"}
+              {editingDecoration
+                ? "Изображение (оставьте пустым, чтобы не менять)"
+                : "Файл изображения * (макс. 20 МБ)"}
             </label>
             <input
               type="file"
@@ -513,7 +545,9 @@ export function ShopSection({ type }: ShopSectionProps) {
             />
 
             <div className="mt-3">
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">URL изображения (альтернатива файлу)</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                URL изображения (альтернатива файлу)
+              </label>
               <input
                 type="text"
                 value={form.imageUrl}
@@ -526,7 +560,11 @@ export function ShopSection({ type }: ShopSectionProps) {
             {(imageFile || form.imageUrl) && (
               <div className="mt-2 w-24 h-24 rounded-lg overflow-hidden bg-[var(--muted)] flex items-center justify-center">
                 {imageFile ? (
-                  <img src={URL.createObjectURL(imageFile)} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={URL.createObjectURL(imageFile)}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
                 ) : form.imageUrl ? (
                   <OptimizedImage
                     src={getDecorationImageUrls(form.imageUrl).primary}
@@ -550,7 +588,11 @@ export function ShopSection({ type }: ShopSectionProps) {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
         title="Удалить украшение?"
-        message={deleteTarget ? `Украшение «${deleteTarget.name}» будет удалено. Это действие нельзя отменить.` : ""}
+        message={
+          deleteTarget
+            ? `Украшение «${deleteTarget.name}» будет удалено. Это действие нельзя отменить.`
+            : ""
+        }
         confirmText="Удалить"
         confirmVariant="danger"
         isLoading={deleteLoading}
@@ -635,7 +677,9 @@ export function ShopSection({ type }: ShopSectionProps) {
       <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
         <p className="text-[var(--foreground)] font-medium mb-1">Не удалось загрузить товары</p>
         {decorationsErrorText && (
-          <p className="text-sm text-[var(--muted-foreground)] mb-4 max-w-sm text-center">{decorationsErrorText}</p>
+          <p className="text-sm text-[var(--muted-foreground)] mb-4 max-w-sm text-center">
+            {decorationsErrorText}
+          </p>
         )}
         <button
           onClick={() => refetchDecorations()}
@@ -656,7 +700,9 @@ export function ShopSection({ type }: ShopSectionProps) {
           <PackageOpen className="w-6 h-6 text-[var(--muted-foreground)]" aria-hidden />
         </div>
         <p className="text-[var(--foreground)] font-medium mb-1">В этой категории пока пусто</p>
-        <p className="text-sm text-[var(--muted-foreground)] mb-4">Выберите другую вкладку или зайдите позже</p>
+        <p className="text-sm text-[var(--muted-foreground)] mb-4">
+          Выберите другую вкладку или зайдите позже
+        </p>
         {isAdmin && (
           <button
             type="button"
@@ -691,7 +737,9 @@ export function ShopSection({ type }: ShopSectionProps) {
       {/* Фильтры по качеству и цене — всегда видны, на мобильных удобная вертикальная группировка и крупные поля */}
       <div className="mb-4 space-y-3">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <span className="text-xs font-medium text-[var(--muted-foreground)] w-full sm:w-auto">Качество</span>
+          <span className="text-xs font-medium text-[var(--muted-foreground)] w-full sm:w-auto">
+            Качество
+          </span>
           <select
             value={filterRarity}
             onChange={e => setFilterRarity(e.target.value as DecorationRarity | "all")}
@@ -700,13 +748,19 @@ export function ShopSection({ type }: ShopSectionProps) {
           >
             <option value="all">Все</option>
             {RARITY_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>{label}</option>
+              <option key={value} value={value}>
+                {label}
+              </option>
             ))}
           </select>
           {(filterRarity !== "all" || priceFrom !== "" || priceTo !== "") && (
             <button
               type="button"
-              onClick={() => { setFilterRarity("all"); setPriceFrom(""); setPriceTo(""); }}
+              onClick={() => {
+                setFilterRarity("all");
+                setPriceFrom("");
+                setPriceTo("");
+              }}
               className="min-h-[44px] px-4 py-2.5 rounded-xl text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50 transition-colors"
             >
               Сбросить
@@ -714,9 +768,13 @@ export function ShopSection({ type }: ShopSectionProps) {
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <span className="text-xs font-medium text-[var(--muted-foreground)] w-full sm:w-auto">Цена, монеты</span>
+          <span className="text-xs font-medium text-[var(--muted-foreground)] w-full sm:w-auto">
+            Цена, монеты
+          </span>
           <div className="flex flex-1 sm:flex-none items-center gap-2 min-w-0">
-            <label className="sr-only" htmlFor="shop-filter-price-from">От</label>
+            <label className="sr-only" htmlFor="shop-filter-price-from">
+              От
+            </label>
             <input
               id="shop-filter-price-from"
               type="number"
@@ -728,7 +786,9 @@ export function ShopSection({ type }: ShopSectionProps) {
               aria-label="Цена от"
             />
             <span className="text-[var(--muted-foreground)] shrink-0">—</span>
-            <label className="sr-only" htmlFor="shop-filter-price-to">До</label>
+            <label className="sr-only" htmlFor="shop-filter-price-to">
+              До
+            </label>
             <input
               id="shop-filter-price-to"
               type="number"
@@ -753,58 +813,59 @@ export function ShopSection({ type }: ShopSectionProps) {
           Нет украшений по выбранным фильтрам. Измените качество или цену.
         </div>
       ) : (
-      <div
-        className={`grid gap-2 sm:gap-3 md:gap-4 min-w-0 ${
-          type === "avatar" || type === "frame" || type === "card"
-            ? type === "card"
-              ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 justify-items-stretch items-start"
-              : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 justify-items-stretch items-start"
-            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
-        }`}
-      >
-        {filteredDecorations.map(decoration => (
-          <div key={decoration.id} className={`relative group w-full min-w-0 flex justify-center ${type === "frame" ? "h-[281px]" : ""}`}>
-            {isAdmin && (
-              <div
-                className="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-              >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEdit(decoration);
-                  }}
-                  className="p-1.5 sm:p-2 rounded-lg bg-black/35 text-white hover:bg-black/55 backdrop-blur-sm"
-                  title="Редактировать"
-                >
-                  <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteTarget(decoration);
-                  }}
-                  className="p-1.5 sm:p-2 rounded-lg bg-black/35 text-white hover:bg-black/55 backdrop-blur-sm"
-                  title="Удалить"
-                >
-                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </button>
-              </div>
-            )}
-            <DecorationCard
-              decoration={decoration}
-              isOwned={effectiveOwned.includes(decoration.id)}
-              isEquipped={effectiveEquipped.includes(decoration.id)}
-              onPurchase={handlePurchase}
-              onEquip={handleEquip}
-              onUnequip={handleUnequip}
-              isLoading={actionLoading === decoration.id}
-              sectionType={type}
-            />
-          </div>
-        ))}
-      </div>
+        <div
+          className={`grid gap-2 sm:gap-3 md:gap-4 min-w-0 ${
+            type === "avatar" || type === "frame" || type === "card"
+              ? type === "card"
+                ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 justify-items-stretch items-start"
+                : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 justify-items-stretch items-start"
+              : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
+          }`}
+        >
+          {filteredDecorations.map(decoration => (
+            <div
+              key={decoration.id}
+              className={`relative group w-full min-w-0 flex justify-center ${type === "frame" ? "h-[281px]" : ""}`}
+            >
+              {isAdmin && (
+                <div className="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      openEdit(decoration);
+                    }}
+                    className="p-1.5 sm:p-2 rounded-lg bg-black/35 text-white hover:bg-black/55 backdrop-blur-sm"
+                    title="Редактировать"
+                  >
+                    <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setDeleteTarget(decoration);
+                    }}
+                    className="p-1.5 sm:p-2 rounded-lg bg-black/35 text-white hover:bg-black/55 backdrop-blur-sm"
+                    title="Удалить"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </button>
+                </div>
+              )}
+              <DecorationCard
+                decoration={decoration}
+                isOwned={effectiveOwned.includes(decoration.id)}
+                isEquipped={effectiveEquipped.includes(decoration.id)}
+                onPurchase={handlePurchase}
+                onEquip={handleEquip}
+                onUnequip={handleUnequip}
+                isLoading={actionLoading === decoration.id}
+                sectionType={type}
+              />
+            </div>
+          ))}
+        </div>
       )}
 
       {!isAuthenticated && (

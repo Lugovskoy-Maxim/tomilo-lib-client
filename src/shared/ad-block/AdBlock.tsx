@@ -32,11 +32,7 @@ const AdBlock = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4">
-      <Script
-        src="https://ad.mail.ru/static/ads-async.js"
-        strategy="afterInteractive"
-        async
-      />
+      <Script src="https://ad.mail.ru/static/ads-async.js" strategy="afterInteractive" async />
       <div className="w-full max-w-[950px] overflow-hidden">
         <ins
           ref={insRef}

@@ -25,15 +25,12 @@ const TitleCard = memo(function TitleCard({ title }: { title: SimilarTitle }) {
   const titlePath = `/titles/${title.slug || title.id}`;
   const { primary: imageSrc, fallback: imageFallback } = useMemo(
     () => getCoverUrls(title.cover, ""),
-    [title.cover]
+    [title.cover],
   );
   const showImage = title.cover && !imageError;
 
   return (
-    <Link
-      href={titlePath}
-      className="group"
-    >
+    <Link href={titlePath} className="group">
       <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-2 bg-[var(--muted)]/30">
         {showImage ? (
           <OptimizedImage
@@ -52,9 +49,9 @@ const TitleCard = memo(function TitleCard({ title }: { title: SimilarTitle }) {
             <BookOpen className="w-12 h-12 text-[var(--muted-foreground)]" />
           </div>
         )}
-        
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        
+
         <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="flex items-center justify-between text-xs text-white">
             <span className="flex items-center gap-1">
@@ -77,15 +74,17 @@ const TitleCard = memo(function TitleCard({ title }: { title: SimilarTitle }) {
       <h4 className="text-sm font-medium text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
         {title.title}
       </h4>
-      <span className="text-xs text-[var(--muted-foreground)]">{translateTitleType(title.type)}</span>
+      <span className="text-xs text-[var(--muted-foreground)]">
+        {translateTitleType(title.type)}
+      </span>
     </Link>
   );
 });
 
-export function SimilarTitles({ titleId, genres, currentTitleSlug, includeAdult = false }: SimilarTitlesProps) {
+export function SimilarTitles({ titleId, includeAdult = false }: SimilarTitlesProps) {
   const { data, isLoading, error, refetch } = useGetSimilarTitlesQuery(
     { id: titleId, limit: 12, includeAdult },
-    { refetchOnMountOrArgChange: false, refetchOnFocus: false }
+    { refetchOnMountOrArgChange: false, refetchOnFocus: false },
   );
   const [showAll, setShowAll] = useState(false);
 
@@ -147,7 +146,9 @@ export function SimilarTitles({ titleId, genres, currentTitleSlug, includeAdult 
           className="flex items-center justify-center gap-1.5 w-full mt-4 py-2.5 text-sm font-medium text-[var(--primary)] bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 border border-[var(--primary)]/20 hover:border-[var(--primary)]/30 rounded-xl transition-all"
         >
           <span>{showAll ? "Свернуть" : `Показать ещё ${similarTitles.length - 4}`}</span>
-          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`} />
+          <ChevronDown
+            className={`w-4 h-4 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`}
+          />
         </button>
       )}
     </div>

@@ -11,11 +11,7 @@ interface ExpGainToastProps {
   duration?: number;
 }
 
-export default function ExpGainToast({ 
-  event, 
-  onClose, 
-  duration = 3000 
-}: ExpGainToastProps) {
+export default function ExpGainToast({ event, onClose, duration = 3000 }: ExpGainToastProps) {
   useEffect(() => {
     if (duration <= 0) return;
     const timer = setTimeout(() => {
@@ -32,7 +28,7 @@ export default function ExpGainToast({
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className="
-        relative flex items-center gap-3 px-4 py-3 rounded-xl 
+        relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden
         bg-[var(--card)] bg-gradient-to-r from-yellow-500/25 to-orange-500/25
         border border-yellow-500/40 shadow-lg shadow-yellow-500/20
         backdrop-blur-sm
@@ -95,10 +91,10 @@ interface GroupedExpGainToastProps {
   duration?: number;
 }
 
-export function GroupedExpGainToast({ 
-  events, 
-  onClose, 
-  duration = 4000 
+export function GroupedExpGainToast({
+  events,
+  onClose,
+  duration = 4000,
 }: GroupedExpGainToastProps) {
   const totalAmount = events.reduce((sum, e) => sum + e.amount, 0);
   const eventsKey = events.map(e => e.id).join(",");
@@ -121,7 +117,7 @@ export function GroupedExpGainToast({
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className="
-        relative flex items-center gap-3 px-4 py-3 rounded-xl 
+        relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden
         bg-[var(--card)] bg-gradient-to-r from-yellow-500/25 to-orange-500/25
         border border-yellow-500/40 shadow-lg shadow-yellow-500/20
         backdrop-blur-sm
@@ -159,9 +155,7 @@ export function GroupedExpGainToast({
           transition={{ delay: 0.2 }}
           className="text-xs text-[var(--muted-foreground)] truncate"
         >
-          {events.length === 1 
-            ? events[0].reason 
-            : `${events.length} начислений`}
+          {events.length === 1 ? events[0].reason : `${events.length} начислений`}
         </motion.p>
       </div>
 

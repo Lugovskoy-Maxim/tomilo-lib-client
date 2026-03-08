@@ -108,9 +108,8 @@ export function MetricCard({
   const colorConfig = colorStyles[color];
   const sizeConfig = sizeStyles[size];
 
-  const bgClass = variant === "gradient" 
-    ? `bg-gradient-to-br ${colorConfig.gradient}` 
-    : colorConfig.bg;
+  const bgClass =
+    variant === "gradient" ? `bg-gradient-to-br ${colorConfig.gradient}` : colorConfig.bg;
 
   return (
     <div
@@ -121,25 +120,29 @@ export function MetricCard({
         bgClass,
         colorConfig.border,
         onClick && "cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]",
-        variant === "outlined" && "bg-transparent"
+        variant === "outlined" && "bg-transparent",
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className={cn(
-            "text-[var(--muted-foreground)] font-medium uppercase tracking-wide",
-            sizeConfig.label
-          )}>
+          <p
+            className={cn(
+              "text-[var(--muted-foreground)] font-medium uppercase tracking-wide",
+              sizeConfig.label,
+            )}
+          >
             {label}
           </p>
-          
+
           {loading ? (
             <div className="h-7 w-20 mt-1.5 bg-[var(--muted)] rounded-lg animate-pulse" />
           ) : (
-            <p className={cn(
-              "font-bold text-[var(--foreground)] mt-1 tracking-tight",
-              sizeConfig.value
-            )}>
+            <p
+              className={cn(
+                "font-bold text-[var(--foreground)] mt-1 tracking-tight",
+                sizeConfig.value,
+              )}
+            >
               {value}
             </p>
           )}
@@ -151,7 +154,7 @@ export function MetricCard({
                   "inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
                   trend.isPositive
                     ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                    : "bg-red-500/15 text-red-600 dark:text-red-400"
+                    : "bg-red-500/15 text-red-600 dark:text-red-400",
                 )}
               >
                 {trend.isPositive ? (
@@ -166,11 +169,13 @@ export function MetricCard({
         </div>
 
         {Icon && (
-          <div className={cn(
-            "rounded-xl flex items-center justify-center flex-shrink-0",
-            sizeConfig.icon,
-            colorConfig.icon
-          )}>
+          <div
+            className={cn(
+              "rounded-xl flex items-center justify-center flex-shrink-0",
+              sizeConfig.icon,
+              colorConfig.icon,
+            )}
+          >
             <Icon className={sizeConfig.iconSize} />
           </div>
         )}
@@ -226,9 +231,7 @@ export function CompactStat({ label, value, subValue }: CompactStatProps) {
         {label}
       </p>
       <p className="mt-1 text-lg font-bold text-[var(--foreground)]">{value}</p>
-      {subValue && (
-        <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{subValue}</p>
-      )}
+      {subValue && <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{subValue}</p>}
     </div>
   );
 }
@@ -248,7 +251,13 @@ const progressColors = {
   danger: "from-red-500 to-red-400",
 };
 
-export function ProgressStat({ label, value, maxValue, unit = "", color = "primary" }: ProgressStatProps) {
+export function ProgressStat({
+  label,
+  value,
+  maxValue,
+  unit = "",
+  color = "primary",
+}: ProgressStatProps) {
   const percentage = Math.min((value / maxValue) * 100, 100);
 
   return (
@@ -256,14 +265,19 @@ export function ProgressStat({ label, value, maxValue, unit = "", color = "prima
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-[var(--muted-foreground)]">{label}</span>
         <span className="text-sm font-semibold text-[var(--foreground)]">
-          {value}{unit} <span className="text-[var(--muted-foreground)] font-normal">/ {maxValue}{unit}</span>
+          {value}
+          {unit}{" "}
+          <span className="text-[var(--muted-foreground)] font-normal">
+            / {maxValue}
+            {unit}
+          </span>
         </span>
       </div>
       <div className="h-2 bg-[var(--secondary)] rounded-full overflow-hidden">
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500 bg-gradient-to-r",
-            progressColors[color]
+            progressColors[color],
           )}
           style={{ width: `${percentage}%` }}
         />

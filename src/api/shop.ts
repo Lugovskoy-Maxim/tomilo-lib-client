@@ -33,25 +33,33 @@ function getDecorationUrlFromValue(raw: string | object | null | undefined): str
 }
 
 /** URL надетой рамки из equippedDecorations.frame. Только рамка — без подстановки avatar. */
-export function getEquippedFrameUrl(equipped: EquippedDecorations | null | undefined): string | null {
+export function getEquippedFrameUrl(
+  equipped: EquippedDecorations | null | undefined,
+): string | null {
   if (!equipped) return null;
   return getDecorationUrlFromValue(equipped.frame);
 }
 
 /** URL надетой декорации «аватар» (картинка персонажа) из equippedDecorations.avatar. */
-export function getEquippedAvatarDecorationUrl(equipped: EquippedDecorations | null | undefined): string | null {
+export function getEquippedAvatarDecorationUrl(
+  equipped: EquippedDecorations | null | undefined,
+): string | null {
   if (!equipped) return null;
   return getDecorationUrlFromValue(equipped.avatar);
 }
 
 /** URL надетого фона профиля из equippedDecorations.background (строка или объект с imageUrl). */
-export function getEquippedBackgroundUrl(equipped: EquippedDecorations | null | undefined): string | null {
+export function getEquippedBackgroundUrl(
+  equipped: EquippedDecorations | null | undefined,
+): string | null {
   if (!equipped) return null;
   return getDecorationUrlFromValue(equipped.background);
 }
 
 /** URL надетой карточки из equippedDecorations.card (строка или объект с imageUrl). */
-export function getEquippedCardUrl(equipped: EquippedDecorations | null | undefined): string | null {
+export function getEquippedCardUrl(
+  equipped: EquippedDecorations | null | undefined,
+): string | null {
   if (!equipped?.card) return null;
   return getDecorationUrlFromValue(equipped.card);
 }
@@ -60,7 +68,10 @@ export function getEquippedCardUrl(equipped: EquippedDecorations | null | undefi
  * Возвращает primary и fallback URL для изображения декорации.
  * Primary = S3 (если настроен), fallback = старый сервер.
  */
-export function getDecorationImageUrls(imageUrl: string | undefined): { primary: string; fallback: string } {
+export function getDecorationImageUrls(imageUrl: string | undefined): {
+  primary: string;
+  fallback: string;
+} {
   if (!imageUrl?.trim()) return { primary: "", fallback: "" };
 
   if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
@@ -167,7 +178,7 @@ function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
     name: (item.name as string) ?? "",
     description: (item.description as string) ?? "",
     price: (item.price as number) ?? 0,
-    imageUrl: (item.imageUrl ?? item.image_url) as string ?? "",
+    imageUrl: ((item.imageUrl ?? item.image_url) as string) ?? "",
     type: (item.type as Decoration["type"]) ?? "avatar",
     rarity: normalizeRarity(item.rarity ?? item.rarity_level),
     isAvailable: item.isAvailable as boolean | undefined,
@@ -175,7 +186,9 @@ function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
     stock: stock != null ? Number(stock) : undefined,
     isSoldOut: isSoldOut ?? (stock != null && Number(stock) <= 0),
     subscriptionPrice: (item.subscriptionPrice ?? item.subscription_price) as number | undefined,
-    onlyWithSubscription: (item.onlyWithSubscription ?? item.only_with_subscription) as boolean | undefined,
+    onlyWithSubscription: (item.onlyWithSubscription ?? item.only_with_subscription) as
+      | boolean
+      | undefined,
     bonus: (item.bonus as number | undefined) ?? undefined,
   };
 }

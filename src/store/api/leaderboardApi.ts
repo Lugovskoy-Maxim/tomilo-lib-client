@@ -3,8 +3,17 @@ import { ApiResponse } from "@/types/api";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
-export type LeaderboardCategory = "level" | "readingTime" | "ratings" | "comments" | "streak" | "chaptersRead";
-export type LeaderboardPeriod = "all" | "month";
+export type LeaderboardCategory =
+  | "level"
+  | "readingTime"
+  | "ratings"
+  | "comments"
+  | "streak"
+  | "chaptersRead";
+export type LeaderboardPeriod = "all" | "month" | "week";
+
+/** Рекомендуемый кеш на бэкенде для /users/leaderboard (в часах). Данные на странице лидеров обновляются с этой периодичностью. */
+export const LEADERBOARD_CACHE_HOURS = 6;
 
 export type DecorationRarity = "common" | "rare" | "epic" | "legendary";
 

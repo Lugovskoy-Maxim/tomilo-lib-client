@@ -83,7 +83,10 @@ export const auditLogsApi = createApi({
   tagTypes: ["AuditLogs"],
   endpoints: builder => ({
     getAuditLogs: builder.query<
-      ApiResponse<{ logs: AuditLog[]; pagination: { total: number; page: number; limit: number; pages: number } }>,
+      ApiResponse<{
+        logs: AuditLog[];
+        pagination: { total: number; page: number; limit: number; pages: number };
+      }>,
       AuditLogsFilters
     >({
       query: ({ action, userId, targetType, startDate, endDate, page = 1, limit = 50 }) => {
@@ -127,8 +130,5 @@ export const auditLogsApi = createApi({
   }),
 });
 
-export const {
-  useGetAuditLogsQuery,
-  useGetAuditLogStatsQuery,
-  useExportAuditLogsMutation,
-} = auditLogsApi;
+export const { useGetAuditLogsQuery, useGetAuditLogStatsQuery, useExportAuditLogsMutation } =
+  auditLogsApi;

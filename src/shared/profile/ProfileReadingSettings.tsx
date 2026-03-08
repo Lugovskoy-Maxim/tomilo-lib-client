@@ -30,8 +30,7 @@ function getInitialFromProfileOrStorage(
     fromProfile?.imageWidth ??
     (storedWidth ? Math.min(1440, Math.max(768, parseInt(storedWidth, 10))) : 768);
   const storedChaptersInRow = localStorage.getItem(CHAPTERS_IN_ROW_KEY);
-  const readChaptersInRow =
-    fromProfile?.readChaptersInRow ?? storedChaptersInRow === "true";
+  const readChaptersInRow = fromProfile?.readChaptersInRow ?? storedChaptersInRow === "true";
   return {
     readingMode: fromProfile?.readingMode ?? "single",
     orientation: fromProfile?.orientation ?? "auto",
@@ -40,23 +39,19 @@ function getInitialFromProfileOrStorage(
   };
 }
 
-export default function ProfileReadingSettings({
-  userProfile,
-}: ProfileReadingSettingsProps) {
+export default function ProfileReadingSettings({ userProfile }: ProfileReadingSettingsProps) {
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
   const toast = useToast();
 
   const initial = getInitialFromProfileOrStorage(userProfile);
-  const [readingMode, setReadingMode] = useState<
-    "single" | "continuous"
-  >(initial.readingMode ?? "single");
-  const [orientation, setOrientation] = useState<
-    "auto" | "portrait" | "landscape"
-  >(initial.orientation ?? "auto");
-  const [imageWidth, setImageWidth] = useState(initial.imageWidth);
-  const [readChaptersInRow, setReadChaptersInRow] = useState(
-    initial.readChaptersInRow,
+  const [readingMode, setReadingMode] = useState<"single" | "continuous">(
+    initial.readingMode ?? "single",
   );
+  const [orientation, setOrientation] = useState<"auto" | "portrait" | "landscape">(
+    initial.orientation ?? "auto",
+  );
+  const [imageWidth, setImageWidth] = useState(initial.imageWidth);
+  const [readChaptersInRow, setReadChaptersInRow] = useState(initial.readChaptersInRow);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -109,9 +104,7 @@ export default function ProfileReadingSettings({
             <Eye className="w-5 h-5 text-[var(--chart-1)]" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">
-              Чтение
-            </h2>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Чтение</h2>
             <p className="text-[var(--muted-foreground)] text-sm">
               Режим отображения и ширина страниц
             </p>
@@ -123,10 +116,18 @@ export default function ProfileReadingSettings({
               <p className="font-medium">Настройки чтения</p>
               <p>Эти настройки влияют на отображение страниц в читалке:</p>
               <ul className="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
-                <li><strong>По одной</strong> — листание страниц по одной</li>
-                <li><strong>Прокрутка</strong> — непрерывная лента страниц</li>
-                <li><strong>Ориентация</strong> — предпочтительный поворот экрана</li>
-                <li><strong>Ширина</strong> — размер изображений (768–1440 px)</li>
+                <li>
+                  <strong>По одной</strong> — листание страниц по одной
+                </li>
+                <li>
+                  <strong>Прокрутка</strong> — непрерывная лента страниц
+                </li>
+                <li>
+                  <strong>Ориентация</strong> — предпочтительный поворот экрана
+                </li>
+                <li>
+                  <strong>Ширина</strong> — размер изображений (768–1440 px)
+                </li>
               </ul>
             </div>
           }
@@ -182,7 +183,8 @@ export default function ProfileReadingSettings({
               Чтение глав подряд
             </span>
             <p className="text-xs text-[var(--muted-foreground)] mb-3">
-              При прокрутке до конца или начала главы подгружается следующая или предыдущая глава; адрес в строке обновляется на ту, что вы читаете.
+              При прокрутке до конца или начала главы подгружается следующая или предыдущая глава;
+              адрес в строке обновляется на ту, что вы читаете.
             </p>
             <label className="flex items-center gap-3 cursor-pointer">
               <input

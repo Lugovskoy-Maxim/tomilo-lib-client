@@ -21,10 +21,10 @@ import BackButton from "@/shared/back-button/BackButton";
 import { FAQ_DATA, type FAQSectionData } from "@/constants/faq";
 
 const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  "Чтение": BookOpen,
+  Чтение: BookOpen,
   "Профиль и аккаунт": User,
-  "Уведомления": Bell,
-  "Приватность": Shield,
+  Уведомления: Bell,
+  Приватность: Shield,
   "Контент и отображение": Eye,
   "Монеты и достижения": Coins,
   "Общие вопросы": Settings,
@@ -36,7 +36,7 @@ interface FAQSection extends FAQSectionData {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const faqSections: FAQSection[] = FAQ_DATA.map((data) => ({
+const faqSections: FAQSection[] = FAQ_DATA.map(data => ({
   ...data,
   icon: SECTION_ICONS[data.section] ?? Settings,
 }));
@@ -45,9 +45,7 @@ function FAQAccordion({ section }: { section: FAQSection }) {
   const [openItems, setOpenItems] = useState<number[]>([]);
 
   const toggleItem = (index: number) => {
-    setOpenItems((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
+    setOpenItems(prev => (prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]));
   };
 
   const Icon = section.icon;
@@ -110,13 +108,13 @@ export default function FAQPageClient() {
             Частые вопросы
           </h1>
           <p>
-            Ответы на популярные вопросы о работе платформы, настройках профиля,
-            чтении и других функциях сервиса.
+            Ответы на популярные вопросы о работе платформы, настройках профиля, чтении и других
+            функциях сервиса.
           </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          {faqSections.map((section) => (
+          {faqSections.map(section => (
             <FAQAccordion key={section.section} section={section} />
           ))}
 
@@ -126,11 +124,14 @@ export default function FAQPageClient() {
               Не нашли ответ?
             </h2>
             <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">
-              Если вы не нашли ответ на свой вопрос, свяжитесь с нами любым удобным
-              способом. Мы постараемся ответить как можно скорее.
+              Если вы не нашли ответ на свой вопрос, свяжитесь с нами любым удобным способом. Мы
+              постараемся ответить как можно скорее.
             </p>
             <div className="content-link-group flex flex-wrap gap-3 mt-4">
-              <Link href="mailto:support@tomilo-lib.ru" className="content-link-primary inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium no-underline bg-[var(--accent)] text-[var(--chart-1)]">
+              <Link
+                href="mailto:support@tomilo-lib.ru"
+                className="content-link-primary inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium no-underline bg-[var(--accent)] text-[var(--chart-1)]"
+              >
                 <Mail className="w-4 h-4" />
                 support@tomilo-lib.ru
               </Link>
@@ -143,7 +144,10 @@ export default function FAQPageClient() {
                 <Send className="w-4 h-4" />
                 Telegram-канал
               </Link>
-              <Link href="/contact" className="content-link-outline inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium border border-[var(--border)] text-[var(--foreground)] no-underline">
+              <Link
+                href="/contact"
+                className="content-link-outline inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium border border-[var(--border)] text-[var(--foreground)] no-underline"
+              >
                 Страница контактов
               </Link>
             </div>

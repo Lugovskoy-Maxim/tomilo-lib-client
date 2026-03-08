@@ -2,27 +2,32 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { 
-  Users, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  X, 
-  Save, 
+import {
+  Users,
+  Plus,
+  Edit2,
+  Trash2,
+  X,
+  Save,
   User,
   Loader2,
   ChevronDown,
-  Upload
+  Upload,
 } from "lucide-react";
-import { 
+import {
   useGetCharactersByTitleQuery,
   useCreateCharacterMutation,
   useCreateCharacterWithImageMutation,
   useUpdateCharacterMutation,
   useUpdateCharacterImageMutation,
-  useDeleteCharacterMutation
+  useDeleteCharacterMutation,
 } from "@/store/api/charactersApi";
-import { Character, CharacterRole, characterRoleLabels, characterRoleColors } from "@/types/character";
+import {
+  Character,
+  CharacterRole,
+  characterRoleLabels,
+  characterRoleColors,
+} from "@/types/character";
 import { normalizeAssetUrl } from "@/lib/asset-url";
 import { useToast } from "@/hooks/useToast";
 
@@ -40,13 +45,13 @@ interface CharacterFormData {
 
 const ROLES: CharacterRole[] = ["main", "supporting", "antagonist", "minor"];
 
-function CharacterCard({ 
-  character, 
-  onEdit, 
-  onDelete, 
-  isDeleting 
-}: { 
-  character: Character; 
+function CharacterCard({
+  character,
+  onEdit,
+  onDelete,
+  isDeleting,
+}: {
+  character: Character;
   onEdit: () => void;
   onDelete: () => void;
   isDeleting: boolean;
@@ -76,7 +81,9 @@ function CharacterCard({
           <h4 className="font-medium text-sm text-[var(--foreground)] truncate">
             {character.name}
           </h4>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${characterRoleColors[character.role]}`}>
+          <span
+            className={`text-[10px] px-1.5 py-0.5 rounded-full border ${characterRoleColors[character.role]}`}
+          >
             {characterRoleLabels[character.role]}
           </span>
         </div>
@@ -118,7 +125,7 @@ function CharacterForm({
   character,
   onSave,
   onCancel,
-  isSaving
+  isSaving,
 }: {
   character?: Character;
   onSave: (data: CharacterFormData, image?: File) => void;
@@ -135,7 +142,7 @@ function CharacterForm({
   const [altNamesInput, setAltNamesInput] = useState(character?.altNames?.join(", ") || "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
-    character?.image ? normalizeAssetUrl(character.image) : null
+    character?.image ? normalizeAssetUrl(character.image) : null,
   );
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,12 +168,7 @@ function CharacterForm({
         <div className="flex flex-col items-center gap-2">
           <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[var(--secondary)] border border-[var(--border)]">
             {imagePreview ? (
-              <Image
-                src={imagePreview}
-                alt="Preview"
-                fill
-                className="object-cover"
-              />
+              <Image src={imagePreview} alt="Preview" fill className="object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <User className="w-8 h-8 text-[var(--muted-foreground)]" />
@@ -174,12 +176,7 @@ function CharacterForm({
             )}
           </div>
           <label className="cursor-pointer">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="hidden"
-            />
+            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
             <span className="text-xs text-[var(--primary)] hover:underline flex items-center gap-1">
               <Upload className="w-3 h-3" />
               Загрузить
@@ -203,12 +200,12 @@ function CharacterForm({
           </div>
 
           <div>
-            <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">
-              Роль
-            </label>
+            <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Роль</label>
             <select
               value={formData.role}
-              onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as CharacterRole }))}
+              onChange={e =>
+                setFormData(prev => ({ ...prev, role: e.target.value as CharacterRole }))
+              }
               className="w-full px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
             >
               {ROLES.map(role => (
@@ -235,9 +232,7 @@ function CharacterForm({
       </div>
 
       <div>
-        <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">
-          Описание
-        </label>
+        <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Описание</label>
         <textarea
           value={formData.description}
           onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -294,11 +289,12 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
   const toast = useToast();
   const { data, isLoading, error } = useGetCharactersByTitleQuery(titleId);
   const [createCharacter, { isLoading: isCreatingBasic }] = useCreateCharacterMutation();
-  const [createWithImage, { isLoading: isCreatingWithImage }] = useCreateCharacterWithImageMutation();
+  const [createWithImage, { isLoading: isCreatingWithImage }] =
+    useCreateCharacterWithImageMutation();
   const [updateCharacter, { isLoading: isUpdating }] = useUpdateCharacterMutation();
   const [updateImage] = useUpdateCharacterImageMutation();
   const [deleteCharacter] = useDeleteCharacterMutation();
-  
+
   const isCreating = isCreatingBasic || isCreatingWithImage;
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -314,7 +310,7 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
         ...formData,
         titleId,
       };
-      
+
       if (image) {
         await createWithImage({
           data: characterData,
@@ -323,7 +319,7 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
       } else {
         await createCharacter(characterData).unwrap();
       }
-      
+
       toast.success("Персонаж добавлен");
       setIsFormOpen(false);
     } catch (err) {
@@ -334,7 +330,7 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
 
   const handleUpdate = async (formData: CharacterFormData, image?: File) => {
     if (!editingCharacter) return;
-    
+
     try {
       await updateCharacter({
         id: editingCharacter._id,
@@ -358,7 +354,7 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Удалить этого персонажа?")) return;
-    
+
     setDeletingId(id);
     try {
       await deleteCharacter({ id, titleId }).unwrap();
@@ -380,16 +376,16 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
       >
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-[var(--primary)]" />
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
-            Персонажи
-          </h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Персонажи</h2>
           {characters.length > 0 && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
               {characters.length}
             </span>
           )}
         </div>
-        <ChevronDown className={`w-5 h-5 text-[var(--muted-foreground)] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`w-5 h-5 text-[var(--muted-foreground)] transition-transform ${isExpanded ? "rotate-180" : ""}`}
+        />
       </button>
 
       {isExpanded && (

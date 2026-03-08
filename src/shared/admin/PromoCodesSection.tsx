@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   Plus,
   Edit,
@@ -40,10 +40,22 @@ import { ErrorState as SharedErrorState } from "@/shared/error-state";
 import { useToast } from "@/hooks/useToast";
 
 const STATUS_OPTIONS: { value: PromoCodeStatus; label: string; color: string }[] = [
-  { value: "active", label: "Активен", color: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
-  { value: "inactive", label: "Неактивен", color: "bg-slate-500/15 text-slate-600 dark:text-slate-400" },
+  {
+    value: "active",
+    label: "Активен",
+    color: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+  },
+  {
+    value: "inactive",
+    label: "Неактивен",
+    color: "bg-slate-500/15 text-slate-600 dark:text-slate-400",
+  },
   { value: "expired", label: "Истёк", color: "bg-amber-500/15 text-amber-600 dark:text-amber-400" },
-  { value: "exhausted", label: "Исчерпан", color: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
+  {
+    value: "exhausted",
+    label: "Исчерпан",
+    color: "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+  },
 ];
 
 const REWARD_TYPE_OPTIONS: { value: PromoCodeRewardType; label: string; icon: typeof Coins }[] = [
@@ -110,7 +122,7 @@ export function PromoCodesSection() {
 
   const { data: usageData, isLoading: isLoadingUsage } = useGetPromoCodeUsageQuery(
     { promoCodeId: viewingUsage?.id ?? "", page: 1, limit: 50 },
-    { skip: !viewingUsage }
+    { skip: !viewingUsage },
   );
 
   const promoCodes = promoCodesData?.data ?? [];
@@ -182,9 +194,7 @@ export function PromoCodesSection() {
   const updateReward = (index: number, field: keyof RewardFormItem, value: unknown) => {
     setForm(f => ({
       ...f,
-      rewards: f.rewards.map((r, i) =>
-        i === index ? { ...r, [field]: value } : r
-      ),
+      rewards: f.rewards.map((r, i) => (i === index ? { ...r, [field]: value } : r)),
     }));
   };
 
@@ -285,7 +295,9 @@ export function PromoCodesSection() {
   const getStatusBadge = (status: PromoCodeStatus) => {
     const opt = STATUS_OPTIONS.find(s => s.value === status);
     return (
-      <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${opt?.color}`}>
+      <span
+        className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${opt?.color}`}
+      >
         {opt?.label}
       </span>
     );
@@ -424,16 +436,24 @@ export function PromoCodesSection() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--border)]">
-                    <th className="text-left py-3 px-2 font-medium text-[var(--muted-foreground)]">Код</th>
-                    <th className="text-left py-3 px-2 font-medium text-[var(--muted-foreground)]">Награды</th>
+                    <th className="text-left py-3 px-2 font-medium text-[var(--muted-foreground)]">
+                      Код
+                    </th>
+                    <th className="text-left py-3 px-2 font-medium text-[var(--muted-foreground)]">
+                      Награды
+                    </th>
                     <th className="text-center py-3 px-2 font-medium text-[var(--muted-foreground)]">
                       Использований
                     </th>
-                    <th className="text-center py-3 px-2 font-medium text-[var(--muted-foreground)]">Статус</th>
+                    <th className="text-center py-3 px-2 font-medium text-[var(--muted-foreground)]">
+                      Статус
+                    </th>
                     <th className="text-center py-3 px-2 font-medium text-[var(--muted-foreground)]">
                       Срок действия
                     </th>
-                    <th className="text-right py-3 px-2 font-medium text-[var(--muted-foreground)]">Действия</th>
+                    <th className="text-right py-3 px-2 font-medium text-[var(--muted-foreground)]">
+                      Действия
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -479,7 +499,9 @@ export function PromoCodesSection() {
                             </div>
                           </td>
                           <td className="py-2 px-2 text-center">
-                            <span className="font-medium text-[var(--foreground)]">{p.usedCount}</span>
+                            <span className="font-medium text-[var(--foreground)]">
+                              {p.usedCount}
+                            </span>
                             <span className="text-[var(--muted-foreground)]">
                               {" "}
                               / {p.maxUses ?? "∞"}
@@ -534,18 +556,24 @@ export function PromoCodesSection() {
                             <td colSpan={6} className="py-3 px-4">
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                                 <div>
-                                  <span className="text-[var(--muted-foreground)]">Макс. на пользователя:</span>
+                                  <span className="text-[var(--muted-foreground)]">
+                                    Макс. на пользователя:
+                                  </span>
                                   <span className="ml-2 font-medium">{p.maxUsesPerUser}</span>
                                 </div>
                                 {p.newUsersOnly && (
                                   <div>
-                                    <span className="text-[var(--muted-foreground)]">Только новые:</span>
+                                    <span className="text-[var(--muted-foreground)]">
+                                      Только новые:
+                                    </span>
                                     <span className="ml-2 font-medium text-amber-500">Да</span>
                                   </div>
                                 )}
                                 {p.minLevel && (
                                   <div>
-                                    <span className="text-[var(--muted-foreground)]">Мин. уровень:</span>
+                                    <span className="text-[var(--muted-foreground)]">
+                                      Мин. уровень:
+                                    </span>
                                     <span className="ml-2 font-medium">{p.minLevel}</span>
                                   </div>
                                 )}
@@ -674,10 +702,15 @@ export function PromoCodesSection() {
             </label>
             <div className="space-y-3">
               {form.rewards.map((reward, index) => (
-                <div key={index} className="flex flex-wrap gap-2 items-center p-3 rounded-lg bg-[var(--secondary)]/50">
+                <div
+                  key={index}
+                  className="flex flex-wrap gap-2 items-center p-3 rounded-lg bg-[var(--secondary)]/50"
+                >
                   <select
                     value={reward.type}
-                    onChange={e => updateReward(index, "type", e.target.value as PromoCodeRewardType)}
+                    onChange={e =>
+                      updateReward(index, "type", e.target.value as PromoCodeRewardType)
+                    }
                     className="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   >
                     {REWARD_TYPE_OPTIONS.map(({ value, label }) => (
@@ -694,7 +727,9 @@ export function PromoCodesSection() {
                         type="number"
                         min={1}
                         value={reward.amount}
-                        onChange={e => updateReward(index, "amount", parseInt(e.target.value, 10) || 0)}
+                        onChange={e =>
+                          updateReward(index, "amount", parseInt(e.target.value, 10) || 0)
+                        }
                         className="w-24 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                         placeholder="100"
                       />
@@ -709,7 +744,9 @@ export function PromoCodesSection() {
                         type="number"
                         min={1}
                         value={reward.amount}
-                        onChange={e => updateReward(index, "amount", parseInt(e.target.value, 10) || 0)}
+                        onChange={e =>
+                          updateReward(index, "amount", parseInt(e.target.value, 10) || 0)
+                        }
                         className="w-24 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                         placeholder="30"
                       />
@@ -768,7 +805,12 @@ export function PromoCodesSection() {
                 type="number"
                 min={0}
                 value={form.maxUses}
-                onChange={e => setForm(f => ({ ...f, maxUses: e.target.value === "" ? "" : parseInt(e.target.value, 10) || 0 }))}
+                onChange={e =>
+                  setForm(f => ({
+                    ...f,
+                    maxUses: e.target.value === "" ? "" : parseInt(e.target.value, 10) || 0,
+                  }))
+                }
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 placeholder="Без лимита"
               />
@@ -782,7 +824,9 @@ export function PromoCodesSection() {
                 type="number"
                 min={1}
                 value={form.maxUsesPerUser}
-                onChange={e => setForm(f => ({ ...f, maxUsesPerUser: parseInt(e.target.value, 10) || 1 }))}
+                onChange={e =>
+                  setForm(f => ({ ...f, maxUsesPerUser: parseInt(e.target.value, 10) || 1 }))
+                }
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               />
             </div>
@@ -842,7 +886,12 @@ export function PromoCodesSection() {
                 type="number"
                 min={0}
                 value={form.minLevel}
-                onChange={e => setForm(f => ({ ...f, minLevel: e.target.value === "" ? "" : parseInt(e.target.value, 10) || 0 }))}
+                onChange={e =>
+                  setForm(f => ({
+                    ...f,
+                    minLevel: e.target.value === "" ? "" : parseInt(e.target.value, 10) || 0,
+                  }))
+                }
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 placeholder="0"
               />
@@ -901,9 +950,7 @@ export function PromoCodesSection() {
                     <td className="py-2 px-2 font-medium text-[var(--foreground)]">
                       {u.username ?? u.userId}
                     </td>
-                    <td className="py-2 px-2 text-xs">
-                      {formatRewards(u.rewardsGranted)}
-                    </td>
+                    <td className="py-2 px-2 text-xs">{formatRewards(u.rewardsGranted)}</td>
                     <td className="py-2 px-2 text-right text-xs text-[var(--muted-foreground)]">
                       {new Date(u.usedAt).toLocaleString("ru")}
                     </td>

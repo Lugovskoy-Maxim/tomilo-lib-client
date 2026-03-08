@@ -3,8 +3,8 @@
    ============================================ */
 :root {
   --admin-radius: var(--radius);
-  --admin-input-h: 2.5rem;   /* 40px — высота инпутов и кнопок */
-  --admin-btn-px: 1rem;      /* 16px — горизонтальный паддинг кнопок */
+  --admin-input-h: 2.5rem; /* 40px — высота инпутов и кнопок */
+  --admin-btn-px: 1rem; /* 16px — горизонтальный паддинг кнопок */
   --admin-input-px: 0.75rem; /* 12px — горизонтальный паддинг инпутов */
 }
 .admin-sidebar-toggle {
@@ -22,13 +22,15 @@
 /* Единые стили инпутов и селектов в админке */
 .admin-input {
   height: var(--admin-input-h);
-  padding: 0  var(--admin-input-px);
+  padding: 0 var(--admin-input-px);
   border-radius: var(--admin-radius);
   background: var(--background);
   border: 1px solid var(--border);
   color: var(--foreground);
   font-size: 0.875rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 .admin-input:focus {
   outline: none;
@@ -51,7 +53,9 @@ textarea.admin-input {
   border-radius: var(--admin-radius);
   font-size: 0.875rem;
   font-weight: 500;
-  transition: background-color 0.15s, border-color 0.15s;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
 }
 .admin-btn-primary {
   background: var(--primary);
@@ -113,7 +117,8 @@ textarea.admin-input {
 
 /* Highlight animation for search results */
 @keyframes highlightPulse {
-  0%, 100% {
+  0%,
+  100% {
     background-color: rgba(var(--primary-rgb), 0.2);
   }
   50% {
@@ -186,8 +191,9 @@ textarea.admin-input {
 
 .admin-card:hover {
   border-color: color-mix(in oklch, var(--border) 50%, var(--primary));
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08),
-              0 0 0 1px rgba(var(--primary-rgb), 0.05);
+  box-shadow:
+    0 4px 12px -2px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(var(--primary-rgb), 0.05);
 }
 
 .admin-card-interactive {
@@ -196,8 +202,9 @@ textarea.admin-input {
 
 .admin-card-interactive:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.12),
-              0 0 0 1px rgba(var(--primary-rgb), 0.1);
+  box-shadow:
+    0 8px 24px -4px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(var(--primary-rgb), 0.1);
 }
 
 .admin-card-interactive:active {
@@ -355,12 +362,15 @@ textarea.admin-input {
 /* Focus ring для интерактивных элементов */
 .admin-focus-ring:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--primary);
 }
 
 /* Subtle pulse animation */
 @keyframes subtle-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

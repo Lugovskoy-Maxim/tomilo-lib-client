@@ -10,7 +10,10 @@ interface PublicProfileCoverProps {
 }
 
 /** Обложка публичного профиля — только баннер */
-export default function PublicProfileCover({ userProfile, backgroundFromParent }: PublicProfileCoverProps) {
+export default function PublicProfileCover({
+  userProfile,
+  backgroundFromParent,
+}: PublicProfileCoverProps) {
   const baseBannerUrl = "/user/banner.jpg";
   const equippedBackgroundUrl = getEquippedBackgroundUrl(userProfile.equippedDecorations);
 
@@ -40,7 +43,10 @@ export default function PublicProfileCover({ userProfile, backgroundFromParent }
       {/* Жёсткий переход в цвет фона — и для декоративного баннера */}
       <div
         className="absolute inset-0 pointer-events-none z-20"
-        style={{ background: "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)" }}
+        style={{
+          background:
+            "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)",
+        }}
         aria-hidden
       />
 

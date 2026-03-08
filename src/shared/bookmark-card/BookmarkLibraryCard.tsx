@@ -44,11 +44,7 @@ export default function BookmarkLibraryCard({
   const { primary: coverUrl, fallback: coverFallback } = getCoverUrls(coverImage, "");
   const typeLabel = translateTitleType(type);
   const chaptersLabel =
-    chaptersRead != null && chaptersRead > 0
-      ? `${chaptersRead}гл`
-      : totalChapters
-        ? `0гл`
-        : "";
+    chaptersRead != null && chaptersRead > 0 ? `${chaptersRead}гл` : totalChapters ? `0гл` : "";
 
   return (
     <Link

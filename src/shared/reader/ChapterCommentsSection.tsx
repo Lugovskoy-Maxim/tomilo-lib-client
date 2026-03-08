@@ -6,8 +6,15 @@ import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { CommentForm } from "@/shared/comments/CommentForm";
 import { CommentItem } from "@/shared/comments/CommentItem";
 import { CommentsList } from "@/shared/comments/CommentsList";
-import { Button } from "@/shared/ui/button";
-import { MessageCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Sparkles, MessageSquare } from "lucide-react";
+import {
+  MessageCircle,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  MessageSquare,
+} from "lucide-react";
 
 interface ChapterCommentsSectionProps {
   chapterId: string;
@@ -40,6 +47,7 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
     includeReplies: true,
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- comments из запроса
   const comments = commentsData?.data?.comments || [];
   const total = commentsData?.data?.total || 0;
   const totalPages = commentsData?.data?.totalPages || 0;
@@ -107,7 +115,9 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
           <div className="mb-6 bg-[var(--card)]/50 rounded-xl p-4 border border-[var(--border)]/30">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-[var(--primary)]" />
-              <span className="text-sm font-medium text-[var(--foreground)]">Оставить комментарий</span>
+              <span className="text-sm font-medium text-[var(--foreground)]">
+                Оставить комментарий
+              </span>
             </div>
             <CommentForm
               entityType={CommentEntityType.CHAPTER}
@@ -124,11 +134,23 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
           <div className="mb-6 bg-gradient-to-br from-[var(--primary)]/5 to-[var(--card)] rounded-xl p-4 border border-[var(--primary)]/20">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
-                <svg className="w-3.5 h-3.5 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                <svg
+                  className="w-3.5 h-3.5 text-[var(--primary)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
                 </svg>
               </div>
-              <span className="text-sm font-medium text-[var(--foreground)]">Редактирование комментария</span>
+              <span className="text-sm font-medium text-[var(--foreground)]">
+                Редактирование комментария
+              </span>
             </div>
             <CommentForm
               entityType={CommentEntityType.CHAPTER}
@@ -146,7 +168,10 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="rounded-xl bg-[var(--card)]/60 border border-[var(--border)]/30 p-4 animate-pulse">
+                  <div
+                    key={i}
+                    className="rounded-xl bg-[var(--card)]/60 border border-[var(--border)]/30 p-4 animate-pulse"
+                  >
                     <div className="flex gap-3">
                       <div className="h-10 w-10 rounded-full bg-[var(--secondary)] shrink-0" />
                       <div className="flex-1 space-y-2.5">
@@ -164,9 +189,9 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
             ) : topComments.length > 0 ? (
               <div className="space-y-3">
                 {topComments.map((comment, index) => (
-                  <div 
-                    key={comment._id} 
-                    className={`relative ${index === 0 ? 'bg-gradient-to-br from-[var(--primary)]/5 to-transparent' : ''} rounded-xl`}
+                  <div
+                    key={comment._id}
+                    className={`relative ${index === 0 ? "bg-gradient-to-br from-[var(--primary)]/5 to-transparent" : ""} rounded-xl`}
                   >
                     {index === 0 && total > 3 && (
                       <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 bg-[var(--primary)] text-white text-[10px] font-semibold rounded-full shadow-lg">
@@ -174,11 +199,7 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
                         TOP
                       </div>
                     )}
-                    <CommentItem
-                      comment={comment}
-                      onReply={handleReply}
-                      onEdit={handleEdit}
-                    />
+                    <CommentItem comment={comment} onReply={handleReply} onEdit={handleEdit} />
                   </div>
                 ))}
               </div>

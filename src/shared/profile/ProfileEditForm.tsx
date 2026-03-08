@@ -80,7 +80,15 @@ export default function ProfileEditForm({
     });
     setErrors({});
     setTouched({});
-  }, [userProfile._id, userProfile.username, userProfile.email, userProfile.birthDate, userProfile.bio, userProfile.favoriteGenre, userProfile.socialLinks]);
+  }, [
+    userProfile._id,
+    userProfile.username,
+    userProfile.email,
+    userProfile.birthDate,
+    userProfile.bio,
+    userProfile.favoriteGenre,
+    userProfile.socialLinks,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +99,8 @@ export default function ProfileEditForm({
     if (usernameError || emailError) return;
 
     const cleanedSocialLinks: SocialLinks = {};
-    if (socialLinks.telegram?.trim()) cleanedSocialLinks.telegram = socialLinks.telegram.trim().replace(/^@/, "");
+    if (socialLinks.telegram?.trim())
+      cleanedSocialLinks.telegram = socialLinks.telegram.trim().replace(/^@/, "");
     if (socialLinks.discord?.trim()) cleanedSocialLinks.discord = socialLinks.discord.trim();
     if (socialLinks.vk?.trim()) cleanedSocialLinks.vk = socialLinks.vk.trim();
 
@@ -129,7 +138,7 @@ export default function ProfileEditForm({
           className="!space-y-0"
           placeholder="Введите имя"
           icon={User}
-          error={showUsernameError ? errors.username ?? null : null}
+          error={showUsernameError ? (errors.username ?? null) : null}
           disabled={isLoading}
         />
       </div>
@@ -150,7 +159,7 @@ export default function ProfileEditForm({
           className="!space-y-0"
           placeholder="email@example.com"
           icon={Mail}
-          error={showEmailError ? errors.email ?? null : null}
+          error={showEmailError ? (errors.email ?? null) : null}
           disabled={isLoading}
         />
       </div>
@@ -175,10 +184,7 @@ export default function ProfileEditForm({
       </div>
 
       <div className="space-y-2">
-        <label
-          htmlFor="profile-bio"
-          className="block text-sm font-medium text-[var(--foreground)]"
-        >
+        <label htmlFor="profile-bio" className="block text-sm font-medium text-[var(--foreground)]">
           О себе
         </label>
         <div className="relative">
@@ -216,10 +222,17 @@ export default function ProfileEditForm({
           >
             <option value="">Не выбрано</option>
             {GENRES.map(genre => (
-              <option key={genre} value={genre}>{genre}</option>
+              <option key={genre} value={genre}>
+                {genre}
+              </option>
             ))}
           </select>
-          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
@@ -227,7 +240,7 @@ export default function ProfileEditForm({
 
       <div className="space-y-3 pt-2 border-t border-[var(--border)]/60">
         <p className="text-sm font-medium text-[var(--foreground)] pt-2">Контакты</p>
-        
+
         <div className="space-y-2">
           <label
             htmlFor="profile-telegram"
@@ -247,10 +260,7 @@ export default function ProfileEditForm({
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="profile-discord"
-            className="block text-xs text-[var(--muted-foreground)]"
-          >
+          <label htmlFor="profile-discord" className="block text-xs text-[var(--muted-foreground)]">
             Discord
           </label>
           <Input
@@ -265,10 +275,7 @@ export default function ProfileEditForm({
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="profile-vk"
-            className="block text-xs text-[var(--muted-foreground)]"
-          >
+          <label htmlFor="profile-vk" className="block text-xs text-[var(--muted-foreground)]">
             VK
           </label>
           <Input

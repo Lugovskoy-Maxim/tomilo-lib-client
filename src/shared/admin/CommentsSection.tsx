@@ -9,7 +9,6 @@ import {
   ThumbsUp,
   Trash2,
   User,
-  CalendarClock,
   ArrowUpDown,
   LayoutList,
   Grid3X3,
@@ -23,7 +22,6 @@ import {
   RefreshCw,
   Edit,
   UserCircle,
-  AlertTriangle,
   Save,
   Clock,
 } from "lucide-react";
@@ -33,7 +31,11 @@ import { useToast } from "@/hooks/useToast";
 import { useGetCommentsQuery, useUpdateCommentMutation } from "@/store/api/commentsApi";
 import { useGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
-import { useGetCommentsStatsQuery, useBulkDeleteCommentsMutation, useUpdateCommentVisibilityMutation, useDeleteCommentMutation } from "@/store/api/adminApi";
+import {
+  useGetCommentsStatsQuery,
+  useBulkDeleteCommentsMutation,
+  useDeleteCommentMutation,
+} from "@/store/api/adminApi";
 import { getTitlePath } from "@/lib/title-paths";
 import { Comment, CommentEntityType, CommentReactionCount } from "@/types/comment";
 import { ConfirmModal, AdminModal } from "./ui";
@@ -48,17 +50,17 @@ function formatTimeAgo(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
-  
+
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  
+
   if (minutes < 1) return "только что";
   if (minutes < 60) return `${minutes} мин назад`;
   if (hours < 24) return `${hours} ч назад`;
   if (days === 1) return "вчера";
   if (days < 7) return `${days} дн назад`;
-  
+
   return date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
 }
 
@@ -102,15 +104,13 @@ function CommentEntityLink({ comment }: { comment: Comment }) {
     (titleIdFromInfo ||
       (chapterData?.titleId && typeof chapterData.titleId === "object"
         ? (chapterData.titleId as { _id: string })._id
-        : (chapterData?.titleId as string))) ?? "";
+        : (chapterData?.titleId as string))) ??
+    "";
 
   const { data: titleDataForChapter } = useGetTitleByIdQuery(
     { id: resolvedTitleId },
     {
-      skip:
-        comment.entityType !== CommentEntityType.CHAPTER ||
-        !resolvedTitleId ||
-        !!slugFromInfo,
+      skip: comment.entityType !== CommentEntityType.CHAPTER || !resolvedTitleId || !!slugFromInfo,
     },
   );
 
@@ -137,9 +137,7 @@ function CommentEntityLink({ comment }: { comment: Comment }) {
     const slug = slugFromInfo ?? titleDataForChapter?.slug;
     const resolvedId = titleIdFromInfo ?? resolvedTitleId;
     const href =
-      resolvedId || slug
-        ? `/titles/${slug || resolvedId}/chapter/${comment.entityId}`
-        : null;
+      resolvedId || slug ? `/titles/${slug || resolvedId}/chapter/${comment.entityId}` : null;
     if (href) {
       return (
         <Link
@@ -148,7 +146,9 @@ function CommentEntityLink({ comment }: { comment: Comment }) {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline"
         >
-          {titleName || titleDataForChapter?.name ? `Глава: ${titleName || titleDataForChapter?.name}` : "К главе"}
+          {titleName || titleDataForChapter?.name
+            ? `Глава: ${titleName || titleDataForChapter?.name}`
+            : "К главе"}
           <ExternalLink className="w-3 h-3" />
         </Link>
       );
@@ -172,13 +172,13 @@ export function CommentsSection() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
-  
+
   // Detail modal state
   const [detailComment, setDetailComment] = useState<Comment | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [isEditSaving, setIsEditSaving] = useState(false);
-  
+
   // Bulk hide modal
   const [bulkHideOpen, setBulkHideOpen] = useState(false);
   const [isBulkHiding, setIsBulkHiding] = useState(false);
@@ -191,18 +191,35 @@ export function CommentsSection() {
     includeReplies: true,
   };
 
-  const titleQuery = useGetCommentsQuery({
-    ...queryParams,
-    entityType: CommentEntityType.TITLE,
-  }, { skip: entityType === CommentEntityType.CHAPTER });
+  const titleQuery = useGetCommentsQuery(
+    {
+      ...queryParams,
+      entityType: CommentEntityType.TITLE,
+    },
+    { skip: entityType === CommentEntityType.CHAPTER },
+  );
 
-  const chapterQuery = useGetCommentsQuery({
-    ...queryParams,
-    entityType: CommentEntityType.CHAPTER,
-  }, { skip: entityType === CommentEntityType.TITLE });
+  const chapterQuery = useGetCommentsQuery(
+    {
+      ...queryParams,
+      entityType: CommentEntityType.CHAPTER,
+    },
+    { skip: entityType === CommentEntityType.TITLE },
+  );
 
-  const isLoading = entityType === CommentEntityType.CHAPTER ? chapterQuery.isLoading : entityType === CommentEntityType.TITLE ? titleQuery.isLoading : (titleQuery.isLoading || chapterQuery.isLoading);
-  const isError = entityType === CommentEntityType.CHAPTER ? chapterQuery.isError : entityType === CommentEntityType.TITLE ? titleQuery.isError : (titleQuery.isError || chapterQuery.isError);
+  const isLoading =
+    entityType === CommentEntityType.CHAPTER
+      ? chapterQuery.isLoading
+      : entityType === CommentEntityType.TITLE
+        ? titleQuery.isLoading
+        : titleQuery.isLoading || chapterQuery.isLoading;
+  const isError =
+    entityType === CommentEntityType.CHAPTER
+      ? chapterQuery.isError
+      : entityType === CommentEntityType.TITLE
+        ? titleQuery.isError
+        : titleQuery.isError || chapterQuery.isError;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch от RTK, не оборачиваем в useCallback
   const refetch = () => {
     titleQuery.refetch();
     chapterQuery.refetch();
@@ -228,7 +245,7 @@ export function CommentsSection() {
   const [deleteComment, { isLoading: isDeleting }] = useDeleteCommentMutation();
   const [updateComment] = useUpdateCommentMutation();
   const [bulkDeleteComments] = useBulkDeleteCommentsMutation();
-  
+
   // Статистика комментариев с нового API
   const { data: commentsStatsData } = useGetCommentsStatsQuery();
   const serverStats = commentsStatsData?.data;
@@ -242,7 +259,7 @@ export function CommentsSection() {
     const titleComments = titleQuery.data?.data?.comments || [];
     const chapterComments = chapterQuery.data?.data?.comments || [];
     return [...titleComments, ...chapterComments].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   }, [entityType, titleQuery.data, chapterQuery.data]);
 
@@ -252,10 +269,10 @@ export function CommentsSection() {
     const filtered = comments.filter(comment => {
       const byType = entityType === "all" || comment.entityType === entityType;
       if (!byType) return false;
-      
+
       if (visibilityFilter === "visible" && !comment.isVisible) return false;
       if (visibilityFilter === "hidden" && comment.isVisible) return false;
-      
+
       if (!normalizedSearch) return true;
 
       const author = typeof comment.userId === "string" ? "" : (comment.userId?.username ?? "");
@@ -283,7 +300,8 @@ export function CommentsSection() {
     () => ({
       total: processedComments.length,
       titleComments: processedComments.filter(c => c.entityType === CommentEntityType.TITLE).length,
-      chapterComments: processedComments.filter(c => c.entityType === CommentEntityType.CHAPTER).length,
+      chapterComments: processedComments.filter(c => c.entityType === CommentEntityType.CHAPTER)
+        .length,
       hidden: processedComments.filter(c => !c.isVisible).length,
     }),
     [processedComments],
@@ -313,7 +331,7 @@ export function CommentsSection() {
   };
 
   const handleSelectComment = useCallback((id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    setSelectedIds(prev => (prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]));
   }, []);
 
   const handleSelectAll = useCallback(() => {
@@ -369,7 +387,7 @@ export function CommentsSection() {
       c.isVisible ? "Нет" : "Да",
       new Date(c.createdAt).toLocaleDateString("ru-RU"),
     ]);
-    
+
     const csvContent = [
       headers.join(","),
       ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
@@ -404,10 +422,13 @@ export function CommentsSection() {
 
   const handleSaveEdit = useCallback(async () => {
     if (!detailComment || !editContent.trim()) return;
-    
+
     setIsEditSaving(true);
     try {
-      await updateComment({ id: detailComment._id, data: { content: editContent.trim() } }).unwrap();
+      await updateComment({
+        id: detailComment._id,
+        data: { content: editContent.trim() },
+      }).unwrap();
       toast.success("Комментарий обновлён");
       setIsEditMode(false);
       refetch();
@@ -424,7 +445,7 @@ export function CommentsSection() {
     setIsBulkHiding(true);
     try {
       const results = await Promise.allSettled(
-        selectedIds.map(id => updateComment({ id, data: { isVisible: false } as never }).unwrap())
+        selectedIds.map(id => updateComment({ id, data: { isVisible: false } as never }).unwrap()),
       );
       const failed = results.filter(r => r.status === "rejected").length;
       const success = results.length - failed;
@@ -597,7 +618,9 @@ export function CommentsSection() {
       )}
 
       {processedComments.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-[var(--muted-foreground)]">Комментарии не найдены</div>
+        <div className="flex-1 flex items-center justify-center text-[var(--muted-foreground)]">
+          Комментарии не найдены
+        </div>
       ) : viewMode === "cards" ? (
         <div className="flex-1 grid gap-3 content-start">
           {processedComments.map(comment => (
@@ -623,11 +646,15 @@ export function CommentsSection() {
                       <Square className="w-4 h-4" />
                     )}
                   </button>
-                  
+
                   {/* Avatar */}
                   <div className="relative flex-shrink-0">
                     <Image
-                      src={isStaticAsset(getUserAvatar(comment)) ? getUserAvatar(comment) : normalizeUrl(getUserAvatar(comment))}
+                      src={
+                        isStaticAsset(getUserAvatar(comment))
+                          ? getUserAvatar(comment)
+                          : normalizeUrl(getUserAvatar(comment))
+                      }
                       alt=""
                       width={40}
                       height={40}
@@ -635,30 +662,45 @@ export function CommentsSection() {
                       className="w-10 h-10 rounded-full object-cover bg-[var(--secondary)]"
                     />
                     {typeof comment.userId !== "string" && comment.userId?.role === "admin" && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center" title="Админ">
+                      <div
+                        className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center"
+                        title="Админ"
+                      >
                         <span className="text-[8px] text-white font-bold">A</span>
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
-                        onClick={() => typeof comment.userId !== "string" && comment.userId?._id && handleViewUserProfile(comment.userId._id)}
+                        onClick={() =>
+                          typeof comment.userId !== "string" &&
+                          comment.userId?._id &&
+                          handleViewUserProfile(comment.userId._id)
+                        }
                         className="font-medium text-[var(--foreground)] hover:text-[var(--primary)] transition-colors flex items-center gap-1.5"
                         disabled={typeof comment.userId === "string"}
                       >
-                        {typeof comment.userId !== "string" ? (comment.userId?.username ?? "Пользователь") : "Пользователь"}
+                        {typeof comment.userId !== "string"
+                          ? (comment.userId?.username ?? "Пользователь")
+                          : "Пользователь"}
                         <ExternalLink className="w-3 h-3 opacity-50" />
                       </button>
                       {!comment.isVisible && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600 font-medium">скрыт</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600 font-medium">
+                          скрыт
+                        </span>
                       )}
                       {comment.isEdited && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-500/20 text-blue-600 font-medium">изменён</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-500/20 text-blue-600 font-medium">
+                          изменён
+                        </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-[var(--muted-foreground)] font-mono truncate max-w-[200px]">{comment._id}</p>
+                    <p className="text-[10px] text-[var(--muted-foreground)] font-mono truncate max-w-[200px]">
+                      {comment._id}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -685,7 +727,11 @@ export function CommentsSection() {
                     className="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-yellow-500 hover:bg-yellow-500/10 transition-colors"
                     title={comment.isVisible ? "Скрыть" : "Показать"}
                   >
-                    {comment.isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {comment.isVisible ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                   <button
                     onClick={() => handleDeleteComment(comment._id)}
@@ -698,7 +744,9 @@ export function CommentsSection() {
                 </div>
               </div>
 
-              <p className="mt-3 text-sm text-[var(--foreground)] whitespace-pre-wrap line-clamp-4">{comment.content}</p>
+              <p className="mt-3 text-sm text-[var(--foreground)] whitespace-pre-wrap line-clamp-4">
+                {comment.content}
+              </p>
 
               <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[var(--muted-foreground)]">
                 <span className="inline-flex items-center gap-1">
@@ -733,7 +781,9 @@ export function CommentsSection() {
 
               {comment.replies && comment.replies.length > 0 && (
                 <div className="mt-4 pl-4 border-l-2 border-[var(--border)] space-y-3">
-                  <p className="text-xs font-medium text-[var(--muted-foreground)]">Ответы ({comment.replies.length})</p>
+                  <p className="text-xs font-medium text-[var(--muted-foreground)]">
+                    Ответы ({comment.replies.length})
+                  </p>
                   {comment.replies.map(reply => (
                     <div
                       key={reply._id}
@@ -742,7 +792,9 @@ export function CommentsSection() {
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <p className="text-sm font-medium text-[var(--foreground)] flex items-center gap-1.5">
                           <User className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-                          {typeof reply.userId !== "string" ? (reply.userId?.username ?? "Пользователь") : "Пользователь"}
+                          {typeof reply.userId !== "string"
+                            ? (reply.userId?.username ?? "Пользователь")
+                            : "Пользователь"}
                         </p>
                         <Button
                           variant="ghost"
@@ -754,7 +806,9 @@ export function CommentsSection() {
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
-                      <p className="mt-1.5 text-sm text-[var(--foreground)] whitespace-pre-wrap">{reply.content}</p>
+                      <p className="mt-1.5 text-sm text-[var(--foreground)] whitespace-pre-wrap">
+                        {reply.content}
+                      </p>
                       <p className="mt-1 text-xs text-[var(--muted-foreground)]">
                         {new Date(reply.createdAt).toLocaleString("ru-RU")}
                       </p>
@@ -775,7 +829,8 @@ export function CommentsSection() {
                     onClick={handleSelectAll}
                     className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   >
-                    {selectedIds.length === processedComments.length && processedComments.length > 0 ? (
+                    {selectedIds.length === processedComments.length &&
+                    processedComments.length > 0 ? (
                       <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
                     ) : (
                       <Square className="w-4 h-4" />
@@ -821,16 +876,22 @@ export function CommentsSection() {
                   </td>
                   <td className="px-3 py-2">
                     <span className="flex items-center gap-1.5">
-                      {typeof comment.userId !== "string" ? (comment.userId?.username ?? "Пользователь") : "Пользователь"}
+                      {typeof comment.userId !== "string"
+                        ? (comment.userId?.username ?? "Пользователь")
+                        : "Пользователь"}
                       {!comment.isVisible && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600">скрыт</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600">
+                          скрыт
+                        </span>
                       )}
                     </span>
                   </td>
                   <td className="px-3 py-2 max-w-[320px]" title={comment.content}>
                     <span className="truncate block">{comment.content}</span>
                     {comment.replies?.length ? (
-                      <span className="text-xs text-[var(--muted-foreground)]">+{comment.replies.length} ответов</span>
+                      <span className="text-xs text-[var(--muted-foreground)]">
+                        +{comment.replies.length} ответов
+                      </span>
                     ) : null}
                   </td>
                   <td className="px-3 py-2">{comment.entityType}</td>
@@ -849,7 +910,11 @@ export function CommentsSection() {
                         className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                         title={comment.isVisible ? "Скрыть" : "Показать"}
                       >
-                        {comment.isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {comment.isVisible ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </Button>
                       <Button
                         variant="ghost"
@@ -872,7 +937,8 @@ export function CommentsSection() {
       {paginationData && paginationData.totalPages > 1 && (
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-[var(--muted-foreground)]">
-            Страница {paginationData.page} из {paginationData.totalPages} • Всего: {paginationData.total}
+            Страница {paginationData.page} из {paginationData.totalPages} • Всего:{" "}
+            {paginationData.total}
           </p>
           <div className="flex gap-2">
             <Button
@@ -928,7 +994,11 @@ export function CommentsSection() {
             {/* Author info */}
             <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--secondary)]/50">
               <Image
-                src={isStaticAsset(getUserAvatar(detailComment)) ? getUserAvatar(detailComment) : normalizeUrl(getUserAvatar(detailComment))}
+                src={
+                  isStaticAsset(getUserAvatar(detailComment))
+                    ? getUserAvatar(detailComment)
+                    : normalizeUrl(getUserAvatar(detailComment))
+                }
                 alt=""
                 width={48}
                 height={48}
@@ -938,23 +1008,40 @@ export function CommentsSection() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-[var(--foreground)]">
-                    {typeof detailComment.userId !== "string" ? (detailComment.userId?.username ?? "Пользователь") : "Пользователь"}
+                    {typeof detailComment.userId !== "string"
+                      ? (detailComment.userId?.username ?? "Пользователь")
+                      : "Пользователь"}
                   </span>
                   {typeof detailComment.userId !== "string" && detailComment.userId?.role && (
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                      detailComment.userId.role === "admin" ? "bg-red-500/20 text-red-600" :
-                      detailComment.userId.role === "moderator" ? "bg-blue-500/20 text-blue-600" :
-                      "bg-gray-500/20 text-gray-600"
-                    }`}>
-                      {detailComment.userId.role === "admin" ? "Админ" : detailComment.userId.role === "moderator" ? "Модератор" : "Пользователь"}
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                        detailComment.userId.role === "admin"
+                          ? "bg-red-500/20 text-red-600"
+                          : detailComment.userId.role === "moderator"
+                            ? "bg-blue-500/20 text-blue-600"
+                            : "bg-gray-500/20 text-gray-600"
+                      }`}
+                    >
+                      {detailComment.userId.role === "admin"
+                        ? "Админ"
+                        : detailComment.userId.role === "moderator"
+                          ? "Модератор"
+                          : "Пользователь"}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-[var(--muted-foreground)] font-mono truncate">{detailComment._id}</p>
+                <p className="text-xs text-[var(--muted-foreground)] font-mono truncate">
+                  {detailComment._id}
+                </p>
               </div>
               {typeof detailComment.userId !== "string" && (
                 <button
-                  onClick={() => detailComment.userId && typeof detailComment.userId !== "string" && detailComment.userId._id && handleViewUserProfile(detailComment.userId._id)}
+                  onClick={() =>
+                    detailComment.userId &&
+                    typeof detailComment.userId !== "string" &&
+                    detailComment.userId._id &&
+                    handleViewUserProfile(detailComment.userId._id)
+                  }
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-sm hover:bg-[var(--primary)]/20 transition-colors"
                 >
                   <UserCircle className="w-4 h-4" />
@@ -967,21 +1054,29 @@ export function CommentsSection() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                 <p className="text-xs text-[var(--muted-foreground)]">Создан</p>
-                <p className="text-sm font-medium text-[var(--foreground)]">{new Date(detailComment.createdAt).toLocaleDateString("ru-RU")}</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">
+                  {new Date(detailComment.createdAt).toLocaleDateString("ru-RU")}
+                </p>
               </div>
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                 <p className="text-xs text-[var(--muted-foreground)]">Тип</p>
-                <p className="text-sm font-medium text-[var(--foreground)]">{detailComment.entityType === CommentEntityType.TITLE ? "Тайтл" : "Глава"}</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">
+                  {detailComment.entityType === CommentEntityType.TITLE ? "Тайтл" : "Глава"}
+                </p>
               </div>
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                 <p className="text-xs text-[var(--muted-foreground)]">Статус</p>
-                <p className={`text-sm font-medium ${detailComment.isVisible ? "text-green-600" : "text-yellow-600"}`}>
+                <p
+                  className={`text-sm font-medium ${detailComment.isVisible ? "text-green-600" : "text-yellow-600"}`}
+                >
                   {detailComment.isVisible ? "Виден" : "Скрыт"}
                 </p>
               </div>
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                 <p className="text-xs text-[var(--muted-foreground)]">Ответов</p>
-                <p className="text-sm font-medium text-[var(--foreground)]">{detailComment.replies?.length || 0}</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">
+                  {detailComment.replies?.length || 0}
+                </p>
               </div>
             </div>
 
@@ -991,7 +1086,10 @@ export function CommentsSection() {
                 <p className="text-xs text-[var(--muted-foreground)] mb-2">Реакции</p>
                 <div className="flex flex-wrap gap-2">
                   {detailComment.reactions.map((r, idx) => (
-                    <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--secondary)] text-sm">
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--secondary)] text-sm"
+                    >
                       {r.emoji} <span className="font-medium">{r.count}</span>
                     </span>
                   ))}
@@ -1032,7 +1130,9 @@ export function CommentsSection() {
               </div>
             ) : (
               <div className="rounded-lg border border-[var(--border)] p-4">
-                <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">{detailComment.content}</p>
+                <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">
+                  {detailComment.content}
+                </p>
                 {detailComment.isEdited && (
                   <p className="mt-2 text-xs text-[var(--muted-foreground)]">
                     Изменён: {new Date(detailComment.updatedAt).toLocaleString("ru-RU")}
@@ -1067,7 +1167,11 @@ export function CommentsSection() {
                   }}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 transition-colors"
                 >
-                  {detailComment.isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {detailComment.isVisible ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                   {detailComment.isVisible ? "Скрыть" : "Показать"}
                 </button>
                 <button

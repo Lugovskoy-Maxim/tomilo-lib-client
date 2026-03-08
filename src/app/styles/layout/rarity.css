@@ -6,8 +6,12 @@
 }
 
 @keyframes decoration-glow-spin {
-  from { --decoration-glow-angle: 0deg; }
-  to { --decoration-glow-angle: 360deg; }
+  from {
+    --decoration-glow-angle: 0deg;
+  }
+  to {
+    --decoration-glow-angle: 360deg;
+  }
 }
 
 .decoration-card-glow-common {
@@ -56,8 +60,12 @@
 
 /* --- DECORATION RARITY EFFECTS --- */
 @keyframes shimmer-sweep {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 .animate-shimmer {
   animation: shimmer-sweep 3s ease-in-out infinite;
@@ -65,16 +73,17 @@
 
 /* --- LEGENDARY --- */
 @keyframes rarity-glow-legendary {
-  0%, 100% { 
-    box-shadow: 
+  0%,
+  100% {
+    box-shadow:
       0 0 20px rgba(251, 191, 36, 0.6),
       0 0 40px rgba(251, 191, 36, 0.4),
       0 0 60px rgba(245, 158, 11, 0.3),
       0 0 80px rgba(217, 119, 6, 0.2),
       inset 0 0 20px rgba(251, 191, 36, 0.1);
   }
-  50% { 
-    box-shadow: 
+  50% {
+    box-shadow:
       0 0 30px rgba(251, 191, 36, 0.8),
       0 0 60px rgba(251, 191, 36, 0.5),
       0 0 90px rgba(245, 158, 11, 0.4),
@@ -100,7 +109,8 @@
 
 /* Fire flicker effect */
 @keyframes fire-flicker {
-  0%, 100% {
+  0%,
+  100% {
     transform: scaleY(1) scaleX(1);
     opacity: 0.8;
   }
@@ -120,7 +130,8 @@
 
 /* Golden sparkle effect */
 @keyframes golden-sparkle {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0) rotate(0deg);
   }
@@ -167,14 +178,15 @@
 
 /* --- EPIC --- */
 @keyframes rarity-glow-epic {
-  0%, 100% { 
-    box-shadow: 
+  0%,
+  100% {
+    box-shadow:
       0 0 15px rgba(168, 85, 247, 0.5),
       0 0 30px rgba(168, 85, 247, 0.3),
       0 0 45px rgba(139, 92, 246, 0.2);
   }
-  50% { 
-    box-shadow: 
+  50% {
+    box-shadow:
       0 0 25px rgba(168, 85, 247, 0.7),
       0 0 50px rgba(168, 85, 247, 0.4),
       0 0 75px rgba(139, 92, 246, 0.3);
@@ -183,7 +195,8 @@
 
 /* Star twinkle effect */
 @keyframes star-twinkle {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     transform: scale(0.8);
     filter: blur(0px);
@@ -247,14 +260,15 @@
 
 /* --- RARE --- */
 @keyframes rarity-glow-rare {
-  0%, 100% { 
-    box-shadow: 
+  0%,
+  100% {
+    box-shadow:
       0 0 12px rgba(59, 130, 246, 0.4),
       0 0 24px rgba(59, 130, 246, 0.2),
       0 0 36px rgba(96, 165, 250, 0.1);
   }
-  50% { 
-    box-shadow: 
+  50% {
+    box-shadow:
       0 0 20px rgba(59, 130, 246, 0.6),
       0 0 40px rgba(59, 130, 246, 0.3),
       0 0 60px rgba(96, 165, 250, 0.2);
@@ -263,7 +277,8 @@
 
 /* Ice crystal shimmer */
 @keyframes ice-shimmer {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.4;
     transform: scale(1);
   }
@@ -275,7 +290,8 @@
 
 /* Floating ice particle */
 @keyframes ice-float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
     opacity: 0.6;
   }

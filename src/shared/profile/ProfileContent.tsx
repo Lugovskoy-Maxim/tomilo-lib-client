@@ -8,6 +8,7 @@ import ReadingProgressBlock from "./ReadingProgressBlock";
 import ProfileQuickActions from "./ProfileQuickActions";
 import DailyBonus from "./DailyBonus";
 import NextRankProgress from "./NextRankProgress";
+import ProfileDailyQuests from "./ProfileDailyQuests";
 import ProfileWelcome from "./ProfileWelcome";
 import { Trophy, ChevronRight } from "lucide-react";
 
@@ -48,9 +49,12 @@ export default function ProfileContent({
       {!isPublicView && <ContinueReading userProfile={userProfile} />}
       {!isPublicView && <ReadingProgressBlock />}
       {!isPublicView && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <NextRankProgress userProfile={userProfile} onShowStats={onShowStats} />
-          <DailyBonus userProfile={userProfile} />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <NextRankProgress userProfile={userProfile} onShowStats={onShowStats} />
+            <DailyBonus userProfile={userProfile} />
+          </div>
+          <ProfileDailyQuests />
         </div>
       )}
 
@@ -83,7 +87,9 @@ export default function ProfileContent({
         <ProfileBookmarksLibrary
           bookmarks={userProfile.bookmarks}
           readingHistory={userProfile.readingHistory}
-          allBookmarksHref={onShowBookmarks ? undefined : (allBookmarksHref ?? "/profile/bookmarks")}
+          allBookmarksHref={
+            onShowBookmarks ? undefined : (allBookmarksHref ?? "/profile/bookmarks")
+          }
           onShowAllBookmarks={onShowBookmarks}
           maxItems={10}
           emptyStateMessage={bookmarksEmptyStateMessage}

@@ -2,19 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { 
-  Users2, 
-  Search, 
-  X, 
-  Check,
-  ChevronDown,
-  Loader2,
-  ExternalLink
-} from "lucide-react";
-import { 
-  useGetTeamsQuery,
-  useGetTeamsByTitleQuery
-} from "@/store/api/translatorsApi";
+import { Users2, Search, X, Check, ChevronDown, Loader2, ExternalLink } from "lucide-react";
+import { useGetTeamsQuery, useGetTeamsByTitleQuery } from "@/store/api/translatorsApi";
 import { TranslatorTeam } from "@/types/translator";
 import { normalizeAssetUrl } from "@/lib/asset-url";
 
@@ -26,12 +15,12 @@ interface TranslatorTeamSelectProps {
   placeholder?: string;
 }
 
-export function TranslatorTeamSelect({ 
-  titleId, 
-  selectedTeamId, 
+export function TranslatorTeamSelect({
+  titleId,
+  selectedTeamId,
   onSelect,
   label = "Команда перевода",
-  placeholder = "Выберите команду"
+  placeholder = "Выберите команду",
 }: TranslatorTeamSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,9 +53,7 @@ export function TranslatorTeamSelect({
   }
 
   const filteredTeams = searchQuery.trim()
-    ? teams.filter(team => 
-        team.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? teams.filter(team => team.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : teams;
 
   const selectedTeam = teams.find(t => t._id === selectedTeamId);
@@ -77,11 +64,11 @@ export function TranslatorTeamSelect({
         setIsOpen(false);
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-    
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
@@ -98,18 +85,16 @@ export function TranslatorTeamSelect({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className="text-sm font-medium text-[var(--foreground)] mb-1 block">
-        {label}
-      </label>
-      
+      <label className="text-sm font-medium text-[var(--foreground)] mb-1 block">{label}</label>
+
       <div
         role="button"
         tabIndex={0}
         onClick={() => setIsOpen(!isOpen)}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            setIsOpen((prev) => !prev);
+            setIsOpen(prev => !prev);
           }
         }}
         className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-left transition-colors hover:border-[var(--primary)]/50 cursor-pointer"
@@ -146,7 +131,7 @@ export function TranslatorTeamSelect({
           {selectedTeam && (
             <button
               type="button"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 handleClear();
               }}
@@ -155,7 +140,9 @@ export function TranslatorTeamSelect({
               <X className="w-3.5 h-3.5" />
             </button>
           )}
-          <ChevronDown className={`w-4 h-4 text-[var(--muted-foreground)] transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          <ChevronDown
+            className={`w-4 h-4 text-[var(--muted-foreground)] transition-transform ${isOpen ? "rotate-180" : ""}`}
+          />
         </div>
       </div>
 
@@ -191,19 +178,19 @@ export function TranslatorTeamSelect({
                     Команды этого тайтла
                   </div>
                 )}
-                
+
                 {filteredTeams.map(team => {
                   const isSelected = team._id === selectedTeamId;
                   const isFromTitle = titleTeams?.some(t => t._id === team._id);
-                  
+
                   return (
                     <button
                       key={team._id}
                       type="button"
                       onClick={() => handleSelect(team)}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                        isSelected 
-                          ? "bg-[var(--primary)]/10 text-[var(--primary)]" 
+                        isSelected
+                          ? "bg-[var(--primary)]/10 text-[var(--primary)]"
                           : "hover:bg-[var(--accent)] text-[var(--foreground)]"
                       }`}
                     >
@@ -221,7 +208,7 @@ export function TranslatorTeamSelect({
                           <Users2 className="w-4 h-4 text-[var(--muted-foreground)]" />
                         </div>
                       )}
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm font-medium truncate">{team.name}</span>

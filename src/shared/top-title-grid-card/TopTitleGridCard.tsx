@@ -37,7 +37,8 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
   const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
     const verified = checkAgeVerification(user || null);
-    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+    setIsAgeVerified(prev => (prev === verified ? prev : verified));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- проверка только по userId, userBirthDate
   }, [userId, userBirthDate]);
 
   const handleAgeConfirm = () => {
@@ -59,7 +60,10 @@ export default function TopTitleGridCard({ data }: TopTitleGridCardProps) {
     router.push(getTitlePath(data));
   };
 
-  const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(data.image, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
+  const { primary: imageSrc, fallback: imageFallback } = getCoverUrls(
+    data.image,
+    typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src,
+  );
 
   return (
     <>

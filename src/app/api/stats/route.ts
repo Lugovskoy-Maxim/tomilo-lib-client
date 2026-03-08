@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const url = new URL("/stats", API_BASE);
-    
+
     // Forward query params to backend
     if (includeHistory) {
       url.searchParams.set("includeHistory", "true");
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       const errorData = await res.json().catch(() => ({ message: "Failed to fetch stats" }));
       return NextResponse.json(
         { success: false, message: errorData.message || "Failed to fetch stats" },
-        { status: res.status }
+        { status: res.status },
       );
     }
 
@@ -38,9 +38,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Stats API error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

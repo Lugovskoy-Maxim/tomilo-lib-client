@@ -35,11 +35,7 @@ import {
 import { StatCard } from "./ui";
 import { AlertModal } from "./ui";
 import { formatNumber } from "@/lib/utils";
-import {
-  DailyStatsHistory,
-  MonthlyStatsHistory,
-  YearlyStatsHistory,
-} from "@/types/stats";
+import { DailyStatsHistory, MonthlyStatsHistory, YearlyStatsHistory } from "@/types/stats";
 
 type StatsView = "history" | "daily" | "range" | "monthly" | "yearly" | "recent";
 
@@ -64,7 +60,7 @@ function normItem(item: Record<string, unknown>) {
   const date =
     typeof item.date === "string"
       ? item.date
-      : (item.date as Date)?.toISOString?.()?.split("T")[0] ?? String(item.date ?? "");
+      : ((item.date as Date)?.toISOString?.()?.split("T")[0] ?? String(item.date ?? ""));
   return {
     date,
     views,
@@ -89,7 +85,9 @@ function unwrapApiData(value: unknown): unknown {
 
 function toRecordArray(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((item): item is Record<string, unknown> => item !== null && typeof item === "object");
+  return value.filter(
+    (item): item is Record<string, unknown> => item !== null && typeof item === "object",
+  );
 }
 
 function extractSingleRecord(value: unknown): Record<string, unknown> | null {
@@ -97,7 +95,7 @@ function extractSingleRecord(value: unknown): Record<string, unknown> | null {
   if (!unwrapped) return null;
 
   if (Array.isArray(unwrapped)) {
-    const first = unwrapped.find((item) => item && typeof item === "object");
+    const first = unwrapped.find(item => item && typeof item === "object");
     return (first as Record<string, unknown> | undefined) ?? null;
   }
 
@@ -111,7 +109,7 @@ function extractSingleRecord(value: unknown): Record<string, unknown> | null {
       return candidate as Record<string, unknown>;
     }
     if (Array.isArray(candidate)) {
-      const first = candidate.find((item) => item && typeof item === "object");
+      const first = candidate.find(item => item && typeof item === "object");
       if (first) return first as Record<string, unknown>;
     }
   }
@@ -119,13 +117,17 @@ function extractSingleRecord(value: unknown): Record<string, unknown> | null {
   return obj;
 }
 
-function getPeriodName(item: Record<string, unknown>, normalized: ReturnType<typeof normItem>): string {
+function getPeriodName(
+  item: Record<string, unknown>,
+  normalized: ReturnType<typeof normItem>,
+): string {
   const maybeDate = item.date;
   if (typeof maybeDate === "string" && maybeDate.trim()) return normalized.date;
 
   const year = Number(item.year);
   const month = Number(item.month);
-  if (Number.isFinite(year) && Number.isFinite(month)) return `${year}-${String(month).padStart(2, "0")}`;
+  if (Number.isFinite(year) && Number.isFinite(month))
+    return `${year}-${String(month).padStart(2, "0")}`;
   if (Number.isFinite(year)) return String(year);
 
   return normalized.date || "—";
@@ -212,13 +214,18 @@ export function StatsSection() {
 
   // Queries
   const { data: historyData, isLoading: isHistoryLoading } = useGetStatsHistoryQuery(
-    { type: historyType, days: historyType === "daily" ? historyDays : undefined, year: selectedYear, month: selectedMonth },
-    { skip: activeView !== "history" }
+    {
+      type: historyType,
+      days: historyType === "daily" ? historyDays : undefined,
+      year: selectedYear,
+      month: selectedMonth,
+    },
+    { skip: activeView !== "history" },
   );
 
   const { data: dailyData, isLoading: isDailyLoading } = useGetDailyStatsQuery(
     { date: selectedDate },
-    { skip: activeView !== "daily" }
+    { skip: activeView !== "daily" },
   );
 
   const { data: rangeData, isLoading: isRangeLoading } = useGetStatsRangeQuery(
@@ -229,22 +236,22 @@ export function StatsSection() {
         !dateRange.start ||
         !dateRange.end ||
         dateRange.start > dateRange.end,
-    }
+    },
   );
 
   const { data: monthlyData, isLoading: isMonthlyLoading } = useGetMonthlyStatsQuery(
     { year: selectedYear, month: selectedMonth },
-    { skip: activeView !== "monthly" }
+    { skip: activeView !== "monthly" },
   );
 
   const { data: yearlyData, isLoading: isYearlyLoading } = useGetYearlyStatsQuery(
     { year: selectedYear },
-    { skip: activeView !== "yearly" }
+    { skip: activeView !== "yearly" },
   );
 
   const { data: recentData, isLoading: isRecentLoading } = useGetRecentStatsQuery(
     { days: recentDays },
-    { skip: activeView !== "recent" }
+    { skip: activeView !== "recent" },
   );
 
   const { data: availableYears } = useGetAvailableYearsQuery();
@@ -283,23 +290,49 @@ export function StatsSection() {
 
   const chartData = useMemo(() => {
     if (activeView === "history" && historyArray.length > 0) {
-      return historyArray.map((item: DailyStatsHistory | MonthlyStatsHistory | YearlyStatsHistory | Record<string, unknown>) => {
-        const record = item as Record<string, unknown>;
-        const n = normItem(record);
-        const name = getPeriodName(record, n);
-        return { name, views: n.views, newUsers: n.newUsers, newTitles: n.newTitles, newChapters: n.newChapters };
-      });
+      return historyArray.map(
+        (
+          item:
+            | DailyStatsHistory
+            | MonthlyStatsHistory
+            | YearlyStatsHistory
+            | Record<string, unknown>,
+        ) => {
+          const record = item as Record<string, unknown>;
+          const n = normItem(record);
+          const name = getPeriodName(record, n);
+          return {
+            name,
+            views: n.views,
+            newUsers: n.newUsers,
+            newTitles: n.newTitles,
+            newChapters: n.newChapters,
+          };
+        },
+      );
     }
     if (activeView === "recent" && recentArray.length > 0) {
-      return recentArray.map((item) => {
+      return recentArray.map(item => {
         const n = normItem(item as Record<string, unknown>);
-        return { name: n.date, views: n.views, newUsers: n.newUsers, newTitles: n.newTitles, newChapters: n.newChapters };
+        return {
+          name: n.date,
+          views: n.views,
+          newUsers: n.newUsers,
+          newTitles: n.newTitles,
+          newChapters: n.newChapters,
+        };
       });
     }
     if (activeView === "range" && rangeArray.length > 0) {
-      return rangeArray.map((item) => {
+      return rangeArray.map(item => {
         const n = normItem(item as Record<string, unknown>);
-        return { name: n.date, views: n.views, newUsers: n.newUsers, newTitles: n.newTitles, newChapters: n.newChapters };
+        return {
+          name: n.date,
+          views: n.views,
+          newUsers: n.newUsers,
+          newTitles: n.newTitles,
+          newChapters: n.newChapters,
+        };
       });
     }
     return [];
@@ -326,7 +359,7 @@ export function StatsSection() {
 
   const exportData = () => {
     let dataToExport: unknown = {};
-    
+
     switch (activeView) {
       case "history":
         dataToExport = historyData?.data;
@@ -359,8 +392,13 @@ export function StatsSection() {
     URL.revokeObjectURL(url);
   };
 
-  const isLoading = isHistoryLoading || isDailyLoading || isRangeLoading || 
-                    isMonthlyLoading || isYearlyLoading || isRecentLoading;
+  const isLoading =
+    isHistoryLoading ||
+    isDailyLoading ||
+    isRangeLoading ||
+    isMonthlyLoading ||
+    isYearlyLoading ||
+    isRecentLoading;
   const hasExportableData =
     (activeView === "history" && historyArray.length > 0) ||
     (activeView === "daily" && Boolean(dailyRecord)) ||
@@ -419,16 +457,14 @@ export function StatsSection() {
           { key: "monthly", label: "За месяц", icon: Calendar },
           { key: "yearly", label: "За год", icon: Calendar },
           { key: "recent", label: "Последние дни", icon: RefreshCw },
-        ].map((view) => {
+        ].map(view => {
           const Icon = view.icon;
           return (
             <button
               key={view.key}
               onClick={() => setActiveView(view.key as StatsView)}
               className={`admin-btn flex items-center gap-2 ${
-                activeView === view.key
-                  ? "admin-btn-primary"
-                  : "admin-btn-secondary"
+                activeView === view.key ? "admin-btn-primary" : "admin-btn-secondary"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -446,7 +482,7 @@ export function StatsSection() {
               <span className="text-sm font-medium text-[var(--foreground)]">Тип:</span>
               <select
                 value={historyType}
-                onChange={(e) => setHistoryType(e.target.value as "daily" | "monthly" | "yearly")}
+                onChange={e => setHistoryType(e.target.value as "daily" | "monthly" | "yearly")}
                 className="admin-input"
               >
                 <option value="daily">По дням</option>
@@ -460,7 +496,7 @@ export function StatsSection() {
                 <input
                   type="number"
                   value={historyDays}
-                  onChange={(e) =>
+                  onChange={e =>
                     setHistoryDays(Math.min(365, Math.max(1, Number(e.target.value) || 1)))
                   }
                   min={1}
@@ -475,11 +511,13 @@ export function StatsSection() {
                   <span className="text-sm font-medium text-[var(--foreground)]">Год:</span>
                   <select
                     value={selectedYear}
-                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                    onChange={e => setSelectedYear(Number(e.target.value))}
                     className="admin-input"
                   >
-                    {availableYearsList.map((year) => (
-                      <option key={year} value={year}>{year}</option>
+                    {availableYearsList.map(year => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
                     )) || (
                       <>
                         <option value={2024}>2024</option>
@@ -493,7 +531,7 @@ export function StatsSection() {
                     <span className="text-sm font-medium text-[var(--foreground)]">Месяц:</span>
                     <select
                       value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                      onChange={e => setSelectedMonth(Number(e.target.value))}
                       className="admin-input"
                     >
                       {Array.from({ length: 12 }, (_, i) => (
@@ -515,7 +553,7 @@ export function StatsSection() {
             <input
               type="date"
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={e => setSelectedDate(e.target.value)}
               className="admin-input"
             />
           </div>
@@ -528,7 +566,7 @@ export function StatsSection() {
               <input
                 type="date"
                 value={dateRange.start}
-                onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
+                onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                 className="admin-input"
               />
             </div>
@@ -537,7 +575,7 @@ export function StatsSection() {
               <input
                 type="date"
                 value={dateRange.end}
-                onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
+                onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                 className="admin-input"
               />
             </div>
@@ -550,11 +588,13 @@ export function StatsSection() {
               <span className="text-sm font-medium text-[var(--foreground)]">Год:</span>
               <select
                 value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                onChange={e => setSelectedYear(Number(e.target.value))}
                 className="admin-input"
               >
-                {availableYearsList.map((year) => (
-                  <option key={year} value={year}>{year}</option>
+                {availableYearsList.map(year => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
                 )) || (
                   <>
                     <option value={2024}>2024</option>
@@ -567,7 +607,7 @@ export function StatsSection() {
               <span className="text-sm font-medium text-[var(--foreground)]">Месяц:</span>
               <select
                 value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                onChange={e => setSelectedMonth(Number(e.target.value))}
                 className="admin-input"
               >
                 {Array.from({ length: 12 }, (_, i) => (
@@ -585,11 +625,13 @@ export function StatsSection() {
             <span className="text-sm font-medium text-[var(--foreground)]">Год:</span>
             <select
               value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              onChange={e => setSelectedYear(Number(e.target.value))}
               className="admin-input"
             >
-              {availableYearsList.map((year) => (
-                <option key={year} value={year}>{year}</option>
+              {availableYearsList.map(year => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
               )) || (
                 <>
                   <option value={2024}>2024</option>
@@ -606,20 +648,18 @@ export function StatsSection() {
             <input
               type="number"
               value={recentDays}
-                  onChange={(e) =>
-                    setRecentDays(Math.min(365, Math.max(1, Number(e.target.value) || 1)))
-                  }
+              onChange={e => setRecentDays(Math.min(365, Math.max(1, Number(e.target.value) || 1)))}
               min={1}
               max={365}
               className="admin-input w-20"
             />
           </div>
         )}
-            {isInvalidRange && (
-              <div className="text-sm text-[var(--destructive)]">
-                Дата начала не может быть позже даты окончания
-              </div>
-            )}
+        {isInvalidRange && (
+          <div className="text-sm text-[var(--destructive)]">
+            Дата начала не может быть позже даты окончания
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -686,85 +726,148 @@ export function StatsSection() {
                     <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">
                       {activeView === "monthly" || activeView === "yearly" ? "Период" : "Дата"}
                     </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--foreground)]">Просмотры</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--foreground)]">Новые пользователи</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--foreground)]">Новые тайтлы</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--foreground)]">Новые главы</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--foreground)]">
+                      Просмотры
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--foreground)]">
+                      Новые пользователи
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--foreground)]">
+                      Новые тайтлы
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--foreground)]">
+                      Новые главы
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
-                  {activeView === "history" && historyArray.map((item, index: number) => {
-                    const n = normItem(item as Record<string, unknown>);
-                    const name = getPeriodName(item as Record<string, unknown>, n);
-                    return (
-                    <tr key={index} className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{name}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newChapters)}</td>
-                    </tr>
-                    );
-                  })}
+                  {activeView === "history" &&
+                    historyArray.map((item, index: number) => {
+                      const n = normItem(item as Record<string, unknown>);
+                      const name = getPeriodName(item as Record<string, unknown>, n);
+                      return (
+                        <tr key={index} className="hover:bg-[var(--accent)]/30">
+                          <td className="px-4 py-3 text-sm text-[var(--foreground)]">{name}</td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.views)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.newUsers)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.newTitles)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.newChapters)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   {activeView === "daily" && dailyRecord && (
                     <tr className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{dailyRecord.date}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyRecord.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyRecord.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyRecord.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(dailyRecord.newChapters)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">
+                        {dailyRecord.date}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(dailyRecord.views)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(dailyRecord.newUsers)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(dailyRecord.newTitles)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(dailyRecord.newChapters)}
+                      </td>
                     </tr>
                   )}
-                  {activeView === "range" && rangeArray.map((item, index: number) => {
-                    const n = normItem(item as Record<string, unknown>);
-                    return (
-                    <tr key={index} className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{n.date}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newChapters)}</td>
-                    </tr>
-                    );
-                  })}
+                  {activeView === "range" &&
+                    rangeArray.map((item, index: number) => {
+                      const n = normItem(item as Record<string, unknown>);
+                      return (
+                        <tr key={index} className="hover:bg-[var(--accent)]/30">
+                          <td className="px-4 py-3 text-sm text-[var(--foreground)]">{n.date}</td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.views)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.newUsers)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.newTitles)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.newChapters)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   {activeView === "monthly" && monthlyRecord && (
                     <tr className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{monthlyRecord.year}-{monthlyRecord.month}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyRecord.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyRecord.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyRecord.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(monthlyRecord.newChapters)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">
+                        {monthlyRecord.year}-{monthlyRecord.month}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(monthlyRecord.views)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(monthlyRecord.newUsers)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(monthlyRecord.newTitles)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(monthlyRecord.newChapters)}
+                      </td>
                     </tr>
                   )}
                   {activeView === "yearly" && yearlyRecord && (
                     <tr className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{yearlyRecord.year}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyRecord.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyRecord.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyRecord.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(yearlyRecord.newChapters)}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">
+                        {yearlyRecord.year}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(yearlyRecord.views)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(yearlyRecord.newUsers)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(yearlyRecord.newTitles)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                        {formatNumber(yearlyRecord.newChapters)}
+                      </td>
                     </tr>
                   )}
-                  {activeView === "recent" && recentArray.map((item, index: number) => {
-                    const n = normItem(item as Record<string, unknown>);
-                    return (
-                    <tr key={index} className="hover:bg-[var(--accent)]/30">
-                      <td className="px-4 py-3 text-sm text-[var(--foreground)]">{n.date}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.views)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newUsers)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newTitles)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">{formatNumber(n.newChapters)}</td>
-                    </tr>
-                    );
-                  })}
-                  {(
-                    (activeView === "history" && historyArray.length === 0) ||
+                  {activeView === "recent" &&
+                    recentArray.map((item, index: number) => {
+                      const n = normItem(item as Record<string, unknown>);
+                      return (
+                        <tr key={index} className="hover:bg-[var(--accent)]/30">
+                          <td className="px-4 py-3 text-sm text-[var(--foreground)]">{n.date}</td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.views)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.newUsers)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.newTitles)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--foreground)]">
+                            {formatNumber(n.newChapters)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  {((activeView === "history" && historyArray.length === 0) ||
                     (activeView === "daily" && !dailyRecord) ||
                     (activeView === "range" && rangeArray.length === 0) ||
                     (activeView === "monthly" && !monthlyRecord) ||
                     (activeView === "yearly" && !yearlyRecord) ||
-                    (activeView === "recent" && recentArray.length === 0)
-                  ) && (
+                    (activeView === "recent" && recentArray.length === 0)) && (
                     <tr>
                       <td
                         colSpan={5}
@@ -785,16 +888,25 @@ export function StatsSection() {
               label="Всего просмотров"
               value={formatNumber(
                 activeView === "history"
-                  ? historyArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).views, 0)
+                  ? historyArray.reduce(
+                      (sum, item) => sum + normItem(item as Record<string, unknown>).views,
+                      0,
+                    )
                   : activeView === "daily"
-                  ? (dailyRecord?.views ?? 0)
-                  : activeView === "range"
-                  ? rangeArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).views, 0)
-                  : activeView === "monthly"
-                  ? (monthlyRecord?.views ?? 0)
-                  : activeView === "yearly"
-                  ? (yearlyRecord?.views ?? 0)
-                  : recentArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).views, 0)
+                    ? (dailyRecord?.views ?? 0)
+                    : activeView === "range"
+                      ? rangeArray.reduce(
+                          (sum, item) => sum + normItem(item as Record<string, unknown>).views,
+                          0,
+                        )
+                      : activeView === "monthly"
+                        ? (monthlyRecord?.views ?? 0)
+                        : activeView === "yearly"
+                          ? (yearlyRecord?.views ?? 0)
+                          : recentArray.reduce(
+                              (sum, item) => sum + normItem(item as Record<string, unknown>).views,
+                              0,
+                            ),
               )}
               icon={<Eye className="w-5 h-5" />}
               color="blue"
@@ -803,16 +915,26 @@ export function StatsSection() {
               label="Новые пользователи"
               value={formatNumber(
                 activeView === "history"
-                  ? historyArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newUsers, 0)
+                  ? historyArray.reduce(
+                      (sum, item) => sum + normItem(item as Record<string, unknown>).newUsers,
+                      0,
+                    )
                   : activeView === "daily"
-                  ? (dailyRecord?.newUsers ?? 0)
-                  : activeView === "range"
-                  ? rangeArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newUsers, 0)
-                  : activeView === "monthly"
-                  ? (monthlyRecord?.newUsers ?? 0)
-                  : activeView === "yearly"
-                  ? (yearlyRecord?.newUsers ?? 0)
-                  : recentArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newUsers, 0)
+                    ? (dailyRecord?.newUsers ?? 0)
+                    : activeView === "range"
+                      ? rangeArray.reduce(
+                          (sum, item) => sum + normItem(item as Record<string, unknown>).newUsers,
+                          0,
+                        )
+                      : activeView === "monthly"
+                        ? (monthlyRecord?.newUsers ?? 0)
+                        : activeView === "yearly"
+                          ? (yearlyRecord?.newUsers ?? 0)
+                          : recentArray.reduce(
+                              (sum, item) =>
+                                sum + normItem(item as Record<string, unknown>).newUsers,
+                              0,
+                            ),
               )}
               icon={<Users className="w-5 h-5" />}
               color="green"
@@ -821,16 +943,26 @@ export function StatsSection() {
               label="Новые тайтлы"
               value={formatNumber(
                 activeView === "history"
-                  ? historyArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newTitles, 0)
+                  ? historyArray.reduce(
+                      (sum, item) => sum + normItem(item as Record<string, unknown>).newTitles,
+                      0,
+                    )
                   : activeView === "daily"
-                  ? (dailyRecord?.newTitles ?? 0)
-                  : activeView === "range"
-                  ? rangeArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newTitles, 0)
-                  : activeView === "monthly"
-                  ? (monthlyRecord?.newTitles ?? 0)
-                  : activeView === "yearly"
-                  ? (yearlyRecord?.newTitles ?? 0)
-                  : recentArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newTitles, 0)
+                    ? (dailyRecord?.newTitles ?? 0)
+                    : activeView === "range"
+                      ? rangeArray.reduce(
+                          (sum, item) => sum + normItem(item as Record<string, unknown>).newTitles,
+                          0,
+                        )
+                      : activeView === "monthly"
+                        ? (monthlyRecord?.newTitles ?? 0)
+                        : activeView === "yearly"
+                          ? (yearlyRecord?.newTitles ?? 0)
+                          : recentArray.reduce(
+                              (sum, item) =>
+                                sum + normItem(item as Record<string, unknown>).newTitles,
+                              0,
+                            ),
               )}
               icon={<BookOpen className="w-5 h-5" />}
               color="purple"
@@ -839,16 +971,27 @@ export function StatsSection() {
               label="Новые главы"
               value={formatNumber(
                 activeView === "history"
-                  ? historyArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newChapters, 0)
+                  ? historyArray.reduce(
+                      (sum, item) => sum + normItem(item as Record<string, unknown>).newChapters,
+                      0,
+                    )
                   : activeView === "daily"
-                  ? (dailyRecord?.newChapters ?? 0)
-                  : activeView === "range"
-                  ? rangeArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newChapters, 0)
-                  : activeView === "monthly"
-                  ? (monthlyRecord?.newChapters ?? 0)
-                  : activeView === "yearly"
-                  ? (yearlyRecord?.newChapters ?? 0)
-                  : recentArray.reduce((sum, item) => sum + normItem(item as Record<string, unknown>).newChapters, 0)
+                    ? (dailyRecord?.newChapters ?? 0)
+                    : activeView === "range"
+                      ? rangeArray.reduce(
+                          (sum, item) =>
+                            sum + normItem(item as Record<string, unknown>).newChapters,
+                          0,
+                        )
+                      : activeView === "monthly"
+                        ? (monthlyRecord?.newChapters ?? 0)
+                        : activeView === "yearly"
+                          ? (yearlyRecord?.newChapters ?? 0)
+                          : recentArray.reduce(
+                              (sum, item) =>
+                                sum + normItem(item as Record<string, unknown>).newChapters,
+                              0,
+                            ),
               )}
               icon={<TrendingUp className="w-5 h-5" />}
               color="orange"

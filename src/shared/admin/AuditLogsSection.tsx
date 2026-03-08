@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   ScrollText,
   Search,
   Filter,
   Download,
   User,
-  Calendar,
   Activity,
   Shield,
   FileText,
@@ -35,40 +34,140 @@ import { AdminCard } from "./ui";
 import { Pagination } from "@/shared/ui/pagination";
 
 const ACTION_LABELS: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  user_create: { label: "Создание пользователя", icon: Users, color: "text-green-500 bg-green-500/10" },
-  user_update: { label: "Обновление пользователя", icon: Users, color: "text-blue-500 bg-blue-500/10" },
+  user_create: {
+    label: "Создание пользователя",
+    icon: Users,
+    color: "text-green-500 bg-green-500/10",
+  },
+  user_update: {
+    label: "Обновление пользователя",
+    icon: Users,
+    color: "text-blue-500 bg-blue-500/10",
+  },
   user_delete: { label: "Удаление пользователя", icon: Users, color: "text-red-500 bg-red-500/10" },
   user_ban: { label: "Блокировка пользователя", icon: Shield, color: "text-red-500 bg-red-500/10" },
-  user_unban: { label: "Разблокировка пользователя", icon: Shield, color: "text-green-500 bg-green-500/10" },
-  user_role_change: { label: "Изменение роли", icon: Shield, color: "text-yellow-500 bg-yellow-500/10" },
-  user_balance_change: { label: "Изменение баланса", icon: Users, color: "text-purple-500 bg-purple-500/10" },
-  title_create: { label: "Создание тайтла", icon: FileText, color: "text-green-500 bg-green-500/10" },
-  title_update: { label: "Обновление тайтла", icon: FileText, color: "text-blue-500 bg-blue-500/10" },
+  user_unban: {
+    label: "Разблокировка пользователя",
+    icon: Shield,
+    color: "text-green-500 bg-green-500/10",
+  },
+  user_role_change: {
+    label: "Изменение роли",
+    icon: Shield,
+    color: "text-yellow-500 bg-yellow-500/10",
+  },
+  user_balance_change: {
+    label: "Изменение баланса",
+    icon: Users,
+    color: "text-purple-500 bg-purple-500/10",
+  },
+  title_create: {
+    label: "Создание тайтла",
+    icon: FileText,
+    color: "text-green-500 bg-green-500/10",
+  },
+  title_update: {
+    label: "Обновление тайтла",
+    icon: FileText,
+    color: "text-blue-500 bg-blue-500/10",
+  },
   title_delete: { label: "Удаление тайтла", icon: FileText, color: "text-red-500 bg-red-500/10" },
-  chapter_create: { label: "Создание главы", icon: FileText, color: "text-green-500 bg-green-500/10" },
-  chapter_update: { label: "Обновление главы", icon: FileText, color: "text-blue-500 bg-blue-500/10" },
+  chapter_create: {
+    label: "Создание главы",
+    icon: FileText,
+    color: "text-green-500 bg-green-500/10",
+  },
+  chapter_update: {
+    label: "Обновление главы",
+    icon: FileText,
+    color: "text-blue-500 bg-blue-500/10",
+  },
   chapter_delete: { label: "Удаление главы", icon: FileText, color: "text-red-500 bg-red-500/10" },
-  comment_delete: { label: "Удаление комментария", icon: MessageCircle, color: "text-red-500 bg-red-500/10" },
-  report_resolve: { label: "Решение жалобы", icon: MessageCircle, color: "text-green-500 bg-green-500/10" },
-  settings_update: { label: "Обновление настроек", icon: Settings, color: "text-blue-500 bg-blue-500/10" },
-  notification_send: { label: "Отправка уведомления", icon: Bell, color: "text-purple-500 bg-purple-500/10" },
+  comment_delete: {
+    label: "Удаление комментария",
+    icon: MessageCircle,
+    color: "text-red-500 bg-red-500/10",
+  },
+  report_resolve: {
+    label: "Решение жалобы",
+    icon: MessageCircle,
+    color: "text-green-500 bg-green-500/10",
+  },
+  settings_update: {
+    label: "Обновление настроек",
+    icon: Settings,
+    color: "text-blue-500 bg-blue-500/10",
+  },
+  notification_send: {
+    label: "Отправка уведомления",
+    icon: Bell,
+    color: "text-purple-500 bg-purple-500/10",
+  },
   ip_block: { label: "Блокировка IP", icon: Shield, color: "text-red-500 bg-red-500/10" },
   ip_unblock: { label: "Разблокировка IP", icon: Shield, color: "text-green-500 bg-green-500/10" },
   genre_create: { label: "Создание жанра", icon: Tag, color: "text-green-500 bg-green-500/10" },
   genre_update: { label: "Обновление жанра", icon: Tag, color: "text-blue-500 bg-blue-500/10" },
   genre_delete: { label: "Удаление жанра", icon: Tag, color: "text-red-500 bg-red-500/10" },
-  achievement_create: { label: "Создание достижения", icon: Trophy, color: "text-green-500 bg-green-500/10" },
-  achievement_update: { label: "Обновление достижения", icon: Trophy, color: "text-blue-500 bg-blue-500/10" },
-  achievement_delete: { label: "Удаление достижения", icon: Trophy, color: "text-red-500 bg-red-500/10" },
-  decoration_create: { label: "Создание декорации", icon: ShoppingBag, color: "text-green-500 bg-green-500/10" },
-  decoration_update: { label: "Обновление декорации", icon: ShoppingBag, color: "text-blue-500 bg-blue-500/10" },
-  decoration_delete: { label: "Удаление декорации", icon: ShoppingBag, color: "text-red-500 bg-red-500/10" },
-  collection_create: { label: "Создание коллекции", icon: FolderOpen, color: "text-green-500 bg-green-500/10" },
-  collection_update: { label: "Обновление коллекции", icon: FolderOpen, color: "text-blue-500 bg-blue-500/10" },
-  collection_delete: { label: "Удаление коллекции", icon: FolderOpen, color: "text-red-500 bg-red-500/10" },
-  announcement_create: { label: "Создание новости", icon: Megaphone, color: "text-green-500 bg-green-500/10" },
-  announcement_update: { label: "Обновление новости", icon: Megaphone, color: "text-blue-500 bg-blue-500/10" },
-  announcement_delete: { label: "Удаление новости", icon: Megaphone, color: "text-red-500 bg-red-500/10" },
+  achievement_create: {
+    label: "Создание достижения",
+    icon: Trophy,
+    color: "text-green-500 bg-green-500/10",
+  },
+  achievement_update: {
+    label: "Обновление достижения",
+    icon: Trophy,
+    color: "text-blue-500 bg-blue-500/10",
+  },
+  achievement_delete: {
+    label: "Удаление достижения",
+    icon: Trophy,
+    color: "text-red-500 bg-red-500/10",
+  },
+  decoration_create: {
+    label: "Создание декорации",
+    icon: ShoppingBag,
+    color: "text-green-500 bg-green-500/10",
+  },
+  decoration_update: {
+    label: "Обновление декорации",
+    icon: ShoppingBag,
+    color: "text-blue-500 bg-blue-500/10",
+  },
+  decoration_delete: {
+    label: "Удаление декорации",
+    icon: ShoppingBag,
+    color: "text-red-500 bg-red-500/10",
+  },
+  collection_create: {
+    label: "Создание коллекции",
+    icon: FolderOpen,
+    color: "text-green-500 bg-green-500/10",
+  },
+  collection_update: {
+    label: "Обновление коллекции",
+    icon: FolderOpen,
+    color: "text-blue-500 bg-blue-500/10",
+  },
+  collection_delete: {
+    label: "Удаление коллекции",
+    icon: FolderOpen,
+    color: "text-red-500 bg-red-500/10",
+  },
+  announcement_create: {
+    label: "Создание новости",
+    icon: Megaphone,
+    color: "text-green-500 bg-green-500/10",
+  },
+  announcement_update: {
+    label: "Обновление новости",
+    icon: Megaphone,
+    color: "text-blue-500 bg-blue-500/10",
+  },
+  announcement_delete: {
+    label: "Удаление новости",
+    icon: Megaphone,
+    color: "text-red-500 bg-red-500/10",
+  },
   other: { label: "Другое", icon: Activity, color: "text-gray-500 bg-gray-500/10" },
 };
 
@@ -101,13 +200,18 @@ export function AuditLogsSection() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  const { data: logsData, isLoading, refetch } = useGetAuditLogsQuery({
+  const {
+    data: logsData,
+    isLoading,
+    refetch,
+  } = useGetAuditLogsQuery({
     ...filters,
     page: currentPage,
     limit: 50,
   });
   const { data: statsData } = useGetAuditLogStatsQuery();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- allLogs из запроса
   const allLogs = logsData?.data?.logs || [];
   const pagination = logsData?.data?.pagination || { total: 0, page: 1, limit: 50, pages: 0 };
   const stats = statsData?.data;
@@ -115,10 +219,11 @@ export function AuditLogsSection() {
   const logs = useMemo(() => {
     if (!searchTerm.trim()) return allLogs;
     const search = searchTerm.toLowerCase();
-    return allLogs.filter(log => 
-      log.username?.toLowerCase().includes(search) ||
-      log.targetName?.toLowerCase().includes(search) ||
-      log.ipAddress?.includes(search)
+    return allLogs.filter(
+      log =>
+        log.username?.toLowerCase().includes(search) ||
+        log.targetName?.toLowerCase().includes(search) ||
+        log.ipAddress?.includes(search),
     );
   }, [allLogs, searchTerm]);
 
@@ -132,7 +237,7 @@ export function AuditLogsSection() {
       log.targetName || "",
       log.ipAddress || "",
     ]);
-    
+
     const csvContent = [
       headers.join(","),
       ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
@@ -175,7 +280,9 @@ export function AuditLogsSection() {
         <div className="grid grid-cols-2 min-[480px]:grid-cols-4 gap-2 sm:gap-4">
           <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
             <p className="text-[10px] sm:text-sm text-[var(--muted-foreground)]">Всего</p>
-            <p className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">{stats.totalLogs}</p>
+            <p className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
+              {stats.totalLogs}
+            </p>
           </div>
           <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
             <p className="text-[10px] sm:text-sm text-[var(--muted-foreground)]">Сегодня</p>
@@ -187,7 +294,9 @@ export function AuditLogsSection() {
               <p className="text-sm sm:text-lg font-semibold text-[var(--foreground)] truncate">
                 {getActionInfo(stats.topActions[0].action as AuditAction).label}
               </p>
-              <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">{stats.topActions[0].count}x</p>
+              <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">
+                {stats.topActions[0].count}x
+              </p>
             </div>
           )}
           {stats.topUsers?.[0] && (
@@ -196,7 +305,9 @@ export function AuditLogsSection() {
               <p className="text-sm sm:text-lg font-semibold text-[var(--foreground)] truncate">
                 {stats.topUsers[0].username}
               </p>
-              <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">{stats.topUsers[0].count} действий</p>
+              <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">
+                {stats.topUsers[0].count} действий
+              </p>
             </div>
           )}
         </div>
@@ -221,7 +332,10 @@ export function AuditLogsSection() {
               <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden min-[400px]:inline">Фильтры</span>
             </button>
-            <button onClick={() => refetch()} className="admin-btn-secondary flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
+            <button
+              onClick={() => refetch()}
+              className="admin-btn-secondary flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm"
+            >
               <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
@@ -251,7 +365,9 @@ export function AuditLogsSection() {
             <div className="p-3 sm:p-4 rounded-lg bg-[var(--secondary)] space-y-3 sm:space-y-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                 <div>
-                  <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Тип</label>
+                  <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+                    Тип
+                  </label>
                   <select
                     value={filters.targetType}
                     onChange={e => {
@@ -268,7 +384,9 @@ export function AuditLogsSection() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">Действие</label>
+                  <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+                    Действие
+                  </label>
                   <select
                     value={filters.action}
                     onChange={e => {
@@ -286,7 +404,9 @@ export function AuditLogsSection() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">От</label>
+                  <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+                    От
+                  </label>
                   <input
                     type="date"
                     value={filters.startDate}
@@ -298,7 +418,9 @@ export function AuditLogsSection() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">До</label>
+                  <label className="block text-xs sm:text-sm text-[var(--muted-foreground)] mb-1">
+                    До
+                  </label>
                   <input
                     type="date"
                     value={filters.endDate}
@@ -347,18 +469,25 @@ export function AuditLogsSection() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 sm:gap-4">
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm sm:text-base font-medium text-[var(--foreground)] truncate">{actionInfo.label}</p>
+                            <p className="text-sm sm:text-base font-medium text-[var(--foreground)] truncate">
+                              {actionInfo.label}
+                            </p>
                             <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 sm:gap-2 mt-0.5 sm:mt-1 text-[10px] sm:text-sm text-[var(--muted-foreground)]">
                               <span className="flex items-center gap-1">
                                 <User className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                                <span className="truncate max-w-[80px] sm:max-w-none">{log.username}</span>
+                                <span className="truncate max-w-[80px] sm:max-w-none">
+                                  {log.username}
+                                </span>
                                 <span className="px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-xs bg-[var(--card)]">
                                   {log.userRole}
                                 </span>
                               </span>
                               {log.targetName && (
                                 <span className="flex items-center gap-1 truncate">
-                                  → <span className="truncate max-w-[60px] sm:max-w-none">{log.targetName}</span>
+                                  →{" "}
+                                  <span className="truncate max-w-[60px] sm:max-w-none">
+                                    {log.targetName}
+                                  </span>
                                 </span>
                               )}
                             </div>
@@ -369,7 +498,9 @@ export function AuditLogsSection() {
                                 {formatRelativeTime(log.createdAt)}
                               </p>
                               {log.ipAddress && (
-                                <p className="text-[9px] sm:text-xs text-[var(--muted-foreground)] hidden sm:block">{log.ipAddress}</p>
+                                <p className="text-[9px] sm:text-xs text-[var(--muted-foreground)] hidden sm:block">
+                                  {log.ipAddress}
+                                </p>
                               )}
                             </div>
                             <button
@@ -383,7 +514,9 @@ export function AuditLogsSection() {
                         </div>
                         {log.details && Object.keys(log.details).length > 0 && (
                           <div className="mt-1.5 sm:mt-2 p-1.5 sm:p-2 rounded bg-[var(--card)] text-[9px] sm:text-xs text-[var(--muted-foreground)] overflow-x-auto max-h-20 sm:max-h-32">
-                            <pre className="whitespace-pre-wrap">{JSON.stringify(log.details, null, 2)}</pre>
+                            <pre className="whitespace-pre-wrap">
+                              {JSON.stringify(log.details, null, 2)}
+                            </pre>
                           </div>
                         )}
                       </div>
@@ -452,7 +585,7 @@ export function AuditLogsSection() {
                 </div>
               )}
             </div>
-            
+
             {selectedLog.details && Object.keys(selectedLog.details).length > 0 && (
               <div>
                 <p className="text-xs text-[var(--muted-foreground)] mb-2">Детали</p>
@@ -463,12 +596,9 @@ export function AuditLogsSection() {
                 </div>
               </div>
             )}
-            
+
             <div className="flex justify-end pt-4">
-              <button
-                onClick={() => setSelectedLog(null)}
-                className="admin-btn-secondary"
-              >
+              <button onClick={() => setSelectedLog(null)} className="admin-btn-secondary">
                 Закрыть
               </button>
             </div>

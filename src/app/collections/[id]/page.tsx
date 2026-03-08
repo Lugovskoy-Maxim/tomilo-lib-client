@@ -71,7 +71,9 @@ const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 function buildCollectionJsonLd(collectionData: Record<string, unknown>, id: string) {
   const collectionName = String(collectionData.name || "Коллекция");
   const description = collectionData.description
-    ? String(collectionData.description).replace(/<[^>]*>/g, "").substring(0, 500)
+    ? String(collectionData.description)
+        .replace(/<[^>]*>/g, "")
+        .substring(0, 500)
     : `Коллекция тайтлов "${collectionName}"`;
   const titlesCount = Array.isArray(collectionData.titles) ? collectionData.titles.length : 0;
 
@@ -95,7 +97,12 @@ function buildCollectionJsonLd(collectionData: Record<string, unknown>, id: stri
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Главная", item: baseUrl },
       { "@type": "ListItem", position: 2, name: "Коллекции", item: `${baseUrl}/collections` },
-      { "@type": "ListItem", position: 3, name: collectionName, item: `${baseUrl}/collections/${id}` },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: collectionName,
+        item: `${baseUrl}/collections/${id}`,
+      },
     ],
   };
 
@@ -111,7 +118,7 @@ export default async function CollectionPageRoute({ params }: CollectionPageProp
   }
 
   let jsonLdScripts: React.ReactNode = null;
-  
+
   try {
     const collectionData = await getCollectionDataById(id);
     if (collectionData) {

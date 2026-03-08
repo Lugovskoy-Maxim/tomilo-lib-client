@@ -44,16 +44,15 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
   const total = commentsData?.data?.total ?? 0;
   const totalPages = commentsData?.data?.totalPages ?? 0;
   const currentPageComments = commentsData?.data?.comments ?? [];
+  void currentPageComments;
   const hasMore = page < totalPages;
   const isLoadingMore = page > 1 && isLoading;
 
-  // Сбрасываем накопление при смене сортировки или сущности
   useEffect(() => {
     setPage(1);
     setAccumulatedComments([]);
   }, [sortOrder, entityType, entityId]);
 
-  // Синхронизируем накопленный список с ответом API
   useEffect(() => {
     if (!commentsData?.data?.comments) return;
     if (page === 1) {
@@ -88,7 +87,6 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
     setPage(p => p + 1);
   };
 
-  // Сортировка на клиенте (работает даже если бэкенд не поддерживает sortOrder)
   const sortedComments = useMemo(() => {
     if (accumulatedComments.length === 0) return [];
     const getReactionTotal = (c: Comment) => {
@@ -103,7 +101,6 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
     } else if (sortOrder === "oldest") {
       sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     } else {
-      // popular
       sorted.sort((a, b) => getReactionTotal(b) - getReactionTotal(a));
     }
     return sorted;

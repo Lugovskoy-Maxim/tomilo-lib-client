@@ -18,7 +18,10 @@ function getEquippedFromProfile(profileData: unknown): EquippedDecorations | nul
   const eq = (p.equippedDecorations ?? p.equipped_decorations) as EquippedDecorations | undefined;
   if (!eq || typeof eq !== "object") return null;
   const frame = (eq.frame ?? (eq as Record<string, unknown>).frame) as string | object | undefined;
-  const avatar = (eq.avatar ?? (eq as Record<string, unknown>).avatar) as string | object | undefined;
+  const avatar = (eq.avatar ?? (eq as Record<string, unknown>).avatar) as
+    | string
+    | object
+    | undefined;
   return { ...eq, frame: frame ?? undefined, avatar: avatar ?? undefined } as EquippedDecorations;
 }
 
@@ -35,7 +38,7 @@ function resolveUrl(
     const id = (o.id ?? o._id) as string | undefined;
     if (id) {
       const d = userDecorations.find(
-        (x) => (x.id === id || (x as { _id?: string })._id === id) && x.type === type,
+        x => (x.id === id || (x as { _id?: string })._id === id) && x.type === type,
       );
       if (d?.imageUrl) return getDecorationImageUrl(d.imageUrl) || null;
     }
@@ -44,13 +47,17 @@ function resolveUrl(
   const str = String(raw).trim();
   if (!str) return null;
   if (str.startsWith("http") || str.startsWith("/")) {
-    return type === "frame" ? getEquippedFrameUrl({ frame: str }) : getEquippedAvatarDecorationUrl({ avatar: str });
+    return type === "frame"
+      ? getEquippedFrameUrl({ frame: str })
+      : getEquippedAvatarDecorationUrl({ avatar: str });
   }
   const d = userDecorations.find(
-    (x) => (x.id === str || (x as { _id?: string })._id === str) && x.type === type,
+    x => (x.id === str || (x as { _id?: string })._id === str) && x.type === type,
   );
   if (d?.imageUrl) return getDecorationImageUrl(d.imageUrl) || null;
-  return type === "frame" ? getEquippedFrameUrl({ frame: str }) : getEquippedAvatarDecorationUrl({ avatar: str });
+  return type === "frame"
+    ? getEquippedFrameUrl({ frame: str })
+    : getEquippedAvatarDecorationUrl({ avatar: str });
 }
 
 export type ResolvedEquipped = { frameUrl: string | null; avatarDecorationUrl: string | null };
@@ -73,10 +80,11 @@ export function useResolvedEquippedDecorations(): ResolvedEquipped {
 
   return useMemo(() => {
     if (!equipped) return { frameUrl: null, avatarDecorationUrl: null };
-    const frameUrl = resolveUrl(equipped.frame, "frame", userDecorations)
-      ?? getEquippedFrameUrl(equipped);
-    const avatarDecorationUrl = resolveUrl(equipped.avatar, "avatar", userDecorations)
-      ?? getEquippedAvatarDecorationUrl(equipped);
+    const frameUrl =
+      resolveUrl(equipped.frame, "frame", userDecorations) ?? getEquippedFrameUrl(equipped);
+    const avatarDecorationUrl =
+      resolveUrl(equipped.avatar, "avatar", userDecorations) ??
+      getEquippedAvatarDecorationUrl(equipped);
     return { frameUrl, avatarDecorationUrl };
   }, [equipped, userDecorations]);
 }

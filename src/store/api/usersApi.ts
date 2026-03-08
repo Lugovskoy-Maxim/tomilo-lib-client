@@ -159,7 +159,7 @@ export const usersApi = createApi({
       }),
       invalidatesTags: ["Users"],
     }),
-    
+
     // Update user role
     updateUserRole: builder.mutation<ApiResponse<UserProfile>, UpdateUserRoleRequest>({
       query: ({ userId, role }) => ({
@@ -175,7 +175,7 @@ export const usersApi = createApi({
         } catch {}
       },
     }),
-    
+
     // Ban user
     banUser: builder.mutation<ApiResponse<UserBan>, BanUserRequest>({
       query: ({ userId, reason, duration }) => ({
@@ -185,7 +185,7 @@ export const usersApi = createApi({
       }),
       invalidatesTags: (result, error, { userId }) => [{ type: "Users", id: userId }, "Users"],
     }),
-    
+
     // Unban user
     unbanUser: builder.mutation<ApiResponse<void>, string>({
       query: userId => ({
@@ -194,7 +194,7 @@ export const usersApi = createApi({
       }),
       invalidatesTags: (result, error, userId) => [{ type: "Users", id: userId }, "Users"],
     }),
-    
+
     // Get user ban history
     getUserBanHistory: builder.query<ApiResponse<UserBan[]>, string>({
       query: userId => ({
@@ -202,26 +202,31 @@ export const usersApi = createApi({
       }),
       providesTags: (result, error, userId) => [{ type: "Users", id: userId }],
     }),
-    
+
     // Update user balance
-    updateUserBalance: builder.mutation<ApiResponse<{ balance: number }>, UpdateUserBalanceRequest>({
-      query: ({ userId, amount, description }) => ({
-        url: `/users/admin/${userId}/balance`,
-        method: "PATCH",
-        body: { amount, description },
-      }),
-      invalidatesTags: (result, error, { userId }) => [{ type: "Users", id: userId }, "Users"],
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          dispatch(authApi.util.invalidateTags(["Auth"]));
-        } catch {}
+    updateUserBalance: builder.mutation<ApiResponse<{ balance: number }>, UpdateUserBalanceRequest>(
+      {
+        query: ({ userId, amount, description }) => ({
+          url: `/users/admin/${userId}/balance`,
+          method: "PATCH",
+          body: { amount, description },
+        }),
+        invalidatesTags: (result, error, { userId }) => [{ type: "Users", id: userId }, "Users"],
+        async onQueryStarted(_, { dispatch, queryFulfilled }) {
+          try {
+            await queryFulfilled;
+            dispatch(authApi.util.invalidateTags(["Auth"]));
+          } catch {}
+        },
       },
-    }),
-    
+    ),
+
     // Get user transactions
     getUserTransactions: builder.query<
-      ApiResponse<{ transactions: BalanceTransaction[]; pagination: { total: number; page: number; limit: number; pages: number } }>,
+      ApiResponse<{
+        transactions: BalanceTransaction[];
+        pagination: { total: number; page: number; limit: number; pages: number };
+      }>,
       { userId: string; page?: number; limit?: number }
     >({
       query: ({ userId, page = 1, limit = 20 }) => ({
@@ -229,7 +234,7 @@ export const usersApi = createApi({
       }),
       providesTags: (result, error, { userId }) => [{ type: "Users", id: userId }],
     }),
-    
+
     // Update user data
     updateUserData: builder.mutation<ApiResponse<UserProfile>, UpdateUserDataRequest>({
       query: ({ userId, data }) => ({

@@ -73,9 +73,7 @@ export default function ErrorState({
               Возможно, используется старая версия приложения. Попробуйте перезагрузить страницу.
             </p>
           )}
-          {slug && (
-            <p className="text-[var(--muted-foreground)]/80 text-sm mb-6">Тайтл: {slug}</p>
-          )}
+          {slug && <p className="text-[var(--muted-foreground)]/80 text-sm mb-6">Тайтл: {slug}</p>}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link
               href="/titles"

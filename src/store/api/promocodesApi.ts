@@ -89,7 +89,7 @@ function normalizeRewardItem(item: unknown): PromoCodeReward | null {
   const decoration = o.decoration;
   const displayNameFromDecoration =
     decoration && typeof decoration === "object" && decoration !== null && "name" in decoration
-      ? (decoration as Record<string, unknown>).name as string
+      ? ((decoration as Record<string, unknown>).name as string)
       : undefined;
 
   return {
@@ -110,17 +110,24 @@ function normalizeRewardsList(raw: unknown): PromoCodeReward[] {
 /** Собирает награды из ответа: rewards/grantedRewards + отдельный массив decorations/grantedDecorations */
 function collectRewardsFromResponse(r: Record<string, unknown>): PromoCodeReward[] {
   const fromRewards =
-    r.rewards ?? r.grantedRewards ?? r.rewardsGranted ?? (r.data && typeof r.data === "object" && (r.data as Record<string, unknown>).rewards);
+    r.rewards ??
+    r.grantedRewards ??
+    r.rewardsGranted ??
+    (r.data && typeof r.data === "object" && (r.data as Record<string, unknown>).rewards);
   const list = normalizeRewardsList(fromRewards);
 
   const rawDecorations =
-    r.decorations ?? r.grantedDecorations ?? (r.data && typeof r.data === "object" && (r.data as Record<string, unknown>).decorations);
+    r.decorations ??
+    r.grantedDecorations ??
+    (r.data && typeof r.data === "object" && (r.data as Record<string, unknown>).decorations);
   const decorationsArray = Array.isArray(rawDecorations) ? rawDecorations : [];
   for (const d of decorationsArray) {
     if (!d || typeof d !== "object") continue;
     const dec = d as Record<string, unknown>;
     const id = (dec.id ?? dec._id ?? dec.decorationId ?? dec.decoration_id) as string | undefined;
-    const name = (dec.name ?? dec.displayName ?? dec.display_name ?? dec.title) as string | undefined;
+    const name = (dec.name ?? dec.displayName ?? dec.display_name ?? dec.title) as
+      | string
+      | undefined;
     list.push({
       type: "decoration",
       decorationId: id,
@@ -257,7 +264,9 @@ export const promocodesApi = createApi({
                 userId: i.userId as string,
                 username: i.username as string | undefined,
                 usedAt: (i.usedAt ?? i.createdAt) as string,
-                rewardsGranted: (i.rewardsGranted ?? i.rewards ?? []) as PromoCodeUsage["rewardsGranted"],
+                rewardsGranted: (i.rewardsGranted ??
+                  i.rewards ??
+                  []) as PromoCodeUsage["rewardsGranted"],
               };
             })
           : [];
@@ -280,9 +289,14 @@ export const promocodesApi = createApi({
       transformResponse: (response: unknown): RedeemPromoCodeResult => {
         const r = response as Record<string, unknown>;
         const rewards = collectRewardsFromResponse(r);
-        const dataObj = r.data && typeof r.data === "object" ? (r.data as Record<string, unknown>) : null;
+        const dataObj =
+          r.data && typeof r.data === "object" ? (r.data as Record<string, unknown>) : null;
         const newBalance: number | undefined =
-          typeof r.newBalance === "number" ? r.newBalance : typeof dataObj?.newBalance === "number" ? dataObj.newBalance : undefined;
+          typeof r.newBalance === "number"
+            ? r.newBalance
+            : typeof dataObj?.newBalance === "number"
+              ? dataObj.newBalance
+              : undefined;
         return {
           success: (r.success as boolean) ?? true,
           message: (r.message as string) ?? "Промокод активирован",

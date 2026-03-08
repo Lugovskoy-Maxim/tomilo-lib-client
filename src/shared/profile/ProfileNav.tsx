@@ -38,7 +38,7 @@ export default function ProfileNav({ basePath, showSettings }: ProfileNavProps) 
       aria-label="Разделы профиля"
     >
       <div className="flex flex-nowrap min-w-0 gap-1 sm:gap-2 w-max sm:w-auto">
-        {TABS.map((tab) => {
+        {TABS.map(tab => {
           const Icon = tab.icon;
           const active = isActive(tab);
           const href = `${basePath}/${tab.href}`;

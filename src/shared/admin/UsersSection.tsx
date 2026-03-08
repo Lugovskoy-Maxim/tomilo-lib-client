@@ -1,7 +1,48 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Search, List, Grid3X3, Trash2, Eye, ArrowUpDown, ArrowUp, ArrowDown, Download, Filter, Ban, Shield, X, RefreshCw, MessageCircle, UserCheck, UserX, Edit, Wallet, History, ChevronRight, Save, Plus, Minus, Clock, AlertCircle } from "lucide-react";
-import { useGetUsersQuery, useDeleteUserMutation, useBanUserMutation, useUpdateUserRoleMutation, useUpdateUserBalanceMutation, useGetUserBanHistoryQuery, useGetUserTransactionsQuery, useUpdateUserDataMutation, useGetUserByIdQuery } from "@/store/api/usersApi";
-import { useUnbanUserMutation, useDeleteUserCommentsMutation, useLazyExportUsersQuery } from "@/store/api/adminApi";
+import {
+  Search,
+  List,
+  Grid3X3,
+  Trash2,
+  Eye,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Download,
+  Filter,
+  Ban,
+  Shield,
+  X,
+  RefreshCw,
+  MessageCircle,
+  UserCheck,
+  UserX,
+  Edit,
+  Wallet,
+  History,
+  ChevronRight,
+  Save,
+  Plus,
+  Minus,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
+import {
+  useGetUsersQuery,
+  useDeleteUserMutation,
+  useBanUserMutation,
+  useUpdateUserRoleMutation,
+  useUpdateUserBalanceMutation,
+  useGetUserBanHistoryQuery,
+  useGetUserTransactionsQuery,
+  useUpdateUserDataMutation,
+  useGetUserByIdQuery,
+} from "@/store/api/usersApi";
+import {
+  useUnbanUserMutation,
+  useDeleteUserCommentsMutation,
+  useLazyExportUsersQuery,
+} from "@/store/api/adminApi";
 import { authApi } from "@/store/api/authApi";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store";
@@ -26,7 +67,11 @@ const ROLE_FILTERS: { value: RoleFilter; label: string }[] = [
   { value: "user", label: "Пользователи" },
 ];
 
-const STATUS_FILTERS: { value: StatusFilter; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const STATUS_FILTERS: {
+  value: StatusFilter;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
   { value: "all", label: "Все", icon: Filter },
   { value: "active", label: "Активные", icon: UserCheck },
   { value: "banned", label: "Заблокированные", icon: UserX },
@@ -52,18 +97,27 @@ export function UsersSection() {
   const [bulkAction, setBulkAction] = useState<"ban" | "role" | null>(null);
   const [bulkRoleTarget, setBulkRoleTarget] = useState<"user" | "moderator">("user");
   const [isBulkLoading, setIsBulkLoading] = useState(false);
-  
+
   // User detail modal state
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<"info" | "balance" | "bans">("info");
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editData, setEditData] = useState<{ username?: string; email?: string; level?: number; bio?: string }>({});
+  const [editData, setEditData] = useState<{
+    username?: string;
+    email?: string;
+    level?: number;
+    bio?: string;
+  }>({});
   const [balanceAmount, setBalanceAmount] = useState("");
   const [balanceDescription, setBalanceDescription] = useState("");
   const [banReason, setBanReason] = useState("");
   const [banDuration, setBanDuration] = useState<number | undefined>();
 
-  const { data: usersData, isLoading, refetch } = useGetUsersQuery({
+  const {
+    data: usersData,
+    isLoading,
+    refetch,
+  } = useGetUsersQuery({
     search: debouncedSearchTerm,
     page: currentPage,
     limit,
@@ -91,16 +145,24 @@ export function UsersSection() {
   const [triggerExportUsers] = useLazyExportUsersQuery();
   const toast = useToast();
   const dispatch = useDispatch<AppDispatch>();
-  
+
   const invalidateAuthCache = useCallback(() => {
     dispatch(authApi.util.invalidateTags(["Auth"]));
   }, [dispatch]);
-  
+
   // Selected user queries
-  const { data: selectedUserData, refetch: refetchSelectedUser } = useGetUserByIdQuery(selectedUserId!, { skip: !selectedUserId });
-  const { data: banHistoryData } = useGetUserBanHistoryQuery(selectedUserId!, { skip: !selectedUserId || detailTab !== "bans" });
-  const { data: transactionsData } = useGetUserTransactionsQuery({ userId: selectedUserId!, limit: 20 }, { skip: !selectedUserId || detailTab !== "balance" });
-  
+  const { data: selectedUserData, refetch: refetchSelectedUser } = useGetUserByIdQuery(
+    selectedUserId!,
+    { skip: !selectedUserId },
+  );
+  const { data: banHistoryData } = useGetUserBanHistoryQuery(selectedUserId!, {
+    skip: !selectedUserId || detailTab !== "bans",
+  });
+  const { data: transactionsData } = useGetUserTransactionsQuery(
+    { userId: selectedUserId!, limit: 20 },
+    { skip: !selectedUserId || detailTab !== "balance" },
+  );
+
   const selectedUser = selectedUserData?.data;
   const banHistory = banHistoryData?.data || [];
   const transactions = transactionsData?.data?.transactions || [];
@@ -110,7 +172,7 @@ export function UsersSection() {
   const pagination = usersData?.data?.pagination || { total: 0, page: 1, limit: 20, pages: 0 };
   const sortedUsers = useMemo(() => {
     let list = [...users];
-    
+
     // Apply status filter
     if (statusFilter !== "all") {
       list = list.filter((user: UserProfile & { isBanned?: boolean }) => {
@@ -118,7 +180,7 @@ export function UsersSection() {
         return statusFilter === "banned" ? isBanned : !isBanned;
       });
     }
-    
+
     list.sort((a, b) => {
       let aValue: string | number = "";
       let bValue: string | number = "";
@@ -215,7 +277,7 @@ export function UsersSection() {
 
   const handleSelectUser = useCallback((userId: string) => {
     setSelectedIds(prev =>
-      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId],
     );
   }, []);
 
@@ -247,7 +309,7 @@ export function UsersSection() {
       user.level || 1,
       formatDate(user.createdAt),
     ]);
-    
+
     const csvContent = [
       headers.join(","),
       ...rows.map(row => row.map(cell => `"${cell}"`).join(",")),
@@ -262,27 +324,39 @@ export function UsersSection() {
     toast.success("Экспорт завершён");
   }, [sortedUsers, toast, triggerExportUsers]);
 
-  const handleDeleteUserComments = useCallback(async (userId: string, username: string) => {
-    if (!confirm(`Удалить все комментарии пользователя "${username}"? Это действие нельзя отменить.`)) return;
-    
-    try {
-      const result = await deleteUserComments(userId).unwrap();
-      toast.success(`Удалено ${result.data?.deletedCount ?? 0} комментариев`);
-    } catch {
-      toast.error("Ошибка при удалении комментариев");
-    }
-  }, [deleteUserComments, toast]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- зарезервировано для массового удаления комментариев
+  const handleDeleteUserComments = useCallback(
+    async (userId: string, username: string) => {
+      if (
+        !confirm(
+          `Удалить все комментарии пользователя "${username}"? Это действие нельзя отменить.`,
+        )
+      )
+        return;
 
-  const handleUnbanUser = useCallback(async (userId: string) => {
-    try {
-      await unbanUser(userId).unwrap();
-      toast.success("Пользователь разблокирован");
-      refetch();
-      if (selectedUserId === userId) refetchSelectedUser();
-    } catch {
-      toast.error("Ошибка при разблокировке");
-    }
-  }, [unbanUser, toast, refetch, selectedUserId, refetchSelectedUser]);
+      try {
+        const result = await deleteUserComments(userId).unwrap();
+        toast.success(`Удалено ${result.data?.deletedCount ?? 0} комментариев`);
+      } catch {
+        toast.error("Ошибка при удалении комментариев");
+      }
+    },
+    [deleteUserComments, toast],
+  );
+
+  const handleUnbanUser = useCallback(
+    async (userId: string) => {
+      try {
+        await unbanUser(userId).unwrap();
+        toast.success("Пользователь разблокирован");
+        refetch();
+        if (selectedUserId === userId) refetchSelectedUser();
+      } catch {
+        toast.error("Ошибка при разблокировке");
+      }
+    },
+    [unbanUser, toast, refetch, selectedUserId, refetchSelectedUser],
+  );
 
   const openUserDetail = useCallback((userId: string) => {
     setSelectedUserId(userId);
@@ -303,7 +377,7 @@ export function UsersSection() {
 
   const handleSaveUserData = useCallback(async () => {
     if (!selectedUserId || Object.keys(editData).length === 0) return;
-    
+
     try {
       await updateUserData({ userId: selectedUserId, data: editData }).unwrap();
       toast.success("Данные пользователя обновлены");
@@ -315,42 +389,61 @@ export function UsersSection() {
     } catch {
       toast.error("Ошибка при обновлении данных");
     }
-  }, [selectedUserId, editData, updateUserData, toast, refetch, refetchSelectedUser, invalidateAuthCache]);
+  }, [
+    selectedUserId,
+    editData,
+    updateUserData,
+    toast,
+    refetch,
+    refetchSelectedUser,
+    invalidateAuthCache,
+  ]);
 
-  const handleUpdateBalance = useCallback(async (isAdd: boolean) => {
-    if (!selectedUserId || !balanceAmount || !balanceDescription) {
-      toast.error("Заполните сумму и описание");
-      return;
-    }
-    
-    const amount = parseFloat(balanceAmount);
-    if (isNaN(amount) || amount <= 0) {
-      toast.error("Некорректная сумма");
-      return;
-    }
-    
-    try {
-      await updateUserBalance({
-        userId: selectedUserId,
-        amount: isAdd ? amount : -amount,
-        description: balanceDescription,
-      }).unwrap();
-      toast.success(isAdd ? "Баланс пополнен" : "Баланс списан");
-      setBalanceAmount("");
-      setBalanceDescription("");
-      refetchSelectedUser();
-      invalidateAuthCache();
-    } catch {
-      toast.error("Ошибка при обновлении баланса");
-    }
-  }, [selectedUserId, balanceAmount, balanceDescription, updateUserBalance, toast, refetchSelectedUser, invalidateAuthCache]);
+  const handleUpdateBalance = useCallback(
+    async (isAdd: boolean) => {
+      if (!selectedUserId || !balanceAmount || !balanceDescription) {
+        toast.error("Заполните сумму и описание");
+        return;
+      }
+
+      const amount = parseFloat(balanceAmount);
+      if (isNaN(amount) || amount <= 0) {
+        toast.error("Некорректная сумма");
+        return;
+      }
+
+      try {
+        await updateUserBalance({
+          userId: selectedUserId,
+          amount: isAdd ? amount : -amount,
+          description: balanceDescription,
+        }).unwrap();
+        toast.success(isAdd ? "Баланс пополнен" : "Баланс списан");
+        setBalanceAmount("");
+        setBalanceDescription("");
+        refetchSelectedUser();
+        invalidateAuthCache();
+      } catch {
+        toast.error("Ошибка при обновлении баланса");
+      }
+    },
+    [
+      selectedUserId,
+      balanceAmount,
+      balanceDescription,
+      updateUserBalance,
+      toast,
+      refetchSelectedUser,
+      invalidateAuthCache,
+    ],
+  );
 
   const handleBanFromModal = useCallback(async () => {
     if (!selectedUserId || !banReason) {
       toast.error("Укажите причину блокировки");
       return;
     }
-    
+
     try {
       await banUser({ userId: selectedUserId, reason: banReason, duration: banDuration }).unwrap();
       toast.success("Пользователь заблокирован");
@@ -363,35 +456,46 @@ export function UsersSection() {
     }
   }, [selectedUserId, banReason, banDuration, banUser, toast, refetch, refetchSelectedUser]);
 
-  const handleRoleChange = useCallback(async (userId: string, newRole: "user" | "moderator" | "admin") => {
-    try {
-      await updateUserRole({ userId, role: newRole }).unwrap();
-      toast.success("Роль изменена");
-      refetch();
-      if (selectedUserId === userId) refetchSelectedUser();
-      invalidateAuthCache();
-    } catch {
-      toast.error("Ошибка при смене роли");
-    }
-  }, [updateUserRole, toast, refetch, selectedUserId, refetchSelectedUser, invalidateAuthCache]);
+  const handleRoleChange = useCallback(
+    async (userId: string, newRole: "user" | "moderator" | "admin") => {
+      try {
+        await updateUserRole({ userId, role: newRole }).unwrap();
+        toast.success("Роль изменена");
+        refetch();
+        if (selectedUserId === userId) refetchSelectedUser();
+        invalidateAuthCache();
+      } catch {
+        toast.error("Ошибка при смене роли");
+      }
+    },
+    [updateUserRole, toast, refetch, selectedUserId, refetchSelectedUser, invalidateAuthCache],
+  );
 
-  const handleDeleteCommentsFromList = useCallback(async (userId: string, username: string) => {
-    if (!confirm(`Удалить все комментарии пользователя "${username}"? Это действие нельзя отменить.`)) return;
-    
-    try {
-      const result = await deleteUserComments(userId).unwrap();
-      toast.success(`Удалено ${result.data?.deletedCount ?? 0} комментариев`);
-    } catch {
-      toast.error("Ошибка при удалении комментариев");
-    }
-  }, [deleteUserComments, toast]);
+  const handleDeleteCommentsFromList = useCallback(
+    async (userId: string, username: string) => {
+      if (
+        !confirm(
+          `Удалить все комментарии пользователя "${username}"? Это действие нельзя отменить.`,
+        )
+      )
+        return;
+
+      try {
+        const result = await deleteUserComments(userId).unwrap();
+        toast.success(`Удалено ${result.data?.deletedCount ?? 0} комментариев`);
+      } catch {
+        toast.error("Ошибка при удалении комментариев");
+      }
+    },
+    [deleteUserComments, toast],
+  );
 
   const handleBulkBan = async () => {
     if (selectedIds.length === 0) return;
     setIsBulkLoading(true);
     try {
       const results = await Promise.allSettled(
-        selectedIds.map(id => banUser({ userId: id, reason: "Массовая блокировка" }).unwrap())
+        selectedIds.map(id => banUser({ userId: id, reason: "Массовая блокировка" }).unwrap()),
       );
       const failed = results.filter(r => r.status === "rejected").length;
       const success = results.length - failed;
@@ -415,7 +519,7 @@ export function UsersSection() {
     setIsBulkLoading(true);
     try {
       const results = await Promise.allSettled(
-        selectedIds.map(id => updateUserRole({ userId: id, role: bulkRoleTarget }).unwrap())
+        selectedIds.map(id => updateUserRole({ userId: id, role: bulkRoleTarget }).unwrap()),
       );
       const failed = results.filter(r => r.status === "rejected").length;
       const success = results.length - failed;
@@ -531,7 +635,7 @@ export function UsersSection() {
                     }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm transition-colors ${
                       statusFilter === filter.value
-                        ? filter.value === "banned" 
+                        ? filter.value === "banned"
                           ? "bg-red-500 text-white"
                           : filter.value === "active"
                             ? "bg-green-500 text-white"
@@ -582,7 +686,11 @@ export function UsersSection() {
               className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex-shrink-0"
               title="Переключить направление"
             >
-              {sortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <ArrowDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+              {sortDirection === "asc" ? (
+                <ArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              ) : (
+                <ArrowDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              )}
             </button>
           </div>
 
@@ -713,7 +821,9 @@ export function UsersSection() {
                     <td className="p-2 sm:p-4">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div className="relative w-8 h-8 sm:w-10 sm:h-10">
-                          {user.avatar && !user.avatar.includes("undefined") && !user.avatar.includes("null") ? (
+                          {user.avatar &&
+                          !user.avatar.includes("undefined") &&
+                          !user.avatar.includes("null") ? (
                             <Image
                               src={normalizeUrl(user.avatar || "")}
                               alt={user.username}
@@ -730,7 +840,10 @@ export function UsersSection() {
                             </div>
                           )}
                           {(user as UserProfile & { isBanned?: boolean }).isBanned && (
-                            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center" title="Заблокирован">
+                            <div
+                              className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center"
+                              title="Заблокирован"
+                            >
                               <Ban className="w-2.5 h-2.5 text-white" />
                             </div>
                           )}
@@ -798,7 +911,12 @@ export function UsersSection() {
                             setSelectedUserId(user._id);
                             setDetailTab("info");
                             setIsEditMode(true);
-                            setEditData({ username: user.username, email: user.email, level: user.level, bio: "" });
+                            setEditData({
+                              username: user.username,
+                              email: user.email,
+                              level: user.level,
+                              bio: "",
+                            });
                           }}
                           className="p-1.5 text-[var(--muted-foreground)] hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
                           title="Редактировать"
@@ -857,7 +975,7 @@ export function UsersSection() {
                   user={user as UserProfile & { isBanned?: boolean }}
                   onView={openUserDetail}
                   onDelete={handleDelete}
-                  onEdit={(userId) => {
+                  onEdit={userId => {
                     const u = sortedUsers.find((x: UserProfile) => x._id === userId);
                     if (u) {
                       setSelectedUserId(userId);
@@ -866,7 +984,7 @@ export function UsersSection() {
                       setEditData({ username: u.username, email: u.email, level: u.level });
                     }
                   }}
-                  onBan={(userId) => {
+                  onBan={userId => {
                     setSelectedUserId(userId);
                     setBanReason("");
                     setBanDuration(undefined);
@@ -948,12 +1066,17 @@ export function UsersSection() {
       {/* User Detail Modal */}
       {selectedUserId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeUserDetail} />
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={closeUserDetail}
+          />
           <div className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-2xl flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
               <div className="flex items-center gap-3">
-                {selectedUser?.avatar && !selectedUser.avatar.includes("undefined") && !selectedUser.avatar.includes("null") ? (
+                {selectedUser?.avatar &&
+                !selectedUser.avatar.includes("undefined") &&
+                !selectedUser.avatar.includes("null") ? (
                   <Image
                     src={normalizeUrl(selectedUser.avatar)}
                     alt={selectedUser.username}
@@ -970,7 +1093,9 @@ export function UsersSection() {
                   </div>
                 )}
                 <div>
-                  <h2 className="font-semibold text-[var(--foreground)]">{selectedUser?.username || "Загрузка..."}</h2>
+                  <h2 className="font-semibold text-[var(--foreground)]">
+                    {selectedUser?.username || "Загрузка..."}
+                  </h2>
                   <p className="text-sm text-[var(--muted-foreground)]">{selectedUser?.email}</p>
                 </div>
               </div>
@@ -1015,30 +1140,47 @@ export function UsersSection() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                       <p className="text-xs text-[var(--muted-foreground)]">Уровень</p>
-                      <p className="text-xl font-bold text-[var(--foreground)]">{selectedUser.level || 1}</p>
+                      <p className="text-xl font-bold text-[var(--foreground)]">
+                        {selectedUser.level || 1}
+                      </p>
                     </div>
                     <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                       <p className="text-xs text-[var(--muted-foreground)]">Баланс</p>
-                      <p className="text-xl font-bold text-[var(--foreground)]">{selectedUser.balance || 0}</p>
+                      <p className="text-xl font-bold text-[var(--foreground)]">
+                        {selectedUser.balance || 0}
+                      </p>
                     </div>
                     <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                       <p className="text-xs text-[var(--muted-foreground)]">Роль</p>
-                      <p className={`text-sm font-semibold ${
-                        selectedUser.role === "admin" ? "text-red-500" :
-                        selectedUser.role === "moderator" ? "text-blue-500" : "text-[var(--foreground)]"
-                      }`}>
-                        {selectedUser.role === "admin" ? "Админ" : selectedUser.role === "moderator" ? "Модератор" : "Пользователь"}
+                      <p
+                        className={`text-sm font-semibold ${
+                          selectedUser.role === "admin"
+                            ? "text-red-500"
+                            : selectedUser.role === "moderator"
+                              ? "text-blue-500"
+                              : "text-[var(--foreground)]"
+                        }`}
+                      >
+                        {selectedUser.role === "admin"
+                          ? "Админ"
+                          : selectedUser.role === "moderator"
+                            ? "Модератор"
+                            : "Пользователь"}
                       </p>
                     </div>
                     <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                       <p className="text-xs text-[var(--muted-foreground)]">Регистрация</p>
-                      <p className="text-sm font-medium text-[var(--foreground)]">{formatDate(selectedUser.createdAt)}</p>
+                      <p className="text-sm font-medium text-[var(--foreground)]">
+                        {formatDate(selectedUser.createdAt)}
+                      </p>
                     </div>
                   </div>
 
                   {/* Role change */}
                   <div className="rounded-lg border border-[var(--border)] p-4">
-                    <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">Изменить роль</h3>
+                    <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">
+                      Изменить роль
+                    </h3>
                     <div className="flex gap-2">
                       {(["user", "moderator", "admin"] as const).map(role => (
                         <button
@@ -1047,12 +1189,19 @@ export function UsersSection() {
                           disabled={selectedUser.role === role}
                           className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                             selectedUser.role === role
-                              ? role === "admin" ? "bg-red-500 text-white" :
-                                role === "moderator" ? "bg-blue-500 text-white" : "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                              ? role === "admin"
+                                ? "bg-red-500 text-white"
+                                : role === "moderator"
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-[var(--primary)] text-[var(--primary-foreground)]"
                               : "bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)]"
                           }`}
                         >
-                          {role === "admin" ? "Админ" : role === "moderator" ? "Модератор" : "Пользователь"}
+                          {role === "admin"
+                            ? "Админ"
+                            : role === "moderator"
+                              ? "Модератор"
+                              : "Пользователь"}
                         </button>
                       ))}
                     </div>
@@ -1061,14 +1210,20 @@ export function UsersSection() {
                   {/* Edit form */}
                   {isEditMode ? (
                     <div className="rounded-lg border border-[var(--border)] p-4 space-y-3">
-                      <h3 className="text-sm font-medium text-[var(--foreground)]">Редактирование</h3>
+                      <h3 className="text-sm font-medium text-[var(--foreground)]">
+                        Редактирование
+                      </h3>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-xs text-[var(--muted-foreground)]">Имя пользователя</label>
+                          <label className="text-xs text-[var(--muted-foreground)]">
+                            Имя пользователя
+                          </label>
                           <input
                             type="text"
                             value={editData.username ?? selectedUser.username}
-                            onChange={e => setEditData(prev => ({ ...prev, username: e.target.value }))}
+                            onChange={e =>
+                              setEditData(prev => ({ ...prev, username: e.target.value }))
+                            }
                             className="admin-input w-full mt-1"
                           />
                         </div>
@@ -1077,7 +1232,9 @@ export function UsersSection() {
                           <input
                             type="email"
                             value={editData.email ?? selectedUser.email}
-                            onChange={e => setEditData(prev => ({ ...prev, email: e.target.value }))}
+                            onChange={e =>
+                              setEditData(prev => ({ ...prev, email: e.target.value }))
+                            }
                             className="admin-input w-full mt-1"
                           />
                         </div>
@@ -1086,7 +1243,12 @@ export function UsersSection() {
                           <input
                             type="number"
                             value={editData.level ?? selectedUser.level ?? 1}
-                            onChange={e => setEditData(prev => ({ ...prev, level: parseInt(e.target.value) || 1 }))}
+                            onChange={e =>
+                              setEditData(prev => ({
+                                ...prev,
+                                level: parseInt(e.target.value) || 1,
+                              }))
+                            }
                             className="admin-input w-full mt-1"
                             min={1}
                           />
@@ -1101,7 +1263,10 @@ export function UsersSection() {
                           Сохранить
                         </button>
                         <button
-                          onClick={() => { setIsEditMode(false); setEditData({}); }}
+                          onClick={() => {
+                            setIsEditMode(false);
+                            setEditData({});
+                          }}
                           className="px-4 py-2 rounded-lg bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
                         >
                           Отмена
@@ -1112,7 +1277,11 @@ export function UsersSection() {
                     <button
                       onClick={() => {
                         setIsEditMode(true);
-                        setEditData({ username: selectedUser.username, email: selectedUser.email, level: selectedUser.level });
+                        setEditData({
+                          username: selectedUser.username,
+                          email: selectedUser.email,
+                          level: selectedUser.level,
+                        });
                       }}
                       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
                     >
@@ -1129,7 +1298,9 @@ export function UsersSection() {
                     </h3>
                     {(selectedUser as UserProfile & { isBanned?: boolean }).isBanned ? (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-red-500 font-medium">Пользователь заблокирован</span>
+                        <span className="text-sm text-red-500 font-medium">
+                          Пользователь заблокирован
+                        </span>
                         <button
                           onClick={() => handleUnbanUser(selectedUser._id)}
                           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
@@ -1142,7 +1313,9 @@ export function UsersSection() {
                       <>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs text-[var(--muted-foreground)]">Причина</label>
+                            <label className="text-xs text-[var(--muted-foreground)]">
+                              Причина
+                            </label>
                             <input
                               type="text"
                               value={banReason}
@@ -1152,11 +1325,17 @@ export function UsersSection() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-[var(--muted-foreground)]">Срок (часы, пусто = навсегда)</label>
+                            <label className="text-xs text-[var(--muted-foreground)]">
+                              Срок (часы, пусто = навсегда)
+                            </label>
                             <input
                               type="number"
                               value={banDuration ?? ""}
-                              onChange={e => setBanDuration(e.target.value ? parseInt(e.target.value) : undefined)}
+                              onChange={e =>
+                                setBanDuration(
+                                  e.target.value ? parseInt(e.target.value) : undefined,
+                                )
+                              }
                               placeholder="Навсегда"
                               className="admin-input w-full mt-1"
                               min={1}
@@ -1177,7 +1356,9 @@ export function UsersSection() {
 
                   {/* Delete comments */}
                   <button
-                    onClick={() => handleDeleteCommentsFromList(selectedUser._id, selectedUser.username)}
+                    onClick={() =>
+                      handleDeleteCommentsFromList(selectedUser._id, selectedUser.username)
+                    }
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 transition-colors"
                   >
                     <MessageCircle className="w-4 h-4" />
@@ -1190,11 +1371,15 @@ export function UsersSection() {
                 <div className="space-y-4">
                   <div className="rounded-lg bg-[var(--primary)]/10 p-6 text-center">
                     <p className="text-sm text-[var(--muted-foreground)]">Текущий баланс</p>
-                    <p className="text-4xl font-bold text-[var(--primary)]">{selectedUser.balance || 0}</p>
+                    <p className="text-4xl font-bold text-[var(--primary)]">
+                      {selectedUser.balance || 0}
+                    </p>
                   </div>
 
                   <div className="rounded-lg border border-[var(--border)] p-4 space-y-3">
-                    <h3 className="text-sm font-medium text-[var(--foreground)]">Изменить баланс</h3>
+                    <h3 className="text-sm font-medium text-[var(--foreground)]">
+                      Изменить баланс
+                    </h3>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs text-[var(--muted-foreground)]">Сумма</label>
@@ -1241,7 +1426,9 @@ export function UsersSection() {
                   {/* Transactions history */}
                   <div className="rounded-lg border border-[var(--border)]">
                     <div className="p-3 border-b border-[var(--border)]">
-                      <h3 className="text-sm font-medium text-[var(--foreground)]">История транзакций</h3>
+                      <h3 className="text-sm font-medium text-[var(--foreground)]">
+                        История транзакций
+                      </h3>
                     </div>
                     {transactions.length === 0 ? (
                       <div className="p-6 text-center text-[var(--muted-foreground)]">
@@ -1252,16 +1439,29 @@ export function UsersSection() {
                         {transactions.map(tx => (
                           <div key={tx._id} className="flex items-center justify-between p-3">
                             <div className="flex items-center gap-3">
-                              <div className={`p-2 rounded-lg ${tx.amount >= 0 ? "bg-green-500/10" : "bg-red-500/10"}`}>
-                                {tx.amount >= 0 ? <Plus className="w-4 h-4 text-green-500" /> : <Minus className="w-4 h-4 text-red-500" />}
+                              <div
+                                className={`p-2 rounded-lg ${tx.amount >= 0 ? "bg-green-500/10" : "bg-red-500/10"}`}
+                              >
+                                {tx.amount >= 0 ? (
+                                  <Plus className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Minus className="w-4 h-4 text-red-500" />
+                                )}
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-[var(--foreground)]">{tx.description}</p>
-                                <p className="text-xs text-[var(--muted-foreground)]">{formatDate(tx.createdAt)}</p>
+                                <p className="text-sm font-medium text-[var(--foreground)]">
+                                  {tx.description}
+                                </p>
+                                <p className="text-xs text-[var(--muted-foreground)]">
+                                  {formatDate(tx.createdAt)}
+                                </p>
                               </div>
                             </div>
-                            <span className={`font-semibold ${tx.amount >= 0 ? "text-green-500" : "text-red-500"}`}>
-                              {tx.amount >= 0 ? "+" : ""}{tx.amount}
+                            <span
+                              className={`font-semibold ${tx.amount >= 0 ? "text-green-500" : "text-red-500"}`}
+                            >
+                              {tx.amount >= 0 ? "+" : ""}
+                              {tx.amount}
                             </span>
                           </div>
                         ))}
@@ -1284,7 +1484,9 @@ export function UsersSection() {
                         <div
                           key={ban._id}
                           className={`rounded-lg border p-4 ${
-                            ban.isActive ? "border-red-500/50 bg-red-500/5" : "border-[var(--border)]"
+                            ban.isActive
+                              ? "border-red-500/50 bg-red-500/5"
+                              : "border-[var(--border)]"
                           }`}
                         >
                           <div className="flex items-start justify-between mb-2">
@@ -1294,7 +1496,9 @@ export function UsersSection() {
                               ) : (
                                 <Clock className="w-4 h-4 text-[var(--muted-foreground)]" />
                               )}
-                              <span className={`text-sm font-medium ${ban.isActive ? "text-red-500" : "text-[var(--foreground)]"}`}>
+                              <span
+                                className={`text-sm font-medium ${ban.isActive ? "text-red-500" : "text-[var(--foreground)]"}`}
+                              >
                                 {ban.isActive ? "Активный бан" : "Истёкший бан"}
                               </span>
                             </div>
@@ -1343,8 +1547,9 @@ function SummaryCard({ label, value }: { label: string; value: string | number }
   return (
     <div className="rounded-lg sm:rounded-xl border border-[var(--border)] bg-[var(--card)] px-2 sm:px-3 py-2 sm:py-2.5">
       <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">{label}</p>
-      <p className="mt-0.5 sm:mt-1 text-base sm:text-lg font-semibold text-[var(--foreground)]">{value}</p>
+      <p className="mt-0.5 sm:mt-1 text-base sm:text-lg font-semibold text-[var(--foreground)]">
+        {value}
+      </p>
     </div>
   );
 }
-

@@ -24,11 +24,8 @@ import {
   Download,
   FileText,
   RefreshCw,
-  User,
   ExternalLink,
-  Calendar,
   Eye,
-  Filter,
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { ReportEntityInfo } from "./ReportEntityInfo";
@@ -64,7 +61,10 @@ const RESPONSE_TEMPLATES = [
   { label: "Проверено", text: "Спасибо за сообщение. Мы проверили указанную информацию." },
   { label: "Опечатка исправлена", text: "Опечатка исправлена. Благодарим за внимательность!" },
   { label: "Дубликат", text: "Эта проблема уже была решена ранее. Спасибо за обращение." },
-  { label: "Не воспроизводится", text: "К сожалению, нам не удалось воспроизвести описанную проблему. Если она повторится, пожалуйста, сообщите нам." },
+  {
+    label: "Не воспроизводится",
+    text: "К сожалению, нам не удалось воспроизвести описанную проблему. Если она повторится, пожалуйста, сообщите нам.",
+  },
   { label: "Отклонено", text: "После рассмотрения мы решили отклонить данное обращение." },
 ];
 
@@ -76,17 +76,17 @@ function formatTimeAgo(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
-  
+
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  
+
   if (minutes < 1) return "только что";
   if (minutes < 60) return `${minutes} мин назад`;
   if (hours < 24) return `${hours} ч назад`;
   if (days === 1) return "вчера";
   if (days < 7) return `${days} дн назад`;
-  
+
   return date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
 }
 
@@ -104,13 +104,7 @@ const reportTypeColors = {
 
 function getReportResponse(report: Report | null): string {
   if (!report) return "";
-  return (
-    report.resolutionMessage ??
-    report.response ??
-    report.reply ??
-    report.adminResponse ??
-    ""
-  );
+  return report.resolutionMessage ?? report.response ?? report.reply ?? report.adminResponse ?? "";
 }
 
 export function ReportsSection() {
@@ -134,6 +128,7 @@ export function ReportsSection() {
   const [entityTypeFilter, setEntityTypeFilter] = useState<EntityTypeFilter>("all");
   const [detailReport, setDetailReport] = useState<Report | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- зарезервировано для расширенных фильтров
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const { data, error, isLoading, refetch } = useGetReportsQuery({
@@ -160,7 +155,7 @@ export function ReportsSection() {
       if (entityTypeFilter !== "all" && report.entityType !== entityTypeFilter) {
         return false;
       }
-      
+
       if (!normalizedSearch) return true;
       const haystack = [
         report.content,
@@ -237,7 +232,7 @@ export function ReportsSection() {
       toast.success(
         isResolved !== responseModalReport.isResolved
           ? `Жалоба ${isResolved ? "закрыта" : "открыта"} успешно`
-          : "Ответ сохранён"
+          : "Ответ сохранён",
       );
       refetch();
       closeResponseModal();
@@ -276,7 +271,7 @@ export function ReportsSection() {
   };
 
   const handleSelectReport = useCallback((id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    setSelectedIds(prev => (prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]));
   }, []);
 
   const handleSelectAll = useCallback(() => {
@@ -293,7 +288,12 @@ export function ReportsSection() {
     setIsBulkResolving(true);
     try {
       const results = await Promise.allSettled(
-        selectedIds.map(id => updateReportStatus({ id, data: { isResolved: true, resolutionMessage: "Массово закрыто администратором" } }).unwrap())
+        selectedIds.map(id =>
+          updateReportStatus({
+            id,
+            data: { isResolved: true, resolutionMessage: "Массово закрыто администратором" },
+          }).unwrap(),
+        ),
       );
       const failed = results.filter(r => r.status === "rejected").length;
       const success = results.length - failed;
@@ -348,9 +348,7 @@ export function ReportsSection() {
     if (selectedIds.length === 0) return;
     setIsBulkDeleting(true);
     try {
-      const results = await Promise.allSettled(
-        selectedIds.map(id => deleteReport(id).unwrap())
-      );
+      const results = await Promise.allSettled(selectedIds.map(id => deleteReport(id).unwrap()));
       const failed = results.filter(r => r.status === "rejected").length;
       const success = results.length - failed;
       if (failed === 0) {
@@ -514,7 +512,9 @@ export function ReportsSection() {
             onClick={handleSelectAll}
             className="text-xs sm:text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
           >
-            {selectedIds.length === processedReports.filter(r => !r.isResolved).length ? "Снять все" : "Выбрать все открытые"}
+            {selectedIds.length === processedReports.filter(r => !r.isResolved).length
+              ? "Снять все"
+              : "Выбрать все открытые"}
           </button>
           <div className="flex-1" />
           <button
@@ -581,7 +581,9 @@ export function ReportsSection() {
                     >
                       {reportTypeLabels[report.reportType]}
                     </span>
-                    <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">{report._id}</p>
+                    <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">
+                      {report._id}
+                    </p>
                   </div>
                 </div>
                 <span
@@ -605,10 +607,14 @@ export function ReportsSection() {
                 </span>
               </div>
 
-              <p className="mt-3 text-sm text-[var(--foreground)] whitespace-pre-wrap">{report.content}</p>
+              <p className="mt-3 text-sm text-[var(--foreground)] whitespace-pre-wrap">
+                {report.content}
+              </p>
               {(report.response || report.reply || report.adminResponse) && (
                 <div className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--secondary)]/40 p-2.5">
-                  <p className="text-xs font-medium text-[var(--muted-foreground)]">Ответ администратора</p>
+                  <p className="text-xs font-medium text-[var(--muted-foreground)]">
+                    Ответ администратора
+                  </p>
                   <p className="mt-1 text-sm text-[var(--foreground)] whitespace-pre-wrap">
                     {report.response || report.reply || report.adminResponse}
                   </p>
@@ -669,13 +675,17 @@ export function ReportsSection() {
                   onClick={() => handleStatusChange(report._id, !report.isResolved)}
                   disabled={isStatusUpdating}
                   className={`p-2 rounded-[var(--admin-radius)] transition-colors ${
-                    report.isResolved 
-                      ? "text-yellow-500 hover:bg-yellow-500/10" 
+                    report.isResolved
+                      ? "text-yellow-500 hover:bg-yellow-500/10"
                       : "text-green-500 hover:bg-green-500/10"
                   }`}
                   title={report.isResolved ? "Открыть" : "Закрыть"}
                 >
-                  {report.isResolved ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                  {report.isResolved ? (
+                    <XCircle className="w-4 h-4" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
                 </button>
                 <button
                   onClick={() => handleDelete(report._id)}
@@ -699,19 +709,32 @@ export function ReportsSection() {
                     onClick={handleSelectAll}
                     className="p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   >
-                    {selectedIds.length === processedReports.filter(r => !r.isResolved).length && processedReports.filter(r => !r.isResolved).length > 0 ? (
+                    {selectedIds.length === processedReports.filter(r => !r.isResolved).length &&
+                    processedReports.filter(r => !r.isResolved).length > 0 ? (
                       <CheckSquare className="w-4 h-4 text-[var(--primary)]" />
                     ) : (
                       <Square className="w-4 h-4" />
                     )}
                   </button>
                 </th>
-                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Тип</th>
-                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Описание</th>
-                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Пользователь</th>
-                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Статус</th>
-                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Дата</th>
-                <th className="text-right py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">Действия</th>
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">
+                  Тип
+                </th>
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">
+                  Описание
+                </th>
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">
+                  Пользователь
+                </th>
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">
+                  Статус
+                </th>
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">
+                  Дата
+                </th>
+                <th className="text-right py-2.5 px-3 font-medium text-[var(--foreground)] text-xs">
+                  Действия
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -767,7 +790,9 @@ export function ReportsSection() {
                         unoptimized
                         className="w-6 h-6 rounded-full object-cover bg-[var(--secondary)]"
                       />
-                      <span className="font-medium text-sm">{report.userId?.username || "Аноним"}</span>
+                      <span className="font-medium text-sm">
+                        {report.userId?.username || "Аноним"}
+                      </span>
                     </div>
                   </td>
                   <td className="py-2.5 px-3">
@@ -804,7 +829,11 @@ export function ReportsSection() {
                         className="p-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--accent)] rounded-[var(--admin-radius)] transition-colors"
                         title={report.isResolved ? "Открыть" : "Закрыть"}
                       >
-                        {report.isResolved ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                        {report.isResolved ? (
+                          <XCircle className="w-3.5 h-3.5" />
+                        ) : (
+                          <CheckCircle className="w-3.5 h-3.5" />
+                        )}
                       </button>
                       <button
                         onClick={() => handleDelete(report._id)}
@@ -878,13 +907,18 @@ export function ReportsSection() {
               disabled={isResponseSubmitting || !responseModalText.trim()}
               className="admin-btn admin-btn-primary disabled:opacity-50"
             >
-              {isResponseSubmitting ? "Сохранение..." : responseModalResolveTo === true ? "Ответить и закрыть" : "Сохранить ответ"}
+              {isResponseSubmitting
+                ? "Сохранение..."
+                : responseModalResolveTo === true
+                  ? "Ответить и закрыть"
+                  : "Сохранить ответ"}
             </button>
           </div>
         }
       >
         <p className="text-sm text-[var(--muted-foreground)] mb-2">
-          Текст сохранится в отчёте. Для жалоб он будет отправлен инициатору. Ответ можно изменить позже.
+          Текст сохранится в отчёте. Для жалоб он будет отправлен инициатору. Ответ можно изменить
+          позже.
         </p>
 
         <div className="mb-3">
@@ -1000,7 +1034,9 @@ export function ReportsSection() {
                   {detailReport.userId?.username || "Аноним"}
                 </span>
                 {detailReport.userId?.email && (
-                  <p className="text-xs text-[var(--muted-foreground)]">{detailReport.userId.email}</p>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    {detailReport.userId.email}
+                  </p>
                 )}
               </div>
               {detailReport.userId && (
@@ -1018,33 +1054,45 @@ export function ReportsSection() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                 <p className="text-xs text-[var(--muted-foreground)]">Создана</p>
-                <p className="text-sm font-medium text-[var(--foreground)]">{new Date(detailReport.createdAt).toLocaleDateString("ru-RU")}</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">
+                  {new Date(detailReport.createdAt).toLocaleDateString("ru-RU")}
+                </p>
               </div>
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                 <p className="text-xs text-[var(--muted-foreground)]">Источник</p>
-                <p className="text-sm font-medium text-[var(--foreground)]">{detailReport.entityType === "title" ? "Тайтл" : "Глава"}</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">
+                  {detailReport.entityType === "title" ? "Тайтл" : "Глава"}
+                </p>
               </div>
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                 <p className="text-xs text-[var(--muted-foreground)]">ID жалобы</p>
-                <p className="text-[10px] font-mono text-[var(--foreground)] truncate">{detailReport._id}</p>
+                <p className="text-[10px] font-mono text-[var(--foreground)] truncate">
+                  {detailReport._id}
+                </p>
               </div>
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                 <p className="text-xs text-[var(--muted-foreground)]">Entity ID</p>
-                <p className="text-[10px] font-mono text-[var(--foreground)] truncate">{detailReport.entityId}</p>
+                <p className="text-[10px] font-mono text-[var(--foreground)] truncate">
+                  {detailReport.entityId}
+                </p>
               </div>
             </div>
 
             {/* Content */}
             <div className="rounded-lg border border-[var(--border)] p-4">
               <p className="text-xs text-[var(--muted-foreground)] mb-2">Содержание жалобы</p>
-              <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">{detailReport.content}</p>
+              <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">
+                {detailReport.content}
+              </p>
             </div>
 
             {/* Admin response */}
             {getReportResponse(detailReport) && (
               <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
                 <p className="text-xs text-green-600 mb-2">Ответ администратора</p>
-                <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">{getReportResponse(detailReport)}</p>
+                <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">
+                  {getReportResponse(detailReport)}
+                </p>
                 {detailReport.resolvedAt && (
                   <p className="mt-2 text-xs text-[var(--muted-foreground)]">
                     Закрыта: {new Date(detailReport.resolvedAt).toLocaleString("ru-RU")}
@@ -1086,7 +1134,11 @@ export function ReportsSection() {
                     : "bg-green-500/10 text-green-600 hover:bg-green-500/20"
                 }`}
               >
-                {detailReport.isResolved ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                {detailReport.isResolved ? (
+                  <XCircle className="w-4 h-4" />
+                ) : (
+                  <CheckCircle className="w-4 h-4" />
+                )}
                 {detailReport.isResolved ? "Переоткрыть" : "Закрыть"}
               </button>
               <button

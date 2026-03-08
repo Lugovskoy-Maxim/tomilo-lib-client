@@ -1,19 +1,15 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
-import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight } from "lucide-react";
+import { Clock, Gem, LibraryIcon, SquareArrowOutUpRight } from "lucide-react";
 
 import CollectionCard from "@/shared/collection-card/CollectionCard";
 import LazySection from "@/shared/lazy-section/LazySection";
 import SectionLoadError from "@/shared/error-state/SectionLoadError";
 import ContinueReadingSection from "@/widgets/home-page/ContinueReadingSection";
-import TrendingCard from "@/shared/trending-card/TrendingCard";
 import UnderratedCard from "@/shared/underrated-card/UnderratedCard";
 import FeaturedTitleBlock from "@/shared/featured-title/FeaturedTitleBlock";
-import { 
-  GenresQuickAccess, 
-  TelegramSection, 
-} from "@/shared/home";
+import { TelegramSection } from "@/shared/home";
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSection";
@@ -36,7 +32,13 @@ import type { Collection } from "@/types/collection";
 
 type VisibleSections = HomeVisibleSections &
   StaticDataVisibleSections &
-  Partial<{ ad: boolean; recommendations: boolean; news: boolean; featured: boolean; topPeriod: boolean }>;
+  Partial<{
+    ad: boolean;
+    recommendations: boolean;
+    news: boolean;
+    featured: boolean;
+    topPeriod: boolean;
+  }>;
 
 interface DataCarouselProps {
   title: string;
@@ -85,6 +87,7 @@ export default function HomePage() {
   const [visibleSections, setVisibleSections] = useState<VisibleSections>({});
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [pendingAgeAction, setPendingAgeAction] = useState<(() => void) | null>(null);
+  void pendingAgeAction;
 
   const handleSectionVisible = useCallback((sectionId: string) => {
     setVisibleSections(prev => ({ ...prev, [sectionId]: true }));
@@ -111,17 +114,10 @@ export default function HomePage() {
   // useAuth уже вызывает useGetProfileQuery внутри себя — не дублируем запрос
   const { isAuthenticated, user } = useAuth();
   // Гости видят 18+; авторизованные — по настройке (по умолчанию показываем)
-  const includeAdult = !user ? true : (user.displaySettings?.isAdult !== false);
+  const includeAdult = !user ? true : user.displaySettings?.isAdult !== false;
 
-  const {
-    popularTitles,
-    randomTitles,
-    trendingTitles,
-    underratedTitles,
-    topManhwa,
-    topManhua,
-    top2026,
-  } = useHomeData({ visibleSections, includeAdult });
+  const { popularTitles, randomTitles, underratedTitles, topManhwa, topManhua, top2026 } =
+    useHomeData({ visibleSections, includeAdult });
   // latest-updates загружаем только через RTK Query ниже — не дублируем запрос из useStaticData
   const { collections } = useStaticData({
     visibleSections: { ...visibleSections, latestUpdates: false },
@@ -136,7 +132,7 @@ export default function HomePage() {
     error: latestUpdatesError,
   } = useGetLatestUpdatesQuery(
     { limit: 24, includeAdult },
-    { refetchOnMountOrArgChange: true, refetchOnFocus: true }
+    { refetchOnMountOrArgChange: true, refetchOnFocus: true },
   );
   const latestUpdates = {
     data: latestUpdatesData?.data ?? [],
@@ -146,7 +142,7 @@ export default function HomePage() {
 
   const topCombinedData = useMemo(
     () => ({
-      topManhwa: (topManhwa.data ?? []).slice(0, 5).map((item) => ({
+      topManhwa: (topManhwa.data ?? []).slice(0, 5).map(item => ({
         id: item.id,
         slug: item.slug,
         title: item.title,
@@ -157,7 +153,7 @@ export default function HomePage() {
         views: item.views ?? "0",
         isAdult: item.isAdult ?? false,
       })),
-      top2026: (top2026.data ?? []).slice(0, 5).map((item) => ({
+      top2026: (top2026.data ?? []).slice(0, 5).map(item => ({
         id: item.id,
         slug: item.slug,
         title: item.title,
@@ -168,7 +164,7 @@ export default function HomePage() {
         views: item.views ?? "0",
         isAdult: item.isAdult ?? false,
       })),
-      topManhua: (topManhua.data ?? []).slice(0, 5).map((item) => ({
+      topManhua: (topManhua.data ?? []).slice(0, 5).map(item => ({
         id: item.id,
         slug: item.slug,
         title: item.title,
@@ -187,7 +183,6 @@ export default function HomePage() {
     setMounted(true);
   }, []);
 
-
   const mainClassName =
     "flex flex-col items-center justify-start gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full";
 
@@ -199,7 +194,11 @@ export default function HomePage() {
         {!mounted ? (
           <>
             <FeaturedTitleSkeleton />
-            <CarouselSkeleton cardWidth="w-68 sm:w-72 md:w-80 lg:w-96" variant="reading" showDescription />
+            <CarouselSkeleton
+              cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
+              variant="reading"
+              showDescription
+            />
             <GridSkeleton showTitle variant="trending" />
             <GridSkeleton showTitle variant="trending" />
             <GridSkeleton variant="updates" />
@@ -226,67 +225,68 @@ export default function HomePage() {
               </div>
             </div>
             <GridSkeleton showTitle variant="trending" />
-            <CarouselSkeleton cardWidth="w-24 sm:w-28 md:w-32 lg:w-36" variant="collection" showDescription />
+            <CarouselSkeleton
+              cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
+              variant="collection"
+              showDescription
+            />
             <div className="w-full">
               <TopCombinedSkeleton />
             </div>
           </>
         ) : (
           <>
-        {/* Популярные тайтлы — полноширинный блок */}
-        <LazySection
-          sectionId="featured"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.featured}
-          skeleton={<FeaturedTitleSkeleton />}
-        >
-          {popularTitles.loading ? (
-            <FeaturedTitleSkeleton />
-          ) : popularTitles.error ? (
-            <SectionLoadError sectionTitle="Популярные тайтлы" />
-          ) : (
-            <FeaturedTitleBlock
-              data={popularTitles.data}
-              autoPlayInterval={8000}
-            />
-          )}
-        </LazySection>
+            {/* Популярные тайтлы — полноширинный блок */}
+            <LazySection
+              sectionId="featured"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.featured}
+              skeleton={<FeaturedTitleSkeleton />}
+            >
+              {popularTitles.loading ? (
+                <FeaturedTitleSkeleton />
+              ) : popularTitles.error ? (
+                <SectionLoadError sectionTitle="Популярные тайтлы" />
+              ) : (
+                <FeaturedTitleBlock data={popularTitles.data} autoPlayInterval={8000} />
+              )}
+            </LazySection>
 
-        {/* Быстрые действия для авторизованных пользователей — отключено
+            {/* Быстрые действия для авторизованных пользователей — отключено
         <QuickActions />
         */}
 
-        {/* Быстрый доступ к жанрам (Популярные жанры) — закомментировано
+            {/* Быстрый доступ к жанрам (Популярные жанры) — закомментировано
         <GenresQuickAccess />
         */}
 
-        {/* Продолжить чтение */}
-        <LazySection
-          sectionId="reading"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.reading || !!isAuthenticated}
-          skeleton={
-            <CarouselSkeleton
-              cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
-              variant="reading"
-              showDescription
-            />
-          }
-        >
-          <ContinueReadingSection />
-        </LazySection>
+            {/* Продолжить чтение */}
+            <LazySection
+              sectionId="reading"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.reading || !!isAuthenticated}
+              skeleton={
+                <CarouselSkeleton
+                  cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
+                  variant="reading"
+                  showDescription
+                />
+              }
+            >
+              <ContinueReadingSection />
+            </LazySection>
 
-        <LazySection
-          sectionId="topPeriod"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.topPeriod}
-          skeleton={<GridSkeleton showTitle variant="trending" />}
-        >
-          <TopTitlesSection limit={10} />
-        </LazySection>
+            <LazySection
+              sectionId="topPeriod"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.topPeriod}
+              skeleton={<GridSkeleton showTitle variant="trending" />}
+            >
+              <TopTitlesSection limit={10} />
+            </LazySection>
 
-        {/* В тренде на этой неделе — временно отключено */}
-        {/* <LazySection
+            {/* В тренде на этой неделе — временно отключено */}
+            {/* <LazySection
           sectionId="trending"
           onVisible={handleSectionVisible}
           isVisible={!!visibleSections.trending}
@@ -308,164 +308,166 @@ export default function HomePage() {
           )}
         </LazySection> */}
 
-        {/* Последние обновления */}
-        <LazySection
-          sectionId="latestUpdates"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.latestUpdates}
-          skeleton={<GridSkeleton variant="updates" />}
-        >
-          {latestUpdates.loading ? (
-            <GridSkeleton variant="updates" />
-          ) : latestUpdates.error ? null : (
-            <GridSection
-              title="Последние обновления"
-              description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."
-              type="browse"
-              href="/updates"
-              icon={<Clock className="w-6 h-6" />}
-              data={Array.isArray(latestUpdates.data) ? latestUpdates.data : []}
-              cardComponent={LatestUpdateCard}
-              layout="auto-fit"
-            />
-          )}
-        </LazySection>
+            {/* Последние обновления */}
+            <LazySection
+              sectionId="latestUpdates"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.latestUpdates}
+              skeleton={<GridSkeleton variant="updates" />}
+            >
+              {latestUpdates.loading ? (
+                <GridSkeleton variant="updates" />
+              ) : latestUpdates.error ? null : (
+                <GridSection
+                  title="Последние обновления"
+                  description="Свежие главы, которые только что вышли. Смотрите все обновления в каталоге."
+                  type="browse"
+                  href="/updates"
+                  icon={<Clock className="w-6 h-6" />}
+                  data={Array.isArray(latestUpdates.data) ? latestUpdates.data : []}
+                  cardComponent={LatestUpdateCard}
+                  layout="auto-fit"
+                />
+              )}
+            </LazySection>
 
-        {/* Рекомендации (только для авторизованных) */}
-        {isAuthenticated && (
-          <LazySection
-            sectionId="recommendations"
-            onVisible={handleSectionVisible}
-            isVisible={!!visibleSections.recommendations}
-            skeleton={<CarouselSkeleton cardWidth="w-32 sm:w-36 md:w-40 lg:w-44" variant="poster" />}
-          >
-            <Recommendations limit={10} />
-          </LazySection>
-        )}
-
-        {/* Новости */}
-        <LazySection
-          sectionId="news"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.news}
-          skeleton={
-            <div className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
-              <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <div className="w-9 h-9 rounded-xl bg-[var(--muted)] animate-pulse" />
-                <div className="h-7 w-28 bg-[var(--muted)] rounded animate-pulse" />
-              </div>
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-                <div className="flex gap-4 p-4 sm:p-5">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-5 w-3/4 bg-[var(--muted)] rounded animate-pulse" />
-                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
-                  </div>
-                </div>
-                <div className="flex gap-4 p-4 sm:p-5 border-t border-[var(--border)]">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-5 w-2/3 bg-[var(--muted)] rounded animate-pulse" />
-                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
-        >
-          <NewsBlock />
-        </LazySection>
-
-        {/* Недооцененные: высокий рейтинг, мало просмотров */}
-        <LazySection
-          sectionId="underrated"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.underrated}
-          skeleton={<GridSkeleton showTitle variant="trending" />}
-        >
-          {underratedTitles.loading ? (
-            <GridSkeleton showTitle variant="trending" />
-          ) : underratedTitles.error ? (
-            <SectionLoadError sectionTitle="Недооцененные: высокий рейтинг, мало просмотров" />
-          ) : (
-            <GridSection
-              title="Недооцененные: высокий рейтинг, мало просмотров"
-              description="Качественные тайтлы, которые получили высокий рейтинг, но пока не набрали много просмотров."
-              type="browse"
-              icon={<Gem className="w-6 h-6" />}
-              data={underratedTitles.data.slice(0, 6)}
-              cardComponent={UnderratedCard}
-            />
-          )}
-        </LazySection>
-
-        {/* Случайные тайтлы */}
-        <LazySection
-          sectionId="random"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.random}
-          skeleton={<GridSkeleton showTitle variant="trending" />}
-        >
-          <RandomTitlesComponent
-            data={randomTitles.data}
-            loading={randomTitles.loading}
-            error={randomTitles.error}
-          />
-        </LazySection>
-
-        {/* Telegram секция */}
-        <TelegramSection />
-
-        {/* Коллекции */}
-        <LazySection
-          sectionId="collections"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.collections}
-          skeleton={
-            <CarouselSkeleton
-              cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
-              variant="collection"
-              showDescription
-            />
-          }
-        >
-          <DataCarousel
-            title="Коллекции по темам"
-            data={collections.data}
-            loading={collections.loading}
-            error={collections.error}
-            cardComponent={CollectionCard}
-            description="Здесь подобраны самые популярные коллекции, которые вы можете прочитать."
-            type="collection"
-            href="/collections"
-            getItemPath={(item: Collection) => `/collections/${item.id}`}
-            cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
-            icon={<LibraryIcon className="w-6 h-6" />}
-            showNavigation={false}
-            navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
-            skeletonVariant="collection"
-          />
-        </LazySection>
-
-        {/* Топ тайтлов: три колонки (2026, Манхва, Маньхуа) — в самый низ */}
-        <LazySection
-          sectionId="topCombined"
-          onVisible={handleSectionVisible}
-          isVisible={!!visibleSections.topCombined}
-          skeleton={
-            <div className="w-full">
-              <TopCombinedSkeleton />
-            </div>
-          }
-        >
-          <div className="w-full">
-            {topManhwa.loading || top2026.loading || topManhua.loading ? (
-              <TopCombinedSkeleton />
-            ) : topManhwa.error || top2026.error || topManhua.error ? null : (
-              <TopCombinedSection data={topCombinedData} />
+            {/* Рекомендации (только для авторизованных) */}
+            {isAuthenticated && (
+              <LazySection
+                sectionId="recommendations"
+                onVisible={handleSectionVisible}
+                isVisible={!!visibleSections.recommendations}
+                skeleton={
+                  <CarouselSkeleton cardWidth="w-32 sm:w-36 md:w-40 lg:w-44" variant="poster" />
+                }
+              >
+                <Recommendations limit={10} />
+              </LazySection>
             )}
-          </div>
-        </LazySection>
+
+            {/* Новости */}
+            <LazySection
+              sectionId="news"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.news}
+              skeleton={
+                <div className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <div className="w-9 h-9 rounded-xl bg-[var(--muted)] animate-pulse" />
+                    <div className="h-7 w-28 bg-[var(--muted)] rounded animate-pulse" />
+                  </div>
+                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                    <div className="flex gap-4 p-4 sm:p-5">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-5 w-3/4 bg-[var(--muted)] rounded animate-pulse" />
+                        <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="flex gap-4 p-4 sm:p-5 border-t border-[var(--border)]">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-5 w-2/3 bg-[var(--muted)] rounded animate-pulse" />
+                        <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            >
+              <NewsBlock />
+            </LazySection>
+
+            {/* Недооцененные: высокий рейтинг, мало просмотров */}
+            <LazySection
+              sectionId="underrated"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.underrated}
+              skeleton={<GridSkeleton showTitle variant="trending" />}
+            >
+              {underratedTitles.loading ? (
+                <GridSkeleton showTitle variant="trending" />
+              ) : underratedTitles.error ? (
+                <SectionLoadError sectionTitle="Недооцененные: высокий рейтинг, мало просмотров" />
+              ) : (
+                <GridSection
+                  title="Недооцененные: высокий рейтинг, мало просмотров"
+                  description="Качественные тайтлы, которые получили высокий рейтинг, но пока не набрали много просмотров."
+                  type="browse"
+                  icon={<Gem className="w-6 h-6" />}
+                  data={underratedTitles.data.slice(0, 6)}
+                  cardComponent={UnderratedCard}
+                />
+              )}
+            </LazySection>
+
+            {/* Случайные тайтлы */}
+            <LazySection
+              sectionId="random"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.random}
+              skeleton={<GridSkeleton showTitle variant="trending" />}
+            >
+              <RandomTitlesComponent
+                data={randomTitles.data}
+                loading={randomTitles.loading}
+                error={randomTitles.error}
+              />
+            </LazySection>
+
+            {/* Telegram секция */}
+            <TelegramSection />
+
+            {/* Коллекции */}
+            <LazySection
+              sectionId="collections"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.collections}
+              skeleton={
+                <CarouselSkeleton
+                  cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
+                  variant="collection"
+                  showDescription
+                />
+              }
+            >
+              <DataCarousel
+                title="Коллекции по темам"
+                data={collections.data}
+                loading={collections.loading}
+                error={collections.error}
+                cardComponent={CollectionCard}
+                description="Здесь подобраны самые популярные коллекции, которые вы можете прочитать."
+                type="collection"
+                href="/collections"
+                getItemPath={(item: Collection) => `/collections/${item.id}`}
+                cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
+                icon={<LibraryIcon className="w-6 h-6" />}
+                showNavigation={false}
+                navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
+                skeletonVariant="collection"
+              />
+            </LazySection>
+
+            {/* Топ тайтлов: три колонки (2026, Манхва, Маньхуа) — в самый низ */}
+            <LazySection
+              sectionId="topCombined"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.topCombined}
+              skeleton={
+                <div className="w-full">
+                  <TopCombinedSkeleton />
+                </div>
+              }
+            >
+              <div className="w-full">
+                {topManhwa.loading || top2026.loading || topManhua.loading ? (
+                  <TopCombinedSkeleton />
+                ) : topManhwa.error || top2026.error || topManhua.error ? null : (
+                  <TopCombinedSection data={topCombinedData} />
+                )}
+              </div>
+            </LazySection>
           </>
         )}
       </main>

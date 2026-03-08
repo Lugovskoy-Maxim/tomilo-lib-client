@@ -136,7 +136,6 @@ export default function Carousel<T>({
     return () => mq.removeEventListener("change", set);
   }, []);
 
-  // Очистка timeout при unmount для предотвращения утечки памяти
   useEffect(() => {
     return () => {
       if (autoScrollResumeTimeoutRef.current) {
@@ -218,17 +217,21 @@ export default function Carousel<T>({
    * @param item - Объект данных карточки.
    * @returns Строка с ID или пустая строка, если поле не найдено.
    */
-  const getCardId = useCallback((item: T) => {
-    if (item == null || typeof item !== "object") return "";
-    const idValue = (item as Record<string, unknown>)[idField as string];
-    return idValue != null ? String(idValue) : "";
-  }, [idField]);
+  const getCardId = useCallback(
+    (item: T) => {
+      if (item == null || typeof item !== "object") return "";
+      const idValue = (item as Record<string, unknown>)[idField as string];
+      return idValue != null ? String(idValue) : "";
+    },
+    [idField],
+  );
 
   /** Отфильтровываем null/undefined, чтобы не падать при рендере. */
   const safeData = data.filter((item): item is T => item != null && typeof item === "object");
 
   /** Для бесконечной автопрокрутки рендерим два набора данных подряд. */
-  const displayData = autoScrollInterval && safeData.length > 1 ? [...safeData, ...safeData] : safeData;
+  const displayData =
+    autoScrollInterval && safeData.length > 1 ? [...safeData, ...safeData] : safeData;
 
   /**
    * Прокручивает карусель в указанном направлении.
@@ -245,10 +248,9 @@ export default function Carousel<T>({
 
     const cardEl = container.children[0] as HTMLElement | undefined;
     const cardWidthPx = cardEl?.offsetWidth ?? 150;
-    const gap = 16; // gap-4
+    const gap = 16;
     const cardWithGap = cardWidthPx + gap;
 
-    // Сколько карточек влезает в видимую область (если контейнер уже измерен)
     const visibleCount =
       containerWidth > 0
         ? Math.max(1, Math.floor((containerWidth + gap) / cardWithGap))
@@ -265,44 +267,50 @@ export default function Carousel<T>({
    * Обработчик начала перетаскивания карусели (мышь).
    * @param e - Событие мыши.
    */
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault(); // чтобы ссылки/картинки внутри не перехватывали драг
-    pauseAutoScroll();
-    setIsDragging(true);
-    setDragOccurred(false);
-    dragOccurredRef.current = false;
-    setStartX(e.pageX);
-    const container = scrollContainerRef.current;
-    if (container) {
-      setScrollLeft(container.scrollLeft);
-      startScrollLeftRef.current = container.scrollLeft;
-    } else {
-      setScrollLeft(0);
-      startScrollLeftRef.current = 0;
-    }
-    setDragStartTime(Date.now());
-  }, [pauseAutoScroll]);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault(); // чтобы ссылки/картинки внутри не перехватывали драг
+      pauseAutoScroll();
+      setIsDragging(true);
+      setDragOccurred(false);
+      dragOccurredRef.current = false;
+      setStartX(e.pageX);
+      const container = scrollContainerRef.current;
+      if (container) {
+        setScrollLeft(container.scrollLeft);
+        startScrollLeftRef.current = container.scrollLeft;
+      } else {
+        setScrollLeft(0);
+        startScrollLeftRef.current = 0;
+      }
+      setDragStartTime(Date.now());
+    },
+    [pauseAutoScroll],
+  );
 
   /**
    * Обработчик начала касания карусели (touch).
    * @param e - Событие касания.
    */
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    pauseAutoScroll();
-    setIsDragging(true);
-    setDragOccurred(false);
-    dragOccurredRef.current = false;
-    setStartX(e.touches[0].pageX);
-    const container = scrollContainerRef.current;
-    if (container) {
-      setScrollLeft(container.scrollLeft);
-      startScrollLeftRef.current = container.scrollLeft;
-    } else {
-      setScrollLeft(0);
-      startScrollLeftRef.current = 0;
-    }
-    setDragStartTime(Date.now());
-  }, [pauseAutoScroll]);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      pauseAutoScroll();
+      setIsDragging(true);
+      setDragOccurred(false);
+      dragOccurredRef.current = false;
+      setStartX(e.touches[0].pageX);
+      const container = scrollContainerRef.current;
+      if (container) {
+        setScrollLeft(container.scrollLeft);
+        startScrollLeftRef.current = container.scrollLeft;
+      } else {
+        setScrollLeft(0);
+        startScrollLeftRef.current = 0;
+      }
+      setDragStartTime(Date.now());
+    },
+    [pauseAutoScroll],
+  );
 
   /**
    * Обработчик завершения перетаскивания или выхода мыши/тача из зоны карусели.
@@ -315,7 +323,6 @@ export default function Carousel<T>({
     setIsDragging(false);
     setDragOccurred(false);
     scheduleAutoScrollResume();
-    // Держим ref дольше: на мобильных браузер генерирует click ~300ms после touchend
     const ref = dragOccurredRef;
     setTimeout(() => {
       ref.current = false;
@@ -335,35 +342,30 @@ export default function Carousel<T>({
    * @param item - Данные карточки.
    * @param e - Событие мыши.
    */
-  const handleCardClick = useCallback((item: T, e: React.MouseEvent | React.TouchEvent) => {
-    const currentTime = Date.now();
-    const timeDiff = currentTime - dragStartTime;
+  const handleCardClick = useCallback(
+    (item: T, e: React.MouseEvent | React.TouchEvent) => {
+      const currentTime = Date.now();
+      const timeDiff = currentTime - dragStartTime;
 
-    // Проверяем, был ли это клик (не drag). Используем ref — click приходит после mouseup,
-    // к тому моменту state dragOccurred уже сброшен в handleDragEnd, ref ещё не очищен.
-    if (dragOccurredRef.current || dragOccurred || timeDiff > 200) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-
-    // Проверяем, что клик был именно по карточке, а не по кнопкам внутри неё
-    const target = e.target as HTMLElement;
-    const card = target.closest("[data-card-id]");
-    
-    if (card) {
-      // Проверяем, есть ли у карточки обработчик onClick
-      const cardComponent = card.querySelector("[data-card-click-handler]");
-      if (cardComponent) {
-        // Если есть обработчик, не выполняем переход по умолчанию
+      if (dragOccurredRef.current || dragOccurred || timeDiff > 200) {
+        e.preventDefault();
+        e.stopPropagation();
         return;
       }
 
-      // Используем кастомный путь если предоставлен, иначе fallback на стандартный
-      const path = getItemPath ? getItemPath(item) : `/${type}/${getCardId(item)}`;
-      router.push(path);
-    }
-  }, [dragOccurred, dragStartTime, getItemPath, router, type, getCardId]);
+      const target = e.target as HTMLElement;
+      const card = target.closest("[data-card-id]");
+
+      if (card) {
+        const cardComponent = card.querySelector("[data-card-click-handler]");
+        if (cardComponent) return;
+
+        const path = getItemPath ? getItemPath(item) : `/${type}/${getCardId(item)}`;
+        router.push(path);
+      }
+    },
+    [dragOccurred, dragStartTime, getItemPath, router, type, getCardId],
+  );
 
   /**
    * Обработчик отпускания кнопки мыши после перетаскивания.
@@ -387,39 +389,44 @@ export default function Carousel<T>({
    * Обработчик движения мыши во время перетаскивания.
    * @param e - Событие мыши.
    */
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging) return;
 
-    const movedDistance = Math.abs(e.pageX - startX);
-    const overThreshold = movedDistance > 10;
-    if (overThreshold) {
-      setDragOccurred(true);
-      dragOccurredRef.current = true;
-    }
+      const movedDistance = Math.abs(e.pageX - startX);
+      const overThreshold = movedDistance > 10;
+      if (overThreshold) {
+        setDragOccurred(true);
+        dragOccurredRef.current = true;
+      }
 
-    const container = scrollContainerRef.current;
-    // Скролл сразу при сдвиге >10px (без ожидания state), чтобы драг не забирала ссылка
-    if (overThreshold && container) {
-      e.preventDefault();
-      container.scrollLeft = startScrollLeftRef.current - (e.pageX - startX);
-    }
-  }, [isDragging, startX]);
+      const container = scrollContainerRef.current;
+      if (overThreshold && container) {
+        e.preventDefault();
+        container.scrollLeft = startScrollLeftRef.current - (e.pageX - startX);
+      }
+    },
+    [isDragging, startX],
+  );
 
   /**
    * Обработчик движения при касании (touch move).
    * Не меняем scrollLeft — даём браузеру нативную инерционную прокрутку (как на телефонах).
    * Только помечаем hasDragged для отличия клика от свайпа.
    */
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging) return;
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDragging) return;
 
-    const touch = e.touches[0];
-    const movedDistance = Math.abs(touch.pageX - startX);
-    if (movedDistance > 10) {
-      setDragOccurred(true);
-      dragOccurredRef.current = true;
-    }
-  }, [isDragging, startX]);
+      const touch = e.touches[0];
+      const movedDistance = Math.abs(touch.pageX - startX);
+      if (movedDistance > 10) {
+        setDragOccurred(true);
+        dragOccurredRef.current = true;
+      }
+    },
+    [isDragging, startX],
+  );
 
   /**
    * Рендерит описание с вставленной ссылкой, если `descriptionLink` предоставлен.
@@ -445,72 +452,71 @@ export default function Carousel<T>({
 
   const content = (
     <div className="relative group/carousel">
-        {/* Прокручиваемая карусель: с autoScroll — автопрокрутка + перетаскивание, без — обычная. */}
-        <div
-            ref={scrollContainerRef}
-            className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-visible scrollbar-hide cursor-grab active:cursor-grabbing select-none py-2 sm:py-4 min-w-0 touch-pan-both will-change-scroll"
-            onMouseDown={handleMouseDown}
-            onMouseEnter={() => {
-              if (autoScrollInterval) {
-                pauseAutoScroll();
-              }
-            }}
-            onMouseLeave={() => {
-              if (isDragging) {
-                handleDragEnd();
-                return;
-              }
-              if (autoScrollInterval) {
-                scheduleAutoScrollResume();
-              }
-            }}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onClickCapture={handleClickCapture}
-            style={{
-              userSelect: "none",
-              WebkitOverflowScrolling: "touch",
-            }}
+      {/* Прокручиваемая карусель: с autoScroll — автопрокрутка + перетаскивание, без — обычная. */}
+      <div
+        ref={scrollContainerRef}
+        className="flex gap-3 sm:gap-4 overflow-x-auto overflow-y-visible scrollbar-hide cursor-grab active:cursor-grabbing select-none py-2 sm:py-4 min-w-0 touch-pan-both will-change-scroll"
+        onMouseDown={handleMouseDown}
+        onMouseEnter={() => {
+          if (autoScrollInterval) {
+            pauseAutoScroll();
+          }
+        }}
+        onMouseLeave={() => {
+          if (isDragging) {
+            handleDragEnd();
+            return;
+          }
+          if (autoScrollInterval) {
+            scheduleAutoScrollResume();
+          }
+        }}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClickCapture={handleClickCapture}
+        style={{
+          userSelect: "none",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {(autoScrollInterval && safeData.length > 1 ? displayData : safeData).map((item, index) => (
+          <div
+            key={`${getCardId(item)}-${index}`}
+            className={`flex-shrink-0 h-full ${cardWidth}`}
+            data-card-id={getCardId(item)}
+            data-card-type={type}
+            onClick={e => handleCardClick(item, e)}
           >
-            {(autoScrollInterval && safeData.length > 1 ? displayData : safeData).map((item, index) => (
-                <div
-                  key={`${getCardId(item)}-${index}`}
-                  className={`flex-shrink-0 h-full ${cardWidth}`}
-                  data-card-id={getCardId(item)}
-                  data-card-type={type}
-                  onClick={(e) => handleCardClick(item, e)}
-                >
-                  <CardComponent data={item} />
-                </div>
-              )
-            )}
+            <CardComponent data={item} />
           </div>
-
-        {/* Кнопки по бокам карусели */}
-        {showNavigation && safeData.length > 0 && (
-          <>
-            <button
-              type="button"
-              onClick={() => scroll("left")}
-              aria-label="Прокрутить влево"
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[var(--secondary)]/95 dark:bg-[var(--card)]/95 border border-[var(--border)] shadow-md hover:bg-[var(--accent)] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center opacity-70 md:opacity-0 md:group-hover/carousel:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] touch-manipulation"
-            >
-              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[var(--muted-foreground)]" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scroll("right")}
-              aria-label="Прокрутить вправо"
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[var(--secondary)]/95 dark:bg-[var(--card)]/95 border border-[var(--border)] shadow-md hover:bg-[var(--accent)] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center opacity-70 md:opacity-0 md:group-hover/carousel:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] touch-manipulation"
-            >
-              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[var(--muted-foreground)]" />
-            </button>
-          </>
-        )}
+        ))}
       </div>
+
+      {/* Кнопки по бокам карусели */}
+      {showNavigation && safeData.length > 0 && (
+        <>
+          <button
+            type="button"
+            onClick={() => scroll("left")}
+            aria-label="Прокрутить влево"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[var(--secondary)]/95 dark:bg-[var(--card)]/95 border border-[var(--border)] shadow-md hover:bg-[var(--accent)] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center opacity-70 md:opacity-0 md:group-hover/carousel:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] touch-manipulation"
+          >
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[var(--muted-foreground)]" />
+          </button>
+          <button
+            type="button"
+            onClick={() => scroll("right")}
+            aria-label="Прокрутить вправо"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[var(--secondary)]/95 dark:bg-[var(--card)]/95 border border-[var(--border)] shadow-md hover:bg-[var(--accent)] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center opacity-70 md:opacity-0 md:group-hover/carousel:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] touch-manipulation"
+          >
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[var(--muted-foreground)]" />
+          </button>
+        </>
+      )}
+    </div>
   );
 
   if (hideHeader) {

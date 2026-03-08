@@ -33,7 +33,7 @@ export default function RateLimitError({
       return;
     }
     const timer = setInterval(() => {
-      setTimeLeft((prev) => Math.max(0, prev - 1));
+      setTimeLeft(prev => Math.max(0, prev - 1));
     }, 1000);
     return () => clearInterval(timer);
   }, [timeLeft, onRetry]);

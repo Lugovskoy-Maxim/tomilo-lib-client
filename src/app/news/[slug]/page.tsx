@@ -14,7 +14,7 @@ async function getAnnouncementBySlug(slug: string) {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/announcements/slug/${encodeURIComponent(slug)}`,
-      { next: { revalidate: 300 } }
+      { next: { revalidate: 300 } },
     );
     if (!response.ok) return null;
     const data = await response.json();
@@ -27,9 +27,9 @@ async function getAnnouncementBySlug(slug: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-  
+
   const announcement = await getAnnouncementBySlug(slug);
-  
+
   if (!announcement) {
     return {
       title: "Новость не найдена — Tomilo-lib.ru",
@@ -37,27 +37,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       robots: { index: false, follow: false },
     };
   }
-  
+
   const title = `${announcement.title} — Новости Tomilo-lib.ru`;
-  const description = announcement.shortDescription || 
-    (announcement.body ? announcement.body.replace(/<[^>]*>/g, "").substring(0, 160) : "Новость на Tomilo-lib.ru");
-  
-  const ogImageUrl = announcement.coverImage 
+  const description =
+    announcement.shortDescription ||
+    (announcement.body
+      ? announcement.body.replace(/<[^>]*>/g, "").substring(0, 160)
+      : "Новость на Tomilo-lib.ru");
+
+  const ogImageUrl = announcement.coverImage
     ? getOgImageUrl(baseUrl, announcement.coverImage, baseUrl)
     : getDefaultOgImageUrl(baseUrl);
-  
+
   const publishedTime = announcement.publishedAt || announcement.createdAt;
   const modifiedTime = announcement.updatedAt;
-  
+
   return buildServerSEOMetadata({
     title: sanitizeMetaString(title),
     description: sanitizeMetaString(description),
-    keywords: [
-      "новости",
-      "объявление",
-      "Tomilo-lib",
-      ...(announcement.tags || []),
-    ].join(", "),
+    keywords: ["новости", "объявление", "Tomilo-lib", ...(announcement.tags || [])].join(", "),
     canonicalUrl: `${baseUrl}/news/${encodeURIComponent(slug)}`,
     ogImageUrl,
     ogImageAlt: announcement.title,
@@ -75,11 +73,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function NewsSlugPage({ params }: PageProps) {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-  
+
   const announcement = await getAnnouncementBySlug(slug);
-  
+
   let jsonLdScripts: React.ReactNode = null;
-  
+
   if (announcement) {
     const newsArticleJsonLd = {
       "@context": "https://schema.org",
@@ -99,17 +97,22 @@ export default async function NewsSlugPage({ params }: PageProps) {
         "@id": `${baseUrl}/news/${slug}`,
       },
     };
-    
+
     const breadcrumbJsonLd = {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Главная", item: baseUrl },
         { "@type": "ListItem", position: 2, name: "Новости", item: `${baseUrl}/news` },
-        { "@type": "ListItem", position: 3, name: announcement.title, item: `${baseUrl}/news/${slug}` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: announcement.title,
+          item: `${baseUrl}/news/${slug}`,
+        },
       ],
     };
-    
+
     jsonLdScripts = (
       <>
         <script
@@ -123,7 +126,7 @@ export default async function NewsSlugPage({ params }: PageProps) {
       </>
     );
   }
-  
+
   return (
     <>
       {jsonLdScripts}

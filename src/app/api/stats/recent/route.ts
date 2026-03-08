@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   if (!days) {
     return NextResponse.json(
       { success: false, message: "Missing 'days' parameter" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   if (isNaN(daysNum) || daysNum < 1 || daysNum > 365) {
     return NextResponse.json(
       { success: false, message: "Invalid days. Must be between 1 and 365" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       const errorData = await res.json().catch(() => ({ message: "Failed to fetch recent stats" }));
       return NextResponse.json(
         { success: false, message: errorData.message || "Failed to fetch recent stats" },
-        { status: res.status }
+        { status: res.status },
       );
     }
 
@@ -48,9 +48,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Recent stats API error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

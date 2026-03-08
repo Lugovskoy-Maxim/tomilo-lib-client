@@ -36,16 +36,11 @@ function getChapterStatusLabel(chapter: Chapter): string {
 function getChapterStatusStyles(chapter: Chapter): string {
   const s = String(chapter.status ?? "").toLowerCase();
   const base = "px-2 py-1 rounded-full text-xs font-medium";
-  if (s === "draft")
-    return `${base} bg-[var(--muted)] text-[var(--muted-foreground)]`;
-  if (s === "published")
-    return `${base} bg-emerald-500/20 text-emerald-700 dark:text-emerald-400`;
-  if (s === "scheduled")
-    return `${base} bg-amber-500/20 text-amber-700 dark:text-amber-400`;
-  if (s === "hidden")
-    return `${base} bg-orange-500/20 text-orange-700 dark:text-orange-400`;
-  if (s === "deleted")
-    return `${base} bg-red-500/20 text-red-700 dark:text-red-400`;
+  if (s === "draft") return `${base} bg-[var(--muted)] text-[var(--muted-foreground)]`;
+  if (s === "published") return `${base} bg-emerald-500/20 text-emerald-700 dark:text-emerald-400`;
+  if (s === "scheduled") return `${base} bg-amber-500/20 text-amber-700 dark:text-amber-400`;
+  if (s === "hidden") return `${base} bg-orange-500/20 text-orange-700 dark:text-orange-400`;
+  if (s === "deleted") return `${base} bg-red-500/20 text-red-700 dark:text-red-400`;
   return chapter.isPublished
     ? `${base} bg-emerald-500/20 text-emerald-700 dark:text-emerald-400`
     : `${base} bg-[var(--muted)] text-[var(--muted-foreground)]`;
@@ -149,8 +144,8 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
             ? (aVal as number) - (bVal as number)
             : (bVal as number) - (aVal as number);
         case "pages":
-          aVal = (a.pages?.length ?? a.images?.length ?? 0);
-          bVal = (b.pages?.length ?? b.images?.length ?? 0);
+          aVal = a.pages?.length ?? a.images?.length ?? 0;
+          bVal = b.pages?.length ?? b.images?.length ?? 0;
           return sortDirection === "asc"
             ? (aVal as number) - (bVal as number)
             : (bVal as number) - (aVal as number);
@@ -236,10 +231,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
             </h3>
             <p className="text-[var(--muted-foreground)] mb-6">{modalContent.message}</p>
             <div className="flex justify-end">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="admin-btn admin-btn-primary"
-              >
+              <button onClick={() => setIsModalOpen(false)} className="admin-btn admin-btn-primary">
                 Закрыть
               </button>
             </div>
@@ -258,11 +250,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
           <input
             type="text"
             value={
-              titleId
-                ? isTitleLoading
-                  ? "Загрузка..."
-                  : selectedTitle?.name ?? ""
-                : titleSearch
+              titleId ? (isTitleLoading ? "Загрузка..." : (selectedTitle?.name ?? "")) : titleSearch
             }
             onChange={e => {
               if (titleId) {
@@ -293,9 +281,7 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
                 </button>
               ) : searchTitles.length === 0 ? (
                 <div className="px-4 py-3 text-sm text-[var(--muted-foreground)]">
-                  {titleSearch.length < 1
-                    ? "Загрузка тайтлов..."
-                    : "Ничего не найдено"}
+                  {titleSearch.length < 1 ? "Загрузка тайтлов..." : "Ничего не найдено"}
                 </div>
               ) : (
                 searchTitles.map((title: Title) => (
@@ -514,21 +500,22 @@ export function ChaptersSection({ titleId, onTitleChange }: ChaptersSectionProps
                     </tbody>
                   </table>
                 </div>
-                {chaptersResponse && (chaptersResponse.totalPages > 1 || chaptersResponse.total > 0) && (
-                  <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 px-4 pb-4">
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                      Страница {chaptersResponse.page} из {chaptersResponse.totalPages || 1}{" "}
-                      • Всего глав: {chaptersResponse.total}
-                    </p>
-                    {chaptersResponse.totalPages > 1 && (
-                      <Pagination
-                        currentPage={chaptersResponse.page}
-                        totalPages={chaptersResponse.totalPages}
-                        onPageChange={handlePageChange}
-                      />
-                    )}
-                  </div>
-                )}
+                {chaptersResponse &&
+                  (chaptersResponse.totalPages > 1 || chaptersResponse.total > 0) && (
+                    <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 px-4 pb-4">
+                      <p className="text-sm text-[var(--muted-foreground)]">
+                        Страница {chaptersResponse.page} из {chaptersResponse.totalPages || 1} •
+                        Всего глав: {chaptersResponse.total}
+                      </p>
+                      {chaptersResponse.totalPages > 1 && (
+                        <Pagination
+                          currentPage={chaptersResponse.page}
+                          totalPages={chaptersResponse.totalPages}
+                          onPageChange={handlePageChange}
+                        />
+                      )}
+                    </div>
+                  )}
               </>
             )}
           </div>

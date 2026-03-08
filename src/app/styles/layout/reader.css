@@ -1,4 +1,3 @@
-
 /* Smooth scroll optimizations for auto-scroll feature */
 .reader-scroll-container {
   will-change: scroll-position;
@@ -18,4 +17,3 @@
   position: relative;
   overflow: hidden;
 }
-

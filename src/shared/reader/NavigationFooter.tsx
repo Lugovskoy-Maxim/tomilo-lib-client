@@ -41,16 +41,11 @@ export default function NavigationFooter({
                 }
               : undefined
           }
-          initialReactions={
-            currentChapter.reactions?.length ? currentChapter.reactions : undefined
-          }
+          initialReactions={currentChapter.reactions?.length ? currentChapter.reactions : undefined}
         />
 
         {/* Информация о переводчике */}
-        <ChapterTranslatorInfo
-          titleId={title._id}
-          chapterTranslator={chapterTranslator}
-        />
+        <ChapterTranslatorInfo titleId={title._id} chapterTranslator={chapterTranslator} />
 
         {/* Навигация между главами */}
         <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]/30">

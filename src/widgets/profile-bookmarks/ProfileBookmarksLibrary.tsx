@@ -28,7 +28,7 @@ const CATEGORY_ORDER: BookmarkCategory[] = [
 ];
 
 function getTitleIdFromHistoryEntry(entry: ReadingHistoryEntry): string {
-  return typeof entry.titleId === "string" ? entry.titleId : entry.titleId?._id ?? "";
+  return typeof entry.titleId === "string" ? entry.titleId : (entry.titleId?._id ?? "");
 }
 
 interface ProfileBookmarksLibraryProps {
@@ -90,10 +90,7 @@ const LibraryCardItem = memo(function LibraryCardItem({
 function BookmarkCarouselCard({ data }: { data: CarouselBookmarkItem }) {
   return (
     <div data-card-click-handler>
-      <LibraryCardItem
-        entry={data.entry}
-        chaptersRead={data.chaptersRead}
-      />
+      <LibraryCardItem entry={data.entry} chaptersRead={data.chaptersRead} />
     </div>
   );
 }
@@ -140,12 +137,9 @@ export default function ProfileBookmarksLibrary({
   }, [currentBookmarks]);
 
   const filteredEntriesRaw =
-    activeCategory === "all"
-      ? currentBookmarks
-      : byCategory.get(activeCategory) ?? [];
-  const filteredEntries = maxItems != null
-    ? filteredEntriesRaw.slice(0, maxItems)
-    : filteredEntriesRaw;
+    activeCategory === "all" ? currentBookmarks : (byCategory.get(activeCategory) ?? []);
+  const filteredEntries =
+    maxItems != null ? filteredEntriesRaw.slice(0, maxItems) : filteredEntriesRaw;
 
   const isCarousel = maxItems != null && maxItems > 0;
   const carouselData: CarouselBookmarkItem[] = useMemo(
@@ -170,9 +164,7 @@ export default function ProfileBookmarksLibrary({
           </h2>
         </div>
         <div className="flex flex-col items-center justify-center py-8 text-center">
-          <p className="text-sm text-[var(--muted-foreground)] max-w-xs">
-            {emptyStateMessage}
-          </p>
+          <p className="text-sm text-[var(--muted-foreground)] max-w-xs">{emptyStateMessage}</p>
           {onShowAllBookmarks ? (
             <button
               type="button"

@@ -1,6 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect, createContext, useContext, useMemo, type ReactNode } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  createContext,
+  useContext,
+  useMemo,
+  type ReactNode,
+} from "react";
 
 const STORAGE_KEYS = {
   showPageCounter: "reader-show-page-counter",
@@ -97,11 +105,16 @@ const DEFAULT_SETTINGS: ReaderSettings = {
 
 function qualityModeToValue(mode: ImageQualityMode): number {
   switch (mode) {
-    case "low": return 60;
-    case "medium": return 75;
-    case "high": return 90;
-    case "auto": return 85;
-    default: return 85;
+    case "low":
+      return 60;
+    case "medium":
+      return 75;
+    case "high":
+      return 90;
+    case "auto":
+      return 85;
+    default:
+      return 85;
   }
 }
 
@@ -144,32 +157,97 @@ function parseNumber(value: string | null, defaultValue: number, min: number, ma
   return parsed;
 }
 
-function parseEnum<T extends string>(value: string | null, validValues: readonly T[], defaultValue: T): T {
+function parseEnum<T extends string>(
+  value: string | null,
+  validValues: readonly T[],
+  defaultValue: T,
+): T {
   if (value === null || !validValues.includes(value as T)) return defaultValue;
   return value as T;
 }
 
 function getInitialSettings(): ReaderSettings {
   const savedChaptersInRow = safeLocalStorageGet(STORAGE_KEYS.chaptersInRow);
-  
+
   return {
-    showPageCounter: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.showPageCounter), DEFAULT_SETTINGS.showPageCounter),
-    readChaptersInRow: READ_CHAPTERS_IN_ROW_ENABLED && parseBoolean(savedChaptersInRow, DEFAULT_SETTINGS.readChaptersInRow),
-    readingMode: parseEnum(safeLocalStorageGet(STORAGE_KEYS.readingMode), ["feed", "paged"] as const, DEFAULT_SETTINGS.readingMode),
-    pageGap: parseNumber(safeLocalStorageGet(STORAGE_KEYS.pageGap), DEFAULT_SETTINGS.pageGap, 0, 100),
-    brightness: parseNumber(safeLocalStorageGet(STORAGE_KEYS.brightness), DEFAULT_SETTINGS.brightness, 50, 150),
-    contrast: parseNumber(safeLocalStorageGet(STORAGE_KEYS.contrast), DEFAULT_SETTINGS.contrast, 50, 150),
-    eyeComfortMode: parseEnum(safeLocalStorageGet(STORAGE_KEYS.eyeComfort), ["off", "warm", "sepia", "dark"] as const, DEFAULT_SETTINGS.eyeComfortMode),
-    doublePageMode: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.doublePage), DEFAULT_SETTINGS.doublePageMode),
-    fitMode: parseEnum(safeLocalStorageGet(STORAGE_KEYS.fitMode), ["width", "height", "original", "auto"] as const, DEFAULT_SETTINGS.fitMode),
-    readingDirection: parseEnum(safeLocalStorageGet(STORAGE_KEYS.direction), ["ltr", "rtl"] as const, DEFAULT_SETTINGS.readingDirection),
-    infiniteScroll: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.infiniteScroll), DEFAULT_SETTINGS.infiniteScroll),
-    showTimer: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.showTimer), DEFAULT_SETTINGS.showTimer),
-    showHints: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.showHints), DEFAULT_SETTINGS.showHints),
-    showProgress: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.showProgress), DEFAULT_SETTINGS.showProgress),
-    imageQuality: parseEnum(safeLocalStorageGet(STORAGE_KEYS.imageQuality), ["low", "medium", "high", "auto"] as const, DEFAULT_SETTINGS.imageQuality),
-    hapticEnabled: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.hapticEnabled), DEFAULT_SETTINGS.hapticEnabled),
-    dataSaver: parseBoolean(safeLocalStorageGet(STORAGE_KEYS.dataSaver), DEFAULT_SETTINGS.dataSaver),
+    showPageCounter: parseBoolean(
+      safeLocalStorageGet(STORAGE_KEYS.showPageCounter),
+      DEFAULT_SETTINGS.showPageCounter,
+    ),
+    readChaptersInRow:
+      READ_CHAPTERS_IN_ROW_ENABLED &&
+      parseBoolean(savedChaptersInRow, DEFAULT_SETTINGS.readChaptersInRow),
+    readingMode: parseEnum(
+      safeLocalStorageGet(STORAGE_KEYS.readingMode),
+      ["feed", "paged"] as const,
+      DEFAULT_SETTINGS.readingMode,
+    ),
+    pageGap: parseNumber(
+      safeLocalStorageGet(STORAGE_KEYS.pageGap),
+      DEFAULT_SETTINGS.pageGap,
+      0,
+      100,
+    ),
+    brightness: parseNumber(
+      safeLocalStorageGet(STORAGE_KEYS.brightness),
+      DEFAULT_SETTINGS.brightness,
+      50,
+      150,
+    ),
+    contrast: parseNumber(
+      safeLocalStorageGet(STORAGE_KEYS.contrast),
+      DEFAULT_SETTINGS.contrast,
+      50,
+      150,
+    ),
+    eyeComfortMode: parseEnum(
+      safeLocalStorageGet(STORAGE_KEYS.eyeComfort),
+      ["off", "warm", "sepia", "dark"] as const,
+      DEFAULT_SETTINGS.eyeComfortMode,
+    ),
+    doublePageMode: parseBoolean(
+      safeLocalStorageGet(STORAGE_KEYS.doublePage),
+      DEFAULT_SETTINGS.doublePageMode,
+    ),
+    fitMode: parseEnum(
+      safeLocalStorageGet(STORAGE_KEYS.fitMode),
+      ["width", "height", "original", "auto"] as const,
+      DEFAULT_SETTINGS.fitMode,
+    ),
+    readingDirection: parseEnum(
+      safeLocalStorageGet(STORAGE_KEYS.direction),
+      ["ltr", "rtl"] as const,
+      DEFAULT_SETTINGS.readingDirection,
+    ),
+    infiniteScroll: parseBoolean(
+      safeLocalStorageGet(STORAGE_KEYS.infiniteScroll),
+      DEFAULT_SETTINGS.infiniteScroll,
+    ),
+    showTimer: parseBoolean(
+      safeLocalStorageGet(STORAGE_KEYS.showTimer),
+      DEFAULT_SETTINGS.showTimer,
+    ),
+    showHints: parseBoolean(
+      safeLocalStorageGet(STORAGE_KEYS.showHints),
+      DEFAULT_SETTINGS.showHints,
+    ),
+    showProgress: parseBoolean(
+      safeLocalStorageGet(STORAGE_KEYS.showProgress),
+      DEFAULT_SETTINGS.showProgress,
+    ),
+    imageQuality: parseEnum(
+      safeLocalStorageGet(STORAGE_KEYS.imageQuality),
+      ["low", "medium", "high", "auto"] as const,
+      DEFAULT_SETTINGS.imageQuality,
+    ),
+    hapticEnabled: parseBoolean(
+      safeLocalStorageGet(STORAGE_KEYS.hapticEnabled),
+      DEFAULT_SETTINGS.hapticEnabled,
+    ),
+    dataSaver: parseBoolean(
+      safeLocalStorageGet(STORAGE_KEYS.dataSaver),
+      DEFAULT_SETTINGS.dataSaver,
+    ),
   };
 }
 
@@ -183,17 +261,22 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
     setIsInitialized(true);
   }, []);
 
-  const createSetter = useCallback(<K extends keyof ReaderSettings>(
-    key: K,
-    storageKey: string,
-    transform?: (value: ReaderSettings[K]) => ReaderSettings[K]
-  ) => {
-    return (value: ReaderSettings[K]) => {
-      const finalValue = transform ? transform(value) : value;
-      setSettings(prev => ({ ...prev, [key]: finalValue }));
-      safeLocalStorageSet(storageKey, String(finalValue));
-    };
-  }, []);
+  const createSetter = useCallback(
+    <K extends keyof ReaderSettings>(
+      key: K,
+      storageKey: string,
+      transform?: (value: ReaderSettings[K]) => ReaderSettings[K],
+    ) => {
+      return (value: ReaderSettings[K]) => {
+        const finalValue = transform ? transform(value) : value;
+        setSettings(prev => ({ ...prev, [key]: finalValue }));
+        safeLocalStorageSet(storageKey, String(finalValue));
+      };
+    },
+    [],
+  );
+  void isInitialized;
+  void createSetter;
 
   const setShowPageCounter = useCallback((value: boolean) => {
     setSettings(prev => ({ ...prev, showPageCounter: value }));
@@ -304,53 +387,56 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
 
   const effectiveReadChaptersInRow = READ_CHAPTERS_IN_ROW_ENABLED && settings.readChaptersInRow;
 
-  return useMemo(() => ({
-    ...settings,
-    readChaptersInRow: effectiveReadChaptersInRow,
-    setHapticEnabled,
-    setDataSaver,
-    setShowPageCounter,
-    toggleShowPageCounter,
-    setReadChaptersInRow,
-    setReadingMode,
-    setPageGap,
-    setBrightness,
-    setContrast,
-    setEyeComfortMode,
-    setDoublePageMode,
-    setFitMode,
-    setReadingDirection,
-    setInfiniteScroll,
-    setShowTimer,
-    setShowHints,
-    setShowProgress,
-    setImageQuality,
-    getQualityValue,
-    resetToDefaults,
-  }), [
-    settings,
-    effectiveReadChaptersInRow,
-    setHapticEnabled,
-    setDataSaver,
-    setShowPageCounter,
-    toggleShowPageCounter,
-    setReadChaptersInRow,
-    setReadingMode,
-    setPageGap,
-    setBrightness,
-    setContrast,
-    setEyeComfortMode,
-    setDoublePageMode,
-    setFitMode,
-    setReadingDirection,
-    setInfiniteScroll,
-    setShowTimer,
-    setShowHints,
-    setShowProgress,
-    setImageQuality,
-    getQualityValue,
-    resetToDefaults,
-  ]);
+  return useMemo(
+    () => ({
+      ...settings,
+      readChaptersInRow: effectiveReadChaptersInRow,
+      setHapticEnabled,
+      setDataSaver,
+      setShowPageCounter,
+      toggleShowPageCounter,
+      setReadChaptersInRow,
+      setReadingMode,
+      setPageGap,
+      setBrightness,
+      setContrast,
+      setEyeComfortMode,
+      setDoublePageMode,
+      setFitMode,
+      setReadingDirection,
+      setInfiniteScroll,
+      setShowTimer,
+      setShowHints,
+      setShowProgress,
+      setImageQuality,
+      getQualityValue,
+      resetToDefaults,
+    }),
+    [
+      settings,
+      effectiveReadChaptersInRow,
+      setHapticEnabled,
+      setDataSaver,
+      setShowPageCounter,
+      toggleShowPageCounter,
+      setReadChaptersInRow,
+      setReadingMode,
+      setPageGap,
+      setBrightness,
+      setContrast,
+      setEyeComfortMode,
+      setDoublePageMode,
+      setFitMode,
+      setReadingDirection,
+      setInfiniteScroll,
+      setShowTimer,
+      setShowHints,
+      setShowProgress,
+      setImageQuality,
+      getQualityValue,
+      resetToDefaults,
+    ],
+  );
 }
 
 export function useReaderSettings(): UseReaderSettingsReturn {
@@ -362,11 +448,7 @@ const ReaderSettingsContext = createContext<UseReaderSettingsReturn | null>(null
 export function ReaderSettingsProvider({ children }: { children: ReactNode }) {
   const value = useReaderSettingsImpl();
 
-  return (
-    <ReaderSettingsContext.Provider value={value}>
-      {children}
-    </ReaderSettingsContext.Provider>
-  );
+  return <ReaderSettingsContext.Provider value={value}>{children}</ReaderSettingsContext.Provider>;
 }
 
 export function useReaderSettingsContext(): UseReaderSettingsReturn {

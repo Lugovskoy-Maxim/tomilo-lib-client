@@ -11,14 +11,18 @@ import { useProgressNotification } from "@/contexts/ProgressNotificationContext"
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { Chapter } from "@/types/title";
-import { ArrowBigLeft, ArrowBigRight, ChevronUp, Keyboard, ZoomIn, Clock } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight, ChevronUp, Keyboard, ZoomIn } from "lucide-react";
 import { levelToRank } from "@/lib/rank-utils";
 import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
-import { useIncrementChapterViewsMutation, useLazyGetChapterByIdQuery } from "@/store/api/chaptersApi";
-import { getCoverUrls } from "@/lib/asset-url";
-import Link from "next/link";
-import { useReaderSettingsContext, ReaderSettingsProvider } from "@/shared/reader/hooks/useReaderSettings";
+import {
+  useIncrementChapterViewsMutation,
+  useLazyGetChapterByIdQuery,
+} from "@/store/api/chaptersApi";
+import {
+  useReaderSettingsContext,
+  ReaderSettingsProvider,
+} from "@/shared/reader/hooks/useReaderSettings";
 import { getImageUrls } from "@/lib/asset-url";
 
 import {
@@ -67,12 +71,7 @@ export default function ReadChapterPage({
 }) {
   return (
     <ReaderSettingsProvider>
-      <ReadChapterPageContent
-        title={title}
-        chapter={chapter}
-        chapters={chapters}
-        slug={slug}
-      />
+      <ReadChapterPageContent title={title} chapter={chapter} chapters={chapters} slug={slug} />
     </ReaderSettingsProvider>
   );
 }
@@ -92,13 +91,13 @@ function ReadChapterPageContent({
 
   const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
   const { showExpGain, showLevelUp, showAchievement } = useProgressNotification();
-  const { 
-    readChaptersInRow, 
-    readingMode, 
-    pageGap, 
-    brightness, 
-    contrast, 
-    eyeComfortMode, 
+  const {
+    readChaptersInRow,
+    readingMode,
+    pageGap,
+    brightness,
+    contrast,
+    eyeComfortMode,
     fitMode,
     infiniteScroll,
     showHints,
@@ -112,7 +111,7 @@ function ReadChapterPageContent({
       navigator.vibrate(10);
     }
   }, [hapticEnabled]);
-  
+
   const imageQuality = getQualityValue();
   const [fetchChapterById] = useLazyGetChapterByIdQuery();
 
@@ -161,7 +160,8 @@ function ReadChapterPageContent({
   const [isLoadingNextChapter, setIsLoadingNextChapter] = useState(false);
   const loadedChapterIdsRef = useRef<Set<string>>(new Set([chapter._id]));
   const [loadedChapterIds, setLoadedChapterIds] = useState<Set<string>>(new Set([chapter._id]));
-  
+  void loadedChapterIds;
+
   // Чтение глав подряд: загруженные главы (текущая + подгруженные сверху/снизу)
   const [loadedChapters, setLoadedChapters] = useState<ReaderChapter[]>(() => [chapter]);
 
@@ -176,7 +176,7 @@ function ReadChapterPageContent({
     setIsLoadingNextChapter(true);
     fetchChapterById(nextChapter._id)
       .unwrap()
-      .then((chapterData) => {
+      .then(chapterData => {
         if (chapterData && chapterData._id) {
           const apiData = chapterData as Chapter & {
             images?: string[];
@@ -191,7 +191,7 @@ function ReadChapterPageContent({
             number: typeof chapterNumber === "string" ? parseFloat(chapterNumber) : chapterNumber,
             title: apiData.title || apiData.name || "",
             images: chapterImages,
-            views: typeof apiData.views === "string" ? parseInt(apiData.views) : (apiData.views || 0),
+            views: typeof apiData.views === "string" ? parseInt(apiData.views) : apiData.views || 0,
             createdAt: apiData.createdAt,
             updatedAt: apiData.updatedAt,
             teamId: apiData.teamId || apiData.translatorTeamId,
@@ -214,15 +214,15 @@ function ReadChapterPageContent({
     rootMargin: "300px",
     threshold: 0,
   });
-  
+
   const calculateReadingTime = useCallback((imagesCount: number, contentHeight?: number) => {
     const pixelsPerSecond = 120;
-    
+
     if (contentHeight && contentHeight > 0) {
       const totalSeconds = contentHeight / pixelsPerSecond;
       return Math.max(1, Math.ceil(totalSeconds / 60));
     }
-    
+
     const avgPageHeight = 1400;
     const estimatedHeight = imagesCount * avgPageHeight;
     const totalSeconds = estimatedHeight / pixelsPerSecond;
@@ -239,7 +239,9 @@ function ReadChapterPageContent({
   const firstChapterContainerRef = useRef<HTMLDivElement | null>(null);
   const loadingChapterIdsRef = useRef<Set<string>>(new Set());
   // Последовательное отображение картинок в режиме «главы подряд»: показываем только когда все предыдущие в главе загружены
-  const [loadedImagesByChapter, setLoadedImagesByChapter] = useState<Record<string, Set<number>>>({});
+  const [loadedImagesByChapter, setLoadedImagesByChapter] = useState<Record<string, Set<number>>>(
+    {},
+  );
   // Ref: загруженные картинки (chapterId-imageIndex), чтобы при ре-рендере не мигали уже загруженные
   const loadedImagesRef = useRef<Set<string>>(new Set());
 
@@ -335,20 +337,33 @@ function ReadChapterPageContent({
     resetHideTimeout();
   }, [resetHideTimeout]);
 
+  // Очистка таймера скрытия меню при размонтировании (избегаем setState после unmount)
+  useEffect(() => {
+    return () => {
+      if (menuHideTimeoutRef.current) {
+        clearTimeout(menuHideTimeoutRef.current);
+        menuHideTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   // Функция для получения корректного URL изображения с учётом fallback
-  const getImageUrlWithFallback = useCallback((url: string, chapterId: string, imageIndex: number) => {
-    if (!url) return "";
+  const getImageUrlWithFallback = useCallback(
+    (url: string, chapterId: string, imageIndex: number) => {
+      if (!url) return "";
 
-    const errorKey = `${chapterId}-${imageIndex}`;
-    const { primary, fallback } = getImageUrls(url);
+      const errorKey = `${chapterId}-${imageIndex}`;
+      const { primary, fallback } = getImageUrls(url);
 
-    // Если для этого изображения уже был переключен на fallback
-    if (imageFallbacks.has(errorKey) && fallback && fallback !== primary) {
-      return fallback;
-    }
+      // Если для этого изображения уже был переключен на fallback
+      if (imageFallbacks.has(errorKey) && fallback && fallback !== primary) {
+        return fallback;
+      }
 
-    return primary;
-  }, [imageFallbacks]);
+      return primary;
+    },
+    [imageFallbacks],
+  );
 
   // Функция для получения корректного URL изображения (legacy)
   const getImageUrl = useCallback((url: string) => {
@@ -359,14 +374,14 @@ function ReadChapterPageContent({
   // CSS фильтры для изображений (яркость, контраст, режим защиты глаз)
   const imageFilterStyle = useMemo((): React.CSSProperties => {
     const filters: string[] = [];
-    
+
     if (brightness !== 100) {
       filters.push(`brightness(${brightness / 100})`);
     }
     if (contrast !== 100) {
       filters.push(`contrast(${contrast / 100})`);
     }
-    
+
     switch (eyeComfortMode) {
       case "warm":
         filters.push("sepia(15%)");
@@ -378,10 +393,9 @@ function ReadChapterPageContent({
         filters.push("brightness(0.85) saturate(0.9)");
         break;
     }
-    
+
     return filters.length > 0 ? { filter: filters.join(" ") } : {};
   }, [brightness, contrast, eyeComfortMode]);
-
 
   // Стиль подгонки изображения
   const imageFitClass = useMemo(() => {
@@ -414,17 +428,20 @@ function ReadChapterPageContent({
   );
 
   // Проверяет, нужно ли показывать название главы (не дублирует номер)
-  const shouldShowChapterTitle = useCallback((chapterTitle: string | undefined, chapterNumber: number): boolean => {
-    if (!chapterTitle) return false;
-    const titleLower = chapterTitle.toLowerCase().trim();
-    const numberStr = String(chapterNumber);
-    // Не показываем если: title === номер, или title === "глава N", или title === "N"
-    if (titleLower === numberStr) return false;
-    if (titleLower === `глава ${numberStr}`) return false;
-    if (titleLower === `глава${numberStr}`) return false;
-    if (/^глава\s*\d+$/.test(titleLower) && titleLower.includes(numberStr)) return false;
-    return true;
-  }, []);
+  const shouldShowChapterTitle = useCallback(
+    (chapterTitle: string | undefined, chapterNumber: number): boolean => {
+      if (!chapterTitle) return false;
+      const titleLower = chapterTitle.toLowerCase().trim();
+      const numberStr = String(chapterNumber);
+      // Не показываем если: title === номер, или title === "глава N", или title === "N"
+      if (titleLower === numberStr) return false;
+      if (titleLower === `глава ${numberStr}`) return false;
+      if (titleLower === `глава${numberStr}`) return false;
+      if (/^глава\s*\d+$/.test(titleLower) && titleLower.includes(numberStr)) return false;
+      return true;
+    },
+    [],
+  );
 
   // Обновление просмотров и истории чтения
   useEffect(() => {
@@ -456,27 +473,37 @@ function ReadChapterPageContent({
 
     if (!historyAddedRef.current.has(chapterKey)) {
       addToReadingHistory(title._id.toString(), chapter._id.toString())
-        .then((result) => {
+        .then(result => {
           historyAddedRef.current.add(chapterKey);
-          
+
           if (result.success && result.progress) {
             const { progress, oldRank, newRank, newAchievements } = result.progress;
-            
+
             if (progress?.expGained) {
               showExpGain(progress.expGained, progress.reason || "Чтение главы");
             }
-            
+
             if (progress?.levelUp && progress.oldLevel != null && progress.newLevel != null) {
-              const oldRankInfo = oldRank 
-                ? { rank: oldRank.rank, stars: oldRank.stars, name: oldRank.name, minLevel: oldRank.minLevel }
+              const oldRankInfo = oldRank
+                ? {
+                    rank: oldRank.rank,
+                    stars: oldRank.stars,
+                    name: oldRank.name,
+                    minLevel: oldRank.minLevel,
+                  }
                 : levelToRank(progress.oldLevel);
-              const newRankInfo = newRank 
-                ? { rank: newRank.rank, stars: newRank.stars, name: newRank.name, minLevel: newRank.minLevel }
+              const newRankInfo = newRank
+                ? {
+                    rank: newRank.rank,
+                    stars: newRank.stars,
+                    name: newRank.name,
+                    minLevel: newRank.minLevel,
+                  }
                 : levelToRank(progress.newLevel);
-              
+
               showLevelUp(progress.oldLevel, progress.newLevel, oldRankInfo, newRankInfo);
             }
-            
+
             if (newAchievements && newAchievements.length > 0) {
               for (const ach of newAchievements) {
                 showAchievement({
@@ -512,20 +539,23 @@ function ReadChapterPageContent({
   ]);
 
   // Обработчик ошибок загрузки изображений с fallback
-  const handleImageError = useCallback((chapterId: string, imageIndex: number, imageSrc: string) => {
-    const errorKey = `${chapterId}-${imageIndex}`;
-    // Если fallback ещё не использовался, пробуем его
-    if (!imageFallbacks.has(errorKey)) {
-      const { fallback } = getImageUrls(imageSrc);
-      const { primary } = getImageUrls(imageSrc);
-      if (fallback && fallback !== primary) {
-        setImageFallbacks(prev => new Set(prev).add(errorKey));
-        return;
+  const handleImageError = useCallback(
+    (chapterId: string, imageIndex: number, imageSrc: string) => {
+      const errorKey = `${chapterId}-${imageIndex}`;
+      // Если fallback ещё не использовался, пробуем его
+      if (!imageFallbacks.has(errorKey)) {
+        const { fallback } = getImageUrls(imageSrc);
+        const { primary } = getImageUrls(imageSrc);
+        if (fallback && fallback !== primary) {
+          setImageFallbacks(prev => new Set(prev).add(errorKey));
+          return;
+        }
       }
-    }
-    // Если fallback уже использован или его нет — помечаем как ошибку
-    setImageLoadErrors(prev => new Set(prev).add(errorKey));
-  }, [imageFallbacks]);
+      // Если fallback уже использован или его нет — помечаем как ошибку
+      setImageLoadErrors(prev => new Set(prev).add(errorKey));
+    },
+    [imageFallbacks],
+  );
 
   // Функция для получения корректного пути
   const getChapterPath = useCallback(
@@ -587,7 +617,6 @@ function ReadChapterPageContent({
     // Отображение нижнего меню при тапе по экрану
     if (hideBottomMenuSetting) {
       showMenuAndResetTimeout();
-      // Остановка автопрокрутки при тапе по экрану (только если меню было свернуто)
       if (isMenuCollapsed) {
         setForceStopAutoScroll(true);
       }
@@ -659,13 +688,16 @@ function ReadChapterPageContent({
   }, [hideBottomMenuSetting, showMenuAndResetTimeout]);
 
   // Обработчик двойного тапа для зума
-  const handleImageDoubleTap = useCallback((src: string, alt: string) => {
-    const now = Date.now();
-    if (now - lastTapTime < 300) {
-      setZoomedImage({ src, alt });
-    }
-    setLastTapTime(now);
-  }, [lastTapTime]);
+  const handleImageDoubleTap = useCallback(
+    (src: string, alt: string) => {
+      const now = Date.now();
+      if (now - lastTapTime < 300) {
+        setZoomedImage({ src, alt });
+      }
+      setLastTapTime(now);
+    },
+    [lastTapTime],
+  );
 
   // Scroll to top функция
   const scrollToTop = useCallback(() => {
@@ -675,42 +707,55 @@ function ReadChapterPageContent({
   // Swipe navigation для постраничного режима
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
-  
+
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   }, []);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    touchEndX.current = e.changedTouches[0].clientX;
-    const diffX = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50;
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      touchEndX.current = e.changedTouches[0].clientX;
+      const diffX = touchStartX.current - touchEndX.current;
+      const minSwipeDistance = 50;
 
-    if (isPagedMode) {
-      if (diffX > minSwipeDistance) {
-        // Свайп влево
-        if (currentPage >= chapter.images.length && currentChapterIndex < chapters.length - 1) {
-          const nextChapter = chapters[currentChapterIndex + 1];
-          clearOtherChaptersPositions(titleId, nextChapter._id);
-          triggerHaptic();
-          router.push(getChapterPath(nextChapter._id));
-        } else if (chapter.images.length > 0) {
-          setCurrentPage(prev => Math.min(chapter.images.length, Math.max(1, prev + 1)));
-          triggerHaptic();
-        }
-      } else if (diffX < -minSwipeDistance) {
-        // Свайп вправо
-        if (currentPage <= 1 && currentChapterIndex > 0) {
-          const prevChapter = chapters[currentChapterIndex - 1];
-          clearOtherChaptersPositions(titleId, prevChapter._id);
-          triggerHaptic();
-          router.push(getChapterPath(prevChapter._id));
-        } else if (chapter.images.length > 0) {
-          setCurrentPage(prev => Math.max(1, prev - 1));
-          triggerHaptic();
+      if (isPagedMode) {
+        if (diffX > minSwipeDistance) {
+          // Свайп влево
+          if (currentPage >= chapter.images.length && currentChapterIndex < chapters.length - 1) {
+            const nextChapter = chapters[currentChapterIndex + 1];
+            clearOtherChaptersPositions(titleId, nextChapter._id);
+            triggerHaptic();
+            router.push(getChapterPath(nextChapter._id));
+          } else if (chapter.images.length > 0) {
+            setCurrentPage(prev => Math.min(chapter.images.length, Math.max(1, prev + 1)));
+            triggerHaptic();
+          }
+        } else if (diffX < -minSwipeDistance) {
+          // Свайп вправо
+          if (currentPage <= 1 && currentChapterIndex > 0) {
+            const prevChapter = chapters[currentChapterIndex - 1];
+            clearOtherChaptersPositions(titleId, prevChapter._id);
+            triggerHaptic();
+            router.push(getChapterPath(prevChapter._id));
+          } else if (chapter.images.length > 0) {
+            setCurrentPage(prev => Math.max(1, prev - 1));
+            triggerHaptic();
+          }
         }
       }
-    }
-  }, [isPagedMode, chapter.images.length, currentPage, currentChapterIndex, chapters, titleId, getChapterPath, router, triggerHaptic]);
+    },
+    [
+      isPagedMode,
+      chapter.images.length,
+      currentPage,
+      currentChapterIndex,
+      chapters,
+      titleId,
+      getChapterPath,
+      router,
+      triggerHaptic,
+    ],
+  );
 
   // Загрузка настройки предзагрузки из localStorage
   useEffect(() => {
@@ -721,51 +766,54 @@ function ReadChapterPageContent({
   }, []);
 
   // Функция восстановления позиции
-  const restorePosition = useCallback((page: number) => {
-    setSavedReadingPage(page);
+  const restorePosition = useCallback(
+    (page: number) => {
+      setSavedReadingPage(page);
 
-    const timeoutId = setTimeout(async () => {
-      try {
-        const pageElement = document.querySelector(`[data-page="${page}"]`);
-        if (pageElement) {
-          pageElement.scrollIntoView({
-            behavior: "auto",
-            block: "center",
-          });
-        }
-        setCurrentPage(page);
-
-        // Устанавливаем приоритеты загрузки изображений
-        const priorities = new Map<number, "low" | "medium" | "high">();
-        chapter.images.forEach((_, index) => {
-          const pageNum = index + 1;
-          if (pageNum === page) {
-            priorities.set(pageNum, "high");
-          } else if (Math.abs(pageNum - page) <= 2) {
-            priorities.set(pageNum, "medium");
-          } else {
-            priorities.set(pageNum, "low");
+      const timeoutId = setTimeout(async () => {
+        try {
+          const pageElement = document.querySelector(`[data-page="${page}"]`);
+          if (pageElement) {
+            pageElement.scrollIntoView({
+              behavior: "auto",
+              block: "center",
+            });
           }
-        });
-        setImageLoadPriority(priorities);
+          setCurrentPage(page);
 
-        setIsPositionRestored(true);
-      } catch (error) {
-        console.warn("Failed to restore reading position:", error);
-        setCurrentPage(1);
-        setIsPositionRestored(true);
-      }
-    }, 100);
+          // Устанавливаем приоритеты загрузки изображений
+          const priorities = new Map<number, "low" | "medium" | "high">();
+          chapter.images.forEach((_, index) => {
+            const pageNum = index + 1;
+            if (pageNum === page) {
+              priorities.set(pageNum, "high");
+            } else if (Math.abs(pageNum - page) <= 2) {
+              priorities.set(pageNum, "medium");
+            } else {
+              priorities.set(pageNum, "low");
+            }
+          });
+          setImageLoadPriority(priorities);
 
-    return () => clearTimeout(timeoutId);
-  }, [chapter.images]);
+          setIsPositionRestored(true);
+        } catch (error) {
+          console.warn("Failed to restore reading position:", error);
+          setCurrentPage(1);
+          setIsPositionRestored(true);
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    },
+    [chapter.images],
+  );
 
   // Функция сброса позиции (начать сначала)
   const resetPosition = useCallback(() => {
     setSavedReadingPage(1);
     setCurrentPage(1);
     setIsPositionRestored(true);
-    
+
     // Устанавливаем низкий приоритет для всех, кроме первых 3 страниц
     const priorities = new Map<number, "low" | "medium" | "high">();
     chapter.images.forEach((_, index) => {
@@ -796,9 +844,9 @@ function ReadChapterPageContent({
   // Измерение реальной высоты контента после загрузки изображений
   useEffect(() => {
     if (isPagedMode || !isPositionRestored) return;
-    
+
     const measureContentHeight = () => {
-      const chapterContainer = document.querySelector('.chapter-container');
+      const chapterContainer = document.querySelector(".chapter-container");
       if (chapterContainer) {
         const height = chapterContainer.scrollHeight;
         if (height > 0) {
@@ -806,18 +854,19 @@ function ReadChapterPageContent({
         }
       }
     };
-    
+
     // Измеряем после небольшой задержки, чтобы изображения успели загрузиться
     const timeoutId = setTimeout(measureContentHeight, 2000);
-    
+
     // Также измеряем при каждой загрузке изображения
     const loadedCount = Object.values(loadedImagesByChapter).reduce(
-      (acc, set) => acc + set.size, 0
+      (acc, set) => acc + set.size,
+      0,
     );
     if (loadedCount > 0) {
       measureContentHeight();
     }
-    
+
     return () => clearTimeout(timeoutId);
   }, [isPagedMode, isPositionRestored, loadedImagesByChapter]);
 
@@ -837,7 +886,7 @@ function ReadChapterPageContent({
     };
 
     const images: HTMLImageElement[] = [];
-    chapter.images.forEach((src) => {
+    chapter.images.forEach(src => {
       const img = new window.Image();
       img.onload = updateProgress;
       img.onerror = updateProgress;
@@ -854,7 +903,7 @@ function ReadChapterPageContent({
 
     return () => {
       cancelled = true;
-      images.forEach((img) => {
+      images.forEach(img => {
         img.onload = null;
         img.onerror = null;
         img.src = "";
@@ -1005,13 +1054,13 @@ function ReadChapterPageContent({
 
   useEffect(() => {
     if (!isChaptersInRowMode) return;
-    
+
     let ticking = false;
-    
+
     const handleScroll = () => {
       if (ticking) return;
       ticking = true;
-      
+
       requestAnimationFrame(() => {
         const scrollTop = window.scrollY;
         const winH = window.innerHeight;
@@ -1021,7 +1070,7 @@ function ReadChapterPageContent({
         ticking = false;
       });
     };
-    
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isChaptersInRowMode, loadPrevChapter, loadNextChapter]);
@@ -1033,7 +1082,9 @@ function ReadChapterPageContent({
       entries => {
         const visible = entries.filter(e => e.isIntersecting);
         if (visible.length === 0) return;
-        const byRatio = visible.sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
+        const byRatio = visible.sort(
+          (a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0),
+        );
         const id = byRatio[0]?.target.getAttribute("data-chapter-id");
         if (id && id !== visibleChapterId) {
           setVisibleChapterId(id);
@@ -1050,29 +1101,33 @@ function ReadChapterPageContent({
   // Обновление URL при смене видимой главы (бесконечное чтение)
   useEffect(() => {
     if (!infiniteScroll || isPagedMode || loadedChapters.length <= 1) return;
-    
+
     const observer = new IntersectionObserver(
       entries => {
         const visible = entries.filter(e => e.isIntersecting);
         if (visible.length === 0) return;
-        
+
         // Находим главу с наибольшим пересечением
-        const byRatio = visible.sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
+        const byRatio = visible.sort(
+          (a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0),
+        );
         const chapterId = byRatio[0]?.target.getAttribute("data-infinite-chapter");
-        
+
         if (chapterId && chapterId !== visibleChapterId) {
           setVisibleChapterId(chapterId);
-          const path = slug ? `/titles/${slug}/chapter/${chapterId}` : `/titles/${titleId}/chapter/${chapterId}`;
+          const path = slug
+            ? `/titles/${slug}/chapter/${chapterId}`
+            : `/titles/${titleId}/chapter/${chapterId}`;
           window.history.replaceState(null, "", path);
         }
       },
       { root: null, rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.1, 0.25, 0.5] },
     );
-    
+
     // Наблюдаем за разделителями глав
     const chapterDividers = document.querySelectorAll("[data-infinite-chapter]");
     chapterDividers.forEach(el => observer.observe(el));
-    
+
     return () => observer.disconnect();
   }, [infiniteScroll, isPagedMode, loadedChapters.length, visibleChapterId, slug, titleId]);
 
@@ -1082,7 +1137,7 @@ function ReadChapterPageContent({
     const el = firstChapterContainerRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         const entry = entries[0];
         if (!entry) return;
         const rect = entry.boundingClientRect;
@@ -1100,7 +1155,9 @@ function ReadChapterPageContent({
           delete next[chapterId];
           return next;
         });
-        loadedImagesRef.current = new Set([...loadedImagesRef.current].filter(k => !k.startsWith(`${chapterId}-`)));
+        loadedImagesRef.current = new Set(
+          [...loadedImagesRef.current].filter(k => !k.startsWith(`${chapterId}-`)),
+        );
         setLoadedChapterIds(prev => {
           const next = new Set(prev);
           next.delete(chapterId);
@@ -1109,60 +1166,62 @@ function ReadChapterPageContent({
         loadedChapterIdsRef.current.delete(chapterId);
         requestAnimationFrame(() => window.scrollBy(0, -height));
       },
-      { root: null, rootMargin: "0px", threshold: 0 }
+      { root: null, rootMargin: "0px", threshold: 0 },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [infiniteScroll, isPagedMode, loadedChapters.length]);
 
   // В режиме «главы подряд» или бесконечного чтения текущая для хедера/контролов — видимая глава
-  const effectiveChapter = (isChaptersInRowMode || infiniteScroll)
-    ? (loadedChapters.find(c => c._id === visibleChapterId) ?? chapter)
-    : chapter;
+  const effectiveChapter =
+    isChaptersInRowMode || infiniteScroll
+      ? (loadedChapters.find(c => c._id === visibleChapterId) ?? chapter)
+      : chapter;
 
   // В бесконечном чтении первый блок — первая глава из списка; при выходе из viewport она размонтируется
-  const displayChapter = (infiniteScroll && !isPagedMode && loadedChapters.length > 0)
-    ? loadedChapters[0]
-    : chapter;
+  const displayChapter =
+    infiniteScroll && !isPagedMode && loadedChapters.length > 0 ? loadedChapters[0] : chapter;
 
   const estimatedReadingTime = useMemo(() => {
     if (!effectiveChapter) return 1;
     return calculateReadingTime(effectiveChapter.images.length, totalContentHeight);
   }, [effectiveChapter, totalContentHeight, calculateReadingTime]);
+  void estimatedReadingTime;
 
   // Динамическое обновление SEO при смене главы (бесконечное чтение)
   useEffect(() => {
     if (!infiniteScroll || !effectiveChapter) return;
-    
+
     const chapterTitle = shouldShowChapterTitle(effectiveChapter.title, effectiveChapter.number)
       ? `Глава ${effectiveChapter.number}: ${effectiveChapter.title}`
       : `Глава ${effectiveChapter.number}`;
-    
+
     const fullTitle = `${chapterTitle} - ${title.title} | Manga-shi`;
-    
+
     // Обновляем title
     document.title = fullTitle;
-    
+
     // Обновляем Open Graph meta tags
     const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute('content', fullTitle);
-    
+    if (ogTitle) ogTitle.setAttribute("content", fullTitle);
+
     const ogUrl = document.querySelector('meta[property="og:url"]');
     if (ogUrl) {
-      const newUrl = slug 
+      const newUrl = slug
         ? `${window.location.origin}/titles/${slug}/chapter/${effectiveChapter._id}`
         : `${window.location.origin}/titles/${titleId}/chapter/${effectiveChapter._id}`;
-      ogUrl.setAttribute('content', newUrl);
+      ogUrl.setAttribute("content", newUrl);
     }
-    
+
     // Обновляем description
     const description = `Читать ${chapterTitle} манги ${title.title} онлайн на Manga-shi`;
     const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) metaDesc.setAttribute('content', description);
-    
+    if (metaDesc) metaDesc.setAttribute("content", description);
+
     const ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc) ogDesc.setAttribute('content', description);
-    
+    if (ogDesc) ogDesc.setAttribute("content", description);
+    // shouldShowChapterTitle — стабильная функция из контекста
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [infiniteScroll, effectiveChapter, title.title, slug, titleId]);
   const pagedImageIndex = Math.min(
     Math.max(currentPage - 1, 0),
@@ -1187,14 +1246,7 @@ function ReadChapterPageContent({
   }
 
   if (!chapter.images?.length) {
-    return (
-      <ChapterNoPagesState
-        title={title}
-        chapter={chapter}
-        chapters={chapters}
-        slug={slug}
-      />
-    );
+    return <ChapterNoPagesState title={title} chapter={chapter} chapters={chapters} slug={slug} />;
   }
 
   return (
@@ -1205,20 +1257,24 @@ function ReadChapterPageContent({
         onClose={() => setIsRestoreModalOpen(false)}
         onRestore={() => restorePosition(savedReadingPage || 1)}
         onReset={resetPosition}
-        onJumpToPage={(page) => {
+        onJumpToPage={page => {
           restorePosition(page);
         }}
         page={savedReadingPage || 1}
         timestamp={savedPositionTimestamp}
         totalPages={chapter.images.length}
-        chapterTitle={shouldShowChapterTitle(chapter.title, chapter.number) ? `Глава ${chapter.number} - ${chapter.title}` : `Глава ${chapter.number}`}
+        chapterTitle={
+          shouldShowChapterTitle(chapter.title, chapter.number)
+            ? `Глава ${chapter.number} - ${chapter.title}`
+            : `Глава ${chapter.number}`
+        }
       />
 
       {/* Индикатор предзагрузки */}
       {preloadAllImages && preloadProgress < 100 && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[150] bg-[var(--card)]/95 backdrop-blur-md border border-[var(--border)] rounded-full px-4 py-2 shadow-lg flex items-center gap-3">
           <div className="w-32 h-2 bg-[var(--muted)] rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
               style={{ width: `${preloadProgress}%` }}
             />
@@ -1268,12 +1324,12 @@ function ReadChapterPageContent({
           setIsMenuCollapsed(false);
         }}
         preloadAllImages={preloadAllImages}
-        onPreloadChange={(value) => {
+        onPreloadChange={value => {
           setPreloadAllImages(value);
           localStorage.setItem("reader-preload-all-images", value.toString());
         }}
         preloadProgress={preloadProgress}
-        onJumpToPage={(page) => {
+        onJumpToPage={page => {
           if (isPagedMode) {
             setCurrentPage(page);
             return;
@@ -1288,7 +1344,11 @@ function ReadChapterPageContent({
           setCurrentPage(page);
         }}
         chapterImages={effectiveChapter.images}
-        shareChapterUrl={typeof window !== "undefined" ? `${window.location.origin}${getChapterPath(effectiveChapter._id)}` : undefined}
+        shareChapterUrl={
+          typeof window !== "undefined"
+            ? `${window.location.origin}${getChapterPath(effectiveChapter._id)}`
+            : undefined
+        }
         shareTitleName={title.title}
         shareChapterNumber={effectiveChapter.number}
       />
@@ -1304,7 +1364,7 @@ function ReadChapterPageContent({
         onReportError={() => setIsReportModalOpen(true)}
         onChapterMenuOpen={() => {
           // Открываем меню выбора главы через ReaderControls
-          const event = new CustomEvent('openChapterMenu');
+          const event = new CustomEvent("openChapterMenu");
           window.dispatchEvent(event);
         }}
         onPrevChapter={() => {
@@ -1340,7 +1400,9 @@ function ReadChapterPageContent({
                   <div className="relative">
                     <div className="w-10 h-10 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
                   </div>
-                  <p className="text-sm text-[var(--muted-foreground)]">Загрузка предыдущей главы…</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Загрузка предыдущей главы…
+                  </p>
                 </div>
               )}
               {loadedChapters.map(ch => (
@@ -1356,7 +1418,9 @@ function ReadChapterPageContent({
                     <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
                       <div className="h-px bg-[var(--primary)]/30 flex-1" />
                       <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
-                        <span className="text-sm font-bold text-[var(--primary)]">Глава {ch.number}</span>
+                        <span className="text-sm font-bold text-[var(--primary)]">
+                          Глава {ch.number}
+                        </span>
                         {shouldShowChapterTitle(ch.title, ch.number) && (
                           <span className="text-sm text-[var(--muted-foreground)]">{ch.title}</span>
                         )}
@@ -1371,11 +1435,12 @@ function ReadChapterPageContent({
                     const useFallback = imageFallbacks.has(errorKey);
                     const imageLoadKey = `${ch._id}-${imageIndex}`;
                     const loadedInChapter = loadedImagesByChapter[ch._id] ?? new Set<number>();
-                    const isImageLoaded = loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
-                    
+                    const isImageLoaded =
+                      loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
+
                     return (
-                      <div 
-                        key={`${ch._id}-${imageIndex}`} 
+                      <div
+                        key={`${ch._id}-${imageIndex}`}
                         className="flex justify-center reader-image-container"
                         style={{ marginBottom: `${pageGap}px` }}
                       >
@@ -1390,12 +1455,13 @@ function ReadChapterPageContent({
                         >
                           {/* Skeleton loader */}
                           {!isImageLoaded && !isError && (
-                            <div 
+                            <div
                               className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
-                              style={{ minHeight: isMobile ? '400px' : '600px' }}
+                              style={{ minHeight: isMobile ? "400px" : "600px" }}
                             >
-                              <div className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer" 
-                                style={{ backgroundSize: '200% 100%' }} 
+                              <div
+                                className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
+                                style={{ backgroundSize: "200% 100%" }}
                               />
                               <div className="relative z-10 flex flex-col items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
@@ -1407,16 +1473,16 @@ function ReadChapterPageContent({
                               </div>
                             </div>
                           )}
-                          
+
                           {!isError ? (
                             <Image
-                              key={`${ch._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? 'fb' : 'pr'}`}
+                              key={`${ch._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? "fb" : "pr"}`}
                               loader={imageLoader}
                               src={imageUrl}
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in ${isImageLoaded ? 'opacity-100' : 'opacity-0 transition-opacity duration-300'}`}
+                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in ${isImageLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
                               quality={imageQuality}
                               loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
                               onLoad={() => {
@@ -1428,14 +1494,29 @@ function ReadChapterPageContent({
                               }}
                               onError={() => handleImageError(ch._id, imageIndex, src)}
                               priority={imageIndex < (isMobile ? 3 : 1)}
-                              onClick={() => handleImageDoubleTap(imageUrl, `Глава ${ch.number}, Страница ${imageIndex + 1}`)}
+                              onClick={() =>
+                                handleImageDoubleTap(
+                                  imageUrl,
+                                  `Глава ${ch.number}, Страница ${imageIndex + 1}`,
+                                )
+                              }
                             />
                           ) : (
                             <div className="w-full min-h-[180px] sm:min-h-[240px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-lg border border-[var(--border)]/50">
                               <div className="text-center max-w-xs">
                                 <div className="w-10 h-10 mx-auto mb-2.5 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center">
-                                  <svg className="w-5 h-5 text-[var(--destructive)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  <svg
+                                    className="w-5 h-5 text-[var(--destructive)]"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={1.5}
+                                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
                                   </svg>
                                 </div>
                                 <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mb-2.5">
@@ -1456,8 +1537,18 @@ function ReadChapterPageContent({
                                   }}
                                   className="inline-flex items-center gap-1.5 px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors text-xs sm:text-sm font-medium min-h-[40px] touch-manipulation active:scale-95"
                                 >
-                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  <svg
+                                    className="w-3.5 h-3.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    />
                                   </svg>
                                   Повторить
                                 </button>
@@ -1476,524 +1567,100 @@ function ReadChapterPageContent({
                   <div className="relative">
                     <div className="w-10 h-10 rounded-full border-2 border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin" />
                   </div>
-                  <p className="text-sm text-[var(--muted-foreground)]">Загрузка следующей главы…</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Загрузка следующей главы…
+                  </p>
                 </div>
               )}
             </>
           ) : (
-          <>
-          <div
-            ref={infiniteScroll && !isPagedMode ? firstChapterContainerRef : undefined}
-            className="chapter-container"
-            data-infinite-chapter={displayChapter._id}
-          >
-            {/* Заголовок главы */}
-            <div className="bg-[var(--primary)]/10 py-6">
-              <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
-                <div className="h-px bg-[var(--primary)]/30 flex-1" />
-                <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
-                  <span className="text-sm font-bold text-[var(--primary)]">Глава {displayChapter.number}</span>
-                  {shouldShowChapterTitle(displayChapter.title, displayChapter.number) && (
-                    <span className="text-sm text-[var(--muted-foreground)]">{displayChapter.title}</span>
-                  )}
-                </div>
-                <div className="h-px bg-[var(--primary)]/30 flex-1" />
-              </div>
-            </div>
-
-            {/* Изображения главы */}
-            {isPagedMode ? (
-              <>
-                <div className="py-3 sm:py-2 text-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--muted)]/60 text-sm text-[var(--muted-foreground)]">
-                    Страница <span className="font-semibold text-[var(--foreground)]">{currentPage}</span> / {displayChapter.images.length}
-                  </div>
-                </div>
-                {displayChapter.images[pagedImageIndex] && (() => {
-                  const imageIndex = pagedImageIndex;
-                  const src = displayChapter.images[imageIndex];
-                  const errorKey = `${displayChapter._id}-${imageIndex}`;
-                  const isError = imageLoadErrors.has(errorKey);
-                  const imageUrl = getImageUrlWithFallback(src, displayChapter._id, imageIndex);
-                  const useFallback = imageFallbacks.has(errorKey);
-                  const imageLoadKey = `${displayChapter._id}-${imageIndex}`;
-                  const loadedInChapter = loadedImagesByChapter[displayChapter._id] ?? new Set<number>();
-                  const isImageLoaded = loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
-
-                  return (
-                    <div 
-                      key={`${displayChapter._id}-${imageIndex}`} 
-                      className="flex justify-center select-none"
-                      onTouchStart={handleTouchStart}
-                      onTouchEnd={handleTouchEnd}
-                    >
-                      <div
-                        className="relative w-full flex justify-center px-0 sm:px-4"
-                        data-page={imageIndex + 1}
-                        style={{
-                          maxWidth: isMobile ? "100%" : `${imageWidth}px`,
-                          transition: "filter 200ms ease-out",
-                          ...imageFilterStyle,
-                        }}
-                        onClick={() => handleImageDoubleTap(imageUrl, `Глава ${displayChapter.number}, Страница ${imageIndex + 1}`)}
-                      >
-                        {/* Skeleton loader */}
-                        {!isImageLoaded && !isError && (
-                          <div 
-                            className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
-                            style={{ minHeight: isMobile ? '400px' : '600px' }}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer" 
-                              style={{ backgroundSize: '200% 100%' }} 
-                            />
-                            <div className="relative z-10 flex flex-col items-center gap-3">
-                              <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
-                                <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-                              </div>
-                              <span className="text-sm text-[var(--muted-foreground)]">
-                                Страница {imageIndex + 1}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {!isError ? (
-                          <>
-                            <Image
-                              key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? 'fb' : 'pr'}`}
-                              loader={imageLoader}
-                              src={imageUrl}
-                              alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
-                              width={isMobile ? 800 : imageWidth}
-                              height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in ${isImageLoaded ? 'opacity-100' : 'opacity-0 transition-opacity duration-300'}`}
-                              quality={imageQuality}
-                              loading="eager"
-                              onLoad={() => {
-                                loadedImagesRef.current.add(imageLoadKey);
-                                setLoadedImagesByChapter(prev => ({
-                                  ...prev,
-                                  [displayChapter._id]: new Set(prev[displayChapter._id] ?? []).add(imageIndex),
-                                }));
-                              }}
-                              onError={() => handleImageError(displayChapter._id, imageIndex, src)}
-                              priority
-                            />
-                            {/* Zoom hint on first page */}
-                            {showHints && imageIndex === 0 && isImageLoaded && (
-                              <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-2.5 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-xs text-white/80 opacity-0 animate-fade-in-delayed pointer-events-none">
-                                <ZoomIn className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Двойной клик для зума</span>
-                                <span className="sm:hidden">2x тап для зума</span>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div className="w-full min-h-[300px] sm:min-h-[400px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-xl border border-[var(--border)]/50">
-                            <div className="text-center max-w-xs">
-                              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center">
-                                <svg className="w-8 h-8 text-[var(--destructive)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                              </div>
-                              <h4 className="font-medium text-[var(--foreground)] mb-2">
-                                Не удалось загрузить страницу {imageIndex + 1}
-                              </h4>
-                              <p className="text-sm text-[var(--muted-foreground)] mb-4">
-                                Проверьте подключение к интернету и попробуйте снова
-                              </p>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setImageLoadErrors(prev => {
-                                    const newSet = new Set(prev);
-                                    newSet.delete(errorKey);
-                                    return newSet;
-                                  });
-                                  setImageFallbacks(prev => {
-                                    const newSet = new Set(prev);
-                                    newSet.delete(errorKey);
-                                    return newSet;
-                                  });
-                                }}
-                                className="inline-flex items-center gap-2 px-5 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-xl transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95"
-                              >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Повторить
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-                {/* Swipe hint для мобильных */}
-                {showHints && isMobile && currentPage === 1 && (
-                  <div className="py-3 text-center animate-in fade-in slide-in-from-top-2 duration-500">
-                    <div className="inline-flex items-center gap-2 px-3 py-2 bg-[var(--secondary)]/80 rounded-full text-xs text-[var(--muted-foreground)]">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-                      </svg>
-                      <span>Свайпайте для навигации</span>
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </div>
-                  </div>
-                )}
-                <div className="py-5 sm:py-6 px-4 sm:px-0">
-                  <div className="flex items-center justify-center gap-3 max-w-xl mx-auto">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage <= 1}
-                      className="group flex cursor-pointer items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-sm font-medium min-h-[48px] touch-manipulation active:scale-95"
-                    >
-                      <ArrowBigLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                      <span className="hidden sm:inline">Предыдущая страница</span>
-                      <span className="sm:hidden">Назад</span>
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(displayChapter.images.length, prev + 1))}
-                      disabled={currentPage >= displayChapter.images.length}
-                      className="group flex cursor-pointer items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-sm font-medium min-h-[48px] touch-manipulation active:scale-95"
-                    >
-                      <span className="hidden sm:inline">Следующая страница</span>
-                      <span className="sm:hidden">Далее</span>
-                      <ArrowBigRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              displayChapter.images.map((src, imageIndex) => {
-                const errorKey = `${displayChapter._id}-${imageIndex}`;
-                const isError = imageLoadErrors.has(errorKey);
-                const imageUrl = getImageUrlWithFallback(src, displayChapter._id, imageIndex);
-                const useFallback = imageFallbacks.has(errorKey);
-                const imageLoadKey = `${displayChapter._id}-${imageIndex}`;
-                const loadedInChapter = loadedImagesByChapter[displayChapter._id] ?? new Set<number>();
-                const isImageLoaded = loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
-
-                return (
-                  <div 
-                    key={`${displayChapter._id}-${imageIndex}`} 
-                    className="flex justify-center reader-image-container"
-                    style={{ marginBottom: `${pageGap}px` }}
-                  >
-                    <div
-                      className="relative w-full flex justify-center px-0 sm:px-4"
-                      data-page={imageIndex + 1}
-                      style={{
-                        maxWidth: isMobile ? "100%" : `${imageWidth}px`,
-                        transition: "filter 200ms ease-out",
-                        ...imageFilterStyle,
-                      }}
-                    >
-                      {/* Skeleton loader пока изображение загружается */}
-                      {!isImageLoaded && !isError && (
-                        <div 
-                          className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
-                          style={{ 
-                            minHeight: isMobile ? '400px' : '600px',
-                          }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer" 
-                            style={{ backgroundSize: '200% 100%' }} 
-                          />
-                          <div className="relative z-10 flex flex-col items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-                            </div>
-                            <span className="text-sm text-[var(--muted-foreground)]">
-                              Страница {imageIndex + 1}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {!isError ? (
-                        <Image
-                          key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? 'fb' : 'pr'}`}
-                          loader={imageLoader}
-                          src={imageUrl}
-                          alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
-                          width={isMobile ? 800 : imageWidth}
-                          height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                          className={`${imageFitClass} shadow-lg sm:shadow-2xl ${isImageLoaded ? 'opacity-100' : 'opacity-0 transition-opacity duration-300'}`}
-                          quality={
-                            imageLoadPriority.size > 0
-                              ? (() => {
-                                  const priority = imageLoadPriority.get(imageIndex + 1);
-                                  switch (priority) {
-                                    case "high":
-                                      return imageQuality;
-                                    case "medium":
-                                      return Math.max(50, imageQuality - 15);
-                                    case "low":
-                                      return Math.max(40, imageQuality - 25);
-                                    default:
-                                      return imageQuality;
-                                  }
-                                })()
-                              : imageQuality
-                          }
-                          loading={
-                            imageLoadPriority.size > 0
-                              ? imageLoadPriority.get(imageIndex + 1) === "high"
-                                ? "eager"
-                                : "lazy"
-                              : imageIndex < (isMobile ? 6 : 3)
-                                ? "eager"
-                                : "lazy"
-                          }
-                          onLoad={() => {
-                            loadedImagesRef.current.add(imageLoadKey);
-                            setLoadedImagesByChapter(prev => ({
-                              ...prev,
-                              [displayChapter._id]: new Set(prev[displayChapter._id] ?? []).add(imageIndex),
-                            }));
-                          }}
-                          onError={() => handleImageError(displayChapter._id, imageIndex, src)}
-                          priority={
-                            imageLoadPriority.size > 0
-                              ? imageLoadPriority.get(imageIndex + 1) === "high"
-                              : imageIndex < (isMobile ? 3 : 1)
-                          }
-                        />
-                      ) : (
-                        <div className="w-full min-h-[200px] sm:min-h-[280px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-lg border border-[var(--border)]/50">
-                          <div className="text-center max-w-xs">
-                            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center">
-                              <svg className="w-6 h-6 text-[var(--destructive)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                            <p className="text-sm text-[var(--muted-foreground)] mb-3">
-                              Страница {imageIndex + 1} не загрузилась
-                            </p>
-                            <button
-                              onClick={() => {
-                                setImageLoadErrors(prev => {
-                                  const newSet = new Set(prev);
-                                  newSet.delete(errorKey);
-                                  return newSet;
-                                });
-                                setImageFallbacks(prev => {
-                                  const newSet = new Set(prev);
-                                  newSet.delete(errorKey);
-                                  return newSet;
-                                });
-                              }}
-                              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                              Повторить
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-
-            {/* Рекламный блок — временно отключено
-            <AdBlockReading />
-            */}
-
-            {/* Реакции на главу */}
-            <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-8">
-              <ChapterReactions
-                chapterId={displayChapter._id}
-                titleId={titleId}
-                initialRating={
-                  displayChapter.averageRating != null ||
-                  displayChapter.ratingCount != null ||
-                  displayChapter.userRating != null
-                    ? {
-                        averageRating: displayChapter.averageRating,
-                        ratingSum: displayChapter.ratingSum,
-                        ratingCount: displayChapter.ratingCount,
-                        userRating: displayChapter.userRating,
-                      }
-                    : undefined
-                }
-                initialReactions={
-                  displayChapter.reactions?.length ? displayChapter.reactions : undefined
-                }
-              />
-            </div>
-
-            {/* Информация о переводчике */}
-            <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-6">
-              <ChapterTranslatorInfo
-                titleId={titleId}
-              />
-            </div>
-
-            {/* Секция комментариев */}
-            <ChapterCommentsSection chapterId={displayChapter._id} />
-
-            {/* Футер главы с кнопками навигации */}
-            {!infiniteScroll && (
-              <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10 px-4 sm:px-0">
-                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 max-w-2xl mx-auto">
-                  <button
-                    onClick={() => {
-                      if (currentChapterIndex > 0) {
-                        const prevChapter = chapters[currentChapterIndex - 1];
-                        clearOtherChaptersPositions(titleId, prevChapter._id);
-                        router.push(getChapterPath(prevChapter._id));
-                      }
-                    }}
-                    disabled={currentChapterIndex === 0}
-                    className="group flex cursor-pointer items-center justify-center gap-3 w-full sm:w-auto px-6 sm:px-8 py-4 sm:py-4 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--secondary)] rounded-2xl sm:rounded-xl transition-all duration-200 text-sm sm:text-base font-medium min-h-[56px] sm:min-h-[52px] touch-manipulation active:scale-95 hover:shadow-lg hover:-translate-y-0.5"
-                  >
-                    <ArrowBigLeft className="w-6 h-6 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-1" />
-                    <span>Предыдущая глава</span>
-                  </button>
-
-                  <div className="hidden sm:flex items-center px-4 py-2 bg-[var(--muted)]/50 rounded-full text-sm text-[var(--muted-foreground)]">
-                    <span className="font-medium text-[var(--foreground)]">{chapter.number}</span>
-                    <span className="mx-2">/</span>
-                    <span>{chapters.length}</span>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      if (currentChapterIndex < chapters.length - 1) {
-                        const nextChapter = chapters[currentChapterIndex + 1];
-                        clearOtherChaptersPositions(titleId, nextChapter._id);
-                        router.push(getChapterPath(nextChapter._id));
-                      }
-                    }}
-                    disabled={currentChapterIndex === chapters.length - 1}
-                    className="group flex cursor-pointer items-center justify-center gap-3 w-full sm:w-auto px-6 sm:px-8 py-4 sm:py-4 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--secondary)] rounded-2xl sm:rounded-xl transition-all duration-200 text-sm sm:text-base font-medium min-h-[56px] sm:min-h-[52px] touch-manipulation active:scale-95 hover:shadow-lg hover:-translate-y-0.5"
-                  >
-                    <span>Следующая глава</span>
-                    <ArrowBigRight className="w-6 h-6 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Бесконечное чтение: триггер и индикатор после комментариев (только для первой главы, если нет дополнительных) */}
-            {infiniteScroll && !isPagedMode && loadedChapters.length === 1 && (
-              <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10">
-                {/* Невидимый триггер для Intersection Observer */}
-                <div ref={infiniteScrollTriggerRef} className="h-1" />
-                
-                {/* Индикатор загрузки */}
-                {isLoadingNextChapter && (
-                  <div className="flex flex-col items-center justify-center gap-3 py-4">
-                    <div className="w-8 h-8 border-3 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-                    <p className="text-sm text-[var(--muted-foreground)]">Загрузка следующей главы...</p>
-                  </div>
-                )}
-                
-                {/* Сообщение когда больше нет глав */}
-                {!isLoadingNextChapter && (() => {
-                  const currentId = loadedChapters[0]?._id ?? chapter._id;
-                  const lastChapterIndex = chapters.findIndex(ch => ch._id === currentId);
-                  const hasMoreChapters = lastChapterIndex < chapters.length - 1;
-                  
-                  return !hasMoreChapters ? (
-                    <div className="text-center py-4">
-                      <p className="text-sm font-medium text-[var(--foreground)]">Это последняя глава</p>
-                      <button
-                        onClick={() => router.push(getTitlePath())}
-                        className="mt-4 px-6 py-3 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-xl transition-colors text-sm"
-                      >
-                        Вернуться к тайтлу
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="text-center text-xs text-[var(--muted-foreground)] py-2">
-                      Прокрутите вниз для загрузки следующей главы
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-          </div>
-
-          {/* В бесконечном чтении в DOM только текущая глава — дополнительные не рендерятся */}
-          {infiniteScroll && !isPagedMode && loadedChapters.length > 1 && (
             <>
-              {loadedChapters.slice(1).map((loadedChapter, chapterIdx) => {
-                const loadedChapterIndex = chapters.findIndex(ch => ch._id === loadedChapter._id);
-                const isLastLoadedChapter = chapterIdx === loadedChapters.length - 2;
-                const hasMoreChapters = loadedChapterIndex < chapters.length - 1;
-                
-                return (
-                  <div key={loadedChapter._id} className="mt-0">
-                    <div 
-                      className="bg-[var(--primary)]/10 py-6"
-                      data-infinite-chapter={loadedChapter._id}
-                    >
-                      <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
-                        <div className="h-px bg-[var(--primary)]/30 flex-1" />
-                        <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
-                          <span className="text-sm font-bold text-[var(--primary)]">Глава {loadedChapter.number}</span>
-                          {shouldShowChapterTitle(loadedChapter.title, loadedChapter.number) && (
-                            <span className="text-sm text-[var(--muted-foreground)]">{loadedChapter.title}</span>
-                          )}
-                        </div>
-                        <div className="h-px bg-[var(--primary)]/30 flex-1" />
+              <div
+                ref={infiniteScroll && !isPagedMode ? firstChapterContainerRef : undefined}
+                className="chapter-container"
+                data-infinite-chapter={displayChapter._id}
+              >
+                {/* Заголовок главы */}
+                <div className="bg-[var(--primary)]/10 py-6">
+                  <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
+                    <div className="h-px bg-[var(--primary)]/30 flex-1" />
+                    <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
+                      <span className="text-sm font-bold text-[var(--primary)]">
+                        Глава {displayChapter.number}
+                      </span>
+                      {shouldShowChapterTitle(displayChapter.title, displayChapter.number) && (
+                        <span className="text-sm text-[var(--muted-foreground)]">
+                          {displayChapter.title}
+                        </span>
+                      )}
+                    </div>
+                    <div className="h-px bg-[var(--primary)]/30 flex-1" />
+                  </div>
+                </div>
+
+                {/* Изображения главы */}
+                {isPagedMode ? (
+                  <>
+                    <div className="py-3 sm:py-2 text-center">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--muted)]/60 text-sm text-[var(--muted-foreground)]">
+                        Страница{" "}
+                        <span className="font-semibold text-[var(--foreground)]">
+                          {currentPage}
+                        </span>{" "}
+                        / {displayChapter.images.length}
                       </div>
                     </div>
-                    <div className="max-w-4xl mx-auto">
-                      {loadedChapter.images.map((src, imageIndex) => {
-                        const errorKey = `${loadedChapter._id}-${imageIndex}`;
+                    {displayChapter.images[pagedImageIndex] &&
+                      (() => {
+                        const imageIndex = pagedImageIndex;
+                        const src = displayChapter.images[imageIndex];
+                        const errorKey = `${displayChapter._id}-${imageIndex}`;
                         const isError = imageLoadErrors.has(errorKey);
-                        const imageUrl = getImageUrlWithFallback(src, loadedChapter._id, imageIndex);
+                        const imageUrl = getImageUrlWithFallback(
+                          src,
+                          displayChapter._id,
+                          imageIndex,
+                        );
                         const useFallback = imageFallbacks.has(errorKey);
-                        const imageLoadKey = `${loadedChapter._id}-${imageIndex}`;
-                        const loadedInChapter = loadedImagesByChapter[loadedChapter._id] ?? new Set<number>();
-                        const isImageLoaded = loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
-                        const visible =
-                          imageIndex === 0 ||
-                          Array.from({ length: imageIndex }, (_, i) => i).every(i =>
-                            loadedImagesRef.current.has(`${loadedChapter._id}-${i}`) || loadedInChapter.has(i),
-                          );
+                        const imageLoadKey = `${displayChapter._id}-${imageIndex}`;
+                        const loadedInChapter =
+                          loadedImagesByChapter[displayChapter._id] ?? new Set<number>();
+                        const isImageLoaded =
+                          loadedImagesRef.current.has(imageLoadKey) ||
+                          loadedInChapter.has(imageIndex);
 
                         return (
-                          <div 
-                            key={`${loadedChapter._id}-${imageIndex}`} 
-                            className="flex justify-center reader-image-container"
-                            style={{ marginBottom: `${pageGap}px` }}
+                          <div
+                            key={`${displayChapter._id}-${imageIndex}`}
+                            className="flex justify-center select-none"
+                            onTouchStart={handleTouchStart}
+                            onTouchEnd={handleTouchEnd}
                           >
                             <div
                               className="relative w-full flex justify-center px-0 sm:px-4"
-                              data-chapter={loadedChapter._id}
                               data-page={imageIndex + 1}
                               style={{
                                 maxWidth: isMobile ? "100%" : `${imageWidth}px`,
-                                opacity: visible ? 1 : 0,
-                                transition: "opacity 200ms ease-out, filter 200ms ease-out",
+                                transition: "filter 200ms ease-out",
                                 ...imageFilterStyle,
                               }}
+                              onClick={() =>
+                                handleImageDoubleTap(
+                                  imageUrl,
+                                  `Глава ${displayChapter.number}, Страница ${imageIndex + 1}`,
+                                )
+                              }
                             >
-                              {/* Skeleton loader пока изображение загружается */}
+                              {/* Skeleton loader */}
                               {!isImageLoaded && !isError && (
-                                <div 
-                                  className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden"
-                                  style={{ 
-                                    minHeight: isMobile ? '400px' : '600px',
-                                    aspectRatio: '3/4'
-                                  }}
+                                <div
+                                  className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
+                                  style={{ minHeight: isMobile ? "400px" : "600px" }}
                                 >
-                                  {/* Анимированный gradient skeleton */}
-                                  <div className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer" 
-                                    style={{ backgroundSize: '200% 100%' }} 
+                                  <div
+                                    className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
+                                    style={{ backgroundSize: "200% 100%" }}
                                   />
-                                  {/* Иконка и текст */}
                                   <div className="relative z-10 flex flex-col items-center gap-3">
                                     <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
                                       <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
@@ -2004,43 +1671,99 @@ function ReadChapterPageContent({
                                   </div>
                                 </div>
                               )}
-                              
+
                               {!isError ? (
-                                <Image
-                                  key={`${loadedChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? 'fb' : 'pr'}`}
-                                  loader={imageLoader}
-                                  src={imageUrl}
-                                  alt={`Глава ${loadedChapter.number}, Страница ${imageIndex + 1}`}
-                                  width={isMobile ? 800 : imageWidth}
-                                  height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                                  className={`${imageFitClass} shadow-lg sm:shadow-2xl ${isImageLoaded ? 'opacity-100' : 'opacity-0 transition-opacity duration-300'}`}
-                                  quality={imageQuality}
-                                  loading="lazy"
-                                  onLoad={() => {
-                                    loadedImagesRef.current.add(imageLoadKey);
-                                    setLoadedImagesByChapter(prev => ({
-                                      ...prev,
-                                      [loadedChapter._id]: new Set(prev[loadedChapter._id] ?? []).add(imageIndex),
-                                    }));
-                                  }}
-                                  onError={() => handleImageError(loadedChapter._id, imageIndex, src)}
-                                />
+                                <>
+                                  <Image
+                                    key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? "fb" : "pr"}`}
+                                    loader={imageLoader}
+                                    src={imageUrl}
+                                    alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
+                                    width={isMobile ? 800 : imageWidth}
+                                    height={
+                                      isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)
+                                    }
+                                    className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in ${isImageLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
+                                    quality={imageQuality}
+                                    loading="eager"
+                                    onLoad={() => {
+                                      loadedImagesRef.current.add(imageLoadKey);
+                                      setLoadedImagesByChapter(prev => ({
+                                        ...prev,
+                                        [displayChapter._id]: new Set(
+                                          prev[displayChapter._id] ?? [],
+                                        ).add(imageIndex),
+                                      }));
+                                    }}
+                                    onError={() =>
+                                      handleImageError(displayChapter._id, imageIndex, src)
+                                    }
+                                    priority
+                                  />
+                                  {/* Zoom hint on first page */}
+                                  {showHints && imageIndex === 0 && isImageLoaded && (
+                                    <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-2.5 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-xs text-white/80 opacity-0 animate-fade-in-delayed pointer-events-none">
+                                      <ZoomIn className="w-3.5 h-3.5" />
+                                      <span className="hidden sm:inline">
+                                        Двойной клик для зума
+                                      </span>
+                                      <span className="sm:hidden">2x тап для зума</span>
+                                    </div>
+                                  )}
+                                </>
                               ) : (
-                                <div className="w-full min-h-[180px] sm:min-h-[240px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-lg border border-[var(--border)]/50">
+                                <div className="w-full min-h-[300px] sm:min-h-[400px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-xl border border-[var(--border)]/50">
                                   <div className="text-center max-w-xs">
-                                    <p className="text-sm text-[var(--muted-foreground)]">
-                                      Не удалось загрузить изображение
+                                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center">
+                                      <svg
+                                        className="w-8 h-8 text-[var(--destructive)]"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={1.5}
+                                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                        />
+                                      </svg>
+                                    </div>
+                                    <h4 className="font-medium text-[var(--foreground)] mb-2">
+                                      Не удалось загрузить страницу {imageIndex + 1}
+                                    </h4>
+                                    <p className="text-sm text-[var(--muted-foreground)] mb-4">
+                                      Проверьте подключение к интернету и попробуйте снова
                                     </p>
                                     <button
-                                      onClick={() => {
+                                      onClick={e => {
+                                        e.stopPropagation();
                                         setImageLoadErrors(prev => {
                                           const newSet = new Set(prev);
                                           newSet.delete(errorKey);
                                           return newSet;
                                         });
+                                        setImageFallbacks(prev => {
+                                          const newSet = new Set(prev);
+                                          newSet.delete(errorKey);
+                                          return newSet;
+                                        });
                                       }}
-                                      className="mt-2 px-3 py-1.5 bg-[var(--primary)] text-white text-xs rounded-lg"
+                                      className="inline-flex items-center gap-2 px-5 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-xl transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95"
                                     >
+                                      <svg
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                        />
+                                      </svg>
                                       Повторить
                                     </button>
                                   </div>
@@ -2049,52 +1772,334 @@ function ReadChapterPageContent({
                             </div>
                           </div>
                         );
-                      })}
+                      })()}
+                    {/* Swipe hint для мобильных */}
+                    {showHints && isMobile && currentPage === 1 && (
+                      <div className="py-3 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                        <div className="inline-flex items-center gap-2 px-3 py-2 bg-[var(--secondary)]/80 rounded-full text-xs text-[var(--muted-foreground)]">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M7 16l-4-4m0 0l4-4m-4 4h18"
+                            />
+                          </svg>
+                          <span>Свайпайте для навигации</span>
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M17 8l4 4m0 0l-4 4m4-4H3"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                    <div className="py-5 sm:py-6 px-4 sm:px-0">
+                      <div className="flex items-center justify-center gap-3 max-w-xl mx-auto">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage <= 1}
+                          className="group flex cursor-pointer items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-sm font-medium min-h-[48px] touch-manipulation active:scale-95"
+                        >
+                          <ArrowBigLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+                          <span className="hidden sm:inline">Предыдущая страница</span>
+                          <span className="sm:hidden">Назад</span>
+                        </button>
+                        <button
+                          onClick={() =>
+                            setCurrentPage(prev => Math.min(displayChapter.images.length, prev + 1))
+                          }
+                          disabled={currentPage >= displayChapter.images.length}
+                          className="group flex cursor-pointer items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-sm font-medium min-h-[48px] touch-manipulation active:scale-95"
+                        >
+                          <span className="hidden sm:inline">Следующая страница</span>
+                          <span className="sm:hidden">Далее</span>
+                          <ArrowBigRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                        </button>
+                      </div>
                     </div>
+                  </>
+                ) : (
+                  displayChapter.images.map((src, imageIndex) => {
+                    const errorKey = `${displayChapter._id}-${imageIndex}`;
+                    const isError = imageLoadErrors.has(errorKey);
+                    const imageUrl = getImageUrlWithFallback(src, displayChapter._id, imageIndex);
+                    const useFallback = imageFallbacks.has(errorKey);
+                    const imageLoadKey = `${displayChapter._id}-${imageIndex}`;
+                    const loadedInChapter =
+                      loadedImagesByChapter[displayChapter._id] ?? new Set<number>();
+                    const isImageLoaded =
+                      loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
 
-                    {/* Реакции на загруженную главу */}
-                    <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-8">
-                      <ChapterReactions
-                        chapterId={loadedChapter._id}
-                        titleId={titleId}
-                        initialRating={
-                          loadedChapter.averageRating != null ||
-                          loadedChapter.ratingCount != null ||
-                          loadedChapter.userRating != null
-                            ? {
-                                averageRating: loadedChapter.averageRating,
-                                ratingSum: loadedChapter.ratingSum,
-                                ratingCount: loadedChapter.ratingCount,
-                                userRating: loadedChapter.userRating,
+                    return (
+                      <div
+                        key={`${displayChapter._id}-${imageIndex}`}
+                        className="flex justify-center reader-image-container"
+                        style={{ marginBottom: `${pageGap}px` }}
+                      >
+                        <div
+                          className="relative w-full flex justify-center px-0 sm:px-4"
+                          data-page={imageIndex + 1}
+                          style={{
+                            maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                            transition: "filter 200ms ease-out",
+                            ...imageFilterStyle,
+                          }}
+                        >
+                          {/* Skeleton loader пока изображение загружается */}
+                          {!isImageLoaded && !isError && (
+                            <div
+                              className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
+                              style={{
+                                minHeight: isMobile ? "400px" : "600px",
+                              }}
+                            >
+                              <div
+                                className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
+                                style={{ backgroundSize: "200% 100%" }}
+                              />
+                              <div className="relative z-10 flex flex-col items-center gap-3">
+                                <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
+                                  <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+                                </div>
+                                <span className="text-sm text-[var(--muted-foreground)]">
+                                  Страница {imageIndex + 1}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                          {!isError ? (
+                            <Image
+                              key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? "fb" : "pr"}`}
+                              loader={imageLoader}
+                              src={imageUrl}
+                              alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
+                              width={isMobile ? 800 : imageWidth}
+                              height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                              className={`${imageFitClass} shadow-lg sm:shadow-2xl ${isImageLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
+                              quality={
+                                imageLoadPriority.size > 0
+                                  ? (() => {
+                                      const priority = imageLoadPriority.get(imageIndex + 1);
+                                      switch (priority) {
+                                        case "high":
+                                          return imageQuality;
+                                        case "medium":
+                                          return Math.max(50, imageQuality - 15);
+                                        case "low":
+                                          return Math.max(40, imageQuality - 25);
+                                        default:
+                                          return imageQuality;
+                                      }
+                                    })()
+                                  : imageQuality
                               }
-                            : undefined
-                        }
-                        initialReactions={
-                          loadedChapter.reactions?.length ? loadedChapter.reactions : undefined
-                        }
-                      />
+                              loading={
+                                imageLoadPriority.size > 0
+                                  ? imageLoadPriority.get(imageIndex + 1) === "high"
+                                    ? "eager"
+                                    : "lazy"
+                                  : imageIndex < (isMobile ? 6 : 3)
+                                    ? "eager"
+                                    : "lazy"
+                              }
+                              onLoad={() => {
+                                loadedImagesRef.current.add(imageLoadKey);
+                                setLoadedImagesByChapter(prev => ({
+                                  ...prev,
+                                  [displayChapter._id]: new Set(prev[displayChapter._id] ?? []).add(
+                                    imageIndex,
+                                  ),
+                                }));
+                              }}
+                              onError={() => handleImageError(displayChapter._id, imageIndex, src)}
+                              priority={
+                                imageLoadPriority.size > 0
+                                  ? imageLoadPriority.get(imageIndex + 1) === "high"
+                                  : imageIndex < (isMobile ? 3 : 1)
+                              }
+                            />
+                          ) : (
+                            <div className="w-full min-h-[200px] sm:min-h-[280px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-lg border border-[var(--border)]/50">
+                              <div className="text-center max-w-xs">
+                                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center">
+                                  <svg
+                                    className="w-6 h-6 text-[var(--destructive)]"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={1.5}
+                                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                </div>
+                                <p className="text-sm text-[var(--muted-foreground)] mb-3">
+                                  Страница {imageIndex + 1} не загрузилась
+                                </p>
+                                <button
+                                  onClick={() => {
+                                    setImageLoadErrors(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.delete(errorKey);
+                                      return newSet;
+                                    });
+                                    setImageFallbacks(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.delete(errorKey);
+                                      return newSet;
+                                    });
+                                  }}
+                                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95"
+                                >
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    />
+                                  </svg>
+                                  Повторить
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+
+                {/* Рекламный блок — временно отключено
+            <AdBlockReading />
+            */}
+
+                {/* Реакции на главу */}
+                <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-8">
+                  <ChapterReactions
+                    chapterId={displayChapter._id}
+                    titleId={titleId}
+                    initialRating={
+                      displayChapter.averageRating != null ||
+                      displayChapter.ratingCount != null ||
+                      displayChapter.userRating != null
+                        ? {
+                            averageRating: displayChapter.averageRating,
+                            ratingSum: displayChapter.ratingSum,
+                            ratingCount: displayChapter.ratingCount,
+                            userRating: displayChapter.userRating,
+                          }
+                        : undefined
+                    }
+                    initialReactions={
+                      displayChapter.reactions?.length ? displayChapter.reactions : undefined
+                    }
+                  />
+                </div>
+
+                {/* Информация о переводчике */}
+                <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-6">
+                  <ChapterTranslatorInfo titleId={titleId} />
+                </div>
+
+                {/* Секция комментариев */}
+                <ChapterCommentsSection chapterId={displayChapter._id} />
+
+                {/* Футер главы с кнопками навигации */}
+                {!infiniteScroll && (
+                  <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10 px-4 sm:px-0">
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 max-w-2xl mx-auto">
+                      <button
+                        onClick={() => {
+                          if (currentChapterIndex > 0) {
+                            const prevChapter = chapters[currentChapterIndex - 1];
+                            clearOtherChaptersPositions(titleId, prevChapter._id);
+                            router.push(getChapterPath(prevChapter._id));
+                          }
+                        }}
+                        disabled={currentChapterIndex === 0}
+                        className="group flex cursor-pointer items-center justify-center gap-3 w-full sm:w-auto px-6 sm:px-8 py-4 sm:py-4 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--secondary)] rounded-2xl sm:rounded-xl transition-all duration-200 text-sm sm:text-base font-medium min-h-[56px] sm:min-h-[52px] touch-manipulation active:scale-95 hover:shadow-lg hover:-translate-y-0.5"
+                      >
+                        <ArrowBigLeft className="w-6 h-6 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-1" />
+                        <span>Предыдущая глава</span>
+                      </button>
+
+                      <div className="hidden sm:flex items-center px-4 py-2 bg-[var(--muted)]/50 rounded-full text-sm text-[var(--muted-foreground)]">
+                        <span className="font-medium text-[var(--foreground)]">
+                          {chapter.number}
+                        </span>
+                        <span className="mx-2">/</span>
+                        <span>{chapters.length}</span>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          if (currentChapterIndex < chapters.length - 1) {
+                            const nextChapter = chapters[currentChapterIndex + 1];
+                            clearOtherChaptersPositions(titleId, nextChapter._id);
+                            router.push(getChapterPath(nextChapter._id));
+                          }
+                        }}
+                        disabled={currentChapterIndex === chapters.length - 1}
+                        className="group flex cursor-pointer items-center justify-center gap-3 w-full sm:w-auto px-6 sm:px-8 py-4 sm:py-4 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--secondary)] rounded-2xl sm:rounded-xl transition-all duration-200 text-sm sm:text-base font-medium min-h-[56px] sm:min-h-[52px] touch-manipulation active:scale-95 hover:shadow-lg hover:-translate-y-0.5"
+                      >
+                        <span>Следующая глава</span>
+                        <ArrowBigRight className="w-6 h-6 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
+                      </button>
                     </div>
+                  </div>
+                )}
 
-                    {/* Комментарии загруженной главы */}
-                    <ChapterCommentsSection chapterId={loadedChapter._id} />
+                {/* Бесконечное чтение: триггер и индикатор после комментариев (только для первой главы, если нет дополнительных) */}
+                {infiniteScroll && !isPagedMode && loadedChapters.length === 1 && (
+                  <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10">
+                    {/* Невидимый триггер для Intersection Observer */}
+                    <div ref={infiniteScrollTriggerRef} className="h-1" />
 
-                    {/* Триггер и индикатор для последней загруженной главы */}
-                    {isLastLoadedChapter && (
-                      <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10">
-                        <div ref={infiniteScrollTriggerRef} className="h-1" />
-                        
-                        {isLoadingNextChapter && (
-                          <div className="flex flex-col items-center justify-center gap-3 py-4">
-                            <div className="w-8 h-8 border-3 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-                            <p className="text-sm text-[var(--muted-foreground)]">Загрузка следующей главы...</p>
-                          </div>
-                        )}
-                        
-                        {!isLoadingNextChapter && !hasMoreChapters && (
+                    {/* Индикатор загрузки */}
+                    {isLoadingNextChapter && (
+                      <div className="flex flex-col items-center justify-center gap-3 py-4">
+                        <div className="w-8 h-8 border-3 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          Загрузка следующей главы...
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Сообщение когда больше нет глав */}
+                    {!isLoadingNextChapter &&
+                      (() => {
+                        const currentId = loadedChapters[0]?._id ?? chapter._id;
+                        const lastChapterIndex = chapters.findIndex(ch => ch._id === currentId);
+                        const hasMoreChapters = lastChapterIndex < chapters.length - 1;
+
+                        return !hasMoreChapters ? (
                           <div className="text-center py-4">
-                            <p className="text-base font-semibold text-[var(--foreground)]">Вы прочитали все доступные главы!</p>
-                            <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                              Загружено глав: {loadedChapters.length}
+                            <p className="text-sm font-medium text-[var(--foreground)]">
+                              Это последняя глава
                             </p>
                             <button
                               onClick={() => router.push(getTitlePath())}
@@ -2103,35 +2108,254 @@ function ReadChapterPageContent({
                               Вернуться к тайтлу
                             </button>
                           </div>
-                        )}
-                        
-                        {!isLoadingNextChapter && hasMoreChapters && (
+                        ) : (
                           <div className="text-center text-xs text-[var(--muted-foreground)] py-2">
                             Прокрутите вниз для загрузки следующей главы
                           </div>
+                        );
+                      })()}
+                  </div>
+                )}
+              </div>
+
+              {/* В бесконечном чтении в DOM только текущая глава — дополнительные не рендерятся */}
+              {infiniteScroll && !isPagedMode && loadedChapters.length > 1 && (
+                <>
+                  {loadedChapters.slice(1).map((loadedChapter, chapterIdx) => {
+                    const loadedChapterIndex = chapters.findIndex(
+                      ch => ch._id === loadedChapter._id,
+                    );
+                    const isLastLoadedChapter = chapterIdx === loadedChapters.length - 2;
+                    const hasMoreChapters = loadedChapterIndex < chapters.length - 1;
+
+                    return (
+                      <div key={loadedChapter._id} className="mt-0">
+                        <div
+                          className="bg-[var(--primary)]/10 py-6"
+                          data-infinite-chapter={loadedChapter._id}
+                        >
+                          <div className="max-w-2xl mx-auto px-4 flex items-center justify-center gap-4">
+                            <div className="h-px bg-[var(--primary)]/30 flex-1" />
+                            <div className="flex items-center gap-3 px-4 py-2 bg-[var(--card)] rounded-full border border-[var(--primary)]/30">
+                              <span className="text-sm font-bold text-[var(--primary)]">
+                                Глава {loadedChapter.number}
+                              </span>
+                              {shouldShowChapterTitle(
+                                loadedChapter.title,
+                                loadedChapter.number,
+                              ) && (
+                                <span className="text-sm text-[var(--muted-foreground)]">
+                                  {loadedChapter.title}
+                                </span>
+                              )}
+                            </div>
+                            <div className="h-px bg-[var(--primary)]/30 flex-1" />
+                          </div>
+                        </div>
+                        <div className="max-w-4xl mx-auto">
+                          {loadedChapter.images.map((src, imageIndex) => {
+                            const errorKey = `${loadedChapter._id}-${imageIndex}`;
+                            const isError = imageLoadErrors.has(errorKey);
+                            const imageUrl = getImageUrlWithFallback(
+                              src,
+                              loadedChapter._id,
+                              imageIndex,
+                            );
+                            const useFallback = imageFallbacks.has(errorKey);
+                            const imageLoadKey = `${loadedChapter._id}-${imageIndex}`;
+                            const loadedInChapter =
+                              loadedImagesByChapter[loadedChapter._id] ?? new Set<number>();
+                            const isImageLoaded =
+                              loadedImagesRef.current.has(imageLoadKey) ||
+                              loadedInChapter.has(imageIndex);
+                            const visible =
+                              imageIndex === 0 ||
+                              Array.from({ length: imageIndex }, (_, i) => i).every(
+                                i =>
+                                  loadedImagesRef.current.has(`${loadedChapter._id}-${i}`) ||
+                                  loadedInChapter.has(i),
+                              );
+
+                            return (
+                              <div
+                                key={`${loadedChapter._id}-${imageIndex}`}
+                                className="flex justify-center reader-image-container"
+                                style={{ marginBottom: `${pageGap}px` }}
+                              >
+                                <div
+                                  className="relative w-full flex justify-center px-0 sm:px-4"
+                                  data-chapter={loadedChapter._id}
+                                  data-page={imageIndex + 1}
+                                  style={{
+                                    maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                                    opacity: visible ? 1 : 0,
+                                    transition: "opacity 200ms ease-out, filter 200ms ease-out",
+                                    ...imageFilterStyle,
+                                  }}
+                                >
+                                  {/* Skeleton loader пока изображение загружается */}
+                                  {!isImageLoaded && !isError && (
+                                    <div
+                                      className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden"
+                                      style={{
+                                        minHeight: isMobile ? "400px" : "600px",
+                                        aspectRatio: "3/4",
+                                      }}
+                                    >
+                                      {/* Анимированный gradient skeleton */}
+                                      <div
+                                        className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
+                                        style={{ backgroundSize: "200% 100%" }}
+                                      />
+                                      {/* Иконка и текст */}
+                                      <div className="relative z-10 flex flex-col items-center gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
+                                          <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+                                        </div>
+                                        <span className="text-sm text-[var(--muted-foreground)]">
+                                          Страница {imageIndex + 1}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {!isError ? (
+                                    <Image
+                                      key={`${loadedChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? "fb" : "pr"}`}
+                                      loader={imageLoader}
+                                      src={imageUrl}
+                                      alt={`Глава ${loadedChapter.number}, Страница ${imageIndex + 1}`}
+                                      width={isMobile ? 800 : imageWidth}
+                                      height={
+                                        isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)
+                                      }
+                                      className={`${imageFitClass} shadow-lg sm:shadow-2xl ${isImageLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
+                                      quality={imageQuality}
+                                      loading="lazy"
+                                      onLoad={() => {
+                                        loadedImagesRef.current.add(imageLoadKey);
+                                        setLoadedImagesByChapter(prev => ({
+                                          ...prev,
+                                          [loadedChapter._id]: new Set(
+                                            prev[loadedChapter._id] ?? [],
+                                          ).add(imageIndex),
+                                        }));
+                                      }}
+                                      onError={() =>
+                                        handleImageError(loadedChapter._id, imageIndex, src)
+                                      }
+                                    />
+                                  ) : (
+                                    <div className="w-full min-h-[180px] sm:min-h-[240px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-lg border border-[var(--border)]/50">
+                                      <div className="text-center max-w-xs">
+                                        <p className="text-sm text-[var(--muted-foreground)]">
+                                          Не удалось загрузить изображение
+                                        </p>
+                                        <button
+                                          onClick={() => {
+                                            setImageLoadErrors(prev => {
+                                              const newSet = new Set(prev);
+                                              newSet.delete(errorKey);
+                                              return newSet;
+                                            });
+                                          }}
+                                          className="mt-2 px-3 py-1.5 bg-[var(--primary)] text-white text-xs rounded-lg"
+                                        >
+                                          Повторить
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Реакции на загруженную главу */}
+                        <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-8">
+                          <ChapterReactions
+                            chapterId={loadedChapter._id}
+                            titleId={titleId}
+                            initialRating={
+                              loadedChapter.averageRating != null ||
+                              loadedChapter.ratingCount != null ||
+                              loadedChapter.userRating != null
+                                ? {
+                                    averageRating: loadedChapter.averageRating,
+                                    ratingSum: loadedChapter.ratingSum,
+                                    ratingCount: loadedChapter.ratingCount,
+                                    userRating: loadedChapter.userRating,
+                                  }
+                                : undefined
+                            }
+                            initialReactions={
+                              loadedChapter.reactions?.length ? loadedChapter.reactions : undefined
+                            }
+                          />
+                        </div>
+
+                        {/* Комментарии загруженной главы */}
+                        <ChapterCommentsSection chapterId={loadedChapter._id} />
+
+                        {/* Триггер и индикатор для последней загруженной главы */}
+                        {isLastLoadedChapter && (
+                          <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10">
+                            <div ref={infiniteScrollTriggerRef} className="h-1" />
+
+                            {isLoadingNextChapter && (
+                              <div className="flex flex-col items-center justify-center gap-3 py-4">
+                                <div className="w-8 h-8 border-3 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+                                <p className="text-sm text-[var(--muted-foreground)]">
+                                  Загрузка следующей главы...
+                                </p>
+                              </div>
+                            )}
+
+                            {!isLoadingNextChapter && !hasMoreChapters && (
+                              <div className="text-center py-4">
+                                <p className="text-base font-semibold text-[var(--foreground)]">
+                                  Вы прочитали все доступные главы!
+                                </p>
+                                <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                                  Загружено глав: {loadedChapters.length}
+                                </p>
+                                <button
+                                  onClick={() => router.push(getTitlePath())}
+                                  className="mt-4 px-6 py-3 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-xl transition-colors text-sm"
+                                >
+                                  Вернуться к тайтлу
+                                </button>
+                              </div>
+                            )}
+
+                            {!isLoadingNextChapter && hasMoreChapters && (
+                              <div className="text-center text-xs text-[var(--muted-foreground)] py-2">
+                                Прокрутите вниз для загрузки следующей главы
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Сообщение о завершении всех глав (только без бесконечного чтения) */}
+              {!infiniteScroll && currentChapterIndex === chapters.length - 1 && (
+                <div className="py-6 sm:py-8 text-center border-t border-[var(--border)] mt-6 sm:mt-8 px-4 sm:px-0">
+                  <p className="text-base sm:text-lg font-semibold mb-4">Вы дочитали до конца!</p>
+
+                  <button
+                    onClick={() => router.push(getTitlePath())}
+                    className="w-full sm:w-auto px-6 py-4 sm:py-3 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-xl sm:rounded-lg transition-colors text-sm sm:text-base min-h-[48px] touch-manipulation active:scale-95"
+                  >
+                    Вернуться к тайтлу
+                  </button>
+                </div>
+              )}
             </>
-          )}
-
-          {/* Сообщение о завершении всех глав (только без бесконечного чтения) */}
-          {!infiniteScroll && currentChapterIndex === chapters.length - 1 && (
-            <div className="py-6 sm:py-8 text-center border-t border-[var(--border)] mt-6 sm:mt-8 px-4 sm:px-0">
-              <p className="text-base sm:text-lg font-semibold mb-4">Вы дочитали до конца!</p>
-
-              <button
-                onClick={() => router.push(getTitlePath())}
-                className="w-full sm:w-auto px-6 py-4 sm:py-3 bg-[var(--accent)] hover:bg-[var(--accent)]/80 rounded-xl sm:rounded-lg transition-colors text-sm sm:text-base min-h-[48px] touch-manipulation active:scale-95"
-              >
-                Вернуться к тайтлу
-              </button>
-            </div>
-          )}
-          </>
           )}
         </div>
       </main>
@@ -2198,7 +2422,7 @@ function ReadChapterPageContent({
       {/* Keyboard Shortcuts Modal */}
       {showKeyboardHints && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div 
+          <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowKeyboardHints(false)}
           />
@@ -2214,15 +2438,21 @@ function ReadChapterPageContent({
             <div className="p-5 space-y-3">
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm text-[var(--foreground)]">Предыдущая глава</span>
-                <kbd className="px-3 py-1.5 bg-[var(--secondary)] rounded-lg text-xs font-mono border border-[var(--border)]">←</kbd>
+                <kbd className="px-3 py-1.5 bg-[var(--secondary)] rounded-lg text-xs font-mono border border-[var(--border)]">
+                  ←
+                </kbd>
               </div>
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm text-[var(--foreground)]">Следующая глава</span>
-                <kbd className="px-3 py-1.5 bg-[var(--secondary)] rounded-lg text-xs font-mono border border-[var(--border)]">→</kbd>
+                <kbd className="px-3 py-1.5 bg-[var(--secondary)] rounded-lg text-xs font-mono border border-[var(--border)]">
+                  →
+                </kbd>
               </div>
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm text-[var(--foreground)]">Выйти из полноэкранного</span>
-                <kbd className="px-3 py-1.5 bg-[var(--secondary)] rounded-lg text-xs font-mono border border-[var(--border)]">Esc</kbd>
+                <kbd className="px-3 py-1.5 bg-[var(--secondary)] rounded-lg text-xs font-mono border border-[var(--border)]">
+                  Esc
+                </kbd>
               </div>
             </div>
             <div className="p-4 border-t border-[var(--border)] bg-[var(--background)]/50">
@@ -2239,7 +2469,7 @@ function ReadChapterPageContent({
 
       {/* Zoom Image Modal */}
       {zoomedImage && (
-        <div 
+        <div
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-zoom-out"
           onClick={() => setZoomedImage(null)}
         >
@@ -2258,14 +2488,23 @@ function ReadChapterPageContent({
               className="absolute top-4 right-4 p-3 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
             >
               <span className="sr-only">Закрыть</span>
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
         </div>
       )}
-
     </div>
   );
 }

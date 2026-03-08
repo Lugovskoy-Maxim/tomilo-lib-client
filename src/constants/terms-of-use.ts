@@ -41,7 +41,8 @@ const termsOfUse = {
         ],
       },
       userContentRequirements: {
-        title: "Требования к имени пользователя, аватару и комментариям (соответствие законодательству РФ)",
+        title:
+          "Требования к имени пользователя, аватару и комментариям (соответствие законодательству РФ)",
         intro:
           "В целях соблюдения законодательства Российской Федерации (в том числе Федерального закона от 29.12.2010 № 436-ФЗ «О защите детей от информации, причиняющей вред их здоровью и развитию», Федерального закона от 27.07.2006 № 149-ФЗ «Об информации, информационных технологиях и о защите информации», КоАП РФ, УК РФ) Пользователь обязуется соблюдать следующие требования:",
         nickname: {
@@ -134,7 +135,8 @@ const termsOfUse = {
     // Контактная информация
     contact: {
       title: "Контактная информация",
-      description: "По всем вопросам, связанным с настоящим Соглашением, вы можете обратиться по адресу",
+      description:
+        "По всем вопросам, связанным с настоящим Соглашением, вы можете обратиться по адресу",
       email: "support@tomilo-lib.ru",
     },
 
@@ -185,7 +187,8 @@ const termsOfUse = {
         ],
       },
       userContentRequirements: {
-        title: "Requirements for Username, Avatar and Comments (Compliance with the Laws of the Russian Federation)",
+        title:
+          "Requirements for Username, Avatar and Comments (Compliance with the Laws of the Russian Federation)",
         intro:
           "In order to comply with the legislation of the Russian Federation (including Federal Law No. 436-FZ of 29.12.2010 on protection of children from information harmful to their health and development, Federal Law No. 149-FZ of 27.07.2006 on information, information technologies and protection of information, the Code of Administrative Offences, the Criminal Code of the Russian Federation), the User agrees to comply with the following requirements:",
         nickname: {

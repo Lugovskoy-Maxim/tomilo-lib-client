@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   if (!date) {
     return NextResponse.json(
       { success: false, message: "Missing 'date' parameter. Format: YYYY-MM-DD" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   if (!dateRegex.test(date)) {
     return NextResponse.json(
       { success: false, message: "Invalid date format. Use YYYY-MM-DD" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       const errorData = await res.json().catch(() => ({ message: "Failed to fetch daily stats" }));
       return NextResponse.json(
         { success: false, message: errorData.message || "Failed to fetch daily stats" },
-        { status: res.status }
+        { status: res.status },
       );
     }
 
@@ -47,9 +47,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Daily stats API error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

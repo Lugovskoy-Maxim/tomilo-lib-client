@@ -1,9 +1,23 @@
 "use client";
 
 import { UserProfile, BookmarkCategory } from "@/types/user";
-import { 
-  BookOpen, Clock, HelpCircle, Coins, Bookmark, Zap, Crown,
-  Flame, Calendar, PieChart, MessageCircle, Heart, CheckCircle2, Trophy, TrendingUp, Gift
+import {
+  BookOpen,
+  Clock,
+  HelpCircle,
+  Coins,
+  Bookmark,
+  Zap,
+  Crown,
+  Flame,
+  Calendar,
+  PieChart,
+  MessageCircle,
+  Heart,
+  CheckCircle2,
+  Trophy,
+  TrendingUp,
+  Gift,
 } from "lucide-react";
 import {
   getRankColor,
@@ -23,7 +37,7 @@ interface ProfileStatsProps {
 
 const CATEGORY_COLORS: Record<BookmarkCategory, string> = {
   reading: "#3b82f6",
-  planned: "#8b5cf6", 
+  planned: "#8b5cf6",
   completed: "#22c55e",
   favorites: "#f59e0b",
   dropped: "#ef4444",
@@ -37,22 +51,27 @@ const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
   dropped: "Брошено",
 };
 
-export default function ProfileStats({ userProfile, showDetailed = true, isPublicView = false }: ProfileStatsProps) {
+export default function ProfileStats({
+  userProfile,
+  showDetailed = true,
+  isPublicView = false,
+}: ProfileStatsProps) {
   const [activeStatCard, setActiveStatCard] = useState<string | null>(null);
   const [showRankTooltip, setShowRankTooltip] = useState(false);
   const [showCoinsTooltip, setShowCoinsTooltip] = useState(false);
   const [showExpTooltip, setShowExpTooltip] = useState(false);
 
   const totalBookmarks = userProfile.bookmarks?.length || 0;
-  const totalChaptersRead = userProfile.readingHistory?.reduce((total, item) => {
-    return total + (item.chaptersCount ?? item.chapters?.length ?? 0);
-  }, 0) || 0;
+  const totalChaptersRead =
+    userProfile.readingHistory?.reduce((total, item) => {
+      return total + (item.chaptersCount ?? item.chapters?.length ?? 0);
+    }, 0) || 0;
   const totalTitlesRead = userProfile.titlesReadCount ?? userProfile.readingHistory?.length ?? 0;
 
   const level = userProfile.level ?? 0;
   const experience = userProfile.experience ?? 0;
   const balance = userProfile.balance ?? 0;
-  
+
   // Новые данные из бэкенда
   const readingTimeMinutes = userProfile.readingTimeMinutes ?? totalChaptersRead * 4;
   const currentStreak = userProfile.currentStreak ?? 0;
@@ -67,7 +86,11 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
 
   const bookmarksByCategory = useMemo(() => {
     const categories: Record<BookmarkCategory, number> = {
-      reading: 0, planned: 0, completed: 0, favorites: 0, dropped: 0
+      reading: 0,
+      planned: 0,
+      completed: 0,
+      favorites: 0,
+      dropped: 0,
     };
     userProfile.bookmarks?.forEach(b => {
       if (b.category in categories) categories[b.category]++;
@@ -77,13 +100,23 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
 
   // Если это публичный просмотр и пользователь скрыл статистику — не показываем
   const isStatsHidden = isPublicView && userProfile.showStats === false;
-  
+
   if (isStatsHidden) {
     return (
       <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-6 sm:p-8 text-center">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
-          <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <svg
+            className="w-8 h-8 text-[var(--muted-foreground)]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
           </svg>
         </div>
         <p className="text-[var(--foreground)] font-medium mb-1">Статистика скрыта</p>
@@ -110,8 +143,11 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
   };
 
   const joinedDate = userProfile.createdAt ? new Date(userProfile.createdAt) : null;
-  const daysSinceJoined = joinedDate ? Math.floor((Date.now() - joinedDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-  const avgChaptersPerDay = daysSinceJoined > 0 ? (totalChaptersRead / daysSinceJoined).toFixed(1) : "0";
+  const daysSinceJoined = joinedDate
+    ? Math.floor((Date.now() - joinedDate.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const avgChaptersPerDay =
+    daysSinceJoined > 0 ? (totalChaptersRead / daysSinceJoined).toFixed(1) : "0";
 
   const stats = [
     {
@@ -156,7 +192,7 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
     <div className="space-y-5">
       {/* Main stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {stats.map((stat) => (
+        {stats.map(stat => (
           <div
             key={stat.id}
             className={`group relative flex flex-col gap-2 rounded-xl p-4 bg-[var(--secondary)]/40 border border-[var(--border)]/60 hover:border-[var(--border)] hover:bg-[var(--secondary)]/60 transition-all duration-300 cursor-pointer overflow-hidden ${
@@ -168,20 +204,20 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
             <div className="absolute top-0 right-0 w-16 h-16 opacity-5 pointer-events-none transform translate-x-4 -translate-y-4">
               <stat.icon className="w-full h-full" />
             </div>
-            
-            <div className={`w-fit p-2 rounded-lg bg-gradient-to-br ${stat.color} shadow-sm group-hover:scale-110 transition-transform duration-300`}>
+
+            <div
+              className={`w-fit p-2 rounded-lg bg-gradient-to-br ${stat.color} shadow-sm group-hover:scale-110 transition-transform duration-300`}
+            >
               <stat.icon className="w-4 h-4 text-white" />
             </div>
-            
+
             <div>
               <div className="text-lg sm:text-xl font-bold text-[var(--foreground)] tabular-nums leading-tight">
                 {stat.value}
               </div>
-              <div className="text-xs text-[var(--muted-foreground)]">
-                {stat.label}
-              </div>
+              <div className="text-xs text-[var(--muted-foreground)]">{stat.label}</div>
             </div>
-            
+
             {showDetailed && (
               <div className="text-[10px] text-[var(--muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 {stat.subValue}
@@ -196,19 +232,21 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
         {/* Level progress */}
         <div className="sm:col-span-2 relative rounded-xl p-4 bg-gradient-to-br from-[var(--secondary)]/50 to-[var(--secondary)]/30 border border-[var(--border)]/60">
           <div className="flex items-center gap-3 mb-3">
-            <div 
+            <div
               className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shrink-0"
-              style={{ 
+              style={{
                 backgroundColor: `${rankColor}20`,
                 color: rankColor,
-                boxShadow: `0 0 16px ${rankColor}30`
+                boxShadow: `0 0 16px ${rankColor}30`,
               }}
             >
               {level}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-bold" style={{ color: rankColor }}>{getRankDisplay(level)}</p>
+                <p className="text-sm font-bold" style={{ color: rankColor }}>
+                  {getRankDisplay(level)}
+                </p>
                 <div className="relative">
                   <button
                     type="button"
@@ -220,8 +258,8 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
                   </button>
                   {showRankTooltip && (
                     <>
-                      <div 
-                        className="fixed inset-0 z-40" 
+                      <div
+                        className="fixed inset-0 z-40"
                         onClick={() => setShowRankTooltip(false)}
                       />
                       <div className="absolute right-0 sm:right-0 top-full z-50 mt-2 w-[calc(100vw-2rem)] sm:w-64 max-w-xs rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 sm:p-3 text-left shadow-xl">
@@ -248,29 +286,33 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
                             return (
                               <li
                                 key={rank}
-                                className={`flex items-center justify-between gap-1 text-[10px] sm:text-[11px] py-1 px-1.5 rounded ${isCurrentRank ? 'ring-1 ring-inset' : ''}`}
-                                style={isCurrentRank ? { 
-                                  backgroundColor: `${color}15`,
-                                  '--tw-ring-color': `${color}40`
-                                } as React.CSSProperties : undefined}
+                                className={`flex items-center justify-between gap-1 text-[10px] sm:text-[11px] py-1 px-1.5 rounded ${isCurrentRank ? "ring-1 ring-inset" : ""}`}
+                                style={
+                                  isCurrentRank
+                                    ? ({
+                                        backgroundColor: `${color}15`,
+                                        "--tw-ring-color": `${color}40`,
+                                      } as React.CSSProperties)
+                                    : undefined
+                                }
                               >
                                 <div className="flex items-center gap-1.5">
-                                  <span 
+                                  <span
                                     className="w-4 h-4 sm:w-5 sm:h-5 rounded flex items-center justify-center text-[9px] sm:text-[10px] font-bold shrink-0"
                                     style={{ backgroundColor: `${color}20`, color }}
                                   >
                                     {rank}
                                   </span>
-                                  <span 
+                                  <span
                                     className="font-medium truncate"
-                                    style={{ color: isCurrentRank ? color : 'var(--foreground)' }}
+                                    style={{ color: isCurrentRank ? color : "var(--foreground)" }}
                                   >
                                     {rankName}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
                                   {isCurrentRank && (
-                                    <span 
+                                    <span
                                       className="text-[8px] sm:text-[9px] px-1 py-0.5 rounded font-medium"
                                       style={{ backgroundColor: `${color}25`, color }}
                                     >
@@ -297,10 +339,10 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
             <div className="h-2.5 rounded-full bg-[var(--secondary)] overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700 ease-out relative"
-                style={{ 
+                style={{
                   width: `${expProgress}%`,
                   background: `linear-gradient(90deg, ${rankColor} 0%, ${rankColor}cc 100%)`,
-                  boxShadow: `0 0 8px ${rankColor}50`
+                  boxShadow: `0 0 8px ${rankColor}50`,
                 }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer" />
@@ -311,7 +353,9 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
                 <Zap className="w-3 h-3 text-amber-500" />
                 {experience.toLocaleString()} XP
               </span>
-              <span>{(nextLevelExp - experience).toLocaleString()} XP до ур. {level + 1}</span>
+              <span>
+                {(nextLevelExp - experience).toLocaleString()} XP до ур. {level + 1}
+              </span>
             </div>
           </div>
         </div>
@@ -333,15 +377,16 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
               <HelpCircle className="w-3.5 h-3.5" />
             </button>
           </div>
-          <p className="text-2xl font-bold text-amber-500 tabular-nums">{experience.toLocaleString()}</p>
-          <p className="text-[10px] text-[var(--muted-foreground)] mt-1">{expProgress.toFixed(0)}% до уровня {level + 1}</p>
-          
+          <p className="text-2xl font-bold text-amber-500 tabular-nums">
+            {experience.toLocaleString()}
+          </p>
+          <p className="text-[10px] text-[var(--muted-foreground)] mt-1">
+            {expProgress.toFixed(0)}% до уровня {level + 1}
+          </p>
+
           {showExpTooltip && (
             <>
-              <div 
-                className="fixed inset-0 z-40" 
-                onClick={() => setShowExpTooltip(false)}
-              />
+              <div className="fixed inset-0 z-40" onClick={() => setShowExpTooltip(false)} />
               <div className="absolute left-0 sm:right-0 sm:left-auto top-full z-50 mt-2 w-[calc(100vw-2rem)] sm:w-64 max-w-xs rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 sm:p-3 text-left shadow-xl">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-semibold text-[var(--foreground)] flex items-center gap-1.5">
@@ -368,7 +413,7 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
                     { action: "Достижение (редкое)", xp: "+50" },
                     { action: "Достижение (эпическое)", xp: "+100" },
                     { action: "Достижение (легенд.)", xp: "+250" },
-                  ].map((item) => (
+                  ].map(item => (
                     <li
                       key={item.action}
                       className="flex items-center justify-between text-[10px] sm:text-[11px] py-1 px-1.5 rounded bg-[var(--secondary)]/30"
@@ -400,15 +445,14 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
               <HelpCircle className="w-3.5 h-3.5" />
             </button>
           </div>
-          <p className="text-2xl font-bold text-yellow-500 tabular-nums">{balance.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-yellow-500 tabular-nums">
+            {balance.toLocaleString()}
+          </p>
           <p className="text-[10px] text-[var(--muted-foreground)] mt-1">Для магазина</p>
-          
+
           {showCoinsTooltip && (
             <>
-              <div 
-                className="fixed inset-0 z-40" 
-                onClick={() => setShowCoinsTooltip(false)}
-              />
+              <div className="fixed inset-0 z-40" onClick={() => setShowCoinsTooltip(false)} />
               <div className="absolute right-0 top-full z-50 mt-2 w-[calc(100vw-2rem)] sm:w-56 max-w-xs rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 sm:p-3 text-left shadow-xl">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-semibold text-[var(--foreground)] flex items-center gap-1.5">
@@ -428,7 +472,7 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
                     { action: "Повышение уровня", coins: "+10" },
                     { action: "Ежедневный бонус", coins: "+1-5" },
                     { action: "Активность в серии", coins: "+5" },
-                  ].map((item) => (
+                  ].map(item => (
                     <li
                       key={item.action}
                       className="flex items-center justify-between text-[10px] sm:text-[11px] py-1 px-1.5 rounded bg-[var(--secondary)]/30"
@@ -452,24 +496,31 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
               <PieChart className="w-5 h-5 text-[var(--chart-2)]" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[var(--foreground)]">Распределение закладок</h3>
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">
+                Распределение закладок
+              </h3>
               <p className="text-xs text-[var(--muted-foreground)]">По категориям</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            {(Object.keys(bookmarksByCategory) as BookmarkCategory[]).map((category) => {
+            {(Object.keys(bookmarksByCategory) as BookmarkCategory[]).map(category => {
               const count = bookmarksByCategory[category];
               const percent = totalBookmarks > 0 ? Math.round((count / totalBookmarks) * 100) : 0;
               return (
-                <div key={category} className="text-center p-3 rounded-lg bg-[var(--card)]/50 border border-[var(--border)]/40">
-                  <div 
+                <div
+                  key={category}
+                  className="text-center p-3 rounded-lg bg-[var(--card)]/50 border border-[var(--border)]/40"
+                >
+                  <div
                     className="w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center text-white text-xs font-bold"
                     style={{ backgroundColor: CATEGORY_COLORS[category] }}
                   >
                     {count}
                   </div>
-                  <p className="text-xs font-medium text-[var(--foreground)]">{CATEGORY_LABELS[category]}</p>
+                  <p className="text-xs font-medium text-[var(--foreground)]">
+                    {CATEGORY_LABELS[category]}
+                  </p>
                   <p className="text-[10px] text-[var(--muted-foreground)]">{percent}%</p>
                 </div>
               );
@@ -477,16 +528,16 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
           </div>
 
           <div className="mt-4 h-2 rounded-full bg-[var(--secondary)] overflow-hidden flex">
-            {(Object.keys(bookmarksByCategory) as BookmarkCategory[]).map((category) => {
+            {(Object.keys(bookmarksByCategory) as BookmarkCategory[]).map(category => {
               const count = bookmarksByCategory[category];
               const percent = totalBookmarks > 0 ? (count / totalBookmarks) * 100 : 0;
               return (
                 <div
                   key={category}
                   className="h-full transition-all duration-500"
-                  style={{ 
+                  style={{
                     width: `${percent}%`,
-                    backgroundColor: CATEGORY_COLORS[category]
+                    backgroundColor: CATEGORY_COLORS[category],
                   }}
                 />
               );
@@ -499,15 +550,40 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
       {showDetailed && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { icon: Calendar, label: "Дней на сайте", value: daysSinceJoined.toLocaleString(), color: "text-blue-500" },
-            { icon: MessageCircle, label: "Комментариев", value: commentsCount.toLocaleString(), color: "text-cyan-500" },
-            { icon: Heart, label: "Получено лайков", value: likesReceivedCount.toLocaleString(), color: "text-pink-500" },
-            { icon: CheckCircle2, label: "Завершено тайтлов", value: completedTitlesCount.toLocaleString(), color: "text-green-500" },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50">
+            {
+              icon: Calendar,
+              label: "Дней на сайте",
+              value: daysSinceJoined.toLocaleString(),
+              color: "text-blue-500",
+            },
+            {
+              icon: MessageCircle,
+              label: "Комментариев",
+              value: commentsCount.toLocaleString(),
+              color: "text-cyan-500",
+            },
+            {
+              icon: Heart,
+              label: "Получено лайков",
+              value: likesReceivedCount.toLocaleString(),
+              color: "text-pink-500",
+            },
+            {
+              icon: CheckCircle2,
+              label: "Завершено тайтлов",
+              value: completedTitlesCount.toLocaleString(),
+              color: "text-green-500",
+            },
+          ].map(item => (
+            <div
+              key={item.label}
+              className="flex items-center gap-3 p-3 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50"
+            >
               <item.icon className={`w-5 h-5 ${item.color} shrink-0`} />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-[var(--foreground)] tabular-nums">{item.value}</p>
+                <p className="text-sm font-bold text-[var(--foreground)] tabular-nums">
+                  {item.value}
+                </p>
                 <p className="text-[10px] text-[var(--muted-foreground)] truncate">{item.label}</p>
               </div>
             </div>
@@ -525,30 +601,67 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
                 <Zap className="w-5 h-5 text-amber-500" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm font-semibold text-[var(--foreground)]">Как получить опыт</h3>
+                <h3 className="text-sm font-semibold text-[var(--foreground)]">
+                  Как получить опыт
+                </h3>
                 <p className="text-xs text-[var(--muted-foreground)]">Способы повышения уровня</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 min-w-0 flex-1 content-start">
               {[
-                { action: "Чтение новой главы", xp: "+10 XP", icon: BookOpen, color: "text-blue-500" },
+                {
+                  action: "Чтение новой главы",
+                  xp: "+10 XP",
+                  icon: BookOpen,
+                  color: "text-blue-500",
+                },
                 { action: "Ежедневный вход", xp: "+5 XP", icon: Calendar, color: "text-green-500" },
                 { action: "Серия 7 дней", xp: "+50 XP", icon: Flame, color: "text-orange-500" },
                 { action: "Серия 14 дней", xp: "+100 XP", icon: Flame, color: "text-orange-500" },
                 { action: "Серия 21 день", xp: "+150 XP", icon: Flame, color: "text-red-500" },
                 { action: "Серия 30 дней", xp: "+250 XP", icon: Flame, color: "text-red-500" },
-                { action: "Достижение (обычное)", xp: "+10 XP", icon: Trophy, color: "text-slate-500" },
-                { action: "Достижение (редкое)", xp: "+50 XP", icon: Trophy, color: "text-blue-500" },
-                { action: "Достижение (эпическое)", xp: "+100 XP", icon: Trophy, color: "text-purple-500" },
-                { action: "Достижение (легендарное)", xp: "+250 XP", icon: Trophy, color: "text-amber-500" },
-              ].map((item) => (
-                <div key={item.action} className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30 min-w-0">
+                {
+                  action: "Достижение (обычное)",
+                  xp: "+10 XP",
+                  icon: Trophy,
+                  color: "text-slate-500",
+                },
+                {
+                  action: "Достижение (редкое)",
+                  xp: "+50 XP",
+                  icon: Trophy,
+                  color: "text-blue-500",
+                },
+                {
+                  action: "Достижение (эпическое)",
+                  xp: "+100 XP",
+                  icon: Trophy,
+                  color: "text-purple-500",
+                },
+                {
+                  action: "Достижение (легендарное)",
+                  xp: "+250 XP",
+                  icon: Trophy,
+                  color: "text-amber-500",
+                },
+              ].map(item => (
+                <div
+                  key={item.action}
+                  className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30 min-w-0"
+                >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <item.icon className={`w-4 h-4 shrink-0 ${item.color}`} />
-                    <span className="text-xs text-[var(--foreground)] min-w-0 truncate" title={item.action}>{item.action}</span>
+                    <span
+                      className="text-xs text-[var(--foreground)] min-w-0 truncate"
+                      title={item.action}
+                    >
+                      {item.action}
+                    </span>
                   </div>
-                  <span className="text-xs font-bold text-amber-500 shrink-0 tabular-nums">{item.xp}</span>
+                  <span className="text-xs font-bold text-amber-500 shrink-0 tabular-nums">
+                    {item.xp}
+                  </span>
                 </div>
               ))}
             </div>
@@ -561,26 +674,43 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
                 <Coins className="w-5 h-5 text-yellow-500" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm font-semibold text-[var(--foreground)]">Как получить монеты</h3>
+                <h3 className="text-sm font-semibold text-[var(--foreground)]">
+                  Как получить монеты
+                </h3>
                 <p className="text-xs text-[var(--muted-foreground)]">Валюта для магазина</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-2 min-w-0 flex-1 content-start">
               {[
-                { action: "Повышение уровня", coins: "+10", icon: TrendingUp, color: "text-green-500" },
+                {
+                  action: "Повышение уровня",
+                  coins: "+10",
+                  icon: TrendingUp,
+                  color: "text-green-500",
+                },
                 { action: "Ежедневный бонус", coins: "+1-5", icon: Gift, color: "text-pink-500" },
                 { action: "Серия 7 дней", coins: "+5", icon: Flame, color: "text-orange-500" },
                 { action: "Серия 14 дней", coins: "+10", icon: Flame, color: "text-orange-500" },
                 { action: "Серия 21 день", coins: "+15", icon: Flame, color: "text-red-500" },
                 { action: "Серия 30 дней", coins: "+25", icon: Flame, color: "text-red-500" },
-              ].map((item) => (
-                <div key={item.action} className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30 min-w-0">
+              ].map(item => (
+                <div
+                  key={item.action}
+                  className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30 min-w-0"
+                >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <item.icon className={`w-4 h-4 shrink-0 ${item.color}`} />
-                    <span className="text-xs text-[var(--foreground)] min-w-0 truncate" title={item.action}>{item.action}</span>
+                    <span
+                      className="text-xs text-[var(--foreground)] min-w-0 truncate"
+                      title={item.action}
+                    >
+                      {item.action}
+                    </span>
                   </div>
-                  <span className="text-xs font-bold text-yellow-500 shrink-0 tabular-nums">{item.coins}</span>
+                  <span className="text-xs font-bold text-yellow-500 shrink-0 tabular-nums">
+                    {item.coins}
+                  </span>
                 </div>
               ))}
             </div>
@@ -590,8 +720,12 @@ export default function ProfileStats({ userProfile, showDetailed = true, isPubli
 
       <style jsx>{`
         @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
         }
         .animate-shimmer {
           animation: shimmer 2s infinite;

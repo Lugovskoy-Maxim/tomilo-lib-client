@@ -9,14 +9,7 @@ import {
 } from "@/store/api/ipApi";
 import { BlockedIp } from "@/types/ip";
 import { useToast } from "@/hooks/useToast";
-import {
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Search,
-  Clock,
-  Globe,
-} from "lucide-react";
+import { Shield, ShieldAlert, ShieldCheck, Search, Clock, Globe } from "lucide-react";
 import Button from "@/shared/ui/button";
 
 export function IpManagementSection() {

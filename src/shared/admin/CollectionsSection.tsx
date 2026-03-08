@@ -330,9 +330,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
             <FolderOpen className="w-6 h-6" />
             Управление коллекциями
           </h2>
-          <p className="text-[var(--muted-foreground)] mt-1">
-            Всего коллекций: {total}
-          </p>
+          <p className="text-[var(--muted-foreground)] mt-1">Всего коллекций: {total}</p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
@@ -360,10 +358,7 @@ export function CollectionsSection({}: CollectionsSectionProps) {
           <p className="text-[var(--muted-foreground)] mb-6">
             {modalContent?.message || "Операция завершена"}
           </p>
-          <button
-            onClick={() => setIsModalOpen(false)}
-            className="admin-btn admin-btn-primary"
-          >
+          <button onClick={() => setIsModalOpen(false)} className="admin-btn admin-btn-primary">
             Закрыть
           </button>
         </div>
@@ -412,8 +407,12 @@ export function CollectionsSection({}: CollectionsSectionProps) {
           </div>
         ) : (
           collections.map((collection: Collection, index: number) => {
-            const placeholderSrc = typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
-            const { primary: coverUrl, fallback: coverFallback } = getCoverUrls(collection.cover, placeholderSrc);
+            const placeholderSrc =
+              typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
+            const { primary: coverUrl, fallback: coverFallback } = getCoverUrls(
+              collection.cover,
+              placeholderSrc,
+            );
             return (
               <div
                 key={`${collection.id}-${index}`}
@@ -665,7 +664,8 @@ function CollectionModal({
 
   const imageCoverUrls = (): { primary: string; fallback: string } => {
     const placeholderSrc = typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src;
-    if (previewUrl && previewUrl.startsWith("data:")) return { primary: previewUrl, fallback: previewUrl };
+    if (previewUrl && previewUrl.startsWith("data:"))
+      return { primary: previewUrl, fallback: previewUrl };
     return getCoverUrls(formData?.cover, placeholderSrc);
   };
 
@@ -762,11 +762,7 @@ function CollectionModal({
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="admin-btn admin-btn-secondary"
-          >
+          <button type="button" onClick={onClose} className="admin-btn admin-btn-secondary">
             Отмена
           </button>
           <button
@@ -837,8 +833,7 @@ function TitlesModal({
   const availableTitles = titles.filter(
     (title: Title) =>
       !collectionTitles.some(
-        (ct: string | Title) =>
-          (typeof ct === "string" ? ct : (ct as Title)._id) === title._id,
+        (ct: string | Title) => (typeof ct === "string" ? ct : (ct as Title)._id) === title._id,
       ),
   );
 
@@ -874,7 +869,10 @@ function TitlesModal({
               <p className="text-sm text-[var(--muted-foreground)]">Нет тайтлов в коллекции</p>
             ) : (
               collectionTitles.map((title: string | Title) => {
-                const titleData = typeof title === "string" ? { _id: title, name: "—", coverImage: undefined } : title;
+                const titleData =
+                  typeof title === "string"
+                    ? { _id: title, name: "—", coverImage: undefined }
+                    : title;
                 return (
                   <div
                     key={titleData._id}
@@ -909,16 +907,14 @@ function TitlesModal({
 
         {/* Add Title */}
         <div>
-          <h3 className="text-lg font-semibold text-[var(--foreground)] mb-3">
-            Добавить тайтл
-          </h3>
+          <h3 className="text-lg font-semibold text-[var(--foreground)] mb-3">Добавить тайтл</h3>
           <div className="relative" ref={dropdownRef}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
               <input
                 type="text"
                 value={search}
-                onChange={(e) => {
+                onChange={e => {
                   setSearch(e.target.value);
                   setShowDropdown(true);
                 }}
@@ -930,7 +926,9 @@ function TitlesModal({
             {showDropdown && (
               <div className="absolute z-20 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] shadow-lg max-h-56 overflow-y-auto">
                 {isLoadingTitles ? (
-                  <div className="px-4 py-3 text-sm text-[var(--muted-foreground)]">Загрузка...</div>
+                  <div className="px-4 py-3 text-sm text-[var(--muted-foreground)]">
+                    Загрузка...
+                  </div>
                 ) : availableTitles.length === 0 ? (
                   <div className="px-4 py-3 text-sm text-[var(--muted-foreground)]">
                     {search ? "Ничего не найдено" : "Введите поисковый запрос"}
@@ -959,7 +957,9 @@ function TitlesModal({
                         />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-medium text-[var(--foreground)] truncate">{title.name}</div>
+                        <div className="font-medium text-[var(--foreground)] truncate">
+                          {title.name}
+                        </div>
                         <div className="text-xs text-[var(--muted-foreground)] truncate">
                           {title.author ?? "—"}
                         </div>
@@ -1099,10 +1099,7 @@ function CommentsModal({
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <button
-            onClick={onClose}
-            className="admin-btn admin-btn-secondary"
-          >
+          <button onClick={onClose} className="admin-btn admin-btn-secondary">
             Закрыть
           </button>
         </div>

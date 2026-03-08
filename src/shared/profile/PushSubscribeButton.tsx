@@ -5,8 +5,12 @@ import { Bell, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { AUTH_TOKEN_KEY } from "@/store/api/baseQueryWithReauth";
 
-const VAPID_PUBLIC_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY : undefined;
-const API_BASE = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api" : "";
+const VAPID_PUBLIC_KEY =
+  typeof process !== "undefined" ? process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY : undefined;
+const API_BASE =
+  typeof process !== "undefined"
+    ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+    : "";
 
 export function PushSubscribeButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +24,11 @@ export function PushSubscribeButton() {
   }, []);
 
   const handleSubscribe = useCallback(async () => {
-    if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) {
+    if (
+      typeof window === "undefined" ||
+      !("Notification" in window) ||
+      !("serviceWorker" in navigator)
+    ) {
       toast.error("Push-уведомления не поддерживаются в этом браузере");
       return;
     }
@@ -136,7 +144,13 @@ export function PushSubscribeButton() {
           disabled={isLoading || isGranted}
           className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 flex items-center gap-1.5 min-w-[4.5rem] justify-center"
         >
-          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isGranted ? "Включено" : "Включить"}
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : isGranted ? (
+            "Включено"
+          ) : (
+            "Включить"
+          )}
         </button>
       )}
     </div>

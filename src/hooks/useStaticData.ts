@@ -65,12 +65,18 @@ export interface StaticDataOptions {
   includeAdult?: boolean;
 }
 
-export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSections = {}): StaticData => {
+export const useStaticData = (
+  options: StaticDataOptions | StaticDataVisibleSections = {},
+): StaticData => {
   // Support both old (visibleSections only) and new (options object) API
-  const isOptionsObject = 'visibleSections' in options || 'includeAdult' in options;
-  const visibleSections = isOptionsObject ? (options as StaticDataOptions).visibleSections ?? {} : options as StaticDataVisibleSections;
-  const includeAdult = isOptionsObject ? (options as StaticDataOptions).includeAdult ?? false : false;
-  
+  const isOptionsObject = "visibleSections" in options || "includeAdult" in options;
+  const visibleSections = isOptionsObject
+    ? ((options as StaticDataOptions).visibleSections ?? {})
+    : (options as StaticDataVisibleSections);
+  const includeAdult = isOptionsObject
+    ? ((options as StaticDataOptions).includeAdult ?? false)
+    : false;
+
   const [collections, setCollections] = useState({
     data: [] as Collection[],
     loading: true,
@@ -85,7 +91,7 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
 
   const loadCollections = visibleSections.collections ?? false;
   const loadLatestUpdates = visibleSections.latestUpdates ?? false;
-  
+
   // Ref для предотвращения повторных загрузок коллекций
   const collectionsLoadedRef = useRef(false);
   // Ref для отслеживания последнего значения includeAdult при загрузке updates
@@ -94,10 +100,11 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
   // Мемоизированная функция форматирования коллекций (устойчива к null/неполным элементам)
   const formatCollections = useCallback((collectionsData: unknown[]): Collection[] => {
     const safeItems = collectionsData.filter(
-      (x): x is ApiCollection => x != null && typeof x === "object" && ("id" in x || "_id" in x || "name" in x)
+      (x): x is ApiCollection =>
+        x != null && typeof x === "object" && ("id" in x || "_id" in x || "name" in x),
     );
     return safeItems.map((collection: ApiCollection) => {
-      const id = String((collection.id ?? collection._id) ?? "");
+      const id = String(collection.id ?? collection._id ?? "");
       const raw = (collection as Record<string, unknown>).titles;
       const titles = Array.isArray(raw) ? (raw as string[]) : [];
       const titlesCount =
@@ -126,16 +133,16 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
   useEffect(() => {
     // Предотвращаем повторную загрузку коллекций (они не зависят от includeAdult)
     if (!loadCollections || collectionsLoadedRef.current) return;
-    
+
     let cancelled = false;
     const controller = new AbortController();
-    
+
     const fetchCollections = async () => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
         const response = await fetch(
           `${baseUrl}/collections?page=1&limit=10&sortBy=createdAt&sortOrder=desc`,
-          { signal: controller.signal }
+          { signal: controller.signal },
         );
 
         if (!response.ok)
@@ -150,7 +157,7 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
         let formattedCollections: Collection[];
         try {
           formattedCollections = formatCollections(collectionsData);
-        } catch (_) {
+        } catch {
           formattedCollections = [];
         }
 
@@ -171,7 +178,7 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
     };
 
     fetchCollections();
-    
+
     return () => {
       cancelled = true;
       controller.abort();
@@ -182,54 +189,55 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
     // Пропускаем если секция не видима или значение includeAdult не изменилось
     if (!loadLatestUpdates) return;
     if (lastIncludeAdultRef.current === includeAdult && latestUpdates.data.length > 0) return;
-    
+
     lastIncludeAdultRef.current = includeAdult;
     let cancelled = false;
     const controller = new AbortController();
-    
+
     const fetchLatestUpdates = async () => {
       // Показываем loading только при первой загрузке
       if (latestUpdates.data.length === 0) {
         setLatestUpdates(prev => ({ ...prev, loading: true }));
       }
-      
+
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
         const params = new URLSearchParams({ limit: "16" });
         if (includeAdult) params.append("includeAdult", "true");
-        const response = await fetch(
-          `${baseUrl}/titles/latest-updates?${params.toString()}`,
-          { signal: controller.signal }
-        );
+        const response = await fetch(`${baseUrl}/titles/latest-updates?${params.toString()}`, {
+          signal: controller.signal,
+        });
 
         if (!response.ok) throw new Error("Failed to fetch latest updates");
         if (cancelled) return;
 
         const result = await response.json();
         if (cancelled) return;
-        
+
         const raw = result.data?.data ?? result.data?.items ?? result.data;
         const list = Array.isArray(raw) ? raw : [];
-        const transformedData = list.map((item: ApiLatestUpdate & { chapters?: number[] | { numbers?: number[] } }) => {
-          const raw = item.chapters;
-          const numbers = Array.isArray(raw)
-            ? raw
-            : Array.isArray((raw as unknown as { numbers?: number[] })?.numbers)
-              ? (raw as unknown as { numbers: number[] }).numbers
-              : [];
-          const chapter =
-            numbers.length > 0
-              ? numbers.length === 1
-                ? `Глава ${numbers[0]}`
-                : `Главы ${formatChapterRanges(numbers)}`
-              : item.chapter ?? "";
-          return {
-            ...item,
-            chapter,
-            releaseYear: item.releaseYear || new Date().getFullYear(),
-            type: item.type || "manga",
-          };
-        });
+        const transformedData = list.map(
+          (item: ApiLatestUpdate & { chapters?: number[] | { numbers?: number[] } }) => {
+            const raw = item.chapters;
+            const numbers = Array.isArray(raw)
+              ? raw
+              : Array.isArray((raw as unknown as { numbers?: number[] })?.numbers)
+                ? (raw as unknown as { numbers: number[] }).numbers
+                : [];
+            const chapter =
+              numbers.length > 0
+                ? numbers.length === 1
+                  ? `Глава ${numbers[0]}`
+                  : `Главы ${formatChapterRanges(numbers)}`
+                : (item.chapter ?? "");
+            return {
+              ...item,
+              chapter,
+              releaseYear: item.releaseYear || new Date().getFullYear(),
+              type: item.type || "manga",
+            };
+          },
+        );
         setLatestUpdates({
           data: transformedData,
           loading: false,
@@ -245,7 +253,7 @@ export const useStaticData = (options: StaticDataOptions | StaticDataVisibleSect
       }
     };
     fetchLatestUpdates();
-    
+
     return () => {
       cancelled = true;
       controller.abort();

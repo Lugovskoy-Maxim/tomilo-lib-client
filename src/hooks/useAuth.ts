@@ -15,6 +15,7 @@ import { login, logout, setLoading, updateUser } from "@/store/slices/authSlice"
 import { RootState } from "@/store";
 import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-verification";
+import { isValidAvatarUrl } from "@/lib/asset-url";
 import { ReadingProgressResponse } from "@/types/progress";
 
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
@@ -79,7 +80,9 @@ export const useAuth = () => {
     const currentToken = getToken();
     if (!profileResponse?.success || !profileResponse?.data || !currentToken) return;
 
-    const user = profileResponse.data as StoredUser & { equipped_decorations?: StoredUser["equippedDecorations"] };
+    const user = profileResponse.data as StoredUser & {
+      equipped_decorations?: StoredUser["equippedDecorations"];
+    };
     const userId = user?.id ?? user?._id;
     if (lastAppliedProfileRef.current === profileResponse) return;
     lastAppliedProfileRef.current = profileResponse;
@@ -89,7 +92,7 @@ export const useAuth = () => {
       id: user.id || user._id,
       email: user.email,
       username: user.username,
-      avatar: user.avatar,
+      avatar: isValidAvatarUrl(user.avatar) ? user.avatar : (auth.user?.avatar ?? user.avatar),
       role: user.role,
       level: user.level,
       experience: user.experience,
@@ -122,7 +125,9 @@ export const useAuth = () => {
     if (user.birthDate) {
       checkAndSetAgeVerification(user.birthDate);
     }
-  }, [profileResponse, token, dispatch, auth.user?.id, auth.user?._id]);
+    // auth.user синхронизируется из profileResponse, явно не добавляем чтобы избежать лишних синхронизаций
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileResponse, token, dispatch]);
 
   useEffect(() => {
     if (error && getToken()) {
@@ -192,16 +197,20 @@ export const useAuth = () => {
         throw new Error(errorData.message || "Ошибка при обновлении аватара");
       }
 
-      const result: ApiResponseDto<StoredUser> = await response.json();
+      const result = await response.json() as ApiResponseDto<{ avatar?: string; updatedAt?: string }>;
 
       if (!result.success) {
         throw new Error(result.message || "Ошибка при обновлении аватара");
       }
 
-      updateUserData({
-        avatar: result.data?.avatar,
-        updatedAt: result.data?.updatedAt,
-      });
+      // Обновляем стор только если бэкенд вернул валидный avatar/updatedAt (не затираем текущий ошибочным "/uploads/avatars/undefined")
+      const data = result.data;
+      if (data && (data.avatar !== undefined || data.updatedAt !== undefined)) {
+        updateUserData({
+          ...(data.avatar !== undefined && isValidAvatarUrl(data.avatar) && { avatar: data.avatar }),
+          ...(data.updatedAt !== undefined && { updatedAt: data.updatedAt }),
+        });
+      }
 
       if (token) {
         refetchProfile();
@@ -359,9 +368,7 @@ export const useAuth = () => {
   };
 
   const updateChapterViewsCount = useCallback(
-    async (
-      _chapterId: string,
-    ): Promise<{ success: boolean; error?: string }> => {
+    async (_chapterId: string): Promise<{ success: boolean; error?: string }> => {
       try {
         await incrementChapterViews(_chapterId).unwrap();
         return { success: true };
@@ -377,9 +384,12 @@ export const useAuth = () => {
   );
 
   const addToReadingHistoryFunc = useCallback(
-    async (titleId: string, chapterId: string): Promise<{ 
-      success: boolean; 
-      error?: string; 
+    async (
+      titleId: string,
+      chapterId: string,
+    ): Promise<{
+      success: boolean;
+      error?: string;
       progress?: ReadingProgressResponse;
     }> => {
       const stringifyUnknown = (value: unknown): string | null => {
@@ -400,9 +410,9 @@ export const useAuth = () => {
         msg === "READING_HISTORY_VERSION_CONFLICT" ||
         /no matching document|version \d+|modifiedPaths/i.test(msg);
 
-      const tryAdd = async (): Promise<{ 
-        success: boolean; 
-        error?: string; 
+      const tryAdd = async (): Promise<{
+        success: boolean;
+        error?: string;
         progress?: ReadingProgressResponse;
       }> => {
         const result = await addToReadingHistory({
@@ -438,7 +448,8 @@ export const useAuth = () => {
           error?: unknown;
           status?: unknown;
         };
-        const apiMessage = stringifyUnknown(e?.data?.errors?.[0]) ?? stringifyUnknown(e?.data?.message);
+        const apiMessage =
+          stringifyUnknown(e?.data?.errors?.[0]) ?? stringifyUnknown(e?.data?.message);
         const nativeMessage = stringifyUnknown(e?.message);
         const fallback =
           stringifyUnknown(e?.error) ?? stringifyUnknown(e?.status) ?? stringifyUnknown(err);
@@ -530,6 +541,8 @@ export const useAuth = () => {
         return { success: false, error: message };
       }
     },
+    // token не добавляем — используется внутри RTK/API, стабильность через addToReadingHistory
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [addToReadingHistory, refetchProfile],
   );
 

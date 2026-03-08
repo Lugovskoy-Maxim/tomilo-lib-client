@@ -24,7 +24,9 @@ export interface HomeDataOptions {
   includeAdult?: boolean;
 }
 
-export const useHomeData = (options: HomeDataOptions = {}): {
+export const useHomeData = (
+  options: HomeDataOptions = {},
+): {
   popularTitles: {
     data: {
       id: string;
@@ -172,8 +174,7 @@ export const useHomeData = (options: HomeDataOptions = {}): {
 
   const skipPopular = !visibleSections.popular && !visibleSections.featured;
   const skipRecent = !visibleSections.recent;
-  // const skipTrending = !visibleSections.trending; // блок «В тренде» отключён
-  const skipTrending = true; // запрос тренда отключён
+  // блок «В тренде» отключён — запрос тренда не выполняется
   const skipUnderrated = !visibleSections.underrated;
   const skipTopCombined = !visibleSections.topCombined;
   const skipRandom = !visibleSections.random;
@@ -184,21 +185,30 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     isLoading: popularTitlesLoading,
     isUninitialized: popularTitlesUninitialized,
     error: popularTitlesError,
-  } = useGetPopularTitlesQuery({ limit: 10, includeAdult }, { ...popularCacheOptions, skip: skipPopular });
+  } = useGetPopularTitlesQuery(
+    { limit: 10, includeAdult },
+    { ...popularCacheOptions, skip: skipPopular },
+  );
 
   // Недавно добавленные в каталог
   const {
     data: recentTitlesData,
     isLoading: recentTitlesLoading,
     error: recentTitlesError,
-  } = useGetRecentTitlesQuery({ limit: 18, includeAdult }, { ...popularCacheOptions, skip: skipRecent });
+  } = useGetRecentTitlesQuery(
+    { limit: 18, includeAdult },
+    { ...popularCacheOptions, skip: skipRecent },
+  );
 
   // Случайные тайтлы
   const {
     data: randomTitlesData,
     isLoading: randomTitlesLoading,
     error: randomTitlesError,
-  } = useGetRandomTitlesQuery({ limit: 10, includeAdult }, { ...popularCacheOptions, skip: skipRandom });
+  } = useGetRandomTitlesQuery(
+    { limit: 10, includeAdult },
+    { ...popularCacheOptions, skip: skipRandom },
+  );
 
   // В тренде: поиск по weekViews — временно отключено
   // const {
@@ -232,54 +242,57 @@ export const useHomeData = (options: HomeDataOptions = {}): {
   );
 
   // Мемоизированное преобразование популярных тайтлов
-  const popularTitles = useMemo(() =>
-    popularTitlesData?.data?.map(item => ({
-      id: item.id,
-      slug: (item as any).slug,
-      title: item.title,
-      image: item.cover,
-      description: item.description,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
-      genres: [],
-      isAdult: item.isAdult ?? false,
-    })) || [],
-    [popularTitlesData]
+  const popularTitles = useMemo(
+    () =>
+      popularTitlesData?.data?.map(item => ({
+        id: item.id,
+        slug: (item as any).slug,
+        title: item.title,
+        image: item.cover,
+        description: item.description,
+        type: item.type || "Неуказан",
+        year: item.releaseYear || new Date().getFullYear(),
+        rating: item.rating || 0,
+        genres: [],
+        isAdult: item.isAdult ?? false,
+      })) || [],
+    [popularTitlesData],
   );
 
   // Мемоизированное преобразование случайных тайтлов
-  const randomTitles = useMemo(() =>
-    randomTitlesData?.data?.map(item => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      image: item.cover,
-      description: item.description,
-      type: item.type || "Неуказан",
-      year: item.releaseYear || new Date().getFullYear(),
-      rating: item.rating || 0,
-      genres: [],
-      isAdult: item.isAdult ?? false,
-    })) || [],
-    [randomTitlesData]
+  const randomTitles = useMemo(
+    () =>
+      randomTitlesData?.data?.map(item => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        image: item.cover,
+        description: item.description,
+        type: item.type || "Неуказан",
+        year: item.releaseYear || new Date().getFullYear(),
+        rating: item.rating || 0,
+        genres: [],
+        isAdult: item.isAdult ?? false,
+      })) || [],
+    [randomTitlesData],
   );
 
   // Мемоизированное преобразование недавно добавленных
-  const recentTitles = useMemo(() =>
-    recentTitlesData?.data?.map((item: any) => ({
-      id: item.id ?? item._id,
-      slug: item.slug,
-      title: item.title ?? item.name ?? "",
-      image: item.cover ?? item.coverImage,
-      description: item.description,
-      type: item.type || "Неуказан",
-      year: item.releaseYear ?? new Date().getFullYear(),
-      rating: item.rating ?? 0,
-      genres: [],
-      isAdult: item.isAdult ?? false,
-    })) ?? [],
-    [recentTitlesData]
+  const recentTitles = useMemo(
+    () =>
+      recentTitlesData?.data?.map((item: any) => ({
+        id: item.id ?? item._id,
+        slug: item.slug,
+        title: item.title ?? item.name ?? "",
+        image: item.cover ?? item.coverImage,
+        description: item.description,
+        type: item.type || "Неуказан",
+        year: item.releaseYear ?? new Date().getFullYear(),
+        rating: item.rating ?? 0,
+        genres: [],
+        isAdult: item.isAdult ?? false,
+      })) ?? [],
+    [recentTitlesData],
   );
 
   // Мемоизированное преобразование трендовых — отключено вместе с запросом
@@ -324,9 +337,7 @@ export const useHomeData = (options: HomeDataOptions = {}): {
 
     if (candidates.length === 0) return [];
 
-    const viewsDistribution = candidates
-      .map(item => item.views)
-      .sort((a, b) => a - b);
+    const viewsDistribution = candidates.map(item => item.views).sort((a, b) => a - b);
     const lowViewsThreshold = viewsDistribution[Math.floor(viewsDistribution.length * 0.35)] || 0;
 
     const filtered = candidates
@@ -378,9 +389,9 @@ export const useHomeData = (options: HomeDataOptions = {}): {
     ),
   ];
 
-  const [topManhuaData, topManhwaData, top2026Data] = topQueries.map((q) => q.data);
-  const [topManhuaLoading, topManhwaLoading, top2026Loading] = topQueries.map((q) => q.isLoading);
-  const [topManhuaError, topManhwaError, top2026Error] = topQueries.map((q) => q.error);
+  const [topManhuaData, topManhwaData, top2026Data] = topQueries.map(q => q.data);
+  const [topManhuaLoading, topManhwaLoading, top2026Loading] = topQueries.map(q => q.isLoading);
+  const [topManhuaError, topManhwaError, top2026Error] = topQueries.map(q => q.error);
 
   const topManhua = useMemo(
     () =>

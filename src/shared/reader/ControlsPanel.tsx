@@ -73,12 +73,14 @@ export default function ControlsPanel({
             className="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] min-w-[120px]"
           >
             {chapters.map(ch => {
-              const showTitle = ch.title && 
-                ch.title !== String(ch.number) && 
+              const showTitle =
+                ch.title &&
+                ch.title !== String(ch.number) &&
                 !ch.title.toLowerCase().match(/^глава\s*\d+$/);
               return (
                 <option key={ch._id} value={ch._id || ch.number}>
-                  Глава {ch.number}{showTitle ? ` - ${ch.title}` : ''}
+                  Глава {ch.number}
+                  {showTitle ? ` - ${ch.title}` : ""}
                 </option>
               );
             })}

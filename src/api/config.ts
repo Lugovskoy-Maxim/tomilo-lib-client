@@ -22,7 +22,10 @@ const uploadsOrigin = process.env.NEXT_PUBLIC_UPLOADS_URL?.replace(/\/$/, "") ||
  * Возвращает primary и fallback URL для изображения объявления.
  * Primary = S3 (если настроен), fallback = старый сервер.
  */
-export function getAnnouncementImageUrls(pathOrUrl: string | undefined): { primary: string; fallback: string } {
+export function getAnnouncementImageUrls(pathOrUrl: string | undefined): {
+  primary: string;
+  fallback: string;
+} {
   if (!pathOrUrl) return { primary: "", fallback: "" };
   const s = pathOrUrl.trim();
   if (!s) return { primary: "", fallback: "" };

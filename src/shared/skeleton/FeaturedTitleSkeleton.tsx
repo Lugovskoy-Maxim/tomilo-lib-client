@@ -1,7 +1,10 @@
 import React from "react";
 
 export const FeaturedTitleSkeleton: React.FC = () => (
-  <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" aria-label="Загрузка популярных тайтлов">
+  <section
+    className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6"
+    aria-label="Загрузка популярных тайтлов"
+  >
     <div className="relative w-full overflow-hidden">
       <div className="relative z-10 w-full flex flex-col min-h-[280px] sm:min-h-[340px] md:min-h-[420px] md:flex-row gap-3 sm:gap-5 md:gap-8">
         {/* Обложка */}

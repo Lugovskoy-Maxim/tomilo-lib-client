@@ -1,0 +1,33 @@
+---
+description: Структура проекта Tomilo Lib, слои и масштабирование
+alwaysApply: true
+---
+
+# Tomilo Lib Client — архитектура и онбординг
+
+## Слои (сверху вниз)
+
+- **app/** — маршруты, страницы, API routes. Только композиция, минимум логики.
+- **widgets/** — крупные блоки страниц (header, home-page, title-view). Собирают shared + store/hooks.
+- **shared/** — переиспользуемые фичи и UI (reader, browse, profile, modal). Не зависят от маршрутов.
+- **store/, hooks/, lib/, types/** — состояние, хуки, утилиты, типы. Не импортируют app/widgets/shared.
+
+Импорты: алиас `@/` (например `@/shared`, `@/store/api/titlesApi`).
+
+## Store (Redux)
+
+- API к бэкенду: **RTK Query** в `store/api/*Api.ts`. Базовый запрос — `store/api/baseQueryWithReauth.ts`.
+- Добавление нового API: создать `store/api/exampleApi.ts`, затем в **store/rootReducer.ts** добавить в массив `apiList` одну строку — reducer и middleware подключатся автоматически.
+- Локальное UI-состояние: слайсы в `store/slices/`. Новый slice — добавить в `rootReducer.ts` в объект `slices` и импорт.
+
+## Типы и константы
+
+- Общие типы (DTO, ответы API) — только в `src/types/`. Не дублировать в API-файлах.
+- Константы — `src/constants/`.
+
+## Документация
+
+- **ARCHITECTURE.md** — зависимости слоёв, правила масштабирования, что не делать.
+- **FILE_STRUCTURE.md** — именование файлов, папок, barrel-экспорты, Tailwind/BEM.
+
+При изменении структуры или добавлении слоёв — обновлять ARCHITECTURE.md и это правило.

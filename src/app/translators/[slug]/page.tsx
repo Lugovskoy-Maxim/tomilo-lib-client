@@ -3,15 +3,7 @@
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Users2,
-  BookOpen,
-  Eye,
-  Heart,
-  ExternalLink,
-  MessageCircle,
-  Info,
-} from "lucide-react";
+import { Users2, BookOpen, Eye, Heart, ExternalLink, MessageCircle, Info } from "lucide-react";
 import { useGetTeamBySlugQuery } from "@/store/api/translatorsApi";
 import {
   translatorRoleLabels,
@@ -23,15 +15,7 @@ import { normalizeAssetUrl } from "@/lib/asset-url";
 import { getTitlePath } from "@/lib/title-paths";
 import { Header } from "@/widgets";
 
-function SocialLink({
-  href,
-  label,
-  icon,
-}: {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-}) {
+function SocialLink({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
   if (!href?.trim()) return null;
   return (
     <a
@@ -51,7 +35,11 @@ export default function TranslatorTeamPage() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const { data: team, isLoading, isError } = useGetTeamBySlugQuery(slug, {
+  const {
+    data: team,
+    isLoading,
+    isError,
+  } = useGetTeamBySlugQuery(slug, {
     skip: !slug,
   });
 
@@ -84,10 +72,7 @@ export default function TranslatorTeamPage() {
             <p className="text-[var(--muted-foreground)] mb-4">
               Такой команды переводчиков не существует или страница удалена.
             </p>
-            <Link
-              href="/"
-              className="text-[var(--primary)] hover:underline"
-            >
+            <Link href="/" className="text-[var(--primary)] hover:underline">
               На главную
             </Link>
           </div>
@@ -96,7 +81,15 @@ export default function TranslatorTeamPage() {
     );
   }
 
-  const t = team as TranslatorTeam & { titles?: { _id: string; name: string; slug: string; coverImage?: string; totalChapters?: number }[] };
+  const t = team as TranslatorTeam & {
+    titles?: {
+      _id: string;
+      name: string;
+      slug: string;
+      coverImage?: string;
+      totalChapters?: number;
+    }[];
+  };
   const socialLinks = t.socialLinks || {};
   const donationLinks = t.donationLinks || {};
   const titles = t.titles && t.titles.length > 0 ? t.titles : null;
@@ -137,7 +130,11 @@ export default function TranslatorTeamPage() {
               {t.isVerified && (
                 <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center ring-2 ring-[var(--background)]">
                   <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
               )}
@@ -176,9 +173,7 @@ export default function TranslatorTeamPage() {
             <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-2">
               О команде
             </h2>
-            <p className="text-[var(--foreground)] whitespace-pre-wrap">
-              {t.description}
-            </p>
+            <p className="text-[var(--foreground)] whitespace-pre-wrap">{t.description}</p>
           </div>
         )}
 
@@ -189,14 +184,9 @@ export default function TranslatorTeamPage() {
               Участники
             </h2>
             <ul className="space-y-2">
-              {t.members.map((member) => (
-                <li
-                  key={member._id}
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  <span className="font-medium text-[var(--foreground)]">
-                    {member.name}
-                  </span>
+              {t.members.map(member => (
+                <li key={member._id} className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium text-[var(--foreground)]">{member.name}</span>
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded text-xs border ${translatorRoleColors[member.role as TranslatorRole] || ""}`}
                   >
@@ -216,23 +206,42 @@ export default function TranslatorTeamPage() {
             </h2>
             <div className="flex flex-wrap gap-2">
               {socialLinks.telegram && (
-                <SocialLink href={socialLinks.telegram} label="Telegram" icon={<MessageCircle className="w-4 h-4" />} />
+                <SocialLink
+                  href={socialLinks.telegram}
+                  label="Telegram"
+                  icon={<MessageCircle className="w-4 h-4" />}
+                />
               )}
               {socialLinks.discord && (
-                <SocialLink href={socialLinks.discord} label="Discord" icon={<MessageCircle className="w-4 h-4" />} />
+                <SocialLink
+                  href={socialLinks.discord}
+                  label="Discord"
+                  icon={<MessageCircle className="w-4 h-4" />}
+                />
               )}
               {socialLinks.vk && (
-                <SocialLink href={socialLinks.vk} label="VK" icon={<ExternalLink className="w-4 h-4" />} />
+                <SocialLink
+                  href={socialLinks.vk}
+                  label="VK"
+                  icon={<ExternalLink className="w-4 h-4" />}
+                />
               )}
               {socialLinks.website && (
-                <SocialLink href={socialLinks.website} label="Сайт" icon={<ExternalLink className="w-4 h-4" />} />
+                <SocialLink
+                  href={socialLinks.website}
+                  label="Сайт"
+                  icon={<ExternalLink className="w-4 h-4" />}
+                />
               )}
             </div>
           </div>
         )}
 
         {/* Donation links */}
-        {(donationLinks.boosty || donationLinks.patreon || donationLinks.donationalerts || donationLinks.yoomoney) && (
+        {(donationLinks.boosty ||
+          donationLinks.patreon ||
+          donationLinks.donationalerts ||
+          donationLinks.yoomoney) && (
           <div className="mt-6 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
             <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3 flex items-center gap-2">
               <Heart className="w-4 h-4 text-red-500" />
@@ -240,35 +249,57 @@ export default function TranslatorTeamPage() {
             </h2>
             <div className="flex flex-wrap gap-2">
               {donationLinks.boosty && (
-                <SocialLink href={donationLinks.boosty} label="Boosty" icon={<Heart className="w-4 h-4" />} />
+                <SocialLink
+                  href={donationLinks.boosty}
+                  label="Boosty"
+                  icon={<Heart className="w-4 h-4" />}
+                />
               )}
               {donationLinks.patreon && (
-                <SocialLink href={donationLinks.patreon} label="Patreon" icon={<Heart className="w-4 h-4" />} />
+                <SocialLink
+                  href={donationLinks.patreon}
+                  label="Patreon"
+                  icon={<Heart className="w-4 h-4" />}
+                />
               )}
               {donationLinks.donationalerts && (
-                <SocialLink href={donationLinks.donationalerts} label="DonationAlerts" icon={<Heart className="w-4 h-4" />} />
+                <SocialLink
+                  href={donationLinks.donationalerts}
+                  label="DonationAlerts"
+                  icon={<Heart className="w-4 h-4" />}
+                />
               )}
               {donationLinks.yoomoney && (
-                <SocialLink href={donationLinks.yoomoney} label="ЮMoney" icon={<Heart className="w-4 h-4" />} />
+                <SocialLink
+                  href={donationLinks.yoomoney}
+                  label="ЮMoney"
+                  icon={<Heart className="w-4 h-4" />}
+                />
               )}
             </div>
             <p className="mt-3 flex items-start gap-2 text-xs text-[var(--muted-foreground)]">
               <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>Кнопка «Подписаться» на команду и встроенная поддержка донатами пока в разработке. Ссылки выше ведут на внешние страницы команды.</span>
+              <span>
+                Кнопка «Подписаться» на команду и встроенная поддержка донатами пока в разработке.
+                Ссылки выше ведут на внешние страницы команды.
+              </span>
             </p>
           </div>
         )}
 
         {/* Subscribers note when no donation block */}
-        {(!donationLinks.boosty && !donationLinks.patreon && !donationLinks.donationalerts && !donationLinks.yoomoney) && (
-          <p className="mt-4 flex items-start gap-2 text-xs text-[var(--muted-foreground)]">
-            <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>Функции «Подписаться на команду» и «Поддержать» пока в разработке.</span>
-          </p>
-        )}
+        {!donationLinks.boosty &&
+          !donationLinks.patreon &&
+          !donationLinks.donationalerts &&
+          !donationLinks.yoomoney && (
+            <p className="mt-4 flex items-start gap-2 text-xs text-[var(--muted-foreground)]">
+              <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>Функции «Подписаться на команду» и «Поддержать» пока в разработке.</span>
+            </p>
+          )}
 
         {/* Titles list with covers */}
-        {(titles && titles.length > 0) && (
+        {titles && titles.length > 0 && (
           <div className="mt-6 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
             <h2 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
               Переводы
@@ -277,7 +308,7 @@ export default function TranslatorTeamPage() {
               Тайтлы, в переводе которых участвует команда.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {titles.map((title) => (
+              {titles.map(title => (
                 <Link
                   key={title._id}
                   href={getTitlePath(title)}
@@ -321,7 +352,8 @@ export default function TranslatorTeamPage() {
               Переводы
             </h2>
             <p className="text-[var(--muted-foreground)] text-sm">
-              Команда участвует в переводе {t.titleIds.length} тайтл{t.titleIds.length === 1 ? "а" : "ов"}. Список отображается на страницах тайтлов.
+              Команда участвует в переводе {t.titleIds.length} тайтл
+              {t.titleIds.length === 1 ? "а" : "ов"}. Список отображается на страницах тайтлов.
             </p>
           </div>
         )}

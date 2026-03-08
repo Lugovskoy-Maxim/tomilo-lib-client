@@ -79,8 +79,7 @@ export default function NewsSlugPageClient({ slug }: NewsSlugPageClientProps) {
                 href="/news"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 transition-opacity"
               >
-                <ChevronLeft className="w-4 h-4" />
-                К списку новостей
+                <ChevronLeft className="w-4 h-4" />К списку новостей
               </Link>
             </div>
           </div>
@@ -90,7 +89,9 @@ export default function NewsSlugPageClient({ slug }: NewsSlugPageClientProps) {
     );
   }
 
-  const dateStr = formatFullDate(announcement.publishedAt ?? announcement.updatedAt ?? announcement.createdAt);
+  const dateStr = formatFullDate(
+    announcement.publishedAt ?? announcement.updatedAt ?? announcement.createdAt,
+  );
 
   return (
     <>

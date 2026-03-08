@@ -59,7 +59,8 @@ function Section({
 }
 
 /** Общая обёртка для списков с прокруткой (теги, годы) */
-const scrollBox = "max-h-44 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--muted)]/15 p-2 custom-scrollbar";
+const scrollBox =
+  "max-h-44 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--muted)]/15 p-2 custom-scrollbar";
 
 function ChipMulti({
   label,
@@ -140,7 +141,9 @@ function YearRangeFilter({
       {/* Ручной ввод */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">От</label>
+          <label className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
+            От
+          </label>
           <input
             type="number"
             min={yearMin}
@@ -152,7 +155,9 @@ function YearRangeFilter({
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">До</label>
+          <label className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
+            До
+          </label>
           <input
             type="number"
             min={yearMin}
@@ -227,7 +232,10 @@ function TagsFilter({
   return (
     <div className="space-y-2">
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-foreground)]" aria-hidden />
+        <Search
+          className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-foreground)]"
+          aria-hidden
+        />
         <input
           type="search"
           value={query}
@@ -249,7 +257,9 @@ function TagsFilter({
           ))}
         </div>
         {filtered.length === 0 && (
-          <p className="py-4 text-center text-sm text-[var(--muted-foreground)]">Ничего не найдено</p>
+          <p className="py-4 text-center text-sm text-[var(--muted-foreground)]">
+            Ничего не найдено
+          </p>
         )}
       </div>
     </div>
@@ -285,9 +295,11 @@ export default function FilterSidebar<
       filters.types.length +
       filters.status.length +
       filters.ageLimits.length +
-      (filters.releaseYearFrom != null || filters.releaseYearTo != null ? 1 : filters.releaseYears.length) +
+      (filters.releaseYearFrom != null || filters.releaseYearTo != null
+        ? 1
+        : filters.releaseYears.length) +
       filters.tags.length,
-    [filters]
+    [filters],
   );
 
   const handleGenreChange = (genre: string) => {
@@ -329,14 +341,14 @@ export default function FilterSidebar<
 
   const yearMin = useMemo(
     () => (filterOptions.releaseYears.length > 0 ? Math.min(...filterOptions.releaseYears) : 1990),
-    [filterOptions.releaseYears]
+    [filterOptions.releaseYears],
   );
   const yearMax = useMemo(
     () =>
       filterOptions.releaseYears.length > 0
         ? Math.max(...filterOptions.releaseYears)
         : new Date().getFullYear(),
-    [filterOptions.releaseYears]
+    [filterOptions.releaseYears],
   );
 
   const handleTagChange = (tag: string) => {

@@ -22,9 +22,9 @@ export default function ReadingPositionRestoreModal({
   onReset,
   onJumpToPage,
   page,
-  timestamp: _timestamp,
   totalPages,
-  chapterTitle: _chapterTitle,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- timestamp, chapterTitle в пропсах для типа
+  ..._rest
 }: ReadingPositionRestoreModalProps) {
   const [countdown, setCountdown] = useState(5);
   const [isPaused, setIsPaused] = useState(false);
@@ -39,7 +39,7 @@ export default function ReadingPositionRestoreModal({
     const savedAlways = localStorage.getItem("reader-always-start-from-beginning");
     const savedAutoRestore = localStorage.getItem("reader-auto-restore");
     const savedInstant = localStorage.getItem("reader-instant-continue");
-    
+
     if (savedAlways === "true") {
       setIsAlwaysStartFromBeginning(true);
     }
@@ -110,23 +110,33 @@ export default function ReadingPositionRestoreModal({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isOpen, isSettingsLoaded, isAlwaysStartFromBeginning, instantContinue, autoRestoreEnabled, isPaused, onRestore, onReset, onClose]);
+  }, [
+    isOpen,
+    isSettingsLoaded,
+    isAlwaysStartFromBeginning,
+    instantContinue,
+    autoRestoreEnabled,
+    isPaused,
+    onRestore,
+    onReset,
+    onClose,
+  ]);
 
   const progressPercent = Math.round((page / totalPages) * 100);
 
   const quickJumpOptions = useMemo(() => {
     const options: { label: string; page: number }[] = [];
-    
+
     if (page > 1) {
       options.push({ label: "Сохранённая", page });
     }
-    
+
     options.push({ label: "Начало", page: 1 });
-    
+
     const quarter = Math.floor(totalPages * 0.25);
     const half = Math.floor(totalPages * 0.5);
     const threeQuarter = Math.floor(totalPages * 0.75);
-    
+
     if (quarter > 1 && quarter !== page) {
       options.push({ label: "25%", page: quarter });
     }
@@ -136,20 +146,23 @@ export default function ReadingPositionRestoreModal({
     if (threeQuarter > 1 && threeQuarter !== page && threeQuarter < totalPages) {
       options.push({ label: "75%", page: threeQuarter });
     }
-    
+
     return options.slice(0, 4);
   }, [page, totalPages]);
 
-  const handleQuickJump = useCallback((targetPage: number) => {
-    if (onJumpToPage) {
-      onJumpToPage(targetPage);
-    } else if (targetPage === page) {
-      onRestore();
-    } else if (targetPage === 1) {
-      onReset();
-    }
-    onClose();
-  }, [onJumpToPage, onRestore, onReset, onClose, page]);
+  const handleQuickJump = useCallback(
+    (targetPage: number) => {
+      if (onJumpToPage) {
+        onJumpToPage(targetPage);
+      } else if (targetPage === page) {
+        onRestore();
+      } else if (targetPage === 1) {
+        onReset();
+      }
+      onClose();
+    },
+    [onJumpToPage, onRestore, onReset, onClose, page],
+  );
 
   const handleCustomJump = useCallback(() => {
     const targetPage = Math.max(1, Math.min(totalPages, customPage));
@@ -165,7 +178,10 @@ export default function ReadingPositionRestoreModal({
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/50 animate-fade-in"
-        onClick={() => { onReset(); onClose(); }}
+        onClick={() => {
+          onReset();
+          onClose();
+        }}
         aria-hidden
       />
 
@@ -181,9 +197,7 @@ export default function ReadingPositionRestoreModal({
               <BookOpen className="w-4 h-4 text-[var(--primary)]" aria-hidden />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-[var(--foreground)] truncate">
-                Продолжить?
-              </p>
+              <p className="text-sm font-medium text-[var(--foreground)] truncate">Продолжить?</p>
               <p className="text-xs text-[var(--muted-foreground)] tabular-nums">
                 стр. {page} из {totalPages} · {progressPercent}%
               </p>
@@ -191,7 +205,10 @@ export default function ReadingPositionRestoreModal({
           </div>
           <button
             type="button"
-            onClick={() => { onReset(); onClose(); }}
+            onClick={() => {
+              onReset();
+              onClose();
+            }}
             className="flex-shrink-0 p-1.5 rounded-md hover:bg-[var(--muted)] text-[var(--muted-foreground)]"
             aria-label="Закрыть"
           >
@@ -213,14 +230,20 @@ export default function ReadingPositionRestoreModal({
         <div className="px-3 pb-3 flex gap-2">
           <button
             type="button"
-            onClick={() => { onRestore(); onClose(); }}
+            onClick={() => {
+              onRestore();
+              onClose();
+            }}
             className="flex-1 py-2 px-3 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white text-sm font-medium rounded-lg transition-colors active:scale-[0.98]"
           >
             Продолжить
           </button>
           <button
             type="button"
-            onClick={() => { onReset(); onClose(); }}
+            onClick={() => {
+              onReset();
+              onClose();
+            }}
             className="flex-shrink-0 p-2 text-[var(--muted-foreground)] hover:bg-[var(--muted)] rounded-lg transition-colors"
             title="С начала"
           >
@@ -236,7 +259,11 @@ export default function ReadingPositionRestoreModal({
               onClick={() => setShowCustomInput(!showCustomInput)}
               className="w-full px-3 pb-2 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex items-center justify-center gap-1"
             >
-              {showCustomInput ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {showCustomInput ? (
+                <ChevronUp className="w-3 h-3" />
+              ) : (
+                <ChevronDown className="w-3 h-3" />
+              )}
               Другая страница
             </button>
             {showCustomInput && (
@@ -247,7 +274,11 @@ export default function ReadingPositionRestoreModal({
                     min={1}
                     max={totalPages}
                     value={customPage}
-                    onChange={(e) => setCustomPage(Math.max(1, Math.min(totalPages, parseInt(e.target.value) || 1)))}
+                    onChange={e =>
+                      setCustomPage(
+                        Math.max(1, Math.min(totalPages, parseInt(e.target.value) || 1)),
+                      )
+                    }
                     className="w-16 px-2 py-1.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-md text-center focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                   />
                   <button
@@ -259,7 +290,7 @@ export default function ReadingPositionRestoreModal({
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {quickJumpOptions.map((opt) => (
+                  {quickJumpOptions.map(opt => (
                     <button
                       key={opt.page}
                       type="button"
@@ -282,7 +313,7 @@ export default function ReadingPositionRestoreModal({
             <input
               type="checkbox"
               checked={instantContinue}
-              onChange={(e) => handleInstantContinueChange(e.target.checked)}
+              onChange={e => handleInstantContinueChange(e.target.checked)}
               className="w-3.5 h-3.5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
             />
           </label>
@@ -291,7 +322,7 @@ export default function ReadingPositionRestoreModal({
             <input
               type="checkbox"
               checked={isAlwaysStartFromBeginning}
-              onChange={(e) => handleAlwaysStartChange(e.target.checked)}
+              onChange={e => handleAlwaysStartChange(e.target.checked)}
               className="w-3.5 h-3.5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
             />
           </label>
@@ -301,7 +332,7 @@ export default function ReadingPositionRestoreModal({
               <input
                 type="checkbox"
                 checked={autoRestoreEnabled}
-                onChange={(e) => handleAutoRestoreChange(e.target.checked)}
+                onChange={e => handleAutoRestoreChange(e.target.checked)}
                 className="w-3.5 h-3.5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
               />
             </label>
@@ -317,16 +348,38 @@ export default function ReadingPositionRestoreModal({
                 style={{ width: `${(countdown / 5) * 100}%` }}
               />
             </div>
-            <span className="text-[10px] text-[var(--muted-foreground)] tabular-nums w-5">{countdown} с</span>
+            <span className="text-[10px] text-[var(--muted-foreground)] tabular-nums w-5">
+              {countdown} с
+            </span>
           </div>
         )}
       </div>
 
       <style jsx global>{`
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes scale-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-        .animate-fade-in { animation: fade-in 0.15s ease-out; }
-        .animate-scale-in { animation: scale-in 0.2s ease-out; }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.96);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.15s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.2s ease-out;
+        }
       `}</style>
     </div>
   );

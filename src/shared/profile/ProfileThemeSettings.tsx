@@ -18,12 +18,8 @@ export default function ProfileThemeSettings(_props: ProfileThemeSettingsProps) 
             <Palette className="w-5 h-5 text-[var(--primary)]" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">
-              Тема оформления
-            </h2>
-            <p className="text-[var(--muted-foreground)] text-xs">
-              Светлая, тёмная или по системе
-            </p>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Тема оформления</h2>
+            <p className="text-[var(--muted-foreground)] text-xs">Светлая, тёмная или по системе</p>
           </div>
         </div>
         <Tooltip
@@ -31,9 +27,16 @@ export default function ProfileThemeSettings(_props: ProfileThemeSettingsProps) 
             <div className="space-y-2 max-w-[280px]">
               <p className="font-medium">Выбор темы</p>
               <ul className="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
-                <li><strong>Светлая</strong> — классическая светлая тема</li>
-                <li><strong>Тёмная</strong> — тёмная тема, бережёт глаза в темноте</li>
-                <li><strong>Системная</strong> — автоматически подстраивается под настройки вашего устройства</li>
+                <li>
+                  <strong>Светлая</strong> — классическая светлая тема
+                </li>
+                <li>
+                  <strong>Тёмная</strong> — тёмная тема, бережёт глаза в темноте
+                </li>
+                <li>
+                  <strong>Системная</strong> — автоматически подстраивается под настройки вашего
+                  устройства
+                </li>
               </ul>
             </div>
           }

@@ -42,7 +42,11 @@ function TeamCard({ team, chapterNumbers }: { team: TranslatorTeam; chapterNumbe
           {team.isVerified && (
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center ring-2 ring-[var(--background)]">
               <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
           )}
@@ -50,9 +54,7 @@ function TeamCard({ team, chapterNumbers }: { team: TranslatorTeam; chapterNumbe
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="font-semibold text-[var(--foreground)] truncate">
-              {team.name}
-            </h4>
+            <h4 className="font-semibold text-[var(--foreground)] truncate">{team.name}</h4>
           </div>
           <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)] mt-1">
             <span>{team.chaptersCount} глав</span>
@@ -90,7 +92,9 @@ function TeamCard({ team, chapterNumbers }: { team: TranslatorTeam; chapterNumbe
           >
             <Users2 className="w-3.5 h-3.5" />
             <span>Команда ({team.members.length})</span>
-            <ChevronRight className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-90" : ""}`} />
+            <ChevronRight
+              className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-90" : ""}`}
+            />
           </button>
 
           {expanded && (
@@ -98,7 +102,9 @@ function TeamCard({ team, chapterNumbers }: { team: TranslatorTeam; chapterNumbe
               {leader && (
                 <div className="flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                   <Crown className="w-3 h-3 text-yellow-500" />
-                  <span className="text-xs font-medium text-[var(--foreground)]">{leader.name}</span>
+                  <span className="text-xs font-medium text-[var(--foreground)]">
+                    {leader.name}
+                  </span>
                 </div>
               )}
               {otherMembers.map(member => (
@@ -107,7 +113,9 @@ function TeamCard({ team, chapterNumbers }: { team: TranslatorTeam; chapterNumbe
                   className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${translatorRoleColors[member.role]}`}
                 >
                   <span className="text-xs font-medium">{member.name}</span>
-                  <span className="text-[10px] opacity-70">({translatorRoleLabels[member.role]})</span>
+                  <span className="text-[10px] opacity-70">
+                    ({translatorRoleLabels[member.role]})
+                  </span>
                 </div>
               ))}
             </div>
@@ -115,35 +123,38 @@ function TeamCard({ team, chapterNumbers }: { team: TranslatorTeam; chapterNumbe
         </div>
       )}
 
-      {team.donationLinks && Object.keys(team.donationLinks).some(k => team.donationLinks?.[k as keyof typeof team.donationLinks]) && (
-        <div className="mt-3 pt-3 border-t border-[var(--border)]/30">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-[var(--muted-foreground)]">Поддержать:</span>
-            {team.donationLinks.boosty && (
-              <a
-                href={team.donationLinks.boosty}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-500/10 text-orange-500 rounded-lg hover:bg-orange-500/20 transition-colors"
-              >
-                <Heart className="w-3 h-3" />
-                Boosty
-              </a>
-            )}
-            {team.donationLinks.patreon && (
-              <a
-                href={team.donationLinks.patreon}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors"
-              >
-                <Heart className="w-3 h-3" />
-                Patreon
-              </a>
-            )}
+      {team.donationLinks &&
+        Object.keys(team.donationLinks).some(
+          k => team.donationLinks?.[k as keyof typeof team.donationLinks],
+        ) && (
+          <div className="mt-3 pt-3 border-t border-[var(--border)]/30">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-[var(--muted-foreground)]">Поддержать:</span>
+              {team.donationLinks.boosty && (
+                <a
+                  href={team.donationLinks.boosty}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-500/10 text-orange-500 rounded-lg hover:bg-orange-500/20 transition-colors"
+                >
+                  <Heart className="w-3 h-3" />
+                  Boosty
+                </a>
+              )}
+              {team.donationLinks.patreon && (
+                <a
+                  href={team.donationLinks.patreon}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-2 py-1 text-xs bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors"
+                >
+                  <Heart className="w-3 h-3" />
+                  Patreon
+                </a>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }

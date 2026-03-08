@@ -17,17 +17,10 @@ let refreshPromise: Promise<unknown> | null = null;
  * - Bearer из localStorage при наличии (для обратной совместимости и OAuth)
  * - при 401 — один раз вызывается refresh, затем повтор исходного запроса
  */
-export const baseQueryWithReauth: BaseQueryFn = async (
-  args,
-  api: BaseQueryApi,
-  extraOptions,
-) => {
+export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, extraOptions) => {
   // Some endpoints are intentionally public. If backend rejects invalid Bearer tokens even for public routes,
   // sending Authorization may turn a public 200 into a 401. Keep these requests token-free.
-  const PUBLIC_ENDPOINTS = new Set([
-    "getDecorations",
-    "getDecorationsByType",
-  ]);
+  const PUBLIC_ENDPOINTS = new Set(["getDecorations", "getDecorationsByType"]);
 
   const baseQuery = fetchBaseQuery({
     baseUrl: API_BASE,
@@ -63,16 +56,12 @@ export const baseQueryWithReauth: BaseQueryFn = async (
       refreshPromise = (async () => {
         try {
           const storedRefresh =
-            typeof window !== "undefined"
-              ? localStorage.getItem(REFRESH_TOKEN_KEY)
-              : null;
+            typeof window !== "undefined" ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
           const refreshResult = await fetch(REFRESH_URL, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
-            body: storedRefresh
-              ? JSON.stringify({ refresh_token: storedRefresh })
-              : undefined,
+            body: storedRefresh ? JSON.stringify({ refresh_token: storedRefresh }) : undefined,
           });
           if (refreshResult.ok) {
             const data = await refreshResult.json().catch(() => ({}));
@@ -81,8 +70,7 @@ export const baseQueryWithReauth: BaseQueryFn = async (
             const newRefresh = payload?.refresh_token;
             if (typeof window !== "undefined") {
               if (newAccess) localStorage.setItem(AUTH_TOKEN_KEY, newAccess);
-              if (newRefresh)
-                localStorage.setItem(REFRESH_TOKEN_KEY, newRefresh);
+              if (newRefresh) localStorage.setItem(REFRESH_TOKEN_KEY, newRefresh);
             }
             return;
           }

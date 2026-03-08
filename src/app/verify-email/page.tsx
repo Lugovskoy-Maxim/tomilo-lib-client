@@ -23,9 +23,7 @@ function VerifyEmailPageContent() {
       if (retry) setIsRetrying(true);
 
       try {
-        const response = await fetch(
-          `${API_BASE}/auth/verify-email?token=${token}`,
-        );
+        const response = await fetch(`${API_BASE}/auth/verify-email?token=${token}`);
         const data = await response.json();
 
         if (data.success) {
@@ -38,9 +36,7 @@ function VerifyEmailPageContent() {
       } catch (err) {
         console.error("Ошибка при подтверждении email:", err);
         setStatus("error");
-        setMessage(
-          "Произошла ошибка при подтверждении email. Проверьте подключение к интернету.",
-        );
+        setMessage("Произошла ошибка при подтверждении email. Проверьте подключение к интернету.");
       } finally {
         setIsRetrying(false);
       }
@@ -113,11 +109,7 @@ function VerifyEmailPageContent() {
                   >
                     Перейти в профиль
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleGoHome}
-                    className="w-full rounded-full"
-                  >
+                  <Button variant="outline" onClick={handleGoHome} className="w-full rounded-full">
                     На главную
                   </Button>
                 </div>
@@ -158,11 +150,7 @@ function VerifyEmailPageContent() {
                   >
                     Перейти в профиль (повторная отправка письма)
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleGoHome}
-                    className="w-full rounded-full"
-                  >
+                  <Button variant="outline" onClick={handleGoHome} className="w-full rounded-full">
                     На главную
                   </Button>
                 </div>
