@@ -42,9 +42,11 @@ export const commentsApi = createApi({
         page?: number;
         limit?: number;
         includeReplies?: boolean;
+        /** newest | oldest | popular — порядок сортировки */
+        sortOrder?: "newest" | "oldest" | "popular";
       }
     >({
-      query: ({ entityType, entityId, page = 1, limit = 20, includeReplies = false }) => ({
+      query: ({ entityType, entityId, page = 1, limit = 20, includeReplies = false, sortOrder }) => ({
         url: "/comments",
         params: {
           entityType,
@@ -52,6 +54,7 @@ export const commentsApi = createApi({
           page,
           limit,
           includeReplies,
+          ...(sortOrder && { sortOrder }),
         },
       }),
       providesTags: (result, error, arg) => [

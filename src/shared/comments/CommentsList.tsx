@@ -47,7 +47,7 @@ export function CommentsList({ comments, onReply, onEdit, isLoading }: CommentsL
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5 sm:space-y-2">
       {comments.map(comment => (
         <CommentItem key={comment._id} comment={comment} onReply={onReply} onEdit={onEdit} />
       ))}

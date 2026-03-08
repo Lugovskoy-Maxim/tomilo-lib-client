@@ -4,18 +4,144 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Нет соединения — Tomilo-lib</title>
+  <link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" />
   <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; background: #0a0a0a; color: #fafafa; text-align: center; }
-    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    p { color: #a1a1aa; margin-bottom: 1.5rem; }
-    button { padding: 0.75rem 1.5rem; font-size: 1rem; border: none; border-radius: 0.5rem; background: #3b82f6; color: white; cursor: pointer; }
-    button:hover { background: #2563eb; }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; font-size: 14px; }
+    @media (min-width: 768px) { html { font-size: 15px; } }
+    @media (min-width: 1024px) { html { font-size: 16px; } }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      text-align: center;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 1rem;
+      background: oklch(0.98 0.003 250);
+      color: oklch(0.18 0.01 250);
+      -webkit-font-smoothing: antialiased;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: oklch(0.13 0.008 250);
+        color: oklch(0.90 0.008 250);
+      }
+      .offline-card { background: oklch(0.16 0.01 250); border-color: oklch(0.28 0.01 250); }
+      .offline-desc { color: oklch(0.58 0.01 250); }
+      .offline-btn { background: oklch(0.65 0.20 250); color: oklch(0.98 0.005 250); }
+      .offline-btn:hover { filter: brightness(1.08); }
+      .offline-link { color: oklch(0.72 0.18 250); }
+      .offline-link:hover { color: oklch(0.78 0.14 250); }
+      .offline-icon-stroke { stroke: oklch(0.58 0.01 250); }
+      .offline-icon-fill { fill: oklch(0.58 0.01 250); }
+    }
+    .offline-wrap {
+      width: 100%;
+      max-width: 28rem;
+      background: linear-gradient(to bottom right, oklch(0.98 0.003 250), oklch(0.94 0.005 250));
+      border-radius: 1rem;
+      border: 1px solid oklch(0.88 0.008 250);
+      padding: 2.5rem 1.5rem;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    }
+    @media (prefers-color-scheme: dark) {
+      .offline-wrap {
+        background: linear-gradient(to bottom right, oklch(0.14 0.008 250), oklch(0.16 0.01 250));
+        box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.3);
+      }
+    }
+    .offline-icon {
+      width: 5rem;
+      height: 5rem;
+      margin: 0 auto 1.5rem;
+      display: block;
+    }
+    .offline-icon-stroke { stroke: oklch(0.50 0.01 250); }
+    .offline-icon-fill { fill: oklch(0.50 0.01 250); }
+    .offline-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    @media (min-width: 768px) {
+      .offline-title { font-size: 1.625rem; }
+    }
+    @media (min-width: 1024px) {
+      .offline-title { font-size: 1.75rem; }
+    }
+    .offline-desc {
+      color: oklch(0.50 0.01 250);
+      line-height: 1.5;
+      margin: 0 0 1.75rem;
+      font-size: 1rem;
+    }
+    .offline-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 0.75rem;
+      background: oklch(0.55 0.18 250);
+      color: oklch(0.98 0.005 250);
+      cursor: pointer;
+      transition: filter 0.2s, transform 0.15s;
+    }
+    @media (min-width: 1024px) {
+      .offline-btn { font-size: 1.0625rem; }
+    }
+    .offline-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .offline-btn:active { transform: translateY(0); }
+    .offline-footer {
+      margin-top: 1.5rem;
+    }
+    .offline-link {
+      font-size: 0.875rem;
+      color: oklch(0.55 0.18 250);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    @media (min-width: 1024px) {
+      .offline-link { font-size: 0.9375rem; }
+    }
+    .offline-link:hover { color: oklch(0.48 0.14 250); text-decoration: underline; }
+    .offline-logo {
+      margin-top: 2rem;
+      opacity: 0.5;
+      font-size: 0.75rem;
+      color: inherit;
+    }
+    @media (min-width: 768px) {
+      .offline-logo { font-size: 0.8125rem; }
+    }
   </style>
 </head>
 <body>
-  <h1>Нет соединения</h1>
-  <p>Проверьте интернет и обновите страницу.</p>
-  <button type="button" onclick="window.location.reload()">Обновить</button>
+  <div class="offline-wrap offline-card">
+    <svg class="offline-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path class="offline-icon-fill" d="M32 12c-6.6 0-12.4 2.6-16.8 6.8l-4.2-4.2a24 24 0 0 1 33.8-.2l-1.4 1.4-1.4-1.4a24 24 0 0 1 21 0l-4.2 4.2A16 16 0 0 0 32 12z" opacity="0.4"/>
+      <path class="offline-icon-stroke" d="M8 28l6 6M56 28l-6 6M20 44l8-8M44 44l-8-8M32 52V44" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="offline-icon-stroke" d="M12 12l40 40" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <h1 class="offline-title">Нет соединения</h1>
+    <p class="offline-desc">Проверьте интернет и обновите страницу. Часть контента будет доступна после восстановления сети.</p>
+    <button type="button" class="offline-btn" onclick="window.location.reload()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+      Обновить
+    </button>
+    <p class="offline-footer">
+      <a href="/" class="offline-link">На главную</a>
+    </p>
+  </div>
+  <p class="offline-logo">Tomilo-lib</p>
 </body>
 </html>

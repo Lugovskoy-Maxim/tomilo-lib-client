@@ -1,5 +1,7 @@
 "use client";
 
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { Footer, Header } from "@/widgets";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import RateLimitError from "@/shared/error-state/RateLimitError";
@@ -8,9 +10,7 @@ function RateLimitContent() {
   const searchParams = useSearchParams();
   const [remainingSeconds, setRemainingSeconds] = useState(60);
 
-  // Получаем время из URL параметров или localStorage
   useEffect(() => {
-    // Сначала пробуем получить из URL
     const urlSeconds = searchParams.get("seconds");
     if (urlSeconds) {
       const seconds = parseInt(urlSeconds, 10);
@@ -19,8 +19,6 @@ function RateLimitContent() {
         return;
       }
     }
-
-    // Пробуем из localStorage
     const stored = localStorage.getItem("rateLimitRemaining");
     if (stored) {
       const seconds = parseInt(stored, 10);
@@ -30,19 +28,19 @@ function RateLimitContent() {
     }
   }, [searchParams]);
 
-  // Сохраняем время в localStorage для сохранения при обновлении
   useEffect(() => {
     localStorage.setItem("rateLimitRemaining", remainingSeconds.toString());
   }, [remainingSeconds]);
 
-  // Обновляем заголовок страницы
-  useEffect(() => {
-    document.title = "Слишком много запросов - Tomilo";
-  }, []);
+  usePageTitle("Слишком много запросов — Tomilo-lib");
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <RateLimitError remainingSeconds={remainingSeconds} />
+    <div className="flex min-h-[100dvh] flex-col">
+      <Header />
+      <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4 py-12 sm:py-16">
+        <RateLimitError remainingSeconds={remainingSeconds} />
+      </main>
+      <Footer />
     </div>
   );
 }
@@ -51,7 +49,7 @@ export default function RateLimitPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[var(--background)]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]" />
         </div>
       }
