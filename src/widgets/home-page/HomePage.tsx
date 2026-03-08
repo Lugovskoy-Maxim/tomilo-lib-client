@@ -116,14 +116,8 @@ export default function HomePage() {
   // Гости видят 18+; авторизованные — по настройке (по умолчанию показываем)
   const includeAdult = !user ? true : user.displaySettings?.isAdult !== false;
 
-  const {
-    popularTitles,
-    randomTitles,
-    underratedTitles,
-    topManhwa,
-    topManhua,
-    top2026,
-  } = useHomeData({ visibleSections, includeAdult });
+  const { popularTitles, randomTitles, underratedTitles, topManhwa, topManhua, top2026 } =
+    useHomeData({ visibleSections, includeAdult });
   // latest-updates загружаем только через RTK Query ниже — не дублируем запрос из useStaticData
   const { collections } = useStaticData({
     visibleSections: { ...visibleSections, latestUpdates: false },

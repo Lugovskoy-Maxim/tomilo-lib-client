@@ -124,8 +124,8 @@ export const useAuth = () => {
     if (user.birthDate) {
       checkAndSetAgeVerification(user.birthDate);
     }
-  // auth.user синхронизируется из profileResponse, явно не добавляем чтобы избежать лишних синхронизаций
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // auth.user синхронизируется из profileResponse, явно не добавляем чтобы избежать лишних синхронизаций
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileResponse, token, dispatch]);
 
   useEffect(() => {

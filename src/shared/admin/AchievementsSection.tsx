@@ -1,17 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  Trophy,
-  EyeOff,
-  Copy,
-  Filter,
-  Download,
-} from "lucide-react";
+import { Plus, Edit, Trash2, Search, Trophy, EyeOff, Copy, Filter, Download } from "lucide-react";
 import {
   useGetAchievementsQuery,
   useCreateAchievementMutation,
