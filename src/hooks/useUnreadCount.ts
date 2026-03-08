@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 import {
   useGetUnreadCountQuery,
   notificationsApi,
 } from "@/store/api/notificationsApi";
+import { useAppDispatch } from "@/store";
 import {
   subscribeNotifications,
   isNotificationsSocketConnected,
@@ -24,7 +24,7 @@ export function useUnreadCount(options?: { tabVisible?: boolean; skip?: boolean 
   const tabVisible = options?.tabVisible ?? true;
   const skip = options?.skip ?? false;
   const [isSocketConnected, setIsSocketConnected] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
     skip,

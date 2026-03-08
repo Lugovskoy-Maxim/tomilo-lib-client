@@ -640,7 +640,7 @@ export default function ChapterEditorPage() {
                 </div>
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="outline"
                   onClick={handleSyncFromSource}
                   disabled={isSyncing || !sourceUrlForSync.trim()}
                   className="flex items-center gap-2"

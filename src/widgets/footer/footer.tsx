@@ -353,7 +353,7 @@ export default function Footer() {
                 <ExternalLink className="w-3 h-3 opacity-70" aria-hidden />
               </Link>
               <span className="py-1.5 px-3 rounded-xl whitespace-nowrap text-[var(--muted-foreground)] bg-gradient-to-br from-[rgba(var(--primary-rgb),0.12)] to-[rgba(var(--primary-rgb),0.06)] border border-[rgba(var(--border-rgb),0.6)] dark:border-[rgba(var(--border-rgb),0.6)]">
-                Версия 03032025
+                Версия 09032025
               </span>
             </div>
           </div>
