@@ -113,6 +113,8 @@ export interface UserProfile {
   titlesReadCount?: number;
   /** Количество оставленных комментариев */
   commentsCount?: number;
+  /** Количество выставленных оценок */
+  ratingsCount?: number;
   /** Количество полученных лайков на комментариях */
   likesReceivedCount?: number;
   /** Примерное время чтения в минутах */
