@@ -183,7 +183,8 @@ function ReadChapterPageContent({
             teamId?: string;
             translatorTeamId?: string;
           };
-          const chapterImages = apiData.images || apiData.pages || [];
+          const rawPages = apiData.images || apiData.pages || [];
+          const chapterImages = rawPages.map((p: string) => getImageUrls(p).primary);
           const chapterNumber = apiData.chapterNumber ?? 0;
           const mappedChapter: ReaderChapter = {
             _id: apiData._id,

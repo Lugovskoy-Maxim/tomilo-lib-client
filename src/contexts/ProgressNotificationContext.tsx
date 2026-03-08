@@ -182,8 +182,6 @@ export function ProgressNotificationProvider({ children }: ProgressNotificationP
           icon: String(a.icon ?? ""),
           type: (String(a.type ?? "") || "reading") as UserAchievement["type"],
           rarity: (String(a.rarity ?? "") || "common") as UserAchievement["rarity"],
-          level: Number(a.level ?? 0),
-          levelName: String(a.levelName ?? ""),
           unlockedAt: String(a.unlockedAt ?? ""),
           progress: Number(a.progress ?? 0),
           maxProgress: Number(a.maxProgress ?? 0),

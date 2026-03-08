@@ -73,7 +73,7 @@ export const mangaParserApi = createApi({
       transformResponse: (response: ApiResponseDto<SupportedSitesResponse>) => response,
     }),
 
-    // Sync existing chapters from source (re-download pages)
+    // Sync existing chapters from source (re-download pages). Only manual — do not call automatically.
     syncChapters: builder.mutation<
       ApiResponseDto<SyncChaptersResponse>,
       SyncChaptersDto
