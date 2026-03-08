@@ -15,7 +15,6 @@ import { login, logout, setLoading, updateUser } from "@/store/slices/authSlice"
 import { RootState } from "@/store";
 import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-verification";
-import { isValidAvatarUrl } from "@/lib/asset-url";
 import { ReadingProgressResponse } from "@/types/progress";
 
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
@@ -23,6 +22,12 @@ import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
 const USER_DATA_KEY = "tomilo_lib_user";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+function isValidAvatarUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") return false;
+  if (url.includes("undefined") || url.includes("null")) return false;
+  return true;
+}
 
 export const useAuth = () => {
   const dispatch = useDispatch();
