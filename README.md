@@ -218,7 +218,7 @@ npm run bot:chapters
 
 ## 📁 Структура проекта
 
-Исходный код находится в `src/`. Подробные соглашения по именованию и организации файлов — в [FILE_STRUCTURE.md](FILE_STRUCTURE.md).
+Исходный код находится в `src/`. Для понимания слоёв приложения и правил масштабирования см. **[ARCHITECTURE.md](ARCHITECTURE.md)**. Соглашения по именованию и организации файлов — в [FILE_STRUCTURE.md](FILE_STRUCTURE.md).
 
 ```
 src/
@@ -249,6 +249,7 @@ src/
 
 | Документ                                                     | Описание                                                     |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [ARCHITECTURE.md](ARCHITECTURE.md)                           | Слои приложения, зависимости, масштабирование store и API    |
 | [FILE_STRUCTURE.md](FILE_STRUCTURE.md)                       | Соглашения по структуре папок, именованию файлов и CSS       |
 | [PERFORMANCE_OPTIMIZATION.md](PERFORMANCE_OPTIMIZATION.md)   | Выполненные оптимизации и рекомендации по производительности |
 | [docs/api-profile-deletion.md](docs/api-profile-deletion.md) | Спецификация API удаления профиля для бэкенда                |
