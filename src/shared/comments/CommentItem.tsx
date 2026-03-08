@@ -168,18 +168,18 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   return (
     <article
       id={`comment-${comment._id}`}
-      className={`rounded-xl overflow-hidden scroll-mt-4 transition-all ${
-        level > 0 ? "ml-5 mt-2 pl-3 border-l border-[var(--primary)]/20" : ""
+      className={`rounded-lg sm:rounded-xl overflow-hidden scroll-mt-4 transition-all ${
+        level > 0 ? "ml-3 sm:ml-5 mt-1.5 sm:mt-2 pl-2 sm:pl-3 border-l border-[var(--primary)]/20" : ""
       } ${
         isInTop10 
           ? "bg-gradient-to-br from-[var(--primary)]/8 via-[var(--primary)]/3 to-transparent border border-[var(--primary)]/15 shadow-sm shadow-[var(--primary)]/5" 
           : ""
       }`}
     >
-      <div className="p-3">
-        <div className="flex gap-2.5">
+      <div className="p-2 sm:p-3">
+        <div className="flex gap-2 sm:gap-2.5">
           {/* Avatar (декоративный аватар и рамка из equippedDecorations, если бэкенд вернул у автора) */}
-          <div className="flex-shrink-0 h-11 w-11 overflow-hidden rounded-full">
+          <div className="flex-shrink-0 h-8 w-8 sm:h-11 sm:w-11 overflow-hidden rounded-full">
             {(() => {
               const avatarUrl = userData?.avatar
                 ? getCoverUrls(userData.avatar).primary
@@ -213,9 +213,9 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-              <span className="inline-flex items-center gap-1 flex-wrap">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)]/60">
+            <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap mb-0.5">
+              <span className="inline-flex items-center gap-1 flex-wrap min-w-0">
+                <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)]/60">
                   {profileHref ? (
                     <Link
                       href={profileHref}
@@ -234,16 +234,16 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                   )}
                 </span>
               </span>
-              <span className="text-[var(--muted-foreground)] text-[10px]">·</span>
-              <span className="text-[10px] text-[var(--muted-foreground)]">
+              <span className="text-[var(--muted-foreground)] text-[9px] sm:text-[10px] shrink-0">·</span>
+              <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] shrink-0">
                 {formatDate(comment.createdAt)}
               </span>
               {comment.isEdited && (
-                <span className="text-[10px] text-[var(--muted-foreground)] italic">изм.</span>
+                <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] italic shrink-0">изм.</span>
               )}
               
               {/* Right side: Top10 badge and owner menu */}
-              <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-1 sm:gap-2 ml-auto min-w-0 flex-wrap justify-end">
                 <LeaderTop10Badge userId={userData?._id} />
                 {isOwner && (
                   <div className="relative">
@@ -283,12 +283,12 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               </div>
             </div>
 
-            <p className="text-[var(--foreground)] text-[14px] leading-snug whitespace-pre-wrap break-words mb-2">
+            <p className="text-[var(--foreground)] text-[13px] sm:text-[14px] leading-snug whitespace-pre-wrap break-words mb-1.5 sm:mb-2">
               {comment.content}
             </p>
 
             {/* Actions: только реакции (пузырьки + пикер) и ответ */}
-            <div className="flex items-center gap-0.5 flex-wrap">
+            <div className="flex items-center gap-0.5 flex-wrap gap-y-0.5">
               {/* Реакции: пузырьки с эмодзи и счётчиком (в т.ч. 👍 и 👎) */}
               {displayReactions.map(({ emoji, count }) => (
                 <button
@@ -328,7 +328,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
 
             {/* Replies */}
             {comment.replies && comment.replies.length > 0 && (
-              <div className="mt-3 pt-2 border-t border-[var(--border)]/50">
+              <div className="mt-2 sm:mt-3 pt-1.5 sm:pt-2 border-t border-[var(--border)]/50">
                 <button
                   onClick={() => setShowReplies(!showReplies)}
                   className="text-xs text-[var(--primary)] hover:underline mb-2"

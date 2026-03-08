@@ -1059,7 +1059,7 @@ export default function ReaderControls({
                 </button>
               </div>
             </div>
-            <div className="overflow-y-auto flex-1 p-5">
+            <div className="overflow-y-auto flex-1 p-3 sm:p-5">
               <CommentsSection
                 entityType={CommentEntityType.CHAPTER}
                 entityId={currentChapter._id}

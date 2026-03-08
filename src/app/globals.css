@@ -109,6 +109,19 @@ html:not(.dark) .footer-desktop {
   background-color: #ffffff !important;
 }
 
+/* Тёмная тема: явно тёмный фон хедера (в т.ч. на мобильных, где Tailwind dark: иногда не срабатывает) */
+html.dark header,
+[data-theme="dark"] header {
+  background-color: rgba(8, 8, 12, 0.92) !important;
+}
+
+/* До гидрации: тёмный хедер при системной тёмной теме */
+@media (prefers-color-scheme: dark) {
+  html:not(.light) header {
+    background-color: rgba(8, 8, 12, 0.92) !important;
+  }
+}
+
 /* Шрифт из настроек (localStorage) */
 html.font-comfortaa body {
   font-family: var(--font-comfortaa), var(--font-exo_2), Arial, Helvetica, sans-serif;
